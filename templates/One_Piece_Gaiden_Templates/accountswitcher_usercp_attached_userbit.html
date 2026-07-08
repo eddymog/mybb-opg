@@ -1,0 +1,15 @@
+<tr><td>
+                            <form method="post" action="usercp.php">
+                            <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                            <input type="hidden" name="action" value="as_detachuser" />
+                            <input type="hidden" name="uid" value="{$attachedOneUID}" />
+                            <table width="100%" border="0" style="border:1px solid #000;margin:2px 0;padding:3px;" class="trow1">
+                                <tr>
+                                    <td>{$attachedOneName}</td>
+                                    <td align="right">
+                                        <input type="submit" value="{$lang->as_detachuser}" name="{$lang->as_detachuser}" class="button" />
+                                    </td>
+                                </tr>
+                            </table>
+                            </form>
+                        </td></tr>

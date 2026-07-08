@@ -61,6 +61,7 @@ if ($categoria && $resumen && $uid != '0') {
             if ($categoria == 'combate') { $categoria2 = "Moderación de Combate"; }
             if ($categoria == 'tecnica') { $categoria2 = "Técnicas, Akumas y Estilos"; }
             if ($categoria == 'programacion') { $categoria2 = "Errores de Programación"; }
+            if ($categoria == 'reset') { $categoria2 = "Ticket de Reset de Build"; }
 
             $peticiones_txt .= "<strong>$pet_counter. [$categoria2] <br> Fecha: $enviado - $fecha<br>Resumen:</strong> $resumen <br> <strong>Descripción:</strong> $descripcion<br><br>";
             $pet_counter += 1;

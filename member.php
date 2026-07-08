@@ -2074,6 +2074,23 @@ if($mybb->input['action'] == "profile")
 	$lang->send_user_email = $lang->sprintf($lang->send_user_email, $memprofile['username']);
 
 	$useravatar = format_avatar($memprofile['avatar'], $memprofile['avatardimensions']);
+
+	$faccion_color = '#ac0359';
+	$q_fc = $db->simple_select('op_fichas', 'faccion', "fid='{$uid}'", ['limit' => 1]);
+	if($fc_row = $db->fetch_array($q_fc)) {
+		$_faccion_colors = [
+			'Pirata'         => '#8d0101',
+			'Marina'         => '#006d94',
+			'CipherPol'      => '#3e528f',
+			'Cazadores'      => '#007500',
+			'Revolucionario' => '#be9d6f',
+			'Civil'          => '#ac0359',
+		];
+		$faccion_color = $_faccion_colors[$fc_row['faccion']] ?? '#ac0359';
+	}
+
+	$formattedname = '<span style="color: '.$faccion_color.';" class="username_bright"><strong>'.htmlspecialchars_uni($memprofile['username']).'</strong></span>';
+
 	eval("\$avatar = \"".$templates->get("member_profile_avatar")."\";");
 
 	$website = $sendemail = $sendpm = $contact_details = '';
@@ -2567,6 +2584,12 @@ if($mybb->input['action'] == "profile")
 		foreach($pfcache as $customfield)
 		{
 			if($mybb->usergroup['cancp'] != 1 && $mybb->usergroup['issupermod'] != 1 && $mybb->usergroup['canmodcp'] != 1 && !is_member($customfield['viewableby']) || !$customfield['profile'])
+			{
+				continue;
+			}
+
+			$_hidden_profile_fields = ['gender', 'ranking de miembro', 'ranking'];
+			if(in_array(strtolower(trim($customfield['name'])), $_hidden_profile_fields))
 			{
 				continue;
 			}

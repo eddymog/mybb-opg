@@ -1,0 +1,1468 @@
+<html>
+
+<head>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+	<title>Mercado Negro</title>
+	{$headerinclude}
+
+	<style>
+	
+		#button-comprar {
+			padding: 10px 20px; font-size: 22px; width: 240px; box-sizing: border-box; border: 2px solid rgb(50 50 50) !important; letter-spacing: 1px; text-shadow: 1px 1px 1px black; transition: all 0.2s ease-out;background-color: gray; transition: all 0.2s ease-out;
+			border-radius: 7px !important;
+		}
+		
+		#button-comprar:hover {
+			filter: drop-shadow(0px 0px 3px black);
+		}
+		.mainBackground {
+            background-color: #1a0e2a; /* Color negro con tonos morados oscuros */
+        }
+        .secondBackground {
+            background-color: #1a0e2a; /* Color negro con tonos morados oscuros */
+        }
+        .thirdBackground {
+            background-color: #1a0a30; /* Color negro con tonos morados oscuros */
+        }
+        
+        /* Estilos para el popup de advertencia */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .popup-content {
+            background: linear-gradient(145deg, #2a0a0a, #4a1a1a);
+            border: 3px solid #ff4444;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.5);
+            animation: popupAppear 0.5s ease-out;
+        }
+        
+        .popup-title {
+            color: #ff4444;
+            font-family: moonGetHeavy;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px black;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        
+        .popup-warning {
+            color: #ffcccc;
+            font-family: InterRegular;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 2px black;
+        }
+        
+        .popup-button {
+            background: linear-gradient(145deg, #ff4444, #cc0000);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 18px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-shadow: 1px 1px 2px black;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+        
+        .popup-button:hover {
+            background: linear-gradient(145deg, #ff6666, #ff0000);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        @keyframes popupAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .skull-icon {
+            font-size: 40px;
+            color: #ff4444;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px black;
+        }
+        
+        /* Estilos para objetos bloqueados por rango */
+        .item-blocked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+            pointer-events: none;
+            position: relative;
+        }
+        
+        .item-blocked::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 68, 68, 0.1),
+                rgba(255, 68, 68, 0.1) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            z-index: 5;
+            border-radius: 5px;
+        }
+        
+        .item-blocked::after {
+            content: "?";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #ff4444;
+            text-shadow: 2px 2px 4px black;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .rango-required {
+            background-color: rgba(255, 68, 68, 0.9);
+            color: white;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-family: moonGetHeavy;
+            border-radius: 3px;
+            text-shadow: 1px 1px 2px black;
+            margin: 2px 0;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Estilos para las cajas de saldo */
+        .saldoBoxFirst {
+            background-color: #9664e0;
+            font-size: 16px;
+            font-family: moonGetHeavy;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 1px 1px black;
+            padding: 8px;
+            border: 1px solid black;
+            border-radius: 7px 7px 0 0;
+        }
+        
+        .saldoBoxSecond {
+            background-color: #6842a0;
+            font-size: 20px;
+            font-family: moonGetHeavy;
+            color: white;
+            text-align: center;
+            text-shadow: 1px 1px 1px black;
+            padding: 10px;
+            border: 1px solid black;
+            border-top: none;
+            border-radius: 0 0 7px 7px;
+        }
+        
+        /* Estilos específicos para objetos de contrabando */
+        .contrabando-item {
+            position: relative;
+        }
+        
+        .contrabando-badge {
+            background: linear-gradient(145deg, #8b2424, #6a1b1b);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-shadow: 1px 1px 2px black;
+            margin: 2px 0;
+            text-align: center;
+            letter-spacing: 0.5px;
+            border: 1px solid #ff4444;
+        }
+        
+        /* Estilos para el botón de regenerar pool */
+        .regenerar-button:hover {
+            background: linear-gradient(145deg, #ff6666, #ff0000) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Estilos para el bazar */
+        .bazar-modo-btn {
+            background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 16px;
+            padding: 12px 24px;
+            border: 2px solid #666;
+            border-radius: 8px;
+            cursor: pointer;
+            text-shadow: 1px 1px 2px black;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            min-width: 140px;
+        }
+        
+        .bazar-modo-btn:hover {
+            background: linear-gradient(145deg, #6a6a6a, #4a4a4a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .bazar-modo-active {
+            background: linear-gradient(145deg, #9664e0, #6842a0) !important;
+            border-color: #9664e0 !important;
+            box-shadow: 0 0 10px rgba(150, 100, 224, 0.5);
+        }
+        
+        .bazar-badge {
+            background: linear-gradient(145deg, #ff8c00, #ff6600);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-shadow: 1px 1px 2px black;
+            margin: 2px 0;
+            text-align: center;
+            letter-spacing: 0.5px;
+            border: 1px solid #ff8c00;
+        }
+        
+        /* Estilos para listings privados (no publicados aún) */
+        .listing-privado {
+            position: relative;
+            animation: pulsePrivado 2s ease-in-out infinite;
+        }
+        
+        .listing-privado::before {
+            content: '?️';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e67e22;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(230, 126, 34, 0.8);
+        }
+        
+        @keyframes pulsePrivado {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(230, 126, 34, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 15px rgba(230, 126, 34, 0.8);
+            }
+        }
+        
+        /* Estilos para modales del bazar */
+        .bazar-modal {
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bazar-modal-content {
+            background: linear-gradient(145deg, #2a1a4a, #1a0a30);
+            border: 3px solid #9664e0;
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            color: white;
+            font-family: InterRegular;
+            box-shadow: 0 0 30px rgba(150, 100, 224, 0.5);
+            position: relative;
+        }
+        
+        .bazar-modal-content h2 {
+            color: #9664e0;
+            font-family: moonGetHeavy;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px black;
+        }
+        
+        .bazar-modal-content .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 10px;
+        }
+        
+        .bazar-modal-content .close:hover {
+            color: white;
+        }
+        
+        .modal-objeto-info {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-objeto-info h3 {
+            margin: 0 0 10px 0;
+            color: #ffcc00;
+            font-family: moonGetHeavy;
+        }
+        
+        .modal-objeto-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .modal-form {
+            margin-bottom: 20px;
+        }
+        
+        .modal-form label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+            color: #cccccc;
+        }
+        
+        .modal-form input,
+        .modal-form select,
+        .modal-form textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: InterRegular;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .modal-form input:focus,
+        .modal-form select:focus,
+        .modal-form textarea:focus {
+            outline: none;
+            border-color: #9664e0;
+            box-shadow: 0 0 5px rgba(150, 100, 224, 0.3);
+        }
+        
+        .modal-botones {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .btn-confirmar {
+            background: linear-gradient(145deg, #28a745, #1e7e34);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 14px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-confirmar:hover {
+            background: linear-gradient(145deg, #34ce57, #28a745);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-cancelar {
+            background: linear-gradient(145deg, #dc3545, #c82333);
+            color: white;
+            font-family: moonGetHeavy;
+            font-size: 14px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        .btn-cancelar:hover {
+            background: linear-gradient(145deg, #e4606d, #dc3545);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+	</style>
+</head>
+
+<body>
+	<!-- Popup de advertencia del mercado negro -->
+	<div id="warningPopup" class="popup-overlay" style="display: none;">
+		<div class="popup-content">
+			<div class="skull-icon">☠️</div>
+			<div class="popup-title">¡ADVERTENCIA!</div>
+			<div class="popup-warning">
+				<strong>MERCADO NEGRO - ZONA PELIGROSA</strong><br><br>
+				⚠️ Los objetos vendidos aquí pueden ser <strong>FALSIFICACIONES</strong><br>
+				⚠️ Existe riesgo de ser <strong>ESTAFADO</strong> por comerciantes sin escrúpulos<br>
+				⚠️ No hay garantías ni devoluciones en estas transacciones<br>
+				⚠️ Compra bajo tu propio <strong>RIESGO</strong><br><br>
+				<em>"En el mercado negro, la confianza es un lujo que no todos pueden permitirse..."</em>
+			</div>
+			<button class="popup-button" onclick="closeWarningPopup()">ENTIENDO LOS RIESGOS</button>
+		</div>
+	</div>
+	{$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				
+				<div>
+					<img src="/images/op/uploads/BannerMercadoNegro_One_Piece_Gaiden_Foro_Rol.webp" />
+				</div>
+								
+				<div style="display: flex;margin-top: 15px;flex-direction: row;justify-content: space-between;">
+					<div id="contrabando" onclick="clickTipo('contrabando')" class="tienda_tipos tienda_tipos_active"><img src="/images/op/uploads/MercadoContrabando_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+					<div id="bazar" onclick="clickTipo('bazar')" class="tienda_tipos tienda_tipos_active"><img src="/images/op/uploads/MercadoBazar_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+				</div>
+								
+								
+				<div style="display: flex; flex-direction: row;margin-top: 15px;">
+					<div style="display: flex; flex-direction: column; width: 25%;">
+						<div>
+							<img src="/images/op/uploads/PersonajeMercadoNegro_One_Piece_Gaiden_Foro_Rol.webp" />
+						</div>
+						
+						<div style=" font-family: moonGetHeavy; ">
+							<button onclick="comprarItems()" id="button-comprar" style=" ">Comprar</button>
+						</div>
+						
+						<div style=" margin-top: 10px; width: 240px; ">
+							<div style=" background-color: #9664e0; font-size: 20px; font-family: 'moonGetHeavy'; color: white; text-align: center; text-shadow: 1px 1px 1px black; height: 30px; padding: 5px 0px; border: 1px solid black; border-start-end-radius: 7px; border-start-start-radius: 7px; ">
+								Lista de compras
+							</div>
+							<div id="comprasTotalBox" style="min-height: 300px;border: 1px solid black;background-color: #6842a0;border-top: 0px;">
+								
+							</div>
+							<div style=" background-color: #9664e0; font-size: 20px; font-family: 'moonGetHeavy'; color: white; text-align: center; text-shadow: 1px 1px 1px black; height: 30px; padding: 5px 0px; border: 1px solid black; border-end-end-radius: 7px; border-end-start-radius: 7px; ">
+								<span id="comprasTotal">500.000.000</span>B
+							</div>
+						</div>
+					</div>
+					
+					<div style="display: flex;flex-direction: column;width: 75%;">
+					<div style="display: flex;flex-direction: row;justify-content: right;">
+						<if $g_is_staff then><div id="regenerar-pool-container" style="text-align: center;margin-right: 12px;width: 200px;display: none;">
+							<div style="background-color: #4a1a4a;color: white;font-family: moonGetHeavy;font-size: 16px;text-shadow: 1px 1px 1px black;padding: 8px;border: 1px solid black;border-radius: 7px 7px 0 0;">
+								REGENERAR POOL
+							</div>
+							<div style="background-color: #6b2d6b;color: white;font-family: moonGetHeavy;font-size: 12px;text-shadow: 1px 1px 1px black;padding: 10px;border: 1px solid black;border-top: none;border-radius: 0 0 7px 7px;">
+								<button onclick="regenerarPool()" class="regenerar-button" style="background: linear-gradient(145deg, #8b2424, #6a1b1b);color: white;font-family: moonGetHeavy;font-size: 14px;padding: 8px 16px;border: 2px solid #ff4444;border-radius: 5px;cursor: pointer;text-shadow: 1px 1px 2px black;transition: all 0.3s ease;letter-spacing: 1px;">
+									REGENERAR
+								</button>
+							</div>
+						</div></if>
+						<div style="text-align: center;margin-right: 12px;width: 241px;">
+							<div class="saldoBoxFirst">SALDO ACTUAL</div>
+							<div class="saldoBoxSecond"><span id="saldoActual">500.000.000</span>B</div>
+						</div>
+						<div style="text-align: center;width: 241px;">
+							<div class="saldoBoxFirst" style=" background-color: #a60000; ">SALDO RESTANTE</div>
+							<div class="saldoBoxSecond" style="background-color: #ff7474;"><span id="saldoRestante">500.000.000</span>B</div>
+						</div>
+					</div>
+					
+					<!-- Indicador de rango del inframundo y pool semanal -->
+					<div style="display: flex;flex-direction: row;justify-content: right;margin-top: 10px;">
+						<div style="text-align: center;width: 494px;display: flex;flex-direction: row;gap: 12px;">
+							<!-- Rango del inframundo -->
+							<div style="flex: 1;">
+								<div style="background-color: #4a1a4a;color: white;font-family: moonGetHeavy;font-size: 16px;text-shadow: 1px 1px 1px black;padding: 8px;border: 1px solid black;border-radius: 7px 7px 0 0;">
+									RANGO DEL INFRAMUNDO
+								</div>
+								<div id="rangoDisplay" style="background-color: #6b2d6b;color: white;font-family: moonGetHeavy;font-size: 14px;text-shadow: 1px 1px 1px black;padding: 10px;border: 1px solid black;border-top: none;border-radius: 0 0 7px 7px;">
+									<span id="rangoNombre">SIN RANGO</span> (T<span id="rangoTier">0</span>)
+								</div>
+							</div>
+							
+							<!-- Información del pool semanal del contrabando -->
+							<div id="pool-info-contrabando" style="flex: 1;display: none;">
+								<div style="background-color: #6a1b1b;color: white;font-family: moonGetHeavy;font-size: 16px;text-shadow: 1px 1px 1px black;padding: 8px;border: 1px solid black;border-radius: 7px 7px 0 0;">
+									CONTRABANDO SEMANAL
+								</div>
+								<div style="background-color: #8b2424;color: white;font-family: InterRegular;font-size: 12px;text-shadow: 1px 1px 1px black;padding: 10px;border: 1px solid black;border-top: none;border-radius: 0 0 7px 7px;">
+									<div style="margin-bottom: 5px;font-family: moonGetHeavy;">Objetos disponibles: <span id="objetosDisponibles">0</span></div>
+								</div>
+							</div>
+						</div>
+					</div>						<if $g_is_staff then><div id="objetos_contrabando" style="display: block;"></div></if>
+						<if $g_is_staff then><div id="objetos_bazar" style="display: none;"></div><else /><div id="objetos_bazar" style="display: block;"></div></if>
+						
+						<!-- Contenedor de objetos de contrabando (presente para todos los usuarios, oculto por defecto) -->
+						<div id="objetos_contrabando" style="display: none;"></div>
+						<!-- Nueva sección del Bazar -->
+						<div id="bazar-nueva-seccion" style="display: none;">
+							<!-- Botones de modo del bazar -->
+							<div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0;">
+								<button id="btn-bazar-comprar" class="bazar-modo-btn bazar-modo-active" onclick="mostrarModoBazar('comprar')">
+									<i class="fa fa-shopping-cart"></i> COMPRAR
+								</button>
+								<button id="btn-bazar-vender" class="bazar-modo-btn" onclick="mostrarModoBazar('vender')">
+									<i class="fa fa-tags"></i> VENDER
+								</button>
+							</div>
+							
+							<!-- Información del dinero movido -->
+							<div style="text-align: center; margin: 15px 0;">
+								<div style="background-color: #2a1a4a; color: white; font-family: moonGetHeavy; font-size: 14px; padding: 8px 15px; border-radius: 15px; display: inline-block;">
+									<i class="fa fa-chart-line"></i> Dinero movido en el inframundo: <span id="dinero-movido">{$movido_inframundo}</span>B
+								</div>
+							</div>
+							
+							<!-- Sección de comprar -->
+							<div id="bazar-comprar-section">
+								<div style="text-align: center; margin: 20px 0; padding: 15px; background-color: rgba(150, 100, 224, 0.2); border-radius: 10px;">
+									<h3 style="color: white; font-family: moonGetHeavy; margin: 0 0 10px 0;">
+										<i class="fa fa-store"></i> OBJETOS EN VENTA
+									</h3>
+									<p style="color: #cccccc; font-family: InterRegular; margin: 0; font-size: 14px;">
+										Explora los objetos que otros jugadores han puesto a la venta
+									</p>
+								</div>
+								<div id="objetos-en-venta"></div>
+							</div>
+							
+							<!-- Sección de vender -->
+							<div id="bazar-vender-section" style="display: none;">
+								<div style="text-align: center; margin: 20px 0; padding: 15px; background-color: rgba(255, 165, 0, 0.2); border-radius: 10px;">
+									<h3 style="color: white; font-family: moonGetHeavy; margin: 0 0 10px 0;">
+										<i class="fa fa-hand-holding-usd"></i> VENDER OBJETOS
+									</h3>
+									<p style="color: #cccccc; font-family: InterRegular; margin: 0; font-size: 14px;">
+										Selecciona objetos de tu inventario para ponerlos a la venta
+									</p>
+								</div>
+								<div id="inventario-tradeable-lista"></div>
+							</div>
+						</div>
+					</div>
+					
+					
+				</div>
+				
+				<div style="display: flex;margin-top: 15px;flex-direction: row;">
+					
+				</div>
+				
+				<div>
+					<div>
+						
+					</div>
+					<div>
+						
+					</div>
+				</div>
+				
+				<div>
+					<div id="contrabando_content"></div>
+					<div id="bazar_content"></div>
+				</div>
+
+			</div>
+		</div>
+    </div>
+	</div>
+	{$footer}
+	
+	<!-- Modal para recuperar objetos -->
+	<div id="modalRecuperar" class="bazar-modal" style="display: none;">
+		<div class="bazar-modal-content">
+			<span class="close" onclick="cerrarModalRecuperar()">&times;</span>
+			<h2><i class="fa fa-undo"></i> Recuperar Objeto</h2>
+			
+			<div class="modal-objeto-info">
+				<h3 id="recuperar-objeto-nombre">-</h3>
+				<p><strong>Precio:</strong> <span id="recuperar-objeto-precio">-</span>B</p>
+			</div>
+			
+			<div style="background-color: rgba(255, 165, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+				<p style="margin: 0; font-size: 14px; text-align: center;">
+					<i class="fa fa-info-circle"></i> Al recuperar este objeto, se cancelará la venta y el objeto regresará a tu inventario.
+				</p>
+			</div>
+			
+			<div class="modal-botones">
+				<button class="btn-confirmar" onclick="confirmarRecuperacion()">
+					<i class="fa fa-check"></i> Confirmar Recuperación
+				</button>
+				<button class="btn-cancelar" onclick="cerrarModalRecuperar()">
+					<i class="fa fa-times"></i> Cancelar
+				</button>
+			</div>
+		</div>
+	</div>
+</body>{$reload_js}
+
+<script>
+	// Variables globales del bazar - Definidas al inicio
+	var modoBazar = 'comprar';
+	var inventarioTradeable = [];
+	var listingsActivos = [];
+	var movidoInframundo = 0;
+
+	// Funciones dummy simples para evitar errores si el archivo externo no carga
+	if (typeof mostrarModoBazar === 'undefined') {
+		window.mostrarModoBazar = function(modo) {
+			console.warn('mostrarModoBazar dummy - archivo externo no cargado');
+			alert('Error: El sistema del bazar no está disponible. Refresca la página.');
+		};
+	}
+
+	if (typeof inicializarBazar === 'undefined') {
+		window.inicializarBazar = function() {
+			console.warn('inicializarBazar dummy - archivo externo no cargado');
+		};
+	}
+
+	if (typeof cargarObjetosEnVenta === 'undefined') {
+		window.cargarObjetosEnVenta = function() {
+			console.warn('cargarObjetosEnVenta dummy - archivo externo no cargado');
+			$('#objetos-en-venta').html(`
+				<div style="text-align: center; padding: 50px; color: white; font-family: InterRegular; font-size: 16px;">
+					<i class="fa fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #ff6600;"></i><br>
+					Funcionalidad de compra no disponible.<br>
+					<small>El archivo mercadonegro.js no se pudo cargar.</small>
+				</div>
+			`);
+		};
+	}
+
+	if (typeof cargarInventarioTradeable === 'undefined') {
+		window.cargarInventarioTradeable = function() {
+			console.warn('cargarInventarioTradeable dummy - archivo externo no cargado');
+			$('#inventario-tradeable-lista').html(`
+				<div style="text-align: center; padding: 50px; color: white; font-family: InterRegular; font-size: 16px;">
+					<i class="fa fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #ff6600;"></i><br>
+					Funcionalidad de venta no disponible.<br>
+					<small>El archivo mercadonegro.js no se pudo cargar.</small><br>
+					<button onclick="window.location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #9664e0; color: white; border: none; border-radius: 5px; cursor: pointer;">
+						<i class="fa fa-refresh"></i> Recargar página
+					</button>
+				</div>
+			`);
+		};
+	}
+</script>
+
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/mercadonegro.js?v=<?php echo time(); ?>"></script>
+
+<script>
+
+	var poolSemanal = window.poolSemanal || [];
+	var poolVisible = window.poolVisible || [];	
+	
+	window.poolSemanalRaw = window.poolSemanalRaw || null;
+	window.poolVisibleRaw = window.poolVisibleRaw || null;
+	
+	let saldoActual = {$ficha['berries']};
+	let saldoRestante = {$ficha['berries']};
+	let comprasTotal = '0';
+	let listaDeCompras = {};
+	saldoActual = saldoActual.toLocaleString('es-es');
+	
+	$('#saldoActual').html(saldoActual);
+	$('#saldoRestante').html(saldoActual);
+	$('#comprasTotal').html(comprasTotal);
+
+	// Función para cerrar el popup de advertencia
+	function closeWarningPopup() {
+	  $('#warningPopup').fadeOut(500);
+	  try { sessionStorage.setItem('op.contrabando.popupShown', '1'); } catch (_) {}
+	}
+
+	// Cerrar popup al hacer clic en el overlay (fuera del contenido)
+	$('#warningPopup').on('click', function(e) {
+		if (e.target === this) {
+			closeWarningPopup();
+		}
+	});
+
+	// Mostrar popup automáticamente al cargar la página
+	$(document).ready(function() {
+	
+		// Verificar que los elementos existen antes de actualizarlos
+		if ($('#rangoNombre').length > 0) {
+			console.log('Elemento #rangoNombre encontrado');
+			$('#rangoNombre').html(obtenerRangoActualUsuario());
+		} else {
+			console.error('Elemento #rangoNombre NO encontrado');
+		}
+	
+		if ($('#rangoTier').length > 0) {
+			console.log('Elemento #rangoTier encontrado');
+			$('#rangoTier').html(nivelRangoUsuario);
+		} else {
+			console.error('Elemento #rangoTier NO encontrado');
+		}
+	
+		if ($('#rangoAcceso').length > 0) {
+			console.log('Elemento #rangoAcceso encontrado');
+			$('#rangoAcceso').html(nivelRangoUsuario);
+		} else {
+			console.error('Elemento #rangoAcceso NO encontrado');
+		}
+	
+		// Mostrar información del pool si está en modo contrabando por defecto (para staff)
+		if ($('#contrabando').hasClass('tienda_tipos_active')) {
+			$('#pool-info-contrabando').css('display', 'block');
+			if (typeof poolVisible !== 'undefined') {
+				$('#objetosDisponibles').text(poolVisible.length);
+			} else {
+				$('#objetosDisponibles').text('0');
+			}
+		
+			// Mostrar botón de regenerar pool si es staff y está en contrabando por defecto
+			$('#regenerar-pool-container').css('display', 'block');
+		}
+	
+		console.log('Información final del rango:', {
+			rangoOriginal: rangoInframundo,
+			rangoMostrado: obtenerRangoActualUsuario(),
+			nivelCalculado: nivelRangoUsuario
+		});
+	
+		if (typeof poolVisible !== 'undefined') {
+			console.log('Pool semanal cargado - Objetos visibles para el usuario:', poolVisible.length);
+		} else {
+			console.log('Pool semanal no disponible aún');
+		}
+	});
+
+	const objetos_json = {$objetos_json};
+	const objetos_array_json = {$objetos_array_json};
+	const objetos_comerciables_json = {$objetos_comerciables_json};
+	
+	console.log(objetos_json);
+	console.log(objetos_array_json);
+	console.log('Objetos comerciables cargados:', Object.keys(objetos_comerciables_json).length);
+	
+	let oficio1 = '{$oficio1}';
+	let oficio2 = '{$oficio2}';
+
+	// Sistema de rangos del inframundo
+	let rangoInframundo = '{$rango_inframundo}';
+
+	// Debug: mostrar información del rango en consola
+	console.log('=== DEBUG RANGO INFRAMUNDO ===');
+	console.log('Rango recibido (raw):', rangoInframundo);
+	console.log('Rango recibido (length):', rangoInframundo.length);
+	console.log('Rango recibido (tipo):', typeof rangoInframundo);
+
+	// Función para convertir el rango del inframundo a nivel numérico
+	function convertirRangoANivel(rango) {
+		const rangos = {
+			'': 0,                          // Sin rango
+			'sin rango': 0,                 // Sin rango (alternativa)
+			'alimaña': 1,                   // T1
+			'operativo': 2,                 // T2
+			'capo': 3,                      // T3
+			'broker': 4,                    // T4
+			'broker estrella': 5,           // T5
+			'emperador': 5,                 // T5 (mismo nivel que Emperador del inframundo)
+			'emperador del inframundo': 5   // T5
+		};
+	
+		return rangos[rango.toLowerCase().trim()] || 0;
+	}
+
+	let nivelRangoUsuario = convertirRangoANivel(rangoInframundo);
+
+	// Debug: mostrar información del rango en consola
+	console.log('Rango procesado:', rangoInframundo);
+	console.log('Nivel calculado:', nivelRangoUsuario);
+	console.log('Rango que se mostrará:', obtenerRangoActualUsuario());
+	console.log('=== FIN DEBUG ===');
+
+	// Función para obtener el nombre actual del rango del usuario
+	function obtenerRangoActualUsuario() {
+		if (rangoInframundo === '' || rangoInframundo === 'Sin Rango') {
+			return 'SIN RANGO';
+		}
+		return rangoInframundo.toUpperCase();
+	}
+
+	// Función para obtener el nombre del rango requerido
+	function obtenerNombreRango(nivel) {
+		const nombres = {
+			0: 'Sin Rango',
+			1: 'Alimaña',
+			2: 'Operativo', 
+			3: 'Capo',
+			4: 'Broker',
+			5: 'Broker Estrella / Emperador'
+		};
+	
+		return nombres[nivel] || 'Desconocido';
+	}
+
+	// Función para verificar si el usuario puede acceder al objeto
+	function puedeAccederAlObjeto(tierObjeto) {
+		return nivelRangoUsuario >= parseInt(tierObjeto);
+	}
+
+	const subcategorias = { 
+		// armas_de_filo: true
+	};
+
+	
+	function calculateBerries(berries) {
+		// Parse the string to a number
+		const num = parseInt(berries, 10);
+
+		// Check if the number is larger than 999999 (1 million)
+		if (num > 999999) {
+			const millions = Math.floor(num / 1000000); // Get the millions part
+			const hundredsOfThousands = Math.floor((num % 1000000) / 100000); // Get the first decimal part of the millions
+			// Format based on whether the hundredsOfThousands part is non-zero
+			return hundredsOfThousands > 0 
+				? (millions + `,` + hundredsOfThousands + ` M`)
+				: (millions + ` M`);
+		} else if (num > 999) {
+			const millions = Math.floor(num / 1000); // Get the millions part
+			const hundredsOfThousands = Math.floor((num % 1000) / 100); // Get the first decimal part of the millions
+			// Format based on whether the hundredsOfThousands part is non-zero
+			return hundredsOfThousands > 0 
+				? (millions + `,` + hundredsOfThousands + ` K`)
+				: (millions + ` K`);
+		}
+
+		// Return the original string if not greater than 999999
+		return berries;
+	}
+
+	// Función para cargar objetos del bazar (objetos normales) - ELIMINADA
+	// Esta función será reemplazada por nueva funcionalidad
+
+	// Función para cargar objetos del contrabando (pool semanal)
+	function cargarObjetosContrabando() {
+		console.log('=== CARGANDO OBJETOS DE CONTRABANDO ===');
+	
+		// Verificar que poolVisible esté definido
+		if (typeof poolVisible === 'undefined') {
+			console.error('poolVisible no está definido. Saltando carga de contrabando.');
+			return;
+		}
+	
+		console.log('Pool visible disponible:', poolVisible);
+		console.log('Rango del usuario:', nivelRangoUsuario);
+	
+		// Usar el pool visible que ya está filtrado por rango del servidor
+		for (let i = 0; i < poolVisible.length; i++) {
+			let objetoId = poolVisible[i];
+		
+			// Verificar que el objeto existe en la lista de objetos
+			if (!objetos_json[objetoId]) {
+				console.warn('Objeto no encontrado en objetos_json:', objetoId);
+				continue;
+			}
+		
+			let objeto = objetos_json[objetoId][0];
+			console.log('Procesando objeto de contrabando:', objetoId, objeto.nombre);
+		
+			// Agregar objeto al contrabando
+			agregarObjetoAlContrabando(objetoId, objeto);
+		}
+	
+		console.log('=== FIN CARGA DE CONTRABANDO ===');
+	}
+
+	// Función común para agregar objetos al contrabando
+	function agregarObjetoAlContrabando(objetoId, objeto) {
+		objeto.categoria = objeto.categoria.toLowerCase();
+	
+		if (objeto.categoria == 'materiales' && (objeto.subcategoria == oficio1 || objeto.subcategoria == oficio2)) {
+			objeto.categoria = 'utensilios';
+		}
+	
+		const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+		const tier = objeto.tier;
+		const imagen_id = objeto.imagen_id;
+		const imagen_avatar = objeto.imagen_avatar;
+		let imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+		if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || objetoId == 'EANM001' || objetoId == 'LLST001' || objetoId == 'THR001' || subcategoria == 'materiales' || subcategoria == 'tecnicas' || objetoId == 'EPA001' || objetoId ==  'KMP001' || objetoId == 'VCD001' || objetoId == 'VCZ001' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+			imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+		}
+	
+		// Verificar acceso por rango de inframundo
+		const puedeAcceder = puedeAccederAlObjeto(tier);
+		const claseBloqueado = puedeAcceder ? '' : ' item-blocked';
+	
+		// Crear subcategoría si no existe
+		if (!subcategorias[subcategoria + '_contrabando']) {
+			subcategorias[subcategoria + '_contrabando'] = true;
+		
+			$('#objetos_contrabando').append(`
+				<div id="contrabando_` + subcategoria + `_area">
+					<div id="contrabando_` + subcategoria + `_categoria">
+						<div class="objeto_categoria">` + objeto.subcategoria.toUpperCase() + ` - CONTRABANDO</div>
+						<div class="barra_categoria"></div>
+					</div>
+
+					<div id="contrabando_` + subcategoria + `_objetos" class="objetos_lista">
+					
+					</div>
+				</div>
+			`);
+		}
+	
+		let objetoNombre = objeto.nombre;
+	
+		let requisitos = '';
+		let escalado = '';
+		let dano = '';
+		let efecto = '';
+		let rangoRequerido = '';
+	
+		if (objeto.requisitos) {
+			requisitos = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.requisitos + `</div>`;
+		}
+	
+		if (objeto.escalado) {
+			escalado = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.escalado + `</div>`;
+		}
+	
+		if (objeto.dano) {
+			dano = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.dano + `</div>`;
+		}
+	
+		if (objeto.efecto) {
+			efecto = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.efecto + `</div>`;
+		}
+	
+		// Agregar información del rango requerido si el usuario no puede acceder
+		if (!puedeAcceder) {
+			rangoRequerido = `<div class="rango-required">Requiere: ` + obtenerNombreRango(parseInt(tier)) + ` (T` + tier + `)</div>`;
+		}
+	
+		let colorTier = '#faa500';
+	
+		if (imagen_id == '1') { colorTier = '#808080'; }
+		if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+		if (imagen_id == '3') { colorTier = '#457bfe'; }
+		if (imagen_id == '4') { colorTier = '#cf44ff'; }
+		if (imagen_id == '5') { colorTier = '#febb46'; }
+		if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+	
+		let imagen = `/images/op/iconos/` + imagen_nombre;
+	
+		if (imagen_avatar != '') {
+			imagen = imagen_avatar;
+		}
+	
+		let objetoBerries = objeto.negro_berries;
+
+		$('#contrabando_' + subcategoria + "_objetos").append(`<div>
+			<div class="item-outer` + claseBloqueado + `" id="` + objeto.objeto_id + `">
+				<div class="item-nombre">` + objetoNombre + `</div>
+				<div class="item-image">
+				
+					<div class="tooltip">
+						<img id=imagen-item src="` + imagen + `" />
+						<div class="tooltiptext item-tooltip">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.nombre + `</div>
+							<div class="contrabando-badge">CONTRABANDO SEMANAL</div>
+							` + rangoRequerido + `
+							` + requisitos + `
+							` + escalado + `
+							<div class="mydescripcion" style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+							` + dano + `
+							` + efecto + `
+							<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+								<div>` + objeto.espacios + ` Espacios</div>
+								<div>ID: <span>` + objeto.objeto_id + `</span></div>
+								<div><span class="itemBerries">` + parseInt(objetoBerries).toLocaleString('es-es') + `</span>B</div>
+							</div>
+							<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + ` [CONTRABANDO]</div>
+						</div>
+					</div>
+
+				
+				</div>
+			</div>
+			<img src="/images/op/uploads/Cartel_Precio_One_Piece_Gaiden_Foro_Rol.png" style=" width: 82px; margin-top: 2px; ">
+			<div class="item-price">` + calculateBerries(objetoBerries) + `</div>
+		
+		</div>
+		`);
+	}
+
+	// Función común para agregar objetos al bazar - ELIMINADA
+	// Esta función será reemplazada por nueva funcionalidad
+
+	// Nota: Las funciones de carga se ejecutan después de que las variables del servidor estén disponibles
+	
+	$('#imagen-item').hover(function() {
+	
+	});
+	
+	let testItem = null;	
+	
+	$(document).on('click', '.item-outer', function() {
+	
+		// Si es un objeto vendible, no hacer nada aquí (se maneja en mercadonegro.js)
+		if ($(this).hasClass('bazar-vendible')) {
+			return;
+		}
+	
+		// Si es un objeto del bazar (listing), no hacer nada aquí (se maneja en mercadonegro.js)
+		if ($(this).hasClass('bazar-listing')) {
+			return;
+		}
+	
+		// Verificar si el objeto está bloqueado
+		if ($(this).hasClass('item-blocked')) {
+			let objetoId = $(this)[0].id;
+			if (!objetoId || !objetos_json[objetoId] || !objetos_json[objetoId][0]) {
+				console.error('Objeto no encontrado:', objetoId);
+				return;
+			}
+			let objeto = objetos_json[objetoId][0];
+			let rangoRequerido = obtenerNombreRango(parseInt(objeto.tier));
+			let rangoActual = obtenerRangoActualUsuario();
+			alert('¡Acceso denegado!\n\nEste objeto requiere el rango: ' + rangoRequerido + ' (T' + objeto.tier + ')\nTu rango actual: ' + rangoActual + ' (T' + nivelRangoUsuario + ')');
+			return;
+		}
+	
+		// testItem = $(this);
+		let objetoId = $(this)[0].id;
+		if (!objetoId || !objetos_json[objetoId] || !objetos_json[objetoId][0]) {
+			console.error('Objeto no encontrado:', objetoId);
+			return;
+		}
+		let objeto = objetos_json[objetoId][0];
+	
+		// Determinar el precio según el tipo de mercado
+		let objetoBerries;
+		let esMercadoNegro = false;
+	
+		// Verificar si el objeto está en el pool visible (contrabando)
+		if (typeof poolVisible !== 'undefined' && poolVisible.includes(objetoId)) {
+			objetoBerries = objeto.negro_berries; // Precio del mercado negro
+			esMercadoNegro = true;
+		} else {
+			// Si no está en el pool de contrabando, no hacer nada por ahora
+			console.log('Objeto no disponible en el contrabando actual');
+			return;
+		}
+		if ($(this).hasClass('item-active')) {
+			$(this).removeClass('item-active');
+		
+		
+			let cantidad = $('#compra-' + objeto.objeto_id + ' .itemCantidad').text();
+			comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) - (parseInt(objetoBerries) * cantidad);
+			saldoRestante = saldoRestante + (parseInt(objetoBerries) * cantidad);
+			console.log(saldoRestante);
+			comprasTotal = comprasTotal.toLocaleString('es-es');
+
+			$('#comprasTotal').html(comprasTotal);
+			$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+			$('#compra-' + objeto.objeto_id).remove();
+			if (comprasTotal == '0') {
+				$('#button-comprar').css('background-color', 'gray');
+				// $('#button-comprar').css('border', '1px solid #535353');
+			}
+			delete listaDeCompras[objeto.objeto_id];
+		} else {	
+		
+			if (saldoRestante - parseInt(objetoBerries) >= 0) {
+			
+				if (comprasTotal == '0') {
+					$('#button-comprar').css('background-color', '#9664e0');
+				}
+			
+				comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) + parseInt(objetoBerries);
+				saldoRestante = saldoRestante - parseInt(objetoBerries);
+				comprasTotal = comprasTotal.toLocaleString('es-es');
+
+				$('#comprasTotal').html(comprasTotal);
+				$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+
+				$(this).addClass('item-active');
+			
+				listaDeCompras[objeto.objeto_id] = { cantidad: 1 };
+				$('#comprasTotalBox').append(`
+
+					<div id="compra-` + objeto.objeto_id + `" style=" height: 55px; border-bottom: 1px solid black; border-top: 1px solid black; background: linear-gradient(#009819, #003400); display: flex; flex-direction: row;">
+						<div style="display: flex;flex-direction: column;margin: 5px 5px;">
+							<div onclick="incrementarItem('compra-` + objeto.objeto_id + `')" class="incrementar-item">
+								<i class="fa fa-angle-double-up" aria-hidden="true" style=" font-size: 17px; color: #f2f2f2; position: relative; "></i>
+							</div>
+							<div onclick="decrementarItem('compra-` + objeto.objeto_id + `')" class="decrementar-item">
+								<i class="fa fa-angle-double-down" aria-hidden="true" style=" font-size: 17px; color: #f2f2f2; position: relative; "></i>
+							</div>
+						</div>
+						<div style=" font-size: 20px; font-family: moonGetHeavy; color: white; text-shadow: 1px 1px 5px black; margin-top: 10px; margin-left: 5px; ">x<span class="itemCantidad">1</span></div>
+						<div style="font-size: 16px;font-family: moonGetHeavy;color: white;text-shadow: 1px 1px 5px black;text-align: center;width: 173px;height: 50px;align-content: center;">
+							` + objeto.nombre + `
+						</div>
+					</div>
+				`);
+			}
+
+			// objetos[testItem[0].id][0]
+		}
+	
+		// alert( "Handler for `click` called." );
+	});
+	
+	function incrementarItem(item) {
+		let itemCantidadId = '#' + item +  ' .itemCantidad';
+		let itemId = item.replace('compra-', '');
+		let itemCantidad = parseInt($(itemCantidadId).text());
+	
+		// Solo objetos de contrabando (mercado negro)
+		let berries;
+		if (typeof poolVisible !== 'undefined' && poolVisible.includes(itemId)) {
+			berries = parseInt(objetos_json[itemId][0].negro_berries); // Precio del mercado negro
+		} else {
+			console.log('Error: Objeto no encontrado en el pool de contrabando');
+			return;
+		}
+
+		if (itemCantidad < 10 && (saldoRestante - berries >= 0)) {
+			saldoRestante = saldoRestante - berries;
+			$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+			comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) + berries;
+			comprasTotal = comprasTotal.toLocaleString('es-es');
+			$('#comprasTotal').html(comprasTotal);
+			$(itemCantidadId).text(itemCantidad + 1);
+			listaDeCompras[itemId]['cantidad'] = listaDeCompras[itemId]['cantidad'] + 1;
+		}
+	}
+	
+	function decrementarItem(item) {
+		let itemCantidadId = '#' + item +  ' .itemCantidad';
+		let itemId = item.replace('compra-', '');
+		let itemCantidad = parseInt($(itemCantidadId).text());
+	
+		// Solo objetos de contrabando (mercado negro)
+		let berries;
+		if (typeof poolVisible !== 'undefined' && poolVisible.includes(itemId)) {
+			berries = parseInt(objetos_json[itemId][0].negro_berries); // Precio del mercado negro
+		} else {
+			console.log('Error: Objeto no encontrado en el pool de contrabando');
+			return;
+		}
+	
+		if (itemCantidad > 1) {
+			saldoRestante = saldoRestante + berries;
+			$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+			comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) - berries;
+			comprasTotal = comprasTotal.toLocaleString('es-es');
+			$('#comprasTotal').html(comprasTotal);
+		
+			$(itemCantidadId).text(itemCantidad - 1);
+			listaDeCompras[itemId]['cantidad'] = listaDeCompras[itemId]['cantidad'] - 1;
+		}
+	}
+	
+	function comprarItems() {
+		if (comprasTotal != '0') {
+		
+			if (confirm('¿Estás de acuerdo con esta compra de ' + comprasTotal + ' berries?')) {
+
+				$.post("/op/mercado_negro.php", { 
+					accion: 'comprar',
+					comprasTotal: parseInt(comprasTotal.replace(/\./g, '')),
+					listaDeCompras: listaDeCompras,
+					listaDeComprasKeys: Object.keys(listaDeCompras)
+				}, function( data ) { 
+					console.log(data[0]);
+					alert('¡Compra realizada! Estos son los resultados.\n' + data[0].log_tienda);
+					window.location = "/op/mercado_negro.php";
+				});
+			}
+		
+		
+		}
+	}
+
+	function regenerarPool() {
+		if (confirm('¿Estás seguro de que quieres regenerar el pool semanal de contrabando?\n\nEsto cambiará todos los objetos disponibles en el mercado negro.')) {
+		
+			// Mostrar mensaje de carga
+			$('#objetos_contrabando').html('<div style="text-align: center; padding: 50px; font-family: moonGetHeavy; color: white; font-size: 18px;"><i class="fa fa-spinner fa-spin"></i> Regenerando pool semanal...</div>');
+		
+			$.post("/op/mercado_negro.php", { 
+				accion: 'regenerar_pool'
+			}, function( data ) { 
+				console.log('Respuesta del servidor:', data);
+				if (data && data[0] && data[0].success) {
+					alert('¡Pool regenerado exitosamente!\n\nSe han generado nuevos objetos para el contrabando.');
+					window.location = "/op/mercado_negro.php";
+				} else {
+					alert('Error al regenerar el pool. Inténtalo de nuevo.');
+					window.location = "/op/mercado_negro.php";
+				}
+			}).fail(function() {
+				alert('Error de conexión. Inténtalo de nuevo.');
+				window.location = "/op/mercado_negro.php";
+			});
+		}
+	}
+	
+	function clickTipo(tipo) {
+	  $('.tienda_tipos').removeClass('tienda_tipos_active');
+
+	  if (tipo == 'contrabando') {
+		$('#objetos_contrabando').css('display', 'block');
+		$('#objetos_bazar').css('display', 'none');
+		$('#bazar-nueva-seccion').css('display', 'none');
+
+		$('#pool-info-contrabando').css('display', 'block');
+		if (typeof poolVisible !== 'undefined') {
+		  $('#objetosDisponibles').text(poolVisible.length);
+		} else {
+		  $('#objetosDisponibles').text('0');
+		}
+		$('#regenerar-pool-container').css('display', 'block');
+		// Mostrar popup SOLO la primera vez de la sesión al entrar en contrabando
+		try {
+		  const key = 'op.contrabando.popupShown';
+		  if (!sessionStorage.getItem(key)) {
+			$('#warningPopup').fadeIn(500);
+			sessionStorage.setItem(key, '1');
+		  } else {
+			$('#warningPopup').hide();
+		  }
+		} catch (_) {}
+		$('#contrabando').addClass('tienda_tipos_active');
+	  } else {
+		$('#warningPopup').hide(); // Por si salen a otra pestaña  
+	  }
+
+	  if (tipo == 'bazar') {
+		$('#objetos_contrabando').css('display', 'none');
+		$('#objetos_bazar').css('display', 'none');
+		$('#bazar-nueva-seccion').css('display', 'block');
+
+		$('#pool-info-contrabando').css('display', 'none');
+		$('#regenerar-pool-container').css('display', 'none');
+
+		if (typeof inicializarBazar === 'function') {
+		  inicializarBazar();
+		}
+		$('#bazar').addClass('tienda_tipos_active');
+	  }
+
+	  // ←← Guardar la última pestaña
+	  try { localStorage.setItem('op.mercado.tipo', tipo); } catch (_) {}
+	}	
+	
+	$(function () {
+	  // Si hay una pestaña guardada, ve a esa. Si no, respeta la que marque el HTML.
+	  try {
+		const guardado = localStorage.getItem('op.mercado.tipo');
+		if (guardado && document.getElementById(guardado)) {
+		  clickTipo(guardado);
+		}
+	  } catch (_) {}
+	});
+</script>
+<script> // Variables a usar para el front
+
+	window.poolSemanal = window.poolSemanal || [];
+	window.poolVisible = window.poolVisible || [];	
+
+	const poolSemanalRaw = {$pool_semanal_json};
+	const poolVisibleRaw = {$pool_visible_json};
+	
+	const objetosTier1  = {$objetos_tier1_json};
+	const objetosTier2  = {$objetos_tier2_json};
+	const objetosTier3  = {$objetos_tier3_json};
+	const objetosTier4  = {$objetos_tier4_json};
+	const objetosTier5  = {$objetos_tier5_json};
+
+	/* Exponer en window para inspección fácil */
+	window.poolSemanalRaw = poolSemanalRaw;
+	window.poolVisibleRaw = poolVisibleRaw;
+	window.objTier1     = objetosTier1;
+	window.objTier2     = objetosTier2;
+	window.objTier3     = objetosTier3;
+	window.objTier4     = objetosTier4;
+	window.objTier5     = objetosTier5;
+
+	/* Console logs útiles */
+	console.log('POOL semanal RAW (completo):', poolSemanalRaw);
+	console.log('POOL visible RAW (según rango):', poolVisibleRaw);
+	console.log('Objetos por tier:', {
+	  T1: objetosTier1.length, T2: objetosTier2.length, T3: objetosTier3.length,
+	  T4: objetosTier4.length, T5: objetosTier5.length
+	});
+
+	// Función para procesar el pool semanal
+	function procesarPoolSemanal() {
+		console.log('=== PROCESANDO POOL SEMANAL ===');
+		console.log('Rango del usuario para filtrado:', nivelRangoUsuario);
+	
+		// Verificar si el pool semanal tiene la estructura esperada
+		if (poolSemanalRaw && poolSemanalRaw.tiers) {
+			console.log('Pool semanal tiene estructura de tiers');
+		
+			// Extraer todos los objetos del pool semanal
+			Object.keys(poolSemanalRaw.tiers).forEach(tier => {
+				if (poolSemanalRaw.tiers[tier] && Array.isArray(poolSemanalRaw.tiers[tier])) {
+					poolSemanalRaw.tiers[tier].forEach(objeto => {
+						if (objeto.objeto_id) {
+							poolSemanal.push(objeto.objeto_id);
+						}
+					});
+				}
+			});
+		
+			// Filtrar objetos según el rango del usuario
+			Object.keys(poolSemanalRaw.tiers).forEach(tier => {
+				const tierNum = parseInt(tier);
+				if (tierNum <= nivelRangoUsuario && poolSemanalRaw.tiers[tier] && Array.isArray(poolSemanalRaw.tiers[tier])) {
+					poolSemanalRaw.tiers[tier].forEach(objeto => {
+						if (objeto.objeto_id) {
+							poolVisible.push(objeto.objeto_id);
+						}
+					});
+				}
+			});
+		} else if (Array.isArray(poolSemanalRaw)) {
+			// Si viene como array directo (backup)
+			console.log('Pool semanal viene como array directo');
+			poolSemanal = [...poolSemanalRaw];
+			poolVisible = [...poolSemanalRaw]; // En este caso usamos todo
+		} else {
+			console.warn('Pool semanal no tiene formato reconocido');
+		}
+	
+		// Si poolVisibleRaw es válido, usarlo en lugar del calculado
+		if (Array.isArray(poolVisibleRaw) && poolVisibleRaw.length > 0) {
+			console.log('Usando poolVisible del servidor');
+			poolVisible = [...poolVisibleRaw];
+		}
+	
+		/* Exponer en window para inspección fácil */
+		window.poolSemanal  = poolSemanal;
+		window.poolVisible  = poolVisible;
+	
+		console.log('POOL semanal (procesado):', poolSemanal);
+		console.log('POOL visible (procesado):', poolVisible);
+		console.log('=== FIN PROCESAMIENTO ===');
+	}
+
+	// Procesar el pool después de que todas las variables estén listas
+	procesarPoolSemanal();
+
+	// Cargar objetos después de que las variables estén disponibles
+	cargarObjetosContrabando(); // Solo para el contrabando (pool semanal)
+	// cargarObjetosBazar(); // ELIMINADO - Será reemplazado por nueva funcionalidad
+</script>
+<script>
+  const inventarioUsuario = {$inventario_js};
+  console.log('Inventario del usuario (length):', inventarioUsuario.length);
+  console.log('Inventario del usuario (full):', inventarioUsuario);
+  
+  // Variables específicas del bazar
+  window.inventarioTradeable = {$inventario_js}; // Objetos tradeables del inventario
+  window.listingsActivos = {$listings_activos_json}; // Objetos en venta/subasta por otros jugadores
+  (function normalizarFechasListings() {
+	  if (!Array.isArray(window.listingsActivos)) return;
+	  window.listingsActivos.forEach(l => {
+		const d = parseFechaMySQL(l.fecha_final_subasta);
+		l._finMs = d ? d.getTime() : null; // caché en ms
+	  });
+	})();
+  window.movidoInframundo = '{$movido_inframundo}'; // Dinero movido por el usuario en el bazar
+  window.usuarioUid = {$usuario_uid}; // UID del usuario actual para validar propiedad
+  
+  // Asignar también como variables globales para compatibilidad
+  var inventarioTradeable = window.inventarioTradeable;
+  var listingsActivos = window.listingsActivos;
+  var movidoInframundo = window.movidoInframundo;
+  var usuarioUid = window.usuarioUid;
+  
+  console.log('=== VARIABLES DEL BAZAR ===');
+  console.log('Inventario tradeable:', window.inventarioTradeable.length, 'objetos');
+  console.log('Listings activos:', window.listingsActivos.length, 'listings');
+  console.log('Dinero movido en inframundo:', window.movidoInframundo);
+  console.log('Usuario UID:', window.usuarioUid);
+  console.log('=== FIN VARIABLES BAZAR ===');
+  
+  // Función para actualizar el dinero movido en la interfaz
+  function actualizarDineroMovido(nuevoMonto) {
+    if (typeof nuevoMonto === 'number' && nuevoMonto >= 0) {
+      // Actualizar variable global
+      window.movidoInframundo = nuevoMonto.toString();
+      movidoInframundo = window.movidoInframundo;
+      
+      // Actualizar elemento en la interfaz con formato localizado
+      const dineroFormateado = nuevoMonto.toLocaleString('es-ES');
+      $('#dinero-movido').text(dineroFormateado);
+      
+      console.log('Dinero movido actualizado a:', dineroFormateado + 'B');
+    }
+  }
+
+  // Función para obtener el dinero movido actual del usuario
+  function obtenerDineroMovidoActual() {
+    return parseInt(window.movidoInframundo || '0', 10);
+  }
+</script>
+
+
+
+	
+</html>

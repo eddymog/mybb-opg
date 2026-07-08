@@ -10,6 +10,31 @@
 
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'tirada_rey.php');
+
+// ---- DEBUG TEMPORAL (quitar cuando se resuelva el error) ----
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+set_exception_handler(function($e) {
+    if (!headers_sent()) header('Content-Type: text/plain; charset=utf-8');
+    echo "[EXCEPCION] " . $e->getMessage() . "\n";
+    echo "Archivo: " . $e->getFile() . " Linea: " . $e->getLine() . "\n";
+    echo $e->getTraceAsString();
+    exit;
+});
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    return false; // dejar que PHP también lo maneje
+});
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) header('Content-Type: text/plain; charset=utf-8');
+        echo "[FATAL] " . $err['message'] . "\n";
+        echo "Archivo: " . $err['file'] . " Linea: " . $err['line'];
+    }
+});
+// ---- FIN DEBUG ----
+
 require_once "./../global.php";
 require "./../inc/config.php";
 require_once "./../op/functions/op_functions.php";
@@ -21,14 +46,14 @@ $ficha_aprobada = false;
 
 if ($uid == '0') {
     $mensaje_redireccion = "Debes estar registrado.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    eval('$page = "' . $templates->get('op_redireccion') . '";');
     output_page($page);
     return;
 }
 
 if ($g_ficha['muerto'] == '1') {
     $mensaje_redireccion = "Estás muerto, no puedes acceder a esta página.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    eval('$page = "' . $templates->get('op_redireccion') . '";');
     output_page($page);
     return;
 }
@@ -36,21 +61,46 @@ if ($g_ficha['muerto'] == '1') {
 $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' "); 
 while ($f = $db->fetch_array($query_ficha)) { $ficha = $f; $ficha_aprobada = $f['aprobada_por'] != 'sin_aprobar'; }
 
+$experienciaActual = 0;
 $query_users = $db->query(" SELECT * FROM mybb_users WHERE uid='$uid' "); 
 while ($q = $db->fetch_array($query_users)) { $experienciaActual = $q['newpoints']; }
 
 if ($ficha == null) {
     $mensaje_redireccion = "Este usuario no ha creado su ficha aún.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    eval('$page = "' . $templates->get('op_redireccion') . '";');
     output_page($page);
     return;
 }
 
 $username = $mybb->user['username'];
-$tirada_real = $_POST["tirada_real"];
+$is_staff  = intval($mybb->usergroup['cancp']) ? 'true' : 'false';
+$tirada_real  = $_POST['tirada_real']  ?? '';
+$tirada_cofre = $_POST['tirada_cofre'] ?? '';
+$cofre_id     = strtoupper($_POST['cofre_id'] ?? '');
 
-$tirada_cofre = $_POST["tirada_cofre"];
-$cofre_id = strtoupper($_POST["cofre_id"]);
+// ── Máquina de estados del cofre bromista CFF010 ─────────────────────────────
+// Cada estado mapea al siguiente y al nombre visible que se muestra como "recompensa"
+$cff010_chain = [
+    'CFF010'    => ['next' => 'CFF010-2',  'nombre_next' => 'Cofre Decente'],
+    'CFF010-2'  => ['next' => 'CFF010-3',  'nombre_next' => 'Cofre Gigante'],
+    'CFF010-3'  => ['next' => 'CFF010-4',  'nombre_next' => 'Cofre Cobrizo'],
+    'CFF010-4'  => ['next' => 'CFF010-5',  'nombre_next' => 'Cofre Argénteo'],
+    'CFF010-5'  => ['next' => 'CFF010-6',  'nombre_next' => 'Cofre Áureo'],
+    'CFF010-6'  => ['next' => 'CFF010-7',  'nombre_next' => 'Cofre Épico'],
+    'CFF010-7'  => ['next' => 'CFF010-8',  'nombre_next' => 'Cofre Legendario'],
+    'CFF010-8'  => ['next' => 'CFF010-9',  'nombre_next' => 'Cofre Majestuoso'],
+    'CFF010-9'  => ['next' => 'CFF010-10', 'nombre_next' => 'Cofre Diamantino'],
+    'CFF010-10' => ['next' => 'CFF010-9D', 'nombre_next' => 'Cofre Majestuoso'],
+    'CFF010-9D' => ['next' => 'CFF010-8D', 'nombre_next' => 'Cofre Legendario'],
+    'CFF010-8D' => ['next' => 'CFF010-7D', 'nombre_next' => 'Cofre Épico'],
+    'CFF010-7D' => ['next' => 'CFF010-6D', 'nombre_next' => 'Cofre Áureo'],
+    'CFF010-6D' => ['next' => 'CFF010-5D', 'nombre_next' => 'Cofre Argénteo'],
+    'CFF010-5D' => ['next' => 'CFF010-4D', 'nombre_next' => 'Cofre Cobrizo'],
+    'CFF010-4D' => ['next' => 'CFF010-3D', 'nombre_next' => 'Cofre Gigante'],
+    'CFF010-3D' => ['next' => 'CFF010-2D', 'nombre_next' => 'Cofre Decente'],
+    'CFF010-2D' => ['next' => 'CFF010-1D', 'nombre_next' => 'Cofre Básico'],
+    'CFF010-1D' => ['next' => null,         'nombre_next' => null],
+];
 // $cofre_id = 'CFR001';
 // $tirada_cofre = 'true';
 
@@ -209,7 +259,80 @@ while ($q = $db->fetch_array($cofres_propios_query)) {
 $cofres_globales_json = json_encode($cofres_globales_array);
 $cofres_propios_json = json_encode($cofres_propios_array);
 
-$kuro_accion = $mybb->get_input('kuro_accion'); 
+// Inventario de cofres del usuario para el frontend
+$cff010_ids_sql  = "'" . implode("','", array_keys($cff010_chain)) . "'";
+$cofres_ids_list = "'CFR001','CFR002','CFR003','CFR004','CFR005','CFR006','CFR007','CFR008','CFR009','CFR010',$cff010_ids_sql,'INV001','INV002','INV003','INV004','INV005','CFD002','CFD003','CFD004','CRM003','CFN002','CFN003','CFN004','CFN005','CFN006','CFN007','CFN008','CFN009','KTC001'";
+$query_inventario_cofres = $db->query("
+    SELECT o.*, i.cantidad FROM `mybb_op_objetos` o
+    INNER JOIN `mybb_op_inventario` i ON o.`objeto_id` = i.`objeto_id`
+    WHERE i.`uid`='$uid'
+    AND o.`objeto_id` IN ($cofres_ids_list)
+    ORDER BY o.`tier`, o.`nombre`
+");
+$objetos = array();
+$objetos_array = array();
+while ($q = $db->fetch_array($query_inventario_cofres)) {
+    $key = $q['objeto_id'];
+    if (!isset($objetos[$key])) { $objetos[$key] = array(); }
+    array_push($objetos[$key], $q);
+    array_push($objetos_array, $key);
+}
+$objetos_json       = json_encode($objetos);
+$objetos_array_json = json_encode($objetos_array);
+
+$kuro_accion = $mybb->get_input('kuro_accion');
+
+// =====================================================================
+// Repartir cofre a todos los usuarios con ficha (solo UID 850, porque de verdad que cada vez que tocáis la liais parda)
+// =====================================================================
+if ($mybb->get_input('action') === 'dar_cofre_masivo' && in_array(intval($uid), [850, 10])) {
+    header('Content-type: application/json');
+    $response = array();
+
+    $cofre_dar_id = strtoupper($mybb->get_input('cofre_dar_id'));
+    $cofres_validos = array(
+        'CFR001','CFR002','CFR003','CFR004','CFR005',
+        'CFR006','CFR007','CFR008','CFR009','CFR010',
+        'INV001','INV002','INV003','INV004','INV005',
+        'CFD002','CFD003','CFD004','CRM003',
+        'CFN002','CFN003','CFN004','CFN005','CFN006','CFN007','CFN008','CFN009',
+        'KTC001','CFF010'
+    );
+
+    if (!in_array($cofre_dar_id, $cofres_validos, true)) {
+        echo json_encode(array('success' => false, 'mensaje' => 'Cofre no válido.'));
+        return;
+    }
+
+    $safe_cofre = $db->escape_string($cofre_dar_id);
+    $query_fichas = $db->query("SELECT fid FROM mybb_op_fichas");
+    $total = 0;
+    while ($f = $db->fetch_array($query_fichas)) {
+        $fid = intval($f['fid']);
+        $inv = $db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='$fid' AND objeto_id='$safe_cofre'");
+        $row = $db->fetch_array($inv);
+        if ($row) {
+            $nueva_cantidad = intval($row['cantidad']) + 1;
+            $db->query("UPDATE mybb_op_inventario SET cantidad='$nueva_cantidad' WHERE uid='$fid' AND objeto_id='$safe_cofre'");
+        } else {
+            $db->query("INSERT INTO mybb_op_inventario (objeto_id, uid, cantidad) VALUES ('$safe_cofre', '$fid', '1')");
+        }
+        $total++;
+    }
+
+    log_audit($uid, $username, '[Cofre Masivo]', "Repartio '$safe_cofre' a $total fichas.");
+    echo json_encode(array('success' => true, 'total' => $total, 'cofre' => $cofre_dar_id));
+    return;
+}
+
+// Resuelve IDs del tipo 'CFRxxxX2' -> ['CFRxxx', 2]
+// Devuelve [$objeto_id_real, $cantidad_real]
+function resolverObjetoId($objeto_id, $cantidad_base) {
+    if (preg_match('/^(.+)X(\d+)$/i', $objeto_id, $m)) {
+        return [$m[1], intval($m[2])];
+    }
+    return [$objeto_id, intval($cantidad_base)];
+}
 
 function darObjetoFid($objeto_id, $fid) {
     global $db, $uid;
@@ -255,8 +378,8 @@ function darBerries($berriesNuevo) {
     global $db, $uid, $ficha, $username;
     $berriesActual = intval($ficha['berries']);
     $berries = $berriesActual + $berriesNuevo;
+    $ficha['berries'] = $berries; // actualizar para acumular correctamente con llamadas posteriores
     log_audit($uid, $username, '[Cofre]', "Berries: $berriesActual->$berries (Extra: $berriesNuevo).");
-    // $db->query(" UPDATE `mybb_op_fichas` SET `berries`='$berries' WHERE fid='$uid' ");
     log_audit_currency($uid, $username, $uid, '[Cofre][Berries]', 'berries', $berries);
 }
 
@@ -265,7 +388,7 @@ function darNikas($nikasNuevo) {
 
     $nikasActual = intval($ficha['nika']);
     $nikas = $nikasActual + $nikasNuevo;
-
+    $ficha['nika'] = $nikas; // actualizar para acumular correctamente con llamadas posteriores
     log_audit($uid, $username, '[Cofre]', "Nikas: $nikasActual->$nikas (Extra: $nikasNuevo).");
     // $db->query(" UPDATE `mybb_op_fichas` SET `nika`='$nikas' WHERE fid='$uid' ");
     log_audit_currency($uid, $username, $uid, '[Cofre][Nikas]', 'nikas', $nikas);
@@ -297,22 +420,148 @@ function darOficio($puntosOficio) {
     } else {
         $puntosActual = intval($ficha['puntos_oficio']);
         $puntosOficioNuevo = $puntosActual + $puntosOficio;
+        $ficha['puntos_oficio'] = $puntosOficioNuevo; // actualizar para acumular correctamente con llamadas posteriores
         log_audit($uid, $username, '[Cofre]', "Puntos de Oficio: $puntosActual->$puntosOficioNuevo (Extra: $puntosOficio).");
         // $db->query(" UPDATE `mybb_op_fichas` SET `puntos_oficio`='$puntosOficioNuevo' WHERE fid='$uid' ");
         log_audit_currency($uid, $username, $uid, '[Cofre][Puntos oficio]', 'puntos_oficio', $puntosOficioNuevo);
     }
 }
 
-if (isset($mybb->input['action']) && $mybb->input['action'] == 'Kuro_accion') {
-    if (($uid == '69')) {
-    $query_fichas = $db->query(" SELECT * FROM mybb_op_fichas "); 
-    while ($f = $db->fetch_array($query_fichas)) { 
-        $f_uid = $f['fid'];
-        // darObjetoFid("KTC001", $f_uid);
-        darObjetoFid("CFR004", $f_uid);
-        // darObjetoFid("KTC001", $f_uid);
+// ======================================================================
+// Procesa un id de recompensa de tipo 'Custom' independientemente del cofre
+// ======================================================================
+function procesarCustomRecompensa($obj_id) {
+    switch ($obj_id) {
+        // KTC001
+        case '1N':                   darNikas(1); break;
+        case '1000B':                darBerries(1000); break;
+        case '1E':                   darExp(1); break;
+        case '10PO':                 darOficio(10); break;
+        case '1N1000B1E10PO':        darNikas(1); darBerries(1000); darExp(1); darOficio(10); break;
+        case 'JACKPOT':              darNikas(10); darBerries(1000000); darExp(10); darOficio(100); darObjeto('LLST001', '1'); break; // KTC001 jackpot (tipo Custom)
+        // CFR001
+        case '5N':                   darNikas(5); break;
+        case '200KB':                darBerries(200000); break;
+        case '20E':                  darExp(20); break;
+        case '100PO':                darOficio(100); break;
+        case '3N100KB50PO10E':       darNikas(3); darBerries(100000); darOficio(50); darExp(10); break;
+        case '10N':                  darNikas(10); break;
+        case '5N200KB100PO20E':      darNikas(5); darBerries(200000); darOficio(100); darExp(20); break;
+        default:
+            // Patrón genérico CFRxxxXN, INVxxxXN, etc.
+            if (preg_match('/^(.+)X(\d+)$/i', $obj_id, $m)) {
+                darObjeto($m[1], intval($m[2]));
+            }
+            break;
+        // legacy alias mantenido por compatibilidad
+        case 'CFR001X2':             darObjeto('CFR001', 2); break;
+        // CFR002
+        case '500KB':                darBerries(500000); break;
+        case '40E':                  darExp(40); break;
+        case '250PO':                darOficio(250); break;
+        case '5N250KB125PO20E':      darNikas(5); darBerries(250000); darOficio(125); darExp(20); break;
+        case '15N':                  darNikas(15); break;
+        case '10N500KB250PO40E':     darNikas(10); darBerries(500000); darOficio(250); darExp(40); break;
+        // CFR003
+        case '1MB':                  darBerries(1000000); break;
+        case '75E':                  darExp(75); break;
+        case '500PO':                darOficio(500); break;
+        case '8N500KB250PO40E':      darNikas(8); darBerries(500000); darOficio(250); darExp(40); break;
+        case '25N':                  darNikas(25); break;
+        case '15N1MB500PO75E':       darNikas(15); darBerries(1000000); darOficio(500); darExp(75); break;
+        // CFR004
+        case '20N':                  darNikas(20); break;
+        case '2500KB':               darBerries(2500000); break;
+        case '100E':                 darExp(100); break;
+        case '750PO':                darOficio(750); break;
+        case '10N1250KB375PO50E':    darNikas(10); darBerries(1250000); darOficio(375); darExp(50); break;
+        case '35N':                  darNikas(35); break;
+        case '20N2500KB750PO100E':   darNikas(20); darBerries(2500000); darOficio(750); darExp(100); break;
+        // CFR005
+        case '30N':                  darNikas(30); break;
+        case '7MB':                  darBerries(7000000); break;
+        case '125E':                 darExp(125); break;
+        case '1KPO':                 darOficio(1000); break;
+        case '15N3500KB500PO70E':    darNikas(15); darBerries(3500000); darOficio(500); darExp(70); break;
+        case '45N':                  darNikas(45); break;
+        case '30N7MB1000PO125E':     darNikas(30); darBerries(7000000); darOficio(1000); darExp(125); break;
+        // CFR006
+        case '40N':                  darNikas(40); break;
+        case '15MB':                 darBerries(15000000); break;
+        case '150E':                 darExp(150); break;
+        case '1250PO':               darOficio(1250); break;
+        case '20N7500KB625PO75E':    darNikas(20); darBerries(7500000); darOficio(625); darExp(75); break;
+        case '55N':                  darNikas(55); break;
+        case '40N15M1250PO150E':     darNikas(40); darBerries(15000000); darOficio(1250); darExp(150); break;
+        // CFR007
+        case '50N':                  darNikas(50); break;
+        case '30MB':                 darBerries(30000000); break;
+        case '200E':                 darExp(200); break;
+        case '1500PO':               darOficio(1500); break;
+        case '25N15M750PO100E':      darNikas(25); darBerries(15000000); darOficio(750); darExp(100); break;
+        case '65N':                  darNikas(65); break;
+        case '50N30MBV1500PO200E':   darNikas(50); darBerries(30000000); darOficio(1500); darExp(200); break;
+        // CFR008
+        case '75N':                  darNikas(75); break;
+        case '75MB':                 darBerries(75000000); break;
+        case '250E':                 darExp(250); break;
+        case '2000PO':               darOficio(2000); break;
+        case '40N40M1000PO125E':     darNikas(40); darBerries(40000000); darOficio(1000); darExp(125); break;
+        case '85N':                  darNikas(85); break;
+        case '75N75MB2000PO250E':    darNikas(75); darBerries(75000000); darOficio(2000); darExp(250); break;
+        // CFR009
+        case '100N':                 darNikas(100); break;
+        case '250MB':                darBerries(250000000); break;
+        case '350E':                 darExp(350); break;
+        case '2500PO':               darOficio(2500); break;
+        case '50N125M1250PO175E':    darNikas(50); darBerries(125000000); darOficio(1250); darExp(175); break;
+        case '120N':                 darNikas(120); break;
+        case '100N250MB2500PO350E':  darNikas(100); darBerries(250000000); darOficio(2500); darExp(350); break;
+        // CFR010
+        case '150N':                 darNikas(150); break;
+        case '1000MB':               darBerries(1000000000); break;
+        case '500E':                 darExp(500); break;
+        case '5000PO':               darOficio(5000); break;
+        case '150N1000MB500E5000PO': darNikas(150); darBerries(1000000000); darExp(500); darOficio(5000); break;
+        // CFN002
+        case '5N250KB':              darNikas(5); darBerries(250000); break;
+        case '10N500KB':             darNikas(10); darBerries(500000); break;
+        // CFN003
+        case '8N500KB':              darNikas(8); darBerries(500000); break;
+        case '15N1MB':               darNikas(15); darBerries(1000000); break;
+        // CFN004
+        case '10N1250KB':            darNikas(10); darBerries(1250000); break;
+        case '20N2500KB':            darNikas(20); darBerries(2500000); break;
+        // CFN005
+        case '15N3500KB':            darNikas(15); darBerries(3500000); break;
+        case '30N7MB':               darNikas(30); darBerries(7000000); break;
+        // CFN006
+        case '20N7500KB':            darNikas(20); darBerries(7500000); break;
+        case '40N15M':               darNikas(40); darBerries(15000000); break;
+        // CFN007
+        case '25N15M':               darNikas(25); darBerries(15000000); break;
+        case '50N30MB':              darNikas(50); darBerries(30000000); break;
+        // CFN008
+        case '40N40M':               darNikas(40); darBerries(40000000); break;
+        case '75N75MB':              darNikas(75); darBerries(75000000); break;
+    }
+}
+
+// ======================================================================
+// Jackpot: da todos los items del cofre (excluyendo el propio jackpot)
+// ======================================================================
+function procesarJackpotCofre($cofre_id) {
+    global $db;
+    $safe_id = $db->escape_string($cofre_id);
+    $items_q = $db->query("SELECT * FROM mybb_op_cofres WHERE cofre_id='$safe_id' AND tipo != 'Jackpot'");
+    while ($item = $db->fetch_array($items_q)) {
+        if ($item['tipo'] === 'Objeto') {
+            [$rid, $rcant] = resolverObjetoId($item['objeto_id'], $item['cantidad']);
+            darObjeto($rid, $rcant);
+        } elseif ($item['tipo'] === 'Custom') {
+            procesarCustomRecompensa($item['objeto_id']);
         }
-    }   
+    }
 }
 
 
@@ -343,8 +592,8 @@ if ($tirada_cofre == 'true') {
          $cofre_id == 'CFR006' || $cofre_id == 'CFR007' || $cofre_id == 'CFR008' || $cofre_id == 'CFR009' || $cofre_id == 'CFR010' || 
          $cofre_id == 'INV001' || $cofre_id == 'INV002' || $cofre_id == 'INV003' || $cofre_id == 'INV004' || $cofre_id == 'INV005' ||
          $cofre_id == 'CFD002' || $cofre_id == 'CFD003' || $cofre_id == 'CFD004' || $cofre_id == 'CRM003' || $cofre_id == 'CFN002' ||
-         $cofre_id == 'CFN003' || $cofre_id == 'CFN004' || $cofre_id == 'CFN005' || $cofre_id == 'CFN006' || $cofre_id == 'CFN007' || 
-         $cofre_id == 'CFN008' || $cofre_id == 'CFN009' || $cofre_id == 'KTC001' )) {
+         $cofre_id == 'CFN003' || $cofre_id == 'CFN004' || $cofre_id == 'CFN005' || $cofre_id == 'CFN006' || $cofre_id == 'CFN007' ||
+         $cofre_id == 'CFN008' || $cofre_id == 'CFN009' || $cofre_id == 'KTC001' || isset($cff010_chain[$cofre_id]) )) {
         
         $cantidadNueva = intval($cantidadActual) - intval($cantidadExtra);
 
@@ -356,6 +605,29 @@ if ($tirada_cofre == 'true') {
             $db->query(" 
                 UPDATE `mybb_op_inventario` SET `cantidad`='$cantidadNueva' WHERE objeto_id='$cofre_id' AND uid='$uid'
             ");
+        }
+
+        // Cofre bromista: transiciona al siguiente estado en lugar de dar recompensa real
+        if (isset($cff010_chain[$cofre_id])) {
+            $estado    = $cff010_chain[$cofre_id];
+            $siguiente = $estado['next'];
+            $safe_username = $db->escape_string($username);
+
+            if ($siguiente !== null) {
+                darObjeto($siguiente, 1);
+                $safe_nombre = $db->escape_string($estado['nombre_next']);
+                $db->query("INSERT INTO `mybb_op_tirada_cofre` (`uid`, `tier`, `objeto_id`, `timestamp`, `nombre`, `objeto`) VALUES ('$uid', '$cofre_id', '$siguiente', '$timestamp', '$safe_username', '$safe_nombre')");
+                $response['success']   = true;
+                $response['objeto']    = $estado['nombre_next'];
+                $response['objeto_id'] = $siguiente;
+            } else {
+                $db->query("INSERT INTO `mybb_op_tirada_cofre` (`uid`, `tier`, `objeto_id`, `timestamp`, `nombre`, `objeto`) VALUES ('$uid', '$cofre_id', 'DESTRUIDO', '$timestamp', '$safe_username', 'De verdad que estáis desesperados por cofres, ¿eh?')");
+                $response['success']   = true;
+                $response['objeto']    = 'De verdad que estáis desesperados por cofres, ¿eh?';
+                $response['objeto_id'] = 'DESTRUIDO';
+            }
+            echo json_encode($response);
+            return;
         }
 
         $cofre = null;
@@ -405,461 +677,46 @@ if ($tirada_cofre == 'true') {
         ");
 
         while ($q = $db->fetch_array($cofre_query)) { $cofre = $q; }
-        $obj_id = $cofre['objeto_id'];
+
+        if ($cofre === null) {
+            $response['success'] = false;
+            $response['mensaje'] = 'Error interno: no se pudo determinar el resultado del cofre.';
+            echo json_encode($response);
+            return;
+        }
+
+        $obj_id      = $cofre['objeto_id'];
         $obj_cantidad = $cofre['cantidad'];
-        
-        if ($cofre_id == 'CFR001') { // Cofre Basico
 
-            if ($cofre['tipo'] == 'Objeto') {
-                if ($obj_id == 'CFR001X2') { darObjeto('CFR001', '1'); darObjeto('CFR001', '1');}
-                else {darObjeto($obj_id, $obj_cantidad);}
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '5N') { darNikas(5); }
-                if ($obj_id == '200KB') { darBerries(200000); }
-                if ($obj_id == '20E') { darExp(20); }
-                if ($obj_id == '100PO') { darOficio(100); }
-                if ($obj_id == '3N100KB50PO10E') { darNikas(3); darBerries(100000); darOficio(50); darExp(10); }
-                if ($obj_id == '10N') { darNikas(10); }
-                if ($obj_id == '5N200KB100PO20E') { darNikas(5); darBerries(200000); darOficio(100); darExp(20); }
-                if ($obj_id == 'CFR001X2') { darObjeto('CFR001', '2');}
-
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(5); darBerries(200000); darExp(20); darOficio(100); darNikas(3); darBerries(100000); darOficio(50); darExp(10); darNikas(10); darNikas(5); darBerries(200000); darOficio(100); darExp(20); darObjeto('TARM001', '1'); darObjeto('CFD002', '1'); darObjeto('NTC001', '1');  darObjeto('RTO001', '1'); darObjeto('PED003', '1');  darObjeto('TTUN002', '1'); darObjeto('TMJT002', '1'); darObjeto('INV001', '1'); darObjeto('CFR002', '1'); darObjeto('CFR001', '2'); darObjeto('LLST001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
+        // ---- Procesado unificado: sin bloques por cofre ----
+        if ($cofre['tipo'] == 'Objeto') {
+            [$rid, $rcant] = resolverObjetoId($obj_id, $obj_cantidad);
+            darObjeto($rid, $rcant);
+        } elseif ($cofre['tipo'] == 'Custom') {
+            procesarCustomRecompensa($obj_id);
+        } elseif ($cofre['tipo'] == 'Jackpot') {
+            procesarJackpotCofre($cofre_id);
         }
 
-        if ($cofre_id == 'CFR002') { // Cofre Decente
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '10N') { darNikas(10); }
-                if ($obj_id == '500KB') { darBerries(500000); }
-                if ($obj_id == '40E') { darExp(40); }
-                if ($obj_id == '250PO') { darOficio(250); }
-                if ($obj_id == '5N250KB125PO20E') { darNikas(5); darBerries(250000); darOficio(125); darExp(20); }
-                if ($obj_id == '15N') { darNikas(15); }
-                if ($obj_id == '10N500KB250PO40E') { darNikas(10); darBerries(500000); darOficio(250); darExp(40); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(10); darBerries(500000); darExp(40); darOficio(250); darNikas(5); darBerries(250000); darOficio(125); darExp(20); darNikas(15); darNikas(10); darBerries(500000); darOficio(250); darExp(40); darObjeto('TARM001', '1'); darObjeto('TARM002', '1'); darObjeto('CFD002', '1');  darObjeto('NTC002', '1'); darObjeto('RTO002', '1');  darObjeto('BLVIP001', '1'); darObjeto('PED003', '1'); darObjeto('TTUN003', '1'); darObjeto('TMJT003', '1'); darObjeto('INV001', '1'); darObjeto('CFR003', '1'); darObjeto('CFR001', '1'); darObjeto('THR001', '1'); }
-            }
+        $objeto    = $cofre['nombre'];
+        $objeto_id = $cofre['objeto_id'];
 
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
+        $safe_objeto    = $db->escape_string($objeto);
+        $safe_username  = $db->escape_string($username);
+        $db->query("INSERT INTO `mybb_op_tirada_cofre` (`uid`, `tier`, `objeto_id`, `timestamp`, `nombre`, `objeto`) VALUES ('$uid', '$cofre_id', '$objeto_id', '$timestamp', '$safe_username', '$safe_objeto')");
 
-        if ($cofre_id == 'CFR003') { // Cofre Gigante
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '15N') { darNikas(15); }
-                if ($obj_id == '1MB') { darBerries(1000000); }
-                if ($obj_id == '75E') { darExp(75); }
-                if ($obj_id == '500PO') { darOficio(500); }
-                if ($obj_id == '8N500KB250PO40E') { darNikas(8); darBerries(500000); darOficio(250); darExp(40); }
-                if ($obj_id == '25N') { darNikas(25); }
-                if ($obj_id == '15N1MB500PO75E') { darNikas(15); darBerries(1000000); darOficio(500); darExp(75); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(15); darBerries(1000000); darExp(75); darOficio(500); darNikas(8); darBerries(500000); darOficio(250); darExp(40); darNikas(25); darNikas(15); darBerries(1000000); darOficio(500); darExp(75); darObjeto('TARM002', '1'); darObjeto('CFD002', '1'); darObjeto('NTC002', '1');  darObjeto('RTO002', '1'); darObjeto('BLVIP001', '1');  darObjeto('PED003', '1'); darObjeto('TTUN004', '1'); darObjeto('TTUN003', '1'); darObjeto('TMJT004', '1'); darObjeto('INV002', '1'); darObjeto('KSP001', '1'); darObjeto('CFR004', '1'); darObjeto('CFR002', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFR004') { // Cofre Cobrizo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '20N') { darNikas(20); }
-                if ($obj_id == '2500KB') { darBerries(2500000); }
-                if ($obj_id == '100E') { darExp(100); }
-                if ($obj_id == '750PO') { darOficio(750); }
-                if ($obj_id == '10N1250KB375PO50E') { darNikas(10); darBerries(1250000); darOficio(375); darExp(50); }
-                if ($obj_id == '35N') { darNikas(35); }
-                if ($obj_id == '20N2500KB750PO100E') { darNikas(20); darBerries(2500000); darOficio(750); darExp(100); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(20); darBerries(2500000); darExp(100); darOficio(750); darNikas(10); darBerries(1250000); darOficio(375); darExp(50); darNikas(35); darNikas(20); darBerries(2500000); darOficio(750); darExp(100); darObjeto('TARM002', '1'); darObjeto('TARM003', '1'); darObjeto('VCD001', '1');  darObjeto('CFD003', '1'); darObjeto('NTC003', '1');  darObjeto('RTO003', '1'); darObjeto('BLVIP001', '1'); darObjeto('PED004', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN005', '1'); darObjeto('TMJT005', '1'); darObjeto('INV002', '1'); darObjeto('KSP001', '1'); darObjeto('CFR005', '1'); darObjeto('CFR003', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFR005') { // Cofre Argenteo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '30N') { darNikas(30); }
-                if ($obj_id == '7MB') { darBerries(7000000); }
-                if ($obj_id == '125E') { darExp(125); }
-                if ($obj_id == '1KPO') { darOficio(1000); }
-                if ($obj_id == '15N3500KB500PO70E') { darNikas(15); darBerries(3500000); darOficio(500); darExp(70); }
-                if ($obj_id == '45N') { darNikas(45); }
-                if ($obj_id == '30N7MB1000PO125E') { darNikas(30); darBerries(7000000); darOficio(1000); darExp(125); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(30); darBerries(7000000); darExp(125); darOficio(1000); darNikas(15); darBerries(3500000); darOficio(375); darExp(50); darNikas(45); darNikas(30); darBerries(7000000); darOficio(1000); darExp(125); darObjeto('TARM003', '1'); darObjeto('VCD001', '1'); darObjeto('CFD003', '1');  darObjeto('NTC003', '1'); darObjeto('RTO003', '1');  darObjeto('BLVIP001', '1'); darObjeto('PED004', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN006', '1'); darObjeto('TMJT006', '1'); darObjeto('INV003', '1'); darObjeto('KK0020', '1'); darObjeto('CFR006', '5'); darObjeto('CFR004', '1'); darObjeto('THR001', '1'); }
-            }
-
-         $objeto = $cofre['nombre'];
-         $objeto_id = $cofre['objeto_id'];
-           
-        }
-
-        if ($cofre_id == 'CFR006') { // Cofre Aureo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                if ($obj_id == '40N') { darNikas(40); }
-                if ($obj_id == '15MB') { darBerries(15000000); }
-                if ($obj_id == '150E') { darExp(150); }
-                if ($obj_id == '1250PO') { darOficio(1250); }
-                if ($obj_id == '20N7500KB625PO75E') { darNikas(20); darBerries(7500000); darOficio(650); darExp(75); }
-                if ($obj_id == '55N') { darNikas(55); }
-                if ($obj_id == '40N15M1250PO150E') { darNikas(40); darBerries(15000000); darOficio(1250); darExp(150); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(40); darBerries(15000000); darExp(150); darOficio(1250); darNikas(20); darBerries(7500000); darOficio(650); darExp(75); darNikas(55); darNikas(40); darBerries(15000000); darOficio(1250); darExp(150); darObjeto('CFR005', '1'); darObjeto('CFR007', '1'); darObjeto('THR001', '1');  darObjeto('KK040', '1'); darObjeto('INV003', '1');  darObjeto('TMJT007', '1'); darObjeto('TTUN007', '1'); darObjeto('PEESP001', '1'); darObjeto('PED005', '1'); darObjeto('BLVIP001', '1'); darObjeto('RTO004', '1'); darObjeto('NTC004', '1'); darObjeto('CFD003', '1'); darObjeto('VCZ001', '1'); darObjeto('KMP001', '1'); darObjeto('EPA001', '1'); darObjeto('TARM004', '1'); darObjeto('TARM003', '1'); darObjeto('TAK003', '1');}
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFR007') { // Cofre Epico
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '50N') { darNikas(50); }
-                if ($obj_id == '30MB') { darBerries(30000000); }
-                if ($obj_id == '200E') { darExp(200); }
-                if ($obj_id == '1500PO') { darOficio(1500); }
-                if ($obj_id == '25N15M750PO100E') { darNikas(25); darBerries(15000000); darOficio(750); darExp(100); }
-                if ($obj_id == '65N') { darNikas(65); }
-                if ($obj_id == '50N30MBV1500PO200E') { darNikas(50); darBerries(30000000); darOficio(1500); darExp(200); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {            
-                if ($obj_id == 'JACKPOT') { darNikas(50); darBerries(30000000); darExp(200); darOficio(1500); darNikas(25); darBerries(15000000); darOficio(750); darExp(100); darNikas(65); darNikas(50); darBerries(30000000); darOficio(1500); darExp(200); darObjeto('TAK003', '1'); darObjeto('WAZ003', '1'); darObjeto('TARM004', '1'); darObjeto('EPA001', '1'); darObjeto('KMP001', '1');darObjeto('ANM001', '1'); darObjeto('ANM002', '1'); darObjeto('ANM003', '1'); darObjeto('ANM004', '1'); darObjeto('CFD004', '1'); darObjeto('NTC004', '1'); darObjeto('RTO004', '1'); darObjeto('PED005', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN008', '1'); darObjeto('TMJT008', '1'); darObjeto('INV004', '1'); darObjeto('KK006', '1'); darObjeto('CFR008', '1'); darObjeto('CFR006', '1'); darObjeto('THR001', '1'); }                
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-        
-        if ($cofre_id == 'CFR008') { // Cofre Legendario
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '75N') { darNikas(75); }
-                if ($obj_id == '75MB') { darBerries(75000000); }
-                if ($obj_id == '250E') { darExp(250); }
-                if ($obj_id == '2000PO') { darOficio(2000); }
-                if ($obj_id == '40N40M1000PO125E') { darNikas(40); darBerries(40000000); darOficio(1000); darExp(125); }
-                if ($obj_id == '85N') { darNikas(85); }
-                if ($obj_id == '75N75MB2000PO250E') { darNikas(75); darBerries(75000000); darOficio(2000); darExp(250); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(75); darBerries(75000000); darExp(250); darOficio(2000); darNikas(40); darBerries(40000000); darOficio(1000); darExp(125); darNikas(85); darNikas(75); darBerries(75000000); darOficio(2000); darExp(250); darObjeto('TAK003', '1'); darObjeto('TAK004', '1'); darObjeto('WAZ003', '1'); darObjeto('WAZ004', '1'); darObjeto('TARM004', '1');darObjeto('TARM005', '1'); darObjeto('ANM003', '1'); darObjeto('ANM004', '1'); darObjeto('ANM005', '1'); darObjeto('CFD004', '1'); darObjeto('NTC005', '1'); darObjeto('RTO005', '1'); darObjeto('EANM001', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN009', '1'); darObjeto('TMJT009', '1'); darObjeto('INV004', '1'); darObjeto('KK006', '1'); darObjeto('KK080', '1'); darObjeto('CFR009', '1'); darObjeto('CFR007', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFR009') { // Cofre Majestuoso
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '100N') { darNikas(100); }
-                if ($obj_id == '250MB') { darBerries(250000000); }
-                if ($obj_id == '350E') { darExp(350); }
-                if ($obj_id == '2500PO') { darOficio(2500); }
-                if ($obj_id == '50N125M1250PO175E') { darNikas(50); darBerries(125000000); darOficio(1250); darExp(175); }
-                if ($obj_id == '120N') { darNikas(120); }
-                if ($obj_id == '100N250MB2500PO350E') { darNikas(100); darBerries(250000000); darOficio(2500); darExp(350); }
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(100); darBerries(250000000); darExp(350); darOficio(2500); darNikas(50); darBerries(125000000); darOficio(1250); darExp(175); darNikas(120); darNikas(100); darBerries(250000000); darOficio(2500); darExp(350); darObjeto('TAK004', '1'); darObjeto('TAK005', '1'); darObjeto('WAZ004', '1'); darObjeto('WAZ005', '1'); darObjeto('TARM005', '1');darObjeto('ANM005', '1'); darObjeto('ANM006', '1'); darObjeto('CFD004', '1'); darObjeto('NTC005', '1'); darObjeto('RTO005', '1'); darObjeto('EANM001', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN010', '1'); darObjeto('INV005', '1'); darObjeto('KK100', '1'); darObjeto('CFR010', '1'); darObjeto('CFR008', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFR010') { // Cofre Diamantino
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '150N') { darNikas(150); }
-                if ($obj_id == '1000MB') { darBerries(1000000000); }
-                if ($obj_id == '500E') { darExp(500); }
-                if ($obj_id == '5000PO') { darOficio(5000); }
-                if ($obj_id == '150N1000MB500E5000PO') { darNikas(150); darBerries(1000000000); darOficio(5000); darExp(500); }
-            
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(150); darBerries(1000000000); darExp(500); darOficio(5000); darNikas(150); darBerries(1000000000); darOficio(5000); darExp(500); darObjeto('TAK005', '1'); darObjeto('WAZ005', '1'); darObjeto('ANM006', '1'); darObjeto('EANM001', '1'); darObjeto('TTUN010', '3');darObjeto('TMJT010', '3'); darObjeto('INV005', '1'); darObjeto('KK100', '1'); darObjeto('CFR006', '5'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        // NARRACOFRES
-        if ($cofre_id == 'CFN002') { // Narracofre Decente
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '10N') { darNikas(10); }
-                if ($obj_id == '500KB') { darBerries(500000); }
-                if ($obj_id == '5N250KB') { darNikas(5); darBerries(250000);}
-                if ($obj_id == '15N') { darNikas(15); }
-                if ($obj_id == '10N500KB') { darNikas(10); darBerries(500000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(10); darBerries(500000); darNikas(5); darBerries(250000); darNikas(15); darNikas(10); darBerries(500000); darObjeto('TARM001', '1'); darObjeto('TARM002', '1'); darObjeto('CFD002', '1');  darObjeto('NTC002', '1'); darObjeto('RTO002', '1');  darObjeto('BLVIP001', '1'); darObjeto('PED003', '1'); darObjeto('TTUN003', '1'); darObjeto('TMJT003', '1'); darObjeto('INV001', '1'); darObjeto('CFR003', '1'); darObjeto('CFR001', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFN003') { // Narracofre Gigante
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '15N') { darNikas(15); }
-                if ($obj_id == '1MB') { darBerries(1000000); }
-                if ($obj_id == '8N500KB') { darNikas(8); darBerries(500000);}
-                if ($obj_id == '25N') { darNikas(25); }
-                if ($obj_id == '15N1MB') { darNikas(15); darBerries(1000000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(15); darBerries(1000000); darNikas(8); darBerries(500000); darNikas(25); darNikas(15); darBerries(1000000); darObjeto('TARM002', '1'); darObjeto('CFD002', '1'); darObjeto('NTC002', '1');  darObjeto('RTO002', '1'); darObjeto('BLVIP001', '1');  darObjeto('PED003', '1'); darObjeto('TTUN004', '1'); darObjeto('TTUN003', '1'); darObjeto('TMJT004', '1'); darObjeto('INV002', '1'); darObjeto('KSP001', '1'); darObjeto('CFR004', '1'); darObjeto('CFR002', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFN004') { // Narracofre Cobrizo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '20N') { darNikas(20); }
-                if ($obj_id == '2500KB') { darBerries(2500000); }
-                if ($obj_id == '10N1250KB') { darNikas(10); darBerries(1250000);}
-                if ($obj_id == '35N') { darNikas(35); }
-                if ($obj_id == '20N2500KB') { darNikas(20); darBerries(2500000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(20); darBerries(2500000); darNikas(10); darBerries(1250000); darNikas(35); darNikas(20); darBerries(2500000); darObjeto('TARM002', '1'); darObjeto('TARM003', '1'); darObjeto('VCD001', '1');  darObjeto('CFD003', '1'); darObjeto('NTC003', '1');  darObjeto('RTO003', '1'); darObjeto('BLVIP001', '1'); darObjeto('PED004', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN005', '1'); darObjeto('TMJT005', '1'); darObjeto('INV002', '1'); darObjeto('KSP001', '1'); darObjeto('CFR005', '1'); darObjeto('CFR003', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFN005') { // Narracofre Argenteo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '30N') { darNikas(30); }
-                if ($obj_id == '7MB') { darBerries(7000000); }
-                if ($obj_id == '15N3500KB') { darNikas(15); darBerries(3500000);}
-                if ($obj_id == '45N') { darNikas(45); }
-                if ($obj_id == '30N7MB') { darNikas(30); darBerries(7000000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(30); darBerries(7000000); darNikas(15); darBerries(3500000); darNikas(45); darNikas(30); darBerries(7000000); darObjeto('TARM003', '1'); darObjeto('VCD001', '1'); darObjeto('CFD003', '1');  darObjeto('NTC003', '1'); darObjeto('RTO003', '1');  darObjeto('BLVIP001', '1'); darObjeto('PED004', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN006', '1'); darObjeto('TMJT006', '1'); darObjeto('INV003', '1'); darObjeto('KK0020', '1'); darObjeto('CFR006', '5'); darObjeto('CFR004', '1'); darObjeto('THR001', '1'); }
-            }
-
-         $objeto = $cofre['nombre'];
-         $objeto_id = $cofre['objeto_id'];
-           
-        }
-
-        if ($cofre_id == 'CFN006') { // Narracofre Aureo
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                if ($obj_id == '40N') { darNikas(40); }
-                if ($obj_id == '15MB') { darBerries(15000000); }
-                if ($obj_id == '20N7500KB') { darNikas(20); darBerries(7500000);}
-                if ($obj_id == '55N') { darNikas(55); }
-                if ($obj_id == '40N15M') { darNikas(40); darBerries(15000000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(40); darBerries(15000000); darNikas(20); darBerries(7500000); darNikas(55); darNikas(40); darBerries(15000000); darObjeto('CFR005', '1'); darObjeto('CFR007', '1'); darObjeto('THR001', '1');  darObjeto('KK040', '1'); darObjeto('INV003', '1');  darObjeto('TMJT007', '1'); darObjeto('TTUN007', '1'); darObjeto('PEESP001', '1'); darObjeto('PED005', '1'); darObjeto('BLVIP001', '1'); darObjeto('RTO004', '1'); darObjeto('NTC004', '1'); darObjeto('CFD003', '1'); darObjeto('VCZ001', '1'); darObjeto('KMP001', '1'); darObjeto('EPA001', '1'); darObjeto('TARM004', '1'); darObjeto('TARM003', '1'); darObjeto('TAK003', '1');}
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        if ($cofre_id == 'CFN007') { // Narracofre Epico
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '50N') { darNikas(50); }
-                if ($obj_id == '30MB') { darBerries(30000000); }
-                if ($obj_id == '25N15M') { darNikas(25); darBerries(15000000);}
-                if ($obj_id == '65N') { darNikas(65); }
-                if ($obj_id == '50N30MB') { darNikas(50); darBerries(30000000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {            
-                if ($obj_id == 'JACKPOT') { darNikas(50); darBerries(30000000); darNikas(25); darBerries(15000000); darNikas(65); darNikas(50); darBerries(30000000); darObjeto('TAK003', '1'); darObjeto('WAZ003', '1'); darObjeto('TARM004', '1'); darObjeto('EPA001', '1'); darObjeto('KMP001', '1');darObjeto('ANM001', '1'); darObjeto('ANM002', '1'); darObjeto('ANM003', '1'); darObjeto('ANM004', '1'); darObjeto('CFD004', '1'); darObjeto('NTC004', '1'); darObjeto('RTO004', '1'); darObjeto('PED005', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN008', '1'); darObjeto('TMJT008', '1'); darObjeto('INV004', '1'); darObjeto('KK006', '1'); darObjeto('CFR008', '1'); darObjeto('CFR006', '1'); darObjeto('THR001', '1'); }                
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-        
-        if ($cofre_id == 'CFN008') { // Narracofre Legendario
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '75N') { darNikas(75); }
-                if ($obj_id == '75MB') { darBerries(75000000); }
-                if ($obj_id == '40N40M') { darNikas(40); darBerries(40000000);}
-                if ($obj_id == '85N') { darNikas(85); }
-                if ($obj_id == '75N75MB') { darNikas(75); darBerries(75000000);}
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(75); darBerries(75000000); darNikas(40); darBerries(40000000); darNikas(85); darNikas(75); darBerries(75000000); darObjeto('TAK003', '1'); darObjeto('TAK004', '1'); darObjeto('WAZ003', '1'); darObjeto('WAZ004', '1'); darObjeto('TARM004', '1');darObjeto('TARM005', '1'); darObjeto('ANM003', '1'); darObjeto('ANM004', '1'); darObjeto('ANM005', '1'); darObjeto('CFD004', '1'); darObjeto('NTC005', '1'); darObjeto('RTO005', '1'); darObjeto('EANM001', '1'); darObjeto('PEESP001', '1'); darObjeto('TTUN009', '1'); darObjeto('TMJT009', '1'); darObjeto('INV004', '1'); darObjeto('KK006', '1'); darObjeto('KK080', '1'); darObjeto('CFR009', '1'); darObjeto('CFR007', '1'); darObjeto('THR001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-        // COFRES MEMES Y NO TAN MEMES
-        if ($cofre_id == 'KTC001') { // Katacofre Regular
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } else if ($cofre['tipo'] == 'Custom') {
-                
-                if ($obj_id == '1N') { darNikas(1); }
-                if ($obj_id == '1000B') { darBerries(1000); }
-                if ($obj_id == '1E') { darExp(1); }
-                if ($obj_id == '10PO') { darOficio(10); }
-                if ($obj_id == '1N1000B1E10PO') { darNikas(1); darBerries(1000); darOficio(10); darExp(1); }
-            
-        
-                
-            } else if ($cofre['tipo'] == 'Jackpot') {
-                if ($obj_id == 'JACKPOT') { darNikas(10); darBerries(1000000); darExp(10); darOficio(100); darObjeto('LLST001', '1'); }
-            }
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-
-        }
-
-        // if ($cofre_id == 'KTC002') { // Katacofre Premium
-        //     if ($cofre['tipo'] == 'Objeto') {
-        //         darObjeto($obj_id, $obj_cantidad);
-        //     } else if ($cofre['tipo'] == 'Custom') {
-                
-        //         if ($obj_id == '50N') { darNikas(50); }
-        //         if ($obj_id == '20MB') { darBerries(20000000); }
-        //         if ($obj_id == '200E') { darExp(200); }
-        //         if ($obj_id == '1000PO') { darOficio(1000); }
-        //         if ($obj_id == '200N20MB200E1000PO') { darNikas(50); darBerries(20000000); darOficio(1000); darExp(200); }
-                            
-        //     } else if ($cofre['tipo'] == 'Jackpot') {
-        //         if ($obj_id == 'JACKPOT') { darNikas(100); darBerries(40000000); darExp(400); darOficio(2000); darObjeto('LLST001', '1'); }
-        //     }
-
-        //     $objeto = $cofre['nombre'];
-        //     $objeto_id = $cofre['objeto_id'];
-
-        // }
-
-        // Caja de Artefacto T1,T2,T3,T4,T5 || CD T2,T3,T4 || Barril Rescatado
-        if ($cofre_id == 'INV001' || $cofre_id == 'INV002' || $cofre_id == 'INV003' || $cofre_id == 'INV004' || $cofre_id == 'INV005' ||
-            $cofre_id == 'CFD002' || $cofre_id == 'CFD003' || $cofre_id == 'CFD004' || $cofre_id == 'CRM003'
-        ) { 
-            if ($cofre['tipo'] == 'Objeto') {
-                darObjeto($obj_id, $obj_cantidad);
-            } 
-
-            $objeto = $cofre['nombre'];
-            $objeto_id = $cofre['objeto_id'];
-        }
-
-
-        $response[0] = array(
-        'nombre' => $username,
-        'tier' => $cofre_id,
-        'objeto' => $objeto,
-        'objeto_id' => $objeto_id,
-        'timestamp' => $timestamp,
-        'cofre_random' => $cofre_random
-        );
-
-        $db->query(" INSERT INTO `mybb_op_tirada_cofre`(`uid`, `nombre`, `tier`, `objeto`, `objeto_id`, `timestamp`, `cofre_random`) VALUES 
-        ('$uid','$username','$cofre_id','$objeto','$objeto_id','$timestamp','$cofre_random')");
-
-        echo json_encode($response); 
-
-    
-        return;
-
-    } else {
+        $response['success']   = true;
+        $response['objeto']    = $objeto;
+        $response['objeto_id'] = $objeto_id;
+        echo json_encode($response);
         return;
     }
 
-
+    $response['success'] = false;
+    $response['mensaje'] = 'No tienes ese cofre o no es válido.';
+    echo json_encode($response);
+    return;
 }
 
-if (does_ficha_exist($uid) && $ficha_aprobada) {
-    $query_inventario = $db->query("
-        SELECT * FROM `mybb_op_objetos` 
-        INNER JOIN `mybb_op_inventario` 
-        ON `mybb_op_objetos`.`objeto_id`=`mybb_op_inventario`.`objeto_id` 
-        WHERE `mybb_op_inventario`.`uid`='$uid' AND `mybb_op_objetos`.`subcategoria`='cofres'
-    ");
-
-    $objetos = array();
-    $objetos_array = array();
-
-    while ($q = $db->fetch_array($query_inventario)) { 
-        $objeto_id = $q['objeto_id'];
-        $key = "$objeto_id";
-        if (!$objetos[$key]) { $objetos[$key] = array(); }
-        array_push($objetos[$key], $q);
-        array_push($objetos_array, $objeto_id);
-    }
-
-    $objetos_array_json = json_encode($objetos_array);
-    $objetos_json = json_encode($objetos);
-
-    eval("\$page = \"".$templates->get("op_tirada_cofre")."\";");
-    output_page($page);
-} else {
-    $mensaje_redireccion = "Para acceder a esta página debes tener tu ficha aprobada.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-}
+eval('$page = "' . $templates->get('op_tirada_cofre') . '";');
+output_page($page);

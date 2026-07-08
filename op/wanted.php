@@ -256,6 +256,11 @@ function calcular_wanted(array $row, $db): float
 }
 
 // ---------------------------------------------------------------------
+// Permisos
+// ---------------------------------------------------------------------
+$g_is_staff = is_staff($mybb->user['uid']);
+
+// ---------------------------------------------------------------------
 // Actualización masiva si llega el flag wanted=true (sin transacción)
 // ---------------------------------------------------------------------
 $wanted = $mybb->get_input('wanted'); // lee de GET/POST indistinto
@@ -273,8 +278,9 @@ if ($wanted === 'true') {
 
         $updated = 0;
         while ($row = $db->fetch_array($q)) {
-            $calc = calcular_wanted($row, $db);
-            $valor = (int)round(max(0, $calc));
+            $calc  = calcular_wanted($row, $db);
+            $bonus = max(0, (int)($row['wantedcustom'] ?? 0));
+            $valor = (int)round(max(0, $calc + $bonus));
             // OJO: aquí SIN prefijo
             $db->update_query('op_fichas', ['wantedGuardado' => $valor], "fid=".(int)$row['fid']);
             $updated++;
@@ -289,6 +295,62 @@ if ($wanted === 'true') {
         echo json_encode(['ok' => false, 'error' => 'Update failed']);
         exit;
     }
+}
+
+// ---------------------------------------------------------------------
+// Recálculo por UIDs específicas (staff)
+// ---------------------------------------------------------------------
+if ($wanted === 'recalcular_uid') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    if (!$g_is_staff) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Sin permisos']);
+        exit;
+    }
+
+    $uids_raw = trim($mybb->get_input('uids'));
+    if ($uids_raw === '') {
+        echo json_encode(['ok' => false, 'error' => 'No se proporcionaron UIDs']);
+        exit;
+    }
+
+    $uids = array_values(array_filter(array_map('intval', explode(',', $uids_raw))));
+    if (empty($uids)) {
+        echo json_encode(['ok' => false, 'error' => 'UIDs inválidas']);
+        exit;
+    }
+
+    $results = [];
+    foreach ($uids as $target_uid) {
+        $q = $db->query("
+            SELECT f.*, u.avatar
+            FROM mybb_op_fichas AS f
+            INNER JOIN mybb_users AS u ON f.fid = u.uid
+            WHERE f.fid = '$target_uid'
+            LIMIT 1
+        ");
+        $row = $db->fetch_array($q);
+        if (!$row) {
+            $results[] = ['uid' => $target_uid, 'ok' => false, 'error' => 'Ficha no encontrada'];
+            continue;
+        }
+        $calc  = calcular_wanted($row, $db);
+        $bonus = max(0, (int)($row['wantedcustom'] ?? 0));
+        $valor = (int)round(max(0, $calc + $bonus));
+        $db->update_query('op_fichas', ['wantedGuardado' => $valor], "fid=$target_uid");
+        $results[] = [
+            'uid'    => $target_uid,
+            'ok'     => true,
+            'nombre' => $row['nombre'],
+            'formula' => (int)round($calc),
+            'bonus'   => $bonus,
+            'wanted'  => $valor,
+        ];
+    }
+
+    echo json_encode(['ok' => true, 'results' => $results], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 // ---------------------------------------------------------------------

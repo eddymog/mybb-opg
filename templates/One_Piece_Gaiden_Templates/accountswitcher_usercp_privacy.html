@@ -1,0 +1,20 @@
+<fieldset class="trow2">
+            <legend><strong>{$lang->as_usercp_privacy}</strong></legend>
+            <form method="post" action="usercp.php">
+                            <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                            <table border="0" style="margin-top: 10px; padding: 5px;" width="430px;">
+                                <tr>
+                                    <td valign="top" width="1">
+                                        <input type="checkbox" class="checkbox" style="{$checkbox}" name="as_privacy" id="as_privacy" value="1" {$privacy_check} />
+                                    </td>
+                                    <td class="trow1">
+                                        <span class="smalltext" style="margin-right: 20px; vertical-align:top;"><label for="as_privacy">{$lang->as_usercp_privacy_desc}</label></span>
+                                        <input type="hidden" name="action" value="do_as_privacy" />
+                                        <input type="submit" value="{$lang->as_usercp_secaccount}" name="{$lang->as_usercp_secaccount}" class="button float_right" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
+            </fieldset>
+            {$as_usercp_privacy_master}
+        

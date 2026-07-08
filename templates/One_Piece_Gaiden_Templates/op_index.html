@@ -1,0 +1,978 @@
+<style>
+
+/* ========== MODIFICACIONES ORGANIZACIÓN ========== */
+
+  .tasks-drawer{position:fixed;top:0;right:0;height:100dvh;width:320px;max-width:90vw;transform:translateX(100%);transition:transform .25s ease;z-index:9999;background:#fcecd2;border-left:3px solid #6e67d1;border-right:3px solid #6e67d1;border-bottom:5px solid #6e67d1;border-top:0px solid #6e67d1;box-shadow:-8px 0 20px rgba(0,0,0,.08);display:flex;flex-direction:column}
+  .tasks-drawer--open{transform:translateX(0)}
+  .tasks-drawer__header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px; background: #1e1224}
+  .tasks-drawer__title{margin:0;font-size:16px;font-family:moonGetHeavy;color:white;text-shadow:1px 1px 1px black}
+  .tasks-drawer__body{padding:12px 20px;overflow:auto;background:#ffe3a0}
+  .tasks-drawer__links a{display:block;padding:8px 10px;margin:6px 0;border:2px solid black;border-radius:8px;color:#111;text-decoration:none;background:#fcecd2;font-family:moonGetHeavy;transition:all 0.25s ease}
+  .tasks-drawer__links a:hover{background:#ff8900;color:white;text-shadow:1px 1px 1px black;transform:scale(1.05)}
+  .tasks-drawer__footer{margin-top:auto;padding:12px 14px;border-top:2px solid black;display:flex;gap:8px;justify-content:flex-end;background:#fcecd2}
+  .btn{border:2px solid black;border-radius:8px;padding:8px 12px;cursor:pointer;font-family:moonGetHeavy;text-shadow:1px 1px 1px black;transition:all 0.25s ease}
+  .btn--primary{background:#ff8900;color:#fff}
+  .btn--primary:hover{background:#dc822a}
+  .btn--ghost{background:#a13838;color:#111}
+  .btn--ghost:hover{background:#ff8900;color:white}
+
+  /* Pestaña flotante */
+  .tasks-tab{position:fixed;top:26px;right:0;transform:translateY(-50%);z-index:9998;background:#ff8900;color:#fff;border-radius:8px 0 0 8px;padding:15px 12px;cursor:pointer;user-select:none;box-shadow:-4px 0 12px rgba(0,0,0,.12);font-family:moonGetHeavy;text-shadow:1px 1px 1px black;border:2px solid black;border-right:0;transition:all 0.25s ease}
+  .tasks-tab:hover{background:#dc822a;transform:translateY(-50%) scale(1.1)}
+  .tasks-tab:focus{outline:2px solid #94a3b8;outline-offset:2px}
+
+/* ================================================= */
+.index-image-shadow {
+	position: relative;
+	top: 3px;
+	left: 3px;
+	box-shadow: 0px 0px 2px 3px black;
+	border-radius: 2px;	
+}
+
+.forum-index {
+	overflow: hidden;	
+}
+
+.index-image, .index-image-gl {
+	transition: all 0.25s ease;
+	opacity: 0.9;
+	filter: grayscale(0.2);
+}
+
+.index-image-hover, .index-image:hover, .index-image-gl:hover {
+	transform: scale(1.1);
+	opacity: 1;
+	filter: grayscale(0);
+}
+
+.forum-title, .forum-title-gl {
+	transition: all 0.25s ease;
+}
+
+.forum-title-hover, .forum-title:hover, .forum-title-gl:hover {
+	filter: hue-rotate(109deg) brightness(1.2);
+}
+
+.button-op {
+	transition: all 0.25s ease;
+}
+
+.button-op:hover {
+	filter: hue-rotate(180deg)
+}
+
+.text-moon {
+	color: white;
+	font-family: moonGetHeavy;
+	text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+.grandes_nakamas {
+	width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;background-image: url(/images/op/uploads/GranNakamaDisponible_One_Piece_Gaiden_Foro_Rol.jpg);background-position: center;
+}
+
+.nakama_afiliado {
+	width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;background-image: url(/images/op/uploads/NakamaDisponible_One_Piece_Gaiden_Foro_Rol.jpg);background-position: center;
+}
+
+/* Carrusel de accesos rápidos */
+.external-carousel{display:flex;align-items:center;justify-content:center;gap: 0px;margin: 0px auto;margin-top: 0px;margin-bottom: 20px;;width:996px;max-width:100%;padding:0px;background:#ffedd2;border:2px solid #000;border-radius:0px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.external-carousel__nav{width:46px;height:46px;border:2px solid #000;border-radius:50%;background:#ff8900;color:#fff;font-family:moonGetHeavy;font-size:20px;cursor:pointer;transition:background .2s ease,transform .2s ease;text-shadow:1px 1px 1px #000}
+.external-carousel__nav:hover{background:#dc822a;transform:scale(1.05)}
+.external-carousel__nav:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.external-carousel__viewport{overflow:hidden;flex:1}
+.external-carousel__track{display:flex;gap:12px;transition:transform .3s ease;padding:0;margin:0}
+.external-carousel__item{list-style:none;flex:0 0 calc((100% - 24px)/3);display:flex;justify-content:center}
+.external-carousel__button{position:relative;width:71px;height:71px;border:3px solid #000;border-radius:10px;background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#ff8900;cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,.2);transition:transform .2s ease,filter .2s ease}
+.external-carousel__button:hover{transform:scale(1.05);filter:brightness(1.05)}
+.external-carousel__button-label{position:absolute;bottom:0;left:0;right:0;padding:4px 2px;font-size:11px;text-transform:uppercase;text-align:center;font-family:moonGetHeavy;color:#fff;background:rgba(0,0,0,.6);text-shadow:1px 1px 1px #000}
+
+</style>
+
+
+<div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<div class="categoria"><a href="/forumdisplay.php?fid=1"><img src="/images/op/indice/Titulo01_One_Piece_Gaiden_Foro_Rol.jpg" /></a></div>
+				<div class="firstSectionRow" style="margin-top: 10px;display: flex;flex-direction: row;margin-bottom: 16px;">
+					<div class="forumnColumn2">
+
+						<a href="/forumdisplay.php?fid=34" style="position: relative;">
+							<div class="forum2 forum-index index-image-shadow" style=" margin-right: 6px; margin-bottom: 11px; ">
+								<img class="index-image " style=" height: 239px; width: 659px; " src="/images/op/foros/1GuiasEnciclopedias_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+							<img class="forum-title" src="/images/op/foros/1GuiasEnciclopediasTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 170px; left: 375px; " />
+						</a>
+
+						<div class="forumRow1" style=" position: relative;margin-top: 5px; display: flex; flex-direction: row; ">
+							<a href="/forumdisplay.php?fid=4">
+								<div class="forum3 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 244px; width: 324px; " src="/images/op/foros/3AnunciosEventos_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/3AnunciosEventosTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 5px; left: 35px; " />
+							</a>
+
+							<a href="/forumdisplay.php?fid=33" style=" position: relative;margin-left: 11px; ">
+								<div class="forum4 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 244px; width: 324px; " src="/images/op/foros/4Biblioteca_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/4BiliotecaNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 176px; left: 39px; " />
+							</a>
+						</div>
+					</div>
+					<a href="/forumdisplay.php?fid=3" style=" position: relative;margin-left: 5px; ">
+						<div class="forum1 forum-index index-image-shadow">
+							<img class="index-image " style=" height: 494px; width: 324px; " src="/images/op/foros/2HistoriaCronologia_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<img class="forum-title" src="/images/op/foros/2HistoriaCronologiaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 5px; left: 24px; " />
+					</a>
+				</div>
+
+				<div class="categoria"><a href="/forumdisplay.php?fid=1"><img src="/images/op/indice/Titulo02_One_Piece_Gaiden_Foro_Rol.jpg" /></a></div>
+				<div class="firstSectionRow" style="margin-top: 10px;display: flex;flex-direction: row;margin-bottom: 16px;">
+
+					<div>
+						<a href="/forumdisplay.php?fid=7" style="position: relative;">
+							<div class="forum1 forum-index index-image-shadow">
+								<img class="index-image" style=" height: 344px; width: 324px; " src="/images/op/foros/5GestionDeAventuras_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+							<img class="forum-title" src="/images/op/foros/5GestionDeAventurasTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 275px; left: 25px; " />
+						</a>
+					</div>
+
+					<a href="/forumdisplay.php?fid=8" style=" position: relative;margin-left: 11px; ">
+						<div class="forum1 forum-index index-image-shadow">
+							<img class="index-image" style=" height: 344px; width: 324px; " src="/images/op/foros/6PerfilesCreaciones_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<img class="forum-title" src="/images/op/foros/6PerfilesCreacionesTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 5px; left: 24px; " />
+					</a>
+					<a href="/forumdisplay.php?fid=9" style=" position: relative;margin-left: 11px; ">
+						<div class="forum1 forum-index index-image-shadow">
+							<img class="index-image" style=" height: 344px; width: 324px; " src="/images/op/foros/7OrganizacionesBandas_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<img class="forum-title" src="/images/op/foros/7OrganizacionesBandasTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style=" position: absolute; top: 275px; left: 16px; " />
+					</a>
+				</div>
+
+				<div class="categoria"><a href="/forumdisplay.php?fid=10"><img src="/images/op/indice/Titulo03_One_Piece_Gaiden_Foro_Rol.jpg" /></a></div>
+				<div class="firstSectionRow" style="margin-top: 10px;display: flex;flex-direction: column;margin-bottom: 10px;">
+
+					<a href="/forumdisplay.php?fid=13" style="position: relative;margin-bottom: 11px;">
+						<div class="forum1 forum-index index-image-shadow" style=" height: 94px; width: 994px; ">
+							<img class="index-image " src="/images/op/foros/8SkySea_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<img class="forum-title" src="/images/op/foros/8SkySeaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 20px;left: 426px;" />
+					</a>
+
+					<div style="display: flex;flex-direction: row;">
+
+						<div style="display: flex;flex-direction: column;">
+							<a href="/forumdisplay.php?fid=15" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow" style=" height: 194px; width: 429px; ">
+									<img class="index-image " src="/images/op/foros/10NorthBlue_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/10NorthBlueTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 7px;left: 8px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=14" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow" style=" height: 84px; width: 429px; ">
+									<img class="index-image forum-cb1" src="/images/op/foros/12CalmBeltIzquierda_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title title-cb1" src="/images/op/foros/12CalmBeltIzquierdaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 14px;left: 332px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=21" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow" style=" height: 194px; width: 429px; ">
+									<img class="index-image-gl " src="/images/op/foros/14GrandLineParadaise_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title-gl gl-1" src="/images/op/foros/14GrandLineParadaiseTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 132px;left: 125px;" />
+								<img class="forum-title-gl gl-2" src="/images/op/foros/14GrandLineParadaiseTituloEspecial_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 7px;left: -3px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=19" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow" style=" height: 84px; width: 429px; ">
+									<img class="index-image forum-tp1" src="/images/op/foros/16TravelPathIzquierda_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title title-tp1" src="/images/op/foros/16TravelPathIzquierdaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 14px;left: 332px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=17" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow" style=" height: 194px; width: 429px; ">
+									<img class="index-image " src="/images/op/foros/18WestBlue_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/18WestBlueTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 132px;left: 8px;" />
+							</a>
+						</div>
+
+						<div style=" margin-left: 11px; ">
+							<a href="/forumdisplay.php?fid=20" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 794px; width: 114px; " src="/images/op/foros/9RedLine_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/9RedLineTituloEspecial_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 0px;left: 31px;" />
+							</a>
+						</div>
+
+						<div style="margin-left: 11px;display: flex;flex-direction: column;">
+							<a href="/forumdisplay.php?fid=16" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 194px; width: 429px; " src="/images/op/foros/11EastBlue_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/11EastBlueTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 7px;left: 253px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=14" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image forum-cb2" style=" height: 84px; width: 429px; " src="/images/op/foros/13CalmBeltDerecha_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title title-cb2" src="/images/op/foros/13CalmBeltDerechaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 14px;left: 3px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=22" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image-gl " style=" height: 194px; width: 429px; " src="/images/op/foros/15GrandLineNewWorld_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title-gl gl-1" src="/images/op/foros/15GrandLineNewWorldTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 132px;left: 125px;" />
+								<img class="forum-title-gl gl-2" src="/images/op/foros/15GrandLineNewWorldTituloEspecial_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 7px;left: 3px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=19" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image forum-tp2" style=" height: 84px; width: 429px; " src="/images/op/foros/17TravelPathDerecha_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title title-tp2" src="/images/op/foros/17TravelPathDerechaTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 14px;left: 3px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=18" style="position: relative;margin-top: 11px;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 194px; width: 429px; " src="/images/op/foros/19SouthBlue_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/19SouthBlueTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 132px;left: 236px;" />
+							</a>
+						</div>
+					</div>
+
+					<a href="/forumdisplay.php?fid=28" style="position: relative;margin-top: 11px;margin-bottom: 5px;">
+						<div class="forum1 forum-index index-image-shadow" style=" height: 94px; width: 994px; ">
+							<img class="index-image " src="/images/op/foros/20DeapOcean_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<img class="forum-title" src="/images/op/foros/20DeepOceanTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 19px;left: 396px;" />
+					</a>
+
+				</div>
+
+				<div class="categoria"><a href="/forumdisplay.php?fid=11"><img src="/images/op/indice/Titulo04_One_Piece_Gaiden_Foro_Rol.jpg" /></a></div>
+				<div class="firstSectionRow">
+					<div class="forumnColumn2"  style="margin-top: 10px;display: flex;flex-direction: row;margin-bottom: 11px;">
+						<a href="/forumdisplay.php?fid=23" style="position: relative;">
+							<div class="forum1 forum-index index-image-shadow">
+								<img class="index-image " style=" height: 349px; width: 174px; " src="/images/op/foros/21OffTopic_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+							<img class="forum-title" src="/images/op/foros/21OffTopicTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 281px;left: 14px;" />
+						</a>
+
+						<a href="/forumdisplay.php?fid=24" style="position: relative;">
+							<div class="forum1 forum-index index-image-shadow" style=" margin-left: 11px; ">
+								<img class="index-image " style=" height: 349px; width: 324px; " src="/images/op/foros/22Sugerenciass_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+							<img class="forum-title" src="/images/op/foros/22SugerenciassTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 6px;left: 44px;" />
+						</a>
+
+						<div class="forumRow1" style=" margin-left: 11px; display: flex; flex-direction: column; ">
+							<a href="/forumdisplay.php?fid=25" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow">
+									<img class="index-image " style=" height: 169px; width: 474px; " src="/images/op/foros/23BienvenidasDespedidas_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/23BienvenidasDespedidasTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 102px;left: 169px;" />
+							</a>
+
+							<a href="/forumdisplay.php?fid=26" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow" style=" margin-top: 11px; ">
+									<img class="index-image " style=" height: 169px; width: 474px; " src="/images/op/foros/24ComabtesOff_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/24ComabtesOffTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 113px;left: 5px;" />
+							</a>
+						</div>
+					</div>
+
+					<if $g_is_staff || $g_is_narra then>
+						<div style=" margin-bottom: 16px; ">
+							<a href="/forumdisplay.php?fid=27" style="position: relative;">
+								<div class="forum1 forum-index index-image-shadow"  style=" height: 194px; width: 994px; ">
+									<img class="index-image " src="/images/op/foros/26JardinSecreto_One_Piece_Gaiden_Foro_Rol.jpg" />
+								</div>
+								<img class="forum-title" src="/images/op/foros/26JardinSecretoTituloNormal_One_Piece_Gaiden_Foro_Rol.png" style="position: absolute;top: 6px;left: 7px;" />
+							</a>
+
+						</div>
+					</if>
+
+				</div>
+				<div class="categoria"><img src="/images/op/indice/Titulo05_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+				<div class="firstSectionRow" style="margin-top: 10px;display: flex;flex-direction: row;">
+
+					<div class="online_div" style="height: 422px;width:299px;background-color: #ffedd2;overflow: auto;border: 2px solid #000000;box-sizing: border-box;border-radius: 10px;-ms-overflow-style: none; scrollbar-width: none;">
+						<div style="padding: 10px 10px 0px;background-color: #ff8a00;text-align: center;border-bottom: 2px solid black;margin-bottom: 5px;"><span style="color: white;font-family: moonGetHeavy;letter-spacing: 2px;font-size: 18px;position: relative;text-shadow: 1px 1px 1px black;top: -3px;"><a>En línea ahora</a></span></div>
+						<div style="padding-left: 13px;"><span style="color: black;font-family: moonGetHeavy;font-size: 12px;letter-spacing: 1px;">{$onlinemembers}</span></div>
+						<div style="padding: 10px 10px 0px;background-color: #ff8a00;border-top: 2px solid black;border-bottom: 2px solid black;text-align: center;margin-top: 5px;margin-bottom: 5px;"><span style="color: white;font-family: moonGetHeavy;letter-spacing: 2px;font-size: 13px;text-shadow: 1px 1px 1px black;position: relative;top: -4px;">Conectados última semana</span></div>
+						<div class="online_div_inner" style="padding-top: 0px;"><span style="color: black;font-family: moonGetHeavy;font-size: 10px;letter-spacing: 1px;">{$online_today}</span></div>
+						<br>
+					</div>
+
+					<div style="display: flex;flex-direction: column;width: 361px;margin-left: 20px;">
+						<div style="">
+							<div style="height: 40px; width: 341x;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 3px; ">Presente On-Rol</span></div>
+							<div style="position: relative;border: 2px solid black;border-top: 0px;">
+								<span class="text-moon" style="position: absolute;top: 145px;left: 12px;font-size: 19px;">VERANO</span>
+								<span class="text-moon" style=" position: absolute; top: 149px; left: 259px; font-size: 16px; ">AÑO</span>
+								<span class="text-moon" style=" position: absolute; top: 148px; left: 311px; font-size: 16px; ">725</span>
+								<img style=" height: 178px; width: 357px; " src="/images/op/indice/Verano_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</div>
+
+						<div style="display: flex;flex-direction: row;justify-content: space-between;margin-top: 10px;">
+							<div style="">
+								<div style=" width: 170px; height: 25px; border-radius: 0px;" class="barra-op bbox">
+									<span style="font-size: 11px;top: 4px;" class="barra-texto-op">Último Usuario</span>
+								</div>
+								<div style="width: 170px;height: 25px;" class="barra-espacio-op bbox">
+									<span style="font-size: 11px; color: #8863d9;top: 4px;" class="barra-texto-op">{$newestmember}</span>
+								</div>
+							</div>
+
+							<div style=""><a href="/op/estadisticas.php"><button style="width: 170px;height:50px;font-size: 21px;" class="button-op-custom">CENSO</button></a></div>
+						</div>
+
+						<div style="display: flex;flex-direction: row;justify-content: space-between;margin-top: 10px;">
+							<div style="">
+								<div style=" width: 170px; height: 25px; border-radius: 0px;" class="barra-op bbox">
+									<span style="font-size: 11px;top: 4px;" class="barra-texto-op">Somos</span>
+								</div>
+								<div style="width: 170px;height: 25px;" class="barra-espacio-op bbox">
+									<span style="font-size: 11px; color: #8863d9;top: 4px;" class="barra-texto-op">{$stats['numusers']} usuarios</span>
+								</div>
+							</div>
+							<div style="">
+								<div style=" width: 170px; height: 25px; border-radius: 0px;" class="barra-op bbox">
+									<span style="font-size: 11px;top: 4px;" class="barra-texto-op">Tenemos</span>
+								</div>
+								<div style="width: 170px;height: 25px;" class="barra-espacio-op bbox">
+									<span style="font-size: 11px; color: #8863d9;top: 4px;" class="barra-texto-op">{$stats['numposts']} mensajes</span>
+								</div>
+							</div>
+						</div>
+
+						<div style="display: flex;flex-direction: row;justify-content: space-evenly;margin-top: 10px;">
+							<div style="position: relative;margin-bottom: 5px;">
+								<a href="https://onepace.net/es" target="_blank"><button style="height: 71px;width: 71px;background-image: url(/images/op/uploads/luffyicon.png);background-position-x: 0px;background-position-y: 0px;background-size: contain;" class="button-op-custom"></button></a>
+							</div>
+							<div style="position: relative;margin-bottom: 5px;">
+								<a href="https://discord.gg/5Mgcvv3ysk" target="_blank"><button style="height: 71px;width: 71px;background-image: url(/images/op/misc/Discord_One_Piece_Gaiden_Foro_Rol.png);background-position-x: -4px;background-position-y: -4px;" class="button-op-custom"></button></a>
+							</div>
+							<div style="position: relative;margin-bottom: 5px;">
+								<a href="https://onepiece-fans2.net/manga/es/full-color/01" target="_blank"><button style="height: 71px;width: 71px;background-image: url(/images/op/uploads/luffyicon.png);background-position-x: 0px;background-position-y: 0px;background-size: contain;filter: grayscale(0.8);" class="button-op-custom"></button></a>
+							</div>
+						</div>
+					</div>
+
+					<div>
+						<div style="margin-left: 20px;">
+							<div style="width: 300px;height: 40px;" class="barra-op bbox"><span style="top: 8px;font-size: 18px;" class="barra-texto-op"><a href="/misc.php?action=recent_threads" class="ultimos-posts-titulo">Últimos Posts</a></span></div>
+							<div class="ultimos-temas" style="overflow: auto;border-left: 2px solid black;border-right: 2px solid black;width: 296px;height: 350px;" class="bbox">
+								<div id="ultimos_todo" style="display:block;">{$g_ultimos_post}</div>
+								<div id="ultimos_rol" style="display:none;">{$g_ultimos_post_rol}</div>
+								<div id="ultimos_off" style="display:none;">{$g_ultimos_post_off}</div>
+							</div>
+							<div style="display: flex;flex-direction: row;text-align: center;">
+								<div class="bbox ultimos-post ultimos-post-todo ultimos-active" onClick="clickUltimoPost('todo');">
+									<span style="position: relative;top: 5px;text-shadow: 1px 1px 1px black;font-size: 13px;letter-spacing: 1px;font-family: moonGetHeavy;color: white;left: 2px;">Todo</span>
+								</div>
+								<div class="bbox ultimos-post ultimos-post-rol" onClick="clickUltimoPost('rol');">
+									<span style="position: relative;top: 5px;text-shadow: 1px 1px 1px black;font-size: 13px;letter-spacing: 1px;font-family: moonGetHeavy;color: white;left: 1px;">Rol</span>
+								</div>
+								<div class="bbox ultimos-post ultimos-post-off" onClick="clickUltimoPost('off');">
+									<span style="position: relative;top: 5px;text-shadow: 1px 1px 1px black;font-size: 13px;letter-spacing: 1px;font-family: moonGetHeavy;color: white;left: 1px;">Off</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+                <hr>
+
+<!-- 				<div class="categoria" style=" margin-bottom: 20px; "><img src="/images/op/indice/Titulo06_One_Piece_Gaiden_Foro_Rol.jpg" /></div> -->
+<!-- 				<div class="categoria"><img src="/images/op/indice/Titulo07_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+				<div style="margin-top: 10px; margin-bottom: 10px;">
+
+					<div style="display: flex; flex-direction: row;">
+
+						<div style="display: flex; flex-direction: column;">
+							<div style="width: 220px;height: 50px;margin-bottom: 10px;background-color: #ff8900;text-align: center;font-size: 23px;font-family: moonGetHeavy;color: white;text-shadow: 2px 2px 1px black;box-sizing: border-box;border: 3px solid black;">
+								<span style=" position: relative; top: 5px; ">Foro Hermano</span>
+							</div>
+							<div style="width: 220px;height: 360px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;"></div>
+						</div>
+
+						<div style="display: flex;flex-direction: column;margin-left: 10px;">
+
+							<div style="width: 770px;height: 50px;margin-bottom: 10px;background-color: #ff8900;text-align: center;font-size: 23px;font-family: moonGetHeavy;color: white;text-shadow: 2px 2px 1px black;box-sizing: border-box;border: 3px solid black;">
+								<span style=" position: relative; top: 5px; ">Grandes Nakamas</span>
+							</div>
+
+							<div style="display: flex; flex-direction: row; margin-bottom: 10px;">
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="grandes_nakamas" style="width: 120px;height: 170px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;"></div>
+							</div>
+
+							<div style="width: 770px;height: 50px;margin-bottom: 10px;background-color: #ff8900;text-align: center;font-size: 23px;font-family: moonGetHeavy;color: white;text-shadow: 2px 2px 1px black;box-sizing: border-box;border: 3px solid black;">
+								<span style=" position: relative; top: 5px; ">Nakamas</span>
+							</div>
+
+							<div style="display: flex;flex-direction: row;flex-wrap: wrap;">
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;"></div>
+
+							</div>
+
+							<div style="display: flex;flex-direction: row;flex-wrap: wrap;margin-top: 10px;">
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;margin-right: 10px;"></div>
+								<div class="nakama_afiliado" style="width: 55px;height: 55px;background-color: #ff8900;box-sizing: border-box;border: 3px solid black;"></div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+                </div> -->
+                <if $mybb->user['uid'] != '0' then>
+<!--			<div class="barra-op bbox" style="width:1000px;max-width:100%;margin:0 auto -2px;height:40px;">
+				<span class="barra-texto-op" style="top:8px;font-size:18px;letter-spacing:2px;">AFILIADOS</span>
+			</div>
+			<div class="external-carousel" aria-label="Enlaces destacados" role="region">
+				<button id="externalCarouselPrev" class="external-carousel__nav" type="button" aria-label="Anterior" disabled>‹</button>
+				<div class="external-carousel__viewport" id="externalCarouselViewport">
+					<ul class="external-carousel__track" id="externalCarouselTrack">
+						<li class="external-carousel__item">
+							<button class="external-carousel__button" type="button" data-url="https://onepace.net/es" style="background-image: url(https://onepace.net/_next/static/media/logo.0bbcd6da.svg);">
+								<span class="external-carousel__button-label">One Pace</span>
+							</button>
+						</li>
+						<li class="external-carousel__item">
+							<button class="external-carousel__button" type="button" data-url="https://discord.gg/5Mgcvv3ysk" style="background-image: url(/images/op/misc/Discord_One_Piece_Gaiden_Foro_Rol.png);">
+								<span class="external-carousel__button-label">Discord</span>
+							</button>
+						</li>
+					</ul>
+				</div>
+				<button id="externalCarouselNext" class="external-carousel__nav" type="button" aria-label="Siguiente">›</button>
+			</div> -->
+			<div id="chatbox_categoria" class="categoria" style="cursor: pointer;"><img src="/images/op/uploads/Chatbox_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+			<div class="chatbox_div" style="height: 602px;overflow: hidden;width: 1000px;box-sizing: border-box;">
+				<div class="chatbox_legan">
+				{$rtchat_chat}
+				</div>	
+			</div>
+			</if>
+			</div>
+		</div>
+	</div>
+</div>
+		<!-- 
+		<div >
+
+			<div class="FInf forumbit_description_hidden">
+				<div class="Posts"><p></p></div>
+			</div>
+		</div>
+		<div style="display: flex;width: 50%;">
+
+			<div class="FInf forumbit_description_hidden">
+				<div class="Posts"><p></p></div>
+			</div>
+		</div>
+		<div style="display: flex;width: 50%;">
+
+			<div class="FInf forumbit_description_hidden">
+				<div class="Posts"><p></p></div>
+			</div>
+		</div>
+		<div style="display: flex;width: 50%;">
+
+			<div class="FInf forumbit_description_hidden">
+				<div class="Posts"><p></p></div>
+			</div>
+		</div>
+		-->
+	<!-- -->
+
+<!-- Pestaña visible solo para UIDs objetivo -->
+<div id="tasks-tab" class="tasks-tab" tabindex="0" role="button" aria-controls="tasks-drawer" aria-expanded="false">
+  Tareas
+</div>
+
+<!-- Cajón lateral -->
+<aside id="tasks-drawer"
+       class="tasks-drawer"
+       role="dialog"
+       aria-modal="false"
+       aria-labelledby="tasks-title"
+       data-uid="{$mybb->user['uid']}">
+  <div class="tasks-drawer__header">
+    <h3 id="tasks-title" class="tasks-drawer__title">Tareas y accesos</h3>
+    <button id="tasks-close" class="btn btn--ghost" type="button" aria-label="Cerrar panel">✕</button>
+  </div>
+  <div class="tasks-drawer__body">
+	  <div id="ct-section"
+     data-endpoint="{$mybb->settings['bburl']}/op/lateralBar.php"
+     data-fid="369"
+     data-limit="20">
+  <div id="ct-loading" class="ct-meta">Cargando…</div>
+  <ul id="ct-list" class="ct-list" style="display:none"></ul>
+  <div id="ct-empty" class="ct-meta" style="display:none">No hay hilos visibles.</div>
+</div>
+
+    <div class="tasks-drawer__links">
+      <a href="forumdisplay.php?fid=12">Reportes abiertos</a>
+      <a href="forumdisplay.php?fid=34">Taller de crafteo</a>
+      <a href="forumdisplay.php?fid=56">Solicitudes</a>
+    </div>
+
+    <p style="margin-top:12px;">Tareas:</p>
+    <ul>
+      <li>Revisar objetos nuevos</li>
+      <li>Actualizar guías</li>
+      <li>Responder solicitudes</li>
+    </ul>
+
+    <!-- Nueva sección Creaciones técnicas -->
+    <p style="margin-top:12px;">Creaciones técnicas:</p>
+    <div id="ct-section"
+         data-endpoint="{$mybb->settings['bburl']}/op/lateralBar.php"
+         data-fid="369"
+         data-limit="20">
+      <div id="ct-loading" class="ct-meta">Cargando…</div>
+      <ul id="ct-list" class="ct-list" style="display:none"></ul>
+      <div id="ct-empty" class="ct-meta" style="display:none">No hay hilos visibles.</div>
+    </div>
+    <!-- /Creaciones técnicas -->
+  </div>
+<div class="tasks-drawer__footer">
+    <button id="tasks-dont-show-today" class="btn btn--ghost" type="button">No mostrar hoy</button>
+    <button id="tasks-open-index" class="btn btn--primary" type="button">Abrir index</button>
+  </div>
+  </div>
+  
+</aside>
+
+
+
+<!-- -->
+<script>
+
+    // Script para el popup de reset - ELIMINADO
+
+	document.addEventListener('DOMContentLoaded', function() {
+		// Cargar datos guardados del Hall de la Fama
+		loadHallFameData();
+        
+		// Configurar eventos del Hall de la Fama
+		setupHallFameEvents();
+
+		// Inicializar carrusel lateral
+		initExternalCarousel();
+	});
+
+    // Funciones para el Hall de la Fama
+    function loadHallFameData() {
+        const categories = ['usuarios', 'narradores', 'posteadores', 'combatientes', 'fama', 'facciones'];
+        
+        categories.forEach(category => {
+            for (let i = 1; i <= 3; i++) {
+                const savedData = localStorage.getItem('hallFama_' + category + '_' + i);
+                if (savedData) {
+                    const element = document.getElementById('top_' + category + '_' + i);
+                    if (element) {
+                        element.textContent = savedData;
+                    }
+                }
+            }
+        });
+    }
+
+    function saveHallFameData() {
+        const categories = ['usuarios', 'narradores', 'posteadores', 'combatientes', 'fama', 'facciones'];
+        
+        categories.forEach(category => {
+            for (let i = 1; i <= 3; i++) {
+                const input = document.getElementById('top_' + category + '_' + i + '_input');
+                const display = document.getElementById('top_' + category + '_' + i);
+                
+                if (input && display) {
+                    const value = input.value.trim();
+                    if (value) {
+                        localStorage.setItem('hallFama_' + category + '_' + i, value);
+                        display.textContent = value;
+                    }
+                }
+            }
+        });
+    }
+
+    function loadFormData() {
+        const categories = ['usuarios', 'narradores', 'posteadores', 'combatientes', 'fama', 'facciones'];
+        
+        categories.forEach(category => {
+            for (let i = 1; i <= 3; i++) {
+                const input = document.getElementById('top_' + category + '_' + i + '_input');
+                const savedData = localStorage.getItem('hallFama_' + category + '_' + i);
+                
+                if (input) {
+                    if (savedData) {
+                        input.value = savedData;
+                    } else {
+                        // Valores por defecto
+                        const positions = ['1º', '2º', '3º'];
+                        const medals = ['Oro', 'Plata', 'Bronce'];
+                        const categoryName = category.charAt(0).toUpperCase() + category.slice(1, -1);
+                        input.value = positions[i-1] + ' ' + categoryName + ' ' + medals[i-1];
+                    }
+                }
+            }
+        });
+    }
+
+    function setupHallFameEvents() {
+        // Event listener para el botón de administración
+        const hallAdminButton = document.getElementById('hallAdminButton');
+        if (hallAdminButton) {
+            hallAdminButton.addEventListener('click', function() {
+                loadFormData();
+                document.getElementById('hallAdminPopup').style.display = 'flex';
+            });
+        }
+
+        // Event listener para guardar
+        const hallAdminSave = document.getElementById('hallAdminSave');
+        if (hallAdminSave) {
+            hallAdminSave.addEventListener('click', function() {
+                saveHallFameData();
+                document.getElementById('hallAdminPopup').style.display = 'none';
+                alert('¡Datos del Hall de la Fama guardados correctamente!');
+            });
+        }
+
+        // Event listener para cancelar
+        const hallAdminCancel = document.getElementById('hallAdminCancel');
+        if (hallAdminCancel) {
+            hallAdminCancel.addEventListener('click', function() {
+                document.getElementById('hallAdminPopup').style.display = 'none';
+            });
+        }
+
+        // Cerrar el popup al hacer clic fuera de él
+        const hallAdminPopup = document.getElementById('hallAdminPopup');
+        if (hallAdminPopup) {
+            hallAdminPopup.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+        }
+    }
+
+	function initExternalCarousel() {
+		const track = document.getElementById('externalCarouselTrack');
+		const viewport = document.getElementById('externalCarouselViewport');
+		const prev = document.getElementById('externalCarouselPrev');
+		const next = document.getElementById('externalCarouselNext');
+
+		if (!track || !viewport || !prev || !next) {
+			return;
+		}
+
+		const items = track.querySelectorAll('.external-carousel__item');
+		if (!items.length) {
+			prev.disabled = true;
+			next.disabled = true;
+			return;
+		}
+
+		const carouselButtons = track.querySelectorAll('.external-carousel__button');
+		carouselButtons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const targetUrl = btn.getAttribute('data-url');
+				if (!targetUrl) {
+					return;
+				}
+				const newWindow = window.open(targetUrl, '_blank');
+				if (newWindow) {
+					newWindow.opener = null;
+				}
+			});
+		});
+
+		let currentIndex = 0;
+		let step = 0;
+		let visibleCount = 1;
+
+		const recalc = () => {
+			if (!items.length) {
+				return;
+			}
+
+			const itemRect = items[0].getBoundingClientRect();
+			const gap = parseFloat(window.getComputedStyle(track).columnGap) || 0;
+			step = itemRect.width + gap;
+
+			if (!step) {
+				return;
+			}
+
+			const viewportWidth = viewport.getBoundingClientRect().width;
+			visibleCount = Math.max(1, Math.floor((viewportWidth + gap) / step));
+
+			const maxIndex = Math.max(0, items.length - visibleCount);
+			if (currentIndex > maxIndex) {
+				currentIndex = maxIndex;
+			}
+
+			updatePosition();
+		};
+
+		const updatePosition = () => {
+			track.style.transform = 'translateX(' + (-currentIndex * step) + 'px)';
+			prev.disabled = currentIndex === 0;
+			next.disabled = currentIndex >= items.length - visibleCount;
+		};
+
+		prev.addEventListener('click', () => {
+			if (currentIndex <= 0) {
+				return;
+			}
+			currentIndex -= 1;
+			updatePosition();
+		});
+
+		next.addEventListener('click', () => {
+			if (currentIndex >= items.length - visibleCount) {
+				return;
+			}
+			currentIndex += 1;
+			updatePosition();
+		});
+
+		window.addEventListener('resize', () => {
+			window.requestAnimationFrame(recalc);
+		});
+
+		window.requestAnimationFrame(recalc);
+	}
+
+    // Script existente del chatbox y otros
+    if (localStorage.getItem('opgChatbox') == 'showing') {
+        $('.chatbox_div').css('height', '602px');
+    }
+
+    $('#chatbox_categoria').click((img) => {
+
+    if (localStorage.getItem('opgChatbox') == 'showing') {
+        $('.chatbox_div').css('height', '10px');
+        localStorage.setItem('opgChatbox', '');
+    } else {
+        $('.chatbox_div').css('height', '602px');
+        localStorage.setItem('opgChatbox', 'showing');
+    }
+});
+
+$('.index-image').hover((img) => {
+    $(img.currentTarget.parentElement.nextElementSibling).toggleClass('forum-title-hover');
+});
+
+$('.index-image-gl').hover((img) => {
+    $(img.currentTarget.parentElement.nextElementSibling).toggleClass('forum-title-hover');
+    $(img.currentTarget.parentElement.nextElementSibling.nextElementSibling).toggleClass('forum-title-hover');
+});
+
+$('.forum-title').hover((img) => {
+    $(img.currentTarget.previousElementSibling.firstElementChild).toggleClass('index-image-hover');
+});
+
+$('.forum-cb1').hover((img) => {
+    $('.forum-cb2').toggleClass('index-image-hover');
+    $('.title-cb2').toggleClass('forum-title-hover');
+});		
+
+$('.forum-cb2').hover((img) => {
+    $('.forum-cb1').toggleClass('index-image-hover');
+    $('.title-cb1').toggleClass('forum-title-hover');
+});	
+
+$('.title-cb1').hover((img) => {
+    $('.forum-cb2').toggleClass('index-image-hover');
+    $('.title-cb2').toggleClass('forum-title-hover');
+});
+
+$('.title-cb2').hover((img) => {
+    $('.forum-cb1').toggleClass('index-image-hover');
+    $('.title-cb1').toggleClass('forum-title-hover');
+}); 
+
+$('.forum-tp1').hover((img) => {
+    $('.forum-tp2').toggleClass('index-image-hover');
+    $('.title-tp2').toggleClass('forum-title-hover');
+});		
+
+$('.forum-tp2').hover((img) => {
+    $('.forum-tp1').toggleClass('index-image-hover');
+    $('.title-tp1').toggleClass('forum-title-hover');
+});	
+
+$('.title-tp1').hover((img) => {
+    $('.forum-tp2').toggleClass('index-image-hover');
+    $('.title-tp2').toggleClass('forum-title-hover');
+});
+
+$('.title-tp2').hover((img) => {
+    $('.forum-tp1').toggleClass('index-image-hover');
+    $('.title-tp1').toggleClass('forum-title-hover');
+}); 
+
+$('.gl-1').hover((img) => {
+    $(img.currentTarget.previousElementSibling.firstElementChild).toggleClass('index-image-hover');
+    $(img.currentTarget.nextElementSibling).toggleClass('forum-title-hover');
+});	
+
+$('.gl-2').hover((img) => {
+    $(img.currentTarget.previousElementSibling.previousElementSibling.firstElementChild).toggleClass('index-image-hover');
+    $(img.currentTarget.previousElementSibling).toggleClass('forum-title-hover');
+});
+
+function clickUltimoPost(tipo) {
+    console.log(tipo);
+    $('.ultimos-post').removeClass('ultimos-active');
+
+    if (tipo == 'todo') {
+        $('#ultimos_todo').css('display', 'block');
+        $('#ultimos_rol').css('display', 'none');
+        $('#ultimos_off').css('display', 'none');
+        $('.ultimos-post-todo').addClass('ultimos-active');
+    }
+
+    if (tipo == 'rol') {
+        $('#ultimos_todo').css('display', 'none');
+        $('#ultimos_rol').css('display', 'block');
+        $('#ultimos_off').css('display', 'none');
+        $('.ultimos-post-rol').addClass('ultimos-active');
+    }
+
+    if (tipo == 'off') {
+        $('#ultimos_todo').css('display', 'none');
+        $('#ultimos_rol').css('display', 'none');
+        $('#ultimos_off').css('display', 'block');
+        $('.ultimos-post-off').addClass('ultimos-active');
+    }
+}
+
+</script>
+<script>
+(function(){
+  // Configura aquí quién lo ve:
+  const TARGET_UIDS = [850, 304];
+
+  // Opcional: mostrar auto al cargar si no fue pospuesto
+  const AUTO_OPEN_ON_LOAD = true;
+
+  const drawer = document.getElementById('tasks-drawer');
+  const tab = document.getElementById('tasks-tab');
+  if(!drawer || !tab) return;
+
+  const CURRENT_UID = parseInt(drawer.dataset.uid || '0', 10) || 0;
+  const KEY = 'tasksDrawerUntil:'+CURRENT_UID; // "no mostrar hasta"
+  const KEY_OPEN = 'tasksDrawerOpen:'+CURRENT_UID; // recordar abierto/cerrado si quieres
+
+  function canSee(){
+    return TARGET_UIDS.includes(CURRENT_UID);
+  }
+  function getUntil(){
+    const v = parseInt(localStorage.getItem(KEY)||'0',10);
+    return Number.isFinite(v) ? v : 0;
+  }
+  function setUntil(ts){
+    try{ localStorage.setItem(KEY, String(ts)); }catch(e){}
+  }
+  function isOpen(){
+    return drawer.classList.contains('tasks-drawer--open');
+  }
+  function open(){
+    drawer.classList.add('tasks-drawer--open');
+    tab.setAttribute('aria-expanded','true');
+    // Foco accesible
+    setTimeout(()=>document.getElementById('tasks-close')?.focus(), 0);
+    try{ localStorage.setItem(KEY_OPEN,'1'); }catch(e){}
+  }
+  function close(){
+    drawer.classList.remove('tasks-drawer--open');
+    tab.setAttribute('aria-expanded','false');
+    tab.focus();
+    try{ localStorage.setItem(KEY_OPEN,'0'); }catch(e){}
+  }
+
+  // Mostrar pestaña/drawer solo a los UIDs permitidos
+  if(!canSee()){
+    tab.style.display = 'none';
+    drawer.style.display = 'none';
+    return;
+  }
+
+  // Estado inicial: la pestaña siempre visible; el cajón, abierto solo si procede
+  const now = Date.now();
+  const dismissedUntil = getUntil();
+  const wantAutoOpen = AUTO_OPEN_ON_LOAD && now >= dismissedUntil;
+  const savedOpen = (localStorage.getItem(KEY_OPEN) === '1');
+
+  if (savedOpen || wantAutoOpen) open();
+
+  // Eventos sin inline
+  tab.addEventListener('click', ()=> isOpen() ? close() : open());
+  tab.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); isOpen()?close():open(); }});
+  document.getElementById('tasks-close')?.addEventListener('click', close);
+  document.getElementById('tasks-dont-show-today')?.addEventListener('click', ()=>{
+    setUntil(Date.now() + 24*60*60*1000); // 24h sin auto-abrir
+    close();
+  });
+  // Cerrar con ESC cuando el cajón está abierto
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && isOpen()) close(); });
+
+  // Ejemplo de acción en el botón extra
+  document.getElementById('tasks-open-index')?.addEventListener('click', ()=>{
+    window.location.href = 'index.php';
+  });
+})();
+</script>

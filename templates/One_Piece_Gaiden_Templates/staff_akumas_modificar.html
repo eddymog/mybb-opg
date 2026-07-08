@@ -1,0 +1,83 @@
+<html>
+
+<head>
+  <title>Modificar Akumas</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $akuma_id == '' then>
+      Akuma ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='akuma_id'><button
+        onclick=onClickTid()>Buscar</button><br><br>
+    </if>
+    <if $akuma_id !='' then>
+      Técnica ID<br><input style="width: 300px;" class="textbox" type="text" value='{$akuma_id}' disabled><br>
+        <form method="post" action="/op/staff/akumas_modificar.php" name="crear_akumas" id="crear_akumas">
+        <div style="display: none">
+           <input type="text" name="akuma_id" value="{$akuma_id}">
+        </div><br>
+        ID de Akuma*: <br><input style="width: 300px;" class="textbox" value="{$akuma_id}" type="text" name="nuevo_akuma_id" id="nuevo_akuma_id" required /><br>
+        Nombre de Akuma*: <br><input style="width: 300px;" class="textbox" value="{$akuma['nombre']}" type="text" name="nombre" id="nombre" required /><br>
+        Subnombre de Akuma*: <br><input style="width: 300px;" class="textbox" value="{$akuma['subnombre']}" type="text" name="subnombre" id="subnombre" required /><br>
+        Categoría*: <br><input style="width: 300px;" class="textbox" value="{$akuma['categoria']}" type="text" name="categoria" id="categoria" required /><br>
+        Tier*: <br><input style="width: 300px;" class="textbox" value="{$akuma['tier']}" type="text" name="tier" id="tier" required /><br>
+        Está oculta? (0 = No, 1 = Sí): <br><input style="width: 300px;" value="{$akuma['es_oculta']}" class="number" placeholder="" type="text" name="es_oculta" id="es_oculta" required /><br>
+        Es de NPC? (0 = No, 1 = Sí): <br><input style="width: 300px;" value="{$akuma['es_npc']}" class="number" placeholder="" type="text" name="es_npc" id="es_npc" required /><br>
+        NPC o Ficha ID: <br><input style="width: 300px;" value="{$akuma['uid']}" class="textbox" placeholder="" type="text" name="uid" id="uid" required /><br>
+        Ocupada o Reservada* (0 = No, 1 = Ocupada , 2 = Reservada): <br><input style="width: 300px;" value="{$akuma['ocupada']}" class="number" placeholder="" type="text" name="ocupada" id="ocupada" required /><br>
+        Imagen (500x500px)*: <br><input style="width: 600px;" value="{$akuma['imagen']}" class="textbox" placeholder="" type="text" name="imagen" id="imagen" required /><br>
+        Descripcion*:<br>
+        <textarea style="width: 400px;height: 125px;" name="descripcion" minlength="1" required>{$akuma['descripcion']}</textarea><br><br>
+        Detalles*:<br>
+        <textarea style="width: 800px;height: 1000px;" name="detalles" minlength="1" required>{$akuma['detalles']}</textarea><br><br>
+
+        <!-- Sección de Dominios -->
+        <h3 style="color: #333; margin-top: 30px;">DOMINIOS</h3>
+        
+        Dominio Básico*:<br>
+        <textarea style="width: 800px;height: 150px;" name="dominio1" minlength="1" required>{$akuma['dominio1']}</textarea><br><br>
+        
+        Dominio Intermedio*:<br>
+        <textarea style="width: 800px;height: 150px;" name="dominio2" minlength="1" required>{$akuma['dominio2']}</textarea><br><br>
+        
+        Dominio Maestro*:<br>
+        <textarea style="width: 800px;height: 150px;" name="dominio3" minlength="1" required>{$akuma['dominio3']}</textarea><br><br>
+
+        <!-- Sección de Pasivas -->
+        <h3 style="color: #333; margin-top: 30px;">PASIVAS</h3>
+        
+        Pasiva 1*:<br>
+        <textarea style="width: 800px;height: 150px;" name="pasiva1" minlength="1" required>{$akuma['pasiva1']}</textarea><br><br>
+        
+        Pasiva 2*:<br>
+        <textarea style="width: 800px;height: 150px;" name="pasiva2" minlength="1" required>{$akuma['pasiva2']}</textarea><br><br>
+        
+        Pasiva 3*:<br>
+        <textarea style="width: 800px;height: 150px;" name="pasiva3" minlength="1" required>{$akuma['pasiva3']}</textarea><br><br>
+        
+		Reservas:<br>
+		<textarea style="width: 800px;height: 150px;" name="reservas" minlength="1">{$akuma['reservas']}</textarea><br><br>
+		
+		Reservas Fecha:<br>
+		<textarea style="width: 800px;height: 150px;" name="reservasFecha" minlength="1" required>{$akuma['reservasFecha']}</textarea><br><br>
+        <input class="button" type="submit" value="Modificar akuma">
+      </form>
+    </if>
+
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickTid() {
+    const akumaId = document.getElementById('akuma_id').value;
+    if (akumaId) {
+            window.location.href = window.location.pathname + '?akuma_id=' + akumaId;		
+    }
+  }
+</script>
+
+</html>

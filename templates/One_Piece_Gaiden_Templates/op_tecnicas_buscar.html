@@ -1,0 +1,253 @@
+<html>
+<head>
+  <title>Buscador de Técnicas</title>
+  {$headerinclude}
+  <style>
+    .tb-wrapper{display:flex;gap:20px;padding:16px 0;align-items:flex-start}
+    .tb-filtros{flex-shrink:0;width:240px;background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:16px}
+    .tb-filtros h3{font-family:moonGetHeavy;font-size:14px;color:#da9039;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;border-bottom:1px solid #333;padding-bottom:6px}
+    .tb-grupo{margin-bottom:14px}
+    .tb-label{display:block;font-family:moonGetHeavy;font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .tb-input{width:100%;box-sizing:border-box;background:#0d0d1a;border:1px solid #444;border-radius:5px;color:#ddd;font-family:InterRegular;font-size:13px;padding:6px 8px;outline:none;transition:border-color .15s}
+    .tb-input:focus{border-color:#da9039}
+    .tb-multiselect{position:relative}
+    .tb-ms-trigger{width:100%;box-sizing:border-box;background:#0d0d1a;border:1px solid #444;border-radius:5px;color:#ddd;font-family:InterRegular;font-size:13px;padding:6px 8px;text-align:left;cursor:pointer;outline:none;transition:border-color .15s;display:flex;justify-content:space-between;align-items:center}
+    .tb-ms-trigger:hover,.tb-ms-trigger.open{border-color:#da9039}
+    .tb-ms-arrow{color:#888;font-size:9px;flex-shrink:0;transition:transform .15s}
+    .tb-ms-trigger.open .tb-ms-arrow{transform:rotate(180deg)}
+    .tb-ms-panel{display:none;position:absolute;z-index:200;left:0;right:0;background:#0d0d1a;border:1px solid #da9039;border-radius:5px;margin-top:2px;padding:6px;flex-direction:column;gap:3px;box-shadow:0 4px 14px rgba(0,0,0,.7)}
+    .tb-ms-panel.open{display:flex}
+    .tb-ms-panel--scroll{max-height:160px;overflow-y:auto}
+    .tb-check-label{display:flex;align-items:center;gap:6px;font-family:InterRegular;font-size:12px;color:#ccc;cursor:pointer;padding:3px 4px;border-radius:4px}
+    .tb-check-label:hover{background:rgba(218,144,57,.1);color:#f0c040}
+    .tb-check-label:has(input:checked){color:#f0c040;background:rgba(218,144,57,.15);font-weight:bold}
+    .tb-check-label input[type=checkbox]{accent-color:#da9039;cursor:pointer;flex-shrink:0}
+    .tb-btn-buscar{width:100%;padding:9px;background:#da9039;border:none;border-radius:6px;color:black;font-family:moonGetHeavy;font-size:14px;cursor:pointer;letter-spacing:1px;transition:background .15s;margin-top:4px}
+    .tb-btn-buscar:hover{background:#f0a84a}
+    .tb-btn-limpiar{width:100%;padding:7px;background:transparent;border:1px solid #555;border-radius:6px;color:#aaa;font-family:moonGetHeavy;font-size:12px;cursor:pointer;margin-top:6px;transition:all .15s}
+    .tb-btn-limpiar:hover{border-color:#da9039;color:#da9039}
+    .tb-resultados{flex:1;min-width:0}
+    .tb-count{font-family:moonGetHeavy;font-size:13px;color:#da9039}
+    .tb-card{background:#1a1a2e;border:1px solid #2a2a4a;border-left:4px solid #da9039;border-radius:6px;padding:12px 14px;margin-bottom:10px;transition:border-color .15s,background .15s}
+    .tb-card:hover{background:#1f1f38;border-left-color:#f0a84a}
+    .tb-card-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+    .tb-card-nombre{font-family:moonGetHeavy;font-size:16px;color:white}
+    .tb-card-tags{display:flex;gap:5px;flex-wrap:wrap}
+    .tb-tag{font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid;text-transform:uppercase;letter-spacing:.5px}
+    .tb-tag--tier{color:#f0c040;border-color:#f0c040}
+    .tb-tag--clase{color:#7ec8e3;border-color:#7ec8e3}
+    .tb-tag--tipo{color:#a0e88a;border-color:#a0e88a}
+    .tb-tag--estilo{color:#da9039;border-color:#da9039}
+    .tb-card-meta{font-family:InterRegular;font-size:12px;color:#888;margin-bottom:6px}
+    .tb-card-costes{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+    .tb-coste{font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid;text-transform:uppercase;letter-spacing:.5px}
+    .tb-coste--energia{color:#ffeb3b;border-color:#ffeb3b}
+    .tb-coste--haki{color:#ce93d8;border-color:#ce93d8}
+    .tb-coste--enfr{color:#80cbc4;border-color:#80cbc4}
+    .tb-card-descripcion{font-family:InterRegular;font-size:12px;color:#999;font-style:italic;margin-bottom:6px;line-height:1.5}
+    .tb-card-efectos{font-family:InterRegular;font-size:12px;color:#bbb;border-top:1px solid #2a2a4a;padding-top:6px;margin-top:4px;line-height:1.5}
+    .tb-dano-match{background:rgba(218,144,57,.2);border-radius:3px;padding:0 2px;color:#f0c040}
+    .tb-tid{font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid #555;color:#888;text-transform:uppercase;letter-spacing:.5px}
+    .tb-tid--link{color:#fee140;border-color:#fee140;text-decoration:none}
+    .tb-empty{text-align:center;color:#555;font-family:InterRegular;padding:40px 0;font-size:15px}
+    .tb-banner{height:60px;border-radius:6px;margin-bottom:16px;display:flex;align-items:center;padding-left:20px}
+    .tb-banner-title{font-family:moonGetHeavy;font-size:28px;color:white;text-shadow:2px 2px 4px black}
+    /* ── Tabs ── */
+    .tb-tabs{display:flex;gap:4px;align-items:flex-end}
+    .tb-tab-btn{padding:5px 12px;border:1px solid #444;border-bottom:none;border-radius:4px 4px 0 0;background:#111;color:#666;font-family:moonGetHeavy;font-size:11px;cursor:pointer;transition:all .15s}
+    .tb-tab-btn:hover{color:#da9039;border-color:#da9039}
+    .tb-tab-btn.tb-tab-active{background:#1a1a2e;color:#da9039;border-color:#da9039}
+    /* ── Excel / Bulk ── */
+    .tb-bulk-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0d0d1a;border:1px solid #333;border-radius:6px;margin-bottom:8px;flex-wrap:wrap}
+    .tb-btn-bulk{padding:4px 10px;border:none;border-radius:3px;font-family:moonGetHeavy;font-size:11px;cursor:pointer;transition:background .15s}
+    .tb-btn-save{background:#1b5e20;color:#fff}.tb-btn-save:hover{background:#388e3c}.tb-btn-save:disabled{background:#333;cursor:not-allowed}
+    .tb-save-status{font-family:InterRegular;font-size:11px}.tb-save-status.ok{color:#81c784}.tb-save-status.err{color:#e57373}
+    .tb-excel-wrap{overflow-x:auto;border:1px solid #333;border-radius:0 4px 4px 4px}
+    .tb-excel-tbl{border-collapse:collapse;font-size:11px}
+    .tb-excel-tbl th{background:#0d0d1a;color:#da9039;font-family:moonGetHeavy;font-size:10px;padding:5px 6px;border:1px solid #2a2a3e;white-space:nowrap;position:sticky;top:0;z-index:2}
+    .tb-excel-tbl td{border:1px solid #1e1e30;padding:2px 3px;vertical-align:top;background:#13131f}
+    .tb-excel-tbl tr.tb-dirty td{background:#1c1a00;border-left:3px solid #f0c040}
+    .tb-excel-tbl tr:hover td{background:#1a1a28}
+    .tb-excel-tbl input[type=text],.tb-excel-tbl input[type=number],.tb-excel-tbl select,.tb-excel-tbl textarea{width:100%;box-sizing:border-box;background:#0d0d1a;border:1px solid #2a2a3e;border-radius:2px;color:#ddd;font-size:11px;padding:2px 4px;font-family:InterRegular}
+    .tb-excel-tbl input:focus,.tb-excel-tbl select:focus,.tb-excel-tbl textarea:focus{border-color:#da9039;outline:none;background:#111}
+    .tb-excel-tbl textarea{min-height:38px;resize:vertical}
+    .tb-excel-tid{font-family:moonGetHeavy;font-size:10px;color:#fee140;white-space:nowrap}
+    .tb-excel-tid a{color:#fee140;text-decoration:none}.tb-excel-tid a:hover{text-decoration:underline}
+    .tb-excel-tbl td:first-child,.tb-excel-tbl th:first-child{position:sticky;left:0;z-index:1}
+    .tb-btn-dup{display:block;margin-top:3px;padding:1px 5px;background:#1a237e;border:1px solid #3949ab;border-radius:2px;color:#90caf9;font-size:9px;font-family:moonGetHeavy;cursor:pointer;white-space:nowrap;width:100%;text-align:center}
+    .tb-btn-dup:hover{background:#283593;border-color:#5c6bc0}
+    .tb-btn-dup:disabled{opacity:.5;cursor:not-allowed}
+    .tb-new-row td{background:#0a1a0a !important}
+    .tb-new-row td:first-child{border-left:3px solid #66bb6a !important}
+    .tb-new-tid-input{color:#81c784;font-family:moonGetHeavy;font-size:10px;width:100%;box-sizing:border-box;background:#0d1a0d;border:1px solid #388e3c;border-radius:2px;padding:2px 4px}
+    /* ── Column picker ── */
+    .tb-col-picker-wrap{position:relative;display:inline-block}
+    .tb-btn-cols{background:#222;border:1px solid #555;color:#aaa;margin-left:4px}
+    .tb-btn-cols:hover{border-color:#da9039;color:#da9039}
+    .tb-col-picker-panel{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:300;background:#0d0d1a;border:1px solid #da9039;border-radius:5px;padding:8px 10px;min-width:150px;box-shadow:0 4px 14px rgba(0,0,0,.8);max-height:300px;overflow-y:auto}
+    .tb-col-picker-panel.open{display:block}
+    .tb-col-check-label{display:flex;align-items:center;gap:6px;font-family:InterRegular;font-size:12px;color:#ccc;cursor:pointer;padding:3px 4px;border-radius:4px;white-space:nowrap}
+    .tb-col-check-label:hover{background:rgba(218,144,57,.1);color:#f0c040}
+    .tb-col-check-label input{accent-color:#da9039;cursor:pointer}
+  </style>
+</head>
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+
+          <div class="tb-banner">
+            <span class="tb-banner-title">BUSCADOR DE TÉCNICAS</span>
+          </div>
+
+          <form method="GET" action="/op/tecnicas_buscar.php" id="tb-form">
+          <div class="tb-wrapper">
+
+            <div class="tb-filtros">
+              <h3><i class="fa fa-filter"></i> Filtros</h3>
+
+              <div class="tb-grupo">
+                <label class="tb-label">Nombre</label>
+                <input id="tb_nombre" class="tb-input" type="text" name="nombre" value="{$f_nombre}" placeholder="Buscar por nombre..." autocomplete="off" />
+              </div>
+
+              <div class="tb-grupo">
+                <span class="tb-label">Clase</span>
+                <div class="tb-multiselect">
+                  <button type="button" class="tb-ms-trigger" data-placeholder="Todas">
+                    <span class="tb-ms-label">Todas</span><span class="tb-ms-arrow">&#9660;</span>
+                  </button>
+                  <div class="tb-ms-panel">
+                    <label class="tb-check-label"><input type="checkbox" name="clase[]" value="Activa"    /> Activa</label>
+                    <label class="tb-check-label"><input type="checkbox" name="clase[]" value="Pasiva"    /> Pasiva</label>
+                    <label class="tb-check-label"><input type="checkbox" name="clase[]" value="Mantenida" /> Mantenida</label>
+                    <label class="tb-check-label"><input type="checkbox" name="clase[]" value="Conjunta"  /> Conjunta</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tb-grupo">
+                <span class="tb-label">Tipo</span>
+                <div class="tb-multiselect">
+                  <button type="button" class="tb-ms-trigger" data-placeholder="Todos">
+                    <span class="tb-ms-label">Todos</span><span class="tb-ms-arrow">&#9660;</span>
+                  </button>
+                  <div class="tb-ms-panel">
+                    <label class="tb-check-label"><input type="checkbox" name="tipo[]" value="Ofensiva"  /> Ofensiva</label>
+                    <label class="tb-check-label"><input type="checkbox" name="tipo[]" value="Defensiva" /> Defensiva</label>
+                    <label class="tb-check-label"><input type="checkbox" name="tipo[]" value="Ambiental" /> Ambiental</label>
+                    <label class="tb-check-label"><input type="checkbox" name="tipo[]" value="Elusiva"   /> Elusiva</label>
+                    <label class="tb-check-label"><input type="checkbox" name="tipo[]" value="Utilidad"  /> Utilidad</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tb-grupo">
+                <span class="tb-label">Estilo / Disciplina</span>
+                <div class="tb-multiselect">
+                  <button type="button" class="tb-ms-trigger" data-placeholder="Todos">
+                    <span class="tb-ms-label">Todos</span><span class="tb-ms-arrow">&#9660;</span>
+                  </button>
+                  <div id="tb_estilo_panel" class="tb-ms-panel tb-ms-panel--scroll"></div>
+                </div>
+              </div>
+
+              <div class="tb-grupo">
+                <span class="tb-label">Tier</span>
+                <div class="tb-multiselect">
+                  <button type="button" class="tb-ms-trigger" data-placeholder="Todos">
+                    <span class="tb-ms-label">Todos</span><span class="tb-ms-arrow">&#9660;</span>
+                  </button>
+                  <div id="tb_tier_panel" class="tb-ms-panel"></div>
+                </div>
+              </div>
+
+              <div class="tb-grupo">
+                <span class="tb-label">Tipo de da&ntilde;o</span>
+                <div class="tb-multiselect">
+                  <button type="button" class="tb-ms-trigger" data-placeholder="Todos">
+                    <span class="tb-ms-label">Todos</span><span class="tb-ms-arrow">&#9660;</span>
+                  </button>
+                  <div class="tb-ms-panel tb-ms-panel--scroll">
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="contundente" /> Contundente</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="cortante"    /> Cortante</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="perforante"  /> Perforante</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="sonico"      /> S&oacute;nico</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="espiritual"  /> Espiritual</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="fuego"       /> Fuego</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="viento"      /> Viento</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="agua"        /> Agua</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="rayo"        /> Rayo</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="hielo"       /> Hielo</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="verdadero"   /> Verdadero</label>
+                    <label class="tb-check-label"><input type="checkbox" name="dano[]" value="mitigado"    /> Mitigado</label>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="tb-btn-buscar">
+                <i class="fa fa-search"></i> BUSCAR
+              </button>
+              <button type="button" class="tb-btn-limpiar" onclick="limpiarFiltros()">
+                Limpiar filtros
+              </button>
+            </div>
+
+            <div class="tb-resultados">
+              <div style="margin-bottom:8px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+                <span class="tb-count" id="tb-count-label"></span>
+                <div id="tb-tabs" class="tb-tabs" style="display:none;">
+                  <button type="button" id="tb-tab-tarjetas" class="tb-tab-btn tb-tab-active" onclick="cambiarTabVista('tarjetas')">&#x1F4CB; Tarjetas</button>
+                  <button type="button" id="tb-tab-excel"    class="tb-tab-btn"               onclick="cambiarTabVista('excel')">&#x1F4CA; Excel Staff</button>
+                </div>
+              </div>
+              <div id="tb-lista"></div>
+              <div id="tb-excel-panel" style="display:none;">
+                <div class="tb-bulk-bar">
+                  <button type="button" id="tb-btn-guardar" class="tb-btn-bulk tb-btn-save" onclick="guardarExcel()">&#x1F4BE; Guardar en BD</button>
+                  <span id="tb-save-status" class="tb-save-status"></span>
+                  <div id="tb-col-picker-wrap" class="tb-col-picker-wrap">
+                    <button type="button" id="tb-btn-cols" class="tb-btn-bulk tb-btn-cols" onclick="toggleColPicker(event)">&#x2630; Columnas</button>
+                    <div id="tb-col-picker-panel" class="tb-col-picker-panel"></div>
+                  </div>
+                </div>
+                <div class="tb-excel-wrap">
+                  <table class="tb-excel-tbl">
+                    <thead id="tb-excel-thead"></thead>
+                    <tbody id="tb-excel-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  var TB = {
+    optEstilos:        {$opt_estilos_json},
+    optTiers:          {$opt_tiers_json},
+    resultados:        {$resultados_json},
+    hayBusqueda:       !!'{$hay_busqueda}',
+    totalResultados:   {$total_resultados},
+    filtroClases:      {$filtro_clases_json},
+    filtroTipos:       {$filtro_tipos_json},
+    filtroEstilos:     {$filtro_estilos_json},
+    filtroTiers:       {$filtro_tiers_json},
+    danosSeleccionados:{$danos_seleccionados_json},
+    isStaff:           !!'{$g_is_staff}',
+    postCode:          '{$post_code}'
+  };
+  </script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/tecnicas_buscar.js?v={$fileVersion}"></script>
+
+  {$footer}
+</body>
+</html>

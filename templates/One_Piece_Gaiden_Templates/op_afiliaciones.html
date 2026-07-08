@@ -1,0 +1,417 @@
+<html>
+
+<head>
+	<title>Red de Afiliaciones</title>
+	{$headerinclude}
+	<style>
+		.akumaBanner {
+			height: 75px;
+			background-image: url('/images/op/uploads/TecnicasCabecera_One_Piece_Gaiden_Foro_Rol.jpg');
+			width: 1000px;
+			background-size: cover;
+		}
+
+		.afiliaciones-wrapper {
+			padding: 15px 25px 35px;
+			color: #000;
+		}
+
+		.afiliaciones-banner {
+			margin: 10px auto 25px;
+			border: 1px solid #111;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+		}
+
+		.afiliaciones-intro {
+			color: #000;
+			font-size: 16px;
+			line-height: 1.6;
+			margin: 0 auto 25px;
+			max-width: 1000px;
+			text-align: justify;
+		}
+
+		.tablilla-publicidad {
+			background: rgba(5, 5, 5, 0.55);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			border-radius: 6px;
+			margin: 0 auto 35px;
+			max-width: 1000px;
+			padding: 25px;
+		}
+
+		.afiliaciones-tabs {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 15px;
+			justify-content: center;
+			margin: 0 auto 25px;
+			max-width: 1000px;
+		}
+
+		.afiliaciones-tab {
+			background: transparent;
+			border: none;
+			cursor: pointer;
+			padding: 0;
+			position: relative;
+			transition: transform 0.2s ease, filter 0.2s ease;
+		}
+
+		.afiliaciones-tab img {
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 10px;
+			display: block;
+			height: auto;
+			max-width: 320px;
+		}
+
+		.afiliaciones-tab:focus-visible {
+			outline: 2px solid #ffba67;
+			outline-offset: 3px;
+		}
+
+		.afiliaciones-tab.activa {
+			filter: drop-shadow(0 0 10px rgba(255, 186, 103, 0.5));
+			transform: translateY(-4px);
+		}
+
+		.afiliaciones-tab-label {
+			color: #000;
+			display: block;
+			font-family: Naruto, 'Bebas Neue', sans-serif;
+			font-size: 18px;
+			letter-spacing: 1px;
+			margin-top: 8px;
+			text-align: center;
+			text-transform: uppercase;
+		}
+
+		.tablilla-publicidad h2 {
+			font-family: Naruto, 'Bebas Neue', sans-serif;
+			font-size: 32px;
+			letter-spacing: 1px;
+			margin-bottom: 5px;
+			text-transform: uppercase;
+		}
+
+		.tablilla-publicidad p {
+			margin-bottom: 15px;
+		}
+
+		.tablilla-grid {
+			display: grid;
+			gap: 20px;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		}
+
+		.boton-demo {
+			background: #67e93f8a;
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 6px;
+			padding: 15px;
+			text-align: center;
+		}
+
+		.boton-demo span {
+			display: block;
+			font-weight: bold;
+			margin-bottom: 10px;
+			text-transform: uppercase;
+		}
+
+		.boton-demo a {
+			display: inline-block;
+			margin-bottom: 10px;
+		}
+
+		.boton-demo img {
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			border-radius: 3px;
+		}
+
+		.boton-demo-desc {
+			display: block;
+			font-size: 14px;
+			margin: 0;
+			text-transform: none;
+		}
+
+		.afiliaciones-seccion {
+			margin: 0 auto 35px;
+			max-width: 1000px;
+			display: none;
+		}
+
+		.afiliaciones-seccion h2 {
+			font-family: Naruto, 'Bebas Neue', sans-serif;
+			font-size: 36px;
+			margin-bottom: 5px;
+			text-transform: uppercase;
+		}
+
+		.afiliaciones-seccion p {
+			color: #000;
+			margin-bottom: 15px;
+		}
+
+		.afiliaciones-seccion.activa {
+			display: block;
+		}
+
+		.afiliaciones-grid {
+			display: grid;
+			gap: 20px;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		}
+
+		.afiliado-card {
+			background: rgba(0, 0, 0, 0.45);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			display: flex;
+			flex-direction: column;
+			padding: 18px;
+			position: relative;
+			transition: transform 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.afiliado-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+		}
+
+		.afiliado-card h3 {
+			font-size: 22px;
+			margin-bottom: 8px;
+		}
+
+		.afiliado-card p {
+			color: #000;
+			flex: 1;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		.afiliado-botones {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 15px;
+		}
+
+		.afiliado-boton {
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 6px;
+			display: inline-flex;
+			padding: 4px;
+			background: rgba(0, 0, 0, 0.35);
+		}
+
+		.afiliado-boton img {
+			display: block;
+			border-radius: 3px;
+		}
+
+		.afiliado-boton[data-size="60"] img {
+			width: 60px;
+			height: 60px;
+		}
+
+		.afiliado-boton[data-size="80"] img {
+			width: 80px;
+			height: 80px;
+		}
+
+		.afiliado-boton[data-size="120"] img {
+			width: 120px;
+			height: 120px;
+		}
+
+		.afiliaciones-seccion.rechazados .afiliado-card {
+			opacity: 0.65;
+			filter: grayscale(0.5);
+		}
+
+		.afiliaciones-seccion.rechazados .afiliado-card h3 {
+			color: #000;
+		}
+
+		.rechazados-lista {
+			background: rgba(0, 0, 0, 0.35);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			list-style: none;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.rechazados-lista li {
+			font-size: 15px;
+			margin-bottom: 10px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+		.rechazados-lista li:last-child {
+			border-bottom: none;
+			margin-bottom: 0;
+			padding-bottom: 0;
+		}
+
+		.afiliado-meta {
+			color: #000;
+			font-size: 12px;
+			letter-spacing: 1px;
+			margin-bottom: 10px;
+			text-transform: uppercase;
+		}
+
+		@media (max-width: 768px) {
+			.akumaBanner {
+				width: 100%;
+				height: 55px;
+			}
+
+			.afiliaciones-wrapper {
+				padding: 15px;
+			}
+
+			.tablilla-publicidad,
+			.afiliaciones-seccion {
+				padding: 15px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	{$header}
+	<div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground afiliaciones-wrapper">
+					<div class="akumaBanner afiliaciones-banner"></div>
+
+					<div class="afiliaciones-intro">
+						Bienvenido a la red de afiliaciones de One Piece Gaiden. Aquí podrás consultar los sitios que comparten
+						universo con nosotros, revisar su información esencial y copiar sus distintos formatos de botón para
+						publicitarlos correctamente. Duplica cualquiera de las tablillas para añadir nuevas páginas o para
+						reorganizar el orden de aparición.
+					</div>
+
+					<div class="afiliaciones-tabs" role="tablist">
+						<button class="afiliaciones-tab activa" role="tab" aria-selected="true" aria-controls="afiliaciones-aceptados" data-target="aceptados">
+							<img src="https://i.imgur.com/8uMs6Kr.png" alt="Mostrar afiliaciones aceptadas" />
+							<span class="afiliaciones-tab-label">Aceptadas</span>
+						</button>
+						<button class="afiliaciones-tab" role="tab" aria-selected="false" aria-controls="afiliaciones-rechazados" data-target="rechazados">
+							<img src="https://i.imgur.com/3xGqiYb.png" alt="Mostrar afiliaciones rechazadas" />
+							<span class="afiliaciones-tab-label">Rechazadas o inactivas</span>
+						</button>
+					</div>
+
+					<section class="tablilla-publicidad">
+						<h2>Tablilla Base</h2>
+						<p>
+							Esta tablilla expone los tres tamaños estándar que solicitamos para la afiliación. Sustituye la
+							dirección, las imágenes y el texto por la información del sitio invitado. Cada botón abre la página en una
+							pestaña nueva.
+						</p>
+						<div class="tablilla-grid">
+							<article class="boton-demo">
+								<span>Botón 60x60</span>
+								<a href="https://onepiecegaiden.com/" target="_blank" rel="noopener noreferrer">
+									<img src="https://i.imgur.com/3k9cpoE.png" alt="Afiliado 60x60" />
+								</a>
+								<p class="boton-demo-desc">Imagina que One Piece no es algo que solo ves en la pantalla, sino un mundo vivo donde tú eres el protagonista. El único foro de rol automatizado.</p>
+							</article>
+							<article class="boton-demo">
+								<span>Botón 80x80</span>
+								<a href="https://onepiecegaiden.com/" target="_blank" rel="noopener noreferrer">
+									<img src="https://i.imgur.com/JqrCI58.png" alt="Afiliado 80x80" />
+								</a>
+								<p class="boton-demo-desc">Imagina que One Piece no es algo que solo ves en la pantalla, sino un mundo vivo donde tú eres el protagonista. El único foro de rol automatizado.</p>
+							</article>
+							<article class="boton-demo">
+								<span>Botón 120x120</span>
+								<a href="https://onepiecegaiden.com/" target="_blank" rel="noopener noreferrer">
+									<img src="https://i.imgur.com/Rujwdzg.png" alt="Afiliado 120x120" />
+								</a>
+								<p class="boton-demo-desc">Imagina que One Piece no es algo que solo ves en la pantalla, sino un mundo vivo donde tú eres el protagonista. El único foro de rol automatizado.</p>
+							</article>
+						</div>
+					</section>
+
+					<section id="afiliaciones-aceptados" class="afiliaciones-seccion aceptados activa" data-section="aceptados" role="tabpanel">
+						<h2>Aceptados &amp; Confirmados</h2>
+						<p>Afiliaciones activas. Duplica la tarjeta para añadir nuevos sitios una vez confirmados.</p>
+						<div class="afiliaciones-grid">
+							<!-- Afiliado activo - duplicar este bloque para agregar más -->
+							<article class="afiliado-card">
+								<div class="afiliado-meta">Actualizado 24/11/2025</div>
+								<h3>Nombre del Afiliado</h3>
+								<p>
+									Espacio breve para describir el proyecto aliado, su ambientación y cualquier detalle relevante para
+									los usuarios interesados.
+								</p>
+								<div class="afiliado-botones">
+									<a class="afiliado-boton" data-size="60" href="https://example.com" target="_blank" rel="noopener noreferrer">
+										<img src="https://via.placeholder.com/60" alt="Nombre del Afiliado - 60x60" />
+									</a>
+									<a class="afiliado-boton" data-size="80" href="https://example.com" target="_blank" rel="noopener noreferrer">
+										<img src="https://via.placeholder.com/80" alt="Nombre del Afiliado - 80x80" />
+									</a>
+									<a class="afiliado-boton" data-size="120" href="https://example.com" target="_blank" rel="noopener noreferrer">
+										<img src="https://via.placeholder.com/120" alt="Nombre del Afiliado - 120x120" />
+									</a>
+								</div>
+							</article>
+						</div>
+					</section>
+
+					<section id="afiliaciones-rechazados" class="afiliaciones-seccion rechazados" data-section="rechazados" role="tabpanel" aria-hidden="true">
+						<h2>Rechazados o Inactivos</h2>
+						<p>Listado de solicitudes pendientes, rechazadas o con actividad detenida.</p>
+						<ul class="rechazados-lista">
+							<!-- Petición denegada - duplicar este elemento según registros -->
+							<li>
+								<strong>Proyecto en Pausa</strong> – Estado: Inactivo. Mantén registro de los sitios que no cumplen con los
+								requisitos para poder dar seguimiento si vuelven a contactar.
+							</li>
+						</ul>
+					</section>
+				</div>
+			</div>
+		</div>
+	</div>
+	{$footer}
+	<script>
+		(function () {
+			const tabs = document.querySelectorAll('.afiliaciones-tab');
+			const sections = document.querySelectorAll('.afiliaciones-seccion');
+
+			function activateTab(target) {
+				tabs.forEach((tab) => {
+					const isTarget = tab.dataset.target === target;
+					tab.classList.toggle('activa', isTarget);
+					tab.setAttribute('aria-selected', isTarget.toString());
+				});
+
+				sections.forEach((section) => {
+					const isTarget = section.dataset.section === target;
+					section.classList.toggle('activa', isTarget);
+					section.setAttribute('aria-hidden', (!isTarget).toString());
+				});
+			}
+
+			tabs.forEach((tab) => {
+				tab.addEventListener('click', () => {
+					activateTab(tab.dataset.target);
+				});
+			});
+		})();
+	</script>
+</body>
+
+</html>

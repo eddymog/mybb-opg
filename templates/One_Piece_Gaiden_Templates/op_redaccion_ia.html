@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece Gaiden - Generador de Textos con IA</title>
+    {$headerinclude}
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #D32F2F;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header h1 {
+            order: 1;
+        }
+        
+        .header img {
+            max-width: 80%;
+            height: auto;
+            order: 2;
+            margin-bottom: 15px;
+            margin-top: 10px;
+            align-self: center;
+        }
+        
+        .ai-badge {
+            display: inline-block;
+            background-color: #7B68EE;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            order: 3;
+            align-self: center;
+        }
+        
+        /* Estilos para las pestañas */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background-color: #FF9800;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            margin-left: 5px;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .tab-btn.active {
+            background-color: #4285F4;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .option-description {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .selectores-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .selector-grupo {
+            flex: 1;
+            min-width: 160px;
+        }
+        
+        .selector-grupo label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .select-personalizado {
+            width: 100%;
+            padding: 5px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .select-personalizado:focus {
+            border-color: #4285F4;
+            outline: none;
+        }
+        
+        .prompt-area {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        
+        .submit-btn, .action-btn {
+            background-color: #4285F4;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .submit-btn:hover, .action-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .loading img {
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        
+        .result-text {
+            font-size: 16px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+        }
+        
+        .faction {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            flex: 1 1 400px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .faction:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+    {$header}
+    <div class="fondo-blanco">
+        <div class="container">
+            <div class="header">
+                <h1>Generador de Textos de One Piece</h1>
+                <div class="ai-badge">Potenciado por IA</div>
+                <img src="https://onepiecegaiden.com/images/op/uploads/TituloGeneradorTexto_One_Piece_Gaiden_Foro_Rol.png" alt="One Piece Gaiden">
+            </div>
+            
+            <!-- Pestañas para seleccionar el tipo de texto -->
+            <div class="tabs">
+                <button id="tab-personajes" class="tab-btn active" onclick="cambiarTab('personajes')">Personajes</button>
+                <button id="tab-aventuras" class="tab-btn" onclick="cambiarTab('aventuras')">Aventuras</button>
+                <button id="tab-dialogos" class="tab-btn" onclick="cambiarTab('dialogos')">Diálogos</button>
+                <button id="tab-lugares" class="tab-btn" onclick="cambiarTab('lugares')">Lugares</button>
+                <button id="tab-akuma" class="tab-btn" onclick="cambiarTab('akuma')">Akuma no Mi</button>
+            </div>
+            
+            <!-- Contenido para generar descripciones de personajes -->
+            <div id="content-personajes" class="tab-content active">
+                <p class="option-description">Genera descripciones de personajes basados en el mundo de One Piece.</p>
+                <form id="personaje-form" onsubmit="return generarTextoPersonaje(event);">
+                    
+                    <div class="selectores-container">
+                        <div class="selector-grupo">
+                            <label for="tipo-personaje">Tipo de personaje:</label>
+                            <select id="tipo-personaje" class="select-personalizado">
+                                <option value="pirata">Pirata</option>
+                                <option value="marine">Marine</option>
+                                <option value="revolucionario">Revolucionario</option>
+                                <option value="cazarrecompensas">Cazarrecompensas</option>
+                                <option value="civil">Civil</option>
+                                <option value="noble">Noble</option>
+                                <option value="tenryuubito">Tenryuubito</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="genero-personaje">Género:</label>
+                            <select id="genero-personaje" class="select-personalizado">
+                                <option value="masculino">Masculino</option>
+                                <option value="femenino">Femenino</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="longitud-personaje">Longitud:</label>
+                            <select id="longitud-personaje" class="select-personalizado">
+                                <option value="corta">Corta</option>
+                                <option value="media" selected>Media</option>
+                                <option value="larga">Larga</option>
+                                <option value="muy larga">Muy larga</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-personaje" class="prompt-area" placeholder="Describe las características del personaje que quieres generar... (por ejemplo: 'espadachín con tres katanas', 'navegante con talento para el clima', 'pirata con poderes de goma')"></textarea>
+                    
+                    <button type="submit" class="submit-btn">Generar Descripción</button>
+                </form>
+            </div>
+            
+            <!-- Contenido para generar aventuras -->
+            <div id="content-aventuras" class="tab-content">
+                <p class="option-description">Genera historias de aventuras ambientadas en el mundo de One Piece.</p>
+                <form id="aventuras-form" onsubmit="return generarTextoAventura(event);">
+                    
+                    <div class="selectores-container">
+                        <div class="selector-grupo">
+                            <label for="ubicacion-aventura">Ubicación:</label>
+                            <select id="ubicacion-aventura" class="select-personalizado">
+                                <option value="Grand Line">Grand Line</option>
+                                <option value="Nuevo Mundo">Nuevo Mundo</option>
+                                <option value="East Blue">East Blue</option>
+                                <option value="West Blue">West Blue</option>
+                                <option value="North Blue">North Blue</option>
+                                <option value="South Blue">South Blue</option>
+                                <option value="Isla del Cielo">Isla del Cielo</option>
+                                <option value="Red Line">Red Line</option>
+                                <option value="Impel Down">Impel Down</option>
+                                <option value="Marine Ford">Marine Ford</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="tema-aventura">Tema:</label>
+                            <select id="tema-aventura" class="select-personalizado">
+                                <option value="búsqueda de tesoro">Búsqueda de tesoro</option>
+                                <option value="combate contra piratas">Combate contra piratas</option>
+                                <option value="escape de la Marina">Escape de la Marina</option>
+                                <option value="exploración de isla misteriosa">Exploración</option>
+                                <option value="infiltración">Infiltración</option>
+                                <option value="rescate">Rescate</option>
+                                <option value="torneo de combate">Torneo de combate</option>
+                                <option value="supervivencia">Supervivencia</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="longitud-aventura">Longitud:</label>
+                            <select id="longitud-aventura" class="select-personalizado">
+                                <option value="corta">Corta</option>
+                                <option value="media" selected>Media</option>
+                                <option value="larga">Larga</option>
+                                <option value="muy larga">Muy larga</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-aventura" class="prompt-area" placeholder="Describe la aventura que quieres generar... (por ejemplo: 'tripulación pirata enfrentándose a una tormenta sobrenatural', 'búsqueda de un antiguo poneglyph en una isla tropical', 'escape de una prisión de alta seguridad')"></textarea>
+                    
+                    <button type="submit" class="submit-btn">Generar Aventura</button>
+                </form>
+            </div>
+            
+            <!-- Contenido para generar diálogos -->
+            <div id="content-dialogos" class="tab-content">
+                <p class="option-description">Genera diálogos entre personajes del mundo de One Piece.</p>
+                <form id="dialogos-form" onsubmit="return generarTextoDialogo(event);">
+                    
+                    <div class="selectores-container">
+                        <div class="selector-grupo">
+                            <label for="personaje1-dialogo">Personaje 1:</label>
+                            <select id="personaje1-dialogo" class="select-personalizado">
+                                <option value="Luffy">Luffy</option>
+                                <option value="Zoro">Zoro</option>
+                                <option value="Nami">Nami</option>
+                                <option value="Usopp">Usopp</option>
+                                <option value="Sanji">Sanji</option>
+                                <option value="Chopper">Chopper</option>
+                                <option value="Robin">Robin</option>
+                                <option value="Franky">Franky</option>
+                                <option value="Brook">Brook</option>
+                                <option value="Jinbe">Jinbe</option>
+                                <option value="Akainu">Akainu</option>
+                                <option value="Garp">Garp</option>
+                                <option value="Shanks">Shanks</option>
+                                <option value="Barbanegra">Barbanegra</option>
+                                <option value="Personaje original">Personaje original</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="personaje2-dialogo">Personaje 2:</label>
+                            <select id="personaje2-dialogo" class="select-personalizado">
+                                <option value="Luffy">Luffy</option>
+                                <option value="Zoro" selected>Zoro</option>
+                                <option value="Nami">Nami</option>
+                                <option value="Usopp">Usopp</option>
+                                <option value="Sanji">Sanji</option>
+                                <option value="Chopper">Chopper</option>
+                                <option value="Robin">Robin</option>
+                                <option value="Franky">Franky</option>
+                                <option value="Brook">Brook</option>
+                                <option value="Jinbe">Jinbe</option>
+                                <option value="Akainu">Akainu</option>
+                                <option value="Garp">Garp</option>
+                                <option value="Shanks">Shanks</option>
+                                <option value="Barbanegra">Barbanegra</option>
+                                <option value="Personaje original">Personaje original</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="situacion-dialogo">Situación:</label>
+                            <select id="situacion-dialogo" class="select-personalizado">
+                                <option value="conversación casual">Conversación casual</option>
+                                <option value="discusión">Discusión</option>
+                                <option value="batalla">Batalla</option>
+                                <option value="planificación">Planificación</option>
+                                <option value="celebración">Celebración</option>
+                                <option value="confrontación">Confrontación</option>
+                                <option value="reflexión">Reflexión</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-dialogo" class="prompt-area" placeholder="Describe el contexto para el diálogo... (por ejemplo: 'discutiendo sobre el próximo destino', 'enfrentándose a un enemigo poderoso', 'celebrando después de una victoria')"></textarea>
+                    
+                    <button type="submit" class="submit-btn">Generar Diálogo</button>
+                </form>
+            </div>
+            
+            <!-- Contenido para generar descripciones de lugares -->
+            <div id="content-lugares" class="tab-content">
+                <p class="option-description">Genera descripciones de islas, ciudades y lugares del mundo de One Piece.</p>
+                <form id="lugares-form" onsubmit="return generarTextoLugar(event);">
+                    
+                    <div class="selectores-container">
+                        <div class="selector-grupo">
+                            <label for="tipo-lugar">Tipo de lugar:</label>
+                            <select id="tipo-lugar" class="select-personalizado">
+                                <option value="isla">Isla</option>
+                                <option value="ciudad">Ciudad</option>
+                                <option value="pueblo">Pueblo</option>
+                                <option value="base de la Marina">Base de la Marina</option>
+                                <option value="escondite pirata">Escondite pirata</option>
+                                <option value="barco">Barco/Navío</option>
+                                <option value="lugar antiguo">Ruina antigua</option>
+                                <option value="isla submarina">Isla submarina</option>
+                                <option value="isla del cielo">Isla del cielo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="clima-lugar">Clima:</label>
+                            <select id="clima-lugar" class="select-personalizado">
+                                <option value="tropical">Tropical</option>
+                                <option value="invernal">Invernal</option>
+                                <option value="desértico">Desértico</option>
+                                <option value="templado">Templado</option>
+                                <option value="extremo e impredecible">Extremo/Impredecible</option>
+                                <option value="primaveral">Primaveral</option>
+                                <option value="lluvioso">Lluvioso</option>
+                                <option value="volcánico">Volcánico</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="longitud-lugar">Longitud:</label>
+                            <select id="longitud-lugar" class="select-personalizado">
+                                <option value="corta">Corta</option>
+                                <option value="media" selected>Media</option>
+                                <option value="larga">Larga</option>
+                                <option value="muy larga">Muy larga</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-lugar" class="prompt-area" placeholder="Describe las características del lugar que quieres generar... (por ejemplo: 'isla con formaciones rocosas gigantes', 'ciudad portuaria con mercado de especias', 'escondite subterráneo para revolucionarios')"></textarea>
+                    
+                    <button type="submit" class="submit-btn">Generar Descripción</button>
+                </form>
+            </div>
+            
+            <!-- Contenido para generar descripciones de Akuma no Mi -->
+            <div id="content-akuma" class="tab-content">
+                <p class="option-description">Genera descripciones de Frutas del Diablo (Akuma no Mi) y sus poderes.</p>
+                <form id="akuma-form" onsubmit="return generarTextoAkuma(event);">
+                    
+                    <div class="selectores-container">
+                        <div class="selector-grupo">
+                            <label for="tipo-akuma">Tipo de fruta:</label>
+                            <select id="tipo-akuma" class="select-personalizado">
+                                <option value="Paramecia">Paramecia</option>
+                                <option value="Zoan">Zoan</option>
+                                <option value="Zoan Mítica">Zoan Mítica</option>
+                                <option value="Zoan Antigua">Zoan Antigua</option>
+                                <option value="Logia">Logia</option>
+                                <option value="desconocido">Desconocido/Misterioso</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="poder-akuma">Poder basado en:</label>
+                            <select id="poder-akuma" class="select-personalizado">
+                                <option value="elemento">Elemento natural</option>
+                                <option value="animal">Animal/Criatura</option>
+                                <option value="objeto">Objeto</option>
+                                <option value="concepto">Concepto abstracto</option>
+                                <option value="habilidad">Habilidad especial</option>
+                                <option value="transformación">Transformación</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-grupo">
+                            <label for="longitud-akuma">Longitud:</label>
+                            <select id="longitud-akuma" class="select-personalizado">
+                                <option value="corta">Corta</option>
+                                <option value="media" selected>Media</option>
+                                <option value="larga">Larga</option>
+                                <option value="muy larga">Muy larga</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <textarea id="prompt-akuma" class="prompt-area" placeholder="Describe la Fruta del Diablo que quieres generar... (por ejemplo: 'fruta que permite controlar el fuego', 'fruta que transforma al usuario en un dinosaurio', 'fruta que otorga el poder de estirar el cuerpo como goma')"></textarea>
+                    
+                    <button type="submit" class="submit-btn">Generar Descripción</button>
+                </form>
+            </div>
+            
+            <div id="loading" class="loading">
+                <img src="https://onepiecegaiden.com/images/op/indice/SolMenu_One_Piece_Gaiden_Foro_Rol.png" alt="Cargando...">
+                <p>Generando tu texto, por favor espera...</p>
+            </div>
+
+            <div id="error-message" class="error-message">
+                <strong>Error:</strong> Hubo un problema al generar el texto. Por favor, intenta nuevamente.
+            </div>
+            
+            <div id="result-container" class="result-container">
+                <h2>Tu texto generado:</h2>
+                <div id="result-text" class="result-text"></div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="nuevoTexto();">Generar otro texto</button>
+                    <button class="action-btn" onclick="copiarTexto();">Copiar texto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para cambiar entre pestañas
+        function cambiarTab(tabName) {
+            // Desactivar todas las pestañas
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activar la pestaña seleccionada
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('content-' + tabName).classList.add('active');
+        }
+        
+        // Función para generar texto de personaje
+        function generarTextoPersonaje(e) {
+            e.preventDefault();
+            
+            var prompt = document.getElementById('prompt-personaje').value.trim();
+            
+            if (!prompt) {
+                alert('Por favor, escribe una descripción para generar el texto del personaje.');
+                return false;
+            }
+            
+            // Obtener valores de los selectores
+            var tipo = document.getElementById('tipo-personaje').value;
+            var genero = document.getElementById('genero-personaje').value;
+            var longitud = document.getElementById('longitud-personaje').value;
+            
+            // Mostrar cargando y ocultar otros elementos
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Construir el prompt completo
+            var fullPrompt = "Crea una descripción " + longitud + " de un personaje " + genero + " " + tipo + " del mundo de One Piece con estas características: " + prompt + ". La descripción debe incluir apariencia física, personalidad, historia de fondo, posibles habilidades o poderes, y su relación con el mundo de One Piece.";
+            
+            // Generar el texto
+            generarTexto(fullPrompt);
+            
+            return false;
+        }
+        
+        // Función para generar texto de aventura
+        function generarTextoAventura(e) {
+            e.preventDefault();
+            
+            var prompt = document.getElementById('prompt-aventura').value.trim();
+            
+            if (!prompt) {
+                alert('Por favor, escribe una descripción para generar la aventura.');
+                return false;
+            }
+            
+            // Obtener valores de los selectores
+            var ubicacion = document.getElementById('ubicacion-aventura').value;
+            var tema = document.getElementById('tema-aventura').value;
+            var longitud = document.getElementById('longitud-aventura').value;
+            
+            // Mostrar cargando y ocultar otros elementos
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Construir el prompt completo
+            var fullPrompt = "Escribe una historia " + longitud + " ambientada en " + ubicacion + " en el mundo de One Piece sobre " + tema + " con esta premisa: " + prompt + ". La historia debe capturar el espíritu de aventura de One Piece, con personajes interesantes y referencias al mundo creado por Eiichiro Oda.";
+            
+            // Generar el texto
+            generarTexto(fullPrompt);
+            
+            return false;
+        }
+        
+        // Función para generar texto de diálogo
+        function generarTextoDialogo(e) {
+            e.preventDefault();
+            
+            var prompt = document.getElementById('prompt-dialogo').value.trim();
+            
+            if (!prompt) {
+                alert('Por favor, escribe un contexto para generar el diálogo.');
+                return false;
+            }
+            
+            // Obtener valores de los selectores
+            var personaje1 = document.getElementById('personaje1-dialogo').value;
+            var personaje2 = document.getElementById('personaje2-dialogo').value;
+            var situacion = document.getElementById('situacion-dialogo').value;
+            
+            // Mostrar cargando y ocultar otros elementos
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Construir el prompt completo
+            var fullPrompt = "Escribe un diálogo realista entre " + personaje1 + " y " + personaje2 + " del mundo de One Piece en una situación de " + situacion + " donde: " + prompt + ". El diálogo debe reflejar fielmente las personalidades y formas de hablar de los personajes según la serie.";
+            
+            // Generar el texto
+            generarTexto(fullPrompt);
+            
+            return false;
+        }
+        
+        // Función para generar texto de lugar
+        function generarTextoLugar(e) {
+            e.preventDefault();
+            
+            var prompt = document.getElementById('prompt-lugar').value.trim();
+            
+            if (!prompt) {
+                alert('Por favor, escribe una descripción para generar el lugar.');
+                return false;
+            }
+            
+            // Obtener valores de los selectores
+            var tipo = document.getElementById('tipo-lugar').value;
+            var clima = document.getElementById('clima-lugar').value;
+            var longitud = document.getElementById('longitud-lugar').value;
+            
+            // Mostrar cargando y ocultar otros elementos
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Construir el prompt completo
+            var fullPrompt = "Crea una descripción " + longitud + " de un " + tipo + " con clima " + clima + " del mundo de One Piece con estas características: " + prompt + ". La descripción debe incluir geografía, cultura local, habitantes notables, posibles peligros o recursos valiosos, y cómo encaja en la geografía general del mundo de One Piece.";
+            
+            // Generar el texto
+            generarTexto(fullPrompt);
+            
+            return false;
+        }
+        
+        // Función para generar texto de Akuma no Mi
+        function generarTextoAkuma(e) {
+            e.preventDefault();
+            
+            var prompt = document.getElementById('prompt-akuma').value.trim();
+            
+            if (!prompt) {
+                alert('Por favor, escribe una descripción para generar la Fruta del Diablo.');
+                return false;
+            }
+            
+            // Obtener valores de los selectores
+            var tipo = document.getElementById('tipo-akuma').value;
+            var poder = document.getElementById('poder-akuma').value;
+            var longitud = document.getElementById('longitud-akuma').value;
+            
+            // Mostrar cargando y ocultar otros elementos
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Construir el prompt completo
+            var fullPrompt = "Crea una descripción " + longitud + " de una Fruta del Diablo (Akuma no Mi) tipo " + tipo + " basada en " + poder + " con estas características: " + prompt + ". La descripción debe incluir apariencia de la fruta, poderes que otorga, debilidades, técnicas posibles, y potencial para despertar (awakening) según las reglas del mundo de One Piece.";
+            
+            // Generar el texto
+            generarTexto(fullPrompt);
+            
+            return false;
+        }
+        
+        // Función para generar texto usando la API
+        function generarTexto(prompt) {
+            // Codificar el prompt para URL
+            var encodedPrompt = encodeURIComponent(prompt);
+            
+            // Construir la URL completa
+            var apiUrl = "https://text.pollinations.ai/" + encodedPrompt;
+            
+            // Mostrar el estado de carga
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Solicitar el texto generado
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta de la API: ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Mostrar el resultado
+                    document.getElementById('result-text').textContent = data;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('result-container').style.display = 'block';
+                    
+                    // Scroll hasta el resultado
+                    document.getElementById('result-container').scrollIntoView({ behavior: 'smooth' });
+                })
+                .catch(error => {
+                    // Mostrar mensaje de error
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('error-message').innerHTML = '<strong>Error:</strong> ' + error.message;
+                    console.error("Error generando texto:", error);
+                });
+        }
+        
+        // Función para generar nuevo texto
+        function nuevoTexto() {
+            // Determinar qué pestaña está activa y limpiar su formulario
+            if (document.getElementById('content-personajes').classList.contains('active')) {
+                document.getElementById('prompt-personaje').value = '';
+                document.getElementById('prompt-personaje').focus();
+            } else if (document.getElementById('content-aventuras').classList.contains('active')) {
+                document.getElementById('prompt-aventura').value = '';
+                document.getElementById('prompt-aventura').focus();
+            } else if (document.getElementById('content-dialogos').classList.contains('active')) {
+                document.getElementById('prompt-dialogo').value = '';
+                document.getElementById('prompt-dialogo').focus();
+            } else if (document.getElementById('content-lugares').classList.contains('active')) {
+                document.getElementById('prompt-lugar').value = '';
+                document.getElementById('prompt-lugar').focus();
+            } else if (document.getElementById('content-akuma').classList.contains('active')) {
+                document.getElementById('prompt-akuma').value = '';
+                document.getElementById('prompt-akuma').focus();
+            }
+            
+            // Ocultar el contenedor de resultados
+            document.getElementById('result-container').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+        
+        // Función para copiar texto al portapapeles
+        function copiarTexto() {
+            var texto = document.getElementById('result-text').textContent;
+            
+            // Crear un elemento temporal para copiar el texto
+            var tempElement = document.createElement('textarea');
+            tempElement.value = texto;
+            document.body.appendChild(tempElement);
+            tempElement.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempElement);
+            
+            alert('¡Texto copiado al portapapeles!');
+        }
+    </script>
+
+    {$footer}
+</body>
+</html>

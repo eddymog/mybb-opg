@@ -1,0 +1,1262 @@
+<head>
+{$headerinclude}
+<title>One Piece Gaiden - Prensa Rosa ?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="author" content="Queen of Hearts Reporter">
+<meta name="description" content="Las noticias más jugosas del mundo de One Piece - Chismes, romances y escándalos">
+<meta property="og:title" content="Prensa Rosa - One Piece Gaiden">
+<meta property="og:description" content="Los chismes más candentes del mundo de One Piece">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://pbs.twimg.com/media/FDidQ2NXoAYFvcH.jpg">
+<style>
+    /* Variables CSS para Prensa Rosa */
+    :root {
+      --rosa-primary: #ff69b4;
+      --rosa-secondary: #ff1493;
+      --rosa-light: #ffb6c1;
+      --rosa-cream: #fff0f5;
+      --rosa-bg: #fef7f0;
+      --rosa-border: #d1477a;
+      --rosa-text: #8b0040;
+      --rosa-accent: #e91e63;
+      --white: #fff;
+      --shadow: 0 12px 20px rgba(209, 71, 122, 0.3);
+      --transition: all 0.3s ease;
+      --breaking-news: #ff1744;
+    }
+
+    /* Fuentes */
+    @font-face {
+      font-family: 'moonGetHeavy';
+      src: url('https://onepiecegaiden.com/images/op/fonts/moon_get-Heavy.otf') format('opentype');
+      font-display: swap;
+    }
+
+    .text-moon {
+      color: white;
+      font-family: 'moonGetHeavy', Arial, sans-serif;
+      text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    }
+
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    body {
+      font-family: 'Georgia', serif;
+      margin: 0;
+      padding: 0;
+      background: var(--rosa-bg);
+      line-height: 1.6;
+    }
+
+    /* Layout principal */
+    .fondo-blanco {
+      background: white;
+      border: 15px solid var(--rosa-primary);
+      border-radius: 15px;
+      margin: 20px auto;
+      max-width: 1400px;
+      min-height: 500px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.4);
+    }
+
+    .periodico-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--rosa-bg) 0%, var(--rosa-cream) 100%);
+    }
+
+    .periodico-container {
+      background: var(--rosa-bg);
+      border: 4px solid var(--rosa-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      min-height: 800px;
+    }
+
+    .periodico-content {
+      position: relative;
+      z-index: 2;
+      padding: 30px 40px;
+    }
+
+    /* Header del periódico */
+    .periodico-header {
+      text-align: center;
+      border-bottom: 4px double var(--rosa-border);
+      padding: 0px 30px;
+      margin-bottom: -95px;
+      background: linear-gradient(135deg, var(--rosa-cream), white);
+      position: relative;
+    }
+
+    .periodico-title {
+      font-size: clamp(32px, 6vw, 64px);
+      font-weight: 900;
+      margin: 0;
+      letter-spacing: 4px;
+      color: var(--rosa-primary);
+      text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.3);
+    }
+
+    .periodico-japanese {
+      font-size: clamp(18px, 3vw, 28px);
+      color: var(--rosa-secondary);
+      margin: 5px 0 15px 0;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .periodico-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 15px 0;
+      border-top: 2px solid var(--rosa-accent);
+      border-bottom: 2px solid var(--rosa-accent);
+      font-size: 14px;
+      color: var(--rosa-text);
+    }
+
+    .periodico-fecha {
+      background: var(--rosa-primary);
+      border: 2px solid var(--rosa-border);
+      border-radius: 20px;
+      color: var(--white);
+      margin-left: -70px;
+      font-weight: bold;
+      padding: 8px 16px;
+      box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+    }
+
+    /* Sistema de páginas */
+    .newspaper-pages {
+      position: relative;
+      min-height: 600px;
+      margin-bottom: 30px;
+      margin-top: 80px;
+    }
+
+    .newspaper-page {
+      display: none;
+      width: 100%;
+      background: linear-gradient(135deg, var(--rosa-cream) 0%, #fdf0f7 100%);
+      border: 2px dashed var(--rosa-primary);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      color: var(--rosa-text);
+      font-family: 'Georgia', serif;
+      line-height: 1.6;
+    }
+
+    .newspaper-page.active { display: block; }
+
+    .noticia-principal {
+      position: relative;
+      padding: 20px;
+      border: 2px solid var(--rosa-accent);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .breaking-badge {
+      position: absolute;
+      top: -10px;
+      right: 20px;
+      background: var(--rosa-secondary);
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 15px;
+      animation: pulse 2s infinite;
+    }
+
+    .noticia-titulo-principal {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 900;
+      margin: 20px 0 15px 0;
+      line-height: 1.2;
+      color: var(--rosa-primary);
+    }
+
+    .noticia-imagen-principal {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      border: 2px dashed var(--rosa-primary);
+      border-radius: 8px;
+      margin: 15px 0;
+      box-shadow: 0 6px 12px rgba(233, 30, 99, 0.2);
+    }
+
+    .page-header {
+      text-align: center;
+      border-bottom: 3px double var(--rosa-accent);
+      padding-bottom: 10px;
+      margin-bottom: 0px;
+      font-size: 20px;
+      color: var(--rosa-primary);
+    }
+
+    .periodico-edicion, .periodico-precio {
+      font-weight: bold;
+      color: var(--rosa-text);
+    }
+
+    .periodico-precio {
+      font-size: 16px;
+      color: var(--rosa-primary);
+    }
+
+    /* Botón modo oscuro */
+    .dark-mode-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(145deg, #333, #555);
+      border: 3px solid var(--rosa-border);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      font-size: 12px;
+      transition: var(--transition);
+      z-index: 10;
+      min-width: 120px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .dark-mode-toggle:hover {
+      background: linear-gradient(145deg, #555, #333);
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    /* Elementos de contenido */
+    .noticia-lead {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 15px 0;
+      text-align: justify;
+      color: var(--rosa-text);
+    }
+
+    .byline {
+      font-style: italic;
+      color: var(--rosa-accent);
+      margin-top: -30px;
+      font-size: 16px;
+    }
+
+    .noticia-imagen-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+
+    .noticia-imagen-completa {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      border: 2px dashed var(--rosa-primary);
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(233, 30, 99, 0.2);
+    }
+
+    .imagen-caption {
+      font-style: italic;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .noticia-texto {
+      line-height: 1.7;
+    }
+
+    .noticia-texto h3 {
+      color: var(--rosa-primary);
+      font-size: 20px;
+      margin: 25px 0 15px 0;
+      border-bottom: 2px solid var(--rosa-secondary);
+      padding-bottom: 5px;
+    }
+
+    .noticia-texto p {
+      text-align: justify;
+      margin-bottom: 15px;
+    }
+
+    .drop-cap::first-letter {
+      float: left;
+      font-size: 4em;
+      line-height: 1;
+      padding-right: 8px;
+      padding-top: 4px;
+      color: var(--rosa-primary);
+      font-weight: bold;
+    }
+
+    /* Elementos especiales para Prensa Rosa */
+    .gossip-box {
+      background: rgba(255, 182, 193, 0.2);
+      border: 2px dashed var(--rosa-primary);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .gossip-box::before {
+      content: "CHISME EXCLUSIVO";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--rosa-primary);
+      color: white;
+      padding: 5px 15px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 15px;
+    }
+
+    .romance-section {
+      background: rgba(255, 182, 193, 0.2);
+      border: 2px dashed var(--rosa-primary);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .romance-title {
+      color: var(--rosa-secondary);
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 15px;
+      font-family: 'moonGetHeavy', Arial, sans-serif;
+    }
+
+    .couple-spotlight {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+    }
+
+    .couple-images {
+      display: flex;
+      gap: 10px;
+    }
+
+    .couple-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--rosa-primary);
+      object-fit: cover;
+    }
+
+    .heart-divider {
+      font-size: 30px;
+      color: var(--rosa-secondary);
+      margin: 0 10px;
+    }
+
+    .couple-info h4 {
+      margin: 0 0 10px 0;
+      color: var(--rosa-primary);
+      font-size: 18px;
+    }
+
+    .couple-info p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .scandal-alert {
+      background: linear-gradient(145deg, #ff69b4, #ff1493);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(255, 20, 147, 0.3);
+    }
+
+    .scandal-title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-family: 'moonGetHeavy', Arial, sans-serif;
+    }
+
+    /* Controles de navegación */
+    .newspaper-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0px;
+      padding: 0px 0px;
+      border: 3px double var(--rosa-accent);
+      margin: 20 0 0px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 7px;
+      box-shadow: 0 4px 8px rgba(233, 30, 99, 0.15);
+      position: fixed;
+      bottom: 0px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 40px);
+      max-width: 461px;
+      z-index: 2000;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-btn {
+      background: linear-gradient(145deg, var(--rosa-accent), var(--rosa-secondary));
+      border: 3px solid var(--rosa-border);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      font-size: 16px;
+      transition: var(--transition);
+      box-shadow: 0 4px 8px rgba(233, 30, 99, 0.3);
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: linear-gradient(145deg, var(--rosa-secondary), var(--rosa-accent));
+      transform: translateY(-2px);
+    }
+
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .page-indicator {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--rosa-accent);
+      border-radius: 20px;
+      padding: 10px 20px;
+      font-weight: bold;
+      color: var(--rosa-text);
+      font-family: 'Georgia', serif;
+    }
+
+    /* Portada inicial */
+    .portada-inicial {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #dc143c 100%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: all 1s ease;
+      cursor: pointer;
+    }
+
+    .portada-inicial.fade-out {
+      opacity: 0;
+      transform: scale(1.1);
+      pointer-events: none;
+    }
+
+    .portada-imagen {
+      max-width: 80%;
+      max-height: 60%;
+      object-fit: contain;
+      border: 5px solid white;
+      border-radius: 20px;
+      margin-bottom: 40px;
+      animation: pulse 3s infinite;
+    }
+
+    .portada-titular {
+      color: white;
+      font-family: 'moonGetHeavy', Arial, sans-serif;
+      font-size: clamp(36px, 8vw, 72px);
+      text-align: center;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+      margin: 0;
+      letter-spacing: 3px;
+    }
+
+    .portada-subtitulo {
+      color: white;
+      font-family: 'Georgia', serif;
+      font-size: clamp(16px, 3vw, 24px);
+      text-align: center;
+      margin: 20px 0;
+      font-style: italic;
+    }
+
+    /* Animaciones */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    /* Modo oscuro para Prensa Rosa */
+    .modo-noche {
+      --rosa-bg: #4a1a3d;
+      --rosa-border: #8b2671;
+      --rosa-text: #ffb6d9;
+      --rosa-accent: #c2185b;
+    }
+
+    .modo-noche .fondo-blanco {
+      background-color: #3d1a2e;
+      border-color: #8b2671;
+    }
+
+    .modo-noche .newspaper-page,
+    .modo-noche .noticia-principal {
+      background: linear-gradient(135deg, #4a1a3d 0%, #3d1a2e 100%);
+      color: var(--rosa-text);
+    }
+
+    .modo-noche .periodico-wrapper {
+      background: linear-gradient(135deg, #3d1a2e 0%, #2e1421 100%);
+    }
+
+    .modo-noche .periodico-header {
+      background: linear-gradient(135deg, #4a1a3d, #3d1a2e);
+      color: var(--rosa-text);
+    }
+
+    .modo-noche .periodico-title {
+      color: var(--rosa-primary);
+    }
+
+    .modo-noche .newspaper-controls {
+      background: rgba(74, 26, 61, 0.98);
+      border-color: var(--rosa-border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .periodico-wrapper { padding: 10px; }
+      .periodico-content { padding: 20px; }
+      .couple-spotlight { flex-direction: column; text-align: center; }
+      
+      .dark-mode-toggle {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 11px;
+        min-width: 100px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .periodico-title { font-size: 28px; }
+      .periodico-japanese { font-size: 16px; }
+      .newspaper-controls { 
+        position: fixed;
+        bottom: 10px;
+        top: auto;
+        max-width: calc(100% - 20px);
+      }
+    }
+</style>
+</head>
+
+{$header}
+  
+<!-- Portada Inicial -->
+<div class="portada-inicial" id="portada-inicial">
+  <img src="https://images2.imgbox.com/1d/cc/64s2qAAx_o.png" alt="Prensa Rosa One Piece" class="portada-imagen">
+  <h1 class="portada-titular">¡El Braguetazo del Año!</h1>
+  <p class="portada-subtitulo">Prensa Rosa - Edición Exclusiva</p>
+</div>
+
+<div class="fondo-blanco">
+  <div class="periodico-wrapper">
+    <div class="periodico-container">
+      
+      <!-- Botón para cambiar al periódico normal -->
+      <!-- Botón modo oscuro -->
+      <div class="dark-mode-toggle">
+        <span class="icon"></span>
+        <span class="text">Modo Oscuro</span>
+      </div>
+      
+      <div class="periodico-content">
+        <!-- Header del periódico -->
+        <header class="periodico-header">
+          <h1 class="periodico-title">PRENSA ROSA</h1>
+          
+          <div class="periodico-info-bar">
+            <div class="periodico-edicion">Edición Especial Nº 001</div>
+            <div class="periodico-fecha">50 de Primavera 725</div>
+            <div class="periodico-precio">Precio: 200 Berries </div>
+          </div>
+        </header>
+
+        <!-- Páginas del periódico -->
+        <div class="newspaper-pages">
+          
+          <!-- Página 1: Portada -->
+          <div class="newspaper-page active" id="page-1">
+            <div class="noticia-principal">
+              <div class="breaking-badge">EXCLUSIVA</div>
+              <h2 class="noticia-titulo-principal">Del callejón al altar: la plebeya que convirtió a un Tenryuubito en su fan número uno</h2>
+              <p class="byline">Por Mary Joyce, reportera del corazón, confidente de gaviotas indiscretas y testigo de la revolución del amor con besitos de melón.</p>
+              
+              <img src="https://images2.imgbox.com/79/3c/bTJmT1PD_o.png" alt="Pareja romántica" class="noticia-imagen-principal" loading="lazy">
+              
+              <p class="noticia-lead drop-cap">
+                Cariño, olvida los cuentos de hadas: lo que arde frente a nuestros ojos es pura fantasía cósmica avivada con gloss brillante sobre camisas de satén.
+              </p>
+              
+              <div class="noticia-texto">
+                <p>
+                  Nos referimos, nada más y nada menos, que a la mismísima Lilith Fae. Nuestra musa inesperada, nuestra reina sin corona y diva sin igual que ha puesto de rodillas a uno de los hombres más inaccesibles del planeta: Dark Satou, ese Noble Mundial que crea tendencia.
+                </p>
+                
+                <p>
+                  La historia no empezó en un salón de baile ni en un palacio dorado, sino en un callejón sucio durante pleno chaparrón en donde una chica común (con un corazón más grande que cualquier corona) decidió salvar a un moribundo hombre de noble linaje. Porque, cariño, eso es lo que hacen las reinas: rescatan, iluminan, transforman. Y desde ese instante el universo susurró: "¡Oh sí, reina! Te mereces la crème de la crème."
+                </p>
+
+                <p>
+                  El destino, juguetón y descarado, decidió cocinar este romance secreto a fuego lento con encuentros casuales y misiones compartidas que avivaron una tensión tan candente que ni la Hie Hie sería capaz de enfriar. Porque cuando eres tan arrebatadora como Lilith, no existe tal cosa como una historia de amor imposible.
+                </p>
+
+                <p>
+                  Y entonces, ¡bum! Adiós al tedio del noviazgo y al cuerno los protocolos y las tradiciones porque, querida mía, resulta que Dark, el Tenryuubito que jamás se arrodilló ante nadie, hincó la suya frente a Lilith para pronunciar las palabras más encantadoras jamás dichas por un hombre de su clase.
+                </p>
+
+                <p>
+                  <strong>"Cásate conmigo."</strong>
+                </p>
+
+                <p>
+                  Y cariño, cuando un símbolo de arrogancia se parte en dos, el mundo entero contiene la respiración.
+                </p>
+
+                <p>
+                  Y ella, la dulce plebeya, no retrocedió ni un paso al descubrir la verdad que escondía su amante: que era un Noble Mundial. ¿Acaso huyó? ¿Quizá titubeó? ¡Por favor! Lilith dijo: "me quedo". Y en ese instante, la palabra poder dejó de pertenecer a los nobles y pasó a brillar en sus manos.
+                </p>
+
+                <p>
+                  Ahora, el mundo está pendiente de la boda más escandalosa y fabulosa de la temporada. Pero que quede claro: esto no va de Dark, ni de linajes, ni de sangre azul. Esto va de Lilith Fae, la mujer que convirtió un símbolo de la supremacía en un simple mortal enamorado. Es ella la que nos recuerda que la verdadera nobleza no se hereda, sino que se conquista con valentía, con deseo y con un toque de gloss bien aplicado.
+                </p>
+                
+                <div class="gossip-box">
+                  <p><strong>¡ESPECTÁCULO DIVINO!</strong> Así que, cariño, prepara el abanico, descorcha el champán y agárrate bien al sillón: cuando Lilith camine hacia el altar, no será una boda cualquiera. Será un eclipse social, un espectáculo divino que marcará el momento exacto en que la plebeya más fabulosa del mundo se corone como la reina absoluta del corazón colectivo.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 2: Entrevista Exclusiva -->
+          <div class="newspaper-page" id="page-2">
+            <div class="page-header">
+              <h2>ENTREVISTA EXCLUSIVA</h2>
+            </div>
+            
+            <div class="scandal-alert">
+              <div class="scandal-title">EL SOLTERO MÁS CODICIADO DEL SOUTH BLUE</div>
+              <p>Lance Turner se sincera con Mary Joyce en una entrevista explosiva</p>
+            </div>
+            
+            <div class="noticia-texto">
+              <p class="noticia-lead">
+                <strong>Por Mary Joyce</strong> <br> Queridos lectores, aquí Mary Joyce en exclusiva para ustedes. 
+                Hoy tengo frente a mí a un hombre que no necesita presentación pero que aun así se la merece. 
+                Hablo, ni más ni menos, que del <strong>capitán Lance Turner</strong>, líder indiscutible de los 
+                temidos (y fascinantes) piratas de Shirogami.
+              </p>
+              
+              <img src="https://i.pinimg.com/736x/ba/b4/6b/bab46b493579593fd6eef846bc3c9869.jpg" alt="Lance Turner" class="noticia-imagen-completa" loading="lazy">
+              <p class="imagen-caption">Lance Turner, el capitán que hace suspirar a medio South Blue</p>
+              
+              <p>
+                Un aventurero audaz, un guerrero temido en alta mar… Y uno de los solteros más codiciados 
+                de todo el South Blue. Turner carga con la reputación de un conquistador nato: tras resolver 
+                un complicado puzle cúbico y lanzarse en veloz carrera por todo Bawic, se ha convertido en 
+                dueño de un carisma que hace temblar tanto a rivales como a admiradores.
+              </p>
+              
+              <div class="romance-section">
+                <h3>LA ENTREVISTA QUE TODOS ESPERABAN</h3>
+                
+                <p><strong>Mary Joyce:</strong> Rompamos el hielo, queridísimo Lance. ¿Puedo llamarte Lance? 
+                Claro que sí… Dicen que tu sonrisa derrite más rápido un bombón en pleno sol de verano… 
+                ¿Alguna vez te has aprovechado de ese arrebatador encanto para conseguir lo que quieres?</p>
+                
+                <p><strong>Lance:</strong> Eh, s- ¿Quién dice es-? Eh, bueno, en ocasiones me gusta hacerme 
+                más interesante o creído para jugar al despiste, pero tampoco diría que tengo un encanto arrebatador...</p>
+                
+                <p><strong>Mary Joyce:</strong> Tienes fama de ser codiciado, no sólo por tu tesoro, sino también 
+                por tu corazón. ¿Cuál de los dos es el más difícil de proteger?</p>
+                
+                <p><strong>Lance:</strong> <em>(Tras una risa, pillado totalmente por sorpresa)</em> Si te soy sincero, 
+                mi corazón. Uno acaba siendo demasiado vulnerable cuando baja la guardia.</p>
+                
+                <div class="gossip-box">
+                  <p><strong>¡CONFESIÓN EXPLOSIVA!</strong> ¿El capitán más temido del South Blue admite 
+                  ser vulnerable? ¡Continúa leyendo esta entrevista exclusiva!</p>
+                </div>
+                
+                <p><strong>Mary Joyce:</strong> ¡Oh! ¡Ohohohoho! Cuéntame precioso, ¿cuál es el secreto para 
+                mantenerse como el soltero más deseado del mar: disciplina, encanto, o simple genética?</p>
+                
+                <p><strong>Lance:</strong> <em>(Risas.)</em> Insisto, creo que no soy el más deseado jajaja, 
+                y no sé, me gusta mantenerme en forma y poner a prueba mis técnicas en combates amistosos 
+                con la tripulación, o con cualquiera que parezca alguien fuerte.</p>
+                
+                <p><strong>Mary Joyce:</strong> ¿Alguna vez has recibido propuestas indecentes de fans, 
+                nobles mundiales o incluso rivales? Venga, seguro que tienes alguna anécdota curiosa, picarón.</p>
+                
+                <p><strong>Lance:</strong> <em>(Risas de nuevo.)</em> No, no, prometo que no. Hasta el momento, 
+                he llevado una vida bastante tranquila en ese aspecto jajaja.</p>
+                
+                <p><strong>Mary Joyce:</strong> ¿Qué tan cierto es que un capitán pirata tiene una novia en cada isla? 
+                ¿O quizás solo se trate de un mito para alimentar tu leyenda? Aunque viéndote de cerca… ¡Miau! 
+                No me sorprendería nada que tuvieras un harén en potencia.</p>
+                
+                <p><strong>Lance:</strong> <em>(Lance se sonroja un poco mientras ríe, esta vez algo nervioso.)</em> 
+                Bue-bueno... quizá lo de una novia en cada isla es algo exagerado... Sí que he tenido algún 
+                que otro romance, pero nada especialmente llamativo...</p>
+                
+                <div class="scandal-alert">
+                  <div class="scandal-title">REVELACIÓN INESPERADA</div>
+                  <p>¿Lance Turner confiesa tener romances secretos? ¡La entrevista se pone candente!</p>
+                </div>
+                
+                <p><strong>Mary Joyce:</strong> Si no fueras pirata, ¿a qué te habrías dedicado? ¿Cantante, 
+                actor, político…? ¿O quizás habrías escogido el camino de los más rectos y habrías cubierto 
+                ese cuerpazo con el atuendo de la marina?</p>
+                
+                <p><strong>Lance:</strong> Bueno, en su día tengo que reconocer que fui un bandido más. Uno del montón 
+                que se dedicaba a asaltar, especialmente a los ricos. La piratería me llena mucho más, pero sin ella, 
+                puede que siguiese siendo un bandido más de montaña a la espera de recibir su merecido, o quizá hubiese 
+                intentado ser un explorador. Me encanta viajar y conocer nuevos sitios e historias interesantes.</p>
+                
+                <p><strong>Mary Joyce:</strong> Pero hablemos de ti, dime. ¿Qué cualidades valoras más en una pareja? 
+                Porque es cierto que estás como un queso y muchos te ven como ese One Piece de ensueño, pero… 
+                ¿Qué buscas realmente?</p>
+                
+                <p><strong>Lance:</strong> <em>(Risas algo exageradas.)</em> ¿¡Pero quién va diciendo todo eso de mí!? 
+                Jajajaja, ¡Es la primera vez que me lo dicen! Y bueno, en una pareja me gusta que ame la libertad 
+                tanto como yo, pero que también valore la lealtad, tanto entre nosotros, como con nuestros seres queridos. 
+                También me gusta que sea divertida, o al menos acepte mi forma de ser, un poco idiota en realidad si lo piensas jajaja.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 3: Continuación de la Entrevista -->
+          <div class="newspaper-page" id="page-3">
+            <div class="page-header">
+              <h2>LA BOMBA FINAL</h2>
+            </div>
+            
+            <div class="romance-section">
+              <h3>¿AMOR PROHIBIDO EN ALTA MAR?</h3>
+              
+              <p><strong>Mary Joyce:</strong> Y cuéntame, corazón. ¿No te preocupa que un día de estos llegue 
+              alguien capaz de robarte el corazón tan rápido como tu tripulación roba tesoros?</p>
+              
+              <p><strong>Lance:</strong> <em>(Risas.)</em> No, no, no me preocupa jajaja Estoy abierto a lo 
+              que pueda suceder en el futuro, ¿Quién sabe qué ocurrirá?</p>
+              
+              <p><strong>Mary Joyce:</strong> Sí, sí, sí, todo eso está muy bien. Pero verás, yo tengo mis sospechas… 
+              A ver, cuéntame, ¿es cierto que ese segundo al mando tuyo tan guapo es mucho más que un compañero 
+              de tripulación? Porque se os ha visto muy juntitos últimamente…</p>
+              
+              <p><strong>Lance:</strong> <em>(Lance se muestra incrédulo.)</em> ¿¡Qué!? jajaja, No, no, no, calma. 
+              Juuken es un hermano para mí, y le quiero como tal. Es mi mano derecha, y la persona en la que más confío. 
+              Ha sido increíble ver cómo ha evolucionado en el último año, y estoy seguro que se acabará convirtiendo 
+              en un gran hombre.</p>
+              
+              <div class="gossip-box">
+                <p><strong>MOMENTO TENSO:</strong> ¿Hemos tocado fibra sensible? Lance se defiende con vehemencia...</p>
+              </div>
+              
+              <p><strong>Mary Joyce:</strong> Ajá, ajá… Pero cariño, para ser "soltero de oro" es necesario estar soltero. 
+              Y claro, ¿qué va a opinar la gente cuando te ve sonriendo de oreja a oreja cada vez que estás junto a Juuken?</p>
+              
+              <p><strong>Lance:</strong> ¿Pero qué? ¿¡No me has escuchado!? Te digo que Juuken es como mi hermano pequeño, 
+              claro que me alegra mucho pasar tiempo con él, ¡Pero es sólo eso! ¡Un hermano para mí!</p>
+              
+              <p><strong>Mary Joyce:</strong> Pero imagina esto: es noche de luna llena y os toca hacer la guardia nocturna. 
+              Cuando la tripulación duerme y sólo quedáis vosotros dos en cubierta… ¿Habláis sobre planes de navegación… 
+              O sobre planes de futuro?</p>
+              
+              <p><strong>Lance:</strong> <em>(Lance se ríe al notar el doble juego de las preguntas.)</em> Pues sí, 
+              pensamos en los sueños que tenemos todos, la banda, a qué isla ir después, hablamos de nuestras inquietudes 
+              en la vida, misterios en el mundo, o recordamos momentos del pasado...</p>
+              
+              <p><strong>Mary Joyce:</strong> ¿Enserio? Entonces respóndeme a esto, encanto: si tuvieras que elegir 
+              entre el One Piece y la vida de tu mano derecha, ¿con cuál te quedarías?</p>
+              
+              <p><strong>Lance:</strong> Ni todos los tesoros del mundo podrían igualar el valor que tiene una persona 
+              como Juuken, mi fiel amigo, y mano derecha. ¿De qué me sirve el One Piece si no tengo a mi lado al mocoso?</p>
+              
+              <div class="scandal-alert">
+                <div class="scandal-title">¡DECLARACIÓN DE AMOR!</div>
+                <p>¿Lance Turner acaba de confesar sus verdaderos sentimientos en directo?</p>
+              </div>
+              
+              <p><strong>Mary Joyce:</strong> ¡Ja! No me lo puedo creer… ¿Podemos hablar de esta historia de amor pirata 
+              o todavía lo vas a negar delante de todos?</p>
+              
+              <p><strong>Lance:</strong> <em>(Lance comienza a gritar la respuesta mientras se ríe, por lo absurdo de la situación.)</em> 
+              <strong>¡PERO QUE NO ES UNA HISTORIA DE AMOR! ¿ES QUE NO ME ESTÁS ESCUCHANDO?</strong></p>
+              
+              <div class="romance-section">
+                <p style="text-align: center; font-style: italic; color: var(--rosa-secondary);">
+                  <strong>Fin de la entrevista... ¿O apenas el comienzo de una nueva historia de amor? 
+                  ¡Ustedes deciden, queridos lectores!</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 4: Entrevista con "Diamantes" -->
+          <div class="newspaper-page" id="page-4">
+            <div class="page-header">
+              <h2>DESAYUNO CON "DIAMANTES"</h2>
+            </div>
+            
+            <div class="scandal-alert">
+              <div class="scandal-title">¡EXCLUSIVA! ENTREVISTA CON JUUKEN</div>
+              <p>El segundo al mando de Lance responde a los rumores: "¿Qué problema hay?"</p>
+            </div>
+            
+            <div class="noticia-texto">
+              <p class="noticia-lead">
+                Después de la explosiva entrevista con Lance Turner, nuestra querida Mary Joyce no se rinde 
+                y va directa a por el protagonista de los rumores más jugosos del South Blue.
+              </p>
+              
+              <img src="https://i.pinimg.com/736x/92/a1/fe/92a1fe8cba5dca6b57aa910c4711d9e8.jpg" alt="Juuken" class="noticia-imagen-completa" loading="lazy">
+              <p class="imagen-caption">Juuken, el "diamante" joven.</p>
+              
+              <div class="romance-section">
+                <h3 class="romance-title">LA CONVERSACIÓN MÁS INOCENTE DEL AÑO</h3>
+                
+                <p><strong>Mary Joyce:</strong> Hola querido, bienvenido no te pongas nervioso que no pasa nada. 
+                Pero le hemos hecho una entrevista al super soltero de oro Lance y nos han llegado rumores de que 
+                igual no está tan soltero, por que le echa miraditas a un compi de tripulación que brilla como el diamante. 
+                ¿Qué tienes que decir al respecto?</p>
+                
+                <p><strong>Juuken:</strong> <em>(con cara de desconcierto)</em> Ah si, pues no había escuchado nada, 
+                no sabía nada ¿de quién hablas? Si que es cierto que el pelaje de Teruyoshi brilla mucho pero no sé de quién hablas.</p>
+                
+                <p><strong>Mary Joyce:</strong> <em>(procede a darse un facepalm)</em> No hablamos del brillo del pelo cielo, 
+                estamos hablando de algo así como "Shine bright like a diamond", ¿me explico o todavía no...?</p>
+                
+                <p><strong>Juuken:</strong> <em>(aún más confuso que antes y guarda silencio, está en modo loading)</em></p>
+                
+                <p><strong>Mary Joyce:</strong> <em>(procede a chasquear los dedos delante de la cara para traerlo de vuelta)</em></p>
+                
+                <p><strong>Juuken:</strong> ¿Así como... qué?</p>
+                
+                <div class="gossip-box">
+                  <p><strong>NOTA DE LA REDACCIÓN:</strong> En este momento, nuestra reportera Mary Joyce tuvo que 
+                  contarse hasta diez para mantener la profesionalidad.</p>
+                </div>
+                
+                <p><strong>Mary Joyce:</strong> Hablamos de ti perlita, ¡amigo date cuenta! Que dicen las malas lenguas, 
+                que en cuanto te despistas te mira las nalgas.</p>
+                
+                <p><strong>Juuken:</strong> Espera... espera... ¿me repites la primera pregunta?</p>
+                
+                <p><strong>Mary Joyce:</strong> <em>(susurra)</em> Madre de dios... <em>(adopta un tono normal de nuevo)</em> 
+                A ver mi vida, que se cuenta que le gustas a Lance, ¿qué opinas al respecto?</p>
+                
+                <p><strong>Juuken:</strong> <strong>AAAA sí, ¿qué problema hay?</strong></p>
+                
+                <div class="scandal-alert">
+                  <div class="scandal-title">¡LA BOMBA!</div>
+                  <p>Mary Joyce consigue la confirmación que todos esperábamos... ¿o no?</p>
+                </div>
+                
+                <p><strong>Mary Joyce:</strong> <em>(super happy con su exclusiva)</em> ¡¡Problema ninguno!! 
+                Pero si es una fantasía, ¡mi enhorabuena!! Que monos, pero entonces ¿confirmamos que estáis 
+                así súper juntos y eso?</p>
+                
+                <p><strong>Juuken:</strong> Claro, si estamos juntos, Gretta, Teruyoshi, Darrow, todos juntos 
+                <span style="text-decoration: line-through; opacity: 0.7;">(en el barco)</span></p>
+                
+                <div class="gossip-box">
+                  <p><strong>NOTA DE LA REDACCIÓN:</strong> Mary Joyce decidió "omitir un trocito de la frase" 
+                  por razones periodísticas. ¡Qué casualidad!</p>
+                </div>
+                
+                <p><strong>Mary Joyce:</strong> Entonces... me estáis diciendo que tenéis una relación 
+                así como... ¿poliamorosa y abierta?</p>
+                
+                <p><strong>Juuken:</strong> ¿Poli... qué? ¿Qué es esto? <em>(dice mientras ladea la cabecita)</em></p>
+                
+                <p><strong>Mary Joyce:</strong> Nada nada querido, lo que tú has dicho, que estáis todos juntos, 
+                que es una maravilla tú no sufras, déjate llevar por las mareas. Pero dime, aún en las mejores 
+                familias, siempre hay favoritos ¿sabes? Entonces... ¿quién crees que es el favorito de Lance, tú, Teru?</p>
+                
+                <p><strong>Juuken:</strong> <em>(Pensativo modo on)</em> Yo fui el primero que uní al capitán 
+                y desde entonces... siempre hemos estado juntos. 
+                <span style="text-decoration: line-through; opacity: 0.7;">(Mary escribe lo que quiere, Juuken dijo otras cosas)</span></p>
+                
+                <p><strong>Mary Joyce:</strong> Así que tú fuiste el primero para Lance, que boniiiiito</p>
+                
+                <p><strong>Juuken:</strong> Fue un bonito encuentro, casi nos matamos.</p>
+                
+                <p><strong>Mary Joyce:</strong> Ya sabes lo que dicen, los que se pelean se deseeeeean. 
+                Pero entonces, cuando más gente decidió unirse a vuestra relación, ¿no te dio así como una punzadita de celos? 
+                Ahora tienes que compartir la atención de Lance...</p>
+                
+                <p><strong>Juuken:</strong> <em>(confused continued)</em> ¿Celos? ¿Qué es eso, se come?</p>
+                
+                <div class="romance-section">
+                  <h3>EDUCACIÓN SENTIMENTAL CON MARY JOYCE</h3>
+                  
+                  <p><strong>Mary Joyce:</strong> Wooow, me encanta ver un grupo de chicos tan súper abiertos, 
+                  que no tienen problema en compartir y dar amor a todos incluso cuando no compartes razas ¿no? 
+                  Nos han dicho que hay poquitos humanos en esa relación.</p>
+                  
+                  <p><strong>Juuken:</strong> Bueno pues, humanos somos yo, Lance y Rensuke. Pero no sé por qué 
+                  dices lo de las razas, ¿qué tiene que ver?</p>
+                  
+                  <p><strong>Mary Joyce:</strong> No nada, es que es una relación interracial súper bonita y de 
+                  la cual deberían tomar ejemplo muchos de nuestros lectores.</p>
+                  
+                  <p><strong>Juuken:</strong> Pero... ¿qué es una relación interracial? Nunca había escuchado sobre eso.</p>
+                  
+                  <p><strong>Mary Joyce:</strong> No te preocupes cielo, yo te explico, no quiero que salgas de aquí 
+                  sin tu clase de sexualidad y relaciones. Una relación interracial es cuando estás con una personita 
+                  con la cual no compartes raza, como puede ser tú que eres un humano con Teru que es un gatito ¿sabes? 
+                  Pero escucha, que yo estoy súper a favor de que estéis juntos, pero siempre con protección ¿vale?</p>
+                  
+                  <p><strong>Juuken:</strong> No te preocupes, siempre voy con mis armas cargadas.</p>
+                  
+                  <div class="scandal-alert">
+                    <div class="scandal-title">¡AINSS BENDITA LA JUVENTUD!</div>
+                    <p>Mary Joyce queda sin palabras ante la inocencia de Juuken</p>
+                  </div>
+                  
+                  <p><strong>Mary Joyce:</strong> ¡Ainss bendita la juventud! Bueno querido, muchas gracias por 
+                  participar en este número, dale besis de fresi de nuestra parte a Lance y a todos tus pichurris, chaitoooo.</p>
+                  
+                  <p style="font-style: italic; text-align: center; margin-top: 20px; color: #8b0040;">
+                    <em>Mary se marcha mientras Juuken sigue en modo confused un ratito más antes de marcharse</em>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 5: Escuchamos y Además Juzgamos -->
+          <div class="newspaper-page" id="page-5">
+            <div class="page-header">
+              <h2>ESCUCHAMOS Y ADEMÁS JUZGAMOS</h2>
+            </div>
+            
+            <div class="romance-section">
+              <h3 class="romance-title">CONSULTORIO SENTIMENTAL</h3>
+              <p style="text-align: center; font-style: italic; margin-bottom: 20px;">
+                Con <strong>Mary Joyce</strong> y <strong>Megan Zine</strong>
+              </p>
+              
+              <div class="gossip-box">
+                <h4 style="color: var(--rosa-primary); margin-bottom: 15px;">CARTA DE UNA LECTORA ANÓNIMA</h4>
+                <p style="font-style: italic; margin-bottom: 15px;">
+                  <strong>Queridas Mary Joyce y Megan Zine,</strong>
+                </p>
+                <p style="text-align: justify; line-height: 1.6;">
+                  Prefiero no darte mi nombre porque el problema que me lleva a enviarte esta carta puede ser 
+                  bastante peculiar, prefiero quedar en el anonimato. Veras, me cuesta un poco explicarlo, 
+                  pero desde hace unos meses estoy muy interesada en un joven capitán de la marina.
+                </p>
+                <p style="text-align: justify; line-height: 1.6;">
+                  Y tú dirás ¿bueno cari y cual es el problema? Pues el problema radica, en que mi figura no 
+                  es muy legal que digamos, soy pirata ¿sabes? Y creo que eso puede ser un tremendo inconveniente 
+                  a la hora de acercarme a él.
+                </p>
+                <p style="text-align: justify; line-height: 1.6;">
+                  ¿Qué puedo hacer? ¿Tenéis algún consejo para este corazón enamorado?
+                </p>
+                <p style="text-align: right; font-style: italic; margin-top: 15px;">
+                  Besitos.
+                </p>
+              </div>
+              
+              <div class="scandal-alert">
+                <div class="scandal-title">¡RESPUESTA DE NUESTRAS EXPERTAS!</div>
+              </div>
+              
+              <div style="background: rgba(255, 255, 255, 0.9); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <p><strong style="color: var(--rosa-primary);">Mary Joyce:</strong> Hola queridos lectores, 
+                ¿sabéis una cosa? Nos ha llegado una carta, en la cual nos mencionan que esta personita que 
+                la vamos a dejar super anónima está enamorada de un joven capitán de la marina, pero tiene 
+                un tremendo problema, díselo tú Megan.</p>
+                
+                <p><strong style="color: var(--rosa-secondary);">Megan Zine:</strong> Pues mirad cielines, 
+                nuestra persona anónima nos dice que, ojo aquí el plot twist ¡Es pirata! Me caigo muerta Mary. 
+                También te digo, pedazo primera carta para estrenar esta nuestra sección. Así de primeras, 
+                drama al canto, pero pedazo enemies to lovers te puedes montar ¿No lo piensas así, Mary?</p>
+                
+                <p><strong style="color: var(--rosa-primary);">Mary Joyce:</strong> Y que lo digas, tu solo 
+                piensa que los amores más ardientes siempre son los prohibidos, por que ya sabes lo que dicen, 
+                una aventura es más divertida si huele a peligro. Entonces, yo te diría que te armes de valor, 
+                te le acerques y le digas "y si te invito una copa y me acerco a tu boca…" a ver que sale de 
+                allí, ¿tú qué dices Megan?</p>
+                
+                <p><strong style="color: var(--rosa-secondary);">Megan Zine:</strong> Mira, tía, si hace eso 
+                sería CINE, o sea, no me lo quiero perder. Que nos mande otra carta con el día y la hora para 
+                ir a stalkear o a ayudar, lo que surja.</p>
+                
+                <p><strong style="color: var(--rosa-primary);">Mary Joyce:</strong> Y si hace falta mi niña, 
+                te llevamos lejos por si aquí el mozo te quiere llevar a la cárcel o algo sabes…vaya a ser que 
+                esto acabe en tragedia.</p>
+                
+                <p><strong style="color: var(--rosa-secondary);">Megan:</strong> Espera Mary, a ver si le van 
+                ese tipo de cosas y se refiere a otro tipo de "cárcel". Nunca se sabe con los marines. Yo opino 
+                que haga lo que has dicho y que nos cuente lo que pase porque nos queremos enterar de cómo ha 
+                terminado el chisme.</p>
+                
+                <p><strong style="color: var(--rosa-primary);">Mary Joyce:</strong> Y recordad nuestros queridos 
+                lectores, si queréis un consejo de amor o de vida, podéis mandarnos una carta a la redacción de 
+                este peridico y la responderemos en el siguiente número.</p>
+                
+                <div style="text-align: center; margin-top: 20px; padding: 15px; background: var(--rosa-primary); 
+                color: white; border-radius: 10px; font-weight: bold; font-size: 18px;">
+                  <strong>Mary y Megan: Ya sabéis… ¡Escuchamos y además juzgamos!</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 6: Entrevista Lady Hazel Byron -->
+          <div class="newspaper-page" id="page-6">
+            <div class="page-header">
+              <h2>ENTREVISTA EXCLUSIVA</h2>
+            </div>
+            
+            <div class="scandal-alert">
+              <div class="scandal-title">¡EXCLUSIVA! LADY HAZEL BYRON</div>
+              <p>La soltera más deseada de Sorbet: "¡Seguiré siendo una soltera de oro!"</p>
+            </div>
+            
+            <div class="noticia-texto">
+              <p class="noticia-lead">
+                <strong>Por: Oxxy Coon</strong><br>
+                ¡Ay, mis perlitas adoradas! Prepárense para un chisme de alta mar que hará temblar 
+                los salones del reino. Nuestra nueva reina de la nobleza, la mismísima <strong>Lady Hazel Baron</strong>, 
+                ha abierto su corazón en exclusiva para La Perla Rosa.
+              </p>
+              
+              <img src="https://i.pinimg.com/736x/3e/dd/b1/3eddb19e39f7a0af251b95715dfad4ba.jpg" alt="Lady Hazel Byron" class="noticia-imagen-completa" loading="lazy">
+              <p class="imagen-caption">Lady Hazel Byron, la noble que conquistó un título y sigue conquistando corazones</p>
+              
+              <p>
+                Sí, sí, aquella que trabajó con nuestros queridos marines conquistó un título en la plaza 
+                central de Sorbet, pasando de surcar olas a brillar entre candelabros, nos ha dado una 
+                entrevista que es puro fuego. ¡Amores, aventuras y rumores jugosos! ¿Listas para 
+                zambullirnos en esta historia?
+              </p>
+              
+              <div class="romance-section">
+                <h3>EL ENCUENTRO QUE CAMBIÓ TODO</h3>
+                
+                <p>
+                  Primero, quiero que imaginéis el momentazo: un cafecito con vistas al puerto... 
+                  Allí aparece ella, Lady Hazel, con guantes negros que tras tanta tela se dedican 
+                  a esconder cicatrices de aquella batalla. (¡nada de cuentos, queridas, son de verdad!). 
+                  Nada más aparecer, viene la tía y dice: <em>"En el mar, la que manda soy yo. El timón 
+                  siempre lo llevo yo"</em>, así directamente, dejando claro que en su vida ella es la 
+                  más importante. ¡Vaya mujer, por Poseidón!
+                </p>
+                
+                <div class="gossip-box">
+                  <p><strong>BOMBAZO REVELADO:</strong> ¿Quién ha robado el corazón de esta diosa marinera? 
+                  ¡La respuesta te dejará sin aliento!</p>
+                </div>
+                
+                <p>
+                  Pero vamos con lo que todos y todas queremos saber: ¿quién ha robado el corazón de esta 
+                  diosa marinera? Agarraos, que viene el bombazo: Tras una pausa que nos tuvo al borde del 
+                  infarto, confiesa: <strong>"No, por desgracia no hay nadie especial en mi vida. Estoy 
+                  demasiado ocupada para el amor"</strong>. ¡Ay, el drama!
+                </p>
+                
+                <p>
+                  Pero nuestra Hazel no se anda con pañuelos, para nada. Porque después de aquella pregunta 
+                  nos dice: <strong>"¡Supongo que seguiré siendo una soltera de oro!"</strong>. ¿Es esto 
+                  acaso un desafío a los galanes del reino? ¿Un himno a su libertad? ¡Nosotros ya estamos 
+                  imaginando una cola de pretendientes desde aquí hasta la Grand Line!
+                </p>
+                
+                <div class="scandal-alert">
+                  <div class="scandal-title">ESCAPADA ROMÁNTICA</div>
+                  <p>¿Estará buscando un amor exótico entre las olas misteriosas de la Grand Line?</p>
+                </div>
+                
+                <p>
+                  Pero es que la cosa no acaba aquí, paaaara nada. Cuando le preguntamos por su escapada ideal, 
+                  sus ojos se iluminan como faros en la niebla: <em>"La Grand Line. Es tan enigmática… me muero 
+                  de ganas por descubrirla a mi ritmo"</em>. ¡Ay, qué romántico suena! ¿Estará buscando un amor 
+                  exótico entre esas olas misteriosas? Por aquí apostamos a que será algún oficial… o a lo mejor 
+                  incluso un amor escandaloso. ¡Quién sabe! Pero nosotros siempre iremos a por todas para 
+                  nuestros lectores.
+                </p>
+              </div>
+              
+              <div class="romance-section">
+                <h3>RUMORES Y VERDADES</h3>
+                
+                <p>
+                  Por supuesto, ninguna estrella brilla sin su ración de rumores. El chisme más loco que corre 
+                  por Sorbet es que Hazel le teme a las ratas. <strong>"¡Pura mentira!"</strong>, replicó ella 
+                  entre carcajadas. <em>"Me encantan, son listísimas y se adaptan a todo"</em>. Y con un guiño 
+                  que nos dejó sin aliento, añade: <strong>"Ahora, los que me llaman rata a mí… en eso sí aciertan"</strong>. 
+                  ¡Zas! Qué manera de callar bocas y convertir un cotilleo en titular. ¡Esta chica es puro espectáculo!
+                </p>
+                
+                <p>
+                  Lo más gracioso de esto, es que la charla termina con un beso al aire y una pregunta que nos 
+                  derrite el corazón por dentro: <em>"¿Llega La Perla Rosa a todos los Blues o solo al South?"</em>. 
+                  ¡Tranquila, Hazel, querida! Tu historia de soltera indómita y aventurera va a navegar por todos 
+                  los mares del mundo.
+                </p>
+                
+                <div class="gossip-box">
+                  <p><strong>PREDICCIÓN ROSA:</strong> Con ese carisma, ese humor y ese toque de misterio, 
+                  Lady Hazel Baron es la reina de corazones que todas queremos ser. ¿Seguirá sola? 
+                  ¡Nosotras decimos que no por mucho tiempo! Un amor de novela está a la vuelta de la esquina, 
+                  y en La Perla Rosa estaremos aquí para contarlo.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 7: Horóscopo de los Mares -->
+          <div class="newspaper-page" id="page-7">
+            <div class="page-header">
+              <h2>HORÓSCOPO DE LOS MARES</h2>
+            </div>
+            
+            <div class="romance-section">
+              <h3 class="romance-title">SIGNOS DE LA PRIMAVERA</h3>
+              
+              <div class="noticia-texto">
+                <h4>Inicio Floral (1 – 30) – Dugongo de Kung-Fu (Alabasta)</h4>
+                <p>Los nacidos bajo este signo son luchadores de espíritu y corazón noble. La disciplina y el esfuerzo son su motor, pero también su ternura escondida: pueden ser fieros frente a un reto y a la vez dulces con quienes consideran parte de su círculo cercano. Suelen ser personas que aprenden rápido y se levantan con más fuerza después de cada caída. Aunque a veces pecan de ingenuidad, la vida les sonríe porque su autenticidad rara vez pasa desapercibida.</p>
+                
+                <h4>Crecida Verde (31 – 60) – Zorro Bicéfalo (Little Garden)</h4>
+                <p>Este signo representa la dualidad. Quienes nacen bajo el signo del Zorro Bicéfalo pueden tener dos caras muy marcadas: por un lado la astucia, la picardía y la facilidad para salir de los problemas; por otro, un lado más sensible, protector y leal hacia los suyos. Son grandes estrategas y excelentes para leer a las personas, pero deben cuidarse de no caer en la manipulación o el exceso de dudas internas. Siempre buscan crecer, adaptarse y sorprender con su ingenio.</p>
+                
+                <h4>Brisa Final (61 – 90) – Tiburón del Cielo (Skypiea)</h4>
+                <p>Los hijos del tiburón del cielo tienen un espíritu libre y aventurero. Son soñadores, curiosos y con un deseo constante de volar más allá de los límites. Suelen tener un gran magnetismo personal: atraen tanto a aliados como a rivales, porque donde pisan generan impacto. La independencia es vital para ellos, pero a veces esa misma necesidad de libertad los hace parecer distantes. Con el viento a su favor, son imparables; con turbulencias, sacan su lado más feroz.</p>
+              </div>
+            </div>
+            
+            <div class="romance-section">
+              <h3 class="romance-title">SIGNOS DEL OTOÑO</h3>
+              
+              <div class="noticia-texto">
+                <h4>Bruma Cobriza (1 – 30) – Caballo de Tres Cabezas (Little Garden)</h4>
+                <p>Este signo representa la elegancia y la majestuosidad, una persona que haya nacido bajo el signo del caballo de tres cabezas es alguien orgulloso, leal y que siempre está dispuesto a proteger a sus seres queridos o compañeros de cualquier peligro. Un fiel compañero de corazón puro que siempre va a estar ayudando a todo aquel que lo necesite, pero primero tienes que ganarte su confianza ya que ellos deciden a quien quieren profesan tan preciado recurso como es su tiempo.</p>
+                
+                <h4>Ocaso del Oro (31 – 60) – Pequeño Pez Bravo (Desrossa)</h4>
+                <p>Los nacidos en este signo son de naturaleza valerosa, tienen un gran sentido de la rivalidad y suelen ser muy cabezotas cuando tienen algo entre ceja y ceja. No dejan de luchar por lo que creen incluso si eso significa terminar muy heridos. Su fuerza se realza cuando están en grupo, tanto su familia como amigos hace que su espíritu de lucha aumente para poder cuidar de ellos. Por contra su tozudez hace que tener discusiones con ellos acabe con un dolor de cabeza como el que tendrías si te dieran un cabezazo.</p>
+                
+                <h4>Eco Marchito (61 – 90) – Cuervo de Impel Down (Karasumaru)</h4>
+                <p>Tienden a ser personas frías y solitarias consiguiendo generar un aura de carisma a su alrededor sin quererlo. Son personas muy astutas y observadoras que harán cualquier cosa por salirse con la suya, al costo que sea. Aunque son de naturaleza reservada, si se tiene la suficiente paciencia con las personas nacidas bajo este signo como para ganarse su respeto se volverán unos aliados formidables. Pero siempre hay que tener cuidado, porque buscarán su propio beneficio por encima de cualquier amistad.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Página 8: Continuación del Horóscopo -->
+          <div class="newspaper-page" id="page-8">
+            <div class="page-header">
+              <h2>HORÓSCOPO DE LOS MARES</h2>
+            </div>
+            
+            <div class="romance-section">
+              <h3 class="romance-title">SIGNOS DEL VERANO</h3>
+              
+              <div class="noticia-texto">
+                <h4>Sol Ardiente (1 – 30) – Serpiente de Isla Cactus (Whiskey Peak)</h4>
+                <p>Quienes nacen bajo este signo son personas magnéticas, de lengua viperina y una mirada bastante intimidante. Se caracterizan por ser calculadores, astutos y con una capacidad increíble para detectar las debilidades ajenas. La serpiente del Cactus encarna la resistencia: puede sobrevivir a climas extremos y, al igual que ella, los hijos del Sol Ardiente saben soportar cualquier dificultad hasta hallar la oportunidad perfecta para contraatacar. Son de sangre fría cuando se trata de tomar decisiones y no dudan en defender lo que consideran suyo. Sin embargo, su naturaleza desconfiada hace que rara vez entreguen su confianza; quien logre entrar en su círculo encontrará en ellos un consejero perspicaz y un protector que nunca falla.</p>
+                
+                <h4>Cielo Incandescente (31 – 60) – Pato de Combate de Arabasta</h4>
+                <p>El pato de combate es símbolo de lealtad, valentía y determinación, cualidades que definen a los nacidos en este signo. Siempre dispuestos a dar la cara por sus amigos o familia, suelen ser tercos y persistentes, incluso cuando todo parece perdido. Les cuesta admitir sus errores, pero su corazón noble compensa cualquier tropiezo. El Cielo Incandescente representa la fuerza de los vínculos: estos individuos encuentran su mayor poder cuando pelean junto a otros. Sin embargo, su terquedad puede hacer que a veces choquen con los demás, pues cuando algo se les mete entre ceja y ceja es casi imposible moverlos de su postura. Pese a ello, su lealtad inquebrantable los convierte en compañeros de viaje imprescindibles.</p>
+                
+                <h4>Fiebre Tropical (61 – 90) – Bananawani (Bananagator)</h4>
+                <p>Los nacidos bajo este signo poseen un espíritu salvaje y una voracidad por la vida difícil de igualar. Se les reconoce por su carácter intenso, su pasión desbordante y su afán de imponerse en cualquier territorio donde pisen. Igual que el temido Bananawani, son dominantes y transmiten respeto con su sola presencia. No obstante, detrás de esa ferocidad también hay un ingenio vivo y una capacidad sorprendente para adaptarse a cualquier ambiente, por hostil que sea. Su lado impulsivo puede meterlos en problemas, pero su fuerza y audacia suelen sacarlos de ellos con una sonrisa desafiante. Son líderes naturales, aunque a veces tengan que aprender a no devorarse a sus propios aliados.</p>
+              </div>
+            </div>
+            
+            <div class="romance-section">
+              <h3 class="romance-title">SIGNOS DEL INVIERNO</h3>
+              
+              <div class="noticia-texto">
+                <h4>Frío Abierto (1 – 30) – Lobo Ártico Blanco (White Walkie) (Isla Drum)</h4>
+                <p>El Lobo Ártico Blanco encarna la resistencia y el liderazgo en las condiciones más hostiles. Quienes nacen bajo este signo poseen un instinto agudo y una lealtad feroz, pero a menudo cargan con la soledad de quien siempre vigila. Esto se debe a que los Lobos Árticos Blancos poseen un corazón sintonizado con las emociones, lo que da pie a sentimientos más intensos. Los Lobos Árticos lo dan todo cuando el amor llega a sus corazones, y priorizan el bienestar de su pareja por encima del propio hasta un punto desbordante. Esta pasión les permite alcanzar sus metas con mayor facilidad a riesgo de quemarse por el camino, pero así es como disfrutan de la vida.</p>
+                
+                <h4>Silencio Invernal (31 – 60) – Jabalí de Coral (Fishman Island)</h4>
+                <p>El Jabalí de Coral es símbolo de fuerza contenida, paciencia y arraigo. Poseen una voluntad de hierro y la capacidad de esperar el momento exacto para embestir. Son conocidos por ser perseverantes y firmes durante las situaciones más complejas, demostrando un temple digno de la fuerza de este animal. Aunque no suelen expresar su afecto, su amor es tan enérgico y seguro como el jabalí lo que da luz a relaciones llenas de seguridad a pesar de la carencia de romanticismo.</p>
+                
+                <h4>Última Escarcha (61 – 90) – Conejo de Tambor (Lapahn) (Isla Drum)</h4>
+                <p>El Conejo de Tambor representa la agilidad, la sensibilidad y la esperanza que brota tras el invierno. Quienes nacen bajo este signo suelen tener un alma inquieta, rápida para saltar hacia nuevas oportunidades, pero también vulnerable a las corrientes emocionales. Su agilidad y gracia se transmite hacia las decisiones que toma en su vida, atravesando cualquier inconveniente y crisis con gran perspicacia gracias a sus sentidos siempre alerta. El único momento donde reducen la velocidad es en el amor, donde se toman su tiempo para valorar una potencial pareja antes de dar el siguiente paso ya buscan a alguien para formar un hogar y una familia.</p>
+              </div>
+            </div>
+            
+            <div class="scandal-alert">
+              <div class="scandal-title">PREDICCIÓN ESPECIAL</div>
+              <p>Los astros marinos predicen que este mes será especialmente favorable para los romances entre signos opuestos. ¡El amor está en el aire del Grand Line!</p>
+            </div>
+            
+            <div class="gossip-box">
+              <p><strong>¿Quieres conocer tu compatibilidad amorosa?</strong> Envía una carta con tu signo y el de esa persona especial, y nuestras expertas en astrología marina te darán el veredicto. ¡Los resultados pueden sorprenderte!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controles de navegación -->
+        <div class="newspaper-controls">
+          <button class="nav-btn" id="prev-page">◀ Anterior</button>
+          <div class="page-indicator">
+            Página <span id="current-page">1</span> de <span id="total-pages">8</span>
+          </div>
+          <button class="nav-btn" id="next-page">Siguiente ▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a class="backtop"><span id='backtop'><i class="fa fa-angle-up arr-adj"></i></span></a>    
+
+<!-- MyBB tasks -->
+{$task_image}
+{$auto_dst_detection}
+
+<!-- Scripts -->
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/prensarosa.js" defer></script>
+	
+{$footer}

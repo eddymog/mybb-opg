@@ -1,0 +1,2051 @@
+<html>
+
+<head>
+  <title>Isla</title>
+  {$headerinclude}
+  <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor/themes/{$theme['editortheme']}" type="text/css" media="all" />
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/sceditor/jquery.sceditor.bbcode.min.js"></script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/bbcodes_sceditor.js"></script>
+  <style>
+	  
+	  
+	  .titulo-grande {
+		  font-size: 30px;
+			text-align: center;
+			font-family: TimesNewRoman;
+			color: #ffd0ad;
+			text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+	  }
+
+	  .isla-tab {
+		  display: inline-block;
+		  padding: 12px 24px;
+		  margin: 0 5px 0 0;
+		  background: #d15306;
+		  color: white;
+		  font-family: moonGetHeavy;
+		  font-size: 16px;
+		  cursor: pointer;
+		  border: none;
+		  border-top-left-radius: 8px;
+		  border-top-right-radius: 8px;
+		  transition: all 0.2s;
+		  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+	  }
+
+	  .isla-tab:hover {
+		  background: #ff7019;
+		  transform: translateY(-2px);
+	  }
+
+	  .isla-tab.active {
+		  background: #ff7019;
+		  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+	  }
+
+	  .isla-tab-content {
+		  display: none;
+	  }
+
+	  .isla-tab-content.active {
+		  display: block;
+	  }
+	  
+	  .texto-grande {
+			color: black;
+			text-align: center;
+			background-color: #ffbc88;
+			font-family: InterRegular;
+			align-self: center;
+			border-radius: 6px;
+			width: 90%;
+/* 			height: 27px; */
+			font-size: 20px;
+			padding: 10px;
+			text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+	  }
+	  
+	  .habitantes {
+		  	color: black;
+			text-align: center;
+			background-color: #ffbc88;
+			font-family: InterRegular;
+			align-self: center;
+			border-radius: 6px;
+			width: 90%;
+/* 			height: 27px; */
+			font-size: 20px;
+			padding: 10px;
+	  }
+	  
+	  .npcList {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 5px;
+		 padding: 10px 20px;
+   	 	 background-color: #ffbc88;
+		align-self: center;
+		border-radius: 6px;
+		width: 88%;
+		  
+	  }
+	  
+	  .npcBox {
+		height: 220px;width: 150px; box-sizing: border-box; cursor: pointer;
+		transition: all 0.2s ease-out;
+		}
+
+		.npcBox:hover {
+			filter: drop-shadow(0px 0px 6px black) saturate(1.3);
+		}
+
+		.clipBox {
+			width: 145px; height: 45px; box-sizing: border-box; margin-top: 170px; clip-path: polygon(0 65%, 100% 0%, 100% 100%, 0% 100%);
+		}
+
+		.npcName {
+			color: white; font-size: 16px; font-family: moonGetHeavy; text-shadow: 3px 3px 1px black; position: relative; text-align: center; top: -44px; left: 10px; line-height: 18px;
+		}
+
+		.npcRow {
+			position: relative;
+			display: flex;
+			align-items: center;
+			width: 100%;
+			padding: 6px 30px 6px 10px;
+			box-sizing: border-box;
+		}
+
+		.npcRow .npcName {
+			position: static;
+			top: auto;
+			left: auto;
+			color: #333;
+			text-shadow: none;
+			text-align: left;
+			text-decoration: none;
+		}
+
+		.npcRow .npcName:hover {
+			text-decoration: underline;
+		}
+
+		.npcRow[data-apodo] {
+			position: relative;
+		}
+
+		.npcRow[data-apodo]::after {
+			content: attr(data-apodo);
+			position: absolute;
+			bottom: 100%;
+			left: 50%;
+			transform: translateX(-50%) translateY(-4px);
+			background: #333;
+			color: #fff;
+			font-style: italic;
+			font-size: 13px;
+			padding: 3px 8px;
+			border-radius: 4px;
+			white-space: nowrap;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.15s ease;
+			z-index: 20;
+		}
+
+		.npcRow[data-apodo]:hover::after {
+			opacity: 1;
+		}
+
+		.lore-highlight {
+			background: #ffd700;
+			color: #333;
+			border-radius: 2px;
+			padding: 0 2px;
+		}
+
+		.lore-highlight-active {
+			background: #ff7019;
+			color: white;
+			box-shadow: 0 0 0 2px #d15306;
+		}
+
+	   .eventList {
+		  display: flex;
+		  flex-direction: column;
+		  gap: 8px;
+		  padding: 12px 16px;
+		  background-color: #ffbc88;
+		  border-radius: 6px;
+		}
+
+		.eventItem {
+		  background: #ffe2cb;
+		  border: 2px solid #ff7019;
+		  border-radius: 6px;
+		  padding: 10px 12px;
+		  display: grid;
+		  grid-template-columns: auto 1fr auto;
+		  gap: 10px;
+		  align-items: start;
+		  position: relative;
+		  transition: background 0.3s, border-color 0.3s;
+		}
+
+		.eventItem.impacto-medio {
+		  background: #ffc9a8;
+		  border-color: #e84a1f;
+		}
+
+		.eventItem.impacto-alto {
+		  background: #ff9c7a;
+		  border-color: #c81e0a;
+		}
+
+		.eventItem.impacto-maximo {
+		  background: #ff5c4d;
+		  border-color: #7a0000;
+		  box-shadow: 0 0 10px rgba(180, 0, 0, 0.6);
+		}
+
+		.eventImpactoBadge {
+		  position: absolute;
+		  top: -10px;
+		  right: 10px;
+		  font-size: 11px;
+		  font-family: InterRegular;
+		  font-weight: bold;
+		  padding: 2px 8px;
+		  border-radius: 10px;
+		  color: #fff;
+		  background: #888;
+		  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+		}
+
+		.eventImpactoBadge.impacto-bajo {
+		  background: #4caf50;
+		}
+
+		.eventImpactoBadge.impacto-medio {
+		  background: #e84a1f;
+		}
+
+		.eventImpactoBadge.impacto-alto {
+		  background: #c81e0a;
+		}
+
+		.eventImpactoBadge.impacto-maximo {
+		  background: #7a0000;
+		  animation: impactoPulse 1.2s infinite;
+		}
+
+		@keyframes impactoPulse {
+		  0%, 100% { box-shadow: 0 0 4px rgba(255,0,0,0.6); }
+		  50% { box-shadow: 0 0 12px rgba(255,0,0,1); }
+		}
+
+		.eventDateCol {
+		  display: flex;
+		  flex-direction: column;
+		  gap: 6px;
+		  min-width: 110px;
+		}
+
+		.eventDate {
+		  background: #ff7019;
+		  color: #fff;
+		  font-family: moonGetHeavy, InterRegular, sans-serif;
+		  font-size: 14px;
+		  padding: 6px 8px;
+		  border-radius: 4px;
+		  text-shadow: 1px 1px 0px #00000055;
+		  text-align: center;
+		}
+
+		.eventMeta {
+		  display: flex;
+		  flex-direction: column;
+		  gap: 3px;
+		}
+
+		.eventMetaRow {
+		  background: #fff3e6;
+		  border: 1px solid #ff7019;
+		  border-radius: 4px;
+		  padding: 3px 6px;
+		  font-size: 11px;
+		  font-family: InterRegular;
+		  color: #5a3000;
+		  text-align: center;
+		  word-break: break-word;
+		}
+
+		.eventMetaRow a {
+		  color: #d15306;
+		  font-weight: bold;
+		}
+
+		.eventText {
+		  color: #222;
+		  font-family: InterRegular;
+		  font-size: 16px;
+		  line-height: 1.25;
+		  text-align: center;
+		  align-self: center;
+		}
+
+		.eventStaff {
+		  color: #3b3b3b;
+		  font-size: 13px;
+		  font-family: InterRegular;
+		  opacity: 0.85;
+		  align-self: center;
+		}
+
+		.edit-controls {
+		  position: fixed;
+		  bottom: 20px;
+		  right: 20px;
+		  display: flex;
+		  gap: 10px;
+		  z-index: 1000;
+		}
+
+		.edit-btn, .save-btn, .cancel-btn {
+		  padding: 12px 24px;
+		  border: none;
+		  border-radius: 6px;
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 14px;
+		  cursor: pointer;
+		  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+		  transition: all 0.2s;
+		}
+
+		.edit-btn {
+		  background: #ff7019;
+		  color: white;
+		}
+
+		.edit-btn:hover {
+		  background: #e06010;
+		  transform: translateY(-2px);
+		}
+
+		.save-btn {
+		  background: #00d600;
+		  color: white;
+		}
+
+		.save-btn:hover {
+		  background: #00b500;
+		}
+
+		.cancel-btn {
+		  background: #666;
+		  color: white;
+		}
+
+		.cancel-btn:hover {
+		  background: #555;
+		}
+
+		.texto-grande[contenteditable="true"] {
+		  outline: 2px dashed #ff7019;
+		  cursor: text;
+		}
+
+		.toast {
+		  position: fixed;
+		  bottom: 80px;
+		  right: 20px;
+		  padding: 14px 20px;
+		  border-radius: 8px;
+		  background: rgba(0,0,0,0.85);
+		  color: white;
+		  font-family: InterRegular;
+		  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+		  z-index: 1001;
+		  opacity: 0;
+		  transform: translateY(20px);
+		  transition: all 0.3s;
+		}
+
+		.toast.visible {
+		  opacity: 1;
+		  transform: translateY(0);
+		}
+
+		.add-event-panel {
+		  background: #ffe2cb;
+		  border: 3px solid #ff7019;
+		  border-radius: 8px;
+		  padding: 16px;
+		  margin-bottom: 12px;
+		  display: none;
+		}
+
+		.add-event-panel.active {
+		  display: block;
+		}
+
+		.form-row {
+		  display: flex;
+		  gap: 10px;
+		  margin-bottom: 10px;
+		  flex-wrap: wrap;
+		}
+
+		.form-group {
+		  flex: 1;
+		  min-width: 120px;
+		}
+
+		.form-group label {
+		  display: block;
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 13px;
+		  color: #ff7019;
+		  margin-bottom: 4px;
+		}
+
+		.form-group input,
+		.form-group select,
+		.form-group textarea {
+		  width: 100%;
+		  padding: 8px;
+		  border: 2px solid #ff7019;
+		  border-radius: 4px;
+		  font-family: InterRegular;
+		  font-size: 14px;
+		  box-sizing: border-box;
+		}
+
+		.form-group textarea {
+		  resize: vertical;
+		  min-height: 80px;
+		}
+
+		.form-buttons {
+		  display: flex;
+		  gap: 8px;
+		  justify-content: flex-end;
+		  margin-top: 12px;
+		}
+
+		.btn-small {
+		  padding: 8px 16px;
+		  border: none;
+		  border-radius: 4px;
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 13px;
+		  cursor: pointer;
+		  transition: all 0.2s;
+		}
+
+		.btn-primary {
+		  background: #ff7019;
+		  color: white;
+		}
+
+		.btn-primary:hover {
+		  background: #e06010;
+		}
+
+		.btn-secondary {
+		  background: #999;
+		  color: white;
+		}
+
+		.btn-secondary:hover {
+		  background: #777;
+		}
+
+		.btn-add-event, .btn-add-npc {
+		  background: #8544a5;
+		  color: white;
+		  padding: 10px 20px;
+		  border: none;
+		  border-radius: 6px;
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 14px;
+		  cursor: pointer;
+		  margin-bottom: 12px;
+		  display: none;
+		  transition: all 0.2s;
+		}
+
+		.btn-add-event:hover, .btn-add-npc:hover {
+		  background: #6d3686;
+		  transform: translateY(-2px);
+		}
+
+		.npc-search-panel {
+		  background: #ffe2cb;
+		  border: 3px solid #ff7019;
+		  border-radius: 8px;
+		  padding: 16px;
+		  margin-bottom: 12px;
+		  display: none;
+		}
+
+		.npc-search-panel.active {
+		  display: block;
+		}
+
+		.search-input {
+		  width: 100%;
+		  padding: 10px;
+		  border: 2px solid #ff7019;
+		  border-radius: 6px;
+		  font-family: InterRegular;
+		  font-size: 14px;
+		  box-sizing: border-box;
+		  margin-bottom: 10px;
+		}
+
+		.npc-search-results {
+		  display: grid;
+		  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		  gap: 10px;
+		  max-height: 300px;
+		  overflow-y: auto;
+		  margin-top: 10px;
+		}
+
+		.npc-search-item {
+		  background: white;
+		  border: 2px solid #ff7019;
+		  border-radius: 6px;
+		  padding: 8px;
+		  cursor: pointer;
+		  transition: all 0.2s;
+		  display: flex;
+		  flex-direction: column;
+		  align-items: center;
+		  gap: 6px;
+		}
+
+		.npc-search-item:hover {
+		  background: #fff5e6;
+		  transform: translateY(-2px);
+		  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+		}
+
+		.npc-search-avatar {
+		  width: 100%;
+		  height: 100px;
+		  object-fit: cover;
+		  border-radius: 4px;
+		}
+
+		.npc-search-name {
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 12px;
+		  text-align: center;
+		  color: #333;
+		}
+
+		.btn-remove-npc {
+		  position: absolute;
+		  top: -8px;
+		  right: -8px;
+		  background: #e30502;
+		  color: white;
+		  border: 2px solid white;
+		  border-radius: 50%;
+		  width: 28px;
+		  height: 28px;
+		  font-size: 16px;
+		  cursor: pointer;
+		  display: none;
+		  align-items: center;
+		  justify-content: center;
+		  transition: all 0.2s;
+		  z-index: 10;
+		}
+
+		.btn-remove-npc:hover {
+		  background: #b00000;
+		  transform: scale(1.1);
+		}
+
+		.edit-mode .btn-remove-npc {
+		  display: flex;
+		}
+
+		.npc-empty-message {
+		  grid-column: 1 / -1;
+		  text-align: center;
+		  padding: 20px;
+		  color: #666;
+		  font-family: InterRegular;
+		}
+
+		.btn-edit-event, .btn-delete-event {
+		  color: white;
+		  padding: 4px 10px;
+		  border: none;
+		  border-radius: 4px;
+		  font-family: InterRegular;
+		  font-size: 12px;
+		  cursor: pointer;
+		  transition: all 0.2s;
+		  margin-left: 4px;
+		}
+
+		.btn-edit-event {
+		  background: #0bbefc;
+		}
+
+		.btn-edit-event:hover {
+		  background: #0099cc;
+		}
+
+		.btn-delete-event {
+		  background: #e30502;
+		}
+
+		.btn-delete-event:hover {
+		  background: #b00000;
+		}
+
+		.eventItem.editing {
+		  background: #fff5e6;
+		}
+
+		.edit-event-form {
+		  display: none;
+		  grid-column: 1 / -1;
+		  padding-top: 10px;
+		  border-top: 2px dashed #ff7019;
+		  margin-top: 10px;
+		}
+
+		.edit-event-form.active {
+		  display: block;
+		}
+
+		.btn-add-map {
+		  background: #8544a5;;
+		  color: white;
+		  padding: 10px 20px;
+		  border: none;
+		  border-radius: 6px;
+		  font-family: moonGetHeavy, InterRegular;
+		  font-size: 14px;
+		  cursor: pointer;
+		  margin-bottom: 12px;
+		  display: none;
+		  transition: all 0.2s;
+		}
+
+		.btn-add-map:hover {
+		  background: #e06010;
+		  transform: translateY(-2px);
+		}
+
+		.mapList {
+		  display: grid;
+		  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		  gap: 16px;
+		  padding: 12px 16px;
+		  background-color: #ffbc88;
+		  border-radius: 6px;
+		}
+
+		.mapItem {
+		  background: #ffe2cb;
+		  border: 2px solid #ff7019;
+		  border-radius: 8px;
+		  padding: 8px;
+		  display: flex;
+		  flex-direction: column;
+		  gap: 8px;
+		  position: relative;
+		}
+
+		.mapImage {
+		  width: 100%;
+		  height: 200px;
+		  object-fit: contain;
+		  border-radius: 6px;
+		  background: #fff;
+		  cursor: pointer;
+		  transition: transform 0.2s;
+		}
+
+		.mapImage:hover {
+		  transform: scale(1.05);
+		}
+
+		.mapControls {
+		  display: flex;
+		  justify-content: flex-end;
+		  gap: 6px;
+		}
+
+		.btn-view-map, .btn-delete-map {
+		  padding: 6px 12px;
+		  border: none;
+		  border-radius: 4px;
+		  font-family: InterRegular;
+		  font-size: 12px;
+		  cursor: pointer;
+		  transition: all 0.2s;
+		}
+
+		.btn-view-map {
+		  background: #0bbefc;
+		  color: white;
+		}
+
+		.btn-view-map:hover {
+		  background: #0099cc;
+		}
+
+		.btn-delete-map {
+		  background: #e30502;
+		  color: white;
+		}
+
+		.btn-delete-map:hover {
+		  background: #b00000;
+		}
+
+		.modal-overlay {
+		  position: fixed;
+		  top: 0;
+		  left: 0;
+		  width: 100%;
+		  height: 100%;
+		  background: rgba(0,0,0,0.9);
+		  z-index: 9999;
+		  display: none;
+		  justify-content: center;
+		  align-items: center;
+		  cursor: pointer;
+		}
+
+		.modal-overlay.active {
+		  display: flex;
+		}
+
+		.modal-image {
+		  max-width: 90%;
+		  max-height: 90%;
+		  object-fit: contain;
+		}
+
+		.isla-tab {
+		  display: inline-block;
+		  padding: 12px 24px;
+		  margin: 0 5px;
+		  background-color: #d15306;
+		  color: #ffd0ad;
+		  border: none;
+		  border-radius: 8px 8px 0 0;
+		  cursor: pointer;
+		  font-family: InterRegular;
+		  font-size: 16px;
+		  transition: all 0.3s ease;
+		}
+
+		.isla-tab:hover {
+		  background-color: #ff7019;
+		  transform: translateY(-2px);
+		}
+
+		.isla-tab.active {
+		  background-color: #ff7019;
+		  font-weight: bold;
+		  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+		}
+
+		.isla-tab-content {
+		  display: none;
+		  width: 100%;
+		  flex-direction: row;
+		  flex-flow: wrap;
+		}
+
+		.isla-tab-content.active {
+		  display: flex;
+		}
+
+		.isla-imagen-container {
+		  position: relative;
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		  width: 100%;
+		  height: auto;
+		  min-height: 370px;
+		  margin: 0 auto;
+		  perspective: 1200px;
+		}
+
+		.isla-card-flip {
+		  position: relative;
+		  width: 662px;
+		  height: 358px;
+		  transform-style: preserve-3d;
+		  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+		}
+
+		.isla-imagen-container:hover .isla-card-flip {
+		  transform: rotateY(180deg);
+		}
+
+		.isla-card-front,
+		.isla-card-back {
+		  position: absolute;
+		  width: 100%;
+		  height: 100%;
+		  backface-visibility: hidden;
+		  -webkit-backface-visibility: hidden;
+		}
+
+		.isla-card-front {
+		  transform: rotateY(0deg);
+		}
+
+		.isla-card-back {
+		  transform: rotateY(180deg);
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  background: rgba(0, 0, 0, 0.95);
+		  border-radius: 30px;
+		  backdrop-filter: blur(10px);
+		  -webkit-backdrop-filter: blur(10px);
+		}
+
+		.isla-descripcion-overlay {
+		  width: 90%;
+		  max-height: 90%;
+		  color: #ffd0ad;
+		  font-family: InterRegular;
+		  font-size: 16px;
+		  text-align: justify;
+		  padding: 0px;
+		  padding-right: 15px;
+		  overflow-y: auto;
+		  overflow-x: hidden;
+		  box-sizing: border-box;
+		}
+
+		.isla-descripcion-overlay::-webkit-scrollbar {
+		  width: 8px;
+		}
+
+		.isla-descripcion-overlay::-webkit-scrollbar-track {
+		  background: rgba(255, 255, 255, 0.1);
+		  border-radius: 4px;
+		}
+
+		.isla-descripcion-overlay::-webkit-scrollbar-thumb {
+		  background: rgba(255, 208, 173, 0.5);
+		  border-radius: 4px;
+		}
+
+		.isla-descripcion-overlay::-webkit-scrollbar-thumb:hover {
+		  background: rgba(255, 208, 173, 0.7);
+		}
+
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+			<div class="isla-imagen-container">
+				<div class="isla-card-flip">
+					<!-- Cara frontal: imagen de la isla -->
+					<div class="isla-card-front">
+						<div style="position: relative; display: inline-block;">
+							<img src="/images/op/islas/islaContenedor.png" style="display: block;" />
+							<img src="/images/op/uploads/Isla{$isla_id}_One_Piece_Gaiden_Foro_Rol.jpg" style="position: absolute; top: 56px; left: 331px; transform: translateX(-50%); width: 564px; height: 302px; z-index: 1; border-radius: 30px;" />
+							<div style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); width: 554px; text-align: center; font-family: moonGetHeavy; font-size: 41px; color: #ffd0ad; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); z-index: 2;">{$nombre}</div>
+						</div>
+					</div>
+					
+					<!-- Cara trasera: descripción con blur -->
+					<div class="isla-card-back">
+						<div class="isla-descripcion-overlay">{$descripcion}</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Pestañas -->
+				<div style="text-align: center; margin: 20px 0;">
+					<button class="isla-tab active" data-tab="info">Información</button>
+					<button class="isla-tab" data-tab="mapas">Mapas</button>
+					<button class="isla-tab" data-tab="eventos">Cronología</button>
+					<if $puede_editar == 'true' then>
+					<button class="isla-tab" data-tab="lore">Lore</button>
+					</if>
+				</div>
+
+				<div style="display: flex;flex-direction: row;">
+					<div style=" width: 30px; background: url(/images/op/uploads/BarraFichaIslaIzquierda_One_Piece_Gaiden_Foro_Rol.png); "></div>
+                    <div style="background-color: #ff7019;display: flex;flex-direction: row;width: 930px;margin: auto;flex-flow: wrap;padding-bottom: 30px;border-radius: 3px;">
+					
+					<!-- Contenido pestaña Información -->
+					<div id="tab-info" class="isla-tab-content active">
+						<div style=" width: 50%; display: flex;flex-direction: column;">
+							<div class="titulo-grande">Gobierno</div>
+							<div class="texto-grande">{$gobierno}</div>
+						</div>
+						<div style=" width: 50%; display: flex;flex-direction: column; ">
+							<div class="titulo-grande">Facción Dominante</div>
+							<div class="texto-grande">{$faccion}</div>
+						</div>
+						<div style=" width: 50%; display: flex;flex-direction: column;">
+							<div class="titulo-grande">Tamaño</div>
+							<div class="texto-grande">{$tamano}</div>
+						</div>
+						<div style=" width: 50%; display: flex;flex-direction: column; ">
+							<div class="titulo-grande">Actividad Comercial</div>
+							<div class="texto-grande">{$comercio}</div>
+						</div>
+						<div style=" width: 100%; display: flex;flex-direction: column; ">
+							<div class="titulo-grande">Zonas</div>
+							<div class="texto-grande" style=" text-align: justify; width: 95%;">{$zonas}</div>
+						</div>
+						<div style=" width: 100%; display: flex;flex-direction: column; ">
+							<div class="titulo-grande">Habitantes destacados</div>
+							<div style="width: 93%; align-self: center;">
+								<button class="btn-add-npc" id="btnAddNpc">➕ Añadir NPC</button>
+								<div class="npc-search-panel" id="npcSearchPanel">
+									<input type="text" class="search-input" id="npcSearchInput" placeholder="Buscar NPC por nombre...">
+									<div class="npc-search-results" id="npcSearchResults"></div>
+									<div class="form-buttons" style="margin-top: 10px;">
+										<button class="btn-small btn-secondary" id="btnCancelNpcSearch">Cerrar</button>
+									</div>
+								</div>
+							</div>
+							<div class="npcList" style=" text-align: justify; width: 93%;"></div>
+						</div>
+					</div>
+					<!-- Fin pestaña Información -->
+
+					<!-- Contenido pestaña Mapas -->
+					<div id="tab-mapas" class="isla-tab-content">
+						<div style=" width: 100%; display: flex;flex-direction: column; margin-top: 20px; ">
+						  <div class="titulo-grande">Mapas de la isla</div>
+						  <div style="width: 93%; align-self: center; margin-top: 15px;">
+						    <button class="btn-add-map" id="btnAddMap">Subir Mapa</button>
+						    <input type="file" id="mapFileInput" accept="image/*" style="display: none;">
+						  </div>
+						  <div class="mapList" style="margin-top: 15px; margin-bottom: 20px;"></div>
+						</div>
+					</div>
+					<!-- Fin pestaña Mapas -->
+
+					<!-- Contenido pestaña Cronología -->
+					<div id="tab-eventos" class="isla-tab-content">
+						<div style=" width: 100%; display: flex;flex-direction: column; margin-top: 20px; ">
+						  <div class="titulo-grande">Cronología de eventos</div>
+						  <div style="width: 93%; align-self: center;">
+						    <button class="btn-add-event" id="btnAddEvent">➕ Añadir Evento</button>
+						    <div class="add-event-panel" id="addEventPanel">
+						      <div class="form-row">
+						        <div class="form-group" style="flex: 0 0 80px;">
+						          <label>Día (1-90)</label>
+						          <input type="number" id="eventDia" min="1" max="90" value="1">
+						        </div>
+						        <div class="form-group" style="flex: 0 0 120px;">
+						          <label>Estación</label>
+						          <select id="eventEstacion">
+						            <option>Primavera</option>
+						            <option>Verano</option>
+						            <option>Otoño</option>
+						            <option>Invierno</option>
+						          </select>
+						        </div>
+						        <div class="form-group" style="flex: 0 0 80px;">
+						          <label>Año</label>
+						          <input type="number" id="eventAno" value="725">
+						        </div>
+						      </div>
+						      <div class="form-row">
+						        <div class="form-group" style="flex: 1 1 220px;">
+						          <label>URL del tema del evento</label>
+						          <input type="text" id="eventTemaUrl" placeholder="https://onepiecegaiden.com/showthread.php?tid=...">
+						        </div>
+						        <div class="form-group" style="flex: 0 0 120px;">
+						          <label>UID del narrador</label>
+						          <input type="number" id="eventNarradorUid" min="0" value="0">
+						        </div>
+						      </div>
+						      <div class="form-group">
+						        <label>Personajes participantes</label>
+						        <input type="text" id="eventPersonajes" placeholder="Nombre 1, Nombre 2, Nombre 3...">
+						      </div>
+						      <div class="form-group">
+						        <label>Impacto de lore</label>
+						        <select id="eventImpacto">
+						          <option value="Bajo">Bajo</option>
+						          <option value="Medio">Medio</option>
+						          <option value="Alto">Alto</option>
+						          <option value="PERO ESTO QUE ES LO QUE ES">PERO ESTO QUE ES LO QUE ES</option>
+						        </select>
+						      </div>
+						      <div class="form-group">
+						        <label>Descripción del evento</label>
+						        <textarea id="eventDescripcion" placeholder="Describe qué ocurrió en este evento..."></textarea>
+						      </div>
+						      <div class="form-buttons">
+						        <button class="btn-small btn-secondary" id="btnCancelEvent">Cancelar</button>
+						        <button class="btn-small btn-primary" id="btnSaveEvent">Guardar Evento</button>
+						      </div>
+						    </div>
+						  </div>
+						  <div class="eventList"></div>
+						</div>
+					</div>
+					<!-- Fin pestaña Cronología -->
+
+					<!-- Contenido pestaña Lore -->
+					<if $puede_editar == 'true' then>
+					<div id="tab-lore" class="isla-tab-content">
+						<div style=" width: 100%; display: flex;flex-direction: column; margin-top: 20px; ">
+						  <div class="titulo-grande">Lore de la isla</div>
+						  <div style="width: 93%; align-self: center;">
+						    <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 10px;">
+						      <input type="text" id="loreSearchInput" class="search-input" placeholder="Buscar palabra clave en el lore..." style="flex: 1; box-sizing: border-box; margin-bottom: 0;">
+						      <button type="button" class="btn-small btn-secondary" id="loreSearchPrev" disabled>◀</button>
+						      <span id="loreSearchCount" style="white-space: nowrap; min-width: 60px; text-align: center;">0/0</span>
+						      <button type="button" class="btn-small btn-secondary" id="loreSearchNext" disabled>▶</button>
+						    </div>
+						    <button class="btn-add-event" id="btnEditLore" style="display: none;">✏️ Editar Lore</button>
+						    <div id="loreEditPanel" style="display: none; margin-top: 10px;">
+						      <textarea id="loreTextarea" style="width: 100%; min-height: 300px; box-sizing: border-box;" placeholder="Pega aquí el lore de la isla..."></textarea>
+						      <div class="form-buttons">
+						        <button class="btn-small btn-secondary" id="btnCancelLore">Cancelar</button>
+						        <button class="btn-small btn-primary" id="btnSaveLore">Guardar Lore</button>
+						      </div>
+						    </div>
+						  </div>
+						  <div id="loreDisplay" class="texto-grande" style="width: 93%; align-self: center; text-align: justify; margin-top: 15px; white-space: pre-wrap;">{$lore}</div>
+						</div>
+					</div>
+					</if>
+					<!-- Fin pestaña Lore -->
+
+					</div>
+					<div style=" width: 30px; background: url(/images/op/uploads/BarraFichaIslaDerecha_One_Piece_Gaiden_Foro_Rol.png); "></div>
+				</div>
+				<br>
+			</div>
+		</div>
+	 </div>
+  </div>
+
+  <div class="edit-controls" id="editControls" style="display: none;">
+    <button class="edit-btn" id="editBtn">✏️ Editar Isla</button>
+    <button class="save-btn" id="saveBtn" style="display: none;">Guardar</button>
+    <button class="cancel-btn" id="cancelBtn" style="display: none;">✖ Cancelar</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+	
+<script>
+  // --- Sistema de Pestañas ---
+  document.querySelectorAll('.isla-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var targetTab = this.getAttribute('data-tab');
+      
+      // Remover active de todos los tabs y contenidos
+      document.querySelectorAll('.isla-tab').forEach(function(t) {
+        t.classList.remove('active');
+      });
+      document.querySelectorAll('.isla-tab-content').forEach(function(content) {
+        content.classList.remove('active');
+      });
+      
+      // Activar el tab clickeado y su contenido
+      this.classList.add('active');
+      document.getElementById('tab-' + targetTab).classList.add('active');
+    });
+  });
+
+  var IMPACTO_MAXIMO = 'PERO ESTO QUE ES LO QUE ES';
+
+  var NPCs = {$npcs_json};
+  var currentNPCs = NPCs.slice(); // Copia para mantener la lista actual
+
+  function getFaccionColors(faccion) {
+    var colors = { border: "red", clip: "red" };
+    if (faccion == 'Pirata')   { colors.border = "#e30502"; colors.clip = "#a20000"; }
+    if (faccion == 'Marina')   { colors.border = "#0bbefc"; colors.clip = "#003f8d"; }
+    if (faccion == 'Revo')     { colors.border = "#ff7900"; colors.clip = "#c56103"; }
+    if (faccion == 'Cazador')  { colors.border = "#00d600"; colors.clip = "#008500"; }
+    if (faccion == 'Gobierno') { colors.border = "#5500ff"; colors.clip = "#3a00ae"; }
+    if (faccion == 'Civil')    { colors.border = "#ff00ff"; colors.clip = "#99008e"; }
+    return colors;
+  }
+
+  function renderNPCs() {
+    $('.npcList').empty();
+
+    if (currentNPCs.length === 0) {
+      $('.npcList').append('<div class="npc-empty-message">No hay NPCs destacados en esta isla.</div>');
+      return;
+    }
+
+    for (var i = 0; i < currentNPCs.length; i++) {
+      var npc = currentNPCs[i];
+      var apodoAttr = npc.apodo ? ' data-apodo="' + npc.apodo + '"' : '';
+
+      $('.npcList').append(
+        '<div class="npcRow"' + apodoAttr + ' data-npc-id="' + npc.npc_id + '">' +
+          '<a href="/op/compas.php?npc_id=' + npc.npc_id + '" class="npcName">' + npc.nombre + '</a>' +
+          '<button class="btn-remove-npc" data-npc-id="' + npc.npc_id + '">✕</button>' +
+        '</div>'
+      );
+    }
+  }
+
+  renderNPCs();
+
+  // --- Sistema de edición (definir antes de eventos) ---
+  var puedeEditar = {$puede_editar} || false;
+  var islaId = {$isla_id} || 0;
+  var currentUid = {$current_uid} || 0;
+  var editMode = false;
+  var originalData = {};
+  
+  // UIDs con permisos especiales para editar/eliminar todos los eventos
+  var adminUids = [850, 268, 279, 23];
+
+  // --- Mapas ---
+  var MAPAS = {$mapas_json};
+  var mapList = $('.mapList');
+
+  if (MAPAS.length === 0) {
+    mapList.append(
+      '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666; font-family: InterRegular;">' +
+        'No hay mapas disponibles para esta isla.' +
+      '</div>'
+    );
+  } else {
+    for (var m = 0; m < MAPAS.length; m++) {
+      var mapa = MAPAS[m];
+      var deleteBtn = '';
+      
+      if (puedeEditar) {
+        deleteBtn = '<button class="btn-delete-map" data-filename="' + mapa.filename + '">Eliminar</button>';
+      }
+
+      mapList.append(
+        '<div class="mapItem">' +
+          '<img src="' + mapa.url + '" class="mapImage" data-url="' + mapa.url + '" alt="Mapa de la isla">' +
+          '<div class="mapControls">' +
+            '<button class="btn-view-map" data-url="' + mapa.url + '">Ver completo</button>' +
+            deleteBtn +
+          '</div>' +
+        '</div>'
+      );
+    }
+  }
+
+  // --- Eventos ---
+  var EVENTOS = {$eventos_json};
+  var eventList = $('.eventList');
+
+  if (EVENTOS.length === 0) {
+    eventList.append(
+      '<div class="eventItem">' +
+        '<div class="eventText" style="grid-column: 1 / -1;">No hay eventos registrados.</div>' +
+      '</div>'
+    );
+  } else {
+    for (var j = 0; j < EVENTOS.length; j++) {
+      var ev = EVENTOS[j];
+      var fecha = ev.dia + ' · ' + ev.estacion + ' · ' + ev.ano;
+      var staff = ev.username;
+      var editBtn = '';
+      
+      // Debug: descomentar para ver los valores
+      console.log('Evento ' + ev.evento_id + ':', {
+        puedeEditar: puedeEditar,
+        ev_staff_uid: ev.staff_uid,
+        current_uid: currentUid,
+        coincide: (ev.staff_uid == currentUid)
+      });
+      
+      // Mostrar botones si es el creador o es un UID especial
+      if (ev.staff_uid == currentUid || adminUids.indexOf(currentUid) !== -1) {
+        editBtn = '<button class="btn-edit-event" data-evento-id="' + ev.evento_id + '">Editar</button>' +
+                  '<button class="btn-delete-event" data-evento-id="' + ev.evento_id + '">Eliminar</button>';
+      }
+
+      var temaHtml = ev.tema_url ? '<a href="' + ev.tema_url + '" target="_blank" rel="noopener">Ver tema del evento</a>' : '';
+      var narradorHtml = ev.narrador_uid ? '<a href="/op/personaje.php?uid=' + ev.narrador_uid + '">' + (ev.narrador_username || ('UID ' + ev.narrador_uid)) + '</a>' : '';
+
+      var personajesHtml = '';
+      if (ev.personajes_list && ev.personajes_list.length) {
+        var personajeItems = ev.personajes_list.map(function(p) {
+          if (p.uid > 0) {
+            return '<a href="/op/personaje.php?uid=' + p.uid + '">' + p.nombre + '</a>';
+          }
+          return p.nombre;
+        });
+        personajesHtml = personajeItems.join(', ');
+      }
+
+      var impactoClases = {
+        'Bajo': 'impacto-bajo',
+        'Medio': 'impacto-medio',
+        'Alto': 'impacto-alto'
+      };
+      impactoClases[IMPACTO_MAXIMO] = 'impacto-maximo';
+      var impactoValor = ev.impacto || 'Bajo';
+      var impactoClase = impactoClases[impactoValor] || 'impacto-bajo';
+      var impactoBadge = '<div class="eventImpactoBadge ' + impactoClase + '">Impacto: ' + impactoValor + '</div>';
+
+      var metaRows = [];
+      if (temaHtml) { metaRows.push('<div class="eventMetaRow">' + temaHtml + '</div>'); }
+      if (narradorHtml) { metaRows.push('<div class="eventMetaRow">Narrador: ' + narradorHtml + '</div>'); }
+      if (personajesHtml) { metaRows.push('<div class="eventMetaRow">Personajes: ' + personajesHtml + '</div>'); }
+      var metaHtml = metaRows.length ? '<div class="eventMeta">' + metaRows.join('') + '</div>' : '';
+
+      eventList.append(
+        '<div class="eventItem ' + impactoClase + '" data-evento-id="' + ev.evento_id + '">' +
+          impactoBadge +
+          '<div class="eventDateCol">' +
+            '<div class="eventDate">' + fecha + '</div>' +
+            metaHtml +
+          '</div>' +
+          '<div class="eventText">' + ev.descripcion + '</div>' +
+          '<div class="eventStaff">por ' + staff + ' ' + editBtn + '</div>' +
+          '<div class="edit-event-form">' +
+            '<div class="form-row">' +
+              '<div class="form-group" style="flex: 0 0 80px;">' +
+                '<label>Día (1-90)</label>' +
+                '<input type="number" class="edit-dia" min="1" max="90" value="' + ev.dia + '">' +
+              '</div>' +
+              '<div class="form-group" style="flex: 0 0 120px;">' +
+                '<label>Estación</label>' +
+                '<select class="edit-estacion">' +
+                  '<option ' + (ev.estacion == 'Primavera' ? 'selected' : '') + '>Primavera</option>' +
+                  '<option ' + (ev.estacion == 'Verano' ? 'selected' : '') + '>Verano</option>' +
+                  '<option ' + (ev.estacion == 'Otoño' ? 'selected' : '') + '>Otoño</option>' +
+                  '<option ' + (ev.estacion == 'Invierno' ? 'selected' : '') + '>Invierno</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="form-group" style="flex: 0 0 80px;">' +
+                '<label>Año</label>' +
+                '<input type="number" class="edit-ano" value="' + ev.ano + '">' +
+              '</div>' +
+            '</div>' +
+            '<div class="form-row">' +
+              '<div class="form-group" style="flex: 1 1 220px;">' +
+                '<label>URL del tema</label>' +
+                '<input type="text" class="edit-tema-url" value="' + (ev.tema_url || '') + '">' +
+              '</div>' +
+              '<div class="form-group" style="flex: 0 0 120px;">' +
+                '<label>UID narrador</label>' +
+                '<input type="number" class="edit-narrador-uid" min="0" value="' + (ev.narrador_uid || 0) + '">' +
+              '</div>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label>Personajes participantes</label>' +
+              '<input type="text" class="edit-personajes" value="' + (ev.personajes || '') + '">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label>Impacto de lore</label>' +
+              '<select class="edit-impacto">' +
+                '<option ' + (impactoValor == 'Bajo' ? 'selected' : '') + ' value="Bajo">Bajo</option>' +
+                '<option ' + (impactoValor == 'Medio' ? 'selected' : '') + ' value="Medio">Medio</option>' +
+                '<option ' + (impactoValor == 'Alto' ? 'selected' : '') + ' value="Alto">Alto</option>' +
+                '<option ' + (impactoValor == IMPACTO_MAXIMO ? 'selected' : '') + ' value="' + IMPACTO_MAXIMO + '">' + IMPACTO_MAXIMO + '</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label>Descripción</label>' +
+              '<textarea class="edit-descripcion">' + (ev.descripcion_raw || '') + '</textarea>' +
+            '</div>' +
+            '<div class="form-buttons">' +
+              '<button class="btn-small btn-secondary btn-cancel-edit">Cancelar</button>' +
+              '<button class="btn-small btn-primary btn-save-edit">Guardar Cambios</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+  }
+
+  if (puedeEditar) {
+    $('#editControls').show();
+    $('#btnAddEvent').show();
+    $('#btnAddMap').show();
+    $('#btnAddNpc').show();
+    $('#btnEditLore').show();
+  }
+
+  // --- Sistema de gestión de NPCs ---
+  var searchTimeout = null;
+
+  $('#btnAddNpc').click(function() {
+    $('#npcSearchPanel').addClass('active');
+    $(this).hide();
+    $('#npcSearchInput').focus();
+  });
+
+  $('#btnCancelNpcSearch').click(function() {
+    $('#npcSearchPanel').removeClass('active');
+    $('#btnAddNpc').show();
+    $('#npcSearchInput').val('');
+    $('#npcSearchResults').empty();
+  });
+
+  $('#npcSearchInput').on('input', function() {
+    var termino = $(this).val().trim();
+    
+    // Cancelar búsqueda anterior
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    if (termino.length < 2) {
+      $('#npcSearchResults').html('<div style="text-align: center; padding: 20px; color: #666;">Escribe al menos 2 caracteres para buscar</div>');
+      return;
+    }
+    
+    // Debounce: esperar 500ms antes de buscar
+    searchTimeout = setTimeout(function() {
+      $('#npcSearchResults').html('<div style="text-align: center; padding: 20px; color: #666;">Buscando...</div>');
+      
+      $.post('/op/isla.php', {
+        action: 'buscar_npcs',
+        termino: termino
+      }, function(response) {
+        if (response.success) {
+          var resultados = response.npcs;
+          $('#npcSearchResults').empty();
+          
+          if (resultados.length === 0) {
+            $('#npcSearchResults').html('<div style="text-align: center; padding: 20px; color: #666;">No se encontraron NPCs</div>');
+            return;
+          }
+          
+          // Filtrar NPCs que ya están añadidos
+          var npcIdsActuales = currentNPCs.map(function(npc) { return npc.npc_id; });
+          
+          for (var i = 0; i < resultados.length; i++) {
+            var npc = resultados[i];
+            
+            // Si ya está añadido, mostrar marca
+            var yaAnadido = npcIdsActuales.indexOf(npc.npc_id) !== -1;
+            var badge = yaAnadido ? '<div style="color: #00d600; font-size: 11px;">✓ Añadido</div>' : '';
+            var cursor = yaAnadido ? 'not-allowed' : 'pointer';
+            var opacity = yaAnadido ? '0.5' : '1';
+            
+            $('#npcSearchResults').append(
+              '<div class="npc-search-item" data-npc-id="' + npc.npc_id + '" ' +
+                   'data-nombre="' + npc.nombre + '" ' +
+                   'data-faccion="' + npc.faccion + '" ' +
+                   'data-avatar="' + npc.avatar1 + '" ' +
+                   'data-added="' + yaAnadido + '" ' +
+                   'style="cursor: ' + cursor + '; opacity: ' + opacity + ';">' +
+                '<img src="' + npc.avatar1 + '" class="npc-search-avatar">' +
+                '<div class="npc-search-name">' + npc.nombre + '</div>' +
+                badge +
+              '</div>'
+            );
+          }
+        } else {
+          $('#npcSearchResults').html('<div style="text-align: center; padding: 20px; color: #e30502;">' + response.message + '</div>');
+        }
+      }, 'json').fail(function() {
+        $('#npcSearchResults').html('<div style="text-align: center; padding: 20px; color: #e30502;">Error de conexión</div>');
+      });
+    }, 500);
+  });
+
+  // Añadir NPC al hacer clic
+  $(document).on('click', '.npc-search-item', function() {
+    if (!puedeEditar) {
+      showToast('❌ No tienes permisos para añadir NPCs', 3000);
+      return;
+    }
+    
+    var yaAnadido = $(this).data('added');
+    
+    if (yaAnadido) {
+      showToast('⚠️ Este NPC ya está añadido', 2000);
+      return;
+    }
+    
+    var npcData = {
+      npc_id: $(this).data('npc-id'),
+      nombre: $(this).data('nombre'),
+      faccion: $(this).data('faccion'),
+      avatar1: $(this).data('avatar')
+    };
+    
+    // Añadir a la lista
+    currentNPCs.push(npcData);
+    
+    // Re-renderizar
+    renderNPCs();
+    
+    // Guardar en el servidor
+    guardarNPCs();
+    
+    // Mostrar confirmación
+    showToast('✅ NPC añadido', 2000);
+    
+    // Actualizar estado en búsqueda
+    $(this).data('added', true).css({ cursor: 'not-allowed', opacity: '0.5' });
+    $(this).append('<div style="color: #00d600; font-size: 11px;">✓ Añadido</div>');
+  });
+
+  // Eliminar NPC
+  $(document).on('click', '.btn-remove-npc', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!puedeEditar) {
+      showToast('❌ No tienes permisos para eliminar NPCs', 3000);
+      return;
+    }
+    
+    var npcId = $(this).data('npc-id');
+    var npcName = $(this).closest('div').find('.npcName').text();
+    
+    if (!confirm('¿Eliminar a ' + npcName + ' de la lista de habitantes destacados?')) {
+      return;
+    }
+    
+    // Eliminar de la lista
+    currentNPCs = currentNPCs.filter(function(npc) {
+      return npc.npc_id != npcId;
+    });
+    
+    // Re-renderizar
+    renderNPCs();
+    
+    // Guardar en el servidor
+    guardarNPCs();
+    
+    showToast('✅ NPC eliminado', 2000);
+  });
+
+  function guardarNPCs() {
+    if (!puedeEditar) {
+      console.error('No tienes permisos para editar NPCs');
+      showToast('❌ No tienes permisos', 3000);
+      return;
+    }
+    
+    var idsNPCs = currentNPCs.map(function(npc) { return npc.npc_id; }).join(',');
+    
+    console.log('Guardando NPCs:', idsNPCs);
+    console.log('Isla ID:', islaId);
+    
+    $.post('/op/isla.php', {
+      action: 'guardar_habitantes',
+      isla_id: islaId,
+      habitantes: idsNPCs
+    }, function(response) {
+      console.log('Respuesta del servidor:', response);
+      if (response.success) {
+        console.log('✓ NPCs guardados correctamente');
+      } else {
+        console.error('Error al guardar:', response.message);
+        showToast('❌ ' + response.message, 4000);
+      }
+    }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+      console.error('Error AJAX:', textStatus, errorThrown);
+      console.error('Respuesta:', jqXHR.responseText);
+      showToast('❌ Error al guardar: ' + textStatus, 3000);
+    });
+  }
+
+  // Activar/desactivar modo edición visual para NPCs
+  function toggleNPCEditMode(enabled) {
+    if (enabled) {
+      $('.npcList').addClass('edit-mode');
+    } else {
+      $('.npcList').removeClass('edit-mode');
+    }
+  }
+
+  // Integrar con el sistema de edición general
+  var originalEnterEditMode = enterEditMode;
+  enterEditMode = function() {
+    originalEnterEditMode();
+    toggleNPCEditMode(true);
+  };
+
+  var originalExitEditMode = exitEditMode;
+  exitEditMode = function(restore) {
+    originalExitEditMode(restore);
+    toggleNPCEditMode(false);
+  };
+
+  // --- Sistema de mapas ---
+  $('#btnAddMap').click(function() {
+    $('#mapFileInput').click();
+  });
+
+  $('#mapFileInput').change(function() {
+    var file = this.files[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.match('image.*')) {
+      showToast('❌ Solo se permiten imágenes', 3000);
+      return;
+    }
+
+    // Validar tamaño (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('❌ El archivo es demasiado grande (máximo 5MB)', 3000);
+      return;
+    }
+
+    // Crear FormData para enviar el archivo
+    var formData = new FormData();
+    formData.append('action', 'subir_mapa');
+    formData.append('isla_id', islaId);
+    formData.append('mapa', file);
+
+    // Mostrar mensaje de carga
+    $('#btnAddMap').prop('disabled', true).text('Subiendo...');
+
+    // Enviar al servidor
+    $.ajax({
+      url: '/op/isla.php',
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      dataType: 'json',
+      success: function(response) {
+        if (response.success) {
+          showToast('✅ ' + response.message, 2000);
+          
+          // Recargar página después de mostrar el mensaje
+          setTimeout(function() {
+            location.reload();
+          }, 2000);
+        } else {
+          showToast('❌ ' + response.message, 4000);
+        }
+        
+        $('#btnAddMap').prop('disabled', false).text('Subir Mapa');
+        $('#mapFileInput').val('');
+      },
+      error: function() {
+        showToast('❌ Error de conexión', 4000);
+        $('#btnAddMap').prop('disabled', false).text('Subir Mapa');
+        $('#mapFileInput').val('');
+      }
+    });
+  });
+
+  // Ver mapa completo
+  $(document).on('click', '.mapImage, .btn-view-map', function() {
+    var url = $(this).data('url');
+    $('body').append(
+      '<div class="modal-overlay active">' +
+        '<img src="' + url + '" class="modal-image">' +
+      '</div>'
+    );
+  });
+
+  // Cerrar modal de imagen
+  $(document).on('click', '.modal-overlay', function() {
+    $(this).remove();
+  });
+
+  // Eliminar mapa
+  $(document).on('click', '.btn-delete-map', function() {
+    var btnDelete = $(this);
+    var mapItem = btnDelete.closest('.mapItem');
+    var filename = btnDelete.data('filename');
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este mapa?')) {
+      return;
+    }
+    
+    // Deshabilitar botón
+    btnDelete.prop('disabled', true).text('Eliminando...');
+    
+    // Enviar al servidor
+    $.post('/op/isla.php', {
+      action: 'eliminar_mapa',
+      isla_id: islaId,
+      filename: filename
+    }, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 3000);
+        
+        // Eliminar el mapa con animación
+        mapItem.fadeOut(300, function() {
+          $(this).remove();
+          
+          // Si no quedan mapas, mostrar mensaje
+          if ($('.mapItem').length === 0) {
+            mapList.append(
+              '<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #666; font-family: InterRegular;">' +
+                'No hay mapas disponibles para esta isla.' +
+              '</div>'
+            );
+          }
+        });
+      } else {
+        showToast('❌ ' + response.message, 4000);
+        btnDelete.prop('disabled', false).text('Eliminar');
+      }
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+      btnDelete.prop('disabled', false).text('Eliminar');
+    });
+  });
+
+  // --- Sistema de añadir eventos ---
+  $('#btnAddEvent').click(function() {
+    $('#addEventPanel').addClass('active');
+    $(this).hide();
+  });
+
+  $('#btnCancelEvent').click(function() {
+    $('#addEventPanel').removeClass('active');
+    $('#btnAddEvent').show();
+    // Limpiar formulario
+    $('#eventDia').val(1);
+    $('#eventEstacion').val('Primavera');
+    $('#eventAno').val(725);
+    $('#eventTemaUrl').val('');
+    $('#eventNarradorUid').val(0);
+    $('#eventPersonajes').val('');
+    $('#eventImpacto').val('Bajo');
+    $('#eventDescripcion').val('');
+  });
+
+  $('#btnSaveEvent').click(function() {
+    var dia = parseInt($('#eventDia').val());
+    var estacion = $('#eventEstacion').val();
+    var ano = parseInt($('#eventAno').val());
+    var temaUrl = $('#eventTemaUrl').val().trim();
+    var narradorUid = parseInt($('#eventNarradorUid').val()) || 0;
+    var personajes = $('#eventPersonajes').val().trim();
+    var impacto = $('#eventImpacto').val();
+    var descripcion = $('#eventDescripcion').val().trim();
+
+    // Validaciones
+    if (dia < 1 || dia > 90) {
+      showToast('❌ El día debe estar entre 1 y 90', 3000);
+      return;
+    }
+
+    if (!descripcion) {
+      showToast('❌ La descripción no puede estar vacía', 3000);
+      return;
+    }
+
+    // Deshabilitar botón mientras se guarda
+    $(this).prop('disabled', true).text('Guardando...');
+
+    // Enviar al servidor
+    $.post('/op/isla.php', {
+      action: 'crear_evento',
+      isla_id: islaId,
+      titulo: '',
+      descripcion: descripcion,
+      dia: dia,
+      estacion: estacion,
+      ano: ano,
+      tema_url: temaUrl,
+      narrador_uid: narradorUid,
+      personajes: personajes,
+      impacto: impacto
+    }, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 2000);
+        
+        // Recargar página después de mostrar el mensaje
+        setTimeout(function() {
+          location.reload();
+        }, 2000);
+      } else {
+        showToast('❌ ' + response.message, 4000);
+      }
+      
+      $('#btnSaveEvent').prop('disabled', false).text('Guardar Evento');
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+      $('#btnSaveEvent').prop('disabled', false).text('Guardar Evento');
+    });
+  });
+
+  function showToast(message, duration) {
+    var toastElement = $('#toast');
+    toastElement.text(message).addClass('visible');
+    setTimeout(function() {
+      toastElement.removeClass('visible');
+    }, duration || 3000);
+  }
+
+  function enterEditMode() {
+    editMode = true;
+    
+    // Guardar datos originales (parsear JSON porque vienen con json_encode del backend)
+    originalData = {
+      gobierno: {$gobierno_raw},
+      faccion: {$faccion_raw},
+      tamano: {$tamano_raw},
+      comercio: {$comercio_raw},
+      zonas: {$zonas_raw},
+      habitantes: {$habitantes_raw}
+    };
+
+    // Hacer campos editables
+    $('.texto-grande').attr('contenteditable', 'true');
+    
+    // Cambiar botones
+    $('#editBtn').hide();
+    $('#saveBtn, #cancelBtn').show();
+    
+    showToast('Modo edición activado', 2000);
+  }
+
+  function exitEditMode(restore) {
+    editMode = false;
+    
+    if (restore) {
+      // Restaurar valores originales
+      $('.texto-grande').eq(0).html(originalData.gobierno.replace(/\\n/g, '<br>'));
+      $('.texto-grande').eq(1).html(originalData.faccion.replace(/\\n/g, '<br>'));
+      $('.texto-grande').eq(2).html(originalData.tamano.replace(/\\n/g, '<br>'));
+      $('.texto-grande').eq(3).html(originalData.comercio.replace(/\\n/g, '<br>'));
+      $('.texto-grande').eq(4).html(originalData.zonas.replace(/\\n/g, '<br>'));
+    }
+    
+    // Quitar editabilidad
+    $('.texto-grande').attr('contenteditable', 'false');
+    
+    // Cambiar botones
+    $('#editBtn').show();
+    $('#saveBtn, #cancelBtn').hide();
+  }
+
+  function saveChanges() {
+    var camposElement = $('.texto-grande');
+    
+    var data = {
+      action: 'guardar_isla',
+      isla_id: islaId,
+      gobierno: camposElement.eq(0).text().trim(),
+      faccion: camposElement.eq(1).text().trim(),
+      tamano: camposElement.eq(2).text().trim(),
+      comercio: camposElement.eq(3).text().trim(),
+      zonas: camposElement.eq(4).text().trim(),
+	  habitantes: camposElement.eq(5).text().trim()
+      //habitantes: originalData.habitantes // Este se mantiene igual por ahora
+    };
+
+    $.post('/op/isla.php', data, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 3000);
+        exitEditMode(false);
+        
+        // Actualizar datos originales
+        originalData.gobierno = data.gobierno;
+        originalData.faccion = data.faccion;
+        originalData.tamano = data.tamano;
+        originalData.comercio = data.comercio;
+        originalData.zonas = data.zonas;
+      } else {
+        showToast('❌ ' + response.message, 4000);
+      }
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+    });
+  }
+
+  // --- Edición de eventos ---
+  $(document).on('click', '.btn-edit-event', function() {
+    var eventoItem = $(this).closest('.eventItem');
+    var editForm = eventoItem.find('.edit-event-form');
+    
+    // Ocultar otros formularios abiertos
+    $('.edit-event-form').not(editForm).removeClass('active');
+    $('.eventItem').removeClass('editing');
+    
+    // Mostrar este formulario
+    editForm.addClass('active');
+    eventoItem.addClass('editing');
+  });
+
+  $(document).on('click', '.btn-cancel-edit', function() {
+    var eventoItem = $(this).closest('.eventItem');
+    eventoItem.find('.edit-event-form').removeClass('active');
+    eventoItem.removeClass('editing');
+  });
+
+  $(document).on('click', '.btn-delete-event', function() {
+    var btnDelete = $(this);
+    var eventoItem = btnDelete.closest('.eventItem');
+    var eventoId = eventoItem.data('evento-id');
+    
+    if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) {
+      return;
+    }
+    
+    // Deshabilitar botón
+    btnDelete.prop('disabled', true).text('Eliminando...');
+    
+    // Enviar al servidor
+    $.post('/op/isla.php', {
+      action: 'eliminar_evento',
+      evento_id: eventoId
+    }, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 3000);
+        
+        // Eliminar el evento con animación
+        eventoItem.fadeOut(300, function() {
+          $(this).remove();
+          
+          // Si no quedan eventos, mostrar mensaje
+          if ($('.eventItem').length === 0) {
+            eventList.append(
+              '<div class="eventItem">' +
+                '<div class="eventText" style="grid-column: 1 / -1;">No hay eventos registrados.</div>' +
+              '</div>'
+            );
+          }
+        });
+      } else {
+        showToast('❌ ' + response.message, 4000);
+        btnDelete.prop('disabled', false).text('Eliminar');
+      }
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+      btnDelete.prop('disabled', false).text('Eliminar');
+    });
+  });
+
+  $(document).on('click', '.btn-save-edit', function() {
+    var btnSave = $(this);
+    var eventoItem = btnSave.closest('.eventItem');
+    var eventoId = eventoItem.data('evento-id');
+    
+    var dia = parseInt(eventoItem.find('.edit-dia').val());
+    var estacion = eventoItem.find('.edit-estacion').val();
+    var ano = parseInt(eventoItem.find('.edit-ano').val());
+    var temaUrl = eventoItem.find('.edit-tema-url').val().trim();
+    var narradorUid = parseInt(eventoItem.find('.edit-narrador-uid').val()) || 0;
+    var personajes = eventoItem.find('.edit-personajes').val().trim();
+    var impacto = eventoItem.find('.edit-impacto').val();
+    var descripcion = eventoItem.find('.edit-descripcion').val().trim();
+
+    // Validaciones
+    if (dia < 1 || dia > 90) {
+      showToast('❌ El día debe estar entre 1 y 90', 3000);
+      return;
+    }
+
+    if (!descripcion) {
+      showToast('❌ La descripción no puede estar vacía', 3000);
+      return;
+    }
+
+    // Deshabilitar botón
+    btnSave.prop('disabled', true).text('Guardando...');
+
+    // Enviar al servidor
+    $.post('/op/isla.php', {
+      action: 'editar_evento',
+      evento_id: eventoId,
+      descripcion: descripcion,
+      dia: dia,
+      estacion: estacion,
+      ano: ano,
+      tema_url: temaUrl,
+      narrador_uid: narradorUid,
+      personajes: personajes,
+      impacto: impacto
+    }, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 2000);
+        
+        // Recargar página después de mostrar el mensaje
+        setTimeout(function() {
+          location.reload();
+        }, 2000);
+      } else {
+        showToast('❌ ' + response.message, 4000);
+      }
+      
+      btnSave.prop('disabled', false).text('Guardar Cambios');
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+      btnSave.prop('disabled', false).text('Guardar Cambios');
+    });
+  });
+
+  $('#editBtn').click(function() {
+    enterEditMode();
+  });
+
+  $('#saveBtn').click(function() {
+    saveChanges();
+  });
+
+  $('#cancelBtn').click(function() {
+    exitEditMode(true);
+    showToast('Cambios descartados', 2000);
+  });
+
+  // --- Sistema de Lore ---
+  var loreRaw = {$lore_raw_json} || '';
+  var loreDisplay = $('#loreDisplay');
+  var loreOriginalHtml = loreDisplay.html();
+  var loreEditorInstance = null;
+
+  var loreEditorOptions = {
+    format: "bbcode",
+    bbcodeTrim: false,
+    style: "{$mybb->asset_url}/jscripts/sceditor/styles/jquery.sceditor.{$theme['editortheme']}",
+    locale: "mybblang",
+    width: "100%",
+    height: 300,
+    enablePasteFiltering: true,
+    autoUpdate: true,
+    toolbar: "bold,italic,underline,strike|font,size,color,removeformat|bulletlist,orderedlist|left,center,right,justify|undo,redo|source"
+  };
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^$()|[\]{}\\]/g, '\\$&');
+  }
+
+  var loreMatches = [];
+  var loreMatchIndex = -1;
+
+  function updateLoreMatchCount() {
+    var total = loreMatches.length;
+    var current = total > 0 ? (loreMatchIndex + 1) : 0;
+    $('#loreSearchCount').text(current + '/' + total);
+    $('#loreSearchPrev, #loreSearchNext').prop('disabled', total === 0);
+  }
+
+  function goToLoreMatch(index) {
+    if (loreMatches.length === 0) { return; }
+    if (loreMatchIndex >= 0 && loreMatches[loreMatchIndex]) {
+      loreMatches[loreMatchIndex].classList.remove('lore-highlight-active');
+    }
+    loreMatchIndex = (index + loreMatches.length) % loreMatches.length;
+    var target = loreMatches[loreMatchIndex];
+    target.classList.add('lore-highlight-active');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    updateLoreMatchCount();
+  }
+
+  // Resalta el término de búsqueda solo en los nodos de texto, sin tocar las etiquetas HTML del lore
+  function applyLoreHighlight() {
+    var term = $('#loreSearchInput').val().trim();
+    loreMatches = [];
+    loreMatchIndex = -1;
+
+    if (!term) {
+      loreDisplay.html(loreOriginalHtml);
+      updateLoreMatchCount();
+      return;
+    }
+    var regex = new RegExp('(' + escapeRegExp(term) + ')', 'gi');
+    var highlighted = loreOriginalHtml.replace(/(<[^>]*>)|([^<]+)/g, function(match, tag, text) {
+      if (tag) { return tag; }
+      return text.replace(regex, '<mark class="lore-highlight">$1</mark>');
+    });
+    loreDisplay.html(highlighted);
+
+    loreMatches = loreDisplay.find('mark.lore-highlight').toArray();
+    updateLoreMatchCount();
+
+    if (loreMatches.length > 0) {
+      goToLoreMatch(0);
+    }
+  }
+
+  $('#loreSearchInput').on('input', applyLoreHighlight);
+
+  $('#loreSearchInput').on('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        goToLoreMatch(loreMatchIndex - 1);
+      } else {
+        goToLoreMatch(loreMatchIndex + 1);
+      }
+    }
+  });
+
+  $('#loreSearchPrev').click(function() {
+    goToLoreMatch(loreMatchIndex - 1);
+  });
+
+  $('#loreSearchNext').click(function() {
+    goToLoreMatch(loreMatchIndex + 1);
+  });
+
+  $('#btnEditLore').click(function() {
+    $('#loreEditPanel').show();
+    $(this).hide();
+
+    if (!loreEditorInstance) {
+      $('#loreTextarea').sceditor(loreEditorOptions);
+      loreEditorInstance = $('#loreTextarea').sceditor('instance');
+    }
+    loreEditorInstance.val(loreRaw);
+  });
+
+  $('#btnCancelLore').click(function() {
+    $('#loreEditPanel').hide();
+    $('#btnEditLore').show();
+  });
+
+  $('#btnSaveLore').click(function() {
+    var nuevoLore = loreEditorInstance ? loreEditorInstance.val() : $('#loreTextarea').val();
+    var btnSave = $(this);
+
+    btnSave.prop('disabled', true).text('Guardando...');
+
+    $.post('/op/isla.php', {
+      action: 'guardar_lore',
+      isla_id: islaId,
+      lore: nuevoLore
+    }, function(response) {
+      if (response.success) {
+        showToast('✅ ' + response.message, 2000);
+        loreRaw = nuevoLore;
+        loreOriginalHtml = response.lore;
+        loreDisplay.html(loreOriginalHtml);
+        $('#loreEditPanel').hide();
+        $('#btnEditLore').show();
+        $('#loreSearchInput').val('');
+        applyLoreHighlight();
+      } else {
+        showToast('❌ ' + response.message, 4000);
+      }
+      btnSave.prop('disabled', false).text('Guardar Lore');
+    }, 'json').fail(function() {
+      showToast('❌ Error de conexión', 4000);
+      btnSave.prop('disabled', false).text('Guardar Lore');
+    });
+  });
+</script>
+
+{$footer}
+</body>
+</html>

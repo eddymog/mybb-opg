@@ -1,0 +1,207 @@
+<html>
+
+<head>
+	<title>Objetos</title>
+	{$headerinclude}
+</head>
+
+<body>
+	{$header}
+	<div id="objetos" class="fondo-blanco">
+
+		
+		<div id="objetos_consumibles" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">CONSUMIBLES</div></div></div>
+		</div><br>
+		<div id="objetos_armas" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">ARMAS</div></div></div>
+		</div><br>
+		<div id="objetos_utensilios" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">UTENSILIOS</div></div></div>
+		</div><br>
+		<div id="objetos_estructuras" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">ESTRUCTURAS</div></div></div>
+		</div><br>
+		<div id="objetos_materiales" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">MATERIALES</div></div></div>
+		</div><br>
+		<div id="objetos_especiales" style="display: block;">
+			<div><div><div class="objeto_categoria" style="text-align: center;">ESPECIALES</div></div></div>
+		</div><br>
+		
+	</div>
+	<br><br><br><br><br>
+	{$footer}
+</body>
+<script>
+let objetos_array_json = {$objetos_array_json};
+let objetos_json = {$objetos_json};
+	
+const subcategorias = { 
+	// armas_de_filo: true
+};
+	
+function calculateBerries(berries) {
+	
+	if (berries.length > 6) {
+		return berries.slice(0, -6) + ' M';
+	} else if (berries.length > 3) {
+		return berries.slice(0, -3) + ' K';
+	} else {
+		return 'Infinito';
+	}
+}	
+	
+for (let i = 0; i < objetos_array_json.length; i++) {
+	
+	let objetoId = objetos_array_json[i];
+	if (objetoId == 'LLST001') { continue; }
+	if (objetoId == 'NEKA') {continue; }
+	let objeto = objetos_json[objetoId][0];
+	
+	if (objeto.invisible == 1) {
+		continue;
+	}
+
+	<if !$g_is_staff then>
+		// if (objeto.invisible == 1) {
+		// 	continue;
+		// }
+	</if>
+	
+	
+	objeto.categoria = objeto.categoria.toLowerCase();
+	const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+	const tier = objeto.tier;
+	const imagen_id = objeto.imagen_id;
+	const imagen_avatar = objeto.imagen_avatar;
+	let imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+	
+	if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || objetoId == 'EANM001' || objetoId == 'LLST001' || objetoId == 'THR001' || subcategoria == 'materiales' || subcategoria == 'tecnicas' || objetoId == 'EPA001' || objetoId ==  'KMP001' || objetoId == 'VCD001' || objetoId == 'VCZ001' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+		imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+	}
+	
+	if (!subcategorias[subcategoria]) {
+		subcategorias[subcategoria] = true;
+		
+		// console.log('#objetos_' + objeto.categoria);
+		// console.log(subcategoria + `_area`);
+		
+		if (objeto.subcategoria == 'cofres') {
+			console.log('#objetos_' + objeto.categoria);
+			console.log(objeto);
+		}
+		$('#objetos_' + objeto.categoria).append(`
+			<div id="` + subcategoria + `_area">
+				<div id="` + subcategoria + `_categoria">
+					<div class="objeto_categoria">` + objeto.subcategoria.toUpperCase() + `</div>
+					<div class="barra_categoria"></div>
+				</div>
+
+				<div id="` + subcategoria + `_objetos" class="objetos_lista">
+					
+				</div>
+			</div>
+		`);
+	}
+	
+	<if $g_is_staff then>
+		let objetoNombre = `<a href="/op/staff/objetos_modificar.php?objeto_id=` + objeto.objeto_id + `">` + objeto.nombre + `</a>`;
+	</if>
+	
+	<if !$g_is_staff then>
+		let objetoNombre = objeto.nombre;
+	</if>
+	
+	let requisitos = '';
+	let escalado = '';
+	let dano = '';
+	let efecto = '';
+	let bloqueo = '';
+	let alcance = '';
+	
+	if (objeto.requisitos) {
+		requisitos = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.requisitos + `</div>`;
+	}
+	
+	if (objeto.escalado) {
+		escalado = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.escalado + `</div>`;
+	}
+	
+	if (objeto.dano) {
+		dano = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.dano + `</div>`;
+	}
+	
+	if (objeto.efecto) {
+		efecto = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.efecto + `</div>`;
+	}
+	
+	if (objeto.bloqueo) {
+		bloqueo = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.bloqueo + `</div>`;
+	}
+	
+	if (objeto.alcance) {
+		alcance = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.alcance + `</div>`;
+	}
+	
+	let colorTier = '#faa500';
+	
+	if (imagen_id == '1') { colorTier = '#808080'; }
+	if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+	if (imagen_id == '3') { colorTier = '#457bfe'; }
+	if (imagen_id == '4') { colorTier = '#cf44ff'; }
+	if (imagen_id == '5') { colorTier = '#febb46'; }
+	if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+	
+	
+	let imagen = `/images/op/iconos/` + imagen_nombre;
+	
+	if (imagen_avatar != '') {
+		imagen = imagen_avatar;
+	}
+	
+	let invisibleBackground = '';
+	if (objeto.invisible == '1') {
+		invisibleBackground = 'background-color: #9a8772;';
+	}
+	
+	$('#' + subcategoria + "_objetos").append(`<div>
+		<div class="item-outer" id="` + objeto.objeto_id + `" style="` + invisibleBackground + `">
+			<div class="item-nombre">` + objeto.nombre + `</div>
+			<div class="item-image">
+				
+				<div class="tooltip">
+					<img id=imagen-item src="` + imagen_avatar + `" />
+					<div class="tooltiptext item-tooltip">
+						<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objetoNombre + `</div>
+
+						` + requisitos + `
+						` + escalado + `
+						<div class="mydescripcion" style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+						` + dano + `
+						` + efecto + `
+						` + bloqueo + `
+						` + alcance + `
+						<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+							<div>` + objeto.espacios + ` Espacios</div>
+							<div>ID: <span>` + objeto.objeto_id + `</span></div>
+							<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span>B</div>
+						</div>
+						<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+					</div>
+				</div>
+
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	`);
+	
+	// <img src="/images/op/uploads/Cartel_Precio_One_Piece_Gaiden_Foro_Rol.png" style=" width: 85px; margin-top: 2px; ">
+	// <div class="item-price">` + calculateBerries(objeto.berries) + `</div>
+}
+
+</script>
+</html>

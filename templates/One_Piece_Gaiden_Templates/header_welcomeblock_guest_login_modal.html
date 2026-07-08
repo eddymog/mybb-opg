@@ -1,0 +1,28 @@
+<tr><td></td></tr>
+<tr>
+	<td class="trow1 white-bg nopd-tb no_bottom_border">
+		<input name="quick_username" id="quick_login_username" type="text" placeholder="Username" class="textbox initial_focus lgn" style="width: 272px; font-size: 14px;" />
+	</td>
+</tr>
+<tr><td></td></tr>
+<tr>
+	<td class="trow1 white-bg nopd-tb no_bottom_border">
+		<input name="quick_password" id="quick_login_password" type="password" placeholder="Password" class="textbox lgn" style="width: 272px; font-size: 14px;" />
+	</td>
+</tr>
+<tr>
+	<td class="trow1 remember_me white-bg no_bottom_border">
+		<div class="float_left">
+			<input name="quick_remember" id="quick_login_remember" type="checkbox" value="yes" class="checkbox" checked="checked" />
+			<label for="quick_login_remember" class="smalltext">{$lang->remember_me}</label><br />
+		</div>
+		<div class="float_right" style="margin-top: 2px;">
+			<a href="{$mybb->settings['bburl']}/member.php?action=lostpw" class="lost_password smalltext">{$lang->lost_password}</a>
+		</div>
+	</td>
+</tr>
+<tr>
+	<td class="trow2 white-bg" colspan="2">
+		<input name="submit" type="submit" class="button lgn-btn float_right" value="{$lang->login}" style="margin-top: 6px;" />
+	</td>
+</tr>

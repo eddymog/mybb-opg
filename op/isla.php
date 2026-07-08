@@ -6,21 +6,130 @@
 define('IN_MYBB', 1);
 define('THIS_SCRIPT', 'isla.php');
 
+// Opciones válidas para el impacto de lore de un evento
+const OP_ISLA_IMPACTO_OPCIONES = ['Bajo', 'Medio', 'Alto', 'PERO ESTO QUE ES LO QUE ES'];
+
 // --- DEPURACIÓN TEMPORAL (quítalo al terminar) ---
 ini_set('display_errors', '1');               // mostrar (solo mientras depuras)
 ini_set('display_startup_errors', '1');
 ini_set('log_errors', '1');                   // deja esto en 1 siempre
 ini_set('error_log', __DIR__ . '/php-error.log');
 error_reporting(E_ALL);
+
+// Captura errores fatales (incluso si display_errors no funciona en este host)
+// y los muestra al final de lo que se haya impreso, sin tocar el buffer de salida
+// (para no interferir con el sistema de buffering/gzip propio de MyBB).
+register_shutdown_function(function () {
+    $error = error_get_last();
+    $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+    if ($error && in_array($error['type'], $fatalTypes)) {
+        echo '<pre style="background:#2a0000;color:#ff8a8a;padding:20px;border:3px solid red;font-size:14px;white-space:pre-wrap;font-family:monospace;">';
+        echo "DEBUG - ERROR FATAL CAPTURADO\n\n";
+        echo "Mensaje: " . htmlspecialchars($error['message']) . "\n";
+        echo "Archivo: " . htmlspecialchars($error['file']) . "\n";
+        echo "Línea: " . $error['line'] . "\n";
+        echo '</pre>';
+    }
+});
 // -----------------------------------------------
 
 require_once __DIR__ . '/../global.php';
 require_once __DIR__ . '/functions/op_functions.php';
 
-global $templates, $mybb, $db, $lang;
+global $templates, $mybb, $db, $lang, $theme;
 
 $uid = (int)$mybb->user['uid'];
 $action = $mybb->get_input('action');
+
+// Normaliza saltos de línea que llegan como secuencia literal "\n"/"\r\n" en vez de un salto real
+// (puede ocurrir al pegar contenido externo en el editor)
+function op_isla_normalize_lore($text)
+{
+    $text = str_replace(["\\r\\n", "\\n", "\\r"], "\n", $text);
+    // Elimina placeholders de imagen tipo "[imagen: nombre.png]" (quedan al pegar desde Drive/Docs)
+    $text = preg_replace('/\[imagen:\s*[^\]]*\]/i', '', $text);
+    // Elimina tags [img]...[/img] que apunten a Google (Drive/Docs/Photos), ya que esas URLs
+    // son privadas y nunca cargan fuera de la cuenta de Google del usuario.
+    $text = preg_replace('/\[img(?:=\d+x\d+)?(?:\s+align=\w+)?\][^\[]*google[^\[]*\[\/img\]/i', '', $text);
+    return $text;
+}
+
+// Parsea el lore (BBCode) a HTML seguro usando el parser nativo de MyBB
+function op_isla_parse_lore($text)
+{
+    $text = op_isla_normalize_lore($text);
+
+    require_once MYBB_ROOT . 'inc/class_parser.php';
+    $parser = new postParser;
+    $parser_options = [
+        'allow_mycode'    => 1,
+        'allow_smilies'   => 0,
+        'allow_imgcode'   => 1,
+        'allow_videocode' => 0,
+        'filter_badwords' => 1
+    ];
+    return $parser->parse_message($text, $parser_options);
+}
+
+// Resuelve la lista de personajes participantes de un evento: cada elemento
+// separado por comas puede ser un UID (número) que enlaza al perfil del usuario,
+// o un nombre de personaje en texto libre.
+function op_isla_resolve_personajes($text)
+{
+    $resultado = [];
+    $partes = array_filter(array_map('trim', explode(',', $text)));
+    foreach ($partes as $parte) {
+        if (ctype_digit($parte)) {
+            $uid = (int)$parte;
+            $user = get_user($uid);
+            $resultado[] = [
+                'uid' => $uid,
+                'nombre' => htmlspecialchars_uni($user['username'] ?? ('UID ' . $uid))
+            ];
+        } else {
+            $resultado[] = [
+                'uid' => 0,
+                'nombre' => htmlspecialchars_uni($parte)
+            ];
+        }
+    }
+    return $resultado;
+}
+
+// Ejecuta una migración mostrando un aviso visible en pantalla si falla,
+// en vez de dejar que MyBB corte la ejecución en silencio.
+function op_isla_migrate($db, $sql)
+{
+    $db->write_query($sql, 1); // hide_errors=1: no cortar la ejecución
+    if ($db->error_number()) {
+        echo '<pre style="background:#2a0000;color:#ff8a8a;padding:15px;border:2px solid red;font-size:13px;white-space:pre-wrap;font-family:monospace;">';
+        echo "DEBUG - ERROR EN MIGRACIÓN\n\n";
+        echo "SQL: " . htmlspecialchars($sql) . "\n";
+        echo "Error MySQL [" . $db->error_number() . "]: " . htmlspecialchars($db->error_string()) . "\n";
+        echo '</pre>';
+    }
+}
+
+// Migración: columnas de tema, narrador y personajes participantes en eventos
+if ($db->table_exists('op_isla_eventos')) {
+    if (!$db->field_exists('tema_url', 'op_isla_eventos')) {
+        op_isla_migrate($db, "ALTER TABLE `mybb_op_isla_eventos` ADD `tema_url` VARCHAR(255) NOT NULL DEFAULT ''");
+    }
+    if (!$db->field_exists('narrador_uid', 'op_isla_eventos')) {
+        op_isla_migrate($db, "ALTER TABLE `mybb_op_isla_eventos` ADD `narrador_uid` INT(10) NOT NULL DEFAULT 0");
+    }
+    if (!$db->field_exists('personajes', 'op_isla_eventos')) {
+        op_isla_migrate($db, "ALTER TABLE `mybb_op_isla_eventos` ADD `personajes` TEXT NULL");
+    }
+    if (!$db->field_exists('impacto', 'op_isla_eventos')) {
+        op_isla_migrate($db, "ALTER TABLE `mybb_op_isla_eventos` ADD `impacto` VARCHAR(40) NOT NULL DEFAULT 'Bajo'");
+    }
+}
+
+// Migración: columna de lore en islas
+if ($db->table_exists('op_islas') && !$db->field_exists('lore', 'op_islas')) {
+    op_isla_migrate($db, "ALTER TABLE `mybb_op_islas` ADD `lore` MEDIUMTEXT NULL");
+}
 
 // Log todas las peticiones
 error_log("[ISLA] Peticion recibida - Action: {$action}, Method: {$_SERVER['REQUEST_METHOD']}, UID: {$uid}");
@@ -181,6 +290,54 @@ if ($action === 'guardar_habitantes' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// Manejo de acción AJAX para guardar el lore de la isla
+if ($action === 'guardar_lore' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    header('Content-Type: application/json');
+
+    // Verificar permisos
+    if (!is_narra($uid) && !is_staff($uid)) {
+        echo json_encode(['success' => false, 'message' => 'No tienes permisos para editar el lore']);
+        exit;
+    }
+
+    $isla_id = (int)$mybb->get_input('isla_id', MyBB::INPUT_INT);
+    $lore_clean = op_isla_normalize_lore(trim($mybb->get_input('lore')));
+    $lore = $db->escape_string($lore_clean);
+
+    if ($isla_id <= 0) {
+        echo json_encode(['success' => false, 'message' => 'ID de isla inválido']);
+        exit;
+    }
+
+    if (!$db->table_exists('op_islas')) {
+        echo json_encode(['success' => false, 'message' => 'La tabla op_islas no existe']);
+        exit;
+    }
+
+    $query = $db->query("SELECT isla_id FROM mybb_op_islas WHERE isla_id = {$isla_id}");
+    $existe = $db->fetch_array($query);
+
+    if ($existe) {
+        $db->query("
+            UPDATE mybb_op_islas
+            SET lore = '{$lore}'
+            WHERE isla_id = {$isla_id}
+        ");
+    } else {
+        $db->query("
+            INSERT INTO mybb_op_islas (isla_id, lore)
+            VALUES ({$isla_id}, '{$lore}')
+        ");
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Lore actualizado correctamente',
+        'lore' => op_isla_parse_lore($lore_clean)
+    ]);
+    exit;
+}
+
 // Manejo de acción AJAX para crear evento
 if ($action === 'crear_evento' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
@@ -197,53 +354,72 @@ if ($action === 'crear_evento' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $ano = (int)$mybb->get_input('ano', MyBB::INPUT_INT);
     $estacion = $db->escape_string($mybb->get_input('estacion'));
     $dia = (int)$mybb->get_input('dia', MyBB::INPUT_INT);
-    
+    $tema_url = $db->escape_string(trim($mybb->get_input('tema_url')));
+    $narrador_uid = (int)$mybb->get_input('narrador_uid', MyBB::INPUT_INT);
+    $personajes = $db->escape_string(trim($mybb->get_input('personajes')));
+    $impacto = trim($mybb->get_input('impacto'));
+
     // Validaciones
     if ($isla_id <= 0) {
         echo json_encode(['success' => false, 'message' => 'ID de isla inválido']);
         exit;
     }
-    
+
     if (empty($descripcion)) {
         echo json_encode(['success' => false, 'message' => 'La descripción no puede estar vacía']);
         exit;
     }
-    
+
     if ($dia < 1 || $dia > 90) {
         echo json_encode(['success' => false, 'message' => 'El día debe estar entre 1 y 90']);
         exit;
     }
-    
+
     if (!in_array($estacion, ['Primavera', 'Verano', 'Otoño', 'Invierno'])) {
         echo json_encode(['success' => false, 'message' => 'Estación inválida']);
         exit;
     }
-    
+
+    if (!in_array($impacto, OP_ISLA_IMPACTO_OPCIONES)) {
+        $impacto = 'Bajo';
+    }
+    $impacto = $db->escape_string($impacto);
+
     // Verificar si existe la tabla
     if (!$db->table_exists('op_isla_eventos')) {
         echo json_encode(['success' => false, 'message' => 'La tabla de eventos no existe']);
         exit;
     }
-    
+
     // Insertar evento
     $fecha_creacion = time();
     $db->query("
-        INSERT INTO mybb_op_isla_eventos (isla_id, titulo, descripcion, ano, estacion, dia, staff_uid, fecha_creacion)
-        VALUES ({$isla_id}, '{$titulo}', '{$descripcion}', {$ano}, '{$estacion}', {$dia}, {$uid}, {$fecha_creacion})
+        INSERT INTO mybb_op_isla_eventos (isla_id, titulo, descripcion, ano, estacion, dia, staff_uid, fecha_creacion, tema_url, narrador_uid, personajes, impacto)
+        VALUES ({$isla_id}, '{$titulo}', '{$descripcion}', {$ano}, '{$estacion}', {$dia}, {$uid}, {$fecha_creacion}, '{$tema_url}', {$narrador_uid}, '{$personajes}', '{$impacto}')
     ");
-    
+
     $evento_id = $db->insert_id();
-    
+
     // Obtener username para la respuesta
     $username = htmlspecialchars_uni($mybb->user['username']);
-    
+    $narrador_username = '';
+    if ($narrador_uid > 0) {
+        $narrador_user = get_user($narrador_uid);
+        $narrador_username = htmlspecialchars_uni($narrador_user['username'] ?? '');
+    }
+
     echo json_encode([
-        'success' => true, 
+        'success' => true,
         'message' => 'Evento creado correctamente',
         'evento' => [
             'evento_id' => $evento_id,
             'dia' => $dia,
             'estacion' => $estacion,
+            'tema_url' => htmlspecialchars_uni($tema_url),
+            'narrador_uid' => $narrador_uid,
+            'narrador_username' => $narrador_username,
+            'personajes' => htmlspecialchars_uni($personajes),
+            'impacto' => htmlspecialchars_uni($impacto),
             'ano' => $ano,
             'descripcion' => nl2br(htmlspecialchars_uni($descripcion)),
             'username' => $username
@@ -291,37 +467,61 @@ if ($action === 'editar_evento' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $ano = (int)$mybb->get_input('ano', MyBB::INPUT_INT);
     $estacion = $db->escape_string($mybb->get_input('estacion'));
     $dia = (int)$mybb->get_input('dia', MyBB::INPUT_INT);
-    
+    $tema_url = $db->escape_string(trim($mybb->get_input('tema_url')));
+    $narrador_uid = (int)$mybb->get_input('narrador_uid', MyBB::INPUT_INT);
+    $personajes = $db->escape_string(trim($mybb->get_input('personajes')));
+    $impacto = trim($mybb->get_input('impacto'));
+
     // Validaciones
     if (empty($descripcion)) {
         echo json_encode(['success' => false, 'message' => 'La descripción no puede estar vacía']);
         exit;
     }
-    
+
     if ($dia < 1 || $dia > 90) {
         echo json_encode(['success' => false, 'message' => 'El día debe estar entre 1 y 90']);
         exit;
     }
-    
+
     if (!in_array($estacion, ['Primavera', 'Verano', 'Otoño', 'Invierno'])) {
         echo json_encode(['success' => false, 'message' => 'Estación inválida']);
         exit;
     }
-    
+
+    if (!in_array($impacto, OP_ISLA_IMPACTO_OPCIONES)) {
+        $impacto = 'Bajo';
+    }
+    $impacto = $db->escape_string($impacto);
+
     // Actualizar evento
     $db->query("
         UPDATE mybb_op_isla_eventos
         SET descripcion = '{$descripcion}',
             ano = {$ano},
             estacion = '{$estacion}',
-            dia = {$dia}
+            dia = {$dia},
+            tema_url = '{$tema_url}',
+            narrador_uid = {$narrador_uid},
+            personajes = '{$personajes}',
+            impacto = '{$impacto}'
         WHERE evento_id = {$evento_id}
     ");
-    
+
+    $narrador_username = '';
+    if ($narrador_uid > 0) {
+        $narrador_user = get_user($narrador_uid);
+        $narrador_username = htmlspecialchars_uni($narrador_user['username'] ?? '');
+    }
+
     echo json_encode([
         'success' => true,
         'message' => 'Evento actualizado correctamente',
         'evento' => [
+            'tema_url' => htmlspecialchars_uni($tema_url),
+            'narrador_uid' => $narrador_uid,
+            'narrador_username' => $narrador_username,
+            'personajes' => htmlspecialchars_uni($personajes),
+            'impacto' => htmlspecialchars_uni($impacto),
             'evento_id' => $evento_id,
             'dia' => $dia,
             'estacion' => $estacion,
@@ -513,7 +713,7 @@ if ($db->table_exists('op_islas')) {
 if (!$isla) {
     if ($db->table_exists('op_islas')) {
         $db->query("
-            INSERT INTO mybb_op_islas (isla_id, zonas, comercio, tamano, faccion, gobierno, habitantes) 
+            INSERT INTO mybb_op_islas (isla_id, zonas, comercio, tamano, faccion, gobierno, habitantes)
             VALUES ({$isla_id}, '', '', '', '', '', '')
         ");
     }
@@ -526,6 +726,7 @@ if (!$isla) {
         'faccion' => '',
         'gobierno' => '',
         'habitantes' => '',
+        'lore' => '',
         'description' => $forum['description'] ?? ''
     ];
 } else {
@@ -541,6 +742,14 @@ $faccion     = nl2br($isla['faccion'] ?? '');
 $gobierno    = nl2br($isla['gobierno'] ?? '');
 $descripcion = nl2br($isla['description'] ?? '');
 $habitantes  = trim($isla['habitantes'] ?? '');
+// El lore solo es visible para narradores y staff
+if (is_narra($uid) || is_staff($uid)) {
+    $lore_raw = $isla['lore'] ?? '';
+    $lore     = op_isla_parse_lore($lore_raw);
+} else {
+    $lore_raw = '';
+    $lore     = '';
+}
 
 // Habitantes destacados
 $npcs = [];
@@ -572,9 +781,10 @@ $eventos = [];
 // Verificar si la tabla existe antes de consultar
 if ($db->table_exists('op_isla_eventos')) {
     $query_eventos = $db->query("
-        SELECT e.*, u.username
+        SELECT e.*, u.username, n.username AS narrador_username
         FROM mybb_op_isla_eventos e
         INNER JOIN mybb_users u ON u.uid = e.staff_uid
+        LEFT JOIN mybb_users n ON n.uid = e.narrador_uid
         WHERE e.isla_id = {$isla_id}
         ORDER BY e.ano ASC,
                  FIELD(e.estacion,'Primavera','Verano','Otoño','Invierno') ASC,
@@ -587,6 +797,12 @@ if ($db->table_exists('op_isla_eventos')) {
         $ev['estacion']    = htmlspecialchars_uni($ev['estacion']);
         $ev['username']    = htmlspecialchars_uni($ev['username']);
         $ev['staff_uid']   = (int)$ev['staff_uid'];
+        $ev['tema_url']    = htmlspecialchars_uni($ev['tema_url'] ?? '');
+        $ev['narrador_uid'] = (int)($ev['narrador_uid'] ?? 0);
+        $ev['narrador_username'] = htmlspecialchars_uni($ev['narrador_username'] ?? '');
+        $ev['personajes_list'] = op_isla_resolve_personajes($ev['personajes'] ?? '');
+        $ev['personajes']  = htmlspecialchars_uni($ev['personajes'] ?? '');
+        $ev['impacto']     = in_array($ev['impacto'] ?? '', OP_ISLA_IMPACTO_OPCIONES) ? $ev['impacto'] : 'Bajo';
         $eventos[]         = $ev;
     }
 }
@@ -603,6 +819,7 @@ $tamano_raw = json_encode($isla['tamano'] ?? '', JSON_HEX_APOS | JSON_HEX_QUOT);
 $faccion_raw = json_encode($isla['faccion'] ?? '', JSON_HEX_APOS | JSON_HEX_QUOT);
 $gobierno_raw = json_encode($isla['gobierno'] ?? '', JSON_HEX_APOS | JSON_HEX_QUOT);
 $habitantes_raw = json_encode($isla['habitantes'] ?? '', JSON_HEX_APOS | JSON_HEX_QUOT);
+$lore_raw_json = json_encode($lore_raw, JSON_HEX_APOS | JSON_HEX_QUOT);
 
 // Obtener mapas existentes
 $mapas = [];

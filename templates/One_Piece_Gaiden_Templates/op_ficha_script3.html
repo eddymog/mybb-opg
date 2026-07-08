@@ -1,0 +1,1230 @@
+<script>
+// Variables globales de configuración
+let pestana = '{$pestana}';
+let objetosEquipados = {$equipamiento_json};
+let tipoEquipamientoSeleccionado = '';
+
+let objetos_array_json = {$objetos_array_json};
+let objetos_json = {$objetos_json};
+const subcategorias = { 
+	// armas_de_filo: true
+};
+	
+function calculateBerries(berries) {
+	
+	if (berries.length > 6) {
+		return berries.slice(0, -6) + ' M';
+	} else if (berries.length > 3) {
+		return berries.slice(0, -3) + ' K';
+	} else {
+		return 'Infinito';
+	}
+}	
+	
+function venderItem(objetoId) {
+	let objeto = objetos_json[objetoId][0];
+	let precioBerries = parseInt((parseInt(objeto.berries) / {$precioVentaPct}) + 1).toLocaleString('es-es');
+	if (confirm(`¿Estás seguro que quieres vender ` + objeto.nombre + ` por ` + precioBerries + ` berries?`)) {
+		window.location.href = '/op/inventario.php?accion=vender&objeto=' + objetoId;
+	}
+}
+	
+for (let i = 0; i < objetos_array_json.length; i++) {
+
+	let objetoId = objetos_array_json[i];
+	if (objetoId == 'LLST001') { continue; }
+	let objeto = objetos_json[objetoId][0];
+	objeto.categoria = objeto.categoria.toLowerCase();
+	const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+	const tier = objeto.tier;
+	const imagen_id = objeto.imagen_id;
+	const imagen_avatar = objeto.imagen_avatar;
+	let imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+	if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || objetoId == 'EANM001' || objetoId == 'LLST001' || objetoId == 'THR001' || subcategoria == 'materiales' || subcategoria == 'tecnicas' || objetoId == 'EPA001' || objetoId ==  'KMP001' || objetoId == 'VCD001' || objetoId == 'VCZ001' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+		imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+	}
+	
+	if (!subcategorias[subcategoria]) {
+		subcategorias[subcategoria] = true;
+		
+		$('#objetos_' + objeto.categoria).append(`
+			<div id="` + subcategoria + `_area">
+				<div id="` + subcategoria + `_categoria">
+					<div class="objeto_categoria">` + objeto.subcategoria.toUpperCase() + `</div>
+					<div class="barra_categoria"></div>
+				</div>
+
+				<div id="` + subcategoria + `_objetos" class="objetos_lista">
+					
+				</div>
+			</div>
+		`);
+	}
+	
+	let requisitos = '';
+	let escalado = '';
+	let dano = '';
+	let efecto = '';
+	let autor = '';
+	
+	// <div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+	
+	if (objeto.requisitos) {
+		requisitos = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.requisitos + `</div>`;
+	}
+	
+	if (objeto.escalado) {
+		escalado = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.escalado + `</div>`;
+	}
+	
+	if (objeto.dano) {
+		dano = `<div class="dano-objeto" style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.dano + `</div>`;
+	}
+	
+	if (objeto.efecto) {
+		efecto = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.efecto + `</div>`;
+	}
+	
+	let colorTier = '#faa500';
+	
+	if (imagen_id == '1') { colorTier = '#808080'; }
+	if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+	if (imagen_id == '3') { colorTier = '#457bfe'; }
+	if (imagen_id == '4') { colorTier = '#cf44ff'; }
+	if (imagen_id == '5') { colorTier = '#febb46'; }
+	if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+	
+	if (objeto.autor && objeto.oficios != "null") {
+		console.log(objeto);
+		
+		
+		let objetoOficio = objeto.oficio;
+		
+		let main = 'ERROR';
+		if (objeto.oficio == 'Artesano' || objeto.oficio == 'Herrero' || objeto.oficio == 'Modista') { objetoMainOficio = 'Artesano'; }
+		if (objeto.oficio == 'Navegante' || objeto.oficio == 'Timonel' || objeto.oficio == 'Cartógrafo') { objetoMainOficio = 'Navegante'; }
+		
+		let autorOficios = JSON.parse(objeto.oficios);
+		console.log(autorOficios);
+		let objetoOficios = autorOficios[objetoOficio];
+		
+		let mainOficio = Object.keys(autorOficios)[0]; // Medico
+		if (objeto.oficio == 'Artesano' || objeto.oficio == 'Herrero' || objeto.oficio == 'Modista') { mainOficio = 'Artesano'; }
+		if (objeto.oficio == 'Médico' || objeto.oficio == 'Farmacólogo' || objeto.oficio == 'Doctor') { mainOficio = 'Médico'; }
+		if (objeto.oficio == 'Navegante' || objeto.oficio == 'Timonel' || objeto.oficio == 'Cartógrafo') { mainOficio = 'Navegante'; }
+		if (objeto.oficio == 'Inventor' || objeto.oficio == 'Biólogo' || objeto.oficio == 'Ingeniero') { mainOficio = 'Inventor'; }
+		if (objeto.oficio == 'Carpintero' || objeto.oficio == 'Astillero' || objeto.oficio == 'Constructor') { mainOficio = 'Carpintero'; }
+		if (objeto.oficio == 'Cocinero' || objeto.oficio == 'Chef' || objeto.oficio == 'Aprovisionador') { mainOficio = 'Cocinero'; }
+		if (objeto.oficio == 'Mercader' || objeto.oficio == 'Recolector' || objeto.oficio == 'Comerciante') { mainOficio = 'Mercader'; }
+		if (objeto.oficio == 'Explorador' || objeto.oficio == 'Aventurero' || objeto.oficio == 'Arqueólogo') { mainOficio = 'Explorador'; }
+		
+		let oficiosInfo = autorOficios[mainOficio]; // { sub }
+		let oficiosTexto = mainOficio + ` (` + oficiosInfo.nivel + `): `;
+		
+		let espes = Object.keys(oficiosInfo.sub);
+		
+		oficiosTexto += espes[0] + ` (` + oficiosInfo['sub'][espes[0]] + `) <br> & `;
+		oficiosTexto += espes[1] + ` (` + oficiosInfo['sub'][espes[1]] + `)`;
+		
+		// Object.keys(abc['Médico']['sub'])
+// 		`Médico (1): Farmácologo (2) & Doctor (2)`
+		
+		autor = `<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+					<div>` + objeto.autor + ` (<a href="/op/ficha.php?uid=` + objeto.autor_uid + `" target="_blank">` + objeto.autor_uid + `</a>)</div>
+					<div>` + oficiosTexto + `</div>
+				</div>`;
+	}
+	
+	let ventaHtml = '';
+	
+	<if $is_same_user then>
+		ventaHtml = `<button onclick="venderItem('` + objetoId + `');" class="button">Vender Item por ` + parseInt((parseInt(objeto.berries) / {$precioVentaPct}) + 1).toLocaleString('es-es') + `B</button>`;
+	</if>
+	
+	let editarImagenHtml = '';
+	let objetoImagen = '';
+	let objetoNombreBase = '';
+	let objetoNombre = '';
+	
+	<if $g_is_staff then>
+		if (objeto.editado == '1') {
+			objetoNombre = `<a href="/op/staff/objetos_modificar.php?objeto_id=` + objeto.objeto_id + `">` + objeto.apodo + `</a>`;
+		} else {
+			objetoNombre = `<a href="/op/staff/objetos_modificar.php?objeto_id=` + objeto.objeto_id + `">` + objeto.nombre + `</a>`;
+		}
+	</if>
+	
+	<if !$g_is_staff then>
+		if (objeto.editado == '1') {
+			objetoNombre = objeto.apodo;
+		} else {
+			objetoNombre = objeto.nombre;
+		}
+		
+	</if>
+	
+	if (objeto.editable == '1' && objeto.editado == '0') {
+		editarImagenHtml = `<img src="/images/op/uploads/custom-editar.png" class="imagen-custom" onclick="openInventarioModal('` + objeto.objeto_id + `');">`;
+	}
+	
+	if (objeto.editado == '1') {
+		objetoNombre = '<strong><em>' + objetoNombre + '</em></strong>';
+		objetoImagen = `<img src="` + objeto.imagen + `" style=" width: 400px; height: 150px; ">`;
+		objetoNombreBase = `<div style="font-family: InterRegular;padding: 0px 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;text-align: center;">` + objeto.nombre + `</div>`;
+	} 
+	
+	let imagen = `/images/op/iconos/` + imagen_nombre;
+	
+	if (imagen_avatar != '') {
+		imagen = imagen_avatar;
+	}
+	
+	$('#' + subcategoria + "_objetos").append(`<div>
+		<div class="item-outer" id="` + objeto.objeto_id + `">
+			<div class="item-nombre">` + (objeto.apodo != '' ? objeto.apodo.slice(0, 30) : objeto.nombre) + `</div>
+			<div class="item-image">
+				
+				<div class="tooltip">
+					<img id=imagen-item src="` + imagen + `" />
+					<div class="tooltiptext item-tooltip">
+						<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objetoNombre + `</div>
+						` + editarImagenHtml + `
+						` + objetoImagen + `
+						` + objetoNombreBase + `
+						` + requisitos + `
+						` + escalado + `
+						<div class="mydescripcion" style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+						` + dano + `
+						` + efecto + `
+						` + ventaHtml + `
+						<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+							<div>Cantidad: ` + objeto.cantidad + `</div>
+							<div>` + objeto.espacios + ` Espacios</div>
+							<div>ID: <span>` + maskCofreId(objeto.objeto_id) + `</span></div>
+							<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span>B</div>
+						</div>
+						` + autor + `
+
+						<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+					</div>
+				</div>
+
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	`);
+	
+}
+	
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+	
+function openInventarioModal(edit_objeto_id) {
+	<if $is_same_user || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<br>
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Personalizar Objeto</div>
+				<div><strong>Nombrar objeto:</strong></div>
+				<input id="customInventario1" type="text" class="textbox" style="" placeholder="">
+				<div><strong>URL de la imagen (400x150):</strong></div>
+				<input id="customInventario2" type="text" class="textbox" style="" placeholder="https://soyunaimagen.com">
+				<button onclick="cambiarObjeto('` + edit_objeto_id + `');" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button><br>
+				<span>Nota: Solo puedes editar el objeto una vez. Asegúrate que la imagen sea la correcta.</span>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function cambiarObjeto(edit_objeto_id) { 
+	let customInventario1 = $('#customInventario1').val();
+	let customInventario2 = $('#customInventario2').val();
+	
+	if (customInventario1 && customInventario2) {
+		if (confirm('Estás a punto de editar este objeto para agregarle un nombre y una imagen. Esto solo puedes hacerlo una vez por objeto. ¿Quieres seguir adelante?')) {
+			 $.post("/op/inventario.php", { edit_objeto_id: edit_objeto_id, edit_nombre: customInventario1, edit_imagen: customInventario2 }, function( data ) { location.reload(); });
+		}
+	}
+}	
+
+</script>
+<script>
+	// /\[(RES|FUE)x(\d+|\d+,\d+)]/g
+	
+	let efectosRegex = /\[(RES|FUE)x(\d+|\d+,\d+)]/g;
+
+	
+	let statNums = {
+		RES: {$resistencia_completa},
+		FUE: {$fuerza_completa},
+		DES: {$destreza_completa},
+		PUN: {$punteria_completa},
+		AGI: {$agilidad_completa},
+		REF: {$reflejos_completa},
+		CAK: 0,
+		VOL: {$voluntad_completa}
+	}
+	
+	function getStatCodigo(codigo) {
+		console.log(codigo);
+		return statCodigo[codigo];
+	}
+	
+	let objeto_danos = $('.dano-objeto')
+	
+	let efectosCodigo = {
+		'[Daño contundente]': { nombre: 'Daño contundente', texto: 'Provoca golpes que pueden causar entumecimiento, fracturas, mareos y suelen tener buena destructividad.' },
+		'[Daño cortante]': { nombre: 'Daño cortante', texto: 'Provoca cortes que pueden causar hemorragias o amputaciones.' },
+		'[Daño perforante]': { nombre: 'Daño perforante', texto: 'Pueden causar hemorragias. Tienen poca destructividad pero ignoran 40 puntos de defensa pasiva del enemigo.' },
+		'[Daño elemental]': { nombre: 'Daño elemental', texto: 'Inflige daño basado en elementos naturales como fuego o agua.' },
+		'[Daño espiritual]': { nombre: 'Daño espiritual', texto: 'Afecta la energía o espíritu del objetivo.' },
+		'[Defensa pasiva física]': { nombre: 'Defensa pasiva física', texto: 'A partir de nivel 5 reduce el daño físico recibido en un valor igual a tu Resistencia.' },
+		'[Defensa pasiva mental]': { nombre: 'Defensa pasiva mental', texto: 'A partir de nivel 5 reduce el daño espiritual recibido en un valor igual a tu Voluntad.' },
+		'[Umbral del dolor]': { nombre: 'Umbral del dolor', texto: '' },
+		'[Agarre]': { nombre: 'Agarre', texto: 'Inmoviliza al objetivo mediante un agarre fuerte.' },
+		'[Asfixia]': { nombre: 'Asfixia', texto: 'Impide la respiración, causando daño progresivo.' },		
+		'[Parálisis parcial]': { nombre: 'Parálisis parcial', texto: 'Inmoviliza parcialmente, limitando movimientos.' },
+		'[Parálisis completa]': { nombre: 'Parálisis completa', texto: 'Inmoviliza totalmente, impidiendo cualquier movimiento.' },
+		'[Canalizar]': { nombre: 'Canalizar', texto: 'Requiere permanecer concentrado en una tarea pero no limita el movimiento.' },
+		'[Concentrar]': { nombre: 'Concentrar', texto: 'Requiere concentración absoluta, el usuario ha de mantenerse inmovil sin realizar técnica alguna.' },
+		'[Ceguera]': { nombre: 'Ceguera', texto: 'Dificulta la visión temporalmente causando -12 Reflejos.' },
+		'[Derribo]': { nombre: 'Derribo', texto: 'Lanza al objetivo haciéndole perder el equilibrio.' },
+		'[Desarme]': { nombre: 'Desarme', texto: 'Fuerza al objetivo a soltar su arma o equipamiento.' },
+		'[Desorientación]': { nombre: 'Desorientación', texto: 'Causa confusión y pérdida de dirección, -10 Reflejos.' },
+		'[Confusión]': { nombre: 'Confusión', texto: 'Provoca alteración mental, dificultando la toma de decisiones, -10 Reflejos.' },
+		'[Mareo]': { nombre: 'Mareo', texto: 'Desestabiliza al objetivo, dificultando su equilibrio, -15 Reflejos.' },
+		'[Empuje]': { nombre: 'Empuje', texto: 'Mueve al objetivo hacia atrás con fuerza.' },
+		'[Entumecimiento]': { nombre: 'Entumecimiento', texto: 'Reduce la movilidad debido a la rigidez corporal en la zona afectada, -15 Agilidad en dicha zona.' },
+		'[Veneno leve]': { nombre: 'Veneno leve', texto: 'Inflige daño directo de 20 Puntos por turno durante 3 turnos.' },
+		'[Veneno medio]': { nombre: 'Veneno medio', texto: 'Inflige daño directo de 30 Puntos por turno durante 4 turnos.' },
+		'[Veneno grave]': { nombre: 'Veneno grave', texto: 'Inflige daño directo de 40 Puntos por turno, las curaciones serán un 50% menos efectivas mientras dure.' },
+		'[Fractura]': { nombre: 'Fractura', texto: 'Rompe huesos, causando dolor y limitación de movimiento. -30 Agi en la zona.' },
+		'[Frío]': { nombre: 'Frío', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Calor]': { nombre: 'Calor', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Hemorragia leve]': { nombre: 'Hemorragia leve', texto: 'Causa pérdida de sangre continua menor. Quita 10 puntos de energía cada turno durante 2 turnos.' },
+		'[Hemorragia media]': { nombre: 'Hemorragia media', texto: 'Provoca pérdida de sangre continua moderada. Quita 20 puntos de energía cada turno durante 4 turnos.' },
+
+		'[Hemorragia grave]': { nombre: 'Hemorragia grave', texto: 'Genera pérdida de sangre continua severa. Quita 40 puntos de energía cada turno de manera indefinida.' },
+		'[Quemadura leve]': { nombre: 'Quemadura leve', texto: 'Produce daño superficial por calor. Hace 20 puntos de daño directo por turno durante 2 turnos.' },
+		'[Quemadura media]': { nombre: 'Quemadura media', texto: 'Provoca daño significativo por calor. Hace 40 puntos de daño directo por turno durante 3 turnos.' },
+		'[Quemadura grave]': { nombre: 'Quemadura grave', texto: 'Causa daño severo por calor. Hace 80 puntos de daño directo por turno.' },
+		'[Miedo]': { nombre: 'Miedo', texto: 'Infunde temor, reduciendo la eficacia en combate, -10 Voluntad.' },
+		'[Sordera]': { nombre: 'Sordera', texto: 'Dificulta la audición temporalmente, -8 Reflejos.' },
+		'[Sueño]': { nombre: 'Sueño', texto: 'Induce un estado de sueño, el objetivo pierde 5 puntos en Fuerza, Agilidad, Destreza, Puntería, Control de Akuma y Reflejos.' },
+		'[Terror]': { nombre: 'Terror', texto: 'Provoca un estado de pánico extremo, -15 Vol.' }
+	};
+	
+	let statCodigo = {
+		RES: 'Resistencia',
+		FUE: 'Fuerza',
+		DES: 'Destreza',
+		PUN: 'Puntería',
+		AGI: 'Agilidad',
+		REF: 'Reflejos',
+		CAK: 'Control de Akuma',
+		VOL: 'Voluntad'
+	}
+	
+	let efectosArray = Object.keys(efectosCodigo);
+
+	function addEfectos(descripcion) {
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			descripcion = descripcion.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		return descripcion;
+	}
+	
+	function addEfectoStats(efectos) {
+		let efectosRegex = /\[(RES|FUE|DES|PUN|AGI|REF|CAK|VOL)x(\d+|\d+,\d+)]/g;
+		const efectosMatch = [...efectos.matchAll(efectosRegex)];
+		
+		for (let i = 0; i < efectosMatch.length; i++) {
+			let codigo = efectosMatch[i][0];
+			let stat = efectosMatch[i][1]
+			let multi = parseFloat(efectosMatch[i][2].replace(',', '.'));
+			
+			let statNum = statNums[efectosMatch[i][1]];
+			
+			// let multiplied = statNum * multi;
+			
+			let htmlTag = `<span class="tec-tooltip"><strong>` + (statNum * multi).toFixed(1) + `</strong><span class="stat-tooltiptext">` + codigo + `</span></span>`
+			efectos = efectos.replace(codigo, htmlTag);
+		}
+		
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			efectos = efectos.replace(efecto, `<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>`);
+		
+		}
+		
+		return efectos;
+	}
+	
+	for (let i = 0; i < objeto_danos.length; i++) {
+		let dano = $($('.dano-objeto')[i]);
+		let efectoHtml = dano.html();
+		
+		dano.html(addEfectoStats(efectoHtml));
+	}
+	
+	// Variables para mantener el estado de los filtros del inventario
+	let filtroInventario = {
+		categorias: [],
+		tiers: [],
+		busqueda: ''
+	};
+
+	// Función para filtrar por categoría
+	function filtrarCategoria(categoria) {
+		const boton = document.getElementById('btn-' + categoria);
+		const index = filtroInventario.categorias.indexOf(categoria);
+		
+		if (index > -1) {
+			// Si ya está seleccionado, quitarlo
+			filtroInventario.categorias.splice(index, 1);
+			boton.style.backgroundColor = '#666666';
+		} else {
+			// Si no está seleccionado, agregarlo
+			filtroInventario.categorias.push(categoria);
+			boton.style.backgroundColor = '#000000';
+		}
+		
+		aplicarFiltrosInventario();
+	}
+
+	// Función para filtrar por tier
+	function filtrarTier(tier) {
+		const botonId = tier === 'ESP' ? 'btn-tier-esp' : 'btn-tier' + tier;
+		const boton = document.getElementById(botonId);
+		const index = filtroInventario.tiers.indexOf(tier.toString());
+		
+		if (index > -1) {
+			// Si ya está seleccionado, quitarlo
+			filtroInventario.tiers.splice(index, 1);
+			boton.style.backgroundColor = '#666666';
+		} else {
+			// Si no está seleccionado, agregarlo
+			filtroInventario.tiers.push(tier.toString());
+			boton.style.backgroundColor = '#000000';
+		}
+		
+		aplicarFiltrosInventario();
+	}
+
+	// Función para aplicar filtros del inventario
+	function aplicarFiltrosInventario() {
+		console.log('Aplicando filtros de inventario:', filtroInventario);
+		
+		// Obtener todos los contenedores de categorías
+		const categorias = ['especiales', 'consumibles', 'armas', 'utensilios', 'materiales', 'estructuras'];
+		
+		categorias.forEach(categoria => {
+			const contenedor = document.getElementById('objetos_' + categoria);
+			if (!contenedor) return;
+			
+			let mostrarCategoria = false;
+			
+			// Si hay filtros de categoría activos, verificar si esta categoría debe mostrarse
+			if (filtroInventario.categorias.length > 0) {
+				mostrarCategoria = filtroInventario.categorias.includes(categoria);
+			} else {
+				mostrarCategoria = true; // Si no hay filtros de categoría, mostrar todas
+			}
+			
+			if (mostrarCategoria) {
+				contenedor.style.display = 'block';
+				
+				// Aplicar filtros a los objetos individuales dentro de esta categoría
+				const objetos = contenedor.querySelectorAll('.item-outer');
+				objetos.forEach(objeto => {
+					let mostrarObjeto = true;
+					
+					// Filtrar por tier si hay filtros activos
+					if (filtroInventario.tiers.length > 0) {
+						// Buscar el tier en el tooltip del objeto, excluyendo mydescripcion
+						const tooltip = objeto.querySelector('.tooltiptext');
+						if (tooltip) {
+							// Clonar el tooltip para no modificar el original
+							const tooltipClone = tooltip.cloneNode(true);
+							
+							// Remover el elemento mydescripcion del clon
+							const mydescripcion = tooltipClone.querySelector('.mydescripcion');
+							if (mydescripcion) {
+								mydescripcion.remove();
+							}
+							
+							const textoTooltip = tooltipClone.textContent || tooltipClone.innerText;
+							let tierEncontrado = false;
+							
+							filtroInventario.tiers.forEach(tierBuscado => {
+								// Buscar "Tier X" en el texto del tooltip
+								if (tierBuscado === 'ESP') {
+									// Para tier especial, buscar varias variantes
+									if (textoTooltip.includes('Tier ESP') || 
+										textoTooltip.includes('Tier Especial') || 
+										textoTooltip.includes('Tier 6') ||
+										textoTooltip.includes('Tier 7') ||
+										textoTooltip.includes('Tier 8') ||
+										textoTooltip.includes('Tier 9') ||
+										textoTooltip.includes('Tier 10')) {
+										tierEncontrado = true;
+									}
+								} else {
+									// Para tiers normales (1-5)
+									if (textoTooltip.includes('Tier ' + tierBuscado)) {
+										tierEncontrado = true;
+									}
+								}
+							});
+							
+							if (!tierEncontrado) {
+								mostrarObjeto = false;
+							}
+						} else {
+							mostrarObjeto = false; // Si no hay tooltip, ocultar
+						}
+					}
+					
+					// Filtrar por búsqueda de texto (solo en el nombre del objeto)
+					if (filtroInventario.busqueda) {
+						const nombreObjeto = objeto.querySelector('.item-nombre').textContent.toLowerCase();
+						if (!nombreObjeto.includes(filtroInventario.busqueda.toLowerCase())) {
+							mostrarObjeto = false;
+						}
+					}
+					
+					objeto.style.display = mostrarObjeto ? 'block' : 'none';
+				});
+			} else {
+				contenedor.style.display = 'none';
+			}
+		});
+	}
+
+	// Event listener para el buscador
+	document.addEventListener('DOMContentLoaded', function() {
+		const buscador = document.getElementById('buscador-inventario');
+		if (buscador) {
+			buscador.addEventListener('input', function() {
+				filtroInventario.busqueda = this.value;
+				aplicarFiltrosInventario();
+			});
+		}
+	});
+
+	// Función para limpiar filtros del inventario
+	function limpiarFiltrosInventario() {
+		filtroInventario = { categorias: [], tiers: [], busqueda: '' };
+		
+		// Resetear estilos de botones
+		const botones = document.querySelectorAll('[id^="btn-"]');
+		botones.forEach(boton => {
+			if (boton.id.includes('tier') || boton.id.includes('consumibles') || 
+				boton.id.includes('armas') || boton.id.includes('utensilios') || 
+				boton.id.includes('estructuras') || boton.id.includes('materiales') || 
+				boton.id.includes('especiales')) {
+				boton.style.backgroundColor = '#666666';
+			}
+		});
+		
+		// Limpiar buscador
+		const buscador = document.getElementById('buscador-inventario');
+		if (buscador) {
+			buscador.value = '';
+		}
+		
+		aplicarFiltrosInventario();
+	}
+	
+</script>
+<script>
+// Variables globales para el equipamiento
+var tipoEquipamientoSeleccionado = '';
+var objetosEquipados = {
+    bolsa: null,
+    ropa: null,
+    espacios: {}
+};
+
+// Variable para almacenar espacios ocupados por objetos del inventario
+var espaciosOcupados = 0;
+
+// Función para cerrar el selector de equipamiento
+function cerrarSelectorEquipamiento() {
+    var modal = document.getElementById('modalSelectorEquipamiento');
+    modal.style.display = 'none';
+    tipoEquipamientoSeleccionado = '';
+}
+
+// Función para desequipar item
+function desequiparItem() {
+    if (tipoEquipamientoSeleccionado === 'equipajes' && objetosEquipados.bolsa) {
+        objetosEquipados.bolsa = null;
+        var imagenBolsa = document.getElementById('imagen-bolsa-equipada');
+        imagenBolsa.src = '/images/op/iconos/equipajes_5_One_Piece_Gaiden_Foro_Rol.jpg';
+        imagenBolsa.alt = '';
+        
+        var slotBolsa = document.getElementById('slot-bolsa');
+        slotBolsa.title = '';
+        
+        mostrarMensajeEquipamiento('Bolsa desequipada correctamente.');
+        
+    } else if (tipoEquipamientoSeleccionado === 'ropa y armaduras' && objetosEquipados.ropa) {
+        objetosEquipados.ropa = null;
+        var imagenRopa = document.getElementById('imagen-ropa-equipada');
+        imagenRopa.src = '/images/op/uploads/RopaArmadura_5_One_Piece_Gaiden_Foro_Rol.jpg';
+        imagenRopa.alt = '';
+        
+        var slotRopa = document.getElementById('slot-ropa');
+        slotRopa.title = '';
+        
+        mostrarMensajeEquipamiento('Ropa desequipada correctamente.');
+    }
+    
+    actualizarContadorEspacios();
+    cerrarSelectorEquipamiento();
+}
+
+// Función para mostrar mensajes de equipamiento
+function mostrarMensajeEquipamiento(mensaje) {
+    // Crear div de mensaje temporal
+    var mensajeDiv = document.createElement('div');
+    mensajeDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background-color: #4caf50; color: white; padding: 15px 20px; border-radius: 5px; font-family: moonGetHeavy; font-size: 14px; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);';
+    mensajeDiv.innerHTML = mensaje;
+    
+    document.body.appendChild(mensajeDiv);
+    
+    // Remover mensaje después de 3 segundos
+    setTimeout(function() {
+        if (mensajeDiv.parentNode) {
+            mensajeDiv.parentNode.removeChild(mensajeDiv);
+        }
+    }, 3000);
+}
+
+// Función para extraer espacios del efecto y daño del objeto
+function extraerEspaciosDelEfecto(efecto, dano) {
+    var espacios = 0;
+    
+    // Buscar en el campo efecto
+    if (efecto) {
+        var patronEspacios = /\[otorga\s+(\d+)\s+espacios?\]/i;
+        var match = efecto.match(patronEspacios);
+        
+        if (match) {
+            espacios += parseInt(match[1]);
+        } else {
+            var patronSinCorchetes = /otorga\s+(\d+)\s+espacios?/i;
+            var matchSinCorchetes = efecto.match(patronSinCorchetes);
+            
+            if (matchSinCorchetes) {
+                espacios += parseInt(matchSinCorchetes[1]);
+            } else {
+                var patronGeneral = /(\d+)\s+espacios?/i;
+                var matchGeneral = efecto.match(patronGeneral);
+                
+                if (matchGeneral) {
+                    espacios += parseInt(matchGeneral[1]);
+                }
+            }
+        }
+    }
+    
+    // Buscar en el campo daño
+    if (dano) {
+        var patronEspaciosDano = /\[otorga\s+(\d+)\s+espacios?\]/i;
+        var matchDano = dano.match(patronEspaciosDano);
+        
+        if (matchDano) {
+            espacios += parseInt(matchDano[1]);
+        } else {
+            var patronDanoSinCorchetes = /otorga\s+(\d+)\s+espacios?/i;
+            var matchDanoSinCorchetes = dano.match(patronDanoSinCorchetes);
+            
+            if (matchDanoSinCorchetes) {
+                espacios += parseInt(matchDanoSinCorchetes[1]);
+            }
+        }
+    }
+    
+    return espacios;
+}
+
+// Función para extraer espacios requeridos por un objeto
+function extraerEspaciosRequeridos(objeto) {
+    return parseInt(objeto.espacios) || 1;
+}
+
+// Función para calcular espacios disponibles
+function calcularEspaciosDisponibles() {
+    var espaciosBase = 0;
+    var espaciosAdicionales = 0;
+    
+    // Contar espacios adicionales de objetos equipados
+    if (objetosEquipados.bolsa) {
+        var objetoBolsa = objetos_json[objetosEquipados.bolsa][0];
+        espaciosAdicionales += extraerEspaciosDelEfecto(objetoBolsa.efecto, objetoBolsa.dano);
+    }
+    
+    if (objetosEquipados.ropa) {
+        var objetoRopa = objetos_json[objetosEquipados.ropa][0];
+        espaciosAdicionales += extraerEspaciosDelEfecto(objetoRopa.efecto, objetoRopa.dano);
+    }
+    
+    return espaciosBase + espaciosAdicionales;
+}
+
+// Función para equipar objeto en espacio específico
+function equiparObjetoEnEspacio(objetoId, espacioIndex) {
+    var objeto = objetos_json[objetoId][0];
+    var espaciosRequeridos = extraerEspaciosRequeridos(objeto);
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    
+    // Verificar si hay espacios suficientes en total
+    if (espaciosOcupados + espaciosRequeridos > espaciosDisponibles) {
+        mostrarMensajeEquipamiento('No hay suficientes espacios disponibles. Se requieren ' + espaciosRequeridos + ' espacios.');
+        return false;
+    }
+    
+    // Verificar si el objeto cabe desde la posición seleccionada
+    if (espacioIndex + espaciosRequeridos > espaciosDisponibles) {
+        mostrarMensajeEquipamiento('El objeto no cabe en esta posición. Necesitas ' + espaciosRequeridos + ' espacios consecutivos.');
+        return false;
+    }
+    
+    // Verificar si todos los espacios consecutivos están libres
+    for (var i = espacioIndex; i < espacioIndex + espaciosRequeridos; i++) {
+        if (objetosEquipados.espacios[i]) {
+            mostrarMensajeEquipamiento('Algunos de los espacios necesarios ya están ocupados.');
+            return false;
+        }
+    }
+    
+    // Equipar el objeto ocupando todos los espacios necesarios
+    for (var i = espacioIndex; i < espacioIndex + espaciosRequeridos; i++) {
+        objetosEquipados.espacios[i] = {
+            objetoId: objetoId,
+            espaciosUsados: espaciosRequeridos,
+            esEspacioPrincipal: i === espacioIndex // Solo el primer espacio es el principal
+        };
+    }
+    
+    espaciosOcupados += espaciosRequeridos;
+    
+    // Actualizar visuales
+    actualizarContadorEspacios();
+    mostrarMensajeEquipamiento(objeto.nombre + ' equipado correctamente.');
+    
+    return true;
+}
+
+// Función para equipar objeto del inventario
+function equiparObjetoInventario(objetoId, espacioIndex) {
+    if (equiparObjetoEnEspacio(objetoId, espacioIndex)) {
+        cerrarSelectorEquipamiento();
+        generarEspaciosVisuales();
+    }
+}
+
+// Función para mostrar opciones de objeto equipado
+function mostrarOpcionesObjeto(espacioIndex) {
+    var objetoEquipado = objetosEquipados.espacios[espacioIndex];
+    if (!objetoEquipado) return;
+    
+    var objeto = objetos_json[objetoEquipado.objetoId][0];
+    
+    if (confirm('¿Deseas desequipar ' + objeto.nombre + '?')) {
+        desequiparObjetoDeEspacio(espacioIndex);
+        generarEspaciosVisuales();
+    }
+}
+
+// Función para encontrar el próximo espacio disponible
+function encontrarProximoEspacioDisponible() {
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    
+    // Buscar desde el espacio 0 hacia adelante
+    for (var i = 0; i < espaciosDisponibles; i++) {
+        if (!objetosEquipados.espacios[i]) {
+            return i;
+        }
+    }
+    
+    return -1; // No hay espacios disponibles
+}
+
+// Función modificada para verificar si se puede equipar en un espacio específico
+function puedeEquiparEnEspacio(espacioInicio, espaciosRequeridos) {
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    var proximoEspacioLibre = encontrarProximoEspacioDisponible();
+    
+    // Solo se puede equipar si el espacio inicio coincide con el próximo espacio libre
+    if (espacioInicio !== proximoEspacioLibre) {
+        return false;
+    }
+    
+    // Verificar que hay suficientes espacios consecutivos disponibles
+    if (espacioInicio + espaciosRequeridos > espaciosDisponibles) {
+        return false;
+    }
+    
+    // Verificar que todos los espacios consecutivos estén libres
+    for (var i = espacioInicio; i < espacioInicio + espaciosRequeridos; i++) {
+        if (objetosEquipados.espacios[i]) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Función para verificar si hay espacios consecutivos suficientes
+function verificarEspaciosConsecutivos(espacioInicio, espaciosRequeridos) {
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    
+    // Verificar que no se exceda el límite total
+    if (espacioInicio + espaciosRequeridos > espaciosDisponibles) {
+        return false;
+    }
+    
+    // Verificar que todos los espacios consecutivos estén libres
+    for (var i = espacioInicio; i < espacioInicio + espaciosRequeridos; i++) {
+        if (objetosEquipados.espacios[i]) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Función para ocupar espacios consecutivos
+function ocuparEspaciosConsecutivos(objetoId, espacioInicio, espaciosRequeridos) {
+    for (var i = espacioInicio; i < espacioInicio + espaciosRequeridos; i++) {
+        objetosEquipados.espacios[i] = {
+            objetoId: objetoId,
+            espaciosUsados: espaciosRequeridos,
+            espacioBase: espacioInicio, // Indica cuál es el espacio principal
+            esContinuacion: i > espacioInicio // Indica si es una continuación del objeto
+        };
+    }
+}
+
+// Función para liberar espacios consecutivos
+function liberarEspaciosConsecutivos(espacioBase) {
+    var objetoEquipado = objetosEquipados.espacios[espacioBase];
+    if (!objetoEquipado) return 0;
+    
+    var espaciosLiberados = 0;
+    var espaciosRequeridos = objetoEquipado.espaciosUsados;
+    
+    // Liberar todos los espacios ocupados por este objeto
+    for (var i = espacioBase; i < espacioBase + espaciosRequeridos; i++) {
+        if (objetosEquipados.espacios[i] && objetosEquipados.espacios[i].objetoId === objetoEquipado.objetoId) {
+            delete objetosEquipados.espacios[i];
+            espaciosLiberados++;
+        }
+    }
+    
+    return espaciosLiberados;
+}
+
+// Función modificada para equipar objeto automáticamente en el próximo espacio disponible
+function equiparObjetoInventarioAutomatico(objetoId) {
+    var objeto = objetos_json[objetoId][0];
+    var espaciosRequeridos = extraerEspaciosRequeridos(objeto);
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    var proximoEspacioLibre = encontrarProximoEspacioDisponible();
+    
+    // Verificar si hay espacios suficientes en total
+    if (espaciosOcupados + espaciosRequeridos > espaciosDisponibles) {
+        mostrarMensajeEquipamiento('No hay suficientes espacios disponibles. Se requieren ' + espaciosRequeridos + ' espacios.');
+        return false;
+    }
+    
+    // Verificar si el próximo espacio libre puede acomodar el objeto
+    if (proximoEspacioLibre === -1) {
+        mostrarMensajeEquipamiento('No hay espacios disponibles.');
+        return false;
+    }
+    
+    if (!puedeEquiparEnEspacio(proximoEspacioLibre, espaciosRequeridos)) {
+        mostrarMensajeEquipamiento('No hay suficientes espacios consecutivos disponibles desde el espacio ' + (proximoEspacioLibre + 1) + '. Se requieren ' + espaciosRequeridos + ' espacios.');
+        return false;
+    }
+    
+    // Equipar el objeto en los espacios consecutivos
+    ocuparEspaciosConsecutivos(objetoId, proximoEspacioLibre, espaciosRequeridos);
+    espaciosOcupados += espaciosRequeridos;
+    
+    // Actualizar visuales
+    actualizarContadorEspacios();
+    
+    var mensajeEspacios = espaciosRequeridos > 1 ? 
+        ' (ocupando espacios ' + (proximoEspacioLibre + 1) + '-' + (proximoEspacioLibre + espaciosRequeridos) + ')' :
+        ' (espacio ' + (proximoEspacioLibre + 1) + ')';
+    
+    mostrarMensajeEquipamiento(objeto.nombre + ' equipado correctamente' + mensajeEspacios + '.');
+    
+    return true;
+}
+
+// Función modificada para desequipar objeto de espacio específico
+function desequiparObjetoDeEspacio(espacioIndex) {
+    var objetoEquipado = objetosEquipados.espacios[espacioIndex];
+    if (!objetoEquipado) {
+        mostrarMensajeEquipamiento('No hay ningún objeto equipado en este espacio.');
+        return false;
+    }
+    
+    // Si es una continuación, obtener el espacio base
+    var espacioBase = objetoEquipado.espacioBase || espacioIndex;
+    var objeto = objetos_json[objetoEquipado.objetoId][0];
+    
+    // Liberar todos los espacios ocupados por este objeto
+    var espaciosLiberados = liberarEspaciosConsecutivos(espacioBase);
+    espaciosOcupados -= espaciosLiberados;
+    
+    // Actualizar visuales
+    actualizarContadorEspacios();
+    mostrarMensajeEquipamiento(objeto.nombre + ' desequipado correctamente (' + espaciosLiberados + ' espacios liberados).');
+    
+    return true;
+}
+
+// Función para abrir selector de objeto para inventario (modificada)
+function abrirSelectorObjetoInventario() {
+    var proximoEspacio = encontrarProximoEspacioDisponible();
+    if (proximoEspacio === -1) {
+        mostrarMensajeEquipamiento('No hay espacios disponibles para equipar más objetos.');
+        return;
+    }
+    
+    tipoEquipamientoSeleccionado = 'espacio';
+    var modal = document.getElementById('modalSelectorEquipamiento');
+    var titulo = document.getElementById('tituloSelectorEquipamiento');
+    var lista = document.getElementById('listaEquipamientoDisponible');
+    
+    titulo.textContent = 'SELECCIONAR OBJETO - PRÓXIMO ESPACIO: ' + (proximoEspacio + 1);
+    lista.innerHTML = '';
+    
+    // Obtener IDs de objetos ya equipados
+    var objetosEquipadosIds = [];
+    Object.values(objetosEquipados.espacios).forEach(function(equipado) {
+        if (objetosEquipadosIds.indexOf(equipado.objetoId) === -1) {
+            objetosEquipadosIds.push(equipado.objetoId);
+        }
+    });
+    
+    // También incluir objetos equipados en bolsa y ropa
+    if (objetosEquipados.bolsa) {
+        objetosEquipadosIds.push(objetosEquipados.bolsa);
+    }
+    if (objetosEquipados.ropa) {
+        objetosEquipadosIds.push(objetosEquipados.ropa);
+    }
+    
+    // Filtrar objetos que se pueden equipar en espacios
+    objetos_array_json.forEach(function(objetoId) {
+        var objeto = objetos_json[objetoId][0];
+        var categoria = objeto.categoria.toLowerCase();
+        
+        // Solo mostrar objetos que no sean equipajes ni ropa y armaduras
+        if (categoria !== 'utensilios' || (objeto.subcategoria.toLowerCase() !== 'equipajes' && objeto.subcategoria.toLowerCase() !== 'ropa y armaduras')) {
+            
+            var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+            var imagen_id = objeto.imagen_id;
+            
+            var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+            if (subcategoria === 'cofres' || subcategoria === 'akuma_no_mi' || objetoId === 'EANM001' || 
+                objetoId === 'LLST001' || objetoId === 'THR001' || subcategoria === 'materiales' || 
+                subcategoria === 'tecnicas' || objetoId === 'EPA001' || objetoId === 'KMP001' || 
+                objetoId === 'VCD001' || objetoId === 'VCZ001' || subcategoria === 'documentos' || 
+                subcategoria === 'recetas') {
+                imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+            }
+            
+            var imagen = '/images/op/iconos/' + imagen_nombre;
+            if (objeto.imagen_avatar !== '') {
+                imagen = objeto.imagen_avatar;
+            }
+            
+            var espaciosRequeridos = extraerEspaciosRequeridos(objeto);
+            var espaciosDisponiblesTotal = calcularEspaciosDisponibles();
+            
+            // Verificar si el objeto ya está equipado
+            var yaEquipado = objetosEquipadosIds.indexOf(objetoId) !== -1;
+            
+            // Verificar si se puede equipar en el próximo espacio disponible
+            var puedeEquiparse = !yaEquipado && puedeEquiparEnEspacio(proximoEspacio, espaciosRequeridos);
+            
+            // Estilos base para el objeto
+            var estilosBase = 'width: 120px; height: 170px; border: 2px solid; border-radius: 8px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.3s; position: relative;';
+            
+            // Aplicar estilos según el estado
+            var estilos, onclickAction, hoverEffects, estadoTexto = '';
+            
+            if (yaEquipado) {
+                // Objeto ya equipado - estilo rojo
+                estilos = estilosBase + 'border-color: #dc3545; background-color: rgba(220, 53, 69, 0.1); opacity: 0.6; cursor: not-allowed;';
+                onclickAction = 'mostrarMensajeEquipamiento(\'Este objeto ya está equipado.\');';
+                estadoTexto = 'YA EQUIPADO';
+            } else if (!puedeEquiparse) {
+                // No se puede equipar - estilo naranja
+                var razonNoEquipable = '';
+                if (proximoEspacio + espaciosRequeridos > espaciosDisponiblesTotal) {
+                    razonNoEquipable = 'No hay suficientes espacios consecutivos desde el espacio ' + (proximoEspacio + 1) + '. Se requieren ' + espaciosRequeridos + ' espacios.';
+                } else {
+                    razonNoEquipable = 'No se puede equipar en este momento.';
+                }
+                
+                estilos = estilosBase + 'border-color: #ff9800; background-color: rgba(255, 152, 0, 0.1); opacity: 0.7; cursor: not-allowed;';
+                onclickAction = 'mostrarMensajeEquipamiento(\'' + razonNoEquipable + '\');';
+                estadoTexto = 'NO CABE';
+            } else {
+                // Objeto disponible - estilo normal
+                estilos = estilosBase + 'border-color: #0055bb; background-color: rgba(0, 85, 187, 0.05);';
+                onclickAction = 'equiparObjetoInventarioAutomatico(\'' + objetoId + '\'); cerrarSelectorEquipamiento();';
+            }
+            
+            var objetoDiv = document.createElement('div');
+            objetoDiv.style.cssText = estilos;
+            objetoDiv.setAttribute('onclick', onclickAction);
+            
+            if (puedeEquiparse && !yaEquipado) {
+                objetoDiv.setAttribute('onmouseover', 'this.style.borderColor=\'#003d82\'; this.style.backgroundColor=\'rgba(0, 85, 187, 0.1)\';');
+                objetoDiv.setAttribute('onmouseout', 'this.style.borderColor=\'#0055bb\'; this.style.backgroundColor=\'rgba(0, 85, 187, 0.05)\';');
+            }
+            
+            // Indicador visual del estado
+            var colorEstado = yaEquipado ? '#dc3545' : (!puedeEquiparse ? '#ff9800' : '#0055bb');
+            var indicadorEstado = '';
+            
+            if (yaEquipado || !puedeEquiparse) {
+                indicadorEstado = '<div style="position: absolute; top: 5px; right: 5px; background-color: ' + colorEstado + '; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">' + (yaEquipado ? '✕' : '!') + '</div>';
+            }
+            
+            // Mostrar información sobre qué espacios ocupará
+            var infoEspacios = '';
+            if (puedeEquiparse && espaciosRequeridos > 1) {
+                infoEspacios = '<div style="font-family: \'moonGetHeavy\'; font-size: 7px; color: #4caf50; margin-top: 2px;">Ocupará: ' + (proximoEspacio + 1) + '-' + (proximoEspacio + espaciosRequeridos) + '</div>';
+            } else if (puedeEquiparse) {
+                infoEspacios = '<div style="font-family: \'moonGetHeavy\'; font-size: 7px; color: #4caf50; margin-top: 2px;">Ocupará: ' + (proximoEspacio + 1) + '</div>';
+            }
+            
+            objetoDiv.innerHTML = 
+                indicadorEstado +
+                '<img src="' + imagen + '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">' +
+                '<div style="font-family: \'moonGetHeavy\'; font-size: 10px; margin-top: 8px; color: ' + colorEstado + '; line-height: 12px;">' +
+                    (objeto.apodo !== '' ? objeto.apodo.substring(0, 15) : objeto.nombre.substring(0, 15)) +
+                '</div>' +
+                '<div style="font-family: \'moonGetHeavy\'; font-size: 8px; color: ' + colorEstado + '; margin-top: 2px;">' +
+                    'Espacios: ' + espaciosRequeridos +
+                '</div>' +
+                infoEspacios +
+                (estadoTexto ? '<div style="font-family: \'moonGetHeavy\'; font-size: 7px; color: ' + colorEstado + '; margin-top: 2px; font-weight: bold;">' + estadoTexto + '</div>' : '');
+            
+            lista.appendChild(objetoDiv);
+        }
+    });
+    
+    modal.style.display = 'block';
+}
+
+// Función modificada para generar espacios visuales
+function generarEspaciosVisuales() {
+    var contenedorEspacios = document.getElementById('espacios-equipamiento-visual');
+    if (!contenedorEspacios) return;
+    
+    // Limpiar espacios anteriores
+    contenedorEspacios.innerHTML = '';
+    
+    var espaciosDisponibles = calcularEspaciosDisponibles();
+    
+    // Crear espacios visuales
+    for (var i = 0; i < espaciosDisponibles; i++) {
+        var espacioDiv = document.createElement('div');
+        var objetoEquipado = objetosEquipados.espacios[i];
+        
+        espacioDiv.className = 'espacio-equipamiento';
+        espacioDiv.id = 'espacio-' + i;
+        
+        if (objetoEquipado) {
+            // Espacio ocupado - mostrar objeto equipado
+            var objeto = objetos_json[objetoEquipado.objetoId][0];
+            var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+            var imagen_id = objeto.imagen_id;
+            
+            var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+            if (subcategoria === 'cofres' || subcategoria === 'akuma_no_mi' || objetoEquipado.objetoId === 'EANM001' || 
+                objetoEquipado.objetoId === 'LLST001' || objetoEquipado.objetoId === 'THR001' || subcategoria === 'materiales' || 
+                subcategoria === 'tecnicas' || objetoEquipado.objetoId === 'EPA001' || objetoEquipado.objetoId === 'KMP001' || 
+                objetoEquipado.objetoId === 'VCD001' || objetoEquipado.objetoId === 'VCZ001' || subcategoria === 'documentos' || 
+                subcategoria === 'recetas') {
+                imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+            }
+            
+            var imagen = '/images/op/iconos/' + imagen_nombre;
+            if (objeto.imagen_avatar !== '') {
+                imagen = objeto.imagen_avatar;
+            }
+            
+            // Mostrar la imagen solo en el espacio principal
+            var mostrarImagen = objetoEquipado.esEspacioPrincipal;
+            var backgroundImage = mostrarImagen ? 'url(' + imagen + ')' : 'none';
+            var backgroundColor = mostrarImagen ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.3)';
+            var borderStyle = mostrarImagen ? 'solid' : 'dashed';
+            
+            espacioDiv.style.cssText = 'width: 70px; height: 70px; min-width: 70px; min-height: 70px; border: 2px ' + borderStyle + ' #4caf50; border-radius: 8px; background-color: ' + backgroundColor + '; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; position: relative; box-sizing: border-box; background-image: ' + backgroundImage + '; background-size: 50px 50px; background-position: center; background-repeat: no-repeat; flex-shrink: 0;';
+            
+            // Tooltip con información del objeto
+            espacioDiv.title = objeto.nombre + ' (' + objetoEquipado.espaciosUsados + ' espacios)';
+            
+            // Contenido del espacio con overlay (solo en el espacio principal)
+            if (mostrarImagen) {
+                espacioDiv.innerHTML = '<div style="position: absolute; bottom: 2px; left: 2px; right: 2px; background-color: rgba(0,0,0,0.7); color: white; font-family: moonGetHeavy; font-size: 7px; text-align: center; border-radius: 3px; padding: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + (objeto.apodo !== '' ? objeto.apodo.substring(0, 8) : objeto.nombre.substring(0, 8)) + '</div>';
+            } else {
+                // En espacios secundarios, mostrar un indicador
+                espacioDiv.innerHTML = '<div style="font-family: moonGetHeavy; font-size: 8px; color: #4caf50; text-align: center; line-height: 8px;">OCUPADO</div>';
+            }
+            
+            // Eventos
+            espacioDiv.setAttribute('onmouseover', 'this.style.borderColor="#2e7d32"; this.style.backgroundColor="rgba(76, 175, 80, 0.2)";');
+            espacioDiv.setAttribute('onmouseout', 'this.style.borderColor="#4caf50"; this.style.backgroundColor="' + backgroundColor + '";');
+            espacioDiv.setAttribute('onclick', 'mostrarOpcionesObjeto(' + i + ')');
+            
+        } else {
+            // Espacio vacío
+            espacioDiv.style.cssText = 'width: 70px; height: 70px; min-width: 70px; min-height: 70px; border: 2px dashed #ccc; border-radius: 8px; background-color: rgba(255, 255, 255, 0.3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; position: relative; box-sizing: border-box; flex-shrink: 0;';
+            
+            // Contenido del espacio
+            espacioDiv.innerHTML = '<div style="font-family: moonGetHeavy; font-size: 9px; color: #666; text-align: center; line-height: 10px;">ESPACIO<br>' + (i + 1) + '</div>';
+            
+            // Efectos hover
+            espacioDiv.setAttribute('onmouseover', 'this.style.borderColor="#2196f3"; this.style.backgroundColor="rgba(33, 150, 243, 0.1)";');
+            espacioDiv.setAttribute('onmouseout', 'this.style.borderColor="#ccc"; this.style.backgroundColor="rgba(255, 255, 255, 0.3)";');
+            espacioDiv.setAttribute('onclick', 'abrirSelectorObjetoInventario(' + i + ')');
+        }
+        
+        // Agregar al contenedor
+        contenedorEspacios.appendChild(espacioDiv);
+    }
+    
+    // Si no hay espacios, mostrar mensaje
+    if (espaciosDisponibles === 0) {
+        var mensajeDiv = document.createElement('div');
+        mensajeDiv.style.cssText = 'width: 100%; text-align: center; color: #999; font-family: moonGetHeavy; font-size: 12px; padding: 20px 0;';
+        mensajeDiv.innerHTML = 'No hay espacios adicionales<br><small>Equipa una bolsa o ropa para obtener más espacios</small>';
+        contenedorEspacios.appendChild(mensajeDiv);
+    }
+}
+
+// Función para actualizar el contador de espacios
+function actualizarContadorEspacios() {
+    var espaciosMaximos = 0;
+    var espaciosAdicionales = calcularEspaciosDisponibles();
+    var espaciosTotales = espaciosMaximos + espaciosAdicionales;
+    
+    var contadorEspacios = document.getElementById('espacios-equipamiento');
+    if (espaciosAdicionales > 0) {
+        contadorEspacios.innerHTML = 'ESPACIOS: ' + espaciosOcupados + ' / ' + espaciosMaximos + ' (+' + espaciosAdicionales + ') = ' + espaciosOcupados + ' / ' + espaciosTotales;
+    } else {
+        contadorEspacios.innerHTML = 'ESPACIOS: ' + espaciosOcupados + ' / ' + espaciosMaximos;
+    }
+    
+    // Cambiar color basado en los espacios disponibles
+    if (espaciosOcupados >= espaciosTotales) {
+        contadorEspacios.style.color = '#f44336'; // Rojo cuando está lleno
+    } else if (espaciosAdicionales > 0) {
+        contadorEspacios.style.color = '#4caf50'; // Verde cuando hay espacios adicionales
+    } else {
+        contadorEspacios.style.color = 'white';
+    }
+    
+    // Generar espacios visuales
+    generarEspaciosVisuales();
+}
+
+// Función para equipar un item (bolsa/ropa)
+function equiparItem(objetoId) {
+    var objeto = objetos_json[objetoId][0];
+    var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+    var imagen_id = objeto.imagen_id;
+    
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    if (subcategoria === 'cofres' || subcategoria === 'akuma_no_mi' || objetoId === 'EANM001' || 
+        objetoId === 'LLST001' || objetoId === 'THR001' || subcategoria === 'materiales' || 
+        subcategoria === 'tecnicas' || objetoId === 'EPA001' || objetoId === 'KMP001' || 
+        objetoId === 'VCD001' || objetoId === 'VCZ001' || subcategoria === 'documentos' || 
+        subcategoria === 'recetas') {
+        imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = '/images/op/iconos/' + imagen_nombre;
+    if (objeto.imagen_avatar !== '') {
+        imagen = objeto.imagen_avatar;
+    }
+    
+    var espaciosOtorgados = extraerEspaciosDelEfecto(objeto.efecto, objeto.dano);
+    
+    if (tipoEquipamientoSeleccionado === 'equipajes') {
+        objetosEquipados.bolsa = objetoId;
+        var imagenBolsa = document.getElementById('imagen-bolsa-equipada');
+        imagenBolsa.src = imagen;
+        imagenBolsa.alt = objeto.nombre;
+        
+        var slotBolsa = document.getElementById('slot-bolsa');
+        slotBolsa.title = objeto.nombre + ' - +' + espaciosOtorgados + ' Espacios';
+        
+    } else if (tipoEquipamientoSeleccionado === 'ropa y armaduras') {
+        objetosEquipados.ropa = objetoId;
+        var imagenRopa = document.getElementById('imagen-ropa-equipada');
+        imagenRopa.src = imagen;
+        imagenRopa.alt = objeto.nombre;
+        
+        var slotRopa = document.getElementById('slot-ropa');
+        slotRopa.title = objeto.nombre + ' - +' + espaciosOtorgados + ' Espacios';
+    }
+    
+    actualizarContadorEspacios();
+    cerrarSelectorEquipamiento();
+    mostrarMensajeEquipamiento(objeto.nombre + ' equipado correctamente. +' + espaciosOtorgados + ' espacios añadidos.');
+}
+
+// Event listener para cerrar modal con click fuera
+$(document).ready(function() {
+    $(window).click(function(event) {
+        var modal = document.getElementById('modalSelectorEquipamiento');
+        if (event.target === modal) {
+            cerrarSelectorEquipamiento();
+        }
+    });
+    
+    // Inicializar equipamiento al cargar la página
+    espaciosOcupados = 0;
+    objetosEquipados.espacios = {};
+    actualizarContadorEspacios();
+});
+</script>

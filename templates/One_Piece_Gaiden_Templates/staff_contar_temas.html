@@ -1,0 +1,62 @@
+<html>
+
+<head>
+  <title>Contar temas abiertos users</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+	  
+	<p>
+		<h2>Instrucciones de uso:</h2>
+
+		Introducir el tipo de tema (ver leyenda. Tipo de tema 0 es sin prefijo)
+	</br>
+		Introducir el id del personaje (se puede ver en la ficha).
+	</br>
+		Darle a Enviar.
+	</br>
+	</br>
+		Casos posibles:
+		<ul>
+            <li>Indicar los dos campos: Mostrará la cantidad de temas del tipo indicado para el usuario indicado</li>
+			<li>Dejar el campo usuario en blanco: Mostrará todos los usuarios y la cantidad de temas del tipo de tema indicado</li>
+            <li>Dejar el campo tipo en blanco: Mostrará la cantidad de todos los tipos de tema del usuario indicado</li>
+            <li>Dejar los en blanco: Mostrará la cantidad de todos los tipos de temas de todos los usuarios</li>
+        </ul>
+	 </p>
+</br>
+	<form action="/op/staff/contar_temas.php" method="post">
+        <p>Tipos de tema:</p>
+        <ol>
+            <li>Común</li>
+            <li>Anuncio</li>
+            <li>Aventura</li>
+            <li>Combate</li>
+            <li>Presente</li>
+            <li>Diario</li>
+        </ol>
+		
+		</br>
+        <label for="tipo">Tipo de tema:</label>
+        <input type="text" id="tipo" name="tipo">
+
+        <br><br>
+
+        <label for="usuario">Usuario:</label>
+        <input type="text" id="usuario" name="usuario">
+
+        <br><br>
+
+        <input type="submit" value="Enviar">
+		</br>
+	  	{$log} 
+
+    </form>
+  </div>
+  {$footer}
+</body>
+
+</html>

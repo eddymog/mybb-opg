@@ -1,0 +1,65 @@
+<style>
+/* Estilo tipo Google Calendar (inspirado, no copiado). Tonos suaves, grid claro */
+.gc-wrap { --gc-bg:#fff; --gc-line:#e6e6e6; --gc-accent:#1a73e8; --gc-muted:#6b7280; --gc-today:#e8f0fe; --gc-text:#111827; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif; color:var(--gc-text); background:var(--gc-bg); }
+.gc-container { max-width: 1100px; margin: 1.25rem auto; padding: 0 1rem; }
+
+.gc-toolbar { display:flex; align-items:center; gap:.5rem; border-bottom:1px solid var(--gc-line); padding:.5rem 0; }
+.gc-title { font-weight:600; font-size:1.125rem; margin-left:.25rem; flex:1; }
+.gc-btn { display:inline-flex; align-items:center; justify-content:center; height:32px; padding:0 .75rem; font-size:.875rem; border-radius:6px; background:#f3f4f6; color:#111827; text-decoration:none; }
+.gc-btn:hover { background:#e5e7eb; }
+.gc-todaybtn { background:var(--gc-accent); color:#fff; }
+.gc-todaybtn:hover { filter:brightness(0.95); }
+
+.gc-weekdays { display:grid; grid-template-columns: repeat(7, 1fr); gap:0; color:var(--gc-muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; padding:.5rem 0 .25rem; }
+.gc-weekday { text-align:right; padding: .25rem .5rem; }
+
+.gc-grid { display:grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(110px, 1fr); border-top:1px solid var(--gc-line); border-left:1px solid var(--gc-line); }
+.gc-cell { position:relative; border-right:1px solid var(--gc-line); border-bottom:1px solid var(--gc-line); padding:.5rem; overflow:hidden; background:#fff; }
+.gc-cell:hover { background:#fafafa; }
+.gc-today { background:var(--gc-today); }
+.gc-daynum { position:absolute; top:.35rem; right:.5rem; font-size:.875rem; color:var(--gc-muted); }
+.gc-events { margin-top:1.5rem; display:flex; flex-direction:column; gap:.25rem; }
+
+/* “Evento” tipo píldora (si luego agregas datos) */
+.gc-event { display:inline-block; max-width:100%; padding:.125rem .375rem; border-radius:999px; font-size:.75rem; line-height:1.2; color:#fff; background:var(--gc-accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .gc-grid { grid-auto-rows: 90px; }
+}
+@media (max-width: 640px) {
+  .gc-weekdays { display:none; }
+  .gc-grid { grid-auto-rows: 80px; }
+  .gc-daynum { font-size:.75rem; }
+}
+
+/* Acentos por temporada */
+:root { --gc-accent:#1a73e8; }
+.gc-wrap.season-primavera { --gc-accent:#22c55e; } /* verde */
+.gc-wrap.season-verano    { --gc-accent:#f59e0b; } /* ámbar */
+.gc-wrap.season-otono     { --gc-accent:#ef4444; } /* rojo */
+.gc-wrap.season-invierno  { --gc-accent:#3b82f6; } /* azul */
+
+.gc-grid {
+  margin-top: .5rem; /* separa un poco de la toolbar */
+}
+	
+</style>
+<html>
+<head>
+    <title>Cronología</title>
+    {$headerinclude}
+    <link rel="stylesheet" href="cache/themes/cronologia.css?v=1">
+</head>
+<body>
+    {$header}
+    <div class="container">
+        <div class="cronologia-page">
+            <div class="gc-container">
+                {$calendar_html}
+            </div>
+        </div>
+    </div>
+    {$footer}
+</body>
+</html>

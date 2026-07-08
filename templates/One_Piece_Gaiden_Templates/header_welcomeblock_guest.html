@@ -1,0 +1,42 @@
+<span class="float_left">
+	<a href="{$mybb->settings['bburl']}/member.php?action=login" onclick="$('#quick_login').modal({ fadeDuration: 250, keepelement: true, zIndex: (typeof modal_zindex !== 'undefined' ? modal_zindex : 9999) }); return false;" class="login bradius">{$lang->welcome_login}</a>
+	<a href="{$mybb->settings['bburl']}/member.php?action=register" class="register bradius">{$lang->welcome_register}</a>
+</span>
+	<div class="modal login-modal" id="quick_login" style="display: none;">
+		<form method="post" action="{$mybb->settings['bburl']}/member.php">
+			<input name="action" type="hidden" value="do_login" />
+			<input name="url" type="hidden" value="" />
+			<input name="quick_login" type="hidden" value="1" />
+			<input name="my_post_key" type="hidden" value="{$mybb->post_code}" />
+			<table width="100%" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" border="0" class="tborder">
+				<tr>
+					<td class="thead signin" colspan="3">{$lang->login}</td>
+				</tr>
+				{$loginform}
+			</table>
+		</form>
+	</div>
+	<script type="text/javascript">
+		$("#quick_login input[name='url']").val($(location).attr('href'));
+	</script>
+	<ul class="menu top_links float_right">
+		<li><a href="{$mybb->settings['bburl']}/portal.php">{$lang->toplinks_portal}</a></li>
+		<li><a href="{$mybb->settings['bburl']}/index.php">Forums</a></li>
+		<li><a href="{$mybb->settings['bburl']}/search.php">{$lang->toplinks_search}</a></li>
+		<li><a href="{$mybb->settings['bburl']}/memberlist.php">{$lang->toplinks_memberlist}</a></li>
+		<li><a href="{$mybb->settings['bburl']}/calendar.php">{$lang->toplinks_calendar}</a></li>
+		<li><a href="{$mybb->settings['bburl']}/misc.php?action=help" class="help">{$lang->toplinks_help}</a></li>
+	</ul>
+	</div>
+</div>
+<div class="lower">
+	<a class="buttons float_right"></a>
+	<a class="clickedbuttons float_right"></a>
+	<div class="wrapper">
+		<ul class="menu user_links">
+			<li><a href="{$mybb->settings['bburl']}/search.php?action=getnew">{$lang->welcome_newposts}</a></li>
+			<li><a href="{$mybb->settings['bburl']}/search.php?action=getdaily">{$lang->welcome_todaysposts}</a></li>
+		</ul>		
+	</div>
+	<br class="clear" />
+</div>

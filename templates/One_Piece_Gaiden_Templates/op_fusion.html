@@ -1,0 +1,1556 @@
+<html>
+
+<head>
+  <title>One Piece Gaiden - Fusión de Objetos</title>
+  {$headerinclude}
+  <style>
+    .fusion-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .fusion-title {
+      width: 100%;
+      margin-bottom: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .fusion-title img {
+      width: 990px;
+      height: 75px;
+      margin: 0 auto;
+    }
+    
+    .fusion-workspace {
+      background-image: url('/images/op/uploads/MoldeFusion_One_Piece_Gaiden_Foro_Rol.webp');
+      background-size: cover;
+      background-position: center;
+      width: 990px;
+      height: 370px;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    
+    .fusion-items {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    .fusion-column {
+      width: 48%;
+    }
+    
+    .fusion-header {
+      background-color: #663cad;
+      color: white;
+      font-family: 'moonGetHeavy';
+      font-size: 20px;
+      padding: 10px;
+      text-align: center;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      margin-bottom: 0;
+    }
+    
+    .fusion-items-list {
+      background-color: #ffe8b3a8;
+      border: 2px solid #663cad;
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    
+    .fusion-slot {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: 2px dashed #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    #base-slot {
+      left: 167px;
+      top: 80px;
+    }
+    
+    #engaste-slot {
+      right: 473px;
+      top: 85px;
+    }
+    
+    #result-slot {
+      right: 144px;
+      top: 145px;
+    }
+    
+    #parte1-slot {
+      left: 167px;
+      top: 80px;
+    }
+    
+    #parte2-slot {
+      right: 473px;
+      top: 85px;
+    }
+    
+    #result-partes-slot {
+      right: 144px;
+      top: 145px;
+    }
+    
+    .item-outer {
+      width: 84px;
+      height: 108px;
+      margin: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .item-outer:hover {
+      transform: scale(1.1);
+    }
+    
+    .item-outer.selected {
+      box-shadow: 0 0 8px 2px #ff9900;
+      background-color: rgba(255, 153, 0, 0.2);
+    }
+    
+    .item-outer.incompatible {
+      opacity: 0.5;
+    }
+    
+    .item-image {
+      width: 80px;
+      height: 80px;
+      border: 2px solid #663cad;
+      background-color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    
+    .item-image img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    
+    .item-nombre {
+      width: 80px;
+      height: 20px;
+      background-color: #663cad;
+      color: white;
+      font-size: 11px;
+      text-align: center;
+      padding: 2px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .fusion-info {
+      background-color: #ffa951;
+      border: 2px solid #663cad;
+      padding: 10px;
+      margin-top: 10px;
+      min-height: 100px;
+    }
+    
+    .fusion-button {
+      background-color: #663cad;
+      color: white;
+      font-family: 'moonGetHeavy';
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    
+    .fusion-button:hover {
+      background-color: #8450d7;
+      transform: scale(1.05);
+    }
+    
+    .fusion-button:disabled {
+      background-color: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .tooltip {
+      position: relative;
+    }
+    
+    .tooltiptext {
+      visibility: hidden;
+      width: 300px;
+      background-color: #2c2c2c;
+      color: #fff;
+      border: 2px solid #663cad;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 100%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .item-slots {
+      font-size: 10px;
+      text-align: center;
+      margin-top: 2px;
+      color: white;
+      background-color: #1a1a1a;
+      padding: 2px;
+    }
+    
+    .fusion-label {
+      font-family: 'moonGetHeavy';
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      position: absolute;
+    }
+    
+    .fusion-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    .fusion-tab {
+      background-color: #663cad;
+      color: white;
+      font-family: 'moonGetHeavy';
+      font-size: 18px;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      transition: all 0.3s;
+      opacity: 0.6;
+    }
+    
+    .fusion-tab:hover {
+      opacity: 0.8;
+    }
+    
+    .fusion-tab.active {
+      opacity: 1;
+      background-color: #8450d7;
+      transform: translateY(-3px);
+      box-shadow: 0 3px 10px rgba(102, 60, 173, 0.5);
+    }
+    
+    .fusion-tab-content {
+      display: none;
+      width: 100%;
+    }
+    
+    .fusion-tab-content.active {
+      display: block;
+    }
+    
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+          <div class="fusion-container">
+            <div class="fusion-title">
+              <img src="/images/op/uploads/TituloFusionesObjetos_One_Piece_Gaiden_Foro_Rol.webp" alt="Fusión de Objetos" style="width: 100%; max-width: 1000px;">
+            </div>
+            
+            <div class="fusion-tabs">
+              <button class="fusion-tab active" onclick="cambiarTab('engastes')">FUSIÓN DE ENGASTES</button>
+              <button class="fusion-tab" onclick="cambiarTab('partes')">FUSIÓN DE PARTES</button>
+            </div>
+            
+            <!-- TAB 1: FUSIÓN DE ENGASTES -->
+            <div id="tab-engastes" class="fusion-tab-content active">
+              <div class="fusion-workspace">              
+              <div id="base-slot" class="fusion-slot" onclick="clearBaseSlot()">
+                <!-- Contenido del slot base -->
+              </div>
+              
+              <div id="engaste-slot" class="fusion-slot" onclick="clearEngasteSlot()">
+                <!-- Contenido del slot engaste -->
+              </div>
+              
+              <div id="result-slot" class="fusion-slot">
+                <!-- Contenido del slot resultado -->
+              </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 10px;">
+              <div class="fusion-info" id="fusion-info" style="width: 48%; margin: 0;">
+                <!-- Aquí se mostrará la información de fusión -->
+                <p>Selecciona un objeto base y un engaste para fusionarlos.</p>
+              </div>
+              
+              <div class="fusion-info" id="result-info" style="display: none; width: 48%; margin: 0;">
+                <!-- Aquí se mostrará la información del objeto resultante -->
+              </div>
+            </div>
+            
+            <button id="fusion-button" class="fusion-button" disabled onclick="fusionarObjetos()">FUSIONAR OBJETOS</button>
+            
+            <div class="fusion-items">
+              <div class="fusion-column">
+                <div class="fusion-header">OBJETOS BASE</div>
+                <div id="base-items" class="fusion-items-list">
+                  <!-- Aquí se cargarán los objetos base del inventario -->
+                </div>
+              </div>
+              
+              <div class="fusion-column">
+                <div class="fusion-header">ENGASTES</div>
+                <div id="engaste-items" class="fusion-items-list">
+                  <!-- Aquí se cargarán los engastes del inventario -->
+                </div>
+              </div>
+            </div>
+            </div>
+            <!-- FIN TAB 1 -->
+            
+            <!-- TAB 2: FUSIÓN DE PARTES -->
+            <div id="tab-partes" class="fusion-tab-content">
+              <div class="fusion-workspace">              
+                <div id="parte1-slot" class="fusion-slot" onclick="clearParte1Slot()">
+                  <!-- Contenido del slot parte 1 -->
+                </div>
+                
+                <div id="parte2-slot" class="fusion-slot" onclick="clearParte2Slot()">
+                  <!-- Contenido del slot parte 2 -->
+                </div>
+                
+                <div id="result-partes-slot" class="fusion-slot">
+                  <!-- Contenido del slot resultado -->
+                </div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 10px;">
+                <div class="fusion-info" id="fusion-partes-info" style="width: 48%; margin: 0;">
+                  <!-- Aquí se mostrará la información de fusión de partes -->
+                  <p>Selecciona dos partes de arma compatibles para fusionarlas.</p>
+                </div>
+                
+                <div class="fusion-info" id="result-partes-info" style="display: none; width: 48%; margin: 0;">
+                  <!-- Aquí se mostrará la información del arma resultante -->
+                </div>
+              </div>
+              
+              <button id="fusion-partes-button" class="fusion-button" disabled onclick="fusionarPartes()">FUSIONAR PARTES</button>
+              
+              <div class="fusion-items">
+                <div style="width: 100%;">
+                  <div class="fusion-header">PARTES DISPONIBLES</div>
+                  <div id="partes-items" class="fusion-items-list">
+                    <!-- Aquí se cargarán las partes del inventario -->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- FIN TAB 2 -->
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {$footer}
+</body>
+
+<script>
+// Datos del inventario del usuario - obtenidos del servidor
+const objetos_array_json = {$objetos_array_json} || [];
+const objetos_json = {$objetos_json} || {};
+
+console.log('Variables inicializadas:', {
+    objetos_array_json: objetos_array_json,
+    objetos_json: objetos_json
+});
+
+// Variables para tracking de objetos seleccionados - TAB ENGASTES
+let baseSeleccionada = null;
+let engasteSeleccionado = null;
+
+// Para organizar los objetos por categoría - TAB ENGASTES
+const objetosBase = [];
+const objetosEngaste = [];
+
+// Variables para tracking de partes seleccionadas - TAB PARTES
+let parte1Seleccionada = null;
+let parte2Seleccionada = null;
+
+// Para organizar las partes por tipo - TAB PARTES
+const partesTipo1 = [];
+const partesTipo2 = [];
+
+// Función para obtener objeto por ID (con fallback a ID base)
+function obtenerObjeto(objetoId) {
+    // Primero intentar buscar el ID exacto
+    if (objetos_json[objetoId] && objetos_json[objetoId][0]) {
+        return objetos_json[objetoId][0];
+    }
+    
+    // Si no se encuentra, intentar con la parte base del ID (antes del primer guión)
+    let baseId = objetoId.split('-')[0];
+    if (objetos_json[baseId] && objetos_json[baseId][0]) {
+        return objetos_json[baseId][0];
+    }
+    
+    return null;
+}
+// Función para seleccionar un objeto base
+function seleccionarBase(objetoId) {
+    // Limpiar selección anterior
+    if (baseSeleccionada) {
+        document.getElementById('item-' + baseSeleccionada.objeto_id).classList.remove('selected');
+    }
+    
+    // Seleccionar nuevo objeto usando la función auxiliar
+    baseSeleccionada = obtenerObjeto(objetoId);
+    if (!baseSeleccionada) {
+        console.error('No se pudo encontrar el objeto:', objetoId);
+        return;
+    }
+    
+    // Conservar el ID original del objeto variante para identificación visual
+    baseSeleccionada.objeto_id_variante = objetoId;
+    
+    document.getElementById('item-' + objetoId).classList.add('selected');
+    
+    // Actualizar slot en la interfaz
+    var baseSlot = document.getElementById('base-slot');
+    baseSlot.innerHTML = '';
+    
+    // Mostrar imagen del objeto seleccionado
+    var subcategoria = baseSeleccionada.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = baseSeleccionada.tier;
+    var imagen_id = baseSeleccionada.imagen_id;
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (baseSeleccionada.imagen_avatar && baseSeleccionada.imagen_avatar !== '') {
+        imagen = baseSeleccionada.imagen_avatar;
+    }
+    
+    baseSlot.innerHTML = '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="' + baseSeleccionada.nombre + '">';
+    
+    // Limpiar engaste si había uno seleccionado para forzar comprobar compatibilidad
+    if (engasteSeleccionado) {
+        clearEngasteSlot();
+    }
+    
+    // Actualizar info de fusión y compatibilidad visual
+    actualizarCompatibilidadEngastes();
+    actualizarInfoFusion();
+}
+
+// Función para seleccionar un engaste
+function seleccionarEngaste(objetoId) {
+    // Si no hay base seleccionada, no permitir seleccionar engaste
+    if (!baseSeleccionada) {
+        alert("Primero debes seleccionar un objeto base.");
+        return;
+    }
+    
+    // Limpiar selección anterior
+    if (engasteSeleccionado) {
+        var idParaLimpiar = engasteSeleccionado.objeto_id_variante || engasteSeleccionado.objeto_id;
+        document.getElementById('item-' + idParaLimpiar).classList.remove('selected');
+    }
+    
+    // Seleccionar nuevo objeto usando la función auxiliar
+    engasteSeleccionado = obtenerObjeto(objetoId);
+    if (!engasteSeleccionado) {
+        console.error('No se pudo encontrar el objeto:', objetoId);
+        return;
+    }
+    
+    // Conservar el ID original del objeto variante para identificación visual
+    engasteSeleccionado.objeto_id_variante = objetoId;
+    
+    // Comprobar compatibilidad
+    var ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+    var tamanoEngaste = parseInt(engasteSeleccionado.tamano_engaste) || 1;
+    
+    if (tamanoEngaste > ranurasBase) {
+        alert("Este engaste requiere " + tamanoEngaste + " ranuras, pero la base solo tiene " + ranurasBase + ".");
+        engasteSeleccionado = null;
+        return;
+    }
+    
+    // Marcar como seleccionado visualmente
+    document.getElementById('item-' + objetoId).classList.add('selected');
+    
+    // Actualizar slot en la interfaz
+    var engasteSlot = document.getElementById('engaste-slot');
+    engasteSlot.innerHTML = '';
+    
+    // Mostrar imagen del objeto seleccionado
+    var subcategoria = engasteSeleccionado.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = engasteSeleccionado.tier;
+    var imagen_id = engasteSeleccionado.imagen_id;
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (engasteSeleccionado.imagen_avatar && engasteSeleccionado.imagen_avatar !== '') {
+        imagen = engasteSeleccionado.imagen_avatar;
+    }
+    
+    engasteSlot.innerHTML = '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="' + engasteSeleccionado.nombre + '">';
+    
+    // Actualizar info de fusión y vista previa del resultado
+    actualizarInfoFusion();
+    actualizarResultadoPrevio();
+}
+
+// Función para cambiar de tab
+function cambiarTab(tabName) {
+    // Ocultar todos los tabs
+    document.querySelectorAll('.fusion-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Desactivar todos los botones de tab
+    document.querySelectorAll('.fusion-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Mostrar el tab seleccionado
+    if (tabName === 'engastes') {
+        document.getElementById('tab-engastes').classList.add('active');
+        document.querySelectorAll('.fusion-tab')[0].classList.add('active');
+    } else if (tabName === 'partes') {
+        document.getElementById('tab-partes').classList.add('active');
+        document.querySelectorAll('.fusion-tab')[1].classList.add('active');
+    }
+}
+
+// Inicializar la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarObjetosInventario();
+    cargarPartesInventario();
+    actualizarInfoFusion();
+    actualizarInfoFusionPartes();
+});
+// Función para cargar los objetos del inventario
+function cargarObjetosInventario() {
+    console.log('=== INICIANDO CARGA DE OBJETOS ===');
+    console.log('objetos_array_json:', objetos_array_json);
+    console.log('objetos_json keys:', Object.keys(objetos_json));
+    
+    // Validar que los datos estén disponibles
+    if (!objetos_array_json || !Array.isArray(objetos_array_json) || objetos_array_json.length === 0) {
+        console.warn('No hay objetos en el inventario o datos no válidos');
+        document.getElementById('base-items').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No se pudieron cargar los objetos del inventario.</div>';
+        document.getElementById('engaste-items').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No se pudieron cargar los objetos del inventario.</div>';
+        return;
+    }
+    
+    // Limpiar arrays antes de comenzar
+    objetosBase.length = 0;
+    objetosEngaste.length = 0;
+    
+    // Recorrer el array de objetos del inventario del usuario
+    for (let i = 0; i < objetos_array_json.length; i++) {
+        let objetoId = objetos_array_json[i];
+        if (objetoId == 'LLST001') { continue; } // Ignorar caso especial
+        
+        // Verificar que el objeto existe en objetos_json
+        let objeto = null;
+        
+        // Usar la función auxiliar obtenerObjeto para manejar variantes
+        objeto = obtenerObjeto(objetoId);
+        
+        if (!objeto) {
+            console.log('Objeto no encontrado en objetos_json:', objetoId);
+            continue;
+        }
+        
+        console.log('Procesando objeto:', objetoId, objeto);
+        
+        // Verificar el campo fusion_tipo para clasificar los objetos
+        // Solo procesar si fusion_tipo tiene un valor válido (no vacío, null o undefined)
+        if (objeto.fusion_tipo && objeto.fusion_tipo.trim() !== '') {
+            console.log('Objeto con fusion_tipo válido:', objetoId, 'tipo:', objeto.fusion_tipo);
+            
+            if (objeto.fusion_tipo === 'base') {
+                // El objeto puede servir como base para fusión
+                // Usar el campo 'engastes' para determinar cuántos engastes puede alojar
+                const engastesPermitidos = parseInt(objeto.engastes) || 0;
+                console.log('Objeto base encontrado:', objetoId, 'engastes:', engastesPermitidos);
+                
+                // Solo agregar si tiene al menos 1 ranura para engastes
+                if (engastesPermitidos > 0) {
+                    objetosBase.push({...objeto, objeto_id_variante: objetoId});
+                    console.log('Objeto base agregado:', objetoId);
+                }
+            } else if (objeto.fusion_tipo === 'engaste') {
+                // El objeto puede servir como engaste
+                objetosEngaste.push({...objeto, objeto_id_variante: objetoId});
+                console.log('Objeto engaste agregado:', objetoId);
+            }
+        } else {
+            console.log('Objeto sin fusion_tipo válido:', objetoId, 'fusion_tipo:', objeto.fusion_tipo);
+        }
+        // Si fusion_tipo está vacío, es null, undefined o tiene otro valor, 
+        // el objeto no se incluye en el sistema de fusión
+    }
+    
+    console.log('=== RESUMEN ===');
+    console.log('Objetos base encontrados:', objetosBase.length, objetosBase);
+    console.log('Objetos engaste encontrados:', objetosEngaste.length, objetosEngaste);
+    
+    // Cargar los objetos base en la lista
+    const baseContainer = document.getElementById('base-items');
+    objetosBase.forEach(objeto => {
+        // Obtener el número de engastes que puede alojar este objeto base
+        const engastesPermitidos = parseInt(objeto.engastes) || 0;
+        
+        baseContainer.innerHTML += crearItemHtml(objeto, 'base', engastesPermitidos);
+    });
+    
+    // Cargar los engastes en la lista
+    const engasteContainer = document.getElementById('engaste-items');
+    objetosEngaste.forEach(objeto => {
+        // Para los engastes, usar el campo tamano_engaste si existe, sino default a 1
+        const tamanoEngaste = parseInt(objeto.tamano_engaste) || 1;
+        
+        engasteContainer.innerHTML += crearItemHtml(objeto, 'engaste', tamanoEngaste);
+    });
+    
+    console.log('=== CONTENEDORES DESPUÉS DE CARGAR ===');
+    console.log('Base container HTML:', baseContainer.innerHTML);
+    console.log('Engaste container HTML:', engasteContainer.innerHTML);
+    
+    // Mostrar mensajes informativos si no hay objetos
+    if (objetosBase.length === 0) {
+        baseContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666; font-family: InterRegular;">No tienes objetos base disponibles para fusión.<br><small></small></div>';
+    }
+    
+    if (objetosEngaste.length === 0) {
+        engasteContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666; font-family: InterRegular;">No tienes engastes disponibles para fusión.<br><small></small></div>';
+    }
+    
+    // Agregar event listeners
+    document.querySelectorAll('.item-base').forEach(item => {
+        item.addEventListener('click', () => seleccionarBase(item.getAttribute('data-id')));
+    });
+    
+    document.querySelectorAll('.item-engaste').forEach(item => {
+        item.addEventListener('click', () => seleccionarEngaste(item.getAttribute('data-id')));
+    });
+}
+// Función para actualizar la compatibilidad visual de los engastes
+function actualizarCompatibilidadEngastes() {
+    if (!baseSeleccionada) return;
+    
+    // Obtener las ranuras disponibles del objeto base
+    const ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+    
+    // Revisar cada engaste y marcar como incompatible si tiene más ranuras que la base
+    document.querySelectorAll('.item-engaste').forEach(item => {
+        const idEngaste = item.getAttribute('data-id');
+        const objetoEngaste = objetos_json[idEngaste][0];
+        const tamanoEngaste = parseInt(objetoEngaste.tamano_engaste) || 1;
+        
+        if (tamanoEngaste > ranurasBase) {
+            item.classList.add('incompatible');
+        } else {
+            item.classList.remove('incompatible');
+        }
+    });
+}
+
+// Función para limpiar el slot base
+function clearBaseSlot() {
+    if (baseSeleccionada) {
+        // Usar el ID de la variante para limpiar la selección visual
+        var idParaLimpiar = baseSeleccionada.objeto_id_variante || baseSeleccionada.objeto_id;
+        document.getElementById('item-' + idParaLimpiar).classList.remove('selected');
+        document.getElementById('base-slot').innerHTML = "";
+        baseSeleccionada = null;
+        
+        // Si había un engaste seleccionado, también lo limpiamos
+        if (engasteSeleccionado) {
+            clearEngasteSlot();
+        }
+        
+        // Ocultar información del resultado
+        document.getElementById('result-info').style.display = 'none';
+        
+        actualizarInfoFusion();
+    }
+}
+
+// Función para limpiar el slot engaste
+function clearEngasteSlot() {
+    if (engasteSeleccionado) {
+        // Usar el ID de la variante para limpiar la selección visual
+        var idParaLimpiar = engasteSeleccionado.objeto_id_variante || engasteSeleccionado.objeto_id;
+        document.getElementById('item-' + idParaLimpiar).classList.remove('selected');
+        document.getElementById('engaste-slot').innerHTML = "";
+        document.getElementById('result-slot').innerHTML = "";
+        engasteSeleccionado = null;
+        
+        // Ocultar información del resultado
+        document.getElementById('result-info').style.display = 'none';
+        
+        actualizarInfoFusion();
+    }
+}
+
+// Función para actualizar la información de fusión
+function actualizarInfoFusion() {
+    var infoContainer = document.getElementById('fusion-info');
+    var fusionButton = document.getElementById('fusion-button');
+    
+    if (!baseSeleccionada) {
+        infoContainer.innerHTML = "<p>Selecciona un objeto base para comenzar.</p>";
+        fusionButton.disabled = true;
+        return;
+    }
+    
+    if (!engasteSeleccionado) {
+        const ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+        infoContainer.innerHTML = 
+            '<p>Has seleccionado <strong>' + baseSeleccionada.nombre + '</strong> como base.</p>' +
+            '<p>Ahora selecciona un engaste compatible.</p>' +
+            '<p><strong>Ranuras disponibles:</strong> ' + ranurasBase + '</p>';
+        fusionButton.disabled = true;
+        return;
+    }
+    
+    // Comprobar compatibilidad
+    var ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+    var tamanoEngaste = parseInt(engasteSeleccionado.tamano_engaste) || 1;
+    
+    if (tamanoEngaste > ranurasBase) {
+        infoContainer.innerHTML = 
+            '<p style="color: red;">Este engaste requiere ' + tamanoEngaste + ' ranuras, pero la base solo tiene ' + ranurasBase + '.</p>' +
+            '<p>Por favor, selecciona un engaste compatible o una base con más ranuras.</p>';
+        fusionButton.disabled = true;
+        return;
+    }
+    
+    // Si son compatibles, mostrar información de fusión
+    infoContainer.innerHTML = 
+        '<p><strong>Base:</strong> ' + baseSeleccionada.nombre + ' (' + ranurasBase + ' ranuras)</p>' +
+        '<p><strong>Engaste:</strong> ' + engasteSeleccionado.nombre + ' (ocupa ' + tamanoEngaste + ' ' + (tamanoEngaste > 1 ? 'ranuras' : 'ranura') + ')</p>' +
+        '<p><strong>Ranuras restantes tras fusión:</strong> ' + (ranurasBase - tamanoEngaste) + '</p>' +
+        '<p>Estos objetos son compatibles y pueden ser fusionados.</p>';
+    fusionButton.disabled = false;
+}
+
+// Función para actualizar la vista previa del resultado
+function actualizarResultadoPrevio() {
+    if (!baseSeleccionada || !engasteSeleccionado) {
+        document.getElementById('result-slot').innerHTML = "";
+        document.getElementById('result-info').style.display = 'none';
+        return;
+    }
+    
+    // Mostrar una vista previa del objeto resultante
+    var resultSlot = document.getElementById('result-slot');
+    var subcategoria = baseSeleccionada.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = baseSeleccionada.tier;
+    var imagen_id = baseSeleccionada.imagen_id;
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || baseSeleccionada.objeto_id == 'EANM001' || 
+        baseSeleccionada.objeto_id == 'LLST001' || baseSeleccionada.objeto_id == 'THR001' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || baseSeleccionada.objeto_id == 'EPA001' || baseSeleccionada.objeto_id == 'KMP001' || 
+        baseSeleccionada.objeto_id == 'VCD001' || baseSeleccionada.objeto_id == 'VCZ001' || subcategoria == 'documentos' || 
+        subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (baseSeleccionada.imagen_avatar != '') {
+        imagen = baseSeleccionada.imagen_avatar;
+    }
+    
+    resultSlot.innerHTML = 
+        '<div style="position: relative;">' +
+        '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="Resultado de fusión">' +
+        '<div style="position: absolute; top: -5px; right: -5px; background-color: #ff9900; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 12px;">+</div>' +
+        '</div>';
+    
+    // Mostrar información del objeto fusionado
+    actualizarInfoResultado();
+}
+
+// Función para actualizar la información del objeto resultante
+function actualizarInfoResultado() {
+    if (!baseSeleccionada || !engasteSeleccionado) {
+        return;
+    }
+    
+    var resultInfo = document.getElementById('result-info');
+    
+    // Crear el nombre fusionado
+    var nombreBase = (baseSeleccionada.apodo && baseSeleccionada.apodo !== '') ? baseSeleccionada.apodo : baseSeleccionada.nombre;
+    var nombreEngaste = (engasteSeleccionado.apodo && engasteSeleccionado.apodo !== '') ? engasteSeleccionado.apodo : engasteSeleccionado.nombre;
+    var nombreFusionado = nombreBase + " + " + nombreEngaste;
+    
+    // Fusionar las descripciones
+    var descripcionBase = baseSeleccionada.descripcion || '';
+    var descripcionEngaste = engasteSeleccionado.descripcion || '';
+    var descripcionFusionada = descripcionBase;
+    
+    if (descripcionEngaste && descripcionEngaste.trim() !== '') {
+        if (descripcionBase && descripcionBase.trim() !== '') {
+            descripcionFusionada += "\n\nEfecto del engaste: " + descripcionEngaste;
+        } else {
+            descripcionFusionada = "Efecto del engaste: " + descripcionEngaste;
+        }
+    }
+    
+    // Calcular ranuras restantes
+    var ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+    var tamanoEngaste = parseInt(engasteSeleccionado.tamano_engaste) || 1;
+    var ranurasRestantes = ranurasBase - tamanoEngaste;
+    
+    // Crear el HTML para mostrar la información
+    var infoHTML = 
+        '<h3 style="color: #663cad; font-family: moonGetHeavy; text-align: center; margin-top: 0;">OBJETO FUSIONADO</h3>' +
+        '<div style="border: 2px solid #663cad; padding: 10px; background-color: rgba(255, 232, 179, 0.3);">' +
+            '<div style="font-family: moonGetHeavy; color: #663cad; font-size: 16px; text-align: center; margin-bottom: 10px;">' + nombreFusionado + '</div>' +
+            '<div style="font-family: InterRegular; font-size: 12px; margin-bottom: 10px; text-align: justify;">' + descripcionFusionada.replace(/\n/g, '<br>') + '</div>' +
+            '<div style="display: flex; justify-content: space-between; font-family: InterRegular; font-size: 11px; color: #666;">' +
+                '<span><strong>Categoría:</strong> ' + baseSeleccionada.subcategoria + '</span>' +
+                '<span><strong>Tier:</strong> ' + baseSeleccionada.tier + '</span>' +
+            '</div>' +
+            '<div style="text-align: center; font-family: InterRegular; font-size: 11px; color: #666; margin-top: 5px;">' +
+                '<strong>Ranuras restantes:</strong> ' + ranurasRestantes + '/' + ranurasBase +
+            '</div>' +
+        '</div>';
+    
+    resultInfo.innerHTML = infoHTML;
+    resultInfo.style.display = 'block';
+}
+
+// Función para fusionar los objetos
+function fusionarObjetos() {
+    if (!baseSeleccionada || !engasteSeleccionado) {
+        alert("Debes seleccionar una base y un engaste compatibles.");
+        return;
+    }
+    
+    // Verificar compatibilidad una vez más
+    var ranurasBase = parseInt(baseSeleccionada.engastes) || 0;
+    var tamanoEngaste = parseInt(engasteSeleccionado.tamano_engaste) || 1;
+    
+    if (tamanoEngaste > ranurasBase) {
+        alert("El engaste requiere más ranuras de las que tiene la base.");
+        return;
+    }
+    
+    // Confirmación
+    if (!confirm("¿Estás seguro de que deseas fusionar \"" + baseSeleccionada.nombre + "\" con \"" + engasteSeleccionado.nombre + "\"? Esta acción no se puede deshacer.")) {
+        return;
+    }
+    
+    // Enviar petición al servidor para procesar la fusión
+    $.post("/op/fusion.php", {
+        accion: 'fusionar',
+        base_id: baseSeleccionada.objeto_id,
+        engaste_id: engasteSeleccionado.objeto_id
+    }, function(response) {
+        try {
+            // Intentar parsear la respuesta como JSON
+            var data = JSON.parse(response);
+            
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else if (data.success) {
+                alert("¡Fusión completada con éxito!");
+                
+                // Recargar la página para mostrar los cambios
+                window.location.reload();
+            } else {
+                alert("La fusión se completó pero hubo un problema al actualizar la interfaz.");
+                window.location.reload();
+            }
+        } catch (e) {
+            // Si la respuesta no es JSON válido
+            console.error("Error al procesar la respuesta:", e);
+            
+            if (response.includes("success")) {
+                alert("¡Fusión completada con éxito!");
+                window.location.reload();
+            } else {
+                alert("Hubo un error al procesar la fusión. Por favor, inténtalo de nuevo.");
+            }
+        }
+    }).fail(function(xhr, status, error) {
+        alert("Error de conexión. Por favor, verifica tu conexión a internet e inténtalo de nuevo.");
+        console.error("Error de conexión:", error);
+    });
+}
+
+function crearItemHtml(objeto, tipo, valorRanuras) {
+    // Determinar la imagen del objeto similar a como se hace en ficha_inventario
+    var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = objeto.tier;
+    var imagen_id = objeto.imagen_id;
+    var imagen_avatar = objeto.imagen_avatar;
+    
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || objeto.objeto_id == 'EANM001' || 
+        objeto.objeto_id == 'LLST001' || objeto.objeto_id == 'THR001' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || objeto.objeto_id == 'EPA001' || objeto.objeto_id == 'KMP001' || 
+        objeto.objeto_id == 'VCD001' || objeto.objeto_id == 'VCZ001' || subcategoria == 'documentos' || 
+        subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (imagen_avatar && imagen_avatar != '') {
+        imagen = imagen_avatar;
+    }
+    
+    // Preparar la información para el tooltip similar a ficha_inventario
+    var colorTier = '#808080'; // Default gris
+    if (imagen_id == '1') { colorTier = '#808080'; }
+    if (imagen_id == '2') { colorTier = '#4dfe45'; }    
+    if (imagen_id == '3') { colorTier = '#457bfe'; }
+    if (imagen_id == '4') { colorTier = '#cf44ff'; }
+    if (imagen_id == '5') { colorTier = '#febb46'; }
+    if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+    
+    var requisitos = objeto.requisitos ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">' + objeto.requisitos + '</div>' : '';
+    var escalado = objeto.escalado ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">' + objeto.escalado + '</div>' : '';
+    var dano = objeto.dano ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">' + objeto.dano + '</div>' : '';
+    var efecto = objeto.efecto ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">' + objeto.efecto + '</div>' : '';
+    
+    // Determinar el texto de ranura según el tipo
+    var textoRanura = '';
+    var infoFusion = '';
+    
+    if (tipo === 'base') {
+        textoRanura = 'Ranuras: ' + valorRanuras;
+        infoFusion = '<div style="color: #0055bb; font-weight: bold;">OBJETO BASE</div>';
+    } else {
+        textoRanura = 'Ocupa: ' + valorRanuras + ' ' + (valorRanuras > 1 ? 'ranuras' : 'ranura');
+        infoFusion = '<div style="color: #663cad; font-weight: bold;">ENGASTE</div>';
+    }
+    
+    var descripcion = objeto.descripcion || '';
+    
+    // Obtener el nombre correcto del objeto (apodo si existe, sino nombre original)
+    var nombreMostrar = (objeto.apodo && objeto.apodo !== '') ? objeto.apodo : objeto.nombre;
+    
+    // Usar el ID de variante si existe, sino usar el ID base
+    var idParaHTML = objeto.objeto_id_variante || objeto.objeto_id;
+    
+    return '<div class="item-outer item-' + tipo + '" id="item-' + idParaHTML + '" data-id="' + idParaHTML + '">' +
+        '<div class="item-nombre">' + nombreMostrar.substring(0, 15) + '</div>' +
+        '<div class="item-image">' +
+            '<div class="tooltip">' +
+                '<img src="' + imagen + '" alt="' + objeto.nombre + '" />' +
+                '<div class="tooltiptext">' +
+                    '<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ' + colorTier + ';border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">' + nombreMostrar + '</div>' +
+                    (objeto.editado == '1' && objeto.imagen ? '<img src="' + objeto.imagen + '" style="width: 280px; height: 100px;">' : '') +
+                    (objeto.editado == '1' ? '<div style="font-family: InterRegular;padding: 0px 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;text-align: center;">' + objeto.nombre + '</div>' : '') +
+                    requisitos +
+                    escalado +
+                    '<div style="font-family: InterRegular;padding: 5px;text-align: justify;">' + descripcion + '</div>' +
+                    dano +
+                    efecto +
+                    '<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ' + colorTier + ';border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">' +
+                        '<div>' + textoRanura + '</div>' +
+                        '<div>ID: ' + idParaHTML + '</div>' +
+                    '</div>' +
+                    '<div style="text-align: center; padding: 3px;">' + infoFusion + '</div>' +
+                    '<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ' + colorTier + ';border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">' + objeto.subcategoria + ' - Tier ' + objeto.tier + '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="item-slots">' + textoRanura + '</div>' +
+    '</div>';
+}
+
+// ========================================
+// FUNCIONES PARA FUSIÓN DE PARTES (TAB 2)
+// ========================================
+
+// Función para cargar las partes del inventario
+function cargarPartesInventario() {
+    console.log('=== INICIANDO CARGA DE PARTES ===');
+    
+    if (!objetos_array_json || !Array.isArray(objetos_array_json) || objetos_array_json.length === 0) {
+        console.warn('No hay objetos en el inventario');
+        document.getElementById('partes-items').innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No se pudieron cargar los objetos del inventario.</div>';
+        return;
+    }
+    
+    partesTipo1.length = 0;
+    
+    // Contar cantidades de cada objeto_id base
+    var cantidadesPorId = {};
+    for (let i = 0; i < objetos_array_json.length; i++) {
+        let objetoId = objetos_array_json[i];
+        let baseId = objetoId.split('-')[0];
+        if (!cantidadesPorId[baseId]) {
+            cantidadesPorId[baseId] = 0;
+        }
+        cantidadesPorId[baseId]++;
+    }
+    
+    // Crear set de objetos únicos (sin duplicados)
+    var objetosUnicos = {};
+    
+    // Cargar todas las partes con subcategoría 'partes'
+    for (let i = 0; i < objetos_array_json.length; i++) {
+        let objetoId = objetos_array_json[i];
+        if (objetoId == 'LLST001') { continue; }
+        
+        let baseId = objetoId.split('-')[0];
+        
+        // Si ya procesamos este objeto base, continuar
+        if (objetosUnicos[baseId]) continue;
+        
+        let objeto = obtenerObjeto(objetoId);
+        if (!objeto) continue;
+        
+        // Verificar si la subcategoría es 'partes' (case insensitive)
+        if (objeto.subcategoria && objeto.subcategoria.toLowerCase() === 'partes') {
+            objetosUnicos[baseId] = {...objeto, objeto_id_variante: objetoId, cantidad_total: cantidadesPorId[baseId]};
+            partesTipo1.push(objetosUnicos[baseId]);
+            console.log('Parte agregada:', baseId, 'Cantidad:', cantidadesPorId[baseId]);
+        }
+    }
+    
+    console.log('Partes únicas encontradas:', partesTipo1.length);
+    
+    const partesContainer = document.getElementById('partes-items');
+    partesTipo1.forEach(objeto => {
+        partesContainer.innerHTML += crearParteHtml(objeto, 'parte');
+    });
+    
+    if (partesTipo1.length === 0) {
+        partesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666; font-family: InterRegular;">No tienes partes disponibles para fusión.</div>';
+    }
+    
+    document.querySelectorAll('.item-parte').forEach(item => {
+        item.addEventListener('click', () => seleccionarParte(item.getAttribute('data-id')));
+    });
+}
+
+// Función para crear el HTML de una parte
+function crearParteHtml(objeto, tipo) {
+    var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = objeto.tier;
+    var imagen_id = objeto.imagen_id;
+    var imagen_avatar = objeto.imagen_avatar;
+    
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (imagen_avatar && imagen_avatar != '') {
+        imagen = imagen_avatar;
+    }
+    
+    var colorTier = '#808080';
+    if (imagen_id == '1') { colorTier = '#808080'; }
+    if (imagen_id == '2') { colorTier = '#4dfe45'; }    
+    if (imagen_id == '3') { colorTier = '#457bfe'; }
+    if (imagen_id == '4') { colorTier = '#cf44ff'; }
+    if (imagen_id == '5') { colorTier = '#febb46'; }
+    if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+    
+    var descripcion = objeto.descripcion || '';
+    var nombreMostrar = (objeto.apodo && objeto.apodo !== '') ? objeto.apodo : objeto.nombre;
+    var idParaHTML = objeto.objeto_id_variante || objeto.objeto_id;
+    
+    var textoTipo = 'PARTE DE ARMA';
+    
+    var requisitos = objeto.requisitos ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">' + objeto.requisitos + '</div>' : '';
+    var escalado = objeto.escalado ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">' + objeto.escalado + '</div>' : '';
+    var dano = objeto.dano ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">' + objeto.dano + '</div>' : '';
+    var efecto = objeto.efecto ? 
+        '<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">' + objeto.efecto + '</div>' : '';
+    
+    // Verificar si puede upgradear
+    var puedeUpgrade = puedeUpgradear(idParaHTML);
+    var botonUpgrade = '';
+    
+    if (puedeUpgrade) {
+        var req = getRequisitosUpgrade(idParaHTML);
+        var tooltipUpgrade = 'Upgradear a Tier ' + (parseInt(tier) + 1) + '\nCantidad: ' + req.cantidad + '\nNivel: ' + req.nivel + '\nNikas: ' + req.nikas;
+        botonUpgrade = '<div style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background-color: #4CAF50; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3);" onclick="event.stopPropagation(); upgradearParte(\'' + idParaHTML + '\');" title="' + tooltipUpgrade + '"><span style="color: white; font-size: 14px; font-weight: bold; line-height: 1;">↑</span></div>';
+    }
+    
+    // Bocadillo de cantidad
+    var cantidadTotal = objeto.cantidad_total || 1;
+    var bocadilloCantidad = '<div style="position: absolute; bottom: 24px; right: 2px; min-width: 18px; height: 18px; background-color: rgba(102, 60, 173, 0.9); border-radius: 9px; display: flex; align-items: center; justify-content: center; z-index: 10; padding: 0 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); border: 2px solid #fff;"><span style="color: white; font-size: 11px; font-weight: bold; font-family: InterRegular;">' + cantidadTotal + '</span></div>';
+    
+    return '<div class="item-outer item-' + tipo + '" id="item-parte-' + idParaHTML + '" data-id="' + idParaHTML + '" style="position: relative;">' +
+        botonUpgrade +
+        bocadilloCantidad +
+        '<div class="item-nombre">' + nombreMostrar.substring(0, 15) + '</div>' +
+        '<div class="item-image">' +
+            '<div class="tooltip">' +
+                '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="' + objeto.nombre + '">' +
+                '<span class="tooltiptext">' +
+                    '<div style="text-align: center; font-size: 14px; border-bottom: 1px solid #5e5e5e; padding-bottom: 5px; background: ' + colorTier + '; color: white; font-weight: bold;">' + nombreMostrar + '</div>' +
+                    '<div style="font-family: InterRegular; padding: 5px; text-align: justify;">' + descripcion + '</div>' +
+                    requisitos + escalado + dano + efecto +
+                    '<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ' + colorTier + ';border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">' +
+                        '<div>' + textoTipo + '</div>' +
+                        '<div>ID: ' + idParaHTML + '</div>' +
+                    '</div>' +
+                    '<div style="text-align: center; padding: 3px; color: #663cad; font-weight: bold;">PARTE DE ARMA</div>' +
+                    '<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ' + colorTier + ';border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">' + objeto.subcategoria + ' - Tier ' + objeto.tier + '</div>' +
+                '</span>' +
+            '</div>' +
+        '</div>' +
+        '<div class="item-slots">' + textoTipo + '</div>' +
+    '</div>';
+}
+
+// Función unificada para seleccionar partes
+function seleccionarParte(objetoId) {
+    // Si no hay parte 1, asignar a parte 1
+    if (!parte1Seleccionada) {
+        parte1Seleccionada = obtenerObjeto(objetoId);
+        if (!parte1Seleccionada) {
+            console.error('No se pudo encontrar el objeto:', objetoId);
+            return;
+        }
+        
+        parte1Seleccionada.objeto_id_variante = objetoId;
+        document.getElementById('item-parte-' + objetoId).classList.add('selected');
+        
+        var parte1Slot = document.getElementById('parte1-slot');
+        parte1Slot.innerHTML = '';
+        
+        var subcategoria = parte1Seleccionada.subcategoria.toLowerCase().split(' ').join('_');
+        var tier = parte1Seleccionada.tier;
+        var imagen_id = parte1Seleccionada.imagen_id;
+        var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+        
+        if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || subcategoria == 'materiales' || 
+            subcategoria == 'tecnicas' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+            imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+        }
+        
+        var imagen = "/images/op/iconos/" + imagen_nombre;
+        if (parte1Seleccionada.imagen_avatar && parte1Seleccionada.imagen_avatar !== '') {
+            imagen = parte1Seleccionada.imagen_avatar;
+        }
+        
+        parte1Slot.innerHTML = '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="' + parte1Seleccionada.nombre + '">';
+        
+        actualizarInfoFusionPartes();
+        return;
+    }
+    
+    // Si ya hay parte 1, verificar que no sea la misma y asignar a parte 2
+    var idParte1 = parte1Seleccionada.objeto_id_variante || parte1Seleccionada.objeto_id;
+    if (objetoId === idParte1) {
+        alert("No puedes seleccionar la misma parte en ambos slots. Por favor, elige una parte diferente.");
+        return;
+    }
+    
+    // Obtener el objeto para verificar cantidad
+    var objetoTemporal = obtenerObjeto(objetoId);
+    if (objetoTemporal && objetoTemporal.cantidad === 1 && objetoId === idParte1) {
+        alert("No puedes seleccionar dos veces el mismo item si la cantidad es 1.");
+        return;
+    }
+    
+    // Extraer prefijos alfabéticos y verificar que no sean iguales
+    var prefijoParte1 = idParte1.match(/^[A-Z]+/);
+    var prefijoParte2 = objetoId.match(/^[A-Z]+/);
+    
+    if (prefijoParte1 && prefijoParte2 && prefijoParte1[0] === prefijoParte2[0]) {
+        alert("No puedes fusionar dos partes del mismo tipo. Los prefijos " + prefijoParte1[0] + " son iguales.");
+        return;
+    }
+    
+    if (parte2Seleccionada) {
+        var idParaLimpiar = parte2Seleccionada.objeto_id_variante || parte2Seleccionada.objeto_id;
+        document.getElementById('item-parte-' + idParaLimpiar).classList.remove('selected');
+    }
+    
+    parte2Seleccionada = obtenerObjeto(objetoId);
+    if (!parte2Seleccionada) {
+        console.error('No se pudo encontrar el objeto:', objetoId);
+        return;
+    }
+    
+    parte2Seleccionada.objeto_id_variante = objetoId;
+    document.getElementById('item-parte-' + objetoId).classList.add('selected');
+    
+    var parte2Slot = document.getElementById('parte2-slot');
+    parte2Slot.innerHTML = '';
+    
+    var subcategoria = parte2Seleccionada.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = parte2Seleccionada.tier;
+    var imagen_id = parte2Seleccionada.imagen_id;
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    
+    if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || subcategoria == 'materiales' || 
+        subcategoria == 'tecnicas' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+        imagen_nombre = subcategoria + "_" + tier + "_One_Piece_Gaiden_Foro_Rol.gif";
+    }
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (parte2Seleccionada.imagen_avatar && parte2Seleccionada.imagen_avatar !== '') {
+        imagen = parte2Seleccionada.imagen_avatar;
+    }
+    
+    parte2Slot.innerHTML = '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="' + parte2Seleccionada.nombre + '">';
+    
+    actualizarInfoFusionPartes();
+    actualizarResultadoPrevioPartes();
+}
+
+// Función para limpiar slot parte 1
+function clearParte1Slot() {
+    if (parte1Seleccionada) {
+        var idParaLimpiar = parte1Seleccionada.objeto_id_variante || parte1Seleccionada.objeto_id;
+        document.getElementById('item-parte-' + idParaLimpiar).classList.remove('selected');
+        document.getElementById('parte1-slot').innerHTML = "";
+        parte1Seleccionada = null;
+        
+        if (parte2Seleccionada) {
+            clearParte2Slot();
+        }
+        
+        document.getElementById('result-partes-info').style.display = 'none';
+        actualizarInfoFusionPartes();
+    }
+}
+
+// Función para limpiar slot parte 2
+function clearParte2Slot() {
+    if (parte2Seleccionada) {
+        var idParaLimpiar = parte2Seleccionada.objeto_id_variante || parte2Seleccionada.objeto_id;
+        document.getElementById('item-parte-' + idParaLimpiar).classList.remove('selected');
+        document.getElementById('parte2-slot').innerHTML = "";
+        document.getElementById('result-partes-slot').innerHTML = "";
+        parte2Seleccionada = null;
+        
+        document.getElementById('result-partes-info').style.display = 'none';
+        actualizarInfoFusionPartes();
+    }
+}
+
+// Función para actualizar información de fusión de partes
+function actualizarInfoFusionPartes() {
+    var infoContainer = document.getElementById('fusion-partes-info');
+    var fusionButton = document.getElementById('fusion-partes-button');
+    
+    if (!parte1Seleccionada) {
+        infoContainer.innerHTML = "<p>Selecciona una parte tipo 1 para comenzar.</p>";
+        fusionButton.disabled = true;
+        return;
+    }
+    
+    if (!parte2Seleccionada) {
+        infoContainer.innerHTML = 
+            '<p>Has seleccionado <strong>' + parte1Seleccionada.nombre + '</strong> como primera parte.</p>' +
+            '<p>Ahora selecciona una segunda parte diferente para fusionar.</p>';
+        fusionButton.disabled = true;
+        return;
+    }
+    
+    infoContainer.innerHTML = 
+        '<p><strong>Parte 1:</strong> ' + parte1Seleccionada.nombre + '</p>' +
+        '<p><strong>Parte 2:</strong> ' + parte2Seleccionada.nombre + '</p>' +
+        '<p>Estas partes se fusionarán para crear un arma completa.</p>';
+    fusionButton.disabled = false;
+}
+
+// Función para actualizar resultado previo de partes
+function actualizarResultadoPrevioPartes() {
+    if (!parte1Seleccionada || !parte2Seleccionada) {
+        document.getElementById('result-partes-slot').innerHTML = "";
+        document.getElementById('result-partes-info').style.display = 'none';
+        return;
+    }
+    
+    var resultSlot = document.getElementById('result-partes-slot');
+    var subcategoria = parte1Seleccionada.subcategoria.toLowerCase().split(' ').join('_');
+    var tier = parte1Seleccionada.tier;
+    var imagen_id = parte1Seleccionada.imagen_id;
+    var imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+    
+    var imagen = "/images/op/iconos/" + imagen_nombre;
+    if (parte1Seleccionada.imagen_avatar != '') {
+        imagen = parte1Seleccionada.imagen_avatar;
+    }
+    
+    resultSlot.innerHTML = 
+        '<div style="position: relative;">' +
+        '<img src="' + imagen + '" style="max-width: 100%; max-height: 100%;" alt="Resultado de fusión">' +
+        '<div style="position: absolute; top: -5px; right: -5px; background-color: #ff9900; border-radius: 50%; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 12px;">+</div>' +
+        '</div>';
+    
+    actualizarInfoResultadoPartes();
+}
+
+// Función para actualizar información del resultado de partes
+function actualizarInfoResultadoPartes() {
+    if (!parte1Seleccionada || !parte2Seleccionada) {
+        return;
+    }
+    
+    var resultInfo = document.getElementById('result-partes-info');
+    
+    var nombreParte1 = (parte1Seleccionada.apodo && parte1Seleccionada.apodo !== '') ? parte1Seleccionada.apodo : parte1Seleccionada.nombre;
+    var nombreParte2 = (parte2Seleccionada.apodo && parte2Seleccionada.apodo !== '') ? parte2Seleccionada.apodo : parte2Seleccionada.nombre;
+    var nombreFusionado = nombreParte1 + " + " + nombreParte2;
+    
+    var descripcionParte1 = parte1Seleccionada.descripcion || '';
+    var descripcionParte2 = parte2Seleccionada.descripcion || '';
+    var descripcionFusionada = '';
+    
+    if (descripcionParte1 && descripcionParte1.trim() !== '') {
+        descripcionFusionada = descripcionParte1;
+    }
+    if (descripcionParte2 && descripcionParte2.trim() !== '') {
+        if (descripcionFusionada !== '') {
+            descripcionFusionada += "\n\n" + descripcionParte2;
+        } else {
+            descripcionFusionada = descripcionParte2;
+        }
+    }
+    
+    var infoHTML = 
+        '<h3 style="color: #663cad; font-family: moonGetHeavy; text-align: center; margin-top: 0;">ARMA FUSIONADA</h3>' +
+        '<div style="border: 2px solid #663cad; padding: 10px; background-color: rgba(255, 232, 179, 0.3);">' +
+            '<div style="font-family: moonGetHeavy; color: #663cad; font-size: 16px; text-align: center; margin-bottom: 10px;">' + nombreFusionado + '</div>' +
+            '<div style="font-family: InterRegular; font-size: 12px; margin-bottom: 10px; text-align: justify;">' + descripcionFusionada.replace(/\n/g, '<br>') + '</div>' +
+            '<div style="display: flex; justify-content: space-between; font-family: InterRegular; font-size: 11px; color: #666;">' +
+                '<span><strong>Categoría:</strong> ' + parte1Seleccionada.subcategoria + '</span>' +
+                '<span><strong>Tier:</strong> ' + parte1Seleccionada.tier + '</span>' +
+            '</div>' +
+        '</div>';
+    
+    resultInfo.innerHTML = infoHTML;
+    resultInfo.style.display = 'block';
+}
+
+// Función para fusionar las partes
+function fusionarPartes() {
+    if (!parte1Seleccionada || !parte2Seleccionada) {
+        alert("Debes seleccionar ambas partes para fusionarlas.");
+        return;
+    }
+    
+    if (!confirm("¿Estás seguro de que deseas fusionar \"" + parte1Seleccionada.nombre + "\" con \"" + parte2Seleccionada.nombre + "\"? Esta acción no se puede deshacer.")) {
+        return;
+    }
+    
+    $.post("/op/fusion.php", {
+        accion: 'fusionar_partes',
+        parte1_id: parte1Seleccionada.objeto_id,
+        parte2_id: parte2Seleccionada.objeto_id
+    }, function(response) {
+        try {
+            var data = JSON.parse(response);
+            
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else if (data.success) {
+                alert("¡Fusión de partes completada con éxito!");
+                window.location.reload();
+            } else {
+                alert("La fusión se completó pero hubo un problema al actualizar la interfaz.");
+                window.location.reload();
+            }
+        } catch (e) {
+            console.error("Error al procesar la respuesta:", e);
+            
+            if (response.includes("success")) {
+                alert("¡Fusión de partes completada con éxito!");
+                window.location.reload();
+            } else {
+                alert("Hubo un error al procesar la fusión. Por favor, inténtalo de nuevo.");
+            }
+        }
+    }).fail(function(xhr, status, error) {
+        alert("Error de conexión. Por favor, verifica tu conexión a internet e inténtalo de nuevo.");
+        console.error("Error de conexión:", error);
+    });
+}
+
+// Función para verificar si un upgrade está disponible
+function puedeUpgradear(objetoId) {
+    var objeto = obtenerObjeto(objetoId);
+    if (!objeto) return false;
+    
+    // Solo partes con tier < 5
+    if (objeto.subcategoria.toLowerCase() !== 'partes' || parseInt(objeto.tier) >= 5) {
+        return false;
+    }
+    
+    // Tabla de requisitos
+    var requisitos = {
+        1: { cantidad: 3, nivel: 10, nikas: 5 },
+        2: { cantidad: 5, nivel: 20, nikas: 10 },
+        3: { cantidad: 5, nivel: 30, nikas: 15 },
+        4: { cantidad: 5, nivel: 40, nikas: 20 }
+    };
+    
+    var tier = parseInt(objeto.tier);
+    if (!requisitos[tier]) return false;
+    
+    var req = requisitos[tier];
+    
+    // Obtener el ID base (sin variantes)
+    var baseId = objetoId.split('-')[0];
+    
+    // Contar cantidad de este objeto en el inventario (incluyendo variantes)
+    var cantidad = 0;
+    for (var i = 0; i < objetos_array_json.length; i++) {
+        var currentBaseId = objetos_array_json[i].split('-')[0];
+        if (currentBaseId === baseId) {
+            cantidad++;
+        }
+    }
+    
+    console.log('Verificando upgrade para', baseId, '- Cantidad:', cantidad, 'Requerido:', req.cantidad);
+    
+    // Verificar si cumple requisitos (nivel y nikas se verificarán en el backend)
+    return cantidad >= req.cantidad;
+}
+
+// Función para obtener los requisitos de upgrade de un objeto
+function getRequisitosUpgrade(objetoId) {
+    var objeto = obtenerObjeto(objetoId);
+    if (!objeto) return null;
+    
+    var requisitos = {
+        1: { cantidad: 3, nivel: 10, nikas: 5 },
+        2: { cantidad: 5, nivel: 20, nikas: 10 },
+        3: { cantidad: 5, nivel: 30, nikas: 15 },
+        4: { cantidad: 5, nivel: 40, nikas: 20 }
+    };
+    
+    var tier = parseInt(objeto.tier);
+    return requisitos[tier] || null;
+}
+
+// Función para ejecutar el upgrade
+function upgradearParte(objetoId) {
+    var objeto = obtenerObjeto(objetoId);
+    if (!objeto) {
+        alert('Objeto no encontrado');
+        return;
+    }
+    
+    var req = getRequisitosUpgrade(objetoId);
+    if (!req) {
+        alert('Este objeto no puede ser upgradeado');
+        return;
+    }
+    
+    // Confirmar
+    var mensaje = '¿Deseas upgradear ' + req.cantidad + ' x ' + objeto.nombre + ' (Tier ' + objeto.tier + ') al Tier ' + (parseInt(objeto.tier) + 1) + '?\n\n';
+    mensaje += 'Costo: ' + req.nikas + ' nikas\n';
+    mensaje += 'Nivel requerido: ' + req.nivel;
+    
+    if (!confirm(mensaje)) {
+        return;
+    }
+    
+    // Obtener el ID base (sin variantes) para enviar al backend
+    var baseId = objetoId.split('-')[0];
+    
+    // Enviar al backend
+    $.ajax({
+        url: '/op/fusion.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            accion: 'upgrade_parte',
+            objeto_id: baseId
+        },
+        success: function(data) {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else if (data.success) {
+                alert('¡Upgrade completado! Has obtenido: ' + data.objeto_nuevo + ' (Tier ' + data.tier_nuevo + ')');
+                window.location.reload();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error completo:', {
+                status: status,
+                error: error,
+                responseText: xhr.responseText,
+                statusCode: xhr.status
+            });
+            
+            // Intentar mostrar el error del servidor
+            if (xhr.responseText) {
+                alert('Error del servidor:\n' + xhr.responseText.substring(0, 500));
+            } else {
+                alert('Error de conexión. Por favor, inténtalo de nuevo.');
+            }
+        }
+    });
+}
+
+</script>
+
+</html>

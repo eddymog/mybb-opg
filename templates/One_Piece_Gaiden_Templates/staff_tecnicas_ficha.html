@@ -1,0 +1,55 @@
+<html>
+
+<head>
+  <title>Consola Súper Secreta</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $fid=='' then>
+      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
+      Accion:<br>
+      <select id="accion">
+        <option value="Añadir">Añadir</option>
+        <option value="Remover">Remover</option>
+      </select><br><br>
+      <button onclick=onClickAccion()>Buscar</button>
+      <br><br>
+    </if>
+    <if $fid !='' && $accion != '' then>
+      <form method="post" action="/op/staff/tecnicas_ficha.php" name="ficha_atributos" id="ficha_atributos">
+        <div style="display: none">
+           <input type="text" id="fid" name="ficha_id" value="{$fid}">
+           <input type="text" id="fid" name="accion" value="{$accion}">
+        </div>
+        User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br><br>
+        Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+        <p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+        <textarea style="width: 350px;height: 125px;" name="tecnicas" minlength="1" required placeholder="CAC102,ADF101,AFU102"></textarea><br>
+        <span>*Escribe todas las técnicas que quieras añadir/remover separadas por comas, y sin espacios.</span><br><br>
+        <!--Miembro de Staff: <br><input class="textbox" type="text" name="staff" required><br>-->
+        Razon: <br><input class="textbox" type="text" name="razon" required><br><br>
+        <input  class="button" type="submit" value="Guardar">
+      </form>
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const fid = document.getElementById('fid').value;
+    const accion = document.getElementById('accion').value;
+    if (fid && accion) {
+      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+    }
+  }
+</script>
+
+</html>

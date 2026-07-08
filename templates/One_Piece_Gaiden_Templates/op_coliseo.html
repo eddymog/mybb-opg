@@ -1,0 +1,84 @@
+<html>
+
+<head>
+  <title>Coliseo - One Piece Gaiden</title>
+  {$headerinclude}
+  {$op_coliseo_css}
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+
+          <!-- Pestañas de navegación -->
+          <div style="display: flex; flex-direction: row;">
+            <div class='coliseo-pestana coliseo-pestana-active' id='pestana_coliseo_portada'       onclick="clickPestanaColiseo('portada');"><span class="coliseo-pestana-texto">PORTADA</span></div>
+            <div class='coliseo-pestana'                        id='pestana_coliseo_clasificacion' onclick="clickPestanaColiseo('clasificacion');"><span class="coliseo-pestana-texto">CLASIFICACIÓN</span></div>
+            <div class='coliseo-pestana'                        id='pestana_coliseo_torneos'       onclick="clickPestanaColiseo('torneos');"><span class="coliseo-pestana-texto">TORNEOS</span></div>
+            <div class='coliseo-pestana'                        id='pestana_coliseo_historial'     onclick="clickPestanaColiseo('historial');"><span class="coliseo-pestana-texto">HISTORIAL</span></div>
+            <div class='coliseo-pestana'                        id='pestana_coliseo_reglamento'    onclick="clickPestanaColiseo('reglamento');"><span class="coliseo-pestana-texto">REGLAMENTO</span></div>
+          </div>
+
+          <!-- Contenido de pestañas -->
+          <div class="coliseo-fondo">
+            {$op_coliseo_portada}
+            {$op_coliseo_clasificacion}
+            {$op_coliseo_torneos}
+            {$op_coliseo_historial}
+            {$op_coliseo_reglamento}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Desafiar a un amigo -->
+  <div id="coliseo-modal-desafio" class="coliseo-modal">
+    <div class="coliseo-modal-content">
+      <button class="coliseo-modal-close" onclick="cerrarModalDesafio()" aria-label="Cerrar">&times;</button>
+      <div class="coliseo-modal-title">⚔ DESAFIAR A UN AMIGO</div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="font-family: moonGetHeavy; font-size: 14px; display: block; margin-bottom: 6px;">
+          Nombre de usuario del retado:
+        </label>
+        <input id="coliseo-desafio-username" class="coliseo-input" type="text" placeholder="Escribe el nombre de usuario..." autocomplete="off" />
+        <div id="coliseo-desafio-sugerencias" style="display:none; background:#2a0000; border:1px solid #8B0000; border-radius:6px; margin-top:4px;"></div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-family: moonGetHeavy; font-size: 14px; display: block; margin-bottom: 6px;">
+          Mensaje opcional:
+        </label>
+        <input id="coliseo-desafio-mensaje" class="coliseo-input" type="text" placeholder="¡Te desafío a combatir en el Coliseo!" maxlength="200" />
+      </div>
+
+      <div style="text-align: center;">
+        <button class="coliseo-btn coliseo-btn--desafiar" onclick="enviarDesafio()" style="min-width: 180px; font-size: 16px; padding: 10px 20px;">
+          ENVIAR DESAFÍO
+        </button>
+      </div>
+
+      <div id="coliseo-desafio-feedback" style="margin-top: 12px; text-align: center; font-family: InterRegular; font-size: 14px; min-height: 20px;"></div>
+    </div>
+  </div>
+
+  <script>
+  var coliseo_pestana  = `{$pestana}`;
+  var coliseo_user_uid = {$user_uid};
+  var g_is_staff       = !!'{$g_is_staff}';
+  var clasificacion    = {$clasificacion_json};
+  var torneos          = {$torneos_json};
+  var historial        = {$historial_json};
+  </script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/coliseo/core.js?v={$fileVersion}"></script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/coliseo/pestanas.js?v={$fileVersion}"></script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/coliseo/init.js?v={$fileVersion}"></script>
+
+  {$footer}
+</body>
+</html>

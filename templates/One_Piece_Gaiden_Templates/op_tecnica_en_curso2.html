@@ -1,0 +1,254 @@
+<html>
+
+<head>
+    <style>
+
+		.entre-p {
+			font-size: 21px;	
+		}
+		
+		.tecnica_spoiler_title {
+			background-color: #3498db;
+		}
+		
+		.tecnica_spoiler {
+			width: 800px;
+    		margin: auto !important;
+		}
+		
+		.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.texto-top {
+			text-align: center; font-family: InterRegular; color: white; text-shadow: 1px 1px 2px black; margin-top: 17px; margin-bottom: 3px; font-size: 20px;
+		}
+		
+		.entreno-button {
+			background-color: #d13b19 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button:hover {
+			background-color: #ee3d3d !important;
+		}
+		
+		.entreno-button2 {
+			background-color: #9b19d1 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button2:hover {
+			background-color: #b00ff3 !important;
+		}
+
+		
+		
+    </style>
+    <title>Entrenamiento en Curso</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+<div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<div id="entreno-page" style="display: none;">
+					<div style="margin-bottom: 10px;">
+						<img src="/images/op/uploads/AprendizajeDeTecnica_One_Piece_Gaiden_Foro_Rol.jpg" />
+					</div>
+					<div style="display: none">
+						<form id="tecform" method="post" action="entrenamiento_tecnicas.php">
+							<input type="text" id="tid_en_curso" name="tid_en_curso" value="false">
+						</form>
+					</div>
+					<div style="position: relative;margin-top: 80px;">
+
+						<div id="luffy-running" style="position: absolute;top: -69px;">
+							<img src="/images/op/uploads/BarraCargando_One_Piece_Gaiden_Foro_Rol.gif" />
+						</div>
+
+						<div style=" width: 996px; height: 35px; background-color: #5d5d5d; border: 2px solid black; border-radius: 3px; margin-bottom: 10px; ">
+
+						</div>
+
+						<div id="percBarLeft" style=" width: calc(996px); height: 35px; background-color: #fe861e; border-radius: 3px; margin-bottom: 10px;top: 2px; left: 2px;position: absolute; ">
+
+						</div>
+
+						<div style=" position: absolute; color: white; top: 4px; left: 289px; font-family: InterRegular; font-size: 22px; text-shadow: 1px 1px 4px black; " id="countdown"></div>
+					</div>
+					<div class="poneglyph">
+					<div style=" margin: 0 auto; ">
+						<div id="myGif"><img style="border: 2px solid black;margin-top: 28px;" src="/images/op/uploads/EntrenamientoEnCurso_One_Piece_Gaiden_Foro_Rol.gif" /></div>
+						<div style=" text-align: center;margin-top: 12px; ">
+							<button class="button entreno-button" type="button" onclick="onCancelar();">Cancelar :(</button>
+						</div>
+						<div style=" text-align: center;margin-top: 12px; ">
+							<a href="/op/entrenamiento_tecnicas.php?modo_vista={$uid}"><button class="button entreno-button2" type="button">Ver Técnicas</button></a>
+						</div>
+					</div>
+
+				</div>
+				</div>
+				<div class="tecnica">
+					<div class="tecnica_spoiler">
+						<div class="spoiler_title">
+							<span class="tecnica_spoiler_button" onclick="javascript: console.log('hello');console.log(parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight); if(parentNode.parentNode.getElementsByTagName('div')[1].style.height == parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'){ parentNode.parentNode.getElementsByTagName('div')[1].style.height = '0px'; this.innerHTML='{$tecnica['nombre']}';parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden'; });} else { parentNode.parentNode.getElementsByTagName('div')[1].style.height = parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'; this.innerHTML='{$tecnica['nombre']}'; parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'visible'; });}">{$tecnica['nombre']}</span>
+						</div>
+
+					  <div class="tecnica_spoiler_content" style="height: 0px;">
+
+						<div class="tecnica_spoiler_content2" style='display: flex;flex-direction: row;'>
+
+							<div style="display: flex; flex-direction: column;width: 20%; margin-right: 26px;">
+								<if $g_is_staff then><div class="tecnica_field"><a href="/op/staff/tecnicas_modificar.php?tecnica_id={$tecnica['tid']}">{$tecnica['tid']}</a></div></if>
+								<if !$g_is_staff then><div class="tecnica_field">{$tecnica['tid']}</div></if>
+								<div class="tecnica_field">{$tecnica['clase']}</div>
+								<div class="tecnica_field">{$tecnica['estilo']}</div>
+								<div class="tecnica_field">Tier {$tecnica['tier']}</div>
+
+								<div style="display: flex;flex-direction: row;justify-content: space-around;margin-top: 7px;width: 160px;">
+
+									<if $tecnica['energia'] then>
+									<div style=" display: flex; flex-direction: row; " title="Costo de Energía">
+										<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['energia']}</div>
+										<img src="/images/op/uploads/Energia_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+									</div>
+									</if>
+
+									<if $tecnica['energia_turno'] then>
+									<div style=" display: flex; flex-direction: row; " title="Costo de Energía por Turno">
+										<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['energia_turno']}</div>
+										<img src="/images/op/uploads/EnergiaPorTurno_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+									</div>
+									</if>	
+
+									<if $tecnica['haki'] then>
+										<div style=" display: flex; flex-direction: row; " title="Costo de Haki">
+											<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['haki']}</div>
+											<img src="/images/op/uploads/PuntosHaki_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+										</div>
+									</if>
+										
+									<if $tecnica['haki_turno'] then>
+									<div style=" display: flex; flex-direction: row; " title="Costo de Haki por Turno">
+										<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['haki_turno']}</div>
+										<img src="/images/op/uploads/PuntosHakiMantenido_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+									</div>
+									</if>	
+
+									<if $tecnica['enfriamiento'] != '' then>
+										<div style=" display: flex; flex-direction: row; " title="Enfriamiento">
+											<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #D8EC13; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['enfriamiento']}</div>
+
+											<img src="/images/op/uploads/CD_One_Piece_Gaiden_Foro_Rol.png" style="height: 30px;margin-top: 4px;" alt="Enfriamiento" />
+										</div>
+									</if>
+								</div>
+
+							</div>
+
+							<div style="display: flex; flex-direction: column;width: 80%;">
+								<if $tecnica['requisitos'] != '' then><div class="tecnica_requisito">{$tecnica['requisitos']}</div></if>
+								<div class="tecnica_descripcion">{$tecnica['descripcion']}</div>
+								<div class="tecnica_efecto">{$tecnica['efectos']}</div>
+							</div>
+
+						</div>
+
+					  </div>
+					</div>
+				<br><br>
+				<div style="display: none">
+					<form id="tecform" method="post" action="entrenamiento_tecnicas.php">
+						<input type="text" id="tid_en_curso" name="tid_en_curso" value="false">
+					</form>
+				</div>
+
+				<br>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+        <br>
+		<script>
+		function sleep (time) {
+		  return new Promise((resolve) => setTimeout(resolve, time));
+		}
+		
+		function onCancelar() {
+			$('#myGif').html('<img style="border: 2px solid black;margin-top: 28px; " src="/images/op/uploads/CancelarTecnica_One_Piece_Gaiden_Foro_Rol.gif" />');
+			sleep(200).then(() => {
+				if (confirm(`¿En serio quieres cancelar? \n\n"Si muero aquí, entonces soy un hombre que solo podría llegar hasta aquí" - Roronoa Zoro`)) {
+					document.getElementById('tid_en_curso').value = 'cancel'; document.getElementById('tecform').submit();
+				} else {
+					$('#myGif').html('<img style="border: 2px solid black; margin-top: 28px;" src="/images/op/uploads/EntrenamientoEnCurso_One_Piece_Gaiden_Foro_Rol.gif" />');
+				}
+			});
+			
+		}
+		
+		var end = new Date({$tiempo});
+
+			
+		var _second = 1000;
+		var _minute = _second * 60;
+		var _hour = _minute * 60;
+		var _day = _hour * 24;
+		var timer;
+
+
+		function showRemaining() {
+			var now = new Date();
+			var distance = end - now;
+			let end_now = (end - new Date()) / 1000; 
+			let percLeft = Math.floor((({$entrenamiento_duracion} - end_now) / {$entrenamiento_duracion}) * 100);
+
+			if (distance < 1000 && distance > 1) {
+				location.reload(true);
+				return;
+			}
+			if (distance < 0) {
+				clearInterval(timer);
+				document.getElementById('countdown').innerHTML = '0 dias, 0 horas, 0 minutos y 0 segundos';
+				return;
+			}
+			var days = Math.floor(distance / _day);
+			var hours = Math.floor((distance % _day) / _hour);
+			var minutes = Math.floor((distance % _hour) / _minute);
+			var seconds = Math.floor((distance % _minute) / _second);
+
+			document.getElementById('countdown').innerHTML = '';
+			document.getElementById('countdown').innerHTML += days + ' dias, ';
+			document.getElementById('countdown').innerHTML += hours + ' horas, ';
+			document.getElementById('countdown').innerHTML += minutes + ' minutos y ';
+			document.getElementById('countdown').innerHTML += seconds + ' segundos.';
+			
+			$('#percBarLeft').css('width', `calc(996px - ` + percLeft + `%)`);
+			$('#entreno-page').css('display', 'block');
+			
+			let luffyRunning = 945 - (945 * (percLeft / 100));
+			
+			$('#luffy-running').css('left', luffyRunning + `px`);
+			
+		}
+
+		timer = setInterval(showRemaining, 1000);
+	</script>
+
+    {$reload_script}
+    {$footer}
+</body>
+
+</html>

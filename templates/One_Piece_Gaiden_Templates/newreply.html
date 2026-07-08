@@ -1,0 +1,92 @@
+<html>
+<head>
+<title>{$lang->post_reply_to}</title>
+{$headerinclude}
+{$post_javascript}
+<script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
+<script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=24"></script>
+</head>
+<body>
+{$header}
+{$preview}
+{$maximageserror}
+{$attacherror}
+{$reply_errors}
+{$moderation_notice}
+<form action="newreply.php?tid={$tid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
+<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+<tr>
+<td class="thead" colspan="2"><strong>{$lang->post_new_reply}</strong></td>
+</tr>
+<tr>
+<td class="tcat" colspan="2"><span class="smalltext"><strong>{$lang->reply_to}</strong><a name="switch" id="switch"></a></span></td>
+</tr>
+<tr>
+<td class="trow2" colspan="2">
+	<div style="display: inline; float: right; margin-top: 4px;">
+		<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
+			<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
+		</div>
+		<strong>Palabras</strong>: <span id="palabras">0</span>
+	</div>
+	<strong>Mensaje:</strong><br>
+<textarea id="message" name="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
+{$codebuttons}
+{$multiquote_external}
+</td>
+</tr>
+{$captcha}
+</table>
+<div align="center">{$as_post}&nbsp;<input type="submit" class="button" name="submit" value="{$lang->post_reply}" tabindex="3" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="4" />{$savedraftbutton}
+<button id="recuperar-post" class="button">Recuperar post</button></div>
+<input type="hidden" name="action" value="do_newreply" />
+<input type="hidden" name="replyto" value="{$replyto}" />
+<input type="hidden" name="posthash" value="{$posthash}" />
+<input type="hidden" name="attachmentaid" value="" />
+<input type="hidden" name="attachmentact" value="" />
+<input type="hidden" name="quoted_ids" value="{$quoted_ids}" />
+<input type="hidden" name="tid" value="{$tid}" />
+{$editdraftpid}
+</form>
+{$forumrules}
+{$threadreview}
+{$footer}
+<script>
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+$('#recuperar-post').on('click', function(event) {
+    event.preventDefault();
+    if ($('.sceditor-button-source').hasClass('active')) {
+        alert('Sólo puedes recuperar lo último escrito en el post si el botón de "Ver código de Fuente (<>)" no está apretado/activo.');
+    } else {
+        if ($($('.sceditor-container')[0].children[1].contentDocument.body).html() == localStorage.getItem('user-post')) {
+            alert('El último texto guardado es idéntico al que está actual en la página. No hay nada que recuperar.');
+        } else {
+            $($('.sceditor-container')[0].children[1].contentDocument.body).html(localStorage.getItem('user-post'));
+        }
+    }
+});
+
+async function contarPalabras() {
+    await sleep(100);
+    $($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
+      before = $(this).html();
+    }).on('keyup', function() {
+      if (before != $(this).html()) { $(this).trigger('change'); }
+    });
+
+    $($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
+        const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
+        $('#palabras')[0].innerText = palabras;
+        if (parseInt(palabras) >= 10) {
+            localStorage.setItem('user-post', $($('.sceditor-container')[0].children[1].contentDocument.body).html());
+        }
+    });
+}
+contarPalabras();
+</script>
+</body>
+</html>

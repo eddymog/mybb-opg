@@ -195,8 +195,9 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
                 $objeto_tier = intval($objeto_actual['tier']);
                 $objeto_comerciable = intval($objeto_actual['comerciable']);
                 $objeto_nombre = $objeto_actual['nombre'];
-    
-                if ($objeto_comerciable < 1 && $objeto_tier <= 5) {
+                $objeto_subcategoria = strtolower($objeto_actual['subcategoria'] ?? '');
+
+                if ($objeto_comerciable < 1 && ($objeto_tier <= 5 || $objeto_subcategoria === 'AKUMA NO MI')) {
                     $has_objeto_r = false;
                     $has_objeto_u = false;
         
@@ -214,6 +215,7 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
                         $cantidad_r = $q['cantidad'];
                     }
                     
+                    $bautizado_u = 0;
                     while ($q = $db->fetch_array($inventario_actual_u)) {
                         $has_objeto_u = true;
                         $cantidad_u = $q['cantidad'];
@@ -224,6 +226,7 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
                         $editado = $q['editado'];
                         $especial = $q['especial'];
                         $oficios = json_decode($q['oficios']);
+                        $bautizado_u = (int)$q['bautizado'];
                     }
         
                     if ($has_objeto_u && intval($cantidad_u) > 1) {
@@ -245,9 +248,9 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
     
                         $oficios = json_encode($oficios, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     
-                        $db->query(" 
-                            INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `imagen`, `apodo`, `autor`, `autor_uid`, `especial`, `editado`, `oficios`) VALUES 
-                            ('$clean_obj', '$r_uid', '1', '$imagen_obj', '$apodo', '$autor', '$autor_uid', '$especial', '$editado', '$oficios');
+                        $db->query("
+                            INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `imagen`, `apodo`, `autor`, `autor_uid`, `especial`, `editado`, `oficios`, `bautizado`) VALUES
+                            ('$clean_obj', '$r_uid', '1', '$imagen_obj', '$apodo', '$autor', '$autor_uid', '$especial', '$editado', '$oficios', '$bautizado_u');
                         ");
                     }
     
@@ -260,6 +263,19 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
                             array_push($objetos_array_name, $objeto_nombre);
                         }
                         
+                        // Si es un barco bautizado, transferir propiedad en tablas de barco
+                        if (strtolower($objeto_actual['subcategoria'] ?? '') === 'barcos' && $bautizado_u === 1) {
+                            $barco_transfer_id = $db->escape_string($clean_obj);
+                            $barco_old_owner   = (int)$uid;
+                            $barco_new_owner   = (int)$r_uid;
+                            $barco_tables = array('op_barco_tripulacion', 'op_barco_estado', 'op_barco_salas', 'op_barco_npcs');
+                            foreach ($barco_tables as $btbl) {
+                                $db->update_query($btbl, array('owner_uid' => $barco_new_owner), "barco_id='$barco_transfer_id' AND owner_uid='$barco_old_owner'");
+                            }
+                            // Expulsar al antiguo dueño de la tripulación
+                            $db->delete_query('op_barco_tripulacion', "barco_id='$barco_transfer_id' AND owner_uid='$barco_new_owner' AND miembro_uid='$barco_old_owner'");
+                        }
+
                         $intercambio_realizado = true;
                     }
                     

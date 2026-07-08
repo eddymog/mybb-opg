@@ -1,0 +1,329 @@
+<script>
+		
+	function subirBelica(belica, belicaNumber) { 
+		window.location.href = `/op/mejoras.php?accion=belica&belica=` + belica + `&belicaNumber=` + belicaNumber;
+	}
+		
+	function subirCamino(espeNumber, belicaNumber, camino) { 																						
+		window.location.href = `/op/mejoras.php?accion=belica_espe&espeNumber=` + espeNumber + `&belicaNumber=` + belicaNumber + `&espe=` + camino;
+	}
+		
+	function chooseCamino(belica, camino) {
+		
+		let isBelica1 = belica1 == belica;
+		let isBelica2 = belica2 == belica;
+		let isBelica3 = belica3 == belica;
+		let isBelica4 = belica4 == belica;
+		let isBelica5 = belica5 == belica;
+		let isBelica6 = belica6 == belica;
+		
+		let espesCount = 0;
+		
+		let isEspe1 = belicas[belica].espe1 == camino;
+		let isEspe2 = belicas[belica].espe2 == camino;
+		let isEspe3 = belicas[belica].espe3 == camino;
+		
+		if (belicas[belica].espe1) { espesCount = espesCount + 1; }
+		if (belicas[belica].espe2) { espesCount = espesCount + 1; }
+		if (belicas[belica].espe3) { espesCount = espesCount + 1; }
+		
+		let espeNivel = belicas[belica].sub[camino];
+		
+		let nikaReq = 0;
+		
+		if (espeNivel == 2) {
+		
+			if (nivel < 16) {
+				alert(`No cumples el requisito mínimo de nivel 16 para aprender el camino ` + camino + `.`);
+				return;
+			} 
+		
+			if (isBelica1 && isEspe1) { nikaReq = 15; }
+			if (isBelica2 && isEspe1) { nikaReq = 30; }
+			if (isBelica3 && isEspe1) { nikaReq = 50; }
+			if (isBelica4 && isEspe1) { nikaReq = 70; }
+			if (isBelica5 && isEspe1) { nikaReq = 140; }
+			if (isBelica6 && isEspe1) { nikaReq = 175; }
+
+			if (isBelica1 && isEspe2) { nikaReq = 25; }
+			if (isBelica2 && isEspe2) { nikaReq = 35; }
+			if (isBelica3 && isEspe2) { nikaReq = 90; }
+			if (isBelica4 && isEspe2) { nikaReq = 120; }
+			if (isBelica5 && isEspe2) { nikaReq = 190; }
+			if (isBelica6 && isEspe2) { nikaReq = 200; }
+		
+			if (isBelica1 && isEspe3) { nikaReq = 40; }
+			if (isBelica2 && isEspe3) { nikaReq = 50; }
+			if (isBelica3 && isEspe3) { nikaReq = 110; }
+			if (isBelica4 && isEspe3) { nikaReq = 140; }
+			if (isBelica5 && isEspe3) { nikaReq = 200; }
+			if (isBelica6 && isEspe3) { nikaReq = 250; }
+		
+			if (isBelica1 && isEspe1 && nikas >= 15) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 15 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica1", camino); } } 
+			else if (isBelica2 && isEspe1 && nikas >= 30) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 30 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica2", camino); } } 
+			else if (isBelica3 && isEspe1 && nikas >= 50) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 50 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica3", camino); } } 
+			else if (isBelica4 && isEspe1 && nikas >= 70) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 70 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica4", camino); } } 
+			else if (isBelica5 && isEspe1 && nikas >= 140) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 140 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica5", camino); } } 
+			else if (isBelica6 && isEspe1 && nikas >= 175) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+		
+			else if (isBelica1 && isEspe2 && nikas >= 25) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 25 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica1", camino); } } 
+			else if (isBelica2 && isEspe2 && nikas >= 35) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 35 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica2", camino); } } 
+			else if (isBelica3 && isEspe2 && nikas >= 90) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 90 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica3", camino); } } 
+			else if (isBelica4 && isEspe2 && nikas >= 120) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 120 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica4", camino); } } 
+			else if (isBelica5 && isEspe2 && nikas >= 190) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 190 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica5", camino); } }
+			else if (isBelica6 && isEspe2 && nikas >= 200) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+		
+			else if (isBelica1 && isEspe3 && nikas >= 40) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 40 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica1", camino); } } 
+			else if (isBelica2 && isEspe3 && nikas >= 50) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 50 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica2", camino); } } 
+			else if (isBelica3 && isEspe3 && nikas >= 110) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 110 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica3", camino); } } 
+			else if (isBelica4 && isEspe3 && nikas >= 140) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 140 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica4", camino); } } 
+			else if (isBelica5 && isEspe3 && nikas >= 200) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica5", camino); } } 
+			else if (isBelica6 && isEspe3 && nikas >= 250) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+			else { alert(`No cumples los requisitos para mejorar el camino ` + camino + `. Debes tener ` + nikaReq + ` nikas.`); }
+		
+		} else if (espeNivel == 1) {
+
+			if (nivel < 12) {
+				alert(`No cumples el requisito mínimo de nivel 12 para aprender el camino ` + camino + `.`);
+				return;
+			} 
+
+			if (isBelica1 && isEspe1) { nikaReq = 10; }
+			if (isBelica2 && isEspe1) { nikaReq = 20; }
+			if (isBelica3 && isEspe1) { nikaReq = 35; }
+			if (isBelica4 && isEspe1) { nikaReq = 50; }
+			if (isBelica5 && isEspe1) { nikaReq = 120; }
+			if (isBelica6 && isEspe1) { nikaReq = 150; }
+
+			if (isBelica1 && isEspe2) { nikaReq = 15; }
+			if (isBelica2 && isEspe2) { nikaReq = 30; }
+			if (isBelica3 && isEspe2) { nikaReq = 70; }
+			if (isBelica4 && isEspe2) { nikaReq = 100; }
+			if (isBelica5 && isEspe2) { nikaReq = 160; }
+			if (isBelica6 && isEspe2) { nikaReq = 175; }
+
+			if (isBelica1 && isEspe3) { nikaReq = 25; }
+			if (isBelica2 && isEspe3) { nikaReq = 35; }
+			if (isBelica3 && isEspe3) { nikaReq = 90; }
+			if (isBelica4 && isEspe3) { nikaReq = 120; }
+			if (isBelica5 && isEspe3) { nikaReq = 170; }
+			if (isBelica6 && isEspe3) { nikaReq = 200; }
+
+			if (isBelica1 && isEspe1 && nikas >= 10) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 10 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica1", camino); } } 
+			else if (isBelica2 && isEspe1 && nikas >= 20) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 20 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica2", camino); } } 
+			else if (isBelica3 && isEspe1 && nikas >= 35) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 35 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica3", camino); } } 
+			else if (isBelica4 && isEspe1 && nikas >= 50) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 50 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica4", camino); } } 
+			else if (isBelica5 && isEspe1 && nikas >= 120) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 120 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica5", camino); } } 
+			else if (isBelica6 && isEspe1 && nikas >= 150) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+
+			else if (isBelica1 && isEspe2 && nikas >= 15) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 15 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica1", camino); } } 
+			else if (isBelica2 && isEspe2 && nikas >= 30) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 30 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica2", camino); } } 
+			else if (isBelica3 && isEspe2 && nikas >= 70) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 70 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica3", camino); } } 
+			else if (isBelica4 && isEspe2 && nikas >= 100) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 100 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica4", camino); } } 
+			else if (isBelica5 && isEspe2 && nikas >= 160) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 160 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica5", camino); } } 
+			else if (isBelica6 && isEspe2 && nikas >= 175) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+
+			else if (isBelica1 && isEspe3 && nikas >= 25) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 25 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica1", camino); } } 
+			else if (isBelica2 && isEspe3 && nikas >= 35) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 35 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica2", camino); } } 
+			else if (isBelica3 && isEspe3 && nikas >= 90) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 90 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica3", camino); } } 
+			else if (isBelica4 && isEspe3 && nikas >= 120) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 120 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica4", camino); } } 
+			else if (isBelica5 && isEspe3 && nikas >= 170) { if (confirm(`Subir a nivel 2 el camino ` + camino + ` tiene un costo de 170 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica5", camino); } } 
+			else if (isBelica6 && isEspe3 && nikas >= 200) { if (confirm(`Subir a nivel 3 el camino ` + camino + ` tiene un costo de 200 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } } 
+			else { alert(`No cumples los requisitos para mejorar el camino ` + camino + `. Debes tener ` + nikaReq + ` nikas.`); }
+
+		} else if (espeNivel == 0) {
+
+			if (nivel < 8) {
+				alert(`No cumples el requisito mínimo de nivel 8 para aprender el camino ` + camino + `.`);
+				return;
+			} 
+			
+			if (isBelica1 && isEspe1) { nikaReq = 0; }
+			if (isBelica2 && isEspe1) { nikaReq = 15; }
+			if (isBelica3 && isEspe1) { nikaReq = 20; }
+			if (isBelica4 && isEspe1) { nikaReq = 30; }
+			if (isBelica5 && isEspe1) { nikaReq = 100; }
+			if (isBelica6 && isEspe1) { nikaReq = 125; }
+
+			if (isBelica1 && isEspe2) { nikaReq = 10; }
+			if (isBelica2 && isEspe2) { nikaReq = 20; }
+			if (isBelica3 && isEspe2) { nikaReq = 50; }
+			if (isBelica4 && isEspe2) { nikaReq = 80; }
+			if (isBelica5 && isEspe2) { nikaReq = 130; }
+			if (isBelica6 && isEspe2) { nikaReq = 150; }
+
+			if (isBelica1 && isEspe3) { nikaReq = 15; }
+			if (isBelica2 && isEspe3) { nikaReq = 25; }
+			if (isBelica3 && isEspe3) { nikaReq = 70; }
+			if (isBelica4 && isEspe3) { nikaReq = 100; }
+			if (isBelica5 && isEspe3) { nikaReq = 140; }
+			if (isBelica6 && isEspe3) { nikaReq = 175; }
+
+			if (isBelica1 && espesCount == 0 && nikas >= 0) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 0 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica1", camino); } } 
+			else if (isBelica2 && espesCount == 0 && nikas >= 15) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 15 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica2", camino); } }
+			else if (isBelica3 && espesCount == 0 && nikas >= 20) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 20 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica3", camino); } }
+			else if (isBelica4 && espesCount == 0 && nikas >= 30) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 30 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica4", camino); } }
+			else if (isBelica5 && espesCount == 0 && nikas >= 100) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 100 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica5", camino); } }
+			else if (isBelica6 && espesCount == 0 && nikas >= 125) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 100 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe1", "belica6", camino); } }
+
+			else if (isBelica1 && espesCount == 1 && nikas >= 10) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 10 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica1", camino); } } 
+			else if (isBelica2 && espesCount == 1 && nikas >= 20) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 20 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica2", camino); } }
+			else if (isBelica3 && espesCount == 1 && nikas >= 50) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 50 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica3", camino); } }
+			else if (isBelica4 && espesCount == 1 && nikas >= 80) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 80 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica4", camino); } }
+			else if (isBelica5 && espesCount == 1 && nikas >= 130) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 130 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica5", camino); } }
+			else if (isBelica6 && espesCount == 1 && nikas >= 150) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 130 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe2", "belica6", camino); } }
+
+			else if (isBelica1 && espesCount == 2 && nikas >= 15) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 15 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica1", camino); } } 
+			else if (isBelica2 && espesCount == 2 && nikas >= 25) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 25 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica2", camino); } }
+			else if (isBelica3 && espesCount == 2 && nikas >= 70) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 70 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica3", camino); } }
+			else if (isBelica4 && espesCount == 2 && nikas >= 100) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 100 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica4", camino); } }
+			else if (isBelica5 && espesCount == 2 && nikas >= 140) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 140 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica5", camino); } }
+			else if (isBelica6 && espesCount == 2 && nikas >= 175) { if (confirm(`Para aprender el camino ` + camino + ` tiene un costo de 140 nikas. ¿Estás de acuerdo?`)) { subirCamino("espe3", "belica6", camino); } }
+			else { alert(`No cumples los requisitos para aprender el camino ` + camino + `. Debes tener ` + nikaReq + ` nikas.`); }
+		}
+	}
+	
+		
+	function chooseBelica(belica, hasBelica) {
+		
+		let isBelica1 = belica1 == belica;
+		let isBelica2 = belica2 == belica;
+		let isBelica3 = belica3 == belica;
+		let isBelica4 = belica4 == belica;
+		let isBelica5 = belica5 == belica;
+		let isBelica6 = belica6 == belica;
+		let countBelicas = Object.keys(belicas).length;
+		
+		let nivelReq = 0;
+		let nikaReq = 0;
+		
+		if (hasBelica) {
+		
+			if (isBelica1 && nikas >= 0 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 0 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica1'); }
+			} else if (isBelica2 && nikas >= 10 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 10 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica2'); }
+			} else if (isBelica3 && nikas >= 20 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 20 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica3'); }
+			} else if (isBelica4 && nikas >= 35 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 35 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica4'); }
+			} else if (isBelica5 && nikas >= 60 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 60 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica5'); }
+			} else if (isBelica6 && nikas >= 75 && nivel >= 4) {
+				if (confirm(`Para subir el nivel a la disciplina ` + belica + ` tiene un costo de 75 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica6'); }
+			} else {
+			
+				if (isBelica1) { nikaReq = 0; nivelReq = 4; }
+				if (isBelica2) { nikaReq = 10; nivelReq = 4; }
+				if (isBelica3) { nikaReq = 20; nivelReq = 4; }
+				if (isBelica4) { nikaReq = 35; nivelReq = 4; }
+				if (isBelica5) { nikaReq = 60; nivelReq = 4; }
+				if (isBelica6) { nikaReq = 75; nivelReq = 4; }
+		
+				alert(`No cumples los requisitos para mejorar la disciplina ` + belica + `. Debes ser nivel ` + nivelReq + ` y tener ` + nikaReq + ` nikas.`);
+			}
+		
+		} else {
+		
+			if (countBelicas == 1 && nikas >= 5) {
+				if (confirm(`Para aprender la disciplina ` + belica + ` tiene un costo de 5 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica2'); }
+			} else if (countBelicas == 2 && nikas >= 10) {
+				if (confirm(`Para aprender la nivel a la disciplina ` + belica + ` tiene un costo de 10 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica3'); }
+			} else if (countBelicas == 3 && nikas >= 20) {
+				if (confirm(`Para aprender la nivel a la disciplina ` + belica + ` tiene un costo de 20 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica4'); }
+			} else if (countBelicas == 4 && nikas >= 40) {
+				if (confirm(`Para aprender la nivel a la disciplina ` + belica + ` tiene un costo de 40 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica5'); }
+			} else if (countBelicas == 5 && nikas >= 50) {
+				if (confirm(`Para aprender la nivel a la disciplina ` + belica + ` tiene un costo de 50 nikas. ¿Estás de acuerdo?`)) { subirBelica(belica, 'belica6'); }
+			} else {
+		
+				if (countBelicas == 1) { nikaReq = 5; }
+				if (countBelicas == 2) { nikaReq = 10; }
+				if (countBelicas == 3) { nikaReq = 20; }
+				if (countBelicas == 4) { nikaReq = 40; }
+				if (countBelicas == 5) { nikaReq = 50; }
+				alert(`No cumples los requisitos para aprender la disciplina ` + belica + `. Debes tener ` + nikaReq + ` nikas.`);
+			}
+		}	
+	}
+	
+	/* DISCIPLINAS PRIMARIAS */
+	if (belicas['Combatiente']) { 
+		$('#combatiente').css('filter', 'saturate(1.7)'); 
+		$('#combatiente-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Combatiente'].nivel + `</div>`);
+		
+		if (belicas['Combatiente'].nivel < 2) {  $('#combatiente-div').css('cursor', 'pointer'); $('#combatiente-div').on('click', function() { chooseBelica('Combatiente', true); }); }
+		else { $('#combatiente').removeClass('img-expand'); $('#combatiente-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+			
+	} else { 
+		$('#combatiente-div').css('cursor', 'pointer'); 
+		$('#combatiente').css('filter', 'grayscale(0.9)'); 
+		$('#combatiente-div').on('click', function() { chooseBelica('Combatiente', false); });
+	}
+	
+	if (belicas['Espadachín']) { 
+		$('#espadachin').css('filter', 'saturate(1.7)'); 
+		$('#espadachin-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Espadachín'].nivel + `</div>`); 
+		
+		if (belicas['Espadachín'].nivel < 2) { $('#espadachin-div').css('cursor', 'pointer'); $('#espadachin-div').on('click', function() { chooseBelica('Espadachín', true); }); }
+		else { $('#espadachin').removeClass('img-expand'); $('#espadachin-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+		
+	} else { 
+		$('#espadachin-div').css('cursor', 'pointer'); 
+		$('#espadachin').css('filter', 'grayscale(0.9)'); 
+		$('#espadachin-div').on('click', function() { chooseBelica('Espadachín', false); });
+	}
+	
+	if (belicas['Contundente']) { 
+		$('#contundente').css('filter', 'saturate(1.7)'); 
+		$('#contundente-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Contundente'].nivel + `</div>`); 	
+		
+		if (belicas['Contundente'].nivel < 2) { $('#contundente-div').css('cursor', 'pointer'); $('#contundente-div').on('click', function() { chooseBelica('Contundente', true); }); }
+		else { $('#contundente').removeClass('img-expand'); $('#contundente-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+		
+	} else { 
+		$('#contundente-div').css('cursor', 'pointer'); 
+		$('#contundente').css('filter', 'grayscale(0.9)'); 
+		$('#contundente-div').on('click', function() { chooseBelica('Contundente', false); });
+	}
+	
+	if (belicas['Tirador']) { 
+		$('#tirador').css('filter', 'saturate(1.7)'); 
+		$('#tirador-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Tirador'].nivel + `</div>`); 
+		
+		if (belicas['Tirador'].nivel < 2) { $('#tirador-div').css('cursor', 'pointer'); $('#tirador-div').on('click', function() { chooseBelica('Tirador', true); }); }
+		else { $('#tirador').removeClass('img-expand'); $('#tirador-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+
+	} else { 
+		$('#tirador-div').css('cursor', 'pointer'); 
+		$('#tirador').css('filter', 'grayscale(0.9)'); 
+		$('#tirador-div').on('click', function() { chooseBelica('Tirador', false); });
+	}
+	
+	if (belicas['Especialista']) { 
+		$('#especialista').css('filter', 'saturate(1.7)'); 
+		$('#especialista-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Especialista'].nivel + `</div>`); 	
+	
+		if (belicas['Especialista'].nivel < 2) { $('#especialista-div').css('cursor', 'pointer'); $('#especialista-div').on('click', function() { chooseBelica('Especialista', true); }); }
+		else { $('#especialista').removeClass('img-expand'); $('#especialista-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+
+	} else { 
+		$('#especialista-div').css('cursor', 'pointer'); 
+		$('#especialista').css('filter', 'grayscale(0.9)'); 
+		$('#especialista-div').on('click', function() { chooseBelica('Especialista', false); });
+	}
+	
+	if (belicas['Artillero']) { 
+		$('#artillero').css('filter', 'saturate(1.7)'); 
+		$('#artillero-div').append(`<div class="img-texto" style="font-size: 30px;top: 2px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + belicas['Artillero'].nivel + `</div>`); 	
+
+		if (belicas['Artillero'].nivel < 2) { $('#artillero-div').css('cursor', 'pointer'); $('#artillero-div').on('click', function() { chooseBelica('Artillero', true); }); }
+		else { $('#artillero').removeClass('img-expand'); $('#artillero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+
+	} else { 
+		$('#artillero-div').css('cursor', 'pointer'); 
+		$('#artillero').css('filter', 'grayscale(0.9)'); 
+		$('#artillero-div').on('click', function() { chooseBelica('Artillero', false); });
+	}
+	
+</script>

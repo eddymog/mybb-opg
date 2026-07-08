@@ -1,0 +1,455 @@
+<html>
+
+<head>
+	<title>Tienda de Kuros</title>
+	{$headerinclude}
+
+	<style>
+	
+		.saldoBoxFirst {
+			font-family: moonGetHeavy; color: white; text-shadow: 2px 2px 1px black; background-color: #008e00; padding: 8px 20px; font-size: 18px; border: 1px solid black;border-start-start-radius: 7px;border-start-end-radius: 7px;
+		}
+		
+		.saldoBoxSecond {
+			font-family: moonGetHeavy;color: white;text-shadow: 2px 2px 1px black;background-color: #00ea6b;padding: 8px 20px;font-size: 18px;border: 1px solid black;border-end-end-radius: 7px;border-end-start-radius: 7px;
+		}
+		
+		.tienda_tipos {
+			cursor: pointer;
+			transition: all 0.2s ease-out;
+/* 			filter: saturate(0.7); */
+		}
+		
+		.tienda_tipos:hover {
+			filter: drop-shadow(0px 0px 6px black) saturate(2);
+		}
+		
+		.tienda_tipos_active {
+			filter: drop-shadow(0px 0px 6px black) saturate(2);
+		}
+		
+		.item-outer {
+			width: 120px; height: 80px; background-color: #ff8400; border-radius: 5px; box-sizing: border-box; border: 2px solid black; margin-right: 15px;cursor: pointer;
+			transition: all 0.2s ease-out;
+		}
+		
+		.item-outer:hover {
+			background-color: #9664e0;
+		}
+		
+		.item-active {
+			background-color: #6842a0;
+		}
+		
+		.item-nombre {
+			color: white; font-family: moonGetHeavy; text-shadow: 1px 1px 1px black; text-align: center; margin-top: 6px;height: 40px;font-size: 13px;align-content: space-evenly;			line-height: 20px;
+		}
+		
+		.item-price {
+			color: white; font-family: moonGetHeavy; text-shadow: 1px 1px 1px black; text-align: center; margin-top: 6px; width: auto;
+		}
+		
+		.item-image {
+			width: 70px;
+			height: 70px;
+			text-align: center;
+			background: linear-gradient(0deg, #3c3c3c, #828282);
+			box-sizing: border-box;
+			border: 2px solid black;
+			margin: auto;
+
+		}
+		
+		.objeto_categoria {
+			text-align: right;margin-top: 10px;font-size: 17px;font-family: 'moonGetHeavy';color: white;text-shadow: 2px 2px 0px black;letter-spacing: 2px;
+		}
+		
+		.barra_categoria {
+			margin-bottom: 7px; height: 4px; background-color: #844572; border-radius: 11px; 
+		}
+		
+		.objetos_lista {
+			display: flex; flex-direction: row;justify-content: center;
+		}
+		
+		.incrementar-item {
+			background-color: #2e2e2e;
+			width: 20px;
+			height: 20px;
+			text-align: center;
+			margin-bottom: 4px;
+			cursor: pointer;
+			transition: all 0.2s ease-out;
+			padding: 2px 1px;
+   			border-radius: 2px;
+		}
+		
+		.decrementar-item {
+			background-color: #2e2e2e;width: 20px;height: 20px;text-align: center;cursor: pointer;transition: all 0.2s ease-out;
+			padding: 2px 1px;
+    		border-radius: 2px;
+		}
+		
+		.incrementar-item:hover, .decrementar-item:hover  {
+			background-color: #ff8500;
+		}
+		
+		.nikab {
+			color: red;
+			height: 20px;
+			position: relative;
+			left: 5px;
+			top: 4px;
+		}
+		
+		.mainBackground { background-color: #571945; }
+		.secondBackground { background-color: #430d34; }
+		.thirdBackground { background-color: #2f0f26; }
+	</style>
+</head>
+
+<body>
+	{$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				
+				<div>
+					<img src="/images/op/uploads/BanerKuros_One_Piece_Gaiden_Foro_Rol.jpg" />
+				</div>
+				
+<!-- 				<div style="display: flex;margin-top: 15px;flex-direction: row;justify-content: space-evenly;">
+					<div id="items" onclick="clickTipo('items')" class="tienda_tipos tienda_tipos_active"><img src="/images/op/uploads/BotonSpecialNikas_One_Piece_Gaiden_Foro_Rol.png" /></div>
+					<div id="upgrades" onclick="clickTipo('upgrades')" class="tienda_tipos"><img src="/images/op/uploads/BotonUpgradesNikas_One_Piece_Gaiden_Foro_Rol.png" /></div>
+				</div> -->
+				
+				<div style="display: flex; flex-direction: row;margin-top: 15px;">
+					<div style="display: flex; flex-direction: column; width: 25%;">
+						<div>
+							<img src="/images/op/uploads/NamiUwUNikas_One_Piece_Gaiden_Foro_Rol.png" />
+						</div>
+						
+						<div style=" font-family: moonGetHeavy; ">
+							<button onclick="comprarItems()" id="button-comprar" style=" padding: 10px 20px; font-size: 22px; width: 240px; box-sizing: border-box; border: 1px solid #6918e1 !important; letter-spacing: 1px; text-shadow: 1px 1px 1px black; transition: all 0.2s ease-out;background-color: gray;">Comprar</button>
+						</div>
+						
+						<div style=" margin-top: 10px; width: 240px; ">
+							<div style=" background-color: #9664e0; font-size: 20px; font-family: 'moonGetHeavy'; color: white; text-align: center; text-shadow: 1px 1px 1px black; height: 30px; padding: 5px 0px; border: 1px solid black; border-start-end-radius: 7px; border-start-start-radius: 7px; ">
+								Lista de compras
+							</div>
+							<div id="comprasTotalBox" style="min-height: 300px;border: 1px solid black;background-color: #6842a0;border-top: 0px;">
+								
+							</div>
+							<div style=" background-color: #9664e0; font-size: 20px; font-family: 'moonGetHeavy'; color: white; text-align: center; text-shadow: 1px 1px 1px black; height: 30px; padding: 5px 0px; border: 1px solid black; border-end-end-radius: 7px; border-end-start-radius: 7px; ">
+								<span id="comprasTotal">500.000.000</span><img class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" />
+							</div>
+						</div>
+					</div>
+					
+					<div style="display: flex;flex-direction: column;width: 75%;">
+						<div style="display: flex;flex-direction: row;justify-content: right;">
+							<div style="text-align: center;margin-right: 12px;width: 241px;">
+								<div class="saldoBoxFirst">SALDO ACTUAL</div>
+								<div class="saldoBoxSecond"><span id="saldoActual">500.000.000</span><img class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" /></div>
+							</div>
+							<div style="text-align: center;width: 241px;">
+								<div class="saldoBoxFirst" style=" background-color: #a60000; ">SALDO RESTANTE</div>
+								<div class="saldoBoxSecond" style="background-color: #ff7474;"><span id="saldoRestante">500.000.000</span><img class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" /></div>
+							</div>
+						</div>
+						
+						<div id="objetos_items" style="display: block;"></div>
+						<div id="objetos_upgrades" style="display: none;"></div>
+					</div>
+					
+					
+				</div>
+				
+				<div style="display: flex;margin-top: 15px;flex-direction: row;">
+					
+				</div>
+				
+				<div>
+					<div>
+						
+					</div>
+					<div>
+						
+					</div>
+				</div>
+				
+				<div>
+					<div id="items_content"></div>
+					<div id="upgrades_content"></div>
+				</div>
+
+			</div>
+		</div>
+    </div>
+  </div>
+	{$footer}
+</body>
+	
+{$reload_js}
+
+<script>
+
+let cofre1_count = '{$cofre1_count}';
+let cofre2_count = '{$cofre2_count}';
+let cofre3_count = '{$cofre3_count}';
+let cofre4_count = '{$cofre4_count}';
+let cofre5_count = '{$cofre5_count}';
+	
+let saldoActual = {$ficha['kuro']};
+let saldoRestante = {$ficha['kuro']};
+let comprasTotal = '0';
+let listaDeCompras = {};
+saldoActual = saldoActual.toLocaleString('es-es');
+	
+$('#saldoActual').html(saldoActual);
+$('#saldoRestante').html(saldoActual);
+$('#comprasTotal').html(comprasTotal);
+
+const objetos = {$objetos_json};
+const objetosArray = {$objetos_array_json};
+	
+console.log(objetos);
+console.log(objetosArray);
+	
+const subcategorias = { 
+	// armas_de_filo: true
+};
+	
+for (let i = 0; i < objetosArray.length; i++) {
+	const objeto = objetos[objetosArray[i]][0];
+	console.log(objeto);
+	const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+	console.log(subcategoria);
+	
+	if (!subcategorias[subcategoria]) {
+		subcategorias[subcategoria] = true;
+		$('#objetos_' + objeto.categoria).append(`
+			<div id="` + subcategoria + `_area">
+				<div id="` + subcategoria + `_categoria">
+					<div class="objeto_categoria">` + objeto.subcategoria.toUpperCase() + `</div>
+					<div class="barra_categoria"></div>
+				</div>
+
+				<div id="` + subcategoria + `_objetos" class="objetos_lista">
+					
+				</div>
+			</div>
+		`);
+	}
+	
+	$('#' + subcategoria + "_objetos").append(`
+		<div class="tooltip item-outer" id="` + objeto.objeto_id + `">
+			<div class="item-nombre">` + objeto.nombre + `</div>
+			<div class="item-price">` + parseInt(objeto.berries).toLocaleString('es-es') + `<img style="height: 14px;" class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" /></div>
+		</div>
+	`);
+	
+// 	$('#' + subcategoria + "_objetos").append(`
+// 		<div class="tooltip item-outer" id="` + objeto.objeto_id + `">
+// 			<div class="item-nombre">` + objeto.nombre + `</div>
+// 			<div>
+				
+// 				<div>
+// 					<div class="tooltiptext item-tooltip">
+// 						<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.nombre + `</div>
+// 						<div style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+// 						<div style=" height: 1px; background-color: #faa500; padding: 0px 14px; margin: 0px 5px 2px; "></div>
+// 						<div style=" font-family: InterRegular; padding: 0px 5px; display: flex; flex-direction: row; justify-content: space-between; ">
+// 							<div>ID: <span>` + objeto.objeto_id + `</span></div>
+// 							<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span><img class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" /></div>
+// 						</div>
+// 						<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+// 					</div>
+// 				</div>
+
+				
+// 			</div>
+// 			<div class="item-price">` + parseInt(objeto.berries).toLocaleString('es-es') + `<img style="height: 14px;" class="nikab" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png" /></div>
+// 		</div>
+// 	`);
+	
+}
+	
+$('#imagen-item').hover(function() {
+	
+});
+	
+let testItem = null;	
+	
+$('.item-outer').on('click', function() {
+	
+	// testItem = $(this);
+	let objeto = objetos[$(this)[0].id][0];
+	
+	if ($(this).hasClass('item-active')) {
+		$(this).removeClass('item-active');
+		
+		
+		let cantidad = $('#compra-' + objeto.objeto_id + ' .itemCantidad').text();
+		comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) - (parseInt(objeto.berries) * cantidad);
+		saldoRestante = saldoRestante + (parseInt(objeto.berries) * cantidad);
+		console.log(saldoRestante);
+		comprasTotal = comprasTotal.toLocaleString('es-es');
+
+		$('#comprasTotal').html(comprasTotal);
+		$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+		$('#compra-' + objeto.objeto_id).remove();
+		if (comprasTotal == '0') {
+			$('#button-comprar').css('background-color', 'gray');
+		}
+		delete listaDeCompras[objeto.objeto_id];
+	} else {	
+		
+		if (saldoRestante - parseInt(objeto.berries) >= 0) {
+			
+			if (comprasTotal == '0') {
+				$('#button-comprar').css('background-color', '#9664e0');
+			}
+			
+			comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) + parseInt(objeto.berries);
+			saldoRestante = saldoRestante - parseInt(objeto.berries);
+			comprasTotal = comprasTotal.toLocaleString('es-es');
+
+			$('#comprasTotal').html(comprasTotal);
+			$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+
+			$(this).addClass('item-active');
+			
+			listaDeCompras[objeto.objeto_id] = { cantidad: 1 };
+			$('#comprasTotalBox').append(`
+
+				<div id="compra-` + objeto.objeto_id + `" style=" height: 55px; border-bottom: 1px solid black; border-top: 1px solid black; background: linear-gradient(#009819, #003400); display: flex; flex-direction: row;">
+					<div style="display: flex;flex-direction: column;margin: 5px 5px;">
+						<div onclick="incrementarItem('compra-` + objeto.objeto_id + `')" class="incrementar-item">
+							<i class="fa fa-angle-double-up" aria-hidden="true" style=" font-size: 17px; color: #f2f2f2; position: relative; "></i>
+						</div>
+						<div onclick="decrementarItem('compra-` + objeto.objeto_id + `')" class="decrementar-item">
+							<i class="fa fa-angle-double-down" aria-hidden="true" style=" font-size: 17px; color: #f2f2f2; position: relative; "></i>
+						</div>
+					</div>
+					<div style=" font-size: 20px; font-family: moonGetHeavy; color: white; text-shadow: 1px 1px 5px black; margin-top: 10px; margin-left: 5px; ">x<span class="itemCantidad">1</span></div>
+					<div style=" font-size: 17px; font-family: moonGetHeavy; color: white; text-shadow: 1px 1px 5px black; margin-top: 10px; text-align: center; width: 173px; ">
+						` + objeto.nombre + `
+					</div>
+				</div>
+			`);
+		}
+
+		// objetos[testItem[0].id][0]
+	}
+	
+	// alert( "Handler for `click` called." );
+});
+	
+function incrementarItem(item) {
+	let itemCantidadId = '#' + item +  ' .itemCantidad';
+	let itemId = item.replace('compra-', '');
+	let itemCantidad = parseInt($(itemCantidadId).text());
+	
+	let berries = parseInt(objetos[itemId][0].berries);
+
+	if (itemCantidad < 10 && (saldoRestante - berries >= 0)) {
+		saldoRestante = saldoRestante - berries;
+		$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+		comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) + berries;
+		comprasTotal = comprasTotal.toLocaleString('es-es');
+		$('#comprasTotal').html(comprasTotal);
+		$(itemCantidadId).text(itemCantidad + 1);
+		listaDeCompras[itemId]['cantidad'] = listaDeCompras[itemId]['cantidad'] + 1;
+	}
+	
+}
+	
+function decrementarItem(item) {
+	let itemCantidadId = '#' + item +  ' .itemCantidad';
+	let itemId = item.replace('compra-', '');
+	let itemCantidad = parseInt($(itemCantidadId).text());
+	
+	let berries = parseInt(objetos[itemId][0].berries);
+	
+	if (itemCantidad > 1) {
+		saldoRestante = saldoRestante + berries;
+		$('#saldoRestante').html(saldoRestante.toLocaleString('es-es'));
+		
+		comprasTotal = parseInt(comprasTotal.replace(/\./g, '')) - berries;
+		comprasTotal = comprasTotal.toLocaleString('es-es');
+		$('#comprasTotal').html(comprasTotal);
+		
+		$(itemCantidadId).text(itemCantidad - 1);
+		listaDeCompras[itemId]['cantidad'] = listaDeCompras[itemId]['cantidad'] - 1;
+	}
+}
+	
+function comprarItems() {
+	if (comprasTotal != '0') {
+		
+		if (listaDeCompras['CFR001'] && (listaDeCompras['CFR001'].cantidad + parseInt(cofre1_count) > 5)) {
+			alert('Solo puedes comprar un máximo de 5 cofres básicos al mes.');
+			return;
+		}
+		if (listaDeCompras['CFR002'] && (listaDeCompras['CFR002'].cantidad + parseInt(cofre2_count) > 5)) {
+			alert('Solo puedes comprar un máximo de 5 cofres decentes al mes.');
+			return;
+		}
+		if (listaDeCompras['CFR003'] && (listaDeCompras['CFR003'].cantidad + parseInt(cofre3_count) > 5)) {
+			alert('Solo puedes comprar un máximo de 5 cofres gigantes al mes.');
+			return;
+		}
+		if (listaDeCompras['CFR004'] && (listaDeCompras['CFR004'].cantidad + parseInt(cofre4_count) > 5)) {
+			alert('Solo puedes comprar un máximo de 5 cofres cobrizos al mes.');
+			return;
+		}
+		if (listaDeCompras['CFR005'] && (listaDeCompras['CFR005'].cantidad + parseInt(cofre5_count) > 5)) {
+			alert('Solo puedes comprar un máximo de 5 cofres argénteos al mes.');
+			return;
+		}
+		
+		if (confirm('¿Estás de acuerdo con esta compra de ' + comprasTotal + ' Kuros?')) {
+
+			$.post("/op/tienda_kuros.php", { 
+				accion: 'comprar',
+				comprasTotal: parseInt(comprasTotal.replace(/\./g, '')),
+				listaDeCompras: listaDeCompras,
+				listaDeComprasKeys: Object.keys(listaDeCompras)
+			}, function( data ) { 
+				console.log(data);
+				alert('¡Compra realizada! Serás redirigido al índice.');
+				window.location = "/op/tienda_kuros.php";
+			});
+		}
+		
+		
+	}
+}
+	
+function clickTipo(tipo) {
+	$('.tienda_tipos').removeClass('tienda_tipos_active');
+
+	if (tipo == 'items') {
+		$('#objetos_items').css('display', 'block');
+		$('#objetos_upgrades').css('display', 'none');
+		
+		$('#items').addClass('tienda_tipos_active');
+	}
+
+	if (tipo == 'upgrades') {
+		$('#objetos_items').css('display', 'none');
+		$('#objetos_upgrades').css('display', 'block');
+		
+		$('#upgrades').addClass('tienda_tipos_active');
+	}
+	
+}	
+	
+	/* if saldo restante + thing is less than 0, do not add. */
+</script>
+
+</html>

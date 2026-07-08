@@ -19,7 +19,7 @@ require_once "./functions/op_functions.php";
 $uid = $mybb->user['uid'];
 $s_uid = $mybb->user['uid'];
 
-$query_objetos = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE custom='0' ORDER BY categoria, subcategoria, tier, nombre ");
+$query_objetos = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE custom='0' AND objeto_id NOT LIKE 'CFF010%' ORDER BY categoria, subcategoria, tier, nombre ");
 $objetos = array();
 $objetos_array = array();
 

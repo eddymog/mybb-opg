@@ -1,0 +1,44 @@
+<div id="tecnicass" style="display:none;">
+    <script>
+        // Inicializar variable de técnicas HTML desde PHP
+        var tecnicas_html_json = {$tecnicas_html_json};
+    </script>
+    <div style="margin-top: 12px;flex-direction: row;display: flex;">
+        <div id="pestana-tecnicas" style="margin-left: 49px;">
+        </div>
+        <div>
+            <div style="width: 730px;height: 40px;background-color: {$borderColor};" class="barra-op bbox"><span style="top: 8px;font-size: 16px;" class="barra-texto-op">TÉCNICAS</span></div>
+            <div style="margin-top: -3px; width: 726px; background-color:rgb(0, 0, 0); border-left: 2px solid black; border-right: 2px solid black; padding: 0; border-down: 2px solid black; border-top-left-radius: 6px; border-top-right-radius: 6px; display: flex; flex-direction: column;">
+                <div style="display: flex; height: 25px; margin: 0; border-bottom: 2px solid black;">
+                    <button id="btn-t1" onclick="TF.filtrarTier(1)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T1</button>
+                    <button id="btn-t2" onclick="TF.filtrarTier(2)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T2</button>
+                    <button id="btn-t3" onclick="TF.filtrarTier(3)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T3</button>
+                    <button id="btn-t4" onclick="TF.filtrarTier(4)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T4</button>
+                    <button id="btn-t5" onclick="TF.filtrarTier(5)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T5</button>
+                    <button id="btn-t6" onclick="TF.filtrarTier(6)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T6</button>
+                    <button id="btn-t7" onclick="TF.filtrarTier(7)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T7</button>
+                    <button id="btn-t8" onclick="TF.filtrarTier(8)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T8</button>
+                    <button id="btn-t9" onclick="TF.filtrarTier(9)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T9</button>
+                    <button id="btn-t10" onclick="TF.filtrarTier(10)" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">T10</button>
+                </div>
+                <div style="display: flex; height: 25px; margin: 0; border-bottom: 2px solid black;">
+                    <button id="btn-pasiva" onclick="TF.filtrarCategoria('pasiva')" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">PASIVAS</button>
+                    <button id="btn-activa" onclick="TF.filtrarCategoria('activa')" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">ACTIVA</button>
+                    <button id="btn-mantenida" onclick="TF.filtrarCategoria('mantenida')" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">MANTENIDA</button>
+                    <button id="btn-ofensiva" onclick="TF.filtrarCategoria('ofensiva')" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">OFENSIVA</button>
+                    <button id="btn-defensiva" onclick="TF.filtrarCategoria('defensiva')" style="flex: 1; height: 25px; background-color: #666666; color: white; border: none; border-right: 5px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">DEFENSIVA</button>
+                    <div style="flex: 2; display: flex; align-items: center; background-color: #444444; padding: 0 10px;">
+                        <label style="color: white; font-family: 'moonGetHeavy'; font-size: 10px; margin-right: 5px;">ANTES DEL:</label>
+                        <input type="text" id="fecha-filtro" placeholder="DD/MM/YYYY" onchange="TF.filtrarPorFecha(this.value)" style="flex: 1; height: 20px; border: none; border-radius: 3px; text-align: center; font-family: 'moonGetHeavy'; font-size: 10px;">
+                        <button onclick="document.getElementById('fecha-filtro').value=''; TF.filtrarPorFecha('');" style="margin-left: 5px; height: 20px; background-color: #dc3545; color: white; border: none; border-radius: 2px; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 8px; padding: 0 5px;">✕</button>
+                    </div>
+                </div>
+            </div>
+            <div id="tecnicas-background" style="border-left: 2px solid black;border-right: 2px solid black;width: 730px; height: 1024px;background-color: #ffedd2;border-bottom: 2px solid black;border-bottom-left-radius: 6px;border-bottom-right-radius: 6px;padding-top: 1px;overflow: auto;-ms-overflow-style: none;  scrollbar-width: none; " class="bbox">
+                <div id="tecnicas-caja">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--<script src="op_ficha_tecnicas.js"></script>-->

@@ -1,0 +1,94 @@
+<div style="overflow-y: auto; max-height: 400px;">
+                <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/select2/select2.css" />
+                <script type="text/javascript" src="{$mybb->asset_url}/jscripts/select2/select2.min.js?ver={$mybb->version_code}"></script>
+                <form action="editpost.php?pid={$pid}" method="post">
+                    <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                    <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+                        <tr><td align="center">
+                            <table width="200px" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+                                <tr>
+                                    <td class="thead" align="center">
+                                        <strong>{$lang->aj_changeauthor_headline2}</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table width="200px" height="300px" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+                                <tr>
+                                    <td class="trow1" style="vertical-align:top;" align="center">
+                                        <div class="float_left" style="width: 120px; text-align: right;"><strong>{$lang->as_username}</strong></div>
+                                        <div style="margin-left: 30px;"><input type="hidden" name="authorswitchadmin" id="authorswitchadmin" style="width: 80%;" class="textbox" /></div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table width="200px" style="margin-bottom: 30px;" border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+                                <tr>
+                                    <td class="trow2" align="center">
+                                        <input type="hidden" name="action" value="do_cancel" />
+                                        <input type="submit" class="button" name="submit" value="{$lang->aj_changeauthor_cancel}" onclick="{$cancel}" />
+                                    </td>
+                                    <td class="trow2" align="center">
+                                        <input type="hidden" name="action" value="do_author" />
+                                        <input type="hidden" name="p_link" value="{$postlink}" />
+                                        <input type="submit" class="button" name="submit" value="{$lang->aj_changeauthor_submit}" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td></tr>
+                    </table>
+                </form>
+                <script type="text/javascript">
+                <!--
+                    lang.select2_match= "{$lang->select2_match}";
+                    lang.select2_matches= "{$lang->select2_matches}";
+                    lang.select2_nomatches= "{$lang->select2_nomatches}";
+                    lang.select2_inputtooshort_single = "{$lang->select2_inputtooshort_single}";
+                    lang.select2_inputtooshort_plural = "{$lang->select2_inputtooshort_plural}";
+                    lang.select2_inputtoolong_single = "{$lang->select2_inputtoolong_single}";
+                    lang.select2_inputtoolong_plural = "{$lang->select2_inputtoolong_plural}";
+                    lang.select2_selectiontoobig_single = "{$lang->select2_selectiontoobig_single}";
+                    lang.select2_selectiontoobig_plural = "{$lang->select2_selectiontoobig_plural}";
+                    lang.select2_loadmore = "{$lang->select2_loadmore}";
+                    lang.select2_searching = "{$lang->select2_searching}";
+
+                    MyBB.select2();
+                    $("#authorswitchadmin").select2({
+                        placeholder: "{$lang->aj_changeauthor_headline2}",
+                        minimumInputLength: 2,
+                        multiple: false,
+                        ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
+                            url: "xmlhttp.php?action=get_users",
+                            dataType: "json",
+                            data: function (term, page) {
+                                return {
+                                    query: term, // search term
+                                };
+                            },
+                            results: function (data, page) { // parse the results into the format expected by Select2.
+                                // since we are using custom formatting functions we do not need to alter remote JSON data
+                                return {results: data};
+                            }
+                        },
+                        initSelection: function(element, callback) {
+                            var query = $(element).val();
+                            if (query !== "") {
+                                $.ajax("xmlhttp.php?action=get_users", {
+                                    data: {
+                                        query: query
+                                    },
+                                    dataType: "json"
+                                }).done(function(data) { callback(data); });
+                            }
+                        },
+                       // Allow the user entered text to be selected as well
+                       createSearchChoice:function(term, data) {
+                            if ( $(data).filter( function() {
+                                return this.text.localeCompare(term)===0;
+                            }).length===0) {
+                                return {id:term, text:term};
+                            }
+                        },
+                    });
+                // -->
+                </script>
+                </div>
+                

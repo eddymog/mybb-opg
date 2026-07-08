@@ -1,0 +1,633 @@
+<html>
+
+<head>
+  <title>One Piece Gaiden - Generador de Imágenes con IA</title>
+  {$headerinclude}
+  <style>
+    .imagen-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    
+    .imagen-header {
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .imagen-header h1 {
+      order: 1;
+    }
+    
+    .imagen-header img {
+      max-width: 80%; /* Reducido de 100% a 80% */
+      height: auto;
+      order: 2;
+      margin-bottom: 15px;
+      margin-top: 10px;
+      align-self: center; /* Asegura que la imagen permanezca centrada */
+    }
+    
+    .ai-badge {
+      display: inline-block;
+      background-color: #7B68EE;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 15px;
+      order: 3; /* Este es el cambio clave - lo coloca después de la imagen */
+      align-self: center; /* Centra el badge horizontalmente */
+    }
+    
+    .prompt-area {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 100px;
+      font-size: 16px;
+      resize: vertical;
+    }
+    
+    .submit-btn, .action-btn {
+      background-color: #4285F4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .submit-btn:hover, .action-btn:hover {
+      background-color: #3367d6;
+    }
+    
+    .loading {
+      text-align: center;
+      margin: 30px 0;
+      display: none;
+    }
+    
+    .loading img {
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result-container {
+      margin-top: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      display: none;
+      text-align: center;
+    }
+    
+    .result-image {
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+      border-radius: 4px;
+    }
+    
+    .error-message {
+      color: #d32f2f;
+      background-color: #ffebee;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .action-buttons {
+      margin-top: 20px;
+    }
+    
+    /* Estilos para las pestañas */
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+      justify-content: center; /* Centrar las pestañas horizontalmente */
+    }
+    
+    .tab-btn {
+      padding: 10px 20px;
+      background-color: #FF9800; /* Cambiado de #f1f1f1 a naranja */
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px 4px 0 0;
+      margin-right: 5px;
+      margin-left: 5px;
+      margin-bottom: 5px;
+      color: white; /* Para mejor contraste con fondo naranja */
+    }
+    
+    .tab-btn.active {
+      background-color: #4285F4;
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .option-description {
+      color: #666;
+      font-style: italic;
+      margin-bottom: 15px;
+    }
+
+    .selectores-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .selector-grupo {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .selector-grupo label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .select-personalizado {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .select-personalizado:focus {
+      border-color: #4285F4;
+      outline: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <div class="imagen-container">
+      <div class="imagen-header">
+        <h1>Generador de Imágenes de One Piece</h1>
+        <div class="ai-badge">Potenciado por IA</div>
+        <img src="https://onepiecegaiden.com/images/op/uploads/TituloGeneradorImagenes_One_Piece_Gaiden_Foro_Rol.png" alt="One Piece Gaiden">
+      </div>
+      
+      <!-- Pestañas para seleccionar el tipo de imagen -->
+      <div class="tabs">
+        <button id="tab-personajes" class="tab-btn active" onclick="cambiarTab('personajes')">Personajes</button>
+        <button id="tab-paisajes" class="tab-btn" onclick="cambiarTab('paisajes')">Paisajes</button>
+        <button id="tab-jollyroger" class="tab-btn" onclick="cambiarTab('jollyroger')">Jolly Roger</button>
+        <button id="tab-barcos" class="tab-btn" onclick="cambiarTab('barcos')">Barcos</button>
+        <button id="tab-akuma" class="tab-btn" onclick="cambiarTab('akuma')">Akuma no Mi</button>
+      </div>
+      
+      <!-- Contenido para generar personajes -->
+      <div id="content-personajes" class="tab-content active">
+        <p class="option-description">Genera imágenes de personajes basados en el mundo de One Piece.</p>
+        <form id="personaje-form" onsubmit="return generarImagenPersonaje(event);">
+          
+          <div class="selectores-container">
+            <div class="selector-grupo">
+              <label for="estilo-personaje">Estilo:</label>
+              <select id="estilo-personaje" class="select-personalizado">
+                <option value="realista">Realista</option>
+                <option value="Jojos Bizarre Adventure">Jojo´s</option>
+                <option value="Dragon Ball">Dragon Ball</option>
+                <option value="Naruto">Naruto</option>
+                <option value="Bleach">Bleach</option>
+                <option value="Attack on Titan">Attack on Titan</option>
+                <option value="My Hero Academia">My Hero Academia</option>
+                <option value="Demon Slayer">Demon Slayer</option>
+                <option value="Sword Art Online">Sword Art Online</option>
+                <option value="Fairy Tail">Fairy Tail</option>
+                <option value="One Piece">One Piece</option>
+                <option value="Hunter x Hunter">Hunter x Hunter</option>
+                <option value="Death Note">Death Note</option>
+                <option value="Tokyo Ghoul">Tokyo Ghoul</option>
+                <option value="Fullmetal Alchemist">Fullmetal Alchemist</option>
+                <option value="Yu-Gi-Oh!">Yu-Gi-Oh!</option>
+                <option value="Manga en blanco y negro">Manga</option>
+                <option value="Anime">Anime</option>
+              </select>
+            </div>
+                        
+            <div class="selector-grupo">
+              <label for="genero-personaje">Género:</label>
+              <select id="genero-personaje" class="select-personalizado">
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+              </select>
+            </div>
+          </div>
+          
+          <textarea id="prompt-personaje" class="prompt-area" placeholder="Describe el personaje de One Piece que quieres generar... (por ejemplo: 'pirata con sombrero de paja y cicatriz', 'espadachín con tres katanas', 'navegante con cabello naranja y tatuaje')"></textarea>
+          
+          <button type="submit" class="submit-btn">Generar Personaje</button>
+        </form>
+      </div>
+      
+      <!-- Contenido para generar paisajes -->
+      <div id="content-paisajes" class="tab-content">
+        <p class="option-description">Genera paisajes e islas inspirados en las locaciones de One Piece.</p>
+        <form id="paisaje-form" onsubmit="return generarImagenPaisaje(event);">
+          <textarea id="prompt-paisaje" class="prompt-area" placeholder="Describe el paisaje de One Piece que quieres generar... (por ejemplo: 'isla pirata con palmeras y tesoros', 'ciudad portuaria con barcos piratas', 'isla en el cielo con nubes y edificios antiguos')"></textarea>
+          
+          <button type="submit" class="submit-btn">Generar Paisaje</button>
+        </form>
+      </div>
+      
+      <!-- Contenido para generar Jolly Roger -->
+      <div id="content-jollyroger" class="tab-content">
+        <p class="option-description">Genera banderas piratas (Jolly Roger) personalizadas al estilo de One Piece.</p>
+        <form id="jollyroger-form" onsubmit="return generarJollyRoger(event);">
+          <textarea id="prompt-jollyroger" class="prompt-area" placeholder="Describe la bandera pirata que quieres generar... (por ejemplo: 'calavera con sombrero de paja', 'calavera con espadas cruzadas', 'calavera con flamas', 'jolly roger con símbolo de manzana')"></textarea>
+          
+          <button type="submit" class="submit-btn">Generar Jolly Roger</button>
+        </form>
+      </div>
+      
+      <!-- Contenido para generar Barcos -->
+      <div id="content-barcos" class="tab-content">
+        <p class="option-description">Genera barcos piratas y navíos inspirados en el mundo de One Piece.</p>
+        <form id="barcos-form" onsubmit="return generarBarco(event);">
+          
+          <div class="selectores-container">
+            <div class="selector-grupo">
+              <label for="estilo-barco">Estilo:</label>
+              <select id="estilo-barco" class="select-personalizado">
+                <option value="realista">Realista</option>
+                <option value="Jojos Bizarre Adventure">Jojo´s</option>
+                <option value="Dragon Ball">Dragon Ball</option>
+                <option value="Naruto">Naruto</option>
+                <option value="Bleach">Bleach</option>
+                <option value="Attack on Titan">Attack on Titan</option>
+                <option value="My Hero Academia">My Hero Academia</option>
+                <option value="Demon Slayer">Demon Slayer</option>
+                <option value="Sword Art Online">Sword Art Online</option>
+                <option value="Fairy Tail">Fairy Tail</option>
+                <option value="One Piece">One Piece</option>
+                <option value="Hunter x Hunter">Hunter x Hunter</option>
+                <option value="Death Note">Death Note</option>
+                <option value="Tokyo Ghoul">Tokyo Ghoul</option>
+                <option value="Fullmetal Alchemist">Fullmetal Alchemist</option>
+                <option value="Yu-Gi-Oh!">Yu-Gi-Oh!</option>
+                <option value="Manga en blanco y negro">Manga</option>
+                <option value="Anime">Anime</option>
+              </select>
+            </div>
+
+            <div class="selector-grupo">
+              <label for="modelo-barco">Tipo de embarcacion:</label>
+              <select id="modelo-barco" class="select-personalizado">
+                <option value="barco">Barco</option>
+                <option value="bote">Bote</option>
+                <option value="navío">Navío</option>
+                <option value="yate">Yate</option>
+                <option value="galeón">Galeón</option>
+                <option value="barco de guerra">Barco de guerra</option>
+                <option value="barco de exploración">Barco de exploración</option>
+                <option value="barco de carga">Barco de carga</option>
+                <option value="submarino">Submarino</option>
+                <option value="catamarán">Catamarán</option>
+                <option value="trimarán">Trimarán</option>
+                <option value="velero">Velero</option>
+                <option value="balsa">Balsa</option>
+                <option value="canoa">Canoa</option>
+                <option value="kayak">Kayak</option>
+                <option value="carabela">Carabela</option>
+                <option value="fragata">Fragata</option>
+                <option value="clíper">Clíper</option>
+                </select>
+            </div>
+            
+            <div class="selector-grupo">
+              <label for="tipo-barco">Clase:</label>
+              <select id="tipo-barco" class="select-personalizado">
+                <option value="pirata">Pirata</option>
+                <option value="de la marina de One Piece">Marine</option>
+                <option value="revolucionario">Revolucionario</option>
+                <option value="cazarrecompensas">Cazarrecompensas</option>
+                <option value="mercante">Mercante</option>
+                <option value="gobierno mundial de One Piece">Gobierno</option>
+                <option value="barco de guerra">Barco de guerra</option>
+                <option value="barco de exploración">Barco de exploración</option>
+                <option value="barco de carga">Barco de carga</option>
+              </select>
+            </div>
+          </div>
+          
+          <textarea id="prompt-barcos" class="prompt-area" placeholder="Describe el barco que quieres generar... (por ejemplo: 'barco con mascarón de proa de león', 'navío con velas negras y detalles dorados', 'barco de guerra con cañones y figura de dragón')"></textarea>
+          
+          <button type="submit" class="submit-btn">Generar Barco</button>
+        </form>
+      </div>
+      
+      <!-- Contenido para generar Akuma no Mi -->
+      <div id="content-akuma" class="tab-content">
+        <p class="option-description">Genera frutas del diablo (Akuma no Mi) del mundo de One Piece. Puedes especificar si es tipo Paramecia, Zoan o Logia.</p>
+        <form id="akuma-form" onsubmit="return generarAkuma(event);">
+          <textarea id="prompt-akuma" class="prompt-area" placeholder="Describe la fruta del diablo que quieres generar... (por ejemplo: 'fruta tipo Logia de fuego', 'fruta tipo Zoan de dinosaurio', 'fruta tipo Paramecia con poder de goma', 'fruta con espirales y color azul')"></textarea>
+          
+          <button type="submit" class="submit-btn">Generar Akuma no Mi</button>
+        </form>
+      </div>
+      
+      <div id="loading" class="loading">
+        <img src="https://onepiecegaiden.com/images/op/indice/SolMenu_One_Piece_Gaiden_Foro_Rol.png" alt="Cargando...">
+        <p>Generando tu imagen, por favor espera...</p>
+      </div>
+
+      <div id="error-message" class="error-message">
+        <strong>Error:</strong> Hubo un problema al generar la imagen. Por favor, intenta nuevamente.
+      </div>
+      
+      <div id="result-container" class="result-container">
+        <h2>Tu imagen generada:</h2>
+        <img id="result-image" class="result-image" src="" alt="Imagen generada">
+        
+        <div class="action-buttons">
+          <button class="action-btn" onclick="nuevaImagen();">Generar otra imagen</button>
+          <a id="download-link" class="action-btn" href="#" download="onepiece-imagen.jpg">Descargar imagen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Función para cambiar entre pestañas
+    function cambiarTab(tabName) {
+      // Desactivar todas las pestañas
+      document.getElementById('tab-personajes').classList.remove('active');
+      document.getElementById('tab-paisajes').classList.remove('active');
+      document.getElementById('tab-jollyroger').classList.remove('active');
+      document.getElementById('tab-barcos').classList.remove('active');
+      document.getElementById('tab-akuma').classList.remove('active');
+      document.getElementById('content-personajes').classList.remove('active');
+      document.getElementById('content-paisajes').classList.remove('active');
+      document.getElementById('content-jollyroger').classList.remove('active');
+      document.getElementById('content-barcos').classList.remove('active');
+      document.getElementById('content-akuma').classList.remove('active');
+      
+      // Activar la pestaña seleccionada
+      document.getElementById('tab-' + tabName).classList.add('active');
+      document.getElementById('content-' + tabName).classList.add('active');
+    }
+    
+    // Función para generar imagen de personaje
+    function generarImagenPersonaje(e) {
+      e.preventDefault();
+      
+      var prompt = document.getElementById('prompt-personaje').value.trim();
+      
+      if (!prompt) {
+        alert('Por favor, escribe una descripción para generar la imagen del personaje.');
+        return false;
+      }
+      
+      // Obtener valores de los selectores
+      var estilo = document.getElementById('estilo-personaje').value;
+      var genero = document.getElementById('genero-personaje').value;
+      
+      // Mostrar cargando y ocultar otros elementos
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      // Construir la URL de la imagen con el prompt completo incluyendo los selectores
+      var fullPrompt = encodeURIComponent("Un personaje " + genero + " " + prompt + ", con el estilo de dibujo y caracteristicas de " + estilo);
+      var imageUrl = "https://image.pollinations.ai/prompt/" + fullPrompt;
+      
+      // Cambiar el nombre del archivo para descargar
+      document.getElementById('download-link').download = "personaje-onepiece.jpg";
+      
+      // Cargar la imagen
+      cargarImagen(imageUrl);
+      
+      return false;
+    }
+    
+    // Función para generar imagen de paisaje
+    function generarImagenPaisaje(e) {
+      e.preventDefault();
+      
+      var prompt = document.getElementById('prompt-paisaje').value.trim();
+      
+      if (!prompt) {
+        alert('Por favor, escribe una descripción para generar la imagen del paisaje.');
+        return false;
+      }
+      
+      // Mostrar cargando y ocultar otros elementos
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      // Construir la URL de la imagen con el prompt
+      var fullPrompt = encodeURIComponent("Un paisaje del universo de One Piece con " + prompt);
+      var imageUrl = "https://image.pollinations.ai/prompt/" + fullPrompt;
+      
+      // Cambiar el nombre del archivo para descargar
+      document.getElementById('download-link').download = "paisaje-onepiece.jpg";
+      
+      // Cargar la imagen
+      cargarImagen(imageUrl);
+      
+      return false;
+    }
+    
+    // Función para generar Jolly Roger
+    function generarJollyRoger(e) {
+      e.preventDefault();
+      
+      var prompt = document.getElementById('prompt-jollyroger').value.trim();
+      
+      if (!prompt) {
+        alert('Por favor, escribe una descripción para generar la bandera pirata.');
+        return false;
+      }
+      
+      // Mostrar cargando y ocultar otros elementos
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      // Construir la URL de la imagen con el prompt
+      var fullPrompt = encodeURIComponent("Una bandera (Jolly Roger) de One Piece con " + prompt + ", estilo anime, sobre fondo negro");
+      var imageUrl = "https://image.pollinations.ai/prompt/" + fullPrompt;
+      
+      // Cambiar el nombre del archivo para descargar
+      document.getElementById('download-link').download = "jollyroger-onepiece.jpg";
+      
+      // Cargar la imagen
+      cargarImagen(imageUrl);
+      
+      return false;
+    }
+    
+    // Función para generar Barco
+    function generarBarco(e) {
+      e.preventDefault();
+      
+      var prompt = document.getElementById('prompt-barcos').value.trim();
+      
+      if (!prompt) {
+        alert('Por favor, escribe una descripción para generar el barco.');
+        return false;
+      }
+      
+      // Obtener valores de los selectores
+      var estilo = document.getElementById('estilo-barco').value;
+      var tipoBarco = document.getElementById('tipo-barco').value;
+      var modeloBarco = document.getElementById('modelo-barco').value;
+      
+      // Mostrar cargando y ocultar otros elementos
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      // Construir la URL de la imagen con el prompt completo incluyendo los selectores
+      var fullPrompt = encodeURIComponent("Un "+ modeloBarco +" " + tipoBarco + " " + prompt + ", con el estilo de dibujo y caracteristicas de " + estilo + ", vista completa");
+      var imageUrl = "https://image.pollinations.ai/prompt/" + fullPrompt;
+      
+      // Cambiar el nombre del archivo para descargar
+      document.getElementById('download-link').download = "barco-onepiece.jpg";
+      
+      // Cargar la imagen
+      cargarImagen(imageUrl);
+      
+      return false;
+    }
+    
+    // Función para generar Akuma no Mi
+    function generarAkuma(e) {
+      e.preventDefault();
+      
+      var prompt = document.getElementById('prompt-akuma').value.trim();
+      
+      if (!prompt) {
+        alert('Por favor, escribe una descripción para generar la fruta del diablo.');
+        return false;
+      }
+      
+      // Mostrar cargando y ocultar otros elementos
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('result-container').style.display = 'none';
+      
+      // Construir la URL de la imagen con el prompt
+      var fullPrompt = encodeURIComponent("Una fruta Akuma no Mi de One Piece " + prompt + ", con espirales y patrones, estilo anime colorido");
+      var imageUrl = "https://image.pollinations.ai/prompt/" + fullPrompt;
+      
+      // Cambiar el nombre del archivo para descargar
+      document.getElementById('download-link').download = "akumanomi-onepiece.jpg";
+      
+      // Cargar la imagen
+      cargarImagen(imageUrl);
+      
+      return false;
+    }
+    
+    // Función para cargar la imagen desde la URL
+    function cargarImagen(imageUrl) {
+      var img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = function() {
+        procesarImagen(this);
+      };
+      img.onerror = function() {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+      };
+      img.src = imageUrl;
+    }
+    
+    // Función para procesar y recortar la imagen
+    function procesarImagen(imgElement) {
+      // Crear un canvas para recortar la imagen
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      
+      // Calcular las dimensiones recortadas (quitando parte inferior)
+      var originalWidth = imgElement.width;
+      var originalHeight = imgElement.height;
+      var newHeight = Math.floor(originalHeight * 0.9); // Recortar el 10% inferior
+      
+      // Configurar el canvas
+      canvas.width = originalWidth;
+      canvas.height = newHeight;
+      
+      // Dibujar la imagen recortada en el canvas
+      ctx.drawImage(imgElement, 0, 0, originalWidth, newHeight, 0, 0, originalWidth, newHeight);
+      
+      // Convertir el canvas a una URL de datos
+      var dataURL = canvas.toDataURL('image/jpeg');
+      
+      // Mostrar la imagen recortada
+      document.getElementById('result-image').src = dataURL;
+      document.getElementById('download-link').href = dataURL;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('result-container').style.display = 'block';
+    }
+    
+    // Función para generar una nueva imagen
+    function nuevaImagen() {
+      // Determinar qué pestaña está activa
+      if (document.getElementById('content-personajes').classList.contains('active')) {
+        document.getElementById('prompt-personaje').value = '';
+        document.getElementById('prompt-personaje').focus();
+      } else if (document.getElementById('content-paisajes').classList.contains('active')) {
+        document.getElementById('prompt-paisaje').value = '';
+        document.getElementById('prompt-paisaje').focus();
+      } else if (document.getElementById('content-jollyroger').classList.contains('active')) {
+        document.getElementById('prompt-jollyroger').value = '';
+        document.getElementById('prompt-jollyroger').focus();
+      } else if (document.getElementById('content-barcos').classList.contains('active')) {
+        document.getElementById('prompt-barcos').value = '';
+        document.getElementById('prompt-barcos').focus();
+      } else if (document.getElementById('content-akuma').classList.contains('active')) {
+        document.getElementById('prompt-akuma').value = '';
+        document.getElementById('prompt-akuma').focus();
+      }
+      
+      document.getElementById('result-container').style.display = 'none';
+      window.scrollTo(0, 0);
+    }
+  </script>
+
+  {$footer}
+</body>
+</html>

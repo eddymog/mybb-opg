@@ -1,0 +1,18 @@
+<div id="asSidenav" class="as_sidenav trow1">
+    <div class="tcat" style="width: 250px; height: 36px; font-size: 20px;">{$lang->aj_profile}</div>
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <ul>
+            {$as_sidebar_userbit}
+        </ul>
+    </div>
+    <div class="as_menu-arrow" style="font-size:30px;cursor:pointer;" onclick="openNav()">☰</div>
+</div>
+<script>
+function openNav() {
+    document.getElementById("asSidenav").style.width = "280px";
+}
+
+function closeNav() {
+    document.getElementById("asSidenav").style.width = "0";
+}
+</script>

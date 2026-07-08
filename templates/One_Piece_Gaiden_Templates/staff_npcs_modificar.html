@@ -1,0 +1,626 @@
+<html>
+
+<head>
+  <title>Modificar NPCs</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+	<br>
+    <if $npc_id == '' then>
+      NPC ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='npc_id'><button
+        onclick=onClickTid()>Buscar</button><br>Número de NPCs: {$npcs_count}<br>
+		
+    </if>
+	<if $npc_id !='' then>
+      NPC ID<br><input style="width: 300px;" class="textbox" type="text" value='{$npc_id}' disabled><br>
+        <form method="post" action="/op/staff/npcs_modificar.php" name="crear_npcs" id="crear_npcs">
+        <div style="display: none">
+           <input type="text" name="npc_id" value="{$npc_id}">
+        </div><br>
+		ID de NPC*: <br><input style="width: 300px;" class="textbox" value="{$npc_id}" type="text" name="nuevo_npc_id" id="nuevo_npc_id" required /><br>
+<!--         Etiqueta*: <br><input style="width: 300px;" class="textbox" value="{$npc['control_akuma']}" type="text" name="control_akuma" id="control_akuma" /><br>   -->
+		Etiqueta*: <br><input style="width: 500px;" class="textbox" value="{$npc['etiqueta']}" type="text" name="etiqueta" id="etiqueta" /><br>  
+        Nombre*: <br><input style="width: 300px;" class="textbox" value="{$npc['nombre']}" type="text" name="nombre" id="nombre" /><br>
+		Apodo*: <br><input style="width: 300px;" class="textbox" value="{$npc['apodo']}" type="text" name="apodo" id="apodo" /><br>
+		Facción*: <br><input style="width: 300px;" class="textbox" value="{$npc['faccion']}" type="text" name="faccion" id="faccion" /><br>  
+		Raza*: <br><input style="width: 300px;" class="textbox" value="{$npc['raza']}" type="text" name="raza" id="raza" /><br>  
+		Edad*: <br><input style="width: 300px;" class="textbox" value="{$npc['edad']}" type="text" name="edad" id="edad" /><br>    
+	    Altura*: <br><input style="width: 300px;" class="textbox" value="{$npc['altura']}" type="text" name="altura" id="altura" /><br>  
+		Peso*: <br><input style="width: 300px;" class="textbox" value="{$npc['peso']}" type="text" name="peso" id="peso" /><br>    
+		Sexo*: <br><input style="width: 300px;" class="textbox" value="{$npc['sexo']}" type="text" name="sexo" id="sexo" /><br>    
+	    Temporada*: <br><input style="width: 300px;" class="textbox" value="{$npc['temporada']}" type="text" name="temporada" id="temporada" /><br>  
+		Nivel*: <br><input style="width: 300px;" class="textbox" value="{$npc['nivel']}" type="text" name="nivel" id="nivel" /><br><br>    
+		  
+		Fuerza*: <br><input style="width: 300px;" class="textbox" value="{$npc['fuerza']}" type="text" name="fuerza" id="fuerza" /><br>  
+		Resistencia*: <br><input style="width: 300px;" class="textbox" value="{$npc['resistencia']}" type="text" name="resistencia" id="resistencia" /><br>  
+		Destreza*: <br><input style="width: 300px;" class="textbox" value="{$npc['destreza']}" type="text" name="destreza" id="destreza" /><br>  
+		Voluntad*: <br><input style="width: 300px;" class="textbox" value="{$npc['voluntad']}" type="text" name="voluntad" id="voluntad" /><br>  
+		Puntería*: <br><input style="width: 300px;" class="textbox" value="{$npc['punteria']}" type="text" name="punteria" id="punteria" /><br>  
+		Agilidad*: <br><input style="width: 300px;" class="textbox" value="{$npc['agilidad']}" type="text" name="agilidad" id="agilidad" /><br>  
+		Reflejos*: <br><input style="width: 300px;" class="textbox" value="{$npc['reflejos']}" type="text" name="reflejos" id="reflejos" /><br>  
+			
+		Vitalidad*: <br><input style="width: 300px;" class="textbox" value="{$npc['vitalidad']}" type="text" name="vitalidad" id="vitalidad" /><br>  
+		Energía*: <br><input style="width: 300px;" class="textbox" value="{$npc['energia']}" type="text" name="energia" id="energia" /><br>  
+		Haki*: <br><input style="width: 300px;" class="textbox" value="{$npc['haki']}" type="text" name="haki" id="haki" /><br>  
+			
+		Kenbunshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['kenbun']}" type="text" name="kenbun" id="kenbun" /><br>
+		<small>Kenbunshoku Haki (0 = No despertado).</small><br>
+		Haoshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['haoshoku']}" type="text" name="hao" id="hao" /><br>
+		<small>Haoshoku Haki (-1 = Bloqueado, 0 = No despertado).</small><br>
+		Busoshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['buso']}" type="text" name="buso" id="buso" /><br>
+		<small>Busoshoku Haki (0 = No despertado).</small><br>  
+		  
+		Extra*: <br><input style="width: 300px;" class="textbox" value="{$npc['extra']}" type="text" name="extra" id="extra" /><br>  
+		Wanted*: <br><input style="width: 300px;" class="textbox" value="{$npc['wanted']}" type="text" name="wanted" id="wanted" /><br>  
+		Reputación*: <br><input style="width: 300px;" class="textbox" value="{$npc['reputacion']}" type="text" name="reputacion" id="reputacion" /><br>  
+<!-- 		Rango*: <br><input style="width: 300px;" class="textbox" value="{$npc['rango']}" type="text" name="rango" id="rango" /><br> -->
+			
+		<br>Rango: <br>
+		<select name="rango" id="rango">
+			<option value="Ciudadano" <if $npc['rango'] == 'Ciudadano' then>selected</if>>Civil</option>
+
+			<option value="Pirata" <if $npc['rango'] == 'Pirata' then>selected</if>>Pirata</option>
+			<option value="CapitanPirata" <if $npc['rango'] == 'CapitanPirata' then>selected</if>>Capitán Pirata</option>
+			<option value="Corsario" <if $npc['rango'] == 'Corsario' then>selected</if>>Corsario</option>
+			<option value="Bucanero" <if $npc['rango'] == 'Bucanero' then>selected</if>>Bucanero</option>
+			<option value="LoboDeMar" <if $npc['rango'] == 'LoboDeMar' then>selected</if>>Lobo de Mar</option>
+			<option value="Supernova" <if $npc['rango'] == 'Supernova' then>selected</if>>Supernova</option>
+			<option value="PirataAfamado" <if $npc['rango'] == 'PirataAfamado' then>selected</if>>Pirata Afamado</option>
+			<option value="ViceCapitanFamoso" <if $npc['rango'] == 'ViceCapitanFamoso' then>selected</if>>Vice Capitán Famoso</option>
+			<option value="CapitanFamoso" <if $npc['rango'] == 'CapitanFamoso' then>selected</if>>Capitán Famoso</option>
+			<option value="Shichibukai" <if $npc['rango'] == 'Shichibukai' then>selected</if>>Shichibukai</option>
+			<option value="GranPirata" <if $npc['rango'] == 'GranPirata' then>selected</if>>Gran Pirata</option>
+			<option value="GranViceCapitan" <if $npc['rango'] == 'GranViceCapitan' then>selected</if>>Gran Vice Capitán</option>
+			<option value="GranCapitan" <if $npc['rango'] == 'GranCapitan' then>selected</if>>Gran Capitán</option>
+			<option value="ComandanteP" <if $npc['rango'] == 'ComandanteP' then>selected</if>>Comandante de Yonkou</option>
+			<option value="PrimerComandante" <if $npc['rango'] == 'PrimerComandante' then>selected</if>>Primer Comandante de Yonkou</option>
+			<option value="Yonkou" <if $npc['rango'] == 'Yonkou' then>selected</if>>Yonkou</option>
+			<option value="LeyendaDelMar" <if $npc['rango'] == 'LeyendaDelMar' then>selected</if>>Leyenda del Mar</option>
+			<option value="AladelRey" <if $npc['rango'] == 'AladelRey' then>selected</if>>Ala del Rey</option>
+			<option value="ReyPirata" <if $npc['rango'] == 'ReyPirata' then>selected</if>>Rey de los Piratas</option>
+
+			<option value="ReclutaM" <if $npc['rango'] == 'ReclutaM' then>selected</if>>Recluta</option>
+			<option value="SoldadoM" <if $npc['rango'] == 'SoldadoM' then>selected</if>>Soldado Raso</option>
+			<option value="SargentoM" <if $npc['rango'] == 'SargentoM' then>selected</if>>Sargento</option>
+			<option value="Suboficial" <if $npc['rango'] == 'Suboficial' then>selected</if>>Suboficial</option>
+			<option value="Alferez" <if $npc['rango'] == 'Alferez' then>selected</if>>Alferez</option>
+			<option value="Teniente" <if $npc['rango'] == 'Teniente' then>selected</if>>Teniente</option>
+			<option value="ComandanteM" <if $npc['rango'] == 'ComandanteM' then>selected</if>>Comandante</option>
+			<option value="Capitan" <if $npc['rango'] == 'Capitan' then>selected</if>>Capitán</option>
+			<option value="Comodoro" <if $npc['rango'] == 'Comodoro' then>selected</if>>Comodoro</option>
+			<option value="ContraAlmirante" <if $npc['rango'] == 'ContraAlmirante' then>selected</if>>Contralmirante</option>
+			<option value="Vicealmirante" <if $npc['rango'] == 'Vicealmirante' then>selected</if>>Vice Almirante</option>
+			<option value="Almirante" <if $npc['rango'] == 'Almirante' then>selected</if>>Almirante</option>
+			<option value="AlmiranteFlota" <if $npc['rango'] == 'AlmiranteFlota' then>selected</if>>Almirante de Flota</option>
+			<option value="Instructor" <if $npc['rango'] == 'Instructor' then>selected</if>>Instructor</option>
+			<option value="Inspector" <if $npc['rango'] == 'Inspector' then>selected</if>>Inspector General</option>
+			<option value="HeroeDeLaMarina" <if $npc['rango'] == 'HeroeDeLaMarina' then>selected</if>>Heroe de la Marina</option>
+
+			<option value="CP1" <if $npc['rango'] == 'CP1' then>selected</if>>Cipher Pol 1</option>
+			<option value="CP2" <if $npc['rango'] == 'CP2' then>selected</if>>Cipher Pol 2</option>
+			<option value="CP3" <if $npc['rango'] == 'CP3' then>selected</if>>Cipher Pol 3</option>
+			<option value="CP4" <if $npc['rango'] == 'CP4' then>selected</if>>Cipher Pol 4</option>
+			<option value="CP5" <if $npc['rango'] == 'CP5' then>selected</if>>Cipher Pol 5</option>
+			<option value="CP6" <if $npc['rango'] == 'CP6' then>selected</if>>Cipher Pol 6</option>
+			<option value="CP7" <if $npc['rango'] == 'CP7' then>selected</if>>Cipher Pol 7</option>
+			<option value="CP8" <if $npc['rango'] == 'CP8' then>selected</if>>Cipher Pol 8</option>
+			<option value="CP9" <if $npc['rango'] == 'CP9' then>selected</if>>Cipher Pol 9</option>
+			<option value="CPAegis0" <if $npc['rango'] == 'CPAegis0' then>selected</if>>Cipher Pol 0</option>
+			<option value="CPMasquerade" <if $npc['rango'] == 'CPMasquerade' then>selected</if>>Cipher Pol Masquerade</option>
+			<option value="CPComisario" <if $npc['rango'] == 'CPComisario' then>selected</if>>Comisario</option>
+			<option value="CPComandanteEjecutivo" <if $npc['rango'] == 'CPComandanteEjecutivo' then>selected</if>>Comandante Ejecutivo</option>
+			<option value="CPCaballeroDivino" <if $npc['rango'] == 'CPCaballeroDivino' then>selected</if>>Caballero Divino</option>
+			<option value="CPComandanteSupremo" <if $npc['rango'] == 'CPComandanteSupremo' then>selected</if>>Comandante Supremo</option>
+
+			<option value="Cazador" <if $npc['rango'] == 'Cazador' then>selected</if>>Cazador</option>
+			<option value="CazadorZeta" <if $npc['rango'] == 'CazadorZeta' then>selected</if>>Cazador Zeta</option>
+			<option value="CazadorEpsilon" <if $npc['rango'] == 'CazadorEpsilon' then>selected</if>>Cazador Epsilon</option>
+			<option value="CazadorDelta" <if $npc['rango'] == 'CazadorDelta' then>selected</if>>Cazador Delta</option>
+			<option value="CazadorGamma" <if $npc['rango'] == 'CazadorGamma' then>selected</if>>Cazador Gamma</option>
+			<option value="CazadorBeta" <if $npc['rango'] == 'CazadorBeta' then>selected</if>>Cazador Beta</option>
+			<option value="CazadorAlpha" <if $npc['rango'] == 'CazadorAlpha' then>selected</if>>Cazador Alpha</option>
+			<option value="CazadorOmega" <if $npc['rango'] == 'CazadorOmega' then>selected</if>>Cazador Omega</option>
+			<option value="ReyCazador" <if $npc['rango'] == 'ReyCazador' then>selected</if>>Rey de los Cazadores</option>
+
+			<option value="ReclutaR" <if $npc['rango'] == 'ReclutaR' then>selected</if>>Recluta</option>
+			<option value="SoldadoR" <if $npc['rango'] == 'SoldadoR' then>selected</if>>Soldado Raso</option>
+			<option value="SargentoR" <if $npc['rango'] == 'SargentoR' then>selected</if>>Sargento</option>
+			<option value="AgenteR" <if $npc['rango'] == 'AgenteR' then>selected</if>>Agente</option>
+			<option value="Oficial" <if $npc['rango'] == 'Oficial' then>selected</if>>Oficial</option>
+			<option value="Mariscal" <if $npc['rango'] == 'Mariscal' then>selected</if>>Mariscal Revolucionario</option>
+			<option value="General" <if $npc['rango'] == 'General' then>selected</if>>General</option>
+			<option value="ComandanteAdjunto" <if $npc['rango'] == 'ComandanteAdjunto' then>selected</if>>Comandante Adjunto</option>
+			<option value="ComandanteR" <if $npc['rango'] == 'ComandanteR' then>selected</if>>Comandante Revolucionario</option>
+			<option value="JefePersonal" <if $npc['rango'] == 'JefePersonal' then>selected</if>>Jefe de Personal</option>
+			<option value="ComandanteSupremo" <if $npc['rango'] == 'ComandanteSupremo' then>selected</if>>Comandante Supremo</option>
+		</select><br>
+			
+		Sangre*: <br><input style="width: 300px;" class="textbox" value="{$npc['sangre']}" type="text" name="sangre" id="sangre" /><br>  
+		Akuma: <br><input style="width: 300px;" class="textbox" value="{$npc['akuma']}" type="text" name="akuma" id="akuma" /><br>  
+		Avatar (200x300px)*: <br><input style="width: 500px;" class="textbox" value="{$npc['avatar1']}" type="text" name="avatar1" id="avatar1" /><br>  
+	    Avatar2 (420x420px)*: <br><input style="width: 500px;" class="textbox" value="{$npc['avatar2']}" type="text" name="avatar2" id="avatar2" /><br>  
+		
+        Apariencia*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="apariencia" minlength="1" placeholder="">{$npc['apariencia']}</textarea><br>
+		Personalidad*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="personalidad" minlength="1" placeholder="">{$npc['personalidad']}</textarea><br>
+		Historia 1*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia1" minlength="1" placeholder="">{$npc['historia1']}</textarea><br>
+		Historia 2*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia2" minlength="1" placeholder="">{$npc['historia2']}</textarea><br>
+		Historia 3*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia3" minlength="1" placeholder="">{$npc['historia3']}</textarea><br>
+		Estilo de Combate*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="estilo_combate" minlength="1" placeholder="">{$npc['estilo_combate']}</textarea><br>
+
+        <!-- Estilos aprendidos: mismos selects que en staff_ficha_atributos -->
+        <div style="margin-top:8px;">
+            <div style="margin-bottom:4px;">Estilo 1: <br>
+				<select name="estilo1" id="estilo1">
+					<option value="bloqueado" <if $npc['estilo1'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+					<option value="no_bloqueado" <if $npc['estilo1'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+					<option value="Gunkata" <if $npc['estilo1'] == 'Gunkata' then>selected</if>>Gunkata</option>
+					<option value="Hasshoken" <if $npc['estilo1'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+					<option value="Santoryu" <if $npc['estilo1'] == 'Santoryu' then>selected</if>>Santoryu</option>
+					<option value="Kuroashi" <if $npc['estilo1'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+					<option value="Gyojin Karate" <if $npc['estilo1'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+					<option value="Gyojin Jujutsu" <if $npc['estilo1'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+					<option value="Okama Kempo" <if $npc['estilo1'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+					<option value="Sora Yokujin" <if $npc['estilo1'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+					<option value="Rokushiki" <if $npc['estilo1'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+					<option value="Ninjutsu" <if $npc['estilo1'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+					<option value="Ryusoken" <if $npc['estilo1'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+					<option value="Jiyuumura Kempo" <if $npc['estilo1'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+					<option value="Clima Tact" <if $npc['estilo1'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+					<option value="Pop Green" <if $npc['estilo1'] == 'Pop Green' then>selected</if>>Pop Green</option>
+					<option value="Hakai Shin" <if $npc['estilo1'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+					<option value="Funekiri" <if $npc['estilo1'] == 'Funekiri' then>selected</if>>Funekiri</option>
+					<option value="Railgun Style" <if $npc['estilo1'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+					<option value="Gyojin Bukijutsu" <if $npc['estilo1'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+					<option value="Shuron Hakke" <if $npc['estilo1'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+					<option value="Raqisat Alsahra" <if $npc['estilo1'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+					<option value="Breeskjold" <if $npc['estilo1'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+					<option value="Impacto Explosivo" <if $npc['estilo1'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+					<option value="Royal Guard" <if $npc['estilo1'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+					<option value="Shikaku Teikoku" <if $npc['estilo1'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+					<option value="Duelliste de Givre" <if $npc['estilo1'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+					<option value="Filo Della Vita" <if $npc['estilo1'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+					<option value="Havets Symfoni" <if $npc['estilo1'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+					<option value="Bakudai Karin" <if $npc['estilo1'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+					<option value="Yama Kurai" <if $npc['estilo1'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+					<option value="Shiseiju" <if $npc['estilo1'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+					<option value="Sea Corsair" <if $npc['estilo1'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+					<option value="Wano Nitoryu" <if $npc['estilo1'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+					<option value="Mano de Tahur" <if $npc['estilo1'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+					<option value="Kokudan" <if $npc['estilo1'] == 'Kokudan' then>selected</if>>Kokudan</option>
+					<option value="Kodai no Bushido" <if $npc['estilo1'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+					<option value="Ittoryu Sekai" <if $npc['estilo1'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+					<option value="Global Performer" <if $npc['estilo1'] == 'Global Performer' then>selected</if>>Global Performer</option>
+					<option value="Ashigara Dokoi" <if $npc['estilo1'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+					<option value="Cavalry Warrior" <if $npc['estilo1'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+					<option value="Kanpo Kenpo" <if $npc['estilo1'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+					<option value="Estilo Único" <if $npc['estilo1'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+					<option value="Akuma5" <if $npc['estilo1'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+					<option value="Akuma6" <if $npc['estilo1'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+				</select><br>
+			</div>
+            <div style="margin-bottom:4px;">Estilo 2: <br>
+				<select name="estilo2" id="estilo2">
+					<option value="bloqueado" <if $npc['estilo2'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+					<option value="no_bloqueado" <if $npc['estilo2'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+					<option value="Gunkata" <if $npc['estilo2'] == 'Gunkata' then>selected</if>>Gunkata</option>
+					<option value="Hasshoken" <if $npc['estilo2'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+					<option value="Santoryu" <if $npc['estilo2'] == 'Santoryu' then>selected</if>>Santoryu</option>
+					<option value="Kuroashi" <if $npc['estilo2'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+					<option value="Gyojin Karate" <if $npc['estilo2'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+					<option value="Gyojin Jujutsu" <if $npc['estilo2'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+					<option value="Okama Kempo" <if $npc['estilo2'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+					<option value="Sora Yokujin" <if $npc['estilo2'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+					<option value="Rokushiki" <if $npc['estilo2'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+					<option value="Ninjutsu" <if $npc['estilo2'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+					<option value="Ryusoken" <if $npc['estilo2'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+					<option value="Jiyuumura Kempo" <if $npc['estilo2'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+					<option value="Clima Tact" <if $npc['estilo2'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+					<option value="Pop Green" <if $npc['estilo2'] == 'Pop Green' then>selected</if>>Pop Green</option>
+					<option value="Hakai Shin" <if $npc['estilo2'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+					<option value="Funekiri" <if $npc['estilo2'] == 'Funekiri' then>selected</if>>Funekiri</option>
+					<option value="Railgun Style" <if $npc['estilo2'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+					<option value="Gyojin Bukijutsu" <if $npc['estilo2'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+					<option value="Shuron Hakke" <if $npc['estilo2'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+					<option value="Raqisat Alsahra" <if $npc['estilo2'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+					<option value="Breeskjold" <if $npc['estilo2'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+					<option value="Impacto Explosivo" <if $npc['estilo2'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+					<option value="Royal Guard" <if $npc['estilo2'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+					<option value="Shikaku Teikoku" <if $npc['estilo2'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+					<option value="Duelliste de Givre" <if $npc['estilo2'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+					<option value="Filo Della Vita" <if $npc['estilo2'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+					<option value="Havets Symfoni" <if $npc['estilo2'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+					<option value="Bakudai Karin" <if $npc['estilo2'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+					<option value="Yama Kurai" <if $npc['estilo2'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+					<option value="Shiseiju" <if $npc['estilo2'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+					<option value="Sea Corsair" <if $npc['estilo2'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+					<option value="Wano Nitoryu" <if $npc['estilo2'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+					<option value="Mano de Tahur" <if $npc['estilo2'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+					<option value="Kokudan" <if $npc['estilo2'] == 'Kokudan' then>selected</if>>Kokudan</option>
+					<option value="Kodai no Bushido" <if $npc['estilo2'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+					<option value="Ittoryu Sekai" <if $npc['estilo2'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+					<option value="Global Performer" <if $npc['estilo2'] == 'Global Performer' then>selected</if>>Global Performer</option>
+					<option value="Ashigara Dokoi" <if $npc['estilo2'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+					<option value="Cavalry Warrior" <if $npc['estilo2'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+					<option value="Kanpo Kenpo" <if $npc['estilo2'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+					<option value="Estilo Único" <if $npc['estilo2'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+					<option value="Akuma5" <if $npc['estilo2'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+					<option value="Akuma6" <if $npc['estilo2'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+				</select><br>
+			</div>
+            <div style="margin-bottom:4px;">Estilo 3: <br>
+			   <select name="estilo3" id="estilo3">
+					<option value="bloqueado" <if $npc['estilo3'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+					<option value="no_bloqueado" <if $npc['estilo3'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+					<option value="Gunkata" <if $npc['estilo3'] == 'Gunkata' then>selected</if>>Gunkata</option>
+					<option value="Hasshoken" <if $npc['estilo3'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+					<option value="Santoryu" <if $npc['estilo3'] == 'Santoryu' then>selected</if>>Santoryu</option>
+					<option value="Kuroashi" <if $npc['estilo3'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+					<option value="Gyojin Karate" <if $npc['estilo3'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+					<option value="Gyojin Jujutsu" <if $npc['estilo3'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+					<option value="Okama Kempo" <if $npc['estilo3'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+					<option value="Sora Yokujin" <if $npc['estilo3'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+					<option value="Rokushiki" <if $npc['estilo3'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+					<option value="Ninjutsu" <if $npc['estilo3'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+					<option value="Ryusoken" <if $npc['estilo3'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+					<option value="Jiyuumura Kempo" <if $npc['estilo3'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+					<option value="Clima Tact" <if $npc['estilo3'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+					<option value="Pop Green" <if $npc['estilo3'] == 'Pop Green' then>selected</if>>Pop Green</option>
+					<option value="Hakai Shin" <if $npc['estilo3'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+					<option value="Funekiri" <if $npc['estilo3'] == 'Funekiri' then>selected</if>>Funekiri</option>
+					<option value="Railgun Style" <if $npc['estilo3'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+					<option value="Gyojin Bukijutsu" <if $npc['estilo3'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+					<option value="Shuron Hakke" <if $npc['estilo3'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+					<option value="Raqisat Alsahra" <if $npc['estilo3'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+					<option value="Breeskjold" <if $npc['estilo3'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+					<option value="Impacto Explosivo" <if $npc['estilo3'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+					<option value="Royal Guard" <if $npc['estilo3'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+					<option value="Shikaku Teikoku" <if $npc['estilo3'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+					<option value="Duelliste de Givre" <if $npc['estilo3'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+					<option value="Filo Della Vita" <if $npc['estilo3'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+					<option value="Havets Symfoni" <if $npc['estilo3'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+					<option value="Bakudai Karin" <if $npc['estilo3'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+					<option value="Yama Kurai" <if $npc['estilo3'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+					<option value="Shiseiju" <if $npc['estilo3'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+					<option value="Sea Corsair" <if $npc['estilo3'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+					<option value="Wano Nitoryu" <if $npc['estilo3'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+					<option value="Mano de Tahur" <if $npc['estilo3'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+					<option value="Kokudan" <if $npc['estilo3'] == 'Kokudan' then>selected</if>>Kokudan</option>
+					<option value="Kodai no Bushido" <if $npc['estilo3'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+					<option value="Ittoryu Sekai" <if $npc['estilo3'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+					<option value="Global Performer" <if $npc['estilo3'] == 'Global Performer' then>selected</if>>Global Performer</option>
+					<option value="Ashigara Dokoi" <if $npc['estilo3'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+					<option value="Cavalry Warrior" <if $npc['estilo3'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+					<option value="Kanpo Kenpo" <if $npc['estilo3'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+					<option value="Estilo Único" <if $npc['estilo3'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+					<option value="Akuma5" <if $npc['estilo3'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+					<option value="Akuma6" <if $npc['estilo3'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+				</select><br>
+			</div>
+            <div style="margin-bottom:4px;">Estilo 4: <br>
+				<select name="estilo4" id="estilo4">
+					<option value="bloqueado" <if $npc['estilo4'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+					<option value="no_bloqueado" <if $npc['estilo4'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+					<option value="Gunkata" <if $npc['estilo4'] == 'Gunkata' then>selected</if>>Gunkata</option>
+					<option value="Hasshoken" <if $npc['estilo4'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+					<option value="Santoryu" <if $npc['estilo4'] == 'Santoryu' then>selected</if>>Santoryu</option>
+					<option value="Kuroashi" <if $npc['estilo4'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+					<option value="Gyojin Karate" <if $npc['estilo4'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+					<option value="Gyojin Jujutsu" <if $npc['estilo4'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+					<option value="Okama Kempo" <if $npc['estilo4'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+					<option value="Sora Yokujin" <if $npc['estilo4'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+					<option value="Rokushiki" <if $npc['estilo4'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+					<option value="Ninjutsu" <if $npc['estilo4'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+					<option value="Ryusoken" <if $npc['estilo4'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+					<option value="Jiyuumura Kempo" <if $npc['estilo4'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+					<option value="Clima Tact" <if $npc['estilo4'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+					<option value="Pop Green" <if $npc['estilo4'] == 'Pop Green' then>selected</if>>Pop Green</option>
+					<option value="Hakai Shin" <if $npc['estilo4'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+					<option value="Funekiri" <if $npc['estilo4'] == 'Funekiri' then>selected</if>>Funekiri</option>
+					<option value="Railgun Style" <if $npc['estilo4'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+					<option value="Gyojin Bukijutsu" <if $npc['estilo4'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+					<option value="Shuron Hakke" <if $npc['estilo4'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+					<option value="Raqisat Alsahra" <if $npc['estilo4'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+					<option value="Breeskjold" <if $npc['estilo4'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+					<option value="Impacto Explosivo" <if $npc['estilo4'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+					<option value="Royal Guard" <if $npc['estilo4'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+					<option value="Shikaku Teikoku" <if $npc['estilo4'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+					<option value="Duelliste de Givre" <if $npc['estilo4'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+					<option value="Filo Della Vita" <if $npc['estilo4'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+					<option value="Havets Symfoni" <if $npc['estilo4'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+					<option value="Bakudai Karin" <if $npc['estilo4'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+					<option value="Yama Kurai" <if $npc['estilo4'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+					<option value="Shiseiju" <if $npc['estilo4'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+					<option value="Sea Corsair" <if $npc['estilo4'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+					<option value="Wano Nitoryu" <if $npc['estilo4'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+					<option value="Mano de Tahur" <if $npc['estilo4'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+					<option value="Kokudan" <if $npc['estilo4'] == 'Kokudan' then>selected</if>>Kokudan</option>
+					<option value="Kodai no Bushido" <if $npc['estilo4'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+					<option value="Ittoryu Sekai" <if $npc['estilo4'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+					<option value="Global Performer" <if $npc['estilo4'] == 'Global Performer' then>selected</if>>Global Performer</option>
+					<option value="Ashigara Dokoi" <if $npc['estilo4'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+					<option value="Cavalry Warrior" <if $npc['estilo4'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+					<option value="Kanpo Kenpo" <if $npc['estilo4'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+					<option value="Estilo Único" <if $npc['estilo4'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+					<option value="Akuma5" <if $npc['estilo4'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+					<option value="Akuma6" <if $npc['estilo4'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+				</select>
+				<br>
+			</div>
+        </div>
+
+        <!-- Disciplinas (igual que fichas) -->
+        <div style="margin-top:8px;">
+            <table class="form-table">
+                <tr>
+                    <td>Belica 1: <br>
+                        <select name="belica1" id="belica1" class="textbox">
+                          <option value="Escudero" <if $npc['belica1'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica1'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica1'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica1'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica1'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica1'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica1'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica1'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica1'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica1'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica1'] == 'Tirador' then>selected</if>>Tirador</option>
+                          <option value="Pícaro" <if $npc['belica1'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                    <td>Belica 2: <br>
+                        <select name="belica2" id="belica2" class="textbox">
+                          <option value="" <if $npc['belica2'] == '' then>selected</if>>Sin Disciplina</option>
+                          <option value="Escudero" <if $npc['belica2'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica2'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica2'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica2'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica2'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica2'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica2'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica2'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica2'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica2'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica2'] == 'Tirador' then>selected</if>>Tirador</option>
+						  <option value="Pícaro" <if $npc['belica2'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                    <td>Belica 3: <br>
+                        <select name="belica3" id="belica3" class="textbox">
+                          <option value="" <if $npc['belica3'] == '' then>selected</if>>Sin Disciplina</option>
+                          <option value="Escudero" <if $npc['belica3'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica3'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica3'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica3'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica3'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica3'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica3'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica3'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica3'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica3'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica3'] == 'Tirador' then>selected</if>>Tirador</option>
+						<option value="Pícaro" <if $npc['belica3'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Belica 4: <br>
+                        <select name="belica4" id="belica4" class="textbox">
+                          <option value="" <if $npc['belica4'] == '' then>selected</if>>Sin Disciplina</option>
+                          <option value="Escudero" <if $npc['belica4'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica4'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica4'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica4'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica4'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica4'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica4'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica4'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica4'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica4'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica4'] == 'Tirador' then>selected</if>>Tirador</option>
+						<option value="Pícaro" <if $npc['belica4'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                    <td>Belica 5: <br>
+                        <select name="belica5" id="belica5" class="textbox">
+                          <option value="" <if $npc['belica5'] == '' then>selected</if>>Sin Disciplina</option>
+                          <option value="Escudero" <if $npc['belica5'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica5'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica5'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica5'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica5'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica5'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica5'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica5'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica5'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica5'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica5'] == 'Tirador' then>selected</if>>Tirador</option>
+						<option value="Pícaro" <if $npc['belica5'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                    <td>Belica 6: <br>
+                        <select name="belica6" id="belica6" class="textbox">
+                          <option value="" <if $npc['belica6'] == '' then>selected</if>>Sin Disciplina</option>
+                          <option value="Escudero" <if $npc['belica6'] == 'Escudero' then>selected</if>>Escudero</option>
+                          <option value="Artista Marcial" <if $npc['belica6'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                          <option value="Combatiente" <if $npc['belica6'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                          <option value="Artista" <if $npc['belica6'] == 'Artista' then>selected</if>>Artista</option>
+                          <option value="Asesino" <if $npc['belica6'] == 'Asesino' then>selected</if>>Asesino</option>
+                          <option value="Guerrero" <if $npc['belica6'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                          <option value="Espadachín" <if $npc['belica6'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                          <option value="Tecnicista" <if $npc['belica6'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                          <option value="Artillero" <if $npc['belica6'] == 'Artillero' then>selected</if>>Artillero</option>
+                          <option value="Arquero" <if $npc['belica6'] == 'Arquero' then>selected</if>>Arquero</option>
+                          <option value="Tirador" <if $npc['belica6'] == 'Tirador' then>selected</if>>Tirador</option>
+							<option value="Pícaro" <if $npc['belica6'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Belica 7: <br>
+                        <select name="belica7" id="belica7">
+						  <option value="" <if $npc['belica7'] == '' then>selected</if>>Sin Disciplina</option>
+						  <option value="Escudero" <if $npc['belica7'] == 'Escudero' then>selected</if>>Escudero</option>
+						  <option value="Artista Marcial" <if $npc['belica7'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+						  <option value="Combatiente" <if $npc['belica7'] == 'Combatiente' then>selected</if>>Combatiente</option>
+						  <option value="Artista" <if $npc['belica7'] == 'Artista' then>selected</if>>Artista</option>
+						  <option value="Asesino" <if $npc['belica7'] == 'Asesino' then>selected</if>>Asesino</option>
+						  <option value="Guerrero" <if $npc['belica7'] == 'Guerrero' then>selected</if>>Guerrero</option>
+						  <option value="Espadachín" <if $npc['belica7'] == 'Espadachín' then>selected</if>>Espadachín</option>
+						  <option value="Tecnicista" <if $npc['belica7'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+						  <option value="Artillero" <if $npc['belica7'] == 'Artillero' then>selected</if>>Artillero</option>
+						  <option value="Arquero" <if $npc['belica7'] == 'Arquero' then>selected</if>>Arquero</option>
+						  <option value="Tirador" <if $npc['belica7'] == 'Tirador' then>selected</if>>Tirador</option>
+						<option value="Pícaro" <if $npc['belica7'] == 'Pícaro' then>selected</if>>Pícaro</option>
+						</select>
+                    </td>
+                    <td>Belica 8: <br>
+                        <select name="belica8" id="belica8">
+                  <option value="" <if $npc['belica8'] == '' then>selected</if>>Sin Disciplina</option>
+                  <option value="Escudero" <if $npc['belica8'] == 'Escudero' then>selected</if>>Escudero</option>
+                  <option value="Artista Marcial" <if $npc['belica8'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+                  <option value="Combatiente" <if $npc['belica8'] == 'Combatiente' then>selected</if>>Combatiente</option>
+                  <option value="Artista" <if $npc['belica8'] == 'Artista' then>selected</if>>Artista</option>
+                  <option value="Asesino" <if $npc['belica8'] == 'Asesino' then>selected</if>>Asesino</option>
+                  <option value="Guerrero" <if $npc['belica8'] == 'Guerrero' then>selected</if>>Guerrero</option>
+                  <option value="Espadachín" <if $npc['belica8'] == 'Espadachín' then>selected</if>>Espadachín</option>
+                  <option value="Tecnicista" <if $npc['belica8'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+                  <option value="Artillero" <if $npc['belica8'] == 'Artillero' then>selected</if>>Artillero</option>
+                  <option value="Arquero" <if $npc['belica8'] == 'Arquero' then>selected</if>>Arquero</option>
+                  <option value="Tirador" <if $npc['belica8'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $npc['belica8'] == 'Pícaro' then>selected</if>>Pícaro</option>
+                </select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Oficios como en fichas -->
+        <div style="margin-top:8px;">
+            Oficio 1: <br>
+            <select name="oficio1" id="oficio1" class="textbox">
+              <option value="" <if $npc['oficio1'] == '' then>selected</if>>Sin Oficio</option>
+              <option value="Navegante" <if $npc['oficio1'] == 'Navegante' then>selected</if>>Navegante</option>
+              <option value="Cocinero" <if $npc['oficio1'] == 'Cocinero' then>selected</if>>Cocinero</option>
+              <option value="Médico" <if $npc['oficio1'] == 'Médico' then>selected</if>>Médico</option>
+              <option value="Recolector" <if $npc['oficio1'] == 'Recolector' then>selected</if>>Recolector</option>
+              <option value="Artesano" <if $npc['oficio1'] == 'Artesano' then>selected</if>>Artesano</option>
+              <option value="Inventor" <if $npc['oficio1'] == 'Inventor' then>selected</if>>Inventor</option>
+              <option value="Investigador" <if $npc['oficio1'] == 'Investigador' then>selected</if>>Investigador</option>
+              <option value="Carpintero" <if $npc['oficio1'] == 'Carpintero' then>selected</if>>Carpintero</option>
+              <option value="Mercader" <if $npc['oficio1'] == 'Mercader' then>selected</if>>Mercader</option>
+              <option value="Aventurero" <if $npc['oficio1'] == 'Aventurero' then>selected</if>>Aventurero</option>
+            </select>
+            <br><br>Oficio 2: <br>
+            <select name="oficio2" id="oficio2" class="textbox">
+              <option value="" <if $npc['oficio2'] == '' then>selected</if>>Sin Oficio</option>
+              <option value="Navegante" <if $npc['oficio2'] == 'Navegante' then>selected</if>>Navegante</option>
+              <option value="Cocinero" <if $npc['oficio2'] == 'Cocinero' then>selected</if>>Cocinero</option>
+              <option value="Médico" <if $npc['oficio2'] == 'Médico' then>selected</if>>Médico</option>
+              <option value="Recolector" <if $npc['oficio2'] == 'Recolector' then>selected</if>>Recolector</option>
+              <option value="Artesano" <if $npc['oficio2'] == 'Artesano' then>selected</if>>Artesano</option>
+              <option value="Inventor" <if $npc['oficio2'] == 'Inventor' then>selected</if>>Inventor</option>
+              <option value="Investigador" <if $npc['oficio2'] == 'Investigador' then>selected</if>>Investigador</option>
+              <option value="Carpintero" <if $npc['oficio2'] == 'Carpintero' then>selected</if>>Carpintero</option>
+              <option value="Mercader" <if $npc['oficio2'] == 'Mercader' then>selected</if>>Mercader</option>
+              <option value="Aventurero" <if $npc['oficio2'] == 'Aventurero' then>selected</if>>Aventurero</option>
+            </select>
+        </div> 
+
+        <!-- Código de Oficios, Bélicas y Elementos -->
+        <div class="section-block">
+          <div class="section-title">Código de Oficios, Bélicas y Elementos</div>
+          <table class="form-table">
+            <tr>
+              <td colspan="3">Oficios Código:<br>
+                <textarea id="oficios" name="oficios">{$npc['oficios']}</textarea>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">Belicas Código:<br>
+                <textarea id="belicas" name="belicas">{$npc['belicas']}</textarea>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3">Elementos:<br>
+                <textarea id="elementos" name="elementos">{$npc['elementos']}</textarea>
+              </td>
+            </tr>
+          </table>
+          <!-- Hidden input to store belicas disponibles for backend. Editor JS will keep this updated -->
+          <input type="hidden" id="belicas_disponibles" name="belicas_disponibles" value="{$npc['belicas_disponibles']}">
+        </div>
+
+        <!-- keep Estilos JSON text area for advanced use -->
+        <div style="margin-top:8px;">Estilos (JSON / lista):<br>
+            <textarea placeholder="Estilos secundarios / listado" style="width: 400px;height: 80px;" name="estilos">{$npc['estilos']}</textarea>
+        </div>
+
+		Extras*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="extra" minlength="1" placeholder="">{$npc['extra']}</textarea><br>
+		Información*: (este campo sirve para las habilidades de NPC. Requiere un código especial, por defecto dejar vacío): <br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="info" minlength="1" placeholder="">{$npc['info']}</textarea><br>
+		Notas*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="notas" minlength="1" placeholder="">{$npc['notas']}</textarea><br><br>
+        <input class="button" type="submit" value="Modificar NPC">
+
+		<strong>Nota para moderador</strong>: Si quieres que la info de un NPC no se vea, agrega tres signos de interrogación al principio del campo (???).<br><br><br><br><br>
+		
+      </form>
+		<button onclick=borrarNPC()>Borrar NPC</button>
+    </if>
+
+
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+
+<script src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/core.js?v=1"></script>
+<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_oficios.js?v=1"></script>
+<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_belicas.js?v=1"></script>
+<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_elementos.js?v=1"></script>
+
+<script>
+	
+  let is_pet = `{$is_pet}`;
+  let is_npc = `{$is_npc}`;
+  let is_npc_user = `{$is_npc_user}`;
+  let npc_id = `{$npc_id}`;
+	
+  function borrarNPC() {
+	  
+	if (confirm('¿Estás seguro que quieres borrar este NPC?')) {
+		
+		if (is_npc_user) {
+			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_npc_usuario';		
+		} else if (is_pet) {
+			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_mascota';		
+		} else {
+			console.log('hello');
+			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_npc';		
+		}
+		
+	}
+	  
+  }
+	
+  function onClickTid() {
+    const npcIdValue = document.getElementById('npc_id').value;
+    if (npcIdValue) {
+		window.location.href = window.location.pathname + '?npc_id=' + npcIdValue;		
+	}
+  }
+</script>
+
+</html>

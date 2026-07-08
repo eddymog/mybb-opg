@@ -1,0 +1,1162 @@
+<html>
+
+<head>
+  <title>Tirada de Akumas</title>
+  {$headerinclude}
+  <style>
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('/images/op/misc/TituloAkuma_One_Piece_Gaiden_Foro_Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+      .akumaTirBody {
+          display: flex;
+          flex-direction: row;
+          gap: 25px;
+      }
+
+      
+      .akumaTirIzquierda {
+          display: flex;
+          flex-direction: column;
+          width: 50%;
+            gap:25px;
+      }
+      
+      .akumaTirDerecha {
+          width: 50%;
+      }
+      
+      .testDraw {
+/* 		  background: linear-gradient(90deg, rgba(70,12,110,1) 0%, rgba(126,32,191,1) 50%, rgba(70,12,110,1) 100%);
+height: 5rem ; */
+          background: rgba(70,12,110,1);
+          margin-bottom: 25px;
+      }
+
+      .realDraw {
+/* 		  background: linear-gradient(90deg, rgba(57,56,56,1) 0%, rgba(101,102,102,1) 50%, rgba(57,56,56,1) 100%); */
+/* height: 5rem ; */
+/* 		  background: #71706f; */
+          background: #d26500;
+      }
+      
+      .blockedDraw {
+          background: #71706f;
+      }
+      
+      .realDraw:hover {
+          background: #ff9b00;
+      }
+      
+      .testDraw:hover {
+          background: rgba(126,32,191,1);	  
+      }
+      
+      .realDraw, .testDraw, .blockedDraw {
+          width: 450px;
+             height: 65px;
+          color: white;
+          font-size: 1.5rem;
+          text-shadow: 2px 2px 0px black;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid black;
+          border-radius: 15px;
+          filter: drop-shadow(0px 0px 4px black);
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-family: 'moonGetHeavy';
+          letter-spacing: 2px;
+          margin-bottom: 15px;
+      }
+      
+      .imageBox {
+          height: 300px;
+          background-color: black;
+          border: 2px solid black;
+          width: 480px;
+          height: 270px;
+      }
+
+      .akumaTirTable {
+          height: 150px;
+          width: 490px;
+      }
+      
+      .tableHeader {
+          background-color: #8f59f7;
+          color: white;
+          text-align: center;
+          padding: 2px;
+          border: 2px solid black;
+          border-start-end-radius: 10px;
+            border-start-start-radius: 10px;
+          font-family: moonGetHeavy;
+          font-size: 16px;
+          letter-spacing: 2px;
+          text-shadow: 2px 2px 0px black;
+          position: relative;
+      }
+      
+      .tableContent {
+          display: flex;
+          gap:20px;
+          padding: 15px;
+          border-end-end-radius: 10px;
+          border-end-start-radius: 10px;
+          background-color: #d7b5ff;
+          border: 2px solid black;
+          border-top: 0px;
+      }
+      
+      .tableTotalTestDraw {
+            width: 175px;
+            height: 90px;
+            background-color: #8f59f7;
+            color: white;
+            border: 1px solid black;
+            box-sizing: border-box;
+         	padding: 6px;
+      }
+      
+      .tablerTierContent {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          width: 230px;
+      }
+      
+      .tierBox {
+          background-color:#8e59f7;
+          height: 40px;
+          width: 70px;
+          border: 1px solid black;
+          box-sizing: border-box;
+          padding: 2px;
+             color: white;
+      }
+      
+      .tierBoxText1 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .tierBoxText2 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+      
+      .akumaTypeRow  {
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 14px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .categoriaBox {
+        flex: 1; /* Hace que cada caja ocupe el mismo espacio disponible */
+          border-right: 2px solid black; /* Solo para visualización */
+        text-align: center;
+        background-color: #ff7b00;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 10px 0 0; 
+      }
+      
+      .categoriaBox:first-child {
+            border-radius: 10px 0 0 0; 
+      }
+      
+      .categoriaBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      .resultado-total {
+          color: red;
+      }
+      
+      .resultado-nombre {
+          width: 50%;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+          color: black;
+          padding: 4px 7px;
+          box-sizing: border-box;
+      }
+      
+      .resultado-fruta {
+        width: 50%;
+        font-size: 12px;
+        font-family: 'moonGetHeavy';
+        color: #4b1aae;
+        padding: 4px 7px;
+        box-sizing: border-box;
+        text-shadow: 2px 2px 1px #f3ecff;
+        text-align: center;
+      }
+      
+      
+      .resultado-total:nth-child(odd) {
+        background: #ffe59b;
+      }
+
+      .resultado-total:nth-child(even) {
+        background: #ffeed2;
+      }
+      
+      .boton-estadistica {
+          display: inline;
+          position: absolute;
+          left: 464px;
+          top: 3px;
+          transition: all 0.2s ease-out;
+          cursor: pointer;
+      }
+      
+      .boton-estadistica:hover {
+          filter: saturate(1.5);
+          transform: 
+      }
+
+      /* ===== ESTILOS MODAL AKUMA ===== */
+      #akuma-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.95);
+          z-index: 1000;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .akuma-container {
+          text-align: center;
+          max-width: 90%;
+          max-height: 90%;
+          position: relative;
+          width: 100%;
+          height: 100%;
+      }
+
+      #akuma-animation-stage {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+      }
+
+      #akuma-effect-container {
+          width: 400px;
+          height: 400px;
+          margin: 0 auto;
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .akuma-effect-image {
+          width: 100%;
+          height: 100%;
+          background-size: cover;
+          background-position: center;
+          border-radius: 20px;
+          box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+          animation: akumaPulse 2s ease-in-out infinite;
+          /* Imagen por defecto del GIF de comer */
+          background-image: url('https://media1.tenor.com/m/UCJLb65vNLEAAAAC/nika-devil-fruit-one-piece.gif');
+      }
+
+      @keyframes akumaPulse {
+          0%, 100% { 
+              transform: scale(1);
+              box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+          }
+          50% { 
+              transform: scale(1.05);
+              box-shadow: 0 15px 60px rgba(255, 123, 0, 0.6);
+          }
+      }
+
+      #akuma-instruction {
+          color: #ff7b00;
+          margin-top: 30px;
+          font-size: 1.8em;
+          font-family: 'moonGetHeavy';
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          animation: pulseAkumaGlow 2s infinite;
+      }
+
+      @keyframes pulseAkumaGlow {
+          0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px #ff7b00; }
+          50% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px #ff7b00, 0 0 30px #ff7b00; }
+      }
+
+      .akuma-awakening {
+          animation: akumaAwakening 1s ease-in-out;
+      }
+
+      @keyframes akumaAwakening {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.1) rotate(-5deg); }
+          75% { transform: scale(1.1) rotate(5deg); }
+      }
+
+      #akuma-reward-display {
+          display: none;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          z-index: 10;
+      }
+
+      .akuma-reward-item {
+          background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          border: 4px solid #ff7b00;
+          min-width: 600px;
+          animation: akumaRewardAppear 1.5s ease-out;
+          position: relative;
+      }
+
+      @keyframes akumaRewardAppear {
+          0% {
+              opacity: 0;
+              transform: scale(0.3) rotateY(180deg);
+          }
+          50% {
+              opacity: 0.7;
+              transform: scale(1.1) rotateY(90deg);
+          }
+          100% {
+              opacity: 1;
+              transform: scale(1) rotateY(0deg);
+          }
+      }
+
+      .akuma-reward-image {
+          width: 200px;
+          height: 200px;
+          margin: 0 auto 20px;
+          border-radius: 50%;
+          border: 4px solid #ff7b00;
+          background-size: cover;
+          background-position: center;
+          box-shadow: 0 0 30px rgba(255, 123, 0, 0.5);
+          animation: akumaGlow 3s ease-in-out infinite;
+      }
+
+      @keyframes akumaGlow {
+          0%, 100% { 
+              box-shadow: 0 0 30px rgba(255, 123, 0, 0.5);
+              border-color: #ff7b00;
+          }
+          50% { 
+              box-shadow: 0 0 50px rgba(255, 123, 0, 0.8);
+              border-color: #ff9b00;
+          }
+      }
+
+      .akuma-reward-name {
+          font-size: 2.5em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 15px;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          letter-spacing: 2px;
+          color: #ff7b00;
+      }
+
+      .akuma-reward-subtitle {
+          font-size: 1.3em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 20px;
+          opacity: 0.9;
+          color: #ffaa55;
+      }
+
+      .akuma-reward-description {
+          font-size: 1em;
+          font-family: 'Inter';
+          margin-bottom: 30px;
+          color: #ccc;
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
+          line-height: 1.4;
+      }
+
+      .close-akuma-modal-btn {
+          background: linear-gradient(145deg, #ff7b00, #d26500);
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 10px;
+          font-size: 1.2em;
+          font-family: 'moonGetHeavy';
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          letter-spacing: 1px;
+      }
+
+      .close-akuma-modal-btn:hover {
+          background: linear-gradient(145deg, #d26500, #b85500);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Partículas de energía para Akuma */
+      .energy-akuma-particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+      }
+
+      .energy-akuma-particle {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: #ff7b00;
+          border-radius: 50%;
+          animation: energyAkumaFloat 4s linear infinite;
+      }
+
+      .energy-akuma-particle:nth-child(2n) { background: #ff9b00; }
+      .energy-akuma-particle:nth-child(3n) { background: #d26500; }
+      .energy-akuma-particle:nth-child(4n) { background: #ffaa55; }
+
+      @keyframes energyAkumaFloat {
+          0% {
+              transform: translateY(100vh) scale(0) rotate(0deg);
+              opacity: 0;
+          }
+          10% {
+              opacity: 1;
+          }
+          90% {
+              opacity: 1;
+          }
+          100% {
+              transform: translateY(-10vh) scale(1) rotate(360deg);
+              opacity: 0;
+          }
+      }
+
+      /* Efecto de onda de choque para Akuma */
+      .shock-akuma-wave {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 20px;
+          height: 20px;
+          border: 3px solid #ff7b00;
+          border-radius: 50%;
+          animation: shockAkumaWaveExpand 2s ease-out;
+          pointer-events: none;
+      }
+
+      @keyframes shockAkumaWaveExpand {
+          0% {
+              width: 20px;
+              height: 20px;
+              opacity: 1;
+              border-color: #ff7b00;
+          }
+          50% {
+              border-color: #ff9b00;
+          }
+          100% {
+              width: 800px;
+              height: 800px;
+              opacity: 0;
+              border-color: #d26500;
+          }
+      }
+      
+    </style>
+</head>
+
+<body>
+  {$header}
+  
+  <!-- Modal de Akuma -->
+  <div id="akuma-modal">
+      <div class="akuma-container">
+          <div class="energy-akuma-particles" id="energy-akuma-particles"></div>
+          
+          <div id="akuma-animation-stage">
+              <div id="akuma-effect-container">
+                  <div class="akuma-effect-image" id="akuma-effect-image"></div>
+              </div>
+              <p id="akuma-instruction">¡Estás comiendo una Akuma no Mi!</p>
+          </div>
+          
+          <div id="akuma-reward-display">
+              <div class="akuma-reward-item" id="akuma-reward-item">
+                  <div class="akuma-reward-image" id="akuma-reward-image"></div>
+                  <div class="akuma-reward-name" id="akuma-reward-name"></div>
+                  <div class="akuma-reward-subtitle" id="akuma-reward-subtitle"></div>
+                  <div class="akuma-reward-description" id="akuma-reward-description"></div>
+                  <button class="close-akuma-modal-btn" onclick="closeAkumaModal()">¡Increíble!</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground">
+                
+            <if $uid == '0' || !$ficha_aprobada then>
+                <div style=" border-radius: 3px;color: white;font-family: InterRegular;text-align: center; background-color: #b71010; padding: 10px; font-size: 16px; border: 4px dotted black; ">En esta página puedes hacer una tirada aleatoria de Akuma por diversión. Una vez tengas una ficha creada y aprobada, puedes intentar arriesgarte a elegir una Akuma para tu personaje. ¡Prueba lanzar una tirada de prueba y ver qué Akuma te toca!</div><br>
+            </if>
+                
+                <div class= "akumaBanner"></div>
+            <div class="akumaTirBody">
+                    
+                <div class ="akumaTirIzquierda">
+                    <div style=" margin: auto; ">
+                        <div onclick="tiradaAleatoria()" class="testDraw">
+                            <strong>TIRADA DE PRUEBA</strong>
+                        </div>
+                        
+                        <if ($has_akuma == false && $uid != '0' && $ficha_aprobada && !$has_full_haki && $has_nivel == true) then>
+                            <div onclick="tiradaReal()" class="realDraw">
+                                <strong>TIRADA DEFINITIVA</strong>
+                                <span style=" font-size: 13px; ">¡Una tirada, solo para valientes!</span>
+                            </div>
+                        </if>
+                        
+                        <if $has_nivel == false && $has_akuma == false then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA BLOQUEADA</strong>
+                                <span style=" font-size: 13px; ">Debes ser nivel 8 para tirar</span>
+                            </div>
+                        </if>
+                        
+                        <if $has_akuma == true then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA REALIZADA</strong>
+                                <span style=" font-size: 13px; ">{$ficha['akuma']} - {$ficha['akuma_subnombre']}</span>
+                            </div>
+                        </if>
+                        
+                        <if $has_full_haki == true then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA IMPOSIBLE</strong>
+                                <span style=" font-size: 13px; ">Tienes la virtud Full Haki</span>
+                            </div>
+                        </if>
+                    </div>
+                    <div style=" margin-top: -21px; ">
+                        <img class="imageBox" src="https://i.pinimg.com/originals/9a/0c/2b/9a0c2ba3220677f9d26455570c0f8a5e.gif">
+                    </div>
+                </div>
+
+                <div class="akumaTirDerecha">
+                    <div class="akumaTirTable">
+                        <div class="tableHeader">
+                            <strong id="estadisticasTitulo">Estadísticas de Pruebas Globales</strong>
+                            <div onclick="cambiarEstadisticas()" class="boton-estadistica"><img src="/images/op/uploads/BotonEstadisticaGeneral_One_Piece_Gaiden_Foro_Rol.png"></div>
+                        </div>
+                        <div class="tableContent">
+                            <div class="tableTotalTestDraw">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Tiradas de Prueba Totales</div>
+                                <div id="tiradaTotal" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">157</div>
+                            </div>
+                            <div class="tablerTierContent">
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 1</div>
+                                    <div id="tiradaTier1" class="tierBoxText2">157</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 2</div>
+                                    <div id="tiradaTier2" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 3</div>
+                                    <div id="tiradaTier3" class="tierBoxText2">80</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 4</div>
+                                    <div id="tiradaTier4" class="tierBoxText2">65</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 5</div>
+                                    <div id="tiradaTier5" class="tierBoxText2">78</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Tier 6</div>
+                                    <div id="tiradaTier6" class="tierBoxText2">96</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filterBox" style=" margin-top: 20px; ">
+                        <div class="akumaTypeRow">
+                            <div id="resultado-real" onclick="toggleResultados('reales')" class="pestana-resultado categoriaBox filterClass">
+                                <span>Resultados Reales</span>
+                            </div>
+                            <div id="resultado-prueba" onclick="toggleResultados('prueba')" class="pestana-resultado categoriaBox filterClass box-active">
+                                <span>Resultados de Prueba</span>
+                            </div>
+                        </div>
+                        <div style=" border: 2px solid black; height: 241px; box-sizing: border-box; border-top: 0px;overflow: auto; ">
+                            <div id="reales" style="display: none; flex-direction: column;"></div>
+                            <div id="prueba" style="display: flex; flex-direction: column;"></div>
+                        </div>
+                    </div>
+                
+                </div>
+
+            </div>
+            <div style=" text-align: center; margin-top: 13px; font-family: moonGetHeavy; color: white; text-shadow: 1px 1px 2px black; ">Akumas coleccionadas: {$tiradas_distintas}/200</div>
+        </div>
+     </div>
+  </div>
+<script>
+    
+    
+    let estadisticaGeneral = true;
+    
+    let tiradas_totales = '{$tiradas_totales}';
+    let tiradas_tier1 = '{$tiradas_tier1}';
+    let tiradas_tier2 = '{$tiradas_tier2}';
+    let tiradas_tier3 = '{$tiradas_tier3}';
+    let tiradas_tier4 = '{$tiradas_tier4}';
+    let tiradas_tier5 = '{$tiradas_tier5}';
+    let tiradas_tier6 = '{$tiradas_tier6}';
+    
+    let tiradas_totales_id = '{$tiradas_totales_id}';
+    let tiradas_tier1_id = '{$tiradas_tier1_id}';
+    let tiradas_tier2_id = '{$tiradas_tier2_id}';
+    let tiradas_tier3_id = '{$tiradas_tier3_id}';
+    let tiradas_tier4_id = '{$tiradas_tier4_id}';
+    let tiradas_tier5_id = '{$tiradas_tier5_id}';
+    let tiradas_tier6_id = '{$tiradas_tier6_id}';
+    
+    console.log('asdasdasdasdas');
+    
+    let tiradasAleatorias = {$tiradas_aleatorias_json};
+    let tiradasReales = {$tiradas_reales_json};
+
+    // Variables para el modal de Akuma
+    var currentAkumaData = null;
+    var isAkumaEating = false;
+    
+    // ===== FUNCIONES DEL MODAL DE AKUMA =====
+    
+    function openAkumaModal(akumaData, isReal = false) {
+		console.log('hello');
+		console.log(akumaData);
+        if (isAkumaEating) return;
+		
+		
+		
+        
+        currentAkumaData = akumaData;
+        currentAkumaData.isReal = isReal;
+        
+        // Configurar imagen inicial
+        var akumaImage = document.getElementById('akuma-effect-image');
+        if (akumaImage) {
+            akumaImage.style.backgroundImage = 'url(https://media.tenor.com/5k-buzEolw8AAAAM/luffy-eating-lufy.gif)';
+        }
+        
+        // Mostrar modal
+        var modal = document.getElementById('akuma-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Crear partículas de energía
+        createEnergyAkumaParticles();
+        
+        // Iniciar efecto de comer después de un breve delay
+        setTimeout(function() {
+            startAkumaEating();
+        }, 2000);
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    function startAkumaEating() {
+        if (isAkumaEating) return;
+        isAkumaEating = true;
+        
+        var akumaContainer = document.getElementById('akuma-effect-container');
+        var instruction = document.getElementById('akuma-instruction');
+        
+        // Animación de comer
+        if (akumaContainer) {
+            akumaContainer.classList.add('akuma-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡La fruta ha despertado su poder!';
+        }
+        
+        // Crear efectos
+        createShockAkumaWave();
+        
+        setTimeout(function() {
+            // Mostrar resultado
+            showAkumaResult();
+        }, 2000);
+    }
+
+    function showAkumaResult() {
+        var akumaStage = document.getElementById('akuma-animation-stage');
+        var rewardDisplay = document.getElementById('akuma-reward-display');
+        var rewardImage = document.getElementById('akuma-reward-image');
+        var rewardName = document.getElementById('akuma-reward-name');
+        var rewardSubtitle = document.getElementById('akuma-reward-subtitle');
+        var rewardDescription = document.getElementById('akuma-reward-description');
+        
+        // Ocultar animación y mostrar resultado
+        if (akumaStage) {
+            akumaStage.style.display = 'none';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'block';
+        }
+        
+        // Configurar contenido del resultado
+        if (currentAkumaData) {
+            if (rewardImage) {
+                rewardImage.style.backgroundImage = 'url(https://media1.tenor.com/m/UCJLb65vNLEAAAAC/nika-devil-fruit-one-piece.gif)';
+            }
+            if (rewardName) {
+                rewardName.textContent = currentAkumaData.fruta || 'Akuma no Mi';
+            }
+            if (rewardSubtitle) {
+                rewardSubtitle.textContent = (currentAkumaData.subnombre || '') + ' - Tier ' + (currentAkumaData.tier || '0');
+            }
+            if (rewardDescription) {
+                rewardDescription.textContent = currentAkumaData.descripcion || 'Una fruta del diablo misteriosa...';
+            }
+        }
+        
+        // Si es una tirada real, actualizar la lista de resultados
+        if (currentAkumaData && currentAkumaData.isReal) {
+            addToAkumaResultsList();
+        }
+    }
+
+    function createEnergyAkumaParticles() {
+        var particlesContainer = document.getElementById('energy-akuma-particles');
+        if (!particlesContainer) return;
+        
+        // Crear partículas constantemente mientras el modal esté abierto
+        var particleInterval = setInterval(function() {
+            var modal = document.getElementById('akuma-modal');
+            if (!modal || modal.style.display === 'none') {
+                clearInterval(particleInterval);
+                return;
+            }
+            
+            var particle = document.createElement('div');
+            particle.className = 'energy-akuma-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            particle.style.animationDelay = Math.random() * 1 + 's';
+            
+            particlesContainer.appendChild(particle);
+            
+            // Remover partícula después de la animación
+            setTimeout(function() {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 6000);
+        }, 150);
+    }
+
+    function createShockAkumaWave() {
+        var container = document.getElementById('akuma-effect-container');
+        if (!container) return;
+        
+        var shockWave = document.createElement('div');
+        shockWave.className = 'shock-akuma-wave';
+        container.appendChild(shockWave);
+        
+        // Remover la onda después de la animación
+        setTimeout(function() {
+            if (shockWave.parentNode) {
+                shockWave.parentNode.removeChild(shockWave);
+            }
+        }, 2000);
+    }
+
+    function addToAkumaResultsList() {
+        if (!currentAkumaData) return;
+        
+		console.log(currentAkumaData);
+		
+        var timestamp = new Date().toLocaleString('es-es');
+        var newResult = '<div class="resultado-total" style="display: flex; flex-direction: row;"><div class="resultado-nombre">' + (currentAkumaData.nombre || 'Usuario') + ' <br>' + timestamp + '</div><div class="resultado-fruta">' + (currentAkumaData.fruta || 'Akuma') + '<br>' + (currentAkumaData.subnombre || '') + '</div></div>';
+        
+        var realesDiv = document.getElementById('reales');
+        if (realesDiv) {
+            realesDiv.innerHTML = newResult + realesDiv.innerHTML;
+            
+            // Mantener solo los últimos 20 resultados
+            var results = realesDiv.querySelectorAll('.resultado-total');
+            if (results.length > 20) {
+                realesDiv.removeChild(results[results.length - 1]);
+            }
+        }
+    }
+
+    function closeAkumaModal() {
+        var modal = document.getElementById('akuma-modal');
+        var akumaStage = document.getElementById('akuma-animation-stage');
+        var rewardDisplay = document.getElementById('akuma-reward-display');
+        var akumaContainer = document.getElementById('akuma-effect-container');
+        var instruction = document.getElementById('akuma-instruction');
+        var particlesContainer = document.getElementById('energy-akuma-particles');
+        var akumaImage = document.getElementById('akuma-effect-image');
+        
+        // Ocultar modal
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Resetear estado del modal
+        if (akumaStage) {
+            akumaStage.style.display = 'block';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'none';
+        }
+        if (akumaContainer) {
+            akumaContainer.classList.remove('akuma-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡Estás comiendo una Akuma no Mi!';
+        }
+        if (akumaImage) {
+            akumaImage.style.backgroundImage = 'url(https://media.tenor.com/5k-buzEolw8AAAAM/luffy-eating-lufy.gif)';
+        }
+        
+        // Limpiar partículas
+        if (particlesContainer) {
+            particlesContainer.innerHTML = '';
+        }
+        
+        // Resetear variables
+        currentAkumaData = null;
+        isAkumaEating = false;
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+        
+        // Si fue una tirada real, recargar la página
+        if (currentAkumaData && currentAkumaData.isReal) {
+            window.location.reload();
+        }
+    }
+    
+    for (let i = 0; i < tiradasAleatorias.length; i++) {
+        let nombre = tiradasAleatorias[i].nombre;
+        let fruta = tiradasAleatorias[i].fruta;
+        let timestamp = new Date(parseInt(tiradasAleatorias[i].timestamp) * 1000).toLocaleString('es-es');
+        let subnombre = tiradasAleatorias[i].subnombre;
+        $('#prueba').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                <div class="resultado-fruta">` + fruta + `<br>` + subnombre + `</div>
+            </div>
+        `);
+    }
+    
+    for (let i = 0; i < tiradasReales.length; i++) {
+		console.log(tiradasReales[i]);
+        let nombre = tiradasReales[i].nombre;
+        let fruta = tiradasReales[i].fruta;
+        let timestamp = tiradasReales[i].tiempo_creacion;
+        let subnombre = tiradasReales[i].subnombre;
+        $('#reales').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre"><a href="/op/ficha.php?uid=` + tiradasReales[i].uid + `">` + nombre + `</a><br>` + timestamp + `</div>
+                <div class="resultado-fruta">` + fruta + `<br>` + subnombre + `</div>
+            </div>
+        `);
+    }
+    
+    $('#tiradaTotal').html(tiradas_totales);
+    $('#tiradaTier1').html(tiradas_tier1);
+    $('#tiradaTier2').html(tiradas_tier2);
+    $('#tiradaTier3').html(tiradas_tier3);
+    $('#tiradaTier4').html(tiradas_tier4);
+    $('#tiradaTier5').html(tiradas_tier5);
+    $('#tiradaTier6').html(tiradas_tier6);
+    
+    function cambiarEstadisticas() {
+        
+        
+        
+        if (estadisticaGeneral) {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Personales');
+            $('#tiradaTotal').html(tiradas_totales_id);
+            $('#tiradaTier1').html(tiradas_tier1_id);
+            $('#tiradaTier2').html(tiradas_tier2_id);
+            $('#tiradaTier3').html(tiradas_tier3_id);
+            $('#tiradaTier4').html(tiradas_tier4_id);
+            $('#tiradaTier5').html(tiradas_tier5_id);
+            $('#tiradaTier6').html(tiradas_tier6_id);
+            estadisticaGeneral = false;
+        } else {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Globales');
+            $('#tiradaTotal').html(tiradas_totales);
+            $('#tiradaTier1').html(tiradas_tier1);
+            $('#tiradaTier2').html(tiradas_tier2);
+            $('#tiradaTier3').html(tiradas_tier3);
+            $('#tiradaTier4').html(tiradas_tier4);
+            $('#tiradaTier5').html(tiradas_tier5);
+            $('#tiradaTier6').html(tiradas_tier6);
+            estadisticaGeneral = true;
+        }
+        
+    }
+    
+    function toggleResultados(resultado) {
+        $('.pestana-resultado').removeClass('box-active');
+        
+        if (resultado == 'reales') {
+            $('#reales').css('display', 'flex');
+            $('#prueba').css('display', 'none');
+            $('#resultado-real').addClass('box-active');
+        }
+        
+        if (resultado == 'prueba') {
+            $('#reales').css('display', 'none');
+            $('#prueba').css('display', 'flex');
+            $('#resultado-prueba').addClass('box-active');
+        }
+    }
+
+    <if $has_akuma == false then>
+    function tiradaReal() {
+        if (confirm(`¡Has lanzado una tirada de fruta para tu personaje! Esta tirada es real y definitiva, y se actualizará tu ficha una vez se lance el resultado final. ¿Aceptas esta tirada?`)) {
+            if (confirm(`¿De verdad? ¿Sin arrepentimientos? Recuerda que esta tirada es irrevocable.`)) {
+                alert('Vaya, qué valor y coraje el que tienes. Sin miedo al éxito. ¡Mucha suerte con tu tirada!');
+                $.post("/opg/tirada_akuma.php", { tirada_real: 'true' }, function( data ) {
+                    // Mostrar modal con el resultado
+                    openAkumaModal(data[0], true);
+                }); 
+            }
+        }
+    }	  
+    </if>
+    
+    function tiradaAleatoria() {
+        $.post("/opg/tirada_akuma.php", { tirada_aleatoria: 'true' }, function( response ) { 
+            console.log('Respuesta del servidor original:', response);
+            
+            let data;
+            try {
+                // Si la respuesta es una cadena, limpiarla
+                if (typeof response === 'string') {
+                    // Buscar el inicio del JSON (primer '[')
+                    const jsonStart = response.indexOf('[');
+                    if (jsonStart !== -1) {
+                        const jsonString = response.substring(jsonStart);
+                        data = JSON.parse(jsonString);
+                    } else {
+                        throw new Error('No se encontró JSON válido en la respuesta');
+                    }
+                } else {
+                    // Si ya es un objeto, usarlo directamente
+                    data = response;
+                }
+            } catch (e) {
+                console.error('Error al parsear JSON:', e);
+                console.error('Respuesta recibida:', response);
+                alert('Error al procesar la respuesta del servidor. Por favor, intenta de nuevo.');
+                return;
+            }
+            
+            console.log('Datos procesados:', data);
+            
+            // Verificar que data existe y tiene el formato esperado
+            if (!data || !data[0]) {
+                console.error('Error: respuesta del servidor inválida', data);
+                alert('Error al procesar la tirada. Por favor, intenta de nuevo.');
+                return;
+            }
+            
+            // Mostrar modal con el resultado
+            openAkumaModal(data[0], false);
+            
+            // Verificar que todos los campos necesarios existen
+            const tier = data[0].tier || '0';
+            
+            <if $user_uid != '0' then>
+            // Actualizar estadísticas según la vista actual
+            if (estadisticaGeneral) {
+                tiradas_totales = parseInt(tiradas_totales) + 1;
+                $('#tiradaTotal').text(tiradas_totales);
+                
+                // Actualizar tier específico
+                if (tier == 1) { 
+                    tiradas_tier1 = parseInt(tiradas_tier1) + 1; 
+                    $('#tiradaTier1').text(tiradas_tier1);
+                }
+                if (tier == 2) { 
+                    tiradas_tier2 = parseInt(tiradas_tier2) + 1; 
+                    $('#tiradaTier2').text(tiradas_tier2);
+                }
+                if (tier == 3) { 
+                    tiradas_tier3 = parseInt(tiradas_tier3) + 1; 
+                    $('#tiradaTier3').text(tiradas_tier3);
+                }
+                if (tier == 4) { 
+                    tiradas_tier4 = parseInt(tiradas_tier4) + 1; 
+                    $('#tiradaTier4').text(tiradas_tier4);
+                }
+                if (tier == 5) { 
+                    tiradas_tier5 = parseInt(tiradas_tier5) + 1; 
+                    $('#tiradaTier5').text(tiradas_tier5);
+                }
+                if (tier == 6) { 
+                    tiradas_tier6 = parseInt(tiradas_tier6) + 1; 
+                    $('#tiradaTier6').text(tiradas_tier6);
+                }
+            } else {
+                // Si estamos viendo estadísticas personales
+                tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+                $('#tiradaTotal').text(tiradas_totales_id);
+                
+                if (tier == 1) { 
+                    tiradas_tier1_id = parseInt(tiradas_tier1_id) + 1; 
+                    $('#tiradaTier1').text(tiradas_tier1_id);
+                }
+                if (tier == 2) { 
+                    tiradas_tier2_id = parseInt(tiradas_tier2_id) + 1; 
+                    $('#tiradaTier2').text(tiradas_tier2_id);
+                }
+                if (tier == 3) { 
+                    tiradas_tier3_id = parseInt(tiradas_tier3_id) + 1; 
+                    $('#tiradaTier3').text(tiradas_tier3_id);
+                }
+                if (tier == 4) { 
+                    tiradas_tier4_id = parseInt(tiradas_tier4_id) + 1; 
+                    $('#tiradaTier4').text(tiradas_tier4_id);
+                }
+                if (tier == 5) { 
+                    tiradas_tier5_id = parseInt(tiradas_tier5_id) + 1; 
+                    $('#tiradaTier5').text(tiradas_tier5_id);
+                }
+                if (tier == 6) { 
+                    tiradas_tier6_id = parseInt(tiradas_tier6_id) + 1; 
+                    $('#tiradaTier6').text(tiradas_tier6_id);
+                }
+            }
+            
+            // Actualizar también las variables globales para mantener coherencia
+            tiradas_totales = parseInt(tiradas_totales) + 1;
+            tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+            
+            // Agregar el nuevo resultado a la lista de pruebas
+            let timestamp = new Date().toLocaleString('es-es');
+            let nombre = data[0].nombre || 'Usuario';
+            let fruta = data[0].fruta || 'Desconocida';
+            let subnombre = data[0].subnombre || 'Desconocido';
+            
+            // Si data[0].timestamp existe, usarlo
+            if (data[0].timestamp) {
+                timestamp = new Date(parseInt(data[0].timestamp) * 1000).toLocaleString('es-es');
+            }
+            
+            $('#prueba').prepend(`
+                <div class="resultado-total" style="display: flex; flex-direction: row;">
+                    <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                    <div class="resultado-fruta">` + fruta + `<br>` + subnombre + `</div>
+                </div>
+            `);
+            
+            // Mantener solo los últimos 10 resultados
+            if ($('#prueba').children().length > 10) {
+                $('#prueba').children().last().remove();
+            }
+            </if>
+        }).fail(function(xhr, status, error) {
+            console.error('Error en la petición AJAX:', error);
+            console.error('Estado:', status);
+            console.error('Respuesta:', xhr.responseText);
+            alert('Error de conexión. Por favor, intenta de nuevo.');
+        }); 
+    }
+
+    // Cerrar modal con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var akumaModal = document.getElementById('akuma-modal');
+            if (akumaModal && akumaModal.style.display === 'flex') {
+                closeAkumaModal();
+            }
+        }
+    });
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('akuma-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAkumaModal();
+        }
+    });
+</script>
+{$footer}
+</body>
+</html>

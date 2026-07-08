@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>{$lang->user_cp}</title>
+{$headerinclude}
+</head>
+<body>
+{$header}
+<table width="100%" border="0" align="center">
+<tr>
+{$usercpnav}
+<td valign="top">
+<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder" style="font-weight: 300;">
+<tr>
+<td class="thead" colspan="{$colspan}"><strong>{$lang->account_summary}</strong></td>
+</tr>
+<tr>
+{$avatar}
+<td class="trow2">
+<span class="largetext">{$username}</span><br />
+<span class="smalltext">{$mybb->user['usertitle']}</span>
+	<br />
+	<br />
+<strong>{$lang->registration_date}</strong> &nbsp; {$regdate}<br />
+	{$reputation}
+<strong>{$lang->postnum}</strong> &nbsp; <a href="search.php?action=finduser&amp;uid={$mybb->user['uid']}">{$mybb->user['posts']}</a><br />
+	{$referral_info}
+<strong>{$lang->email}</strong> &nbsp; {$mybb->user['email']}<br />
+	{$referral_link}
+</td>
+</tr>
+</table>
+{$latest_subscribed}
+{$latest_threads}
+{$latest_warnings}
+{$user_notepad}
+</td>
+</tr>
+</table>
+{$footer}
+</body>
+</html>

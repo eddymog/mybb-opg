@@ -21,7 +21,6 @@ define('THIS_SCRIPT', 'viajes.php');
 require_once "./../global.php";
 require "./../inc/config.php";
 require_once "./functions/op_functions.php";
-global $templates, $mybb;
 
 $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
@@ -29,58 +28,57 @@ $ficha = null;
 $ficha_existe = false;
 $ficha_aprobada = false;
 
-// if ($uid == '17') {
-//     $uid = '225';
-// }
+// REGION REDIRECCIONES DE SEGURIDAD
+    if ($uid == '0') {
+        $mensaje_redireccion = "Debes estar registrado.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        return;
+    }
 
-if ($uid == '0') {
-    $mensaje_redireccion = "Debes estar registrado.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-    return;
-}
+    if ($g_ficha['muerto'] == '1') {
+        $mensaje_redireccion = "Estás muerto, no puedes acceder a esta página.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        return;
+    }
 
-if ($g_ficha['muerto'] == '1') {
-    $mensaje_redireccion = "Estás muerto, no puedes acceder a esta página.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-    return;
-}
+    $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' "); 
+    while ($f = $db->fetch_array($query_ficha)) { $ficha = $f; $ficha_aprobada = $f['aprobada_por'] != 'sin_aprobar'; $ficha_existe = true; }
 
+    if ($ficha == null || $ficha_aprobada == false) {
+        $mensaje_redireccion = "Para acceder a esta página debes tener tu ficha aprobada.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        return;
+    }
 
-$modo_vista_input = $mybb->get_input('modo_vista'); 
-$modo_vista = ($modo_vista_input && ($g_is_staff) || $mybb->user['uid'] == $modo_vista_input);
-if ($modo_vista) {
-    $uid = $modo_vista_input;
-}
-// Si estamos en modo_vista, obtener también el nombre de usuario correspondiente
-if ($modo_vista) {
-    $query_user = $db->query("SELECT username FROM mybb_users WHERE uid='".intval($uid)."' LIMIT 1");
-    if ($uq = $db->fetch_array($query_user)) { $username = $uq['username']; }
-}
+    $oficio1 = $ficha['oficio1'];
+    $oficio2 = $ficha['oficio2'];
+
+    if ($oficio1 == '' && $oficio2 == '') {
+        $mensaje_redireccion = "Para acceder a esta página debes tener al menos un oficio.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        return;
+    }
+// END REGION REDIRECCIONES DE SEGURIDAD
+
+// REGION MODO VISTA
+    $modo_vista_input = $mybb->get_input('modo_vista'); 
+    $modo_vista = ($modo_vista_input && ($g_is_staff) || $mybb->user['uid'] == $modo_vista_input);
+    if ($modo_vista) {
+        $uid = $modo_vista_input;
+    }
+    // Si estamos en modo_vista, obtener también el nombre de usuario correspondiente
+    if ($modo_vista) {
+        $query_user = $db->query("SELECT username FROM mybb_users WHERE uid='".intval($uid)."' LIMIT 1");
+        if ($uq = $db->fetch_array($query_user)) { $username = $uq['username']; }
+    }
+// END REGION MODO VISTA
 
 // Valor por defecto para plantillas JS
 $reclamar_npc_id_js = '';
-
-$query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' "); 
-while ($f = $db->fetch_array($query_ficha)) { $ficha = $f; $ficha_aprobada = $f['aprobada_por'] != 'sin_aprobar'; $ficha_existe = true; }
-
-if ($ficha == null || $ficha_aprobada == false) {
-    $mensaje_redireccion = "Para acceder a esta página debes tener tu ficha aprobada.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-    return;
-}
-
-$has_sin_oficio = false; // D024
-$has_estudioso = false; // V035
-$has_polivalente = false; // V036
-$has_erudito = false; // V028
-                        
-$has_sin_oficio_query =  $db->query(" SELECT * FROM `mybb_op_virtudes_usuarios` WHERE uid='$uid' AND virtud_id='D024'; "); 
-$has_estudioso_query =   $db->query(" SELECT * FROM `mybb_op_virtudes_usuarios` WHERE uid='$uid' AND virtud_id='V035'; "); 
-$has_polivalente_query = $db->query(" SELECT * FROM `mybb_op_virtudes_usuarios` WHERE uid='$uid' AND virtud_id='V036'; "); 
-$has_erudito_query =     $db->query(" SELECT * FROM `mybb_op_virtudes_usuarios` WHERE uid='$uid' AND virtud_id='V028'; "); 
 
 // Asegurar existencia de tabla para crafteos de NPCs (creación segura si no existe)
 $db->query("CREATE TABLE IF NOT EXISTS `mybb_op_crafteo_npcs` (
@@ -98,166 +96,153 @@ $db->query("CREATE TABLE IF NOT EXISTS `mybb_op_crafteo_npcs` (
     INDEX (`npc_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-$log = 'hello';
-
-if ($has_sin_oficio) {
-    $mensaje_redireccion = "Aquellos que poseen el defecto 'Sin Oficio' no tienen la capacidad de ganar puntos de oficio. Haber estudiao.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-    return;
-}
-
-while ($q = $db->fetch_array($has_sin_oficio_query)) { $has_sin_oficio = true; }
-while ($q = $db->fetch_array($has_estudioso_query)) { $has_estudioso = true; }
-while ($q = $db->fetch_array($has_polivalente_query)) { $has_polivalente = true; }
-while ($q = $db->fetch_array($has_erudito_query)) { $has_erudito = true; }
-
-function darObjeto2($objeto_id, $uid, $username, $oficios) {
-    global $db;
-
-    // conteo para generar sufijo único
-    $count_id = 0;
-    $inventario_actual = $db->query("SELECT count(*) as count FROM mybb_op_objetos WHERE objeto_id LIKE '".$db->escape_string($objeto_id)."-".$db->escape_string($uid)."%'");
-    while ($q = $db->fetch_array($inventario_actual)) { $count_id = intval($q['count']) + 1; }
-
-    // obtener objeto base
-    $obj_custom = null;
-    $objeto_custom_query = $db->query("SELECT * FROM mybb_op_objetos WHERE objeto_id='".$db->escape_string($objeto_id)."'");
-    while ($q = $db->fetch_array($objeto_custom_query)) {  $obj_custom = $q; }
-
-    if (!$obj_custom) { // nada que copiar
+// REGION VIRTUDES Y DEFECTOS
+    // COMPRUEBA VIRTUDES O DEFECTOS QUE PUEDAN INTERFERIR CON LOS OFICIOS O LA REDIRECCIÓN DE LA PÁGINA
+    // inicializamos a falso
+    $has_sin_oficio = $has_estudioso = $has_polivalente = $has_erudito = false; // D024, V035, V036, V028
+    // Planteamos una sola consulta para obtener todas las virtudes relevantes, en lugar de múltiples consultas individuales                     
+    $virtudes_query = $db->query(" SELECT virtud_id FROM `mybb_op_virtudes_usuarios` WHERE uid='".intval($uid)."' AND virtud_id IN ('D024','V035','V036','V028'); ");
+    // Iteramos sobre los resultados y activamos las variables correspondientes según las virtudes encontradas
+    while ($q = $db->fetch_array($virtudes_query)) {
+        if ($q['virtud_id'] === 'D024') { $has_sin_oficio  = true; }
+        if ($q['virtud_id'] === 'V035') { $has_estudioso   = true; }
+        if ($q['virtud_id'] === 'V036') { $has_polivalente = true; }
+        if ($q['virtud_id'] === 'V028') { $has_erudito     = true; }
+    }
+    // Si el usuario tiene el defecto "Sin Oficio", bloqueamos el acceso a esta página y explicamos la razón
+    if ($has_sin_oficio) {
+        $mensaje_redireccion = "Aquellos que poseen el defecto 'Sin Oficio' no tienen la capacidad de ganar puntos de oficio. Haber estudiao.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
         return;
     }
+// END REGION VIRTUDES Y DEFECTOS
 
-    $new_objeto_id = $db->escape_string($objeto_id) . '-' . $db->escape_string($uid) . '-' . intval($count_id);
+// REGION MODIFICAR INVENTARIO
+    /**
+     * Entrega un objeto al inventario del usuario.
+     *
+     * @param string      $objeto_id    ID del objeto base.
+     * @param int|null    $uid          UID del destinatario (null = usar global $uid).
+     * @param string|null $username     Nombre del destinatario (null = usar global $username).
+     * @param string|null $oficios_json JSON de oficios como string (null = construir desde globals).
+     * @param bool        $crear_copia  true → clona el objeto como custom (crafteo);
+     *                                  false → añade al inventario estándar.
+     */
+    function darObjeto($objeto_id, $uid = null, $username = null, $oficios_json = null, $crear_copia = false, $efecto_mult = 1.0) {
+        global $db, $ficha, $oficios;
 
-    // Sanitizar/normalizar campos
-    $categoria      = $db->escape_string($obj_custom['categoria']);
-    $subcategoria   = $db->escape_string($obj_custom['subcategoria']);
-    $nombre         = $db->escape_string($obj_custom['nombre']);
-    $tier           = intval($obj_custom['tier']);
-    $imagen_id      = $db->escape_string($obj_custom['imagen_id']);
-    $imagen_avatar  = $db->escape_string($obj_custom['imagen_avatar']);
-    $berries        = intval($obj_custom['berries']);
-    $cantidadMaxima = intval($obj_custom['cantidadMaxima']);
-    $dano           = $db->escape_string($obj_custom['dano']);
-    $bloqueo        = $db->escape_string($obj_custom['bloqueo']);
-    $alcance        = $db->escape_string($obj_custom['alcance']);
-    $efecto         = $db->escape_string($obj_custom['efecto']);
-    $exclusivo      = 1;
-    $invisible      = 1;
-    $espacios       = intval($obj_custom['espacios']);
-    $imagen         = $db->escape_string($obj_custom['imagen']);
-    $desbloquear    = intval($obj_custom['desbloquear']);
-    $oficio         = $db->escape_string($obj_custom['oficio']);
-    $nivel          = $db->escape_string($obj_custom['nivel']);
-    $requisitos     = $db->escape_string($obj_custom['requisitos']);
-    $escalado       = $db->escape_string($obj_custom['escalado']);
-    $editable       = 1;
-    $custom         = 1;
-    $descripcion    = $db->escape_string($obj_custom['descripcion']);
-    $negro          = 1;
+        $uid_int    = $uid !== null ? intval($uid) : intval($GLOBALS['uid']);
+        $uname      = $username !== null ? $username : $GLOBALS['username'];
+        $obj_id_esc = $db->escape_string($objeto_id);
 
-    // insertar en inventario
-    $db->query("INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `autor`, `autor_uid`, `oficios`, `especial`) VALUES ('".$db->escape_string($new_objeto_id)."', '".intval($uid)."', '1', '".$db->escape_string($username)."', '".intval($uid)."', '".$db->escape_string($oficios)."', '1');");
+        if ($crear_copia) {
+            // --- Modo copia custom: clona el objeto base con ID único y lo entrega ---
+            $obj_custom = null;
+            $count_id   = 1;
+            $q_obj = $db->query("SELECT *, (SELECT COUNT(*) FROM mybb_op_objetos WHERE objeto_id LIKE '".$obj_id_esc."-".$uid_int."%') AS count_copias FROM mybb_op_objetos WHERE objeto_id='".$obj_id_esc."' LIMIT 1");
+            if ($q_obj) {
+                $row = $db->fetch_array($q_obj);
+                if ($row) { $obj_custom = $row; $count_id = intval($row['count_copias']) + 1; }
+            }
 
-    // insertar objeto 'custom' - escapamos todos los campos de texto
-    $insert_sql = "INSERT INTO `mybb_op_objetos`(`objeto_id`, `categoria`, `subcategoria`, `nombre`, `tier`, `imagen_id`, `imagen_avatar`, `berries`, `cantidadMaxima`, `dano`, `efecto`, `bloqueo`, `alcance`, `exclusivo`, `invisible`, `espacios`, `imagen`, `desbloquear`, `oficio`, `nivel`, `requisitos`, `escalado`, `editable`, `custom`, `descripcion`, `negro`) VALUES ('".
-        $db->escape_string($new_objeto_id)."', '".$categoria."', '".$subcategoria."', '".$nombre."', '".$tier."', '".$imagen_id."', '".$imagen_avatar."', '".$berries."', '".$cantidadMaxima."', '".$dano."', '".$efecto."', '".$bloqueo."', '".$alcance."', '".$exclusivo."', '".$invisible."', '".$espacios."', '".$imagen."', '".$desbloquear."', '".$oficio."', '".$nivel."', '".$requisitos."', '".$escalado."', '".$editable."', '".$custom."', '".$descripcion."', '".$negro."');";
+            if (!$obj_custom) { return; }
 
-    $db->query($insert_sql);
+            $new_objeto_id = $obj_id_esc . '-' . $uid_int . '-' . $count_id;
+            $bloqueo_raw   = $obj_custom['bloqueo'];
+            $alcance_raw   = $obj_custom['alcance'];
 
-    // Validación post-inserción: si bloqueo/alcance quedan vacíos, registrar en audit para revisar
-    $check = $db->query("SELECT bloqueo, alcance FROM mybb_op_objetos WHERE objeto_id='".$db->escape_string($new_objeto_id)."'");
-    $row = $db->fetch_array($check);
-    if (!$row || $row['bloqueo'] === '' || $row['alcance'] === '') {
-        $log = "Copy incomplete for $objeto_id -> $new_objeto_id bloqueo:" . ($row['bloqueo'] ?? 'NULL') . " alcance:" . ($row['alcance'] ?? 'NULL');
-        $db->query("INSERT INTO `mybb_op_audit_crafteo` (`uid`, `nombre`, `log`) VALUES ('".intval($uid)."', '".$db->escape_string($username)."', '".$db->escape_string($log)."');");
+            // Cocina sala: +25% a todos los números del campo efecto si subcategoría es plato
+            $efecto_val = $obj_custom['efecto'];
+            if ($efecto_mult > 1.0 && strtolower(trim($obj_custom['subcategoria'])) === 'plato') {
+                $efecto_val = preg_replace_callback('/(\d+(?:\.\d+)?)/', function ($m) use ($efecto_mult) {
+                    $n = floatval($m[1]);
+                    return strpos($m[1], '.') !== false
+                        ? strval(round($n * $efecto_mult, 2))
+                        : strval((int)round($n * $efecto_mult));
+                }, $efecto_val);
+            }
+
+            $db->query("INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `autor`, `autor_uid`, `oficios`, `especial`) VALUES ('".$new_objeto_id."', '".$uid_int."', '1', '".$db->escape_string($uname)."', '".$uid_int."', '".$db->escape_string($oficios_json)."', '1');");
+
+            $db->query("INSERT INTO `mybb_op_objetos`(`objeto_id`, `categoria`, `subcategoria`, `nombre`, `tier`, `imagen_id`, `imagen_avatar`, `berries`, `cantidadMaxima`, `dano`, `efecto`, `bloqueo`, `alcance`, `exclusivo`, `invisible`, `espacios`, `imagen`, `desbloquear`, `oficio`, `nivel`, `requisitos`, `escalado`, `editable`, `custom`, `descripcion`, `negro`) VALUES ('".$new_objeto_id."', '".$db->escape_string($obj_custom['categoria'])."', '".$db->escape_string($obj_custom['subcategoria'])."', '".$db->escape_string($obj_custom['nombre'])."', '".intval($obj_custom['tier'])."', '".$db->escape_string($obj_custom['imagen_id'])."', '".$db->escape_string($obj_custom['imagen_avatar'])."', '".intval($obj_custom['berries'])."', '".intval($obj_custom['cantidadMaxima'])."', '".$db->escape_string($obj_custom['dano'])."', '".$db->escape_string($efecto_val)."', '".$db->escape_string($bloqueo_raw)."', '".$db->escape_string($alcance_raw)."', '1', '1', '".intval($obj_custom['espacios'])."', '".$db->escape_string($obj_custom['imagen'])."', '".intval($obj_custom['desbloquear'])."', '".$db->escape_string($obj_custom['oficio'])."', '".$db->escape_string($obj_custom['nivel'])."', '".$db->escape_string($obj_custom['requisitos'])."', '".$db->escape_string($obj_custom['escalado'])."', '1', '1', '".$db->escape_string($obj_custom['descripcion'])."', '1');");
+
+            if ($bloqueo_raw === '' || $alcance_raw === '') {
+                $log = $db->escape_string("Copy incomplete for $objeto_id -> $new_objeto_id bloqueo:" . ($bloqueo_raw ?: 'NULL') . " alcance:" . ($alcance_raw ?: 'NULL'));
+                $db->query("INSERT INTO `mybb_op_audit_crafteo` (`uid`, `nombre`, `log`) VALUES ('".$uid_int."', '".$db->escape_string($uname)."', '".$log."');");
+            }
+
+        } else {
+            // --- Modo estándar: incrementa cantidad o inserta en inventario ---
+            $cantidadActual = 0;
+            $has_objeto     = false;
+            $q_inv = $db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='".$uid_int."' AND objeto_id='".$obj_id_esc."' LIMIT 1");
+            if ($q_inv) {
+                $row = $db->fetch_array($q_inv);
+                if ($row) { $has_objeto = true; $cantidadActual = intval($row['cantidad']); }
+            }
+
+            // Resolver oficios como objeto stdClass
+            if ($oficios_json !== null) {
+                $oficios_obj = json_decode($oficios_json);
+            } else {
+                if (!isset($oficios) || empty($oficios)) { $oficios = json_decode($ficha['oficios']); }
+                $oficios_obj = $oficios;
+            }
+
+            // Obtener oficio y si el objeto es custom
+            $oficio_name = '';
+            $especial    = 0;
+            $q_obj = $db->query("SELECT oficio, custom FROM mybb_op_objetos WHERE objeto_id='".$obj_id_esc."' LIMIT 1");
+            if ($q_obj) {
+                $obj_row = $db->fetch_array($q_obj);
+                if ($obj_row) { $oficio_name = $obj_row['oficio']; $especial = intval($obj_row['custom']) == 1 ? 1 : 0; }
+            }
+
+            $oficios_data = array();
+            if ($oficio_name != '') {
+                $nivel_o = isset($oficios_obj->{$oficio_name}->{'nivel'}) ? intval($oficios_obj->{$oficio_name}->{'nivel'}) : 0;
+                $sub_o   = isset($oficios_obj->{$oficio_name}->{'sub'}) ? (array)$oficios_obj->{$oficio_name}->{'sub'} : array();
+                $oficios_data[$oficio_name] = array('sub' => $sub_o, 'nivel' => $nivel_o);
+            }
+            $oficios_esc = $db->escape_string(json_encode($oficios_data, JSON_UNESCAPED_UNICODE));
+
+            if ($has_objeto) {
+                $cantidadNueva = $cantidadActual + 1;
+                $db->query("UPDATE `mybb_op_inventario` SET `cantidad`='".$cantidadNueva."' WHERE objeto_id='".$obj_id_esc."' AND uid='".$uid_int."'");
+                $db->query("UPDATE `mybb_op_inventario` SET `autor`='".$db->escape_string($uname)."', `autor_uid`='".$uid_int."', `oficios`='".$oficios_esc."', `especial`='".$especial."' WHERE objeto_id='".$obj_id_esc."' AND uid='".$uid_int."' AND (autor='' OR autor IS NULL OR oficios='' OR oficios IS NULL)");
+            } else {
+                $db->query("INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `autor`, `autor_uid`, `oficios`, `especial`) VALUES ('".$obj_id_esc."', '".$uid_int."', '1', '".$db->escape_string($uname)."', '".$uid_int."', '".$oficios_esc."', '".$especial."');");
+            }
+        }
     }
-    
-}
 
-function darObjeto($objeto_id) {
-    global $db, $uid, $username, $ficha, $oficios;
-    $cantidadActual = '0';
-    $has_objeto = false;
-    $inventario_actual = $db->query("SELECT * FROM mybb_op_inventario WHERE uid='$uid' AND objeto_id='$objeto_id'");
-    while ($q = $db->fetch_array($inventario_actual)) {  $has_objeto = true; $cantidadActual = $q['cantidad']; }
+    function quitarObjeto($objeto_id) {
+        global $db, $uid;
+        $uid_int    = intval($uid);
+        $obj_id_esc = $db->escape_string($objeto_id);
 
-    // Asegurar que tenemos la estructura de oficios del usuario disponible
-    if (!isset($oficios) || empty($oficios)) {
-        $oficios = json_decode($ficha['oficios']);
+        $q = $db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='".$uid_int."' AND objeto_id='".$obj_id_esc."' LIMIT 1");
+        $row = $q ? $db->fetch_array($q) : null;
+
+        if (!$row) { return; }
+
+        if (intval($row['cantidad']) >= 2) {
+            $db->query("UPDATE `mybb_op_inventario` SET `cantidad` = cantidad - 1 WHERE objeto_id='".$obj_id_esc."' AND uid='".$uid_int."'");
+        } else {
+            $db->query("DELETE FROM `mybb_op_inventario` WHERE objeto_id='".$obj_id_esc."' AND uid='".$uid_int."'");
+        }
     }
-
-    // Obtener información del objeto para deducir oficio y si es custom/especial
-    $obj_row = null;
-    $obj_q = $db->query("SELECT oficio, custom FROM mybb_op_objetos WHERE objeto_id='".$db->escape_string($objeto_id)."' LIMIT 1");
-    if ($obj_q) { $obj_row = $db->fetch_array($obj_q); }
-    $oficio_name = $obj_row ? $obj_row['oficio'] : '';
-    $especial = ($obj_row && intval($obj_row['custom']) == 1) ? 1 : 0;
-
-    // Construir JSON con la estructura esperada: {"Oficio": {"sub": {...}, "nivel": X}}
-    $oficios_obj = array();
-    if ($oficio_name != '') {
-        $nivel = isset($oficios->{$oficio_name}->{'nivel'}) ? intval($oficios->{$oficio_name}->{'nivel'}) : 0;
-        $sub = isset($oficios->{$oficio_name}->{'sub'}) ? (array)$oficios->{$oficio_name}->{'sub'} : array();
-        $oficios_obj[$oficio_name] = array("sub" => $sub, "nivel" => $nivel);
-    }
-    $oficios_json = $db->escape_string(json_encode($oficios_obj, JSON_UNESCAPED_UNICODE));
-
-    if ($has_objeto) {
-        $cantidadNueva = intval($cantidadActual) + 1;
-        $db->query(" 
-            UPDATE `mybb_op_inventario` SET `cantidad`='$cantidadNueva' WHERE objeto_id='$objeto_id' AND uid='$uid'
-        ");
-
-        // Si faltan metadatos, rellenarlos (solo si están vacíos)
-        $db->query("UPDATE `mybb_op_inventario` SET `autor`='".$db->escape_string($username)."', `autor_uid`='".intval($uid)."', `oficios`='$oficios_json', `especial`='".intval($especial)."' WHERE objeto_id='".$db->escape_string($objeto_id)."' AND uid='".intval($uid)."' AND (autor='' OR autor IS NULL OR oficios='' OR oficios IS NULL)");
-    } else {
-        $db->query(" 
-            INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`, `autor`, `autor_uid`, `oficios`, `especial`) VALUES 
-            ('".$db->escape_string($objeto_id)."', '".intval($uid)."', '1', '".$db->escape_string($username)."', '".intval($uid)."', '$oficios_json', '".intval($especial)."');
-        ");
-    }
-}
-
-function quitarObjeto($objeto_id) {
-    global $db, $uid;
-    $cantidadActual = '0';
-    $has_objeto = false;
-    $inventario_actual = $db->query("SELECT * FROM mybb_op_inventario WHERE uid='$uid' AND objeto_id='$objeto_id'");
-    while ($q = $db->fetch_array($inventario_actual)) { $has_objeto = true; $cantidadActual = $q['cantidad']; }
-
-    if ($has_objeto && intval($cantidadActual) >= 2) {
-        $cantidadNueva = intval($cantidadActual) - 1;
-        $db->query(" 
-            UPDATE `mybb_op_inventario` SET `cantidad`='$cantidadNueva' WHERE objeto_id='$objeto_id' AND uid='$uid'
-        ");
-    } else {
-        $db->query(" 
-            DELETE FROM `mybb_op_inventario` WHERE objeto_id='$objeto_id' AND uid='$uid'
-        ");
-    }
-}
+// END REGION MODIFICAR INVENTARIO
 
 $accion = $_POST['accion'];
 $objetoIdPost = $_POST['objetoId'];
 $recetaIdPost = $_POST['recetaId'];
 
-$oficio1 = $ficha['oficio1'];
-
-if ($oficio1 == '') {
-    $mensaje_redireccion = "Para acceder a esta página debes tener un oficio.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
-    output_page($page);
-    return;
-}
-
 $nikas = intval($ficha['nika']);
 $berries = intval($ficha['berries']);
 $puntosOficio = intval($ficha['puntos_oficio']);
 $nivel = intval($ficha['nivel']);
-$oficio2 = $ficha['oficio2'];
 
 $oficio1_db = '';
 $oficio2_db = '';
@@ -267,6 +252,36 @@ $oficio2_espe1_db = '';
 $oficio2_espe2_db = '';
 $oficios = json_decode($ficha['oficios']);
 
+
+/**
+ * Devuelve un array asociativo [nombre => nivel] con todos los oficios
+ * y especializaciones del usuario.
+ * Útil para comprobar niveles con: $niveles['Mayorista'] >= 2
+ *
+ * @return array<string, int>
+ */
+function getOficiosNiveles() {
+    global $ficha;
+
+    $result = [];
+    $oficios = json_decode($ficha['oficios'], true);
+
+    if (!is_array($oficios)) {
+        return $result;
+    }
+
+    foreach ($oficios as $nombreOficio => $data) {
+        $result[$nombreOficio] = isset($data['nivel']) ? intval($data['nivel']) : 0;
+
+        if (isset($data['sub']) && is_array($data['sub'])) {
+            foreach ($data['sub'] as $nombreEspe => $nivelEspe) {
+                $result[$nombreEspe] = intval($nivelEspe);
+            }
+        }
+    }
+
+    return $result;
+}
 
 function getDescuento($nivel) {
     if ($nivel == 1) {
@@ -281,126 +296,29 @@ function getDescuento($nivel) {
 }
 
 function getTiempoCreacion($oficio) {
-    global $db, $uid, $ficha;
-
-    $nivelMax = 0;
-
-    $oficios = json_decode($ficha['oficios']);
-
-    if ($oficio == 'Cocinero' || $oficio == 'Chef' || $oficio == 'Aprovisionador') {
-
-        if (isset($oficios->{'Cocinero'}->{'sub'}->{'Chef'})) {
-            if ($oficios->{'Cocinero'}->{'sub'}->{'Chef'} > $nivelMax) {
-                $nivelMax = $oficios->{'Cocinero'}->{'sub'}->{'Chef'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Artesano' || $oficio == 'Herrero' || $oficio == 'Modista') {
-
-
-        if (isset($oficios->{'Artesano'}->{'sub'}->{'Herrero'})) {
-            if ($oficios->{'Artesano'}->{'sub'}->{'Herrero'} > $nivelMax) {
-                $nivelMax = $oficios->{'Artesano'}->{'sub'}->{'Herrero'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Médico' || $oficio == 'Doctor' || $oficio == 'Farmacólogo') {
-
-        if (isset($oficios->{'Médico'}->{'sub'}->{'Farmacólogo'})) {
-            if ($oficios->{'Médico'}->{'sub'}->{'Farmacólogo'} > $nivelMax) {
-                $nivelMax = $oficios->{'Médico'}->{'sub'}->{'Farmacólogo'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Carpintero' || $oficio == 'Astillero' || $oficio == 'Constructor') {
-
-        if (isset($oficios->{'Carpintero'}->{'sub'}->{'Constructor'})) {
-            if ($oficios->{'Carpintero'}->{'sub'}->{'Constructor'} > $nivelMax) {
-                $nivelMax = $oficios->{'Carpintero'}->{'sub'}->{'Constructor'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Inventor' || $oficio == 'Ingeniero' || $oficio == 'Biólogo') {
-
-        if (isset($oficios->{'Inventor'}->{'sub'}->{'Ingeniero'})) {
-            if ($oficios->{'Inventor'}->{'sub'}->{'Ingeniero'} > $nivelMax) {
-                $nivelMax = $oficios->{'Inventor'}->{'sub'}->{'Ingeniero'};
-            }  
-        }
-
-    }
-
-    return getDescuento($nivelMax);
-
+    $n = getOficiosNiveles();
+    $map = [
+        'Cocinero' => 'Chef',      'Chef' => 'Chef',         'Aprovisionador' => 'Chef',
+        'Artesano' => 'Herrero',   'Herrero' => 'Herrero',   'Modista' => 'Herrero',
+        'Médico'   => 'Farmacólogo','Doctor' => 'Farmacólogo','Farmacólogo' => 'Farmacólogo',
+        'Carpintero'=> 'Constructor','Astillero'=> 'Constructor','Constructor'=> 'Constructor',
+        'Inventor' => 'Ingeniero', 'Ingeniero'=> 'Ingeniero','Biólogo'  => 'Ingeniero',
+    ];
+    $espe = $map[$oficio] ?? null;
+    return getDescuento($espe ? ($n[$espe] ?? 0) : 0);
 }
 
 function getBerriesCosto($oficio) {
-    global $db, $uid, $ficha;
-
-    $nivelMax = 0;
-
-    $oficios = json_decode($ficha['oficios']);
-
-    if ($oficio == 'Cocinero' || $oficio == 'Chef' || $oficio == 'Aprovisionador') {
-
-        if (isset($oficios->{'Cocinero'}->{'sub'}->{'Aprovisionador'})) {
-            if ($oficios->{'Cocinero'}->{'sub'}->{'Aprovisionador'} > $nivelMax) {
-                $nivelMax = $oficios->{'Cocinero'}->{'sub'}->{'Aprovisionador'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Artesano' || $oficio == 'Herrero' || $oficio == 'Modista') {
-
-        if (isset($oficios->{'Artesano'}->{'sub'}->{'Modista'})) {
-            if ($oficios->{'Artesano'}->{'sub'}->{'Modista'} > $nivelMax) {
-                $nivelMax = $oficios->{'Artesano'}->{'sub'}->{'Modista'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Médico' || $oficio == 'Doctor' || $oficio == 'Farmacólogo') {
-
-        if (isset($oficios->{'Médico'}->{'sub'}->{'Doctor'})) {
-            if ($oficios->{'Médico'}->{'sub'}->{'Doctor'} > $nivelMax) {
-                $nivelMax = $oficios->{'Médico'}->{'sub'}->{'Doctor'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Carpintero' || $oficio == 'Astillero' || $oficio == 'Constructor') {
-
-        if (isset($oficios->{'Carpintero'}->{'sub'}->{'Astillero'})) {
-            if ($oficios->{'Carpintero'}->{'sub'}->{'Astillero'} > $nivelMax) {
-                $nivelMax = $oficios->{'Carpintero'}->{'sub'}->{'Astillero'};
-            }  
-        }
-
-    }
-
-    if ($oficio == 'Inventor' || $oficio == 'Ingeniero' || $oficio == 'Biólogo') {
-
-        if (isset($oficios->{'Inventor'}->{'sub'}->{'Biólogo'})) {
-            if ($oficios->{'Inventor'}->{'sub'}->{'Biólogo'} > $nivelMax) {
-                $nivelMax = $oficios->{'Inventor'}->{'sub'}->{'Biólogo'};
-            }  
-        }
-
-    }
-
-    return getDescuento($nivelMax);
-
+    $n = getOficiosNiveles();
+    $map = [
+        'Cocinero' => 'Aprovisionador','Chef' => 'Aprovisionador','Aprovisionador'=> 'Aprovisionador',
+        'Artesano' => 'Modista',       'Herrero'=> 'Modista',     'Modista'  => 'Modista',
+        'Médico'   => 'Doctor',        'Doctor' => 'Doctor',      'Farmacólogo'=> 'Doctor',
+        'Carpintero'=> 'Astillero',    'Astillero'=> 'Astillero', 'Constructor'=> 'Astillero',
+        'Inventor' => 'Biólogo',       'Ingeniero'=> 'Biólogo',   'Biólogo'  => 'Biólogo',
+    ];
+    $espe = $map[$oficio] ?? null;
+    return getDescuento($espe ? ($n[$espe] ?? 0) : 0);
 }
 
 function getTiempoCreacionVirtud($has_estudioso, $has_erudito) {
@@ -416,74 +334,28 @@ function getTiempoCreacionVirtud($has_estudioso, $has_erudito) {
 }
 
 function getRecolectorDescuento() {
-    global $ficha;
-    
-    $oficios = json_decode($ficha['oficios']);
-    
-    $descuentoRecolector = 1.0;
-    $descuentoMayorista = getMayoristaDescuentoBerries();
-    
-    // Recolector nivel 1+ ofrece 10% de descuento
-    if (isset($oficios->{'Recolector'})) {
-        $nivelRecolector = $oficios->{'Recolector'}->{'nivel'};
-        
-        if ($nivelRecolector >= 1) {
-            $descuentoRecolector = 0.9; // 10% de descuento
-        }
-    }
-    
-    // Usar el mejor descuento disponible (el número más pequeño es mejor descuento)
-    return min($descuentoRecolector, $descuentoMayorista);
+    $descuentoRecolector = (getOficiosNiveles()['Recolector'] ?? 0) >= 1 ? 0.9 : 1.0;
+    return $descuentoRecolector * getMayoristaDescuentoBerries();
 }
 
 function getRecolectorNivel() {
-    global $ficha;
-    
-    $oficios = json_decode($ficha['oficios']);
-    
-    if (isset($oficios->{'Recolector'})) {
-        return $oficios->{'Recolector'}->{'nivel'};
-    }
-    
-    return 0;
+    return getOficiosNiveles()['Recolector'] ?? 0;
 }
 
 function getAgresteNivel() {
-    global $ficha;
-    
-    $oficios = json_decode($ficha['oficios']);
-    
-    // Buscar Agreste como especialización en Recolector
-    if (isset($oficios->{'Recolector'}->{'sub'}->{'Agreste'})) {
-        return $oficios->{'Recolector'}->{'sub'}->{'Agreste'};
-    }
-    
-    return 0;
+    return getOficiosNiveles()['Agreste'] ?? 0;
 }
 
 function getMayoristaNivel() {
-    global $ficha;
-    
-    $oficios = json_decode($ficha['oficios']);
-    
-    // Buscar Mayorista como especialización en Recolector
-    if (isset($oficios->{'Recolector'}->{'sub'}->{'Mayorista'})) {
-        return $oficios->{'Recolector'}->{'sub'}->{'Mayorista'};
-    }
-    
-    return 0;
+    return getOficiosNiveles()['Mayorista'] ?? 0;
 }
 
 function getMayoristaDescuentoBerries() {
     $nivel = getMayoristaNivel();
-    
-    if ($nivel == 3) {
-        return 0.80; // 20% de descuento
-    } else if ($nivel == 2) {
-        return 0.85; // 15% de descuento
-    }
-    
-    return 1.0; // Sin descuento en nivel 1 o sin Mayorista
+    if ($nivel == 3) return 0.80; // 20% de descuento
+    if ($nivel == 2) return 0.85; // 15% de descuento
+    if ($nivel == 1) return 0.90; // 10% de descuento
+    return 1.0;
 }
 
 function getMayoristaReduccionTiempo() {
@@ -503,10 +375,77 @@ function getMayoristaReduccionTiempo() {
 function getReduccionTiempoTotal() {
     // Mayorista sustituye cualquier otro beneficio si ofrece mejor reducción
     $reduccionMayorista = getMayoristaReduccionTiempo();
-    
+
     // Si Mayorista no está activo (1.0), no hay reducción de tiempo desde oficios
     return $reduccionMayorista;
 }
+
+// ── Barco sala helpers ─────────────────────────────────────────────────────────
+
+function _getBarcoSalas($uid) {
+    global $db;
+    static $cache = null;
+    if ($cache !== null) return $cache;
+    $uid = (int)$uid;
+    $q = $db->query("
+        SELECT DISTINCT s.tipo
+        FROM mybb_op_barco_salas s
+        WHERE EXISTS (
+            SELECT 1 FROM mybb_op_inventario i
+            WHERE i.uid='$uid' AND i.objeto_id=s.barco_id AND i.objeto_id LIKE '%BARC%-%'
+            AND NOT EXISTS (
+                SELECT 1 FROM mybb_op_barco_estado e
+                WHERE e.barco_id=s.barco_id AND e.owner_uid='$uid' AND e.owner_ausente=1
+            )
+        )
+        OR EXISTS (
+            SELECT 1 FROM mybb_op_barco_tripulacion t
+            WHERE t.miembro_uid='$uid' AND t.barco_id=s.barco_id AND t.owner_uid=s.owner_uid
+            AND t.ausente=0
+        )
+    ");
+    $cache = [];
+    while ($r = $db->fetch_array($q)) { $cache[$r['tipo']] = true; }
+    return $cache;
+}
+
+function getBarcoSalaTimeMult($uid, $oficioObjeto) {
+    $salas = _getBarcoSalas($uid);
+    if (empty($salas)) return 1.0;
+    $map = [
+        // Artesano base: sin beneficio de sala (Forja=Herrero, Taller=Modista)
+        'Herrero'        => ['forja'],
+        'Modista'        => ['taller'],
+        // Carpintero base: sin beneficio de sala (Taller=Astillero/Constructor)
+        'Astillero'      => ['taller'],
+        'Constructor'    => ['taller'],
+        // Inventor base: sin beneficio de sala (Taller=Ingeniero)
+        'Ingeniero'      => ['taller'],
+        'Biólogo'        => ['taller'],
+        'Cartógrafo'     => ['mapa'],        // Timonel: viaje -12h (sistema de viajes, no crafteo)
+        'Arqueólogo'     => ['archivos'],
+        'Periodista'     => ['archivos'],
+        'Contrabandista' => ['archivos'],    // Comerciante: +10% NPC (sistema de comercio, no crafteo)
+    ];
+    foreach (($map[$oficioObjeto] ?? []) as $tipo) {
+        if (!empty($salas[$tipo])) return 0.75;
+    }
+    return 1.0;
+}
+
+function getBarcoSalaQuantityMult($uid, $oficioObjeto) {
+    $salas = _getBarcoSalas($uid);
+    if (empty($salas)) return 1;
+    // Enfermería: Farmacólogo → fármacos x2 (Doctor tiene Quirófano, no Enfermería)
+    if (!empty($salas['enfermeria']) && in_array($oficioObjeto, ['Médico', 'Farmacólogo'])) return 2;
+    // Quirófano: Doctor → crafteos x2 eficacia (Biólogo: implantes -1 Espacio, sistema aparte)
+    if (!empty($salas['quirofano']) && in_array($oficioObjeto, ['Médico', 'Doctor'])) return 2;
+    // Invernadero: Mayorista/Agreste → Pop Green x2
+    if (!empty($salas['invernadero']) && in_array($oficioObjeto, ['Recolector', 'Agreste', 'Mayorista'])) return 2;
+    return 1;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 
 $oficio1_nivel = $oficios->{$oficio1}->{'nivel'};
 // Filtro global: permitir si el UID está en la lista CSV (ignorando espacios)
@@ -571,34 +510,38 @@ if (isset($oficios->{'Recolector'})) {
 }
 
 if ($accion == 'cancelar') {
-    $hasCrafteo = false;
+    $crafteo    = null;
+    $costoTotal = 0;
     $query_crafteo_usuario = $db->query(" SELECT * FROM mybb_op_crafteo_usuarios WHERE uid='$uid' ");
-    while ($q = $db->fetch_array($query_crafteo_usuario)) { $crafteo = $q; $hasCrafteo = true; }
-    
-    if ($hasCrafteo) {
+    while ($q = $db->fetch_array($query_crafteo_usuario)) {
+        $crafteo     = $q;
+        $costoTotal += intval($q['costo']);
+    }
 
-        $berriesNuevo = $berries + intval($crafteo['costo']);
-
+    if ($crafteo !== null) {
+        $berriesNuevo = $berries + $costoTotal;
         $db->query(" UPDATE `mybb_op_fichas` SET `berries`='$berriesNuevo' WHERE `fid`='$uid'; ");
         log_audit_currency($uid, $username, $uid, '[Crafteo][Berries]', 'berries', $berriesNuevo);
         if ($crafteo['material_id']) {
             darObjeto($crafteo['material_id']);
         }
-
         $db->query(" DELETE FROM mybb_op_crafteo_usuarios WHERE uid='$uid' ");
-
     }
 }
 
 // Cancelar crafteo de NPC (propietario)
 if ($accion == 'cancelarNpc') {
     $npcIdPost = $db->escape_string($_POST['npcId']);
-    $hasCrafteoNpc = false;
+    $crafteoNpc    = null;
+    $costoTotalNpc = 0;
     $query_crafteo_npc = $db->query(" SELECT * FROM mybb_op_crafteo_npcs WHERE uid='$uid' AND npc_id='$npcIdPost' ");
-    while ($q = $db->fetch_array($query_crafteo_npc)) { $crafteoNpc = $q; $hasCrafteoNpc = true; }
+    while ($q = $db->fetch_array($query_crafteo_npc)) {
+        $crafteoNpc     = $q;
+        $costoTotalNpc += intval($q['costo']);
+    }
 
-    if ($hasCrafteoNpc) {
-        $berriesNuevo = $berries + intval($crafteoNpc['costo']);
+    if ($crafteoNpc !== null) {
+        $berriesNuevo = $berries + $costoTotalNpc;
         $db->query(" UPDATE `mybb_op_fichas` SET `berries`='$berriesNuevo' WHERE `fid`='$uid'; ");
         log_audit_currency($uid, $username, $uid, '[Crafteo NPC][Berries]', 'berries', $berriesNuevo);
         if ($crafteoNpc['material_id']) {
@@ -636,12 +579,10 @@ if ($accion == 'craftear') {
         // Aplicar descuentos: especialización, material, y Recolector/Mayorista (el mejor)
         $berriesCosto = $berriesCosto * getBerriesCosto($oficioObjeto) * $material_pct * getRecolectorDescuento();
 
-        // Permitir elegir cantidad solo si el usuario tiene el oficio 'Recolector' en oficio1, oficio2 o especialización
-        $tieneRecolector = false;
-        if ($oficio1 === 'Recolector' || $oficio2 === 'Recolector' || isset($oficios->{'Recolector'})) {
-            $tieneRecolector = true;
-        }
-        if ($tieneRecolector) {
+        // Permitir elegir cantidad solo si el usuario tiene Recolector Y la receta es de ese oficio
+        $tieneRecolector    = ($oficio1 === 'Recolector' || $oficio2 === 'Recolector' || isset($oficios->{'Recolector'}));
+        $esRecetaRecolector = in_array($oficioObjeto, ['Recolector', 'Agreste', 'Mayorista']);
+        if ($tieneRecolector && $esRecetaRecolector) {
             $recolectorNivel = getRecolectorNivel();
             $agresteNivel = getAgresteNivel();
             $cantidadMaxima = ($recolectorNivel >= 2) ? 2 : 1;
@@ -669,24 +610,26 @@ if ($accion == 'craftear') {
             
             $berriesNuevo = $berries - $costoTotal;
             $duracion = floatval($tiempoCreacion) * 3600.0 * getTiempoCreacion($oficioObjeto);
-            $duracion = $duracion * getTiempoCreacionVirtud($has_estudioso, $has_erudito) * $material_pct * getReduccionTiempoTotal();
+            $duracion = $duracion * getTiempoCreacionVirtud($has_estudioso, $has_erudito) * $material_pct * getReduccionTiempoTotal() * getBarcoSalaTimeMult($uid, $oficioObjeto);
             $duracion = floor($duracion);
             $timestamp_end = time() + intval($duracion);
-            
-            for ($i = 0; $i < $cantidadCraftear; $i++) {
+
+            $cantidadEntregar = $cantidadCraftear * getBarcoSalaQuantityMult($uid, $oficioObjeto);
+
+            for ($i = 0; $i < $cantidadEntregar; $i++) {
                 $db->query(" INSERT INTO `mybb_op_crafteo_usuarios` (`uid`, `objeto_id`, `nombre`, `material_id`, `timestamp_end`, `duracion`, `costo`) VALUES ('$uid','$objetoIdPost', '$nombreObjeto','$materialId','$timestamp_end','$duracion','$berriesCosto'); ");
             }
-            
+
             $db->query(" UPDATE `mybb_op_fichas` SET `berries`='$berriesNuevo' WHERE `fid`='$uid'; ");
             log_audit_currency($uid, $username, $uid, '[Crafteo][Berries]', 'berries', $berriesNuevo);
             if ($material_tier != '') {
                 quitarObjeto($materialId);
             }
-            
-            $mensajeCantidad = ($cantidadCraftear > 1) ? " (x$cantidadCraftear unidades)" : "";
+
+            $mensajeCantidad = ($cantidadEntregar > 1) ? " (x$cantidadEntregar unidades)" : "";
             $log = "¡Crafteo en proceso. Se está creando el $nombreObjeto$mensajeCantidad ($objetoIdPost)\nTienes ahora $berriesNuevo berries. ($berries - $costoTotal)";
             $db->query(" INSERT INTO `mybb_op_audit_crafteo` (`uid`, `nombre`, `log`) VALUES ('$uid', '$nombre', '$log'); ");
-            
+
             // Confirmar la transacción
             $db->query("COMMIT");
 
@@ -886,8 +829,16 @@ if ($accion == 'reclamar') {
                 $npc_oficios_json_raw = json_encode($npc_oficios_obj, JSON_UNESCAPED_UNICODE);
 
                 foreach ($completos as $it) {
-                    // Pasamos la estructura (sin escapar) a darObjeto2; la función hará el escape al insertarlo
-                    darObjeto2($it['objeto_id'], $uid, $username, $npc_oficios_json_raw);
+                    // Cocina sala: +25% efecto en platos
+                    $npc_efecto_mult = 1.0;
+                    $q_nplato = $db->query("SELECT subcategoria FROM mybb_op_objetos WHERE objeto_id='".$db->escape_string($it['objeto_id'])."' LIMIT 1");
+                    if ($rnp2 = $db->fetch_array($q_nplato)) {
+                        if (strtolower(trim($rnp2['subcategoria'])) === 'plato') {
+                            $salas_cl = _getBarcoSalas($uid);
+                            if (!empty($salas_cl['cocina'])) $npc_efecto_mult = 1.25;
+                        }
+                    }
+                    darObjeto($it['objeto_id'], $uid, $username, $npc_oficios_json_raw, true, $npc_efecto_mult);
                 }
 
                 // Borrar solo los completados
@@ -916,10 +867,20 @@ if ($accion == 'reclamar') {
             $cantidadReclamada = count($crafteos);
 
             $db->query("DELETE FROM mybb_op_crafteo_usuarios WHERE uid='$uid'");
-            
+
+            // Cocina sala: +25% efecto en platos
+            $sala_efecto_mult = 1.0;
+            $q_plato = $db->query("SELECT subcategoria FROM mybb_op_objetos WHERE objeto_id='".$db->escape_string($objetoIdReclamar)."' LIMIT 1");
+            if ($rp = $db->fetch_array($q_plato)) {
+                if (strtolower(trim($rp['subcategoria'])) === 'plato') {
+                    $salas_cl = _getBarcoSalas($uid);
+                    if (!empty($salas_cl['cocina'])) $sala_efecto_mult = 1.25;
+                }
+            }
+
             // Entregar todos los crafteos completados
             for ($i = 0; $i < $cantidadReclamada; $i++) {
-                darObjeto2($objetoIdReclamar, $uid, $username, $ficha['oficios']);
+                darObjeto($objetoIdReclamar, $uid, $username, $ficha['oficios'], true, $sala_efecto_mult);
             }
         
             $mensajeCantidad = ($cantidadReclamada > 1) ? " (x$cantidadReclamada unidades)" : "";

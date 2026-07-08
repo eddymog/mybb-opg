@@ -1,0 +1,1384 @@
+
+<script>
+const circularProgress = document.querySelectorAll(".circular-progress");
+
+Array.from(circularProgress).forEach((progressBar) => {
+  const progressValue = progressBar.querySelector(".percentage");
+  const innerCircle = progressBar.querySelector(".inner-circle");
+  let startValue = 0,
+	endValue = Number(progressBar.getAttribute("data-percentage")),
+	speed = 25,
+	progressColor = progressBar.getAttribute("data-progress-color"),
+	nivel = progressBar.getAttribute("data-nivel");
+
+  const progress = setInterval(() => {
+	startValue++;
+	progressValue.textContent = nivel + '';
+	progressValue.style.color = 'white';
+
+	innerCircle.style.backgroundColor = progressBar.getAttribute("data-inner-circle-color");
+
+	progressBar.style.background = `conic-gradient(` + progressColor + ` ` + startValue * 3.6 + `deg,` + progressBar.getAttribute("data-bg-color") + ` 0deg)`;
+	if (startValue === endValue) {
+	  clearInterval(progress);
+	}
+  }, speed);
+});	
+
+function clickPestana(tipo) {
+	console.log('{$should_see_private}');
+	$('.pestana').removeClass('pestana-active');
+
+	if (tipo == 'biografia') {
+		$('#biografia').css('display', 'block');
+		$('#reputacion').css('display', 'none');
+		$('#habilidades').css('display', 'none');
+		$('#inventario').css('display', 'none');
+		$('.fondo-ficha').css('background-image', 'url(/images/op/ficha/FondoMultipleFicha{$faccion}_One_Piece_Gaiden_Foro_Rol.png)');
+		$('#pestana_biografia').addClass('pestana-active');
+	}
+
+	if (tipo == 'reputacion') {
+		$('#biografia').css('display', 'none');
+		$('#reputacion').css('display', 'block');
+		$('#habilidades').css('display', 'none');
+		$('#inventario').css('display', 'none');
+		$('.fondo-ficha').css('background-image', 'url(/images/op/ficha/FondoMultipleFicha{$faccion}_One_Piece_Gaiden_Foro_Rol.png)');
+		$('#pestana_reputacion').addClass('pestana-active');
+	}
+
+	if (tipo == 'habilidades') {
+		$('#biografia').css('display', 'none');
+		$('#reputacion').css('display', 'none');
+		$('#habilidades').css('display', 'block');
+		$('#inventario').css('display', 'none');
+		$('.fondo-ficha').css('background-image', 'url(/images/op/ficha/FondoMultipleFicha{$faccion}_One_Piece_Gaiden_Foro_Rol.png)');
+		
+		$('#pestana_habilidades').addClass('pestana-active');
+	}
+
+	if (tipo == 'inventario') {
+		$('#biografia').css('display', 'none');
+		$('#reputacion').css('display', 'none');
+		$('#habilidades').css('display', 'none');
+		$('#inventario').css('display', 'block');
+		$('.fondo-ficha').css('background-image', 'url(/images/op/ficha/FondoMultipleFicha{$faccion}_One_Piece_Gaiden_Foro_Rol.png)');
+		$('#pestana_inventario').addClass('pestana-active');
+	}
+}	
+
+let berries = {$ficha['berries']};                  
+let virtudes_array_json = {$virtudes_array_json};   
+let virtudes_json = {$virtudes_json};               
+let defectos_array_json = {$defectos_array_json};   
+let defectos_json = {$defectos_json};	
+let puntosExp = {$usuario['newpoints']};
+let nivel = {$ficha['nivel']};
+let nivelPorcentaje = '{$nivelPorcentaje}';
+let porcentajeExp = calcularPorcExp(parseInt(puntosExp));	
+$("#experienciaPorcentaje").html(porcentajeExp);	
+	
+function calcularPorcExp(exp) {
+	let porcExp = 100;
+	let expMax = 50;
+	let diff = 0;
+	
+	if (exp >= 0 && exp <= 50 && nivel == '1') {
+		expMax = 50;
+	} else if (exp >= 51 && exp <= 125 && nivel == '2') {
+		expMax = 125;
+	} else if (exp >= 126 && exp <= 225 && nivel == '3') {
+		expMax = 225;
+	} else if (exp >= 226 && exp <= 350 && nivel == '3') {
+		expMax = 350;
+	} else if (exp >= 351 && exp <= 500 && nivel == '4') {
+		expMax = 500;
+	} else if (exp >= 501 && exp <= 725 && nivel == '5') {
+		expMax = 725;
+	} else if (exp >= 726 && exp <= 1025 && nivel == '6') {
+		expMax = 1025;
+	} else if (exp >= 1026 && exp <= 1400 && nivel == '7') {
+		expMax = 1400;
+	} else if (exp >= 1401 && exp <= 1875 && nivel == '8') {
+		expMax = 1875;
+	} else if (exp >= 1876 && exp <= 2475 && nivel == '9') {
+		expMax = 2475;
+	} else if (exp >= 2476 && exp <= 3225 && nivel == '10') {
+		expMax = 3225;
+	} else if (exp >= 3226 && exp <= 4125 && nivel == '11') {
+		expMax = 4125;
+	} else if (exp >= 4126 && exp <= 5175 && nivel == '12') {
+		expMax = 5175;
+	} else if (exp >= 5176 && exp <= 6375 && nivel == '13') {
+		expMax = 6375;
+	} else if (exp >= 6376 && exp <= 7725 && nivel == '14') {
+		expMax = 7725;
+	} else if (exp >= 7726 && exp <= 9225 && nivel == '15') {
+		expMax = 9225;
+	} else if (exp >= 9226 && exp <= 10875 && nivel == '16') {
+		expMax = 10875;
+	} else if (exp >= 10876 && exp <= 12675 && nivel == '17') {
+		expMax = 12675;
+	} else if (exp >= 12676 && exp <= 14625 && nivel == '18') {
+		expMax = 14625;
+	} else if (exp >= 14626 && exp <= 16725 && nivel == '19') {
+		expMax = 16725;
+	} else if (exp >= 16726 && exp <= 19225 && nivel == '20') {
+		expMax = 19225;
+	} else if (exp >= 19226 && exp <= 26225 && nivel == '21') {
+		expMax = 26225;
+	} else if (exp >= 26226 && exp <= 31725 && nivel == '22') {
+		expMax = 31725;
+	} else if (exp >= 31726 && exp <= 38725 && nivel == '23') {
+		expMax = 38725;
+	} 
+	
+	porcExp = Math.floor(((expMax - (expMax - exp)) / expMax) * 100);
+	
+	return porcExp;
+}	
+
+for (let i = 0; i < virtudes_array_json.length; i++) {
+	let virtudes = virtudes_json[virtudes_array_json[i]][0];
+	let virtudesNombre = virtudes.nombre;
+	
+	$('#rasgos_virtudes').append(`
+		<div class="virtudCaja">
+			<div class="virtudPuntos virtudColor">` + virtudes.puntos + `</div>
+			<div class="virtudNombre virtudColor">` + virtudesNombre + `</div>
+			<div class="virtudCajaTexto virtudBackground">
+				<div style="display: flex; flex-direction: row;">
+					<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + virtudes.virtud_id + `</span>
+					</div>
+					<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + virtudes.descripcion + `</div>
+				</div>
+			</div>
+
+		</div>
+	`);
+}
+	
+for (let i = 0; i < defectos_array_json.length; i++) {
+	let defectos = defectos_json[defectos_array_json[i]][0];
+	let defectosNombre = defectos.nombre;
+	
+	$('#rasgos_defectos').append(`
+		<div class="virtudCaja">
+			<div class="virtudPuntos defectoColor">` + Math.abs(defectos.puntos) + `</div>
+			<div class="virtudNombre defectoColor">` + defectosNombre + `</div>
+			<div class="virtudCajaTexto defectoBackground">
+				<div style="display: flex; flex-direction: row;">
+					<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + defectos.defecto_id + `</span>
+					</div>
+					<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + defectos.descripcion + `</div>
+				</div>
+			</div>
+
+		</div>
+	`);
+}
+	
+$('#berries').text(berries.toLocaleString('es-es'));
+	
+</script>
+	 
+<script>
+		
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+	
+// Seccion de tecnicas
+let tec_aprendidas_json = {$tec_aprendidas_json};
+const belica1 = "{$ficha['belica1']}";   
+const belica2 = "{$ficha['belica2']}";   
+const belica3 = "{$ficha['belica3']}";   
+const belica4 = "{$ficha['belica4']}";   
+const belica5 = "{$ficha['belica5']}";   
+const estilo1 = "{$ficha['estilo1']}";   
+const estilo2 = "{$ficha['estilo2']}";   
+const estilo3 = "{$ficha['estilo3']}";	 
+const oficio1 = "{$ficha['oficio1']}";   
+const oficio2 = "{$ficha['oficio2']}";   
+let belicas = {$ficha['belicas']};   
+let oficios = {$ficha['oficios']};   
+let elementos = {$ficha['elementos']};      
+let aero = elementos['Aero'];   
+let aqua = elementos['Aqua'];   
+let cryo = elementos['Cryo'];   
+let piro = elementos['Piro'];   
+let electro = elementos['Electro'];   
+
+	
+if (tec_aprendidas_json['Combatiente']) {	
+	
+	if (tec_aprendidas_json['Acróbata']) {	
+		let tecCount = tec_aprendidas_json['Acróbata'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Combatiente'].push(tec_aprendidas_json['Acróbata'][i]);
+		}	
+	}	
+	
+	
+	if (tec_aprendidas_json['Artista Marcial']) {
+		let tecCount = tec_aprendidas_json['Artista Marcial'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Combatiente'].push(tec_aprendidas_json['Artista Marcial'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Vanguardia']) {
+		let tecCount = tec_aprendidas_json['Vanguardia'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Combatiente'].push(tec_aprendidas_json['Vanguardia'][i]);
+		}
+	}
+
+}
+	
+if (tec_aprendidas_json['Espadachín']) {
+	
+	if (tec_aprendidas_json['Asesino']) {
+		let tecCount = tec_aprendidas_json['Asesino'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Espadachín'].push(tec_aprendidas_json['Asesino'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Berserker']) {
+		let tecCount = tec_aprendidas_json['Berserker'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Espadachín'].push(tec_aprendidas_json['Berserker'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Samurai']) {
+		let tecCount = tec_aprendidas_json['Samurai'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Espadachín'].push(tec_aprendidas_json['Samurai'][i]);
+		}
+	}
+
+}
+
+if (tec_aprendidas_json['Contundente']) {
+	
+	if (tec_aprendidas_json['Bárbaro']) {
+		let tecCount = tec_aprendidas_json['Bárbaro'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Contundente'].push(tec_aprendidas_json['Bárbaro'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Bastión']) {
+		let tecCount = tec_aprendidas_json['Bastión'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Contundente'].push(tec_aprendidas_json['Bastión'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Demoledor']) {
+		let tecCount = tec_aprendidas_json['Demoledor'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Contundente'].push(tec_aprendidas_json['Demoledor'][i]);
+		}
+	}
+
+}
+	
+if (tec_aprendidas_json['Tirador']) {
+	
+	if (tec_aprendidas_json['Asaltante']) {
+		let tecCount = tec_aprendidas_json['Asaltante'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Tirador'].push(tec_aprendidas_json['Asaltante'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Arquero']) {
+		let tecCount = tec_aprendidas_json['Arquero'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Tirador'].push(tec_aprendidas_json['Arquero'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Francotirador']) {
+		let tecCount = tec_aprendidas_json['Francotirador'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Tirador'].push(tec_aprendidas_json['Francotirador'][i]);
+		}
+	}
+
+}
+if (tec_aprendidas_json['Especialista']) {
+	
+	if (tec_aprendidas_json['Diletante']) {
+		let tecCount = tec_aprendidas_json['Diletante'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Especialista'].push(tec_aprendidas_json['Diletante'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Músico']) {
+		let tecCount = tec_aprendidas_json['Músico'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Especialista'].push(tec_aprendidas_json['Músico'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Pícaro']) {
+		let tecCount = tec_aprendidas_json['Pícaro'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Especialista'].push(tec_aprendidas_json['Pícaro'][i]);
+		}
+	}
+
+}
+	
+if (tec_aprendidas_json['Artillero']) {
+	
+	if (tec_aprendidas_json['Balista']) {
+		let tecCount = tec_aprendidas_json['Balista'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Artillero'].push(tec_aprendidas_json['Balista'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Bombardero']) {
+		let tecCount = tec_aprendidas_json['Bombardero'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Artillero'].push(tec_aprendidas_json['Bombardero'][i]);
+		}
+	}
+	
+	if (tec_aprendidas_json['Juggernaut']) {
+		let tecCount = tec_aprendidas_json['Juggernaut'].length;
+		for (let i = 0; i < tecCount; i++) {
+			tec_aprendidas_json['Artillero'].push(tec_aprendidas_json['Juggernaut'][i]);
+		}
+	}
+
+}
+
+if (tec_aprendidas_json['Haoshoku'] || tec_aprendidas_json['Kenbunshoku'] || tec_aprendidas_json['Busoshoku']) {
+	tec_aprendidas_json['Haki'] = [];
+}
+
+if (tec_aprendidas_json['Haoshoku']) {
+	let tecCount = tec_aprendidas_json['Haoshoku'].length;
+	for (let i = 0; i < tecCount; i++) {
+		tec_aprendidas_json['Haki'].push(tec_aprendidas_json['Haoshoku'][i]);
+	}
+}
+
+if (tec_aprendidas_json['Kenbunshoku']) {
+	let tecCount = tec_aprendidas_json['Kenbunshoku'].length;
+	for (let i = 0; i < tecCount; i++) {
+		tec_aprendidas_json['Haki'].push(tec_aprendidas_json['Kenbunshoku'][i]);
+	}
+}
+
+if (tec_aprendidas_json['Busoshoku']) {
+	let tecCount = tec_aprendidas_json['Busoshoku'].length;
+	for (let i = 0; i < tecCount; i++) {
+		tec_aprendidas_json['Haki'].push(tec_aprendidas_json['Busoshoku'][i]);
+	}
+}
+
+
+
+function capitalize(s) { return s && s[0].toUpperCase() + s.slice(1); }
+	
+let belica1Obj = belicas[belica1];
+let belica1Id = belica1.split(' ').join('');
+$('#' + belica1Id + '.oficio-caja').css('background-color', '{$borderPillColor}');
+if (belica1Obj.nivel >= 1) { $('#' + belica1Id + ' .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+if (belica1Obj.nivel >= 2) { $('#' + belica1Id + ' .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+
+for (let i = 0; i < $('#' + belica1Id + ' .oficio-titulo2').length; i++) {
+	let subBelica1 = Object.keys(belica1Obj.sub)[i];
+	let subBelica1Obj = belica1Obj.sub[subBelica1];
+
+	$($('#' + belica1Id + ' .oficio-titulo2')[i]).text(subBelica1);
+
+	if (subBelica1Obj >= 1) {
+		$($('#' + belica1Id + ' .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+		$($('#' + belica1Id + ' .oficio-pill-1')[i]).css('background-color', '#9664e0');
+	}
+
+	if (subBelica1Obj >= 2) {
+		$($('#' + belica1Id + ' .oficio-pill-2')[i]).css('background-color', '#9664e0');
+	}
+
+	if (subBelica1Obj >= 3) {
+		$($('#' + belica1Id + ' .oficio-pill-3')[i]).css('background-color', '#9664e0');
+	}
+}
+	
+if (belica2 != '') {
+	let belica2Obj = belicas[belica2];
+	let belica2Id = belica2.split(' ').join('');
+	$('#' + belica2Id + '.oficio-caja').css('background-color', '{$borderPillColor}');
+	if (belica2Obj.nivel >= 1) { $('#' + belica2Id + ' .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (belica2Obj.nivel >= 2) { $('#' + belica2Id + ' .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+
+	for (let i = 0; i < $('#' + belica2Id + ' .oficio-titulo2').length; i++) {
+		let subBelica2 = Object.keys(belica2Obj.sub)[i];
+		let subBelica2Obj = belica2Obj.sub[subBelica2];
+
+		$($('#' + belica2Id + ' .oficio-titulo2')[i]).text(subBelica2);
+
+		if (subBelica2Obj >= 1) {
+			$($('#' + belica2Id + ' .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#' + belica2Id + ' .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica2Obj >= 2) {
+			$($('#' + belica2Id + ' .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica2Obj >= 3) {
+			$($('#' + belica2Id + ' .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+}
+	
+if (belica3 != '') {
+	let belica3Obj = belicas[belica3];
+	let belica3Id = belica3.split(' ').join('');
+	$('#' + belica3Id + '.oficio-caja').css('background-color', '{$borderPillColor}');
+	if (belica3Obj.nivel >= 1) { $('#' + belica3Id + ' .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (belica3Obj.nivel >= 2) { $('#' + belica3Id + ' .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+
+	for (let i = 0; i < $('#' + belica3Id + ' .oficio-titulo2').length; i++) {
+		let subBelica3 = Object.keys(belica3Obj.sub)[i];
+		let subBelica3Obj = belica3Obj.sub[subBelica3];
+
+		$($('#' + belica3Id + ' .oficio-titulo2')[i]).text(subBelica3);
+
+		if (subBelica3Obj >= 1) {
+			$($('#' + belica3Id + ' .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#' + belica3Id + ' .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica3Obj >= 2) {
+			$($('#' + belica3Id + ' .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica3Obj >= 3) {
+			$($('#' + belica3Id + ' .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+}
+	
+if (belica4 != '') {
+	let belica4Obj = belicas[belica4];
+	let belica4Id = belica4.split(' ').join('');
+	$('#' + belica4Id + '.oficio-caja').css('background-color', '{$borderPillColor}');
+	if (belica4Obj.nivel >= 1) { $('#' + belica4Id + ' .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (belica4Obj.nivel >= 2) { $('#' + belica4Id + ' .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+
+	for (let i = 0; i < $('#' + belica4Id + ' .oficio-titulo2').length; i++) {
+		let subBelica4 = Object.keys(belica4Obj.sub)[i];
+		let subBelica4Obj = belica4Obj.sub[subBelica4];
+
+		$($('#' + belica4Id + ' .oficio-titulo2')[i]).text(subBelica4);
+
+		if (subBelica4Obj >= 1) {
+			$($('#' + belica4Id + ' .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#' + belica4Id + ' .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}	
+
+		if (subBelica4Obj >= 2) {
+			$($('#' + belica4Id + ' .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}	
+
+		if (subBelica4Obj >= 3) {
+			$($('#' + belica4Id + ' .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}	
+	}	
+}	
+
+if (belica5 != '') {
+	let belica5Obj = belicas[belica5];
+	let belica5Id = belica5.split(' ').join('');
+	$('#' + belica5Id + '.oficio-caja').css('background-color', '{$borderPillColor}');
+	if (belica5Obj.nivel >= 1) { $('#' + belica5Id + ' .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (belica5Obj.nivel >= 2) { $('#' + belica5Id + ' .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+
+	for (let i = 0; i < $('#' + belica5Id + ' .oficio-titulo2').length; i++) {
+		let subBelica5 = Object.keys(belica5Obj.sub)[i];
+		let subBelica5Obj = belica5Obj.sub[subBelica5];
+
+		$($('#' + belica5Id + ' .oficio-titulo2')[i]).text(subBelica5);
+
+		if (subBelica5Obj >= 1) {
+			$($('#' + belica5Id + ' .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#' + belica5Id + ' .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica5Obj >= 2) {
+			$($('#' + belica5Id + ' .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+
+		if (subBelica5Obj >= 3) {
+			$($('#' + belica5Id + ' .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}	
+	}	
+}	
+	
+if (oficio1 == '') {
+	$('#oficio1').html('')
+} else {
+	let oficioObj = oficios[oficio1];
+	$('#oficio1 .oficio-titulo').text(capitalize(oficio1));
+	$('#oficio1.oficio-caja').css('background-color', '{$borderPillColor}');
+	
+	for (let i = 0; i < $('#oficio1 .oficio-titulo2').length; i++) {
+		let subOficio = Object.keys(oficioObj.sub)[i];
+		let subOficioObj = oficios[oficio1].sub[subOficio];
+		
+		$($('#oficio1 .oficio-titulo2')[i]).text(subOficio);
+		
+		if (subOficioObj >= 1) {
+			$($('#oficio1 .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#oficio1 .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 2) {
+			$($('#oficio1 .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 3) {
+			$($('#oficio1 .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+	
+	if (oficioObj.nivel >= 1) { $('#oficio1 .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (oficioObj.nivel >= 2) { $('#oficio1 .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+}
+if (oficio2 == '') {
+	$('#oficio2').html('')
+} else {
+	let oficioObj = oficios[oficio2];
+	$('#oficio2 .oficio-titulo').text(capitalize(oficio2));
+	$('#oficio2.oficio-caja').css('background-color', '{$borderPillColor}');
+	
+	for (let i = 0; i < $('#oficio2 .oficio-titulo2').length; i++) {
+		let subOficio = Object.keys(oficioObj.sub)[i];
+		let subOficioObj = oficios[oficio2].sub[subOficio];
+		
+		$($('#oficio2 .oficio-titulo2')[i]).text(subOficio);
+		
+		if (subOficioObj >= 1) {
+			$($('#oficio2 .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#oficio2 .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 2) {
+			$($('#oficio2 .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 3) {
+			$($('#oficio2 .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+	
+	if (oficioObj.nivel >= 1) { $('#oficio2 .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (oficioObj.nivel >= 2) { $('#oficio2 .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+}
+	
+$('#pestana-tecnicas').append(`
+	<div class="pestana-tecnica belica1 ` + belica1 + `" onclick="showBlock('` + belica1 + `', '#4856ff')" style=" background-color: #4856ff; margin-top: 40px; ">
+		<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + belica1 + `</div>
+	</div>`
+);
+							  
+let estiloTecs = tec_aprendidas_json[belica1];
+	
+let tecUnicas = tec_aprendidas_json['Única'];
+let tecAkumas = tec_aprendidas_json['Akuma'];
+
+let tecEstilo1 = tec_aprendidas_json[estilo1];
+let tecEstilo2 = tec_aprendidas_json[estilo2];
+let tecEstilo3 = tec_aprendidas_json[estilo3];
+	
+let especial = tec_aprendidas_json['Especial'];
+let raciales = tec_aprendidas_json['Raciales'];
+let personaje = tec_aprendidas_json['Personaje'];
+	
+$('#tecnicas-background').css('background-color', '#4856ff');
+
+if (estiloTecs) {
+	for (let i = 0; i < estiloTecs.length; i++) {
+		crearTecnica(estiloTecs[i]);	
+	}
+}
+
+if (belica2) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica belica2 ` + belica2 + `" onclick="showBlock('` + belica2 + `', '#5aae29')" style=" background-color: #5aae29; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + belica2 +`</div>
+		</div>`
+	 );
+}
+	
+if (belica3) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica belica3 ` + belica3 + `" onclick="showBlock('` + belica3 + `', '#1fc281')" style=" background-color: #1fc281; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + belica3 +`</div>
+		</div>`
+	 );
+}
+	
+if (belica4) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica belica4 ` + belica4 + `" onclick="showBlock('` + belica4 + `', '#c2a61f')" style=" background-color: #c2a61f; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + belica4 +`</div>
+		</div>`
+	 );
+}
+	
+if (belica5) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica belica5 ` + belica5 + `" onclick="showBlock('` + belica5 + `', '#d462c2')" style=" background-color: #d462c2; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + belica5 +`</div>
+		</div>`
+	 );
+}
+	
+if (tecUnicas != undefined) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica Única" onclick="showBlock('Única', '#8c29ae')" style=" background-color: #8c29ae; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Única</div>
+		</div>`
+	 );
+}
+	
+if (tecAkumas != undefined) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica Akuma" onclick="showBlock('Akuma', '#5529ae')" style=" background-color: #5529ae; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Akuma</div>
+		</div>`
+	 );
+}
+	
+if (tecAkumas != undefined) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica Akuma" onclick="showBlock('Akuma', '#5529ae')" style=" background-color: #5529ae; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Akuma</div>
+		</div>`
+	 );
+}
+				
+// belicas['Combatiente']['espe1']?.toUpperCase()
+// if (tecEspe1 != undefined) {
+// 	$('#pestana-tecnicas').append(`
+// 		<div class="pestana-tecnica espe1 ` + tecEspe1Nombre + `" onclick="showBlock('` + tecEspe1Nombre + `', '#294fae')" style=" background-color: #294fae; margin-top: 5px; ">
+// 			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">` + tecEspe1Nombre + `</div>
+// 		</div>`
+// 	 );
+// }
+	
+if (tecEstilo1 != undefined) {
+	
+	let estilo1P = estilo1.replace(' ', '_');
+	
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica estilo1 ` + estilo1P + `" onclick="showBlock('` + estilo1P + `', '#2993ae')" style=" background-color: #2993ae; margin-top: 5px; ">
+			<div style="color: white;font-size: 15px;text-align: center;position: relative;top: 7px;">` + estilo1 + `</div>
+		</div>`
+	 );
+}
+
+if (tecEstilo2 != undefined) {
+	
+	let estilo2P = estilo2.replace(' ', '_');
+	
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica estilo2 ` + estilo2P + `" onclick="showBlock('` + estilo2P + `', '#29ae79')" style=" background-color: #29ae79; margin-top: 5px; ">
+			<div style="color: white;font-size: 15px;text-align: center;position: relative;top: 7px;">` + estilo2 + `</div>
+		</div>`
+	 );
+}
+	
+if (tecEstilo3 != undefined) {
+	
+	let estilo3P = estilo3.replace(' ', '_');
+	
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica estilo3 ` + estilo3P + `" onclick="showBlock('` + estilo3P + `', '#97ae29')" style=" background-color: #97ae29; margin-top: 5px; ">
+			<div style="color: white;font-size: 15px;text-align: center;position: relative;top: 7px;">` + estilo3 + `</div>
+		</div>`
+	 );
+}
+	
+if (tec_aprendidas_json['Haoshoku'] || tec_aprendidas_json['Kenbunshoku'] || tec_aprendidas_json['Busoshoku']) {
+		
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica Haki" onclick="showBlock('Haki', '#05a3b9')" style=" background-color: #05a3b9; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Haki</div>
+		</div>`
+	 );
+}
+	
+if (electro == 1 || piro == 1 || cryo == 1 || aqua == 1 || aero == 1) {
+	
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica Elementales" onclick="showBlock('Elementales', '#1e7563')" style=" background-color: #1e7563; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Elementos</div>
+		</div>`
+	 );
+}	
+	
+if (especial) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica especial" onclick="showBlock('Especial', '#5b7d94')" style=" background-color: #5b7d94; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Especial</div>
+		</div>`
+	 );	
+}
+	
+if (raciales) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica raciales" onclick="showBlock('Raciales', '#ff8636')" style=" background-color: #ff8636; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Raciales</div>
+		</div>`
+	 );	
+}
+	
+if (personaje) {
+	$('#pestana-tecnicas').append(`
+		<div class="pestana-tecnica personaje" onclick="showBlock('Personaje', '#4bf15c')" style=" background-color: #4bf15c; margin-top: 5px; ">
+			<div style=" color: white; font-size: 19px; text-align: center; position: relative; top: 4px; ">Personaje</div>
+		</div>`
+	 );	
+}
+	
+function showBlock(estilo, color) {
+	$('#tecnicas-caja').html('');
+	$('#tecnicas-background').css('background-color', color);
+	let estiloTecs = tec_aprendidas_json[estilo.replace('_', ' ')];
+	
+	for (let i = 0; i < estiloTecs.length; i++) {
+		
+		crearTecnica(estiloTecs[i]);
+	
+	}
+}
+
+function crearTecnica(tecnica) {
+		let requisitos = tecnica.requisitos ? (`<div class="tecnica_requisito">` + tecnica.requisitos + `</div>`) : ``;
+	
+		let tecnicaEnergia = '';
+		let tecnicaEnergiaTurno = '';
+		let tecnicaHaki = '';
+		let tecnicaHakiTurno = '';
+		let tecnicaEnfriamiento = '';
+	
+		if (tecnica.energia) {
+			tecnicaEnergia = `
+				<div style=" display: flex; flex-direction: row; " title="Costo de Energía">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.energia + `</div>
+					<img src="/images/op/uploads/Energia_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+				</div>`;
+		}
+	
+		if (tecnica.energia_turno) {
+			tecnicaEnergiaTurno = `
+				<div style=" display: flex; flex-direction: row; " title="Costo de Energía por Turno">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.energia_turno + `</div>
+					<img src="/images/op/uploads/EnergiaPorTurno_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+				</div>`;
+		}
+	
+		if (tecnica.haki) {
+			tecnicaHaki = `
+				<div style=" display: flex; flex-direction: row; " title="Costo de Haki">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.haki + `</div>
+					<img src="/images/op/uploads/PuntosHaki_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+				</div>`;
+		}
+	
+		if (tecnica.haki_turno) {
+			tecnicaHakiTurno = `
+				<div style=" display: flex; flex-direction: row; " title="Costo de Haki por Turno">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.haki_turno + `</div>
+					<img src="/images/op/uploads/PuntosHakiMantenido_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+				</div>`;
+		}
+	
+	if (tecnica.enfriamiento) {
+		tecnicaEnfriamiento = `
+			<div style=" display: flex; flex-direction: row; " title="Enfriamiento">
+				<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #D8EC13; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.enfriamiento + `</div>
+
+				<img src="/images/op/uploads/CD_One_Piece_Gaiden_Foro_Rol.png" style="height: 30px;margin-top: 4px;" alt="Enfriamiento" />
+			</div>`;
+	}
+	
+		let tecnicaNombre = `[` + tecnica.tid + `] ` + tecnica.nombre;
+	
+		let generalTecs = `
+		<div class="tecnica_spoiler" style=" width: 96%; margin: 5px auto; ">
+			<div class="spoiler_title">
+				<span class="tecnica_spoiler_button" onclick="javascript: if(parentNode.parentNode.getElementsByTagName('div')[1].style.height == parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'){ parentNode.parentNode.getElementsByTagName('div')[1].style.height = '0px'; this.innerHTML='` + tecnicaNombre + `';parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden'; });} else { parentNode.parentNode.getElementsByTagName('div')[1].style.height = parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'; this.innerHTML='` + tecnicaNombre + `'; parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'visible'; });}">` + tecnicaNombre + `</span>
+			</div>
+
+		  <div class="tecnica_spoiler_content" style="height: 0px;">
+
+			<div class="tecnica_spoiler_content2" style='display: flex;flex-direction: row;'>
+
+				<div style="display: flex; flex-direction: column;width: 20%; margin-right: 26px;">
+					<div class="tecnica_field">` + tecnica.tid + `</div>
+					<div class="tecnica_field">` + tecnica.clase + `</div>
+					<div class="tecnica_field">` + tecnica.estilo + `</div>
+					<div class="tecnica_field">Tier ` + tecnica.tier + `</div>
+					<div class="tecnica_field">` + new Date(tecnica.tiempo).toLocaleDateString('es-ES') + `</div>
+
+					<div style="display: flex;flex-direction: row;justify-content: space-around;margin-top: 7px;width: 160px;">
+						` + tecnicaEnergia + `
+						` + tecnicaEnergiaTurno + `
+						` + tecnicaHaki + `
+						` + tecnicaHakiTurno + `
+						` + tecnicaEnfriamiento + `
+					</div>
+
+				</div>
+
+				<div style="display: flex; flex-direction: column;width: 80%;">
+					` + requisitos + `
+					<div class="tecnica_descripcion">` + tecnica.descripcion + `</div>
+					<div class="tecnica_efecto">` + tecnica.efectos + `</div>
+				</div>
+
+			</div>
+
+		  </div>
+
+		</div>				
+	`;
+	
+	
+	$('#tecnicas-caja').append(generalTecs);
+}
+
+</script>
+
+<script>
+function clickRasgos(tipo) {
+	$('.rasgos_box').removeClass('rasgos-active');
+
+	if (tipo == 'virtudes') {
+		$('#rasgos_virtudes').css('display', 'block');
+		$('#rasgos_defectos').css('display', 'none');
+		$('#virtudes_box').addClass('rasgos-active');
+	}
+
+	if (tipo == 'defectos') {
+		$('#rasgos_virtudes').css('display', 'none');
+		$('#rasgos_defectos').css('display', 'block');
+		$('#defectos_box').addClass('rasgos-active');
+	}
+}		
+	
+function openAvatar1Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">Esta imagen también cambiará la de los post. (O indicar que no afectará a la de los posts o perfil, según cuál sea). La imagen tiene unas dimensiones de 250x450.</div>
+
+				<input id="avatar1URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar1();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+
+function openAvatar2Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 250x350.</div>
+
+				<input id="avatar2URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar2();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar3Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 580x280.</div>
+
+				<input id="avatar3URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar3();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar4Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 300x300.</div>
+
+				<input id="avatar4URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar4();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar5Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 250x330.</div>
+
+				<input id="avatar5URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar5();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+
+function openAparienciaModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$apariencia}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="aparienciaText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['apariencia']}</textarea>
+			<button onclick="cambiarApariencia();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Apariencia</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openPersonalidadModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$personalidad}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="personalidadText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['personalidad']}</textarea>
+			<button onclick="cambiarPersonalidad();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Personalidad</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openHistoriaModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 540px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$historia}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="historiaText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 488px;">{$ficha['historia']}</textarea>
+			<button onclick="cambiarHistoria();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 600px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Historia</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+
+function openBandaSonoraModal() {
+    <if $is_owner || $g_is_staff then>
+    $('#myModal').html(`
+        <div class="modal-content" style="background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 300px; width: 620px;">
+            <div class="modal-body" style="display: flex; flex-direction: column;">
+                <div style="font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px;">Editar Banda Sonora</div>
+                <div style="margin-top: 10px; font-size: 18px; text-align: justify;">
+                    Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.
+                </div>
+                <input id="bandaSonoraURL" type="text" class="textbox" style="width: 540px; margin: auto; margin-top: 20px;" 
+                       placeholder="https://www.youtube.com/watch?v=..." 
+                       value="{$ficha['banda_sonora']}">
+                <div style="margin: auto; margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="cambiarBandaSonora();" style="width: 100px;">Guardar</button>
+                    <button onclick="probarSonido();" style="width: 100px;">Probar</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 14px; text-align: center; font-style: italic;">
+                    Formatos aceptados: enlaces de YouTube (youtube.com/watch?v=ID o youtu.be/ID)
+                </div>
+            </div>
+        </div>
+    `);
+    modal.style.display = "block";
+    </if>
+}
+
+function openExtrasModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$extras}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="extrasText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['extra']}</textarea>
+			<button onclick="cambiarExtras();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Extras</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openApodoModal() {
+
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="apodoText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 19px;">{$ficha['apodo']}</textarea>
+			<button onclick="cambiarApodo();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 128px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Apodo</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	modal.style.display = "block";
+	</if>
+}
+
+function cambiarBandaSonora() {
+    let bandaSonoraUrl = $('#bandaSonoraURL').val();
+    $.post("/op/ficha.php?uid={$query_uid}", { cambiar_banda_sonora: bandaSonoraUrl }, function(data) { 
+        location.reload(); 
+    });
+}
+
+function probarSonido() {
+    let bandaSonoraUrl = $('#bandaSonoraURL').val();
+    if (bandaSonoraUrl) {
+        // Extraer ID de YouTube
+        let videoId = '';
+        const youtubeRegex = [
+            /youtube\.com\/watch\?v=([^&]+)/,
+            /youtu\.be\/([^?]+)/,
+            /youtube\.com\/embed\/([^?]+)/,
+            /youtube\.com\/v\/([^?]+)/
+        ];
+        
+        for (const regex of youtubeRegex) {
+            const match = bandaSonoraUrl.match(regex);
+            if (match && match[1]) {
+                videoId = match[1];
+                break;
+            }
+        }
+        
+        if (videoId && typeof player !== 'undefined') {
+            // Guardar el ID actual para restaurarlo después
+            const currentVideoId = player.getVideoData().video_id;
+            
+            // Reproducir el nuevo video para probar
+            player.loadVideoById({
+                videoId: videoId,
+                startSeconds: 0
+            });
+            
+            // Mostrar mensaje
+            alert("Reproduciendo música de prueba. El video actual se restaurará al cerrar el modal.");
+            
+            // Restaurar el video anterior cuando se cierre el modal
+            $(window).one('click', function(e) {
+                if (e.target == modal) {
+                    player.loadVideoById({
+                        videoId: currentVideoId,
+                        startSeconds: 0
+                    });
+                }
+            });
+        } else {
+            alert("No se pudo extraer un ID de YouTube válido del enlace proporcionado.");
+        }
+    } else {
+        alert("Por favor, introduce un enlace de YouTube.");
+    }
+}
+
+function cambiarAvatar1() { 
+	let avatarUrl = $('#avatar1URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarBiografia_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar1: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+	
+function cambiarAvatar2() { 
+	let avatarUrl = $('#avatar2URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarReputacion1_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar2: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar3() { 
+	let avatarUrl = $('#avatar3URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarReputacion2_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar3: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar4() { 
+	let avatarUrl = $('#avatar4URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarHabilidades_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar4: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar5() { 
+	let avatarUrl = $('#avatar5URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarInventario_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar5: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarApariencia() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_apariencia: $('#aparienciaText').val() }, function( data ) { location.reload(); }); }	
+function cambiarPersonalidad() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_personalidad: $('#personalidadText').val() }, function( data ) { location.reload(); }); }	
+function cambiarHistoria() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_historia: $('#historiaText').val() }, function( data ) { location.reload(); }); }	
+function cambiarExtras() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_extras: $('#extrasText').val() }, function( data ) { location.reload(); }); }	
+function cambiarApodo() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_apodo: $('#apodoText').val() }, function( data ) { location.reload(); }); }	
+		
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+	
+function clickAkuma(id) {
+	modal.style.display = "block";
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+</script>
+
+<script>
+	// /\[(RES|FUE)x(\d+|\d+,\d+)]/g
+	
+	let efectosRegex = /\[(RES|FUE)x(\d+|\d+,\d+)]/g;
+	
+	console.log('{$resistencia_completa}');
+	
+	let statNums = {
+		RES: {$resistencia_completa},
+		FUE: {$fuerza_completa},
+		DES: {$destreza_completa},
+		PUN: {$punteria_completa},
+		AGI: {$agilidad_completa},
+		REF: {$reflejos_completa},
+		CAK: {$control_akuma_completa},
+		VOL: {$voluntad_completa}
+	}
+	
+	function getStatCodigo(codigo) {
+		console.log(codigo);
+		return statCodigo[codigo];
+	}
+	
+	let tecnica_descripciones = $('.tecnica_descripcion');
+	let tecnica_efectos = $('.tecnica_efecto');
+	
+	let efectosCodigo = {
+		'[Daño contundente]': { nombre: 'Daño contundente', texto: 'Provoca golpes que pueden causar entumecimiento, fracturas, mareos y suelen tener buena destructividad.' },
+		'[Daño cortante]': { nombre: 'Daño cortante', texto: 'Provoca cortes que pueden causar hemorragias o amputaciones.' },
+		'[Daño perforante]': { nombre: 'Daño perforante', texto: 'Pueden causar hemorragias. Tienen poca destructividad pero ignoran 40 puntos de defensa pasiva del enemigo.' },
+		'[Daño elemental]': { nombre: 'Daño elemental', texto: 'Inflige daño basado en elementos naturales como fuego o agua.' },
+		'[Daño espiritual]': { nombre: 'Daño espiritual', texto: 'Afecta la energía o espíritu del objetivo.' },
+		'[Defensa pasiva física]': { nombre: 'Defensa pasiva física', texto: 'A partir de nivel 5 reduce el daño físico recibido en un valor igual a tu Resistencia.' },
+		'[Defensa pasiva mental]': { nombre: 'Defensa pasiva mental', texto: 'A partir de nivel 5 reduce el daño espiritual recibido en un valor igual a tu Voluntad.' },
+		'[Umbral del dolor]': { nombre: 'Umbral del dolor', texto: '' },
+		'[Agarre]': { nombre: 'Agarre', texto: 'Inmoviliza al objetivo mediante un agarre fuerte.' },
+		'[Asfixia]': { nombre: 'Asfixia', texto: 'Impide la respiración, causando daño progresivo.' },		
+		'[Parálisis parcial]': { nombre: 'Parálisis parcial', texto: 'Inmoviliza parcialmente, limitando movimientos.' },
+		'[Parálisis completa]': { nombre: 'Parálisis completa', texto: 'Inmoviliza totalmente, impidiendo cualquier movimiento.' },
+		'[Canalizar]': { nombre: 'Canalizar', texto: 'Requiere permanecer concentrado en una tarea pero no limita el movimiento.' },
+		'[Concentrar]': { nombre: 'Concentrar', texto: 'Requiere concentración absoluta, el usuario ha de mantenerse inmovil sin realizar técnica alguna.' },
+		'[Ceguera]': { nombre: 'Ceguera', texto: 'Dificulta la visión temporalmente causando -12 Reflejos.' },
+		'[Derribo]': { nombre: 'Derribo', texto: 'Lanza al objetivo haciéndole perder el equilibrio.' },
+		'[Desarme]': { nombre: 'Desarme', texto: 'Fuerza al objetivo a soltar su arma o equipamiento.' },
+		'[Desorientación]': { nombre: 'Desorientación', texto: 'Causa confusión y pérdida de dirección, -10 Reflejos.' },
+		'[Confusión]': { nombre: 'Confusión', texto: 'Provoca alteración mental, dificultando la toma de decisiones, -10 Reflejos.' },
+		'[Mareo]': { nombre: 'Mareo', texto: 'Desestabiliza al objetivo, dificultando su equilibrio, -15 Reflejos.' },
+		'[Empuje]': { nombre: 'Empuje', texto: 'Mueve al objetivo hacia atrás con fuerza.' },
+		'[Entumecimiento]': { nombre: 'Entumecimiento', texto: 'Reduce la movilidad debido a la rigidez corporal en la zona afectada, -15 Agilidad en dicha zona.' },
+		'[Veneno leve]': { nombre: 'Veneno leve', texto: 'Inflige daño directo de 20 Puntos por turno durante 3 turnos.' },
+		'[Veneno medio]': { nombre: 'Veneno medio', texto: 'Inflige daño directo de 30 Puntos por turno durante 4 turnos.' },
+		'[Veneno grave]': { nombre: 'Veneno grave', texto: 'Inflige daño directo de 40 Puntos por turno, las curaciones serán un 50% menos efectivas mientras dure.' },
+		'[Fractura]': { nombre: 'Fractura', texto: 'Rompe huesos, causando dolor y limitación de movimiento. -30 Agi en la zona.' },
+		'[Frío]': { nombre: 'Frío', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Calor]': { nombre: 'Calor', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Hemorragia leve]': { nombre: 'Hemorragia leve', texto: 'Causa pérdida de sangre continua menor. Quita 10 puntos de energía cada turno durante 2 turnos.' },
+		'[Hemorragia media]': { nombre: 'Hemorragia media', texto: 'Provoca pérdida de sangre continua moderada. Quita 20 puntos de energía cada turno durante 4 turnos.' },
+
+		'[Hemorragia grave]': { nombre: 'Hemorragia grave', texto: 'Genera pérdida de sangre continua severa. Quita 40 puntos de energía cada turno de manera indefinida.' },
+		'[Quemadura leve]': { nombre: 'Quemadura leve', texto: 'Produce daño superficial por calor. Hace 20 puntos de daño directo por turno durante 2 turnos.' },
+		'[Quemadura media]': { nombre: 'Quemadura media', texto: 'Provoca daño significativo por calor. Hace 40 puntos de daño directo por turno durante 3 turnos.' },
+		'[Quemadura grave]': { nombre: 'Quemadura grave', texto: 'Causa daño severo por calor. Hace 80 puntos de daño directo por turno.' },
+		'[Miedo]': { nombre: 'Miedo', texto: 'Infunde temor, reduciendo la eficacia en combate, -10 Voluntad.' },
+		'[Sordera]': { nombre: 'Sordera', texto: 'Dificulta la audición temporalmente, -8 Reflejos.' },
+		'[Sueño]': { nombre: 'Sueño', texto: 'Induce un estado de sueño, el objetivo pierde 5 puntos en Fuerza, Agilidad, Destreza, Puntería, Control de Akuma y Reflejos.' },
+		'[Terror]': { nombre: 'Terror', texto: 'Provoca un estado de pánico extremo, -15 Vol.' }
+	};
+	
+	let statCodigo = {
+		RES: 'Resistencia',
+		FUE: 'Fuerza',
+		DES: 'Destreza',
+		PUN: 'Puntería',
+		AGI: 'Agilidad',
+		REF: 'Reflejos',
+		CAK: 'Control de Akuma',
+		VOL: 'Voluntad'
+	}
+	
+	let efectosArray = Object.keys(efectosCodigo);
+
+	function addEfectos(descripcion) {
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			descripcion = descripcion.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		return descripcion;
+	}
+	
+	function addEfectoStats(efectos) {
+		let efectosRegex = /\[(RES|FUE|DES|PUN|AGI|REF|CAK|VOL)x(\d+|\d+,\d+)]/g;
+		const efectosMatch = [...efectos.matchAll(efectosRegex)];
+		
+		for (let i = 0; i < efectosMatch.length; i++) {
+			let codigo = efectosMatch[i][0];
+			let stat = efectosMatch[i][1]
+			let multi = parseFloat(efectosMatch[i][2].replace(',', '.'));
+			
+			let statNum = statNums[efectosMatch[i][1]];
+			
+			let htmlTag = `
+				<span class="tec-tooltip"><strong>` + (statNum * multi) + `</strong><span class="stat-tooltiptext">` + codigo + `</span></span>
+			`
+			efectos = efectos.replace(codigo, htmlTag);
+		}
+		
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			efectos = efectos.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		
+		return efectos;
+	}
+	
+	for (let i = 0; i < tecnica_descripciones.length; i++) {
+		let descripcion = $($('.tecnica_descripcion')[i]);
+		let descripcionHtml = descripcion.html();
+		descripcion.html(addEfectos(descripcionHtml));
+	}
+	
+	for (let i = 0; i < tecnica_efectos.length; i++) {
+		let efecto = $($('.tecnica_efecto')[i]);
+		let efectoHtml = efecto.html();
+		
+		efecto.html(addEfectoStats(efectoHtml));
+	}
+	
+	
+</script>

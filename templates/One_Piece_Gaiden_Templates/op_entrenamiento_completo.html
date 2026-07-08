@@ -1,0 +1,83 @@
+<html>
+
+<head>
+    <style>
+		.entrenamiento p {
+			font-size: 21px;	
+		}
+		
+		.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.texto-top {
+			text-align: center; font-family: InterRegular; color: white; text-shadow: 1px 1px 2px black; margin-top: 17px; margin-bottom: 3px; font-size: 20px;
+		}
+		
+		.entreno-button {
+			background-color: #d16f19 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button:hover {
+			background-color: #df7416 !important;
+		}
+
+    </style>
+    <title>One Piece Gaiden</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+    <div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<div id="entreno-page">
+						<div style="margin-bottom: 10px;">
+							<img src="/images/op/uploads/EntrenamientoIntensivo_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+						<div style="display: none">
+							<form id="form" method="post" action="entrenamiento.php">
+								<input type="text" name="culminar" id="culminar" value="1">
+							</form>
+						</div>
+						<div style="position: relative;margin-top: 120px;">
+
+							<div id="luffy-running" style="position: absolute;top: -141px;left: 418px;">
+								<img src="/images/op/uploads/LuffyGif.gif" />
+							</div>
+
+							<div style=" width: 996px; height: 35px; background-color: #ff7600; border: 2px solid black; border-radius: 3px; margin-bottom: 10px; ">
+
+							</div>
+
+							<div style="position: absolute;color: white;top: 4px;left: 423px;font-family: InterRegular;font-size: 22px;text-shadow: 1px 1px 4px black;">¡Completado!</div>
+						</div>
+						<div class="poneglyph">
+						<div style=" margin: 0 auto; ">
+							<div class="texto-top">¡Felicidades!<br>¡Has ganado {$experiencia} puntos de experiencia!</div>
+							<div id="myGif"><img style="border: 2px solid black; " src="/images/op/uploads/EntrenamientoCompletado_One_Piece_Gaiden_Foro_Rol.gif" /></div>
+							<div style=" text-align: center;margin-top: 12px; ">
+								<button class="entreno-button" type="button" onclick="javascript: document.getElementById('form').submit();">Completar Entrenamiento</button>
+							</div>
+						</div>
+						
+					</div>
+					</div>
+				</div>
+			</div>
+		 </div>
+	  </div>
+	<script>
+
+	</script>
+    {$reload_script}
+    {$footer}
+</body>
+
+</html>

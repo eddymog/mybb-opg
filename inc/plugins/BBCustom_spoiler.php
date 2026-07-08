@@ -89,7 +89,10 @@ function BBCustom_spoiler_run(&$message)
 		$lang->load("my_spoiler", false, true);
 
 		$make_spoiler = function($title, $content) use ($lang) {
-			$display_title = $title ? $title : $lang->my_spoiler_show;
+			// Title comes from parse_message_end where & is already &amp; — decode before
+			// passing to create_custom_spoiler which will call htmlspecialchars() internally.
+			$raw_title = $title ? html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
+			$display_title = $raw_title !== '' ? $raw_title : $lang->my_spoiler_show;
 			return create_custom_spoiler($display_title, $content);
 		};
 

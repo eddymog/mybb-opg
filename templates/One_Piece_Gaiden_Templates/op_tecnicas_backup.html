@@ -1,0 +1,129 @@
+<html>
+<head>
+<style>	
+	.spoiler {
+    border: 1px solid #5f6572;
+    margin-bottom: 15px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    max-width: 745px;
+    cursor: pointer;
+}
+	
+	.spoiler {
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    margin: 15px auto;
+    cursor: pointer;
+	width: 200px;
+	border: 1px solid #ae490c !important;
+    box-shadow: 2px 2px 1px #ae490c !important;
+}
+	
+	.spoiler_content {
+    padding: 5px;
+    height: auto;
+    display: block;
+	border-top: 1px solid #ae490b !important;
+}
+	
+	.spoiler_title {
+    border-bottom: 1px solid #8972c8;
+    margin: 0;
+    margin-bottom: 4px;
+    background: #ee5a00;
+    padding: 4px 5px;
+    color: #fff;
+    border-radius: 3px;
+}
+	
+	.spoiler_title {
+    border-bottom: 1px solid #bbb;
+    margin: 0;
+    margin-bottom: 4px;
+    padding: 4px 5px;
+}
+	
+	
+.flex-container {
+    flex-wrap: wrap;
+/*     display: flex; */
+/*     justify-content: center; */
+}
+	
+	
+</style>
+<title>Tecnicas</title>
+{$headerinclude}
+</head>
+<body>
+{$header}
+	<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+		<tr>
+			<td class="thead" colspan="1"><strong>Todas las técnicas</strong></td>
+		</tr>
+    <tr>
+			<td class="trow1" valign="top"></td>
+		</tr>
+		<tr>
+			<td class="trow1" valign="top">
+				<div class="bodycenter flex-container">
+					<br>
+					<div class="spoiler">
+						<div class="spoiler_title">
+						  <strong>Disciplínas Bélicas</strong></div>
+						  <div class="spoiler_content" align="center">
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Combatiente">Combatiente</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Acróbata">- Acróbata</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Artista Marcial">- Artista Marcial</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Vanguardia">- Vanguardia</a><br>
+						  <br><a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Armas De Filo">Armas De Filo</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Hoja Corta">- Hoja Corta</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Filo Medio">- Filo Medio</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Gran Filo">- Gran Filo</a><br>
+						  <br><a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Contundente">Contundente</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Bastión">- Bastión</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Golpeador">- Golpeador</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Demoledor">- Demoledor</a><br>
+						  <br><a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Tirador">Tirador</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Artillero">- Artillero</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Asaltante">- Asaltante</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Demoledor">- Demoledor</a><br>
+						  <br><a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Especialista">Especialista</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Músico">- Músico</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Pícaro">- Pícaro</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Diletante">- Diletante</a><br>
+						</div>
+					</div>
+					<div class="spoiler">
+						<div class="spoiler_title">
+						  <strong>Estilos Canon</strong></div>
+						  <div class="spoiler_content" align="center">
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Karate Gyojin">Karate Gyojin</a><br>
+						  <a href="{$mybb->settings['bburl']}/op/tecnicas_show.php?estilo=Rokushiki">Rokushiki</a><br>
+						</div>
+					</div>
+					<br><!--
+					<div class="spoiler">
+						<div class="spoiler_title">
+						  <strong>Estilos canon</strong></div>
+						  <div class="spoiler_content" align="center">
+						   <a href="{$mybb->settings['bburl']}/tecnicas_show.php?estilo=Rokushiki">Rokushiki</a><br>
+						  <a href="{$mybb->settings['bburl']}/tecnicas_show.php?estilo=Okama Kenpou">Okama Kenpou</a><br> 
+						</div>
+					</div>-->
+					<br>
+				</div>				
+			</td>
+		</tr>
+	</table>
+	
+{$footer}
+</body>
+</html>
+
+<style></style>

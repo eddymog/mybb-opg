@@ -1,0 +1,627 @@
+<html>
+
+<head>
+  <title>Ficha Nueva</title>
+  {$headerinclude}
+  <style>
+ 	.temporada, .raza, .faccion, .subraza {
+		filter: none;
+		transition: 0.50s ease;	
+	}
+	  
+	.temporada:hover, .raza:hover, .faccion:hover, .subraza:hover, .subraza-hover {
+		filter: drop-shadow(0px 0px 10px #000);
+	}
+	  
+    #raza_descripcion {
+	  font-family: InterRegular; 
+	  text-align: justify; 
+	  letter-spacing: 0px; 
+	  padding: 6px; 
+	  font-size: 14px;
+    }
+	  
+	  #raza_caracteristicas {
+		  font-family: InterRegular; 
+		  text-align: justify; 
+		  letter-spacing: 0px; 
+		  padding: 6px; 
+		  font-size: 14px;
+	  }
+	  
+	  .raza {
+		  border-left: 2px solid black; 
+          border-bottom: 2px solid black; 
+          width: 110px;
+          height:148px;
+		  filter: grayscale(0.9);
+	  }
+	  
+	  .raza_end {
+		  border-right: 2px solid black;
+	  }
+	  
+	  .subraza {
+		  border-left: 2px solid black; border-bottom: 2px solid black; height: 126px;width: 110px;filter: grayscale(0.9);border-right: 2px solid black;
+	  }
+	  
+	  .subraza_empty {
+		  border-left: 2px solid black; border-bottom: 2px solid black; height: 126px;width: 110px;filter: grayscale(0.9);cursor: auto;
+	  }
+	  
+	  .subraza_end {
+		  border-right: 2px solid black;
+	  }
+	  
+	  #balance {
+		background-color: #a0a0a0;
+		height: 30px;
+		font-size: 20px;
+		text-shadow: 1px 1px 1px black;
+		color: white;
+	  }
+	  
+	  #balance_positivo, #balance_negativo {
+		height: 40px;
+		font-size: 20px;
+		text-shadow: 1px 1px 1px black;
+		color: white;
+		width: 50%;
+	  }
+	  
+	  #balance_positivo {
+		  background: linear-gradient(180deg, rgba(56, 200, 66, 1) 0%, rgba(17, 68, 21, 1) 100%);
+	  }
+	  
+	  #balance_negativo {
+		  background: linear-gradient(180deg, rgba(200, 56, 56, 1) 0%, rgba(68, 17, 17, 1) 100%);
+	  }
+	  
+	  #balance_positivo span, #balance_negativo span {
+		position: relative;
+   	  	top: 5px;
+	  }
+	  
+	  .virtudesList, .defectosList {
+		margin-top: 20px;
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		justify-content: space-between;
+		gap: 5px;
+	  }
+	  
+	  .virtudCaja {
+		margin: auto;
+		position: relative;
+	    margin-top: 30px;
+		margin-bottom: 15px;
+		margin-left: 10px;
+		cursor: pointer;
+		transition: all 0.2s ease-out;
+	  }
+	  
+	  .virtudGris {
+		  filter: grayscale(0.9);
+	  }
+	  
+	  .virtudClicked {
+		  filter: saturate(2.0) drop-shadow(2px 2px 3px black);
+	  }
+	  
+	  .virtudCaja:hover {
+		  filter: drop-shadow(2px 2px 3px black);
+/* 		      filter: grayscale(0.7); */
+/* 		  filter: saturate(2.0); */
+	  }
+	  
+	  .virtudGris:hover {
+		  filter: grayscale(0.9) drop-shadow(2px 2px 3px black);
+	  }
+	 
+	  .virtudPuntos {
+		  font-family: monospace; 
+		  letter-spacing: 0px; 
+		  font-size: 48px; 
+		  margin-left: 15px; 
+		  margin-top: 6px; 
+		  position: absolute; 
+		  top: -45px; 
+		  left: -9px; 
+		  text-shadow: 3px 3px 3px black;
+	  }
+	  
+	  .virtudNombre {
+		  font-family: moonGetHeavy; 
+		  letter-spacing: 0px; 
+		  font-size: 17px; 
+		  margin-left: 15px; 
+		  margin-top: 6px; 
+		  position: absolute; 
+		  top: -30px; 
+		  left: 23px; 
+		  text-shadow: 1px 1px 0px #134c18;
+	  }
+	  
+	  .virtudCajaTexto {
+		  width: 308px; border-radius: 10px; padding-bottom: 7px;transition: all 0.2s ease-out;
+		  max-height: 65px;
+    	  min-height: 65px;
+		  overflow: hidden;
+	  }
+	  
+	  .virtudCajaTexto:hover {
+		  max-height: 200px;
+	  }
+	  
+	  .virtudColor { 
+	  	color: #00a514;
+	  }
+	  
+	  .defectoColor {
+		color: #db0101;
+	  }
+	  
+	  .virtudBackground {
+		  background: linear-gradient(180deg, rgba(56,200,66,1) 0%, rgba(17,68,21,1) 100%);
+	  }
+	  
+	  .defectoBackground {
+		  background: linear-gradient(180deg, rgba(200,56,56,1) 0%, rgba(68,17,17,1) 100%);
+	  }
+	  
+	  .raza-button {
+		  background-color: #ff8a00;
+			padding: 9px;
+			border-radius: 8px;
+			border: 2px solid black;
+			font-size: 18px;
+			width: 110px;transition: all 0.2s ease-out;
+		  	cursor: pointer;
+	  }
+	  
+	  .raza-button:hover, .sentidos-button:hover, .tribus-button:hover {
+		  background-color: #a959fd;
+	  }
+	  
+	  .sentidos-button {
+		  background-color: #ff8a00; padding: 10px; border-radius: 8px; border: 2px solid black; font-size: 20px; width: 200px;transition: all 0.2s ease-out;cursor: pointer;
+	  }
+	  
+	  .tribus-button {
+		  		  background-color: #ff8a00; padding: 10px; border-radius: 8px; border: 2px solid black; font-size: 20px; width: 150px;transition: all 0.2s ease-out;cursor: pointer;
+	  }
+	  
+	  .raza1_active, .raza2_active, .sentido1_active, .sentido2_active, .sentido3_active, .tribu_active {
+		  background-color: #9541ed;
+	  }
+	  
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<form method="post" action="/op/ficha_crear.php" name="ficha_crear" id="ficha_crear">
+				<if $user_uid == '0' then>
+					<div style=" border-radius: 3px;color: white;font-family: InterRegular;text-align: center; background-color: #b71010; padding: 10px; font-size: 16px; border: 4px dotted black; ">¡Bienvenid@ a One Piece Gaiden! Seguramente te interese ver cómo crear la ficha antes de registrarte, ¿por qué no echas un vistazo? Es totalmente automatizado e interactivo, ¡Ve probando cosas y descubre cómo funciona! Si tienes alguna duda, no dudes en preguntar en nuestro <a href="https://onepiecegaiden.com/member.php?action=register" target="_blank">Discord</a>, y si te quieres registrar, puedes hacerlo <a href="https://onepiecegaiden.com/member.php?action=register" target="_blank">aquí</a>. ¡Y no lo olvides! ¡Para poder crear la ficha, necesitas registrarte primero!</div><br>
+				</if>
+
+				<div>
+					<div class="categoria"><img src="/images/op/ficha/TituloCreacionPJ_One_Piece_Gaiden_Foro_Rol.png" /></div>
+					<br>
+					<div style="position: relative; display: flex; flex-direction: row;">
+						<div> <!-- flex column-->
+
+						<div>
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Nombre</span>
+								<!-- <div class="barra-texto-op" style=" position: relative; top: -25px; left: 285px; width: 18px; border-radius: 25px; background-color: #ffffff; color: black; font-size: 11px; ">?</div> -->
+							</div>
+							<input style=" height: 30px; width: 330px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="nombre" name="nombre" required />
+						</div>
+
+						
+						<div style="margin-top: 20px;">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Apodo</span></div>
+							<input style=" height: 30px; width: 330px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="apodo" name="apodo" required />
+						</div>
+						
+
+						<div style="position: relative; display: flex; flex-direction: row;margin-top: 20px;">
+							<div>
+								<div style="height: 40px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 19px; top: 4px; ">Altura (CM)</span></div>
+								<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="number" id="altura" name="altura" min="0" required />
+							</div>
+
+							<div style=" margin-left: 10px; ">
+								<div style="height: 40px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Peso (KG)</span></div>
+								<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="number" id="peso" name="peso" min="0" required />
+							</div>
+						</div>
+						
+
+						<div style="position: relative; display: flex; flex-direction: row;margin-top: 20px;">
+							<div>
+								<div style="height: 40px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Sexo</span></div>
+								<select style=" height: 30px; width: 160px;border-top: 0;" class="barra-espacio-op texto-regular-op " name="sexo" id="sexo">
+								  <option value="Hombre">Masculino</option>
+								  <option value="Mujer">Femenino</option>
+								</select>
+							</div>
+
+							<div style=" margin-left: 10px; ">
+								<div style="height: 40px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Edad</span></div>
+								<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="number" id="edad" name="edad" required min="12" max="100" />
+							</div>
+						</div>
+						
+
+						<div style="margin-top: 22px;">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox">
+								<span class="barra-texto-op" style="font-size: 20px;top: 3px;left: -46px;">Cumpleaños</span>
+								<input type="number" id="dia_cumple" name="dia_cumple" min="1" max="90" style="position: absolute; right: 10px; top: 6px; width: 85px; height: 20px; text-align: center; font-family: InterRegular; border: 2px solid black;" required placeholder="Día (1-90)" />
+							</div>
+							<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+								<img id="Invierno" style="height: 82px;width: 82px;border-left: 2px solid black;border-bottom: 2px solid black;" src="/images/op/ficha/InviernoCumple_One_Piece_Gaiden_Foro_Rol.png" class="temporada bbox" />
+								<img id="Primavera" style="height: 82px;width: 83px;border-left: 2px solid black;border-bottom: 2px solid black;" src="/images/op/ficha/PrimaveraCumple_One_Piece_Gaiden_Foro_Rol.png" class="temporada bbox" />
+								<img id="Verano" style="height: 82px;width: 83px;border-left: 2px solid black;border-bottom: 2px solid black;" src="/images/op/ficha/VeranoCumple_One_Piece_Gaiden_Foro_Rol.png" class="temporada bbox" />
+								<img id="Otoño" style="height: 82px;width: 82px;border-left: 2px solid black;border-bottom: 2px solid black;border-right: 2px solid black;" src="/images/op/ficha/OtonoCumple_One_Piece_Gaiden_Foro_Rol.png" class="temporada bbox" />
+							</div>
+						</div>
+					</div>
+
+						<div style="margin-left: 5px;">
+							<div>
+								<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Razas</span></div>
+								<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+									<img id="Humano" src="/images/op/ficha/HumanoHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox" />
+									<img id="Gyojin" src="/images/op/ficha/GyojinHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox" />
+									<img id="Ningyo" src="/images/op/ficha/SirenaHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza raza_end bbox" />
+								</div>
+								<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+									<img id="Gigante" src="/images/op/ficha/GiganteHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox" />
+									<img id="Tontatta" src="/images/op/ficha/TontattaHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox"  />
+									<img id="Mink" src="/images/op/ficha/MinkHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza raza_end bbox"  />
+								</div>
+								<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+									<img id="Skypian" src="/images/op/ficha/SkypianHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox" />
+									<img id="Oni" src="/images/op/ficha/OniHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza bbox" />
+									<img id="Lunarian" src="/images/op/ficha/LunarianHombre_One_Piece_Gaiden_Foro_Rol.png" class="raza raza_end bbox" />
+								</div>
+							</div>
+						</div>
+						 
+						<div style="margin-left: 5px;">
+							<div id="mostrar-imagen-div" style="width: 330px; border: 2px solid black; background: radial-gradient(circle, rgb(255 255 255) 5%, rgb(188 186 186) 72%, rgb(166 164 164) 99%); " class="bbox">
+								<img id="mostrar-imagen" style="width: 326px; height: 480px; visibility: hidden;" src="" />
+							</div>
+						</div>
+					</div>
+
+					<br>
+
+					<div style="position: relative; display: flex; flex-direction: row;">
+
+						<div>
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Facción</span></div>
+							<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+								<div style="position: relative;">
+									<img id="Pirata" title="Pirata" style=" border-left: 2px solid black; border-bottom: 2px solid black;height: 126px;background: #b40000;width: 110px; " src="/images/op/ficha/Pirateria_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Pirata</span>
+								</div>
+								<div style="position: relative;">
+									<img id="Marina" title="Marina" style=" border-left: 2px solid black; border-bottom: 2px solid black;height: 126px;background: #00a1ff;width: 110px; " src="/images/op/ficha/Marina_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Marina</span>
+								</div>
+								<div style="position: relative;">
+									<img id="CipherPol" title="Cipher Pol" style=" border-left: 2px solid black; border-bottom: 2px solid black; border-right: 2px solid black;height: 126px;background: #000000;width: 110px;" src="/images/op/ficha/CipherPol_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Cipher Pol</span>
+								</div>
+							</div>
+							<div style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+								<div style="position: relative;">
+									<img id="Revolucionario" title="Revolucionario" style=" border-left: 2px solid black; border-bottom: 2px solid black;height: 126px;background: #ba8f66;width: 110px; " src="/images/op/ficha/Revolucion_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Revolucionario</span>
+								</div>
+								<div style="position: relative;">
+									<img id="Cazadores" title="Cazadores" style=" border-left: 2px solid black; border-bottom: 2px solid black;height: 126px;background: #00942e;width: 110px; " src="/images/op/ficha/Cazadores_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Cazadores</span>
+								</div>
+								<div style="position: relative;">
+									<img id="Civil" title="Civil" style=" border-left: 2px solid black; border-bottom: 2px solid black;height: 126px; border-right: 2px solid black;background: #e5097f;width: 110px;" src="/images/op/ficha/Civil_One_Piece_Gaiden_Foro_Rol.png" class="faccion bbox" />
+									<span style="position: absolute; bottom: 5px; left: 0; right: 0; text-align: center; color: white; font-weight: bold; text-shadow: 1px 1px 2px black;">Civil</span>
+								</div>
+							</div>
+						</div>
+
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Subraza</span></div>
+							<div id="subraza_section1" style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+<!-- 								<div id="subraza0"><img onclick="clickSubraza()" id="enel1" src="/images/op/ficha/SubRazaProximamente_One_Piece_Gaiden_Foro_Rol.png" class="subraza bbox" /></div> -->
+								<div id="subraza0"><div id="enel2" class="subraza_empty subraza_end bbox" /></div></div>
+								<div id="subraza1"><div id="enel2" class="subraza_empty subraza_end bbox" /></div></div>
+								<div id="subraza2"><div id="enel3" class="subraza_empty subraza_end bbox" /></div></div>
+							</div>
+							<div id="subraza_section2" style="position: relative; display: flex; flex-direction: row;cursor: pointer;">
+								<div id="subraza3"><div id="enel4" class="subraza_empty subraza_end bbox" /></div></div>
+								<div id="subraza4"><div id="enel5" class="subraza_empty subraza_end bbox" /></div></div>
+								<div id="subraza5"><div id="enel6" class="subraza_empty subraza_end bbox" /></div></div>
+							</div>
+						</div>
+
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Detalles de Raza</span></div>
+							<div id="detalles_raza" class="barra-espacio-op texto-regular-op" style="height: 250px;overflow: auto;">
+
+							</div>
+						</div>
+					</div>
+
+					<div style="display: none;" id="elecciones">
+					
+						<br>
+						<div style="position: relative; display: flex; flex-direction: row;">
+							<div>
+								<div style="height: 40px; width: 1000px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">
+									Elige bono de estadísticas (<span id="elecciones-raza"></span>)</span>
+								</div>
+								<div class="barra-espacio-op texto-regular-op" style="display: flex;flex-direction: column;padding: 10px 0px;">
+									<div style="display: flex;justify-content: space-evenly;" id="elec_stats_1">
+										<div class="raza-button raza1 fue1" data-stat="fuerza_pasiva">+10 FUE</div>
+										<div class="raza-button raza1 res1" data-stat="resistencia_pasiva">+10 RES</div>
+										<div class="raza-button raza1 agi1" data-stat="agilidad_pasiva">+10 AGI</div>
+										<div class="raza-button raza1 ref1" data-stat="reflejos_pasiva">+10 REF</div>
+										<div class="raza-button raza1 des1" data-stat="destreza_pasiva">+10 DES</div>
+										<div class="raza-button raza1 pun1" data-stat="punteria_pasiva">+10 PUN</div>
+										<div class="raza-button raza1 vol1" data-stat="voluntad_pasiva">+10 VOL</div>
+									</div>
+								</div>
+							
+							</div>
+						</div>
+					</div>
+	
+					<br>
+					<div style="position: relative; display: flex; flex-direction: row;">
+						<div>
+							<div style="height: 40px; width: 665px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Virtudes y Defectos</span></div>
+							<div style="display: flex;">
+								<div id="virtudes" class="barra-espacio-op texto-regular-op" style="height: 400px;font-family: 'InterRegular';text-align: left;overflow: scroll;width: 329px;">
+
+								</div>
+								<div id="defectos" class="barra-espacio-op texto-regular-op" style="height: 400px;font-family: 'InterRegular';text-align: left;overflow: scroll;width: 328px;">
+
+								</div>
+							</div>
+						</div>
+
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Balance</span></div>
+							<div class="barra-espacio-op texto-regular-op" style=" height: 400px; overflow: auto;">
+								<div id="balance"><span>0</span></div>
+								<div style="display: flex; flex-direction: row">
+									<div id="balance_positivo"><span>0</span></div>
+									<div id="balance_negativo"><span>0</span></div>
+								</div>
+								<div id="balance_virtudes" style=" text-align: left; ">
+								
+								</div>
+							</div>
+						</div>
+					</div>
+	
+					<div style="display: none;" id="sentidos-aumentados">
+					
+						<br>
+						<div style="position: relative; display: flex; flex-direction: row;">
+							<div>
+								<div style="height: 40px; width: 1000px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Elige sentido/s aumentados</span></div>
+								<div class="barra-espacio-op texto-regular-op" style="display: flex;flex-direction: column;padding: 10px 0px;">
+									<div style="display: flex;justify-content: space-evenly;" id="elec_sentido_1">
+										<div class="sentidos-button sentido1" data-sentido="VSEN001">Vista</div>
+										<div class="sentidos-button sentido1" data-sentido="VSEN002">Tacto</div>
+										<div class="sentidos-button sentido1" data-sentido="VSEN003">Oído</div>
+										<div class="sentidos-button sentido1" data-sentido="VSEN004">Olfato</div>
+									</div>
+									<div style="display: flex;justify-content: space-evenly;margin-top: 10px;" id="elec_sentido_2">
+										<div class="sentidos-button sentido2" data-sentido="VSEN001">Vista</div>
+										<div class="sentidos-button sentido2" data-sentido="VSEN002">Tacto</div>
+										<div class="sentidos-button sentido2" data-sentido="VSEN003">Oído</div>
+										<div class="sentidos-button sentido2" data-sentido="VSEN004">Olfato</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+	
+					<div style="display: none;" id="tribus">
+					
+						<br>
+						<div style="position: relative; display: flex; flex-direction: row;">
+							<div>
+								<div style="height: 40px; width: 1000px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">
+									Elige opcionalmente una tribu (<span id="elecciones-tribu"></span>)</span>
+								</div>
+								<div class="barra-espacio-op texto-regular-op" style="display: flex;flex-direction: column;padding: 10px 0px;">
+									<div style="display: flex;justify-content: space-evenly;" id="elec_tribu_1">
+										<div class="tribus-button tribu tribu-humano" data-tribu="brazos">Brazos Largos</div>
+										<div class="tribus-button tribu tribu-humano" data-tribu="piernas">Piernas Largas</div>
+										<div class="tribus-button tribu tribu-humano" data-tribu="tres">Tres Ojos</div>
+										<div class="tribus-button tribu tribu-humano" data-tribu="cuello">Cuello Serpiente</div>
+										<div class="tribus-button tribu tribu-humano" id="tribu-kuja" data-tribu="kuja">Kuja (Amazonas)</div>
+										<div class="tribus-button tribu tribu-gigante" data-tribu="yeti">Yeti</div>
+										<div class="tribus-button tribu tribu-gigante" data-tribu="ancestral">Ancestral</div>
+										<div class="tribus-button tribu tribu-lunarian" data-tribu="garuda">Garuda</div>
+										<div class="tribus-button tribu tribu-gyojin tribu-ningyo" data-tribu="anfibia">Anfibia</div>
+										<div class="tribus-button tribu tribu-mink" data-tribu="piel">Piel Blindada</div>
+										
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+	
+					<div style="display: none;" id="sentidos-disminuidos">
+					
+						<br>
+						<div style="position: relative; display: flex; flex-direction: row;">
+							<div>
+								<div style="height: 40px; width: 1000px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Elige sentido disminuido</span></div>
+								<div class="barra-espacio-op texto-regular-op" style="display: flex;flex-direction: column;padding: 10px 0px;">
+									<div style="display: flex;justify-content: space-evenly;" id="elec_sentido_3">
+										<div class="sentidos-button sentido3" data-sentido="DSEN001">Vista</div>
+										<div class="sentidos-button sentido3" data-sentido="DSEN002">Oído</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+	
+					<br>
+					<div style="position: relative; display: flex; flex-direction: row;">
+						<div>
+							<div style="height: 40px; width: 247px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Oficio Inicial</span></div>
+							<select style=" height: 34px; width: 247px;border-top: 0;line-height: 30px;" class="barra-espacio-op texto-regular-op bbox" name="oficio" id="oficio">
+								<option value="Navegante">Navegante</option>
+								<option value="Cocinero">Cocinero</option>
+								<option value="Médico">Médico</option>
+								<option value="Investigador">Investigador</option>
+								<option value="Aventurero">Aventurero</option>
+								<option value="Inventor">Inventor</option>
+								<option value="Carpintero">Carpintero</option>
+								<option value="Mercader">Mercader</option>
+								<option value="Recolector">Recolector</option>
+								<option value="Artesano">Artesano</option>
+							</select>
+						</div>
+
+						<div style=" margin-left: 4px; ">
+							<div style="height: 40px; width: 247px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Disciplina Inicial</span></div>
+							<select style=" height: 34px; width: 247px;border-top: 0;line-height: 30px;" class="barra-espacio-op texto-regular-op bbox" name="maestria" id="maestria">
+								<option value="Escudero">Escudero</option>
+								<option value="Artista Marcial">Artista Marcial</option>
+								<option value="Combatiente">Combatiente</option>
+								<option value="Artista">Artista</option>
+								<option value="Asesino">Asesino</option>
+								<option value="Guerrero">Guerrero</option>
+								<option value="Espadachín">Espadachín</option>
+								<option value="Tecnicista">Tecnicista</option>
+								<option value="Artillero">Artillero</option>
+								<option value="Arquero">Arquero</option>
+								<option value="Tirador">Tirador</option>
+								<option value="Pícaro">Pícaro</option>
+							</select>
+						</div>
+
+						<div style=" margin-left: 4px; ">
+							<div style="height: 40px; width: 247px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Camino Inicial</span></div>
+							<select style=" height: 34px; width: 247px;border-top: 0;line-height: 30px;" class="barra-espacio-op texto-regular-op bbox" name="camino" id="camino">
+								<option value="Voz">Latido del mundo</option>
+								<option value="Haki">Sendero de la Voluntad</option>
+								<option value="Akuma">Herencia del Arbol Prohibido</option>
+							</select>
+						</div>
+
+						<div style=" margin-left: 4px; ">
+							<div style="height: 40px; width: 247px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Arma Inicial</span></div>
+							<select style=" height: 34px; width: 247px;border-top: 0;line-height: 30px;" class="barra-espacio-op texto-regular-op bbox" name="objeto" id="objeto">
+								<option value="ACL001">Arma Corporal Ligera</option>
+                                <option value="ACCP001">Arma Corporal Pesada</option>
+                                <option value="AFP001">Arma de Filo Ligero</option>
+                                <option value="AFM001">Arma de Filo Balanceado</option>
+                                <option value="AFG001">Arma de Filo Pesado</option>
+                                <option value="ACP001">Arma de Impacto Ligero</option>
+                                <option value="ACM001">Arma de Impacto Balanceado</option>
+                                <option value="ACG001">Arma de Impacto Pesado</option>
+                                <option value="TBYS001">Arma Defensiva</option>
+                                <option value="ACA001">Arma de Corto Alcance</option>
+                                <option value="AMD001">Arma de Medio Alcance</option>
+                                <option value="ALA001">Arma de Largo Alcance</option>
+                                <option value="GES001">Gran Escudo</option>
+                                <option value="ESC001">Escudo</option>
+                                <option value="LYF001">Armas Flexibles</option>
+                                <option value="ABYV001">Armas Exóticas Filosas</option>
+                                <option value="ARF001">Arma Arrojadiza Filo</option>
+                                <option value="ARI001">Arma Arrojadiza Impacto</option>
+                                <option value="ARP001">Arma Arrojadiza Punzante</option>
+                                <option value="AL001">Arma de Tensión Grande</option>
+								<option value="AC001">Arma de Tensión Media</option>
+                                <option value="LC001">Lanza Corta</option>
+                                <option value="LL001">Lanza Larga</option>
+                                <option value="INSP001">Instrumento Pequeño</option>
+                                <option value="INSG001">Instrumento Grande</option>
+                                <option value="ACD001">Alta Cadencia</option>
+                                <option value="AAC001">Arma de Alto Calibre</option>
+							</select>
+						</div>
+					</div>
+					<br>
+					<div style="position: relative; display: flex; flex-direction: row;">
+						<div>
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Apariencia</span></div>
+							<textarea id="apariencia" name="apariencia" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 330px;height: 193px;font-family: 'InterRegular';" required></textarea>
+						</div>
+
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Personalidad</span></div>
+							<textarea id="personalidad" name="personalidad" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 330px;height: 193px;font-family: 'InterRegular';" required></textarea>
+						</div>
+
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Extras</span></div>
+							<textarea id="extras" name="extras" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 330px;height: 193px;font-family: 'InterRegular';" ></textarea>
+						</div>
+					</div>
+					<br>
+					<div>
+						<div>
+							<div style="height: 40px; width: 1000px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Historia</span></div>
+							<textarea id="historia" name="historia" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 1000px;height: 203px;font-family: 'InterRegular';" required></textarea>
+						</div>
+					</div>
+					<br>
+					<div style="position: relative; display: flex; flex-direction: row;">
+						<div>
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Nombre del Físico</span></div>
+							<input style=" height: 30px; width: 330px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="fisico_de_pj" name="fisico_de_pj" required />
+						</div>
+						
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">Origen del Físico</span></div>
+							<input style=" height: 30px; width: 330px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="origen_de_pj" name="origen_de_pj" required />
+						</div>
+						
+						<div style=" margin-left: 5px; ">
+							<div style="height: 40px; width: 330px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 20px; top: 4px; ">¿Cómo nos conociste?</span></div>
+							<input style=" height: 30px; width: 330px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="como_nos_conociste" name="como_nos_conociste" required />
+						</div>
+					</div> 
+					<br>
+
+<!-- 					<div style="text-align: center;"><button class="button-action-op-custom">Crear Ficha</button></div> -->
+					<if $user_uid != '0' then>
+						<div style="text-align: center;">
+							<input class="button" type="submit" value="Crear Ficha" style=" font-size: 20px; ">
+						</div>
+						<if $user_uid == '31' then>
+						<br><br>
+						<div style="text-align: center;">
+							<input id="guardar_ficha" class="button" type="submit" value="Guardar Ficha" style=" font-size: 20px; ">
+						</div>
+						</if>
+					</if>
+				</div>
+			</form>
+			</div>
+		</div>
+	 </div>
+  </div>
+  {$footer}
+  {$op_ficha_crear_script}
+  {$nueva_ficha_script}
+</body>
+
+</html>

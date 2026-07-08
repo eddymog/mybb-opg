@@ -1,0 +1,30 @@
+<tr class="inline_row">
+	<td align="center" class="{$bgcolor}{$thread_type_class}" style="padding-top: 0;padding-bottom: 0;padding-right: 50px;" width="2%">
+		<span class="thread_status {$folder}" title="{$folder_label}">
+			<if $folder == 'folder' || $folder == 'dot_folder'  then>
+				<img src="/images/op/misc/PostNormal_One_Piece_Gaiden_Foro_Rol.png">
+			</if>
+			<if $folder == 'newfolder' || $folder == 'dot_newfolder' then>
+				<img src="/images/op/misc/PostNormal_One_Piece_Gaiden_Foro_Rol.png">
+			</if>
+			<if $folder == 'newclosefolder' || $folder == 'closefolder' || $folder == 'dot_closefolder' then>
+				<img src="/images/op/misc/PostCerrado_One_Piece_Gaiden_Foro_Rol.png">
+			</if><!-- &nbsp; -->
+		</span>
+	</td>
+	<td class="{$bgcolor}{$thread_type_class}">
+		{$attachment_count}
+		<div>
+			<span>{$prefix} {$gotounread}{$thread['threadprefix']}<span class="{$inline_edit_class} {$new_class}" id="tid_{$inline_edit_tid}"><a href="{$thread['threadlink']}">{$thread['subject']}</a> <if $thread['estacion'] != '0' && $thread['threadprefix'] == 'Anuncio' then><br>{$thread['estacion']}, Día {$thread['day']}, Año {$thread['year']}</if></span></span>
+			<div class="author smalltext">{$thread['profilelink']} {$thread['multipage']}</div>
+		</div>
+	</td>
+	<td align="center" class="{$bgcolor}{$thread_type_class}"><a href="{$mybb->settings['bburl']}/misc.php?action=whoposted&tid={$thread['tid']}" onclick="MyBB.whoPosted({$thread['tid']}); return false;">{$thread['replies']}</a>{$unapproved_posts}</td>
+	<td align="center" class="{$bgcolor}{$thread_type_class}">{$thread['views']}</td>
+	<!-- {rating} -->
+	<td class="{$bgcolor}{$thread_type_class}" style="white-space: nowrap; text-align: right;">
+		<span class="lastpost smalltext">{$lastpostdate}<br />
+		<a href="{$thread['lastpostlink']}">{$lang->lastpost}</a>: {$lastposterlink}</span>
+	</td>
+{$modbit}
+</tr>

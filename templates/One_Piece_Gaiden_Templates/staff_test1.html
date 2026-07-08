@@ -1,0 +1,550 @@
+<html>
+<head>
+<title>Consola Súper Secreta</title>
+{$headerinclude}
+<style>
+.form-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  table-layout: auto;
+}
+
+.form-table td {
+  width: 33%;
+  padding: 6px;
+  vertical-align: top;
+  border: none;
+}
+
+.textbox, select, button {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.fondo-blanco {
+  width: 100%;
+  display: block;
+}
+
+.resultado-box {
+  background: #fafafa;
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 120px;
+
+  width: 100%;
+  max-width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  overflow: auto;
+  text-align: center;
+  margin: 0; 
+}
+
+.resultado-titulo {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+.resultado-contenido {
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+</style>
+<style>
+/* PANEL DE PESTAÑAS */	
+	
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.tab-button {
+  padding: 6px 10px;
+  background: #ab3815;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.tab-button--active {
+  background: #1715ab;
+  border-bottom-color: #fff;
+  font-weight: bold;
+}
+.tab-panel { display: none; }
+.tab-panel--active { display: block; }
+.tab-panel .form-table { margin-top: 6px; }
+</style>
+</head>
+<body>
+{$header}
+<div class="fondo-blanco">
+
+<if $fid=='' then>
+<form method="GET">
+<table class="form-table">
+<tr>
+  <td>
+    ID del usuario<br>
+    <input type="text" name="fid" id="fid" class="textbox">
+  </td>
+  <td>
+    <br>
+    <button type="submit" id="btn-ir">Ir</button>
+  </td>
+</tr>
+</table>
+</form>
+</if>
+
+<if $fid!='' then>
+<div class="tabs">
+  <button class="tab-button" data-tab="auto">Autonarradas</button>
+  <button class="tab-button" data-tab="avent">Aventuras</button>
+  <button class="tab-button" data-tab="narra">Narradores</button>
+</div>
+
+<!-- Panel: Autonarradas -->
+<div class="tab-panel" id="tab-auto">
+  <table class="form-table">
+    <tr>
+      <td>
+        Nombre de Cuenta:<br>
+        <input class="textbox" type="text" value="{$ficha['nombre']}" onclick="window.open('/op/ficha.php?uid={$fid}','_blank')" readonly style="cursor:pointer;">
+      </td>
+      <td>
+        ID del usuario:<br>
+        <input class="textbox" type="number" value="{$fid}" disabled>
+      </td>
+      <td>
+        Tier de Aventura:<br>
+        <select id="accion">
+          <option value="T1">T1</option>
+          <option value="T2">T2</option>
+          <option value="T3">T3</option>
+          <option value="T4">T4</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        ID del Tema:<br>
+        <input class="textbox" type="text" id="tid" required>
+      </td>
+      <td>
+        Reputación:<br>
+        <select id="reputacion">
+          <option value="positiva">Positiva</option>
+          <option value="negativa">Negativa</option>
+        </select>
+      </td>
+      <td>
+        <br>
+        <button onclick="entregar()">Entregar</button>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="resultado-box">
+          <div class="resultado-titulo">Recompensa del Tier</div>
+          <div id="resultadoRecompensas" class="resultado-contenido">
+            Selecciona el Tier para ver las recompensas.
+          </div>
+        </div>
+      </td>
+      <td></td><td></td>
+    </tr>
+  </table>
+</div>
+
+<!-- Panel: Aventuras (endpoint y campos propios de ejemplo) -->
+<div class="tab-panel" id="tab-avent">
+  <table class="form-table">
+    <tr>
+      <td>
+        Nombre de Cuenta:<br>
+        <input class="textbox" type="text" value="{$ficha['nombre']}" onclick="window.open('/op/ficha.php?uid={$fid}','_blank')" readonly style="cursor:pointer;">
+      </td>
+      <td>
+        ID del usuario:<br>
+        <input class="textbox" type="number" value="{$fid}" disabled>
+      </td>
+      <td>
+        Tier de Aventura:<br>
+        <select id="accion">
+          <option value="T1">Tier 1</option>
+          <option value="T2">Tier 2</option>
+          <option value="T3">Tier 3</option>
+          <option value="T4">Tier 4</option>
+          <option value="T5">Tier 5</option>
+          <option value="T6">Tier 6</option>
+          <option value="T7">Tier 7</option>
+          <option value="T8">Tier 8</option>
+          <option value="T9">Tier 9</option>
+          <option value="T10">Tier 10</option>
+          <option value="T11">Tier 11</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        ID del Tema:<br>
+        <input class="textbox" type="text" id="tid" required>
+      </td>
+      <td>
+        Reputación:<br>
+        <select id="reputacion">
+          <option value="positiva">Positiva</option>
+          <option value="negativa">Negativa</option>
+        </select>
+      </td>
+      <td>
+        Cantidad de posts:<br>
+        <input class="textbox" type="number" id="cantidadPosts" value="1" min="1" max="12">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="resultado-box">
+          <div class="resultado-titulo">Recompensa del Calculada</div>
+          <div id="resultadoRecompensas" class="resultado-contenido">
+            Selecciona el Tier y Cantidad de post para ver las recompensas.
+          </div>
+        </div>
+      </td>
+      <td><button onclick="entregar()">Entregar</button></td><td></td>
+    </tr>
+  </table>
+</div>
+
+<!-- Panel: Narradores (endpoint y campos propios de ejemplo) -->
+<div class="tab-panel" id="tab-narra">
+  <table class="form-table">
+    <tr>
+      <td>
+        Nombre de Cuenta:<br>
+        <input class="textbox" type="text" value="{$ficha['nombre']}" onclick="window.open('/op/ficha.php?uid={$fid}','_blank')" readonly style="cursor:pointer;">
+      </td>
+      <td>
+        ID del usuario:<br>
+        <input class="textbox" type="number" value="{$fid}" disabled>
+      </td>
+      <td>
+        Tier de Aventura:<br>
+        <select id="accion">
+          <option value="T1">Tier 1</option>
+          <option value="T2">Tier 2</option>
+          <option value="T3">Tier 3</option>
+          <option value="T4">Tier 4</option>
+          <option value="T5">Tier 5</option>
+          <option value="T6">Tier 6</option>
+          <option value="T7">Tier 7</option>
+          <option value="T8">Tier 8</option>
+          <option value="T9">Tier 9</option>
+          <option value="T10">Tier 10</option>
+          <option value="T11">Tier 11</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        ID del Tema:<br>
+        <input class="textbox" type="text" id="tid" required>
+      </td>
+      <td>
+        Nivel de Narrador:<br>
+        <select id="NivelNarrador">
+          <option value="Aprendiz">Narrador Aprendiz</option>
+          <option value="Estudioso">Narrador Estudioso</option>
+          <option value="Ilustre">Narrador Ilustre</option>
+          <option value="Erudito">Narrador Erudito</option>
+        </select>
+      </td>
+      <td>
+        Cantidad de posts:<br>
+        <input class="textbox" type="number" id="cantidadPosts" value="1" min="1" max="12">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="resultado-box">
+          <div class="resultado-titulo">Recompensa del Calculada</div>
+          <div id="resultadoRecompensas" class="resultado-contenido">
+            Selecciona el Tier y Cantidad de post para ver las recompensas.
+          </div>
+        </div>
+      </td>
+      <td><button onclick="entregar()">Entregar</button></td><td></td>
+    </tr>
+  </table>
+</div>
+</if>
+</div>
+{$footer}
+
+<if $log_var !='' then><script>alert("{$log_var}");</script></if>
+{$reload_script}
+
+<script>
+// Tabs
+function switchTab(name){
+  var buttons = document.querySelectorAll('.tab-button');
+  var panels  = document.querySelectorAll('.tab-panel');
+  buttons.forEach(function(b){
+    var target = b.getAttribute('data-tab');
+    if(target === name){ b.classList.add('tab-button--active'); }
+    else { b.classList.remove('tab-button--active'); }
+  });
+  panels.forEach(function(p){
+    if(p.id === 'tab-'+name){ p.classList.add('tab-panel--active'); }
+    else { p.classList.remove('tab-panel--active'); }
+  });
+
+  // Refresca vista previa cuando entras a Autonarradas
+  if(name === 'auto'){ actualizarVistaRecompensas(); }
+}
+
+// Endpoints específicos
+var ENDPOINT_AUTONARRADAS = '/op/staff/test1.php';
+var ENDPOINT_AVENTURAS    = '/op/staff/entregar_aventura.php';
+var ENDPOINT_NARRADORES   = '/op/staff/entregar_narrador.php';
+
+// Entrega AVENTURAS
+function entregarAventura(){
+  var fid = window.__FID_FROM_TEMPLATE__ || '';
+  var tipo = document.getElementById('avent_tipo') ? document.getElementById('avent_tipo').value : 'simple';
+  var tidStr = document.getElementById('avent_tid') ? document.getElementById('avent_tid').value.trim() : '';
+  var bonusStr = document.getElementById('avent_bonus') ? document.getElementById('avent_bonus').value.trim() : '0';
+  var tid = parseInt(tidStr || '0', 10);
+  var bonus = parseInt(bonusStr || '0', 10);
+
+  if(!fid){
+    alert('Falta ID de usuario');
+    return;
+  }
+
+  $.ajax({
+    url: ENDPOINT_AVENTURAS,
+    method: 'POST',
+    dataType: 'json',
+    headers: { 'X-Requested-With':'XMLHttpRequest' },
+    data: {
+      ficha_id: fid,
+      tipo: tipo,
+      tid: tid > 0 ? tid : '',
+      bonus: isNaN(bonus) ? 0 : bonus
+    }
+  }).done(function(res){
+    if(res && res.ok){
+      alert('Recompensa de aventura entregada');
+      window.open('/op/staff/log_entregas.php','_blank');
+    } else {
+      alert('No se pudo entregar (aventuras)');
+      console.warn(res);
+    }
+  }).fail(function(xhr){
+    console.error('Entrega aventuras error', xhr);
+    var msg = 'Error al entregar aventuras';
+    try { var j = JSON.parse(xhr.responseText); if(j && j.error) msg += ': ' + j.error; } catch(e){}
+    alert(msg);
+  });
+}
+
+// Entrega NARRADORES
+function entregarNarrador(){
+  var fid = window.__FID_FROM_TEMPLATE__ || '';
+  var tipo = document.getElementById('narra_tipo') ? document.getElementById('narra_tipo').value : 'sesion';
+  var tidStr = document.getElementById('narra_tid') ? document.getElementById('narra_tid').value.trim() : '';
+  var notas = document.getElementById('narra_notas') ? document.getElementById('narra_notas').value.trim() : '';
+  var tid = parseInt(tidStr || '0', 10);
+
+  if(!fid){
+    alert('Falta ID de narrador');
+    return;
+  }
+
+  $.ajax({
+    url: ENDPOINT_NARRADORES,
+    method: 'POST',
+    dataType: 'json',
+    headers: { 'X-Requested-With':'XMLHttpRequest' },
+    data: {
+      narrador_id: fid,
+      tipo: tipo,
+      tid: tid > 0 ? tid : '',
+      notas: notas
+    }
+  }).done(function(res){
+    if(res && res.ok){
+      alert('Recompensa de narrador entregada');
+      window.open('/op/staff/log_entregas.php','_blank');
+    } else {
+      alert('No se pudo entregar (narradores)');
+      console.warn(res);
+    }
+  }).fail(function(xhr){
+    console.error('Entrega narradores error', xhr);
+    var msg = 'Error al entregar narradores';
+    try { var j = JSON.parse(xhr.responseText); if(j && j.error) msg += ': ' + j.error; } catch(e){}
+    alert(msg);
+  });
+}
+
+// Nos aseguramos de usar el endpoint correcto.
+var ENDPOINT = ENDPOINT_AUTONARRADAS;
+
+document.addEventListener('DOMContentLoaded', function(){
+  // Botones de pestañas
+  var btns = document.querySelectorAll('.tab-button');
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      switchTab(b.getAttribute('data-tab'));
+    });
+  });
+
+  // Selecciona por defecto Autonarradas y fija valores de backend
+  switchTab('auto');
+
+  var selAcc  = document.getElementById('accion');
+  var selInit = document.getElementById('accion_init');
+  var selRep  = document.getElementById('reputacion');
+
+  var accionTpl = "{$accion}";
+  var fidTpl    = "{$fid}";
+
+  if (selAcc && accionTpl) { selAcc.value = accionTpl; }
+  window.__FID_FROM_TEMPLATE__ = fidTpl;
+
+  if(selInit){ selInit.addEventListener('change', actualizarVistaRecompensas); }
+  if(selRep){  selRep.addEventListener('change', actualizarVistaRecompensas); }
+
+  actualizarVistaRecompensas();
+});
+</script>
+<script>
+// Config
+var ENDPOINT = '/op/staff/test1.php';
+
+// Tabla de recompensas base (la entrega real la decide el backend)
+var recompensasPorTier = {
+  "T1": {"experiencia":30, "nikas":2, "berries":300000, "reputacion":5},
+  "T2": {"experiencia":40, "nikas":3, "berries":500000, "reputacion":10},
+  "T3": {"experiencia":65, "nikas":5, "berries":1000000, "reputacion":20},
+  "T4": {"experiencia":100, "nikas":8, "berries":1500000, "reputacion":30}
+};
+
+// Utilidad: obtener tier seleccionado (en pantalla inicial o en la segunda)
+function getTierActual() {
+  var elInit = document.getElementById('accion_init');
+  var el = document.getElementById('accion');
+  if (el && el.value) return el.value;
+  if (elInit && elInit.value) return elInit.value;
+  return null;
+}
+
+// Vista previa LOCAL (base). El backend puede aplicar multiplicadores al entregar.
+function actualizarVistaRecompensas(){
+  var tier = getTierActual();
+  var repControl = document.getElementById('reputacion');
+  var repTipo = repControl ? repControl.value : 'positiva';
+
+  var cont = document.getElementById('resultadoRecompensas');
+  if (!cont) return;
+
+  if(!tier || !recompensasPorTier[tier]){
+    cont.innerHTML = 'Selecciona el Tier para ver las recompensas.';
+    return;
+  }
+
+  var base = recompensasPorTier[tier];
+  var repSigno = repTipo === 'negativa' ? 'Negativa' : 'Positiva';
+
+  var html = '';
+  html += '<strong>Experiencia:</strong> ' + base.experiencia + '<br>';
+  html += '<strong>Nikas:</strong> ' + base.nikas + '<br>';
+  html += '<strong>Berries:</strong> ' + Number(base.berries).toLocaleString() + '<br>';
+  html += '<strong>Reputación:</strong> ' + base.reputacion + ' ' + repSigno + '<br>';
+  html += '<em>(El multiplicador por oficio se aplicará al entregar)</em>';
+  cont.innerHTML = html;
+}
+
+// Envío de la entrega al backend (sin my_post_key)
+function entregar(){
+  var fid = window.__FID_FROM_TEMPLATE__ || '';
+  var tidStr = document.getElementById('tid') ? document.getElementById('tid').value.trim() : '';
+  var reputacion = document.getElementById('reputacion') ? document.getElementById('reputacion').value : 'positiva';
+  var accion = getTierActual();
+  var tid = parseInt(tidStr, 10);
+
+  if(!fid || !accion || !tid || tid <= 0){
+    alert('Completa todos los campos con valores válidos');
+    return;
+  }
+
+  $.ajax({
+    url: ENDPOINT,
+    method: 'POST',
+    dataType: 'json',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }, // ayuda anti-CSRF por origen
+    data: {
+      ficha_id: fid,
+      tid: tid,
+      reputacion: reputacion,
+      accion: accion
+    }
+  }).done(function(res){
+    if(res && res.ok){
+      alert('Recompensa entregada');
+      window.open('/op/staff/log_entregas.php','_blank');
+      window.location = window.location.pathname + window.location.search;
+    } else {
+      alert('No se pudo entregar (respuesta inesperada)');
+      console.warn('Respuesta backend', res);
+    }
+  }).fail(function(xhr){
+    console.error('Entrega error', xhr);
+    var msg = 'Error al entregar';
+    try {
+      var j = JSON.parse(xhr.responseText);
+      if (j && j.error) msg += ': ' + j.error;
+    } catch(e){}
+    alert(msg);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var selInit = document.getElementById('accion_init');
+  var selRep  = document.getElementById('reputacion');
+  var selAcc  = document.getElementById('accion');
+
+  var accionTpl = "{$accion}";
+  var fidTpl    = "{$fid}";
+
+  // Si hay selector de tier activo (segunda pantalla), fijamos el valor que vino del backend si existe
+  if (selAcc) {
+    if (accionTpl) { selAcc.value = accionTpl; }
+    selAcc.addEventListener('change', actualizarVistaRecompensas);
+  }
+
+  // Reemplaza el uso de fid en entregar() leyendo este valor impreso
+  window.__FID_FROM_TEMPLATE__ = fidTpl;
+
+  if(selInit){ selInit.addEventListener('change', actualizarVistaRecompensas); }
+  if(selRep){  selRep.addEventListener('change', actualizarVistaRecompensas); }
+
+  actualizarVistaRecompensas();
+});
+</script>
+
+</body>
+</html>

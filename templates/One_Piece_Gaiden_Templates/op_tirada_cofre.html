@@ -1,0 +1,1993 @@
+<html>
+
+<head><title>Apertura cofre</title>
+  {$headerinclude}
+  <style>
+
+    .thirdBackground {
+        font-family: moonGetHeavy;
+        font-size: 16px;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 0px black;
+        color: white;
+    }
+
+    .thirdBackground * {
+        font-family: moonGetHeavy !important;
+        letter-spacing: 2px !important;
+        text-shadow: 2px 2px 0px black !important;
+        color: white !important;
+    }
+
+    /* Excepciones específicas para elementos que necesitan mantener sus colores originales */
+    .thirdBackground .resultado-nombre,
+    .thirdBackground .resultado-fruta,
+    .thirdBackground .item-nome,
+    .thirdBackground .item-price,
+    .thirdBackground .tierBoxText1,
+    .thirdBackground .tierBoxText2,
+    .thirdBackground .tierBoxTextAlt1,
+    .thirdBackground .tierBoxTextAlt2 {
+        color: white !important;
+    }
+
+    .thirdBackground .reward-name,
+    .thirdBackground .reward-tier {
+        color: #333 !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .thirdBackground .tier-1 { color: #808080 !important; }
+    .thirdBackground .tier-2 { color: #4dfe45 !important; }
+    .thirdBackground .tier-3 { color: #457bfe !important; }
+    .thirdBackground .tier-4 { color: #cf44ff !important; }
+    .thirdBackground .tier-5 { color: #febb46 !important; }
+    .thirdBackground .tier-6, 
+    .thirdBackground .tier-7, 
+    .thirdBackground .tier-8, 
+    .thirdBackground .tier-9, 
+    .thirdBackground .tier-10 { 
+        background: linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    .thirdBackground .resultado-fruta {
+        color: #4b1aae !important;
+        text-shadow: 2px 2px 1px #f3ecff !important;
+    }
+
+    .thirdBackground .resultado-nombre {
+        color: black !important;
+        text-shadow: none !important;
+    }
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('/images/op/uploads/TituloCofres_One_Piece_Gaiden_Foro_Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+    .akumaTirBody {
+        width: 1000px;
+        display: flex;
+        flex-direction: row;
+        gap: 25px;
+    }
+
+    .akumaTirIzquierda {
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        gap: 25px;
+    }
+
+    .akumaTirDerecha {
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        gap: 25px;
+    }
+      
+      .testDraw {
+          background: rgba(70,12,110,1);
+      }
+
+      .realDraw {
+          background: #d26500;
+      }
+      
+      .blockedDraw {
+          background: #71706f;
+      }
+      
+      .realDraw:hover {
+          background: #ff9b00;
+      }
+      
+      .testDraw:hover {
+          background: rgba(126,32,191,1);	  
+      }
+      
+      .realDraw, .testDraw, .blockedDraw {
+          height: 30px;
+          color: white;
+          font-size: 1.5rem;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid black;
+          border-radius: 15px;
+          filter: drop-shadow(0px 0px 4px black);
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-family: 'moonGetHeavy';
+          letter-spacing: 2px;
+      }
+      
+      .akumaTypeRow {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            border: 2px solid black;
+            border-radius: 10px 10px 0px 0px;
+            cursor: pointer;
+        }
+
+        .imageBox {
+            width: 100%;
+            margin-top: -8px;
+            height: 290px;
+            background-color: black;
+            border: 2px solid black;
+        }
+
+        .akumaTirTable {
+            width: 100%;
+            height: auto;
+        }
+      
+        /* Ajustar contenedor de resultados */
+        .resultados-container {
+            width: 100%;
+            margin-top: -10px;
+        }
+
+        .resultados-content {
+            border: 2px solid black;
+            width: 490px;
+            height: 241px;
+            box-sizing: border-box;
+            border-top: 0px;
+            overflow: auto;
+        }
+
+      .tableHeader {
+          background-color: #8f59f7;
+          color: white;
+          text-align: center;
+          padding: 2px;
+          border: 2px solid black;
+          border-start-end-radius: 10px;
+          border-start-start-radius: 10px;
+          font-family: moonGetHeavy;
+          font-size: 16px;
+          letter-spacing: 2px;
+          text-shadow: 2px 2px 0px black;
+          position: relative;
+      }
+      
+      .tableContent {
+        display: flex;
+        gap: 26px;
+        padding: 5px;
+        border-end-end-radius: 10px;
+        border-end-start-radius: 10px;
+        background-color: #d7b5ff;
+        border: 2px solid black;
+        border-top: 0px;
+        flex-direction: row;
+        width: 492px; /* Ancho máximo ajustado */
+        box-sizing: border-box;
+    }
+
+    .primera-columna {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100px;
+    }
+
+    .segunda-columna, .tercera-columna {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        width: 99px;
+        height: 235px; /* Altura para acomodar 5 cuadros */
+        align-content: flex-start;
+        gap: 5px;
+    }
+
+    .cuarta-columna {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        width: 105px;
+    }
+
+    .tableTotalTestDraw {
+        width: 110px;
+        height: 115px;
+        background-color: #8f59f7;
+        color: white;
+        border: 1px solid black;
+        box-sizing: border-box;
+        padding: 6px;
+    }
+
+    .tierBox {
+        background-color: #8e59f7;
+        height: 43px;
+        width: 107px; /* Ajustado para las nuevas columnas */
+        border: 1px solid black;
+        box-sizing: border-box;
+        padding: 2px;
+        color: white;
+    }
+
+    .tierBoxAlt {
+        background-color: #8e59f7;
+        height: 116px;
+        width: 105px;
+        border: 1px solid black;
+        box-sizing: border-box;
+        padding: 2px;
+        color: white;
+    }
+      
+      .tablerTierContent {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+          width: 439px;
+      }
+    
+      
+      .tierBoxText1 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 0px;
+          text-shadow: 1px 1px 0px black;
+          font-size: 12px;
+      }
+      
+      .tierBoxText2 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 1px 1px 0px black;
+          font-size: 17px;
+      }
+      
+      .tierBoxTextAlt1 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 1px 1px 0px black;
+          font-size: 17px;
+      }
+      
+      .tierBoxTextAlt2 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 1px 1px 0px black;
+          margin-top: 12px;
+          font-size: 25px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+
+      #cofres_inventario {
+            flex-direction: row;
+            display: flex;
+            flex-wrap: wrap;
+            max-height: 231px; /* Altura máxima para el scroll */
+            overflow-y: auto; /* Scroll vertical */
+            overflow-x: hidden; /* Sin scroll horizontal */
+            padding: 5px 10px;
+            gap: 10px; /* Espacio entre cofres */
+        }
+      
+      .akumaTypeRow  {
+          width: 488px; 
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 14px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .categoriaBox {
+          flex: 1;
+          border-right: 2px solid black;
+          text-align: center;
+          background-color: #ff7b00;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 10px 0 0; 
+      }
+      
+      .categoriaBox:first-child {
+          border-radius: 10px 0 0 0; 
+      }
+      
+      .categoriaBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      .resultado-total {
+          color: red;
+      }
+      
+      .resultado-nombre {
+          width: 30%;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+          color: black;
+          padding: 4px 7px;
+          box-sizing: border-box;
+      }
+      
+      .resultado-fruta {
+          width: 50%;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+          color: #4b1aae;
+          padding: 4px 7px;
+          box-sizing: border-box;
+          text-shadow: 2px 2px 1px #f3ecff;
+          text-align: center;
+      }
+      
+      
+      .resultado-total:nth-child(odd) {
+          background: #ffe59b;
+      }
+
+      .resultado-total:nth-child(even) {
+          background: #ffeed2;
+      }
+      
+      .boton-estadistica {
+          display: inline;
+          position: absolute;
+          left: 464px;
+          top: 3px;
+          transition: all 0.2s ease-out;
+          cursor: pointer;
+      }
+      
+      .boton-estadistica:hover {
+          filter: saturate(1.5);
+      }
+
+      /* ===== ESTILOS MODAL COFRES ===== */
+      #chest-opening-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.95);
+          z-index: 1000;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .chest-opening-container {
+          text-align: center;
+          max-width: 90%;
+          max-height: 90%;
+          position: relative;
+          width: 100%;
+          height: 100%;
+      }
+
+      #chest-animation-stage {
+          margin-bottom: 30px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+      }
+
+      #chest-container {
+          width: 300px;
+          height: 300px;
+          margin: 0 auto;
+          position: relative;
+          cursor: pointer;
+          transform-style: preserve-3d;
+          transition: transform 0.6s ease;
+      }
+
+      .chest-image {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background-size: cover;
+          background-position: center;
+          border-radius: 20px;
+          transition: transform 0.8s ease;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .chest-front {
+          backface-visibility: hidden;
+      }
+
+      .chest-back {
+          backface-visibility: hidden;
+          transform: rotateY(180deg);
+          background-image: url('https://gifdb.com/images/high/yamato-flashing-her-chest-cjrct7vo1ed19whi.gif');
+      }
+
+      #chest-instruction {
+          color: #ffd700;
+          margin-top: 30px;
+          font-size: 1.5em;
+          font-family: 'moonGetHeavy';
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          animation: pulseGlow 2s infinite;
+      }
+
+      @keyframes pulseGlow {
+          0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px #ffd700; }
+          50% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px #ffd700, 0 0 30px #ffd700; }
+      }
+
+      .chest-opening {
+          animation: chestShake 0.5s ease-in-out 3;
+      }
+
+      @keyframes chestShake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-10px) rotate(-2deg); }
+          75% { transform: translateX(10px) rotate(2deg); }
+      }
+
+      #reward-display {
+          display: none;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          /* Remover transform inicial para evitar conflictos */
+          text-align: center;
+          /* Asegurar que el contenedor esté centrado */
+          z-index: 10;
+      }
+
+      .reward-item {
+          background: white;
+          border-radius: 20px;
+          padding: 30px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          border: 4px solid #ffd700;
+          min-width: 400px;
+          animation: rewardAppear 1s ease-out;
+          /* Asegurar que el elemento mantenga su posición centrada */
+          position: relative;
+          transform: translate(-50%, -50%);
+      }
+
+      @keyframes rewardAppear {
+          0% {
+              opacity: 0;
+              transform: translate(-50%, -50%) scale(0.3) rotateY(180deg);
+          }
+          50% {
+              opacity: 0.7;
+              transform: translate(-50%, -50%) scale(1.1) rotateY(90deg);
+          }
+          100% {
+              opacity: 1;
+              transform: translate(-50%, -50%) scale(1) rotateY(0deg);
+          }
+      }
+
+      .reward-image {
+          width: 120px;
+          height: 120px;
+          margin: 0 auto 20px;
+          border-radius: 15px;
+          border: 3px solid #444;
+          background-size: cover;
+          background-position: center;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .reward-name {
+          font-size: 1.8em;
+          font-family: 'moonGetHeavy';
+          color: #333;
+          margin-bottom: 10px;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .reward-tier {
+          font-size: 1.2em;
+          font-family: 'moonGetHeavy';
+          color: #666;
+          margin-bottom: 20px;
+      }
+
+      .tier-1 { color: #808080; }
+      .tier-2 { color: #4dfe45; }
+      .tier-3 { color: #457bfe; }
+      .tier-4 { color: #cf44ff; }
+      .tier-5 { color: #febb46; }
+      .tier-6, .tier-7, .tier-8, .tier-9, .tier-10 { 
+          background: linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: rainbowShimmer 2s linear infinite;
+      }
+
+      @keyframes rainbowShimmer {
+          0% { filter: hue-rotate(0deg); }
+          100% { filter: hue-rotate(360deg); }
+      }
+
+      .close-modal-btn {
+          background: #ff6b35;
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 10px;
+          font-size: 1.1em;
+          font-family: 'moonGetHeavy';
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .close-modal-btn:hover {
+          background: #ff8c42;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Partículas de celebración */
+      .celebration-particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+      }
+
+      .particle {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: #ffd700;
+          border-radius: 50%;
+          animation: particleFall 3s linear infinite;
+      }
+
+      .particle:nth-child(2n) { background: #ff6b35; }
+      .particle:nth-child(3n) { background: #4dfe45; }
+      .particle:nth-child(4n) { background: #457bfe; }
+      .particle:nth-child(5n) { background: #cf44ff; }
+
+      @keyframes particleFall {
+          to {
+              transform: translateY(100vh) rotate(360deg);
+          }
+      }
+
+      /* Efecto de explosión de confeti */
+      .confetti-explosion {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+      }
+
+      .confetti-piece {
+          position: absolute;
+          width: 10px;
+          height: 10px;
+          background: #ffd700;
+          animation: confettiExplode 2s ease-out forwards;
+      }
+
+      @keyframes confettiExplode {
+          0% {
+              opacity: 1;
+              transform: scale(0);
+          }
+          50% {
+              opacity: 1;
+          }
+          100% {
+              opacity: 0;
+              transform: scale(1);
+          }
+      }
+
+      /* ===== MODAL INFO COFRE ===== */
+      #chest-info-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          z-index: 1001;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .chest-info-container {
+          background: white;
+          border-radius: 8px;
+          border: 2px solid black;
+          width: 280px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+          position: relative;
+      }
+
+      .chest-info-header {
+          font-size: 15px;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-align: center;
+          border-top-left-radius: 6px;
+          border-top-right-radius: 6px;
+          padding: 8px;
+          text-shadow: 1px 1px 3px black;
+          color: white;
+          border-bottom: 2px solid black;
+      }
+
+      .chest-info-content {
+          font-family: InterRegular;
+          padding: 15px;
+          text-align: center;
+      }
+
+      .chest-info-details {
+          font-family: moonGetHeavy;
+          padding: 8px 15px;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          font-size: 9px;
+          text-shadow: 1px 1px 2px black;
+          color: white;
+          filter: saturate(0.7);
+          border-top: 1px solid black;
+          border-bottom: 1px solid black;
+      }
+
+      .chest-info-footer {
+          font-size: 9px;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-align: center;
+          border-bottom-left-radius: 6px;
+          border-bottom-right-radius: 6px;
+          padding: 8px;
+          text-shadow: 1px 1px 3px black;
+          color: white;
+      }
+
+      .close-info-btn {
+          position: absolute;
+          top: -10px;
+          right: -10px;
+          background: #ff6b35;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 30px;
+          height: 30px;
+          font-size: 18px;
+          font-weight: bold;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+          transition: all 0.2s ease;
+      }
+
+      .close-info-btn:hover {
+          background: #ff8c42;
+          transform: scale(1.1);
+      }
+
+      /* Personalizar scrollbar */
+        #cofres_inventario::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #cofres_inventario::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #cofres_inventario::-webkit-scrollbar-thumb {
+            background: #ff7e00;
+            border-radius: 10px;
+        }
+
+        #cofres_inventario::-webkit-scrollbar-thumb:hover {
+            background: #e66900;
+        }
+
+        /* Ajustar el contenedor de cofres disponibles */
+        .cofres-disponibles-container {
+            border: 2px solid black;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            max-height: 242px;
+            border-top: 0px;
+            background-color: #feedd1;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-outer {
+            width: 100px; 
+            height: 127px; 
+            background-color: #ff8400; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            border: 2px solid black; 
+            margin: 0; /* Remover margen para mejor control */
+            cursor: pointer;
+            transition: all 0.2s ease-out;
+            flex-shrink: 0; /* Evitar que se compriman */
+        }
+      
+      .item-outer:hover {
+          background-color: #9664e0;
+          transform: scale(1.05);
+      }
+      
+      .item-active {
+          background-color: #6842a0;
+      }
+      
+      .item-nome {
+          color: white; 
+          font-family: moonGetHeavy; 
+          text-shadow: 1px 1px 1px black; 
+          text-align: center; 
+          margin-top: 6px;
+          height: 40px;
+          font-size: 11px;
+          align-content: space-evenly;
+      }
+      
+      .item-price {
+          color: white; 
+          font-family: moonGetHeavy; 
+          text-shadow: 1px 1px 1px black; 
+          text-align: center; 
+          margin-top: 6px;
+      }
+      
+      .item-image {
+          width: 70px;
+          height: 70px;
+          text-align: center;
+          background: linear-gradient(0deg, #3c3c3c, #828282);
+          box-sizing: border-box;
+          border: 2px solid black;
+          margin: auto;
+      }
+
+      #imagen-item {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+      }
+  /* Panel de distribución masiva (solo UID 850) */
+  .staff-masivo-panel {
+      display: none;
+      background: linear-gradient(135deg, #2d0545, #5a1a8a);
+      border: 2px solid #ff7e00;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      color: white;
+  }
+  .staff-masivo-panel h3 {
+      margin: 0 0 10px;
+      font-family: moonGetHeavy;
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 3px black;
+      color: #ffcc00;
+  }
+  .staff-masivo-panel select {
+      width: 100%;
+      padding: 6px 10px;
+      border: 2px solid #ff7e00;
+      border-radius: 6px;
+      background: #1a0030;
+      color: white;
+      font-family: moonGetHeavy;
+      font-size: 13px;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+  }
+  .staff-masivo-btn {
+      width: 100%;
+      padding: 8px;
+      background: #d26500;
+      color: white;
+      font-family: moonGetHeavy;
+      font-size: 14px;
+      letter-spacing: 2px;
+      border: 2px solid black;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-shadow: 1px 1px 2px black;
+  }
+  .staff-masivo-btn:hover { background: #ff9b00; }
+  .staff-masivo-btn:disabled { background: #71706f; cursor: not-allowed; }
+  .staff-masivo-resultado {
+      margin-top: 8px;
+      font-size: 12px;
+      font-family: moonGetHeavy;
+      letter-spacing: 1px;
+      min-height: 16px;
+  }
+  /* Buscador solo para staff */
+  .staff-search {
+      display: none;
+      margin-bottom: 10px;
+  }
+  .staff-search input {
+        width: 94%;
+        padding: 6px 11px;
+        font-size: 1rem;
+        letter-spacing: 1px !important;
+        color: black !important;
+        text-shadow: none !important;
+        border: 2px solid #ff7e00;
+        border-radius: 5px;
+        background-color: white;
+        font-family: moonGetHeavy;
+  }
+  </style>
+</head>
+
+<body>
+  {$header}
+  
+  <!-- Modal de apertura de cofres -->
+  <div id="chest-opening-modal">
+      <div class="chest-opening-container">
+          <div class="celebration-particles" id="celebration-particles"></div>
+          
+          <div id="chest-animation-stage">
+              <div id="chest-container">
+                  <div class="chest-image chest-front" id="chest-front"></div>
+                  <div class="chest-image chest-back" id="chest-back"></div>
+              </div>
+              <p id="chest-instruction">¡Haz clic en el cofre para abrirlo!</p>
+          </div>
+          
+          <div id="reward-display">
+              <img src="https://media.tenor.com/rojAv1tqV98AAAAd/espanita-dragonite.gif" alt="" style="position: absolute; left: -160px; bottom: 0; height: 160px; width: auto; pointer-events: none;">
+              <div class="reward-item">
+                  <div id="confetti-explosion" class="confetti-explosion"></div>
+                  <div class="reward-image" id="reward-image"></div>
+                  <div class="reward-name" id="reward-name">¡Recompensa Obtenida!</div>
+                  <div class="reward-tier" id="reward-tier"></div>
+                  <button class="close-modal-btn" onclick="closeChestModal()">¡Genial!</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal de información del cofre -->
+  <div id="chest-info-modal">
+      <div class="chest-info-container">
+          <button class="close-info-btn" onclick="closeChestInfoModal()">&times;</button>
+          <div id="chest-info-header" class="chest-info-header"></div>
+          <div class="chest-info-content">
+              <div class="testDraw">
+                  <span style="font-size: 13px;">¡Abre este cofre!</span>
+              </div>
+          </div>
+          <div id="chest-info-details" class="chest-info-details"></div>
+          <div id="chest-info-footer" class="chest-info-footer"></div>
+      </div>
+  </div>
+
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground">
+                <div class= "akumaBanner"></div>
+            <div class="akumaTirBody">
+                <!-- COLUMNA IZQUIERDA: Cofres Disponibles + GIF -->
+                <div class="akumaTirIzquierda">
+                    <!-- Cofres Disponibles -->
+                    <div class="filterBox">
+                        <div class="akumaTypeRow" style="background-color: #ff7e00;">
+                            <div class="filterClass" style="background-color: #ff7e00; text-align: center; margin: auto;">
+                                <span>Cofres Disponibles</span>
+                            </div>
+                        </div>
+                        <div class="cofres-disponibles-container">
+                            <div id="cofres_inventario"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- GIF de Cofres -->
+                    <div>
+                        <img class="imageBox" src="/images/op/uploads/GifCofres_One_Piece_Foro_Rol.gif" alt="Cofres"/>
+                    </div>
+                </div>
+				
+                <!-- COLUMNA DERECHA: Estadísticas + Resultados -->
+                <div class="akumaTirDerecha">
+                    <!-- Estadísticas de Pruebas Globales -->
+                    <div class="akumaTirTable">
+                        <div class="tableHeader">
+                            <strong id="estadisticasTitulo">Estadísticas de Pruebas Globales</strong>
+                            <div onclick="cambiarEstadisticas()" class="boton-estadistica">
+                                <img src="/images/op/uploads/BotonEstadisticaGeneral_One_Piece_Gaiden_Foro_Rol.png" alt="Estadísticas"/>
+                            </div>
+                        </div>
+                        <div class="tableContent">
+                            <!-- Primera columna: Cofres Abiertos y Jackpot -->
+                            <div class="primera-columna">
+                                <div class="tableTotalTestDraw">
+                                    <div style="text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; margin-bottom: 10px; text-shadow: 1px 1px 0px black; font-size: 13px;">Cofres Abiertos</div>
+                                    <div id="cofresTotal" style="text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 30px;">157</div>
+                                </div>
+                                <div class="tableTotalTestDraw" style="background: radial-gradient(circle, rgb(214 186 143) 0%, rgb(147 120 98) 100%);">
+                                    <div style="text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; margin-bottom: 10px; text-shadow: 1px 1px 0px black; margin-left: -4px; font-size: 13px;">¡JACKPOT!</div>
+                                    <div id="jackpot" style="text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 38px;">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Segunda columna: 5 TierBox -->
+                            <div class="segunda-columna">
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Básico</div>
+                                    <div id="basico" class="tierBoxText2">157</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Decente</div>
+                                    <div id="decente" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Gigante</div>
+                                    <div id="gigante" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Cobrizo</div>
+                                    <div id="cobrizo" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Argénteo</div>
+                                    <div id="argenteo" class="tierBoxText2">120</div>
+                                </div>
+                            </div>
+
+                            <!-- Tercera columna: 5 TierBox -->
+                            <div class="tercera-columna">
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Aureo</div>
+                                    <div id="aureo" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Épico</div>
+                                    <div id="epico" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Legendario</div>
+                                    <div id="legendario" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Majestuoso</div>
+                                    <div id="majestuoso" class="tierBoxText2">120</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Diamantino</div>
+                                    <div id="diamantino" class="tierBoxText2">120</div>
+                                </div>
+                            </div>
+
+                            <!-- Cuarta columna: 2 TierBoxAlt -->
+                            <div class="cuarta-columna">
+                                <div class="tierBoxAlt" style="background: radial-gradient(circle, rgba(149,26,27,1) 0%, rgba(45,5,5,1) 100%);">
+                                    <div class="tierBoxTextAlt1">Bajada de Tier</div>
+                                    <div id="increase" class="tierBoxTextAlt2">0</div>
+                                </div>
+                                <div class="tierBoxAlt" style="background: radial-gradient(circle, rgb(30 149 26) 0%, rgb(5 45 10) 100%);">
+                                    <div class="tierBoxTextAlt1">Subida de Tier</div>
+                                    <div id="decrease" class="tierBoxTextAlt2">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aperturas Globales y Propias -->
+                    <div class="resultados-container">
+                        <!-- Panel distribución masiva solo UID 850 -->
+                        <div class="staff-masivo-panel" id="staff-masivo-panel">
+                            <h3>⚙ DAR COFRE A TODOS (UID 850)</h3>
+                            <select id="staff-masivo-select">
+                                <option value="CFR001">CFR001 — Cofre Básico</option>
+                                <option value="CFR002">CFR002 — Cofre Decente</option>
+                                <option value="CFR003">CFR003 — Cofre Gigante</option>
+                                <option value="CFR004">CFR004 — Cofre Cobrizo</option>
+                                <option value="CFR005">CFR005 — Cofre Argenteo</option>
+                                <option value="CFR006">CFR006 — Cofre Aureo</option>
+                                <option value="CFR007">CFR007 — Cofre Épico</option>
+                                <option value="CFR008">CFR008 — Cofre Legendario</option>
+                                <option value="CFR009">CFR009 — Cofre Majestuoso</option>
+                                <option value="CFR010">CFR010 — Cofre Diamantino</option>
+                                <option value="CFF010">CFF010 — Cofre Básico (broma)</option>
+                                <option value="INV001">INV001 — Caja Artefacto T1</option>
+                                <option value="INV002">INV002 — Caja Artefacto T2</option>
+                                <option value="INV003">INV003 — Caja Artefacto T3</option>
+                                <option value="INV004">INV004 — Caja Artefacto T4</option>
+                                <option value="INV005">INV005 — Caja Artefacto T5</option>
+                                <option value="CFD002">CFD002 — Cofre Dial T2</option>
+                                <option value="CFD003">CFD003 — Cofre Dial T3</option>
+                                <option value="CFD004">CFD004 — Cofre Dial T4</option>
+                                <option value="CRM003">CRM003 — Cofre Crafteo T3</option>
+                                <option value="CFN002">CFN002 — Cofre Navidad T2</option>
+                                <option value="CFN003">CFN003 — Cofre Navidad T3</option>
+                                <option value="CFN004">CFN004 — Cofre Navidad T4</option>
+                                <option value="CFN005">CFN005 — Cofre Navidad T5</option>
+                                <option value="CFN006">CFN006 — Cofre Navidad T6</option>
+                                <option value="CFN007">CFN007 — Cofre Navidad T7</option>
+                                <option value="CFN008">CFN008 — Cofre Navidad T8</option>
+                                <option value="CFN009">CFN009 — Cofre Navidad T9</option>
+                                <option value="KTC001">KTC001 — Kuro Token Cofre</option>
+                            </select>
+                            <button class="staff-masivo-btn" id="staff-masivo-btn" onclick="darCofreMasivo()">Dar a todos los usuarios</button>
+                            <div class="staff-masivo-resultado" id="staff-masivo-resultado"></div>
+                        </div>
+
+                        <!-- Campo de búsqueda solo visible para staff -->
+                        <!-- IF {$mybb->usergroup['staff']} -->
+                        <div class="staff-search">
+                            <input type="text" id="staff-search-input" placeholder="Buscador, solo busca en registro actual" />
+                        </div>
+                        <!-- ENDIF -->
+                        <div class="akumaTypeRow">
+                            <div id="resultado-real" onclick="toggleResultados('reales')" class="pestana-resultado categoriaBox filterClass">
+                                <span>Aperturas Globales</span>
+                            </div>
+                            <div id="resultado-prueba" onclick="toggleResultados('prueba')" class="pestana-resultado categoriaBox filterClass box-active">
+                                <span>Aperturas Propias</span>
+                            </div>
+                        </div>
+                        <div class="resultados-content">
+                            <div id="reales" style="display: none; flex-direction: column;"></div>
+                            <div id="prueba" style="display: flex; flex-direction: column;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+  </div>
+<script type="text/javascript">
+    //<![CDATA[
+	
+    var estadisticaGeneral = true;
+    var objetos_json = {$objetos_json};
+    var objetos_array_json = {$objetos_array_json};
+    
+    var cofres_abiertos = '{$cofres_abiertos}';
+    var cofre_basico = '{$cofre_basico}';
+    var cofre_decente = '{$cofre_decente}';
+    var cofre_gigante = '{$cofre_gigante}';
+    var cofre_cobrizo = '{$cofre_cobrizo}';
+    var cofre_argenteo = '{$cofre_argenteo}';
+    var cofre_aureo = '{$cofre_aureo}';
+    var cofre_epico = '{$cofre_epico}';
+    var cofre_legendario = '{$cofre_legendario}';
+    var cofre_majestuoso = '{$cofre_majestuoso}';
+    var cofre_diamantino = '{$cofre_diamantino}';
+    var cofre_jackpot = '{$cofre_jackpot}';
+    var cofre_increase = '{$cofre_increase}';
+    var cofre_decrease = '{$cofre_decrease}';
+    
+    var cofres_abiertos_id = '{$cofres_abiertos_id}';
+    var cofre_basico_id = '{$cofre_basico_id}';
+    var cofre_decente_id = '{$cofre_decente_id}';
+    var cofre_gigante_id = '{$cofre_gigante_id}';
+    var cofre_cobrizo_id = '{$cofre_cobrizo_id}';
+    var cofre_argenteo_id = '{$cofre_argenteo_id}';
+    var cofre_aureo_id = '{$cofre_aureo_id}';
+    var cofre_epico_id = '{$cofre_epico_id}';
+    var cofre_legendario_id = '{$cofre_legendario_id}';
+    var cofre_majestuoso_id = '{$cofre_majestuoso_id}';
+    var cofre_diamantino_id = '{$cofre_diamantino_id}';
+    var cofre_jackpot_id = '{$cofre_jackpot_id}';
+    var cofre_increase_id = '{$cofre_increase_id}';
+    var cofre_decrease_id = '{$cofre_decrease_id}';
+    
+    var cofresPropios = {$cofres_propios_json};
+    var cofresGlobales = {$cofres_globales_json};
+    
+    // Variables para el modal
+    var currentChestData = null;
+    var isChestOpening = false;
+    
+    // Variable para el modal de información - MANTENER GLOBAL
+    var currentChestInfo = null;
+
+    // ===== FUNCIONES DEL MODAL DE INFORMACIÓN =====
+    
+    function showChestInfoModal(cofreId, imagen, nombre, colorTier, cantidad, espacios, berries, subcategoria, tier) {
+        console.log('showChestInfoModal called with:', cofreId, imagen, nombre);
+        
+        // Asegurar que currentChestInfo se establece correctamente
+        currentChestInfo = { 
+            id: cofreId, 
+            imagen: imagen, 
+            nombre: nombre,
+            tier: tier
+        };
+        
+        console.log('currentChestInfo set to:', currentChestInfo);
+        
+        var modal = document.getElementById('chest-info-modal');
+        var header = document.getElementById('chest-info-header');
+        var details = document.getElementById('chest-info-details');
+        var footer = document.getElementById('chest-info-footer');
+        var openButton = modal.querySelector('.testDraw');
+        
+        if (header) {
+            header.textContent = nombre;
+            header.style.background = colorTier;
+        }
+        
+        if (details) {
+            details.innerHTML = '<div>Cantidad: ' + cantidad + '</div><div>' + espacios + ' Espacios</div><div>ID: <span>' + maskCofreId(cofreId) + '</span></div><div><span class="itemBerries">' + berries + '</span>B</div>';
+            details.style.background = colorTier;
+        }
+        
+        if (footer) {
+            footer.textContent = subcategoria + ' - Tier ' + tier;
+            footer.style.background = colorTier;
+        }
+        
+        // Configurar el evento del botón directamente con los datos
+        if (openButton) {
+            openButton.onclick = function() {
+                console.log('Button clicked, opening chest with:', cofreId, imagen, nombre);
+                closeChestInfoModal();
+                openChestModal(cofreId, imagen, nombre);
+            };
+        }
+        
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeChestInfoModal() {
+        var modal = document.getElementById('chest-info-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        // No anular currentChestInfo aquí para evitar problemas
+        // currentChestInfo = null;
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+    }
+
+    // Mantener esta función por compatibilidad pero ya no debería ser necesaria
+    function openChestFromInfo() {
+        console.log('openChestFromInfo called (deprecated), currentChestInfo:', currentChestInfo);
+        
+        if (currentChestInfo && currentChestInfo.id) {
+            closeChestInfoModal();
+            openChestModal(currentChestInfo.id, currentChestInfo.imagen, currentChestInfo.nombre);
+        } else {
+            console.error('currentChestInfo is null or missing id');
+            alert('Error: No se pudo obtener la información del cofre');
+        }
+    }
+
+    // Inicializar cofres en el inventario
+    for (var i = 0; i < objetos_array_json.length; i++) {
+        
+        var objeto = objetos_json[objetos_array_json[i]][0];
+        
+        objeto.categoria = objeto.categoria.toLowerCase();
+        var subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+        var tier = objeto.tier;
+        var imagen_id = objeto.imagen_id;
+        var imagen = objeto.imagen_avatar;
+        
+        var nombre = objeto.nombre;
+        
+        var colorTier = '#faa500';
+    
+        if (imagen_id == '1') { colorTier = '#808080'; }
+        if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+        if (imagen_id == '3') { colorTier = '#457bfe'; }
+        if (imagen_id == '4') { colorTier = '#cf44ff'; }
+        if (imagen_id == '5') { colorTier = '#febb46'; }
+        if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+                                       
+        var cofresInventario = document.getElementById('cofres_inventario');
+        if (cofresInventario) {
+            // Crear el elemento del cofre
+            var cofreDiv = document.createElement('div');
+            cofreDiv.innerHTML = '<div class="item-outer" id="' + objeto.objeto_id + '"><div class="item-nome">' + objeto.nombre + '</div><div class="item-image"><img id="imagen-item" src="' + imagen + '" alt="' + objeto.nombre + '" /></div></div>';
+            
+            // Agregar event listener directamente
+            var cofreElement = cofreDiv.firstChild;
+            cofreElement.addEventListener('click', function() {
+                var cofreId = this.id;
+                var objetoActual = null;
+                
+                // Buscar el objeto en el JSON
+                for (var j = 0; j < objetos_array_json.length; j++) {
+                    var obj = objetos_json[objetos_array_json[j]][0];
+                    if (obj.objeto_id === cofreId) {
+                        objetoActual = obj;
+                        break;
+                    }
+                }
+                
+                if (objetoActual) {
+                    var colorTierActual = '#faa500';
+                    var imagen_id_actual = objetoActual.imagen_id;
+                    
+                    if (imagen_id_actual == '1') { colorTierActual = '#808080'; }
+                    if (imagen_id_actual == '2') { colorTierActual = '#4dfe45'; }	
+                    if (imagen_id_actual == '3') { colorTierActual = '#457bfe'; }
+                    if (imagen_id_actual == '4') { colorTierActual = '#cf44ff'; }
+                    if (imagen_id_actual == '5') { colorTierActual = '#febb46'; }
+                    if (parseInt(imagen_id_actual) >= 6) { colorTierActual = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+                    
+                    showChestInfoModal(
+                        objetoActual.objeto_id,
+                        objetoActual.imagen_avatar,
+                        objetoActual.nombre,
+                        colorTierActual,
+                        objetoActual.cantidad,
+                        objetoActual.espacios,
+                        parseInt(objetoActual.berries).toLocaleString('es-es'),
+                        objetoActual.subcategoria,
+                        objetoActual.tier
+                    );
+                }
+            });
+            
+            cofresInventario.appendChild(cofreElement);
+        }
+    }
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('chest-info-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeChestInfoModal();
+        }
+    });
+    
+    // Inicializar resultados
+    renderResultados();
+    
+    // Inicializar estadísticas
+    var elements = {
+        'cofresTotal': cofres_abiertos,
+        'basico': cofre_basico,
+        'decente': cofre_decente,
+        'gigante': cofre_gigante,
+        'cobrizo': cofre_cobrizo,
+        'argenteo': cofre_argenteo,
+        'aureo': cofre_aureo,
+        'epico': cofre_epico,
+        'legendario': cofre_legendario,
+        'majestuoso': cofre_majestuoso,
+        'diamantino': cofre_diamantino,
+        'jackpot': cofre_jackpot,
+        'increase': cofre_increase,
+        'decrease': cofre_decrease
+    };
+    
+    for (var elementId in elements) {
+        var element = document.getElementById(elementId);
+        if (element) {
+            element.innerHTML = elements[elementId];
+        }
+    }
+
+    // ===== FUNCIONES DEL MODAL DE COFRES =====
+    
+    function getTipoCofreName(tier) {
+        var tiposCofre = {
+            'CFR001': 'Cofre Básico',
+            'CFR002': 'Cofre Decente',
+            'CFR003': 'Cofre Gigante',
+            'CFR004': 'Cofre Cobrizo',
+            'CFR005': 'Cofre Argénteo',
+            'CFR006': 'Cofre Aureo',
+            'CFR007': 'Cofre Épico',
+            'CFR008': 'Cofre Legendario',
+            'CFR009': 'Cofre Majestuoso',
+            'CFR010': 'Cofre Diamantino',
+			'CFN002': 'Narracofre Decente',
+			'CFN003': 'Narracofre Gigante',
+			'CFN004': 'Narracofre Cobrizo',
+			'CFN005': 'Narracofre Argenteo',
+			'CFN006': 'Narracofre Aureo',
+			'CFN007': 'Narracofre Épico',
+			'KTC001': 'Katacofre',
+			'KTC002': 'Katacofre Supremo',			
+            'INV001': 'Caja de Artefacto T1',
+            'INV002': 'Caja de Artefacto T2',
+            'INV003': 'Caja de Artefacto T3',
+            'INV004': 'Caja de Artefacto T4',
+            'INV005': 'Caja de Artefacto T5',
+            'CFD002': 'Cofre de Dial T2',
+            'CFD003': 'Cofre de Dial T3',
+            'CFD004': 'Cofre de Dial T4',
+            'CRM003': 'Barril Rescatado'
+        };
+        return tiposCofre[tier] || 'Cofre Desconocido';
+    }
+
+    function openChestModal(cofreId, imagen, nombre) {
+        console.log('openChestModal called with:', cofreId, imagen, nombre);
+        
+        if (isChestOpening) return;
+        
+        currentChestData = { id: cofreId, imagen: imagen, nombre: nombre };
+        
+        // Configurar imágenes del cofre
+        var chestFront = document.getElementById('chest-front');
+        var chestBack = document.getElementById('chest-back');
+        if (chestFront) {
+            chestFront.style.backgroundImage = 'url(' + imagen + ')';
+        }
+        
+        // Mostrar modal
+        var modal = document.getElementById('chest-opening-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Configurar evento de clic
+        var chestContainer = document.getElementById('chest-container');
+        if (chestContainer) {
+            chestContainer.onclick = function() {
+                if (!isChestOpening) {
+                    startChestOpening();
+                }
+            };
+        }
+        
+        // Inicializar partículas de celebración
+        createCelebrationParticles();
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    var _ytPlayer = null;
+    var _ytReady = false;
+
+    (function() {
+        var tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+    })();
+
+    window.onYouTubeIframeAPIReady = function() {
+        var div = document.createElement('div');
+        div.id = 'yt-cofre-player';
+        div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
+        document.body.appendChild(div);
+        _ytPlayer = new YT.Player('yt-cofre-player', {
+            videoId: 'GWCldYPEsl4',
+            playerVars: { autoplay: 0, controls: 0 },
+            events: { onReady: function() { _ytReady = true; } }
+        });
+    };
+
+    function startChestOpening() {
+        if (isChestOpening) return;
+        isChestOpening = true;
+
+        if (_ytReady && _ytPlayer) {
+            _ytPlayer.seekTo(0);
+            _ytPlayer.playVideo();
+        }
+        
+        var chestContainer = document.getElementById('chest-container');
+        var chestFront = document.getElementById('chest-front');
+        var chestBack = document.getElementById('chest-back');
+        var instruction = document.getElementById('chest-instruction');
+        
+        // Animación de apertura
+        if (chestContainer) {
+            chestContainer.classList.add('chest-opening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡Abriendo cofre...!';
+        }
+        
+        setTimeout(function() {
+            // Voltear el cofre
+            if (chestFront) {
+                chestFront.style.transform = 'rotateY(-180deg)';
+            }
+            if (chestBack) {
+                chestBack.style.transform = 'rotateY(0deg)';
+            }
+            
+            setTimeout(function() {
+                // Llamar al servidor para abrir el cofre
+                performChestOpening();
+            }, 800);
+        }, 1500);
+        
+        // Remover evento de clic
+        if (chestContainer) {
+            chestContainer.onclick = null;
+        }
+    }
+
+    function performChestOpening() {
+        // Usar XMLHttpRequest para compatibilidad
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/opg/tirada_cofre.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        console.log(data);
+                        
+                        // Actualizar estadísticas locales
+                        updateLocalStats(data);
+                        
+                        // Mostrar recompensa
+                        showReward(data);
+                    } catch (e) {
+                        console.error('Error al procesar respuesta:', e);
+                        closeChestModal();
+                    }
+                } else {
+                    console.error('Error al abrir el cofre');
+                    closeChestModal();
+                }
+            }
+        };
+        
+        xhr.send('tirada_cofre=true&cofre_id=' + encodeURIComponent(currentChestData.id));
+    }
+
+    function showReward(rewardData) {
+        var chestStage = document.getElementById('chest-animation-stage');
+        var rewardDisplay = document.getElementById('reward-display');
+        var rewardImage = document.getElementById('reward-image');
+        var rewardName = document.getElementById('reward-name');
+        var rewardTier = document.getElementById('reward-tier');
+        
+        // Ocultar cofre y mostrar recompensa
+        if (chestStage) {
+            chestStage.style.display = 'none';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'block';
+        }
+        
+        // Configurar recompensa - SIEMPRE usar la imagen GIF especificada
+        if (rewardImage) {
+            rewardImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/73/9a/11/739a11b98a7652ad7a25d3ed1c876ce7.gif)';
+        }
+        if (rewardName) {
+            rewardName.textContent = rewardData.objeto;
+        }
+        
+        // Determinar clase de tier para colores
+        var tierClass = 'tier-' + (rewardData.imagen_id || '1');
+        if (rewardTier) {
+            rewardTier.className = 'reward-tier ' + tierClass;
+            rewardTier.textContent = 'Tier ' + (rewardData.tier || '1');
+        }
+        
+        // Efecto de confeti para items de alto tier
+        if (parseInt(rewardData.imagen_id) >= 4) {
+            createConfettiExplosion();
+        }
+        
+        // Actualizar lista de resultados
+        addToResultsList(rewardData);
+    }
+
+    function createConfettiExplosion() {
+        var confettiContainer = document.getElementById('confetti-explosion');
+        if (!confettiContainer) return;
+        
+        confettiContainer.innerHTML = '';
+        
+        var colors = ['#ffd700', '#ff6b35', '#4dfe45', '#457bfe', '#cf44ff'];
+        
+        for (var i = 0; i < 50; i++) {
+            var confetti = document.createElement('div');
+            confetti.className = 'confetti-piece';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = Math.random() * 400 + 'px';
+            confetti.style.top = Math.random() * 400 + 'px';
+            confetti.style.animationDelay = Math.random() * 0.5 + 's';
+            confetti.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+            
+            // Dirección aleatoria para la explosión
+            var angle = Math.random() * 360;
+            var distance = Math.random() * 200 + 100;
+            var x = Math.cos(angle * Math.PI / 180) * distance;
+            var y = Math.sin(angle * Math.PI / 180) * distance;
+            
+            confetti.style.setProperty('--x', x + 'px');
+            confetti.style.setProperty('--y', y + 'px');
+            
+            confettiContainer.appendChild(confetti);
+        }
+        
+        // Limpiar confeti después de la animación
+        setTimeout(function() {
+            confettiContainer.innerHTML = '';
+        }, 3000);
+    }
+
+    function createCelebrationParticles() {
+        var particlesContainer = document.getElementById('celebration-particles');
+        if (!particlesContainer) return;
+        
+        // Crear partículas constantemente mientras el modal esté abierto
+        var particleInterval = setInterval(function() {
+            var modal = document.getElementById('chest-opening-modal');
+            if (!modal || modal.style.display === 'none') {
+                clearInterval(particleInterval);
+                return;
+            }
+            
+            var particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            particle.style.animationDelay = Math.random() * 1 + 's';
+            
+            particlesContainer.appendChild(particle);
+            
+            // Remover partícula después de la animación
+            setTimeout(function() {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 5000);
+        }, 300);
+    }
+
+    function updateLocalStats(data) {
+        cofres_abiertos = parseInt(cofres_abiertos) + 1;
+        cofres_abiertos_id = parseInt(cofres_abiertos_id) + 1;
+        
+        // Actualizar estadísticas específicas según el tier del cofre abierto
+        updateTierStats(data.tier);
+        
+        // Actualizar display
+        var cofresTotal = document.getElementById('cofresTotal');
+        if (cofresTotal) {
+            cofresTotal.textContent = cofres_abiertos;
+        }
+    }
+
+    function updateTierStats(tier) {
+        switch(tier) {
+            case 'CFR001':
+                cofre_basico = parseInt(cofre_basico) + 1;
+                cofre_basico_id = parseInt(cofre_basico_id) + 1;
+                var basicoEl = document.getElementById('basico');
+                if (basicoEl) {
+                    basicoEl.textContent = cofre_basico;
+                }
+                break;
+            case 'CFR002':
+                cofre_decente = parseInt(cofre_decente) + 1;
+                cofre_decente_id = parseInt(cofre_decente_id) + 1;
+                var decenteEl = document.getElementById('decente');
+                if (decenteEl) {
+                    decenteEl.textContent = cofre_decente;
+                }
+                break;
+            // Agregar más casos según sea necesario
+        }
+    }
+
+    function addToResultsList(data) {
+        var timestamp = new Date().toLocaleString('es-es');
+        var tipoCofre = getTipoCofreName(data.tier);
+        
+        var newResult = '<div class="resultado-total" style="display: flex; flex-direction: row;"><div class="resultado-nombre">' + (data.nombre || 'Usuario') + ' <br>' + timestamp + '</div><div class="resultado-fruta">' + tipoCofre + '<br></div><div class="resultado-fruta">' + data.objeto + '<br></div></div>';
+        
+        var pruebaDiv = document.getElementById('prueba');
+        if (pruebaDiv) {
+            pruebaDiv.innerHTML = newResult + pruebaDiv.innerHTML;
+            
+            // Mantener solo los últimos 20 resultados
+            var results = pruebaDiv.querySelectorAll('.resultado-total');
+            if (results.length > 20) {
+                pruebaDiv.removeChild(results[results.length - 1]);
+            }
+        }
+    }
+
+    function closeChestModal() {
+        if (_ytPlayer && _ytReady) {
+            _ytPlayer.stopVideo();
+        }
+
+        var modal = document.getElementById('chest-opening-modal');
+        var chestStage = document.getElementById('chest-animation-stage');
+        var rewardDisplay = document.getElementById('reward-display');
+        var chestContainer = document.getElementById('chest-container');
+        var chestFront = document.getElementById('chest-front');
+        var chestBack = document.getElementById('chest-back');
+        var instruction = document.getElementById('chest-instruction');
+        var particlesContainer = document.getElementById('celebration-particles');
+
+        // Ocultar modal
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Resetear estado del modal
+        if (chestStage) {
+            chestStage.style.display = 'block';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'none';
+        }
+        if (chestContainer) {
+            chestContainer.classList.remove('chest-opening');
+        }
+        if (chestFront) {
+            chestFront.style.transform = 'rotateY(0deg)';
+        }
+        if (chestBack) {
+            chestBack.style.transform = 'rotateY(180deg)';
+        }
+        if (instruction) {
+            instruction.textContent = '¡Haz clic en el cofre para abrirlo!';
+        }
+        
+        // Limpiar partículas
+        if (particlesContainer) {
+            particlesContainer.innerHTML = '';
+        }
+        
+        // Resetear variables
+        currentChestData = null;
+        isChestOpening = false;
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+        
+        // Recargar página para actualizar inventario
+        window.location.reload();
+    }
+
+    // ===== FUNCIONES ORIGINALES =====
+    
+    function cambiarEstadisticas() {
+        var elements = {
+            'cofresTotal': [cofres_abiertos, cofres_abiertos_id],
+            'basico': [cofre_basico, cofre_basico_id],
+            'decente': [cofre_decente, cofre_decente_id],
+            'gigante': [cofre_gigante, cofre_gigante_id],
+            'cobrizo': [cofre_cobrizo, cofre_cobrizo_id],
+            'argenteo': [cofre_argenteo, cofre_argenteo_id],
+            'aureo': [cofre_aureo, cofre_aureo_id],
+            'epico': [cofre_epico, cofre_epico_id],
+            'legendario': [cofre_legendario, cofre_legendario_id],
+            'majestuoso': [cofre_majestuoso, cofre_majestuoso_id],
+            'diamantino': [cofre_diamantino, cofre_diamantino_id],
+            'jackpot': [cofre_jackpot, cofre_jackpot_id],
+            'increase': [cofre_increase, cofre_increase_id],
+            'decrease': [cofre_decrease, cofre_decrease_id]
+        };
+        
+        var estadisticasTitulo = document.getElementById('estadisticasTitulo');
+        
+        if (estadisticaGeneral) {
+            if (estadisticasTitulo) {
+                estadisticasTitulo.textContent = 'Estadísticas de Pruebas Personales';
+            }
+            
+            for (var elementId in elements) {
+                var element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = elements[elementId][1]; // Usar valor _id
+                }
+            }
+            estadisticaGeneral = false;
+        } else {
+            if (estadisticasTitulo) {
+                estadisticasTitulo.textContent = 'Estadísticas de Pruebas Globales';
+            }
+            
+            for (var elementId in elements) {
+                var element = document.getElementById(elementId);
+                if (element) {
+                    element.innerHTML = elements[elementId][0]; // Usar valor global
+                }
+            }
+            estadisticaGeneral = true;
+        }
+    }
+    
+    function toggleResultados(resultado) {
+        var pestanaElems = document.querySelectorAll('.pestana-resultado');
+        for (var i = 0; i < pestanaElems.length; i++) {
+            pestanaElems[i].classList.remove('box-active');
+        }
+        
+        var realesDiv = document.getElementById('reales');
+        var pruebaDiv = document.getElementById('prueba');
+        var resultadoReal = document.getElementById('resultado-real');
+        var resultadoPrueba = document.getElementById('resultado-prueba');
+        
+        if (resultado === 'reales') {
+            if (realesDiv) realesDiv.style.display = 'flex';
+            if (pruebaDiv) pruebaDiv.style.display = 'none';
+            if (resultadoReal) resultadoReal.classList.add('box-active');
+        }
+        
+        if (resultado === 'prueba') {
+            if (pruebaDiv) pruebaDiv.style.display = 'flex';
+            if (realesDiv) realesDiv.style.display = 'none';
+            if (resultadoPrueba) resultadoPrueba.classList.add('box-active');
+        }
+    }
+
+    // Cerrar modales con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            // Cerrar modal de información del cofre
+            var infoModal = document.getElementById('chest-info-modal');
+            if (infoModal && infoModal.style.display === 'flex') {
+                closeChestInfoModal();
+            }
+            
+            // Cerrar modal de apertura de cofres
+            var chestModal = document.getElementById('chest-opening-modal');
+            if (chestModal && chestModal.style.display === 'flex') {
+                closeChestModal();
+            }
+        }
+    });
+    
+    // Panel distribucion masiva: solo UID 850 y 10
+    var currentUid = parseInt('{$uid}');
+    if (currentUid === 850 || currentUid === 10) {
+        var massivoPanel = document.getElementById('staff-masivo-panel');
+        if (massivoPanel) massivoPanel.style.display = 'block';
+    }
+
+    function darCofreMasivo() {
+        var select = document.getElementById('staff-masivo-select');
+        var btn    = document.getElementById('staff-masivo-btn');
+        var result = document.getElementById('staff-masivo-resultado');
+        if (!select || !btn) return;
+
+        var cofreId = select.value;
+        if (!cofreId) return;
+
+        if (!confirm('¿Dar 1x ' + cofreId + ' a TODOS los usuarios con ficha? Esta acción no se puede deshacer.')) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        result.textContent = '';
+        result.style.color = 'white';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/opg/tirada_cofre.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                btn.disabled = false;
+                btn.textContent = 'Dar a todos los usuarios';
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.success) {
+                        result.style.color = '#7dff7d';
+                        result.textContent = '✓ Entregado ' + data.cofre + ' a ' + data.total + ' fichas.';
+                    } else {
+                        result.style.color = '#ff7d7d';
+                        result.textContent = '✗ ' + (data.mensaje || 'Error desconocido.');
+                    }
+                } catch(e) {
+                    result.style.color = '#ff7d7d';
+                    result.textContent = '✗ Error al procesar respuesta.';
+                }
+            }
+        };
+        xhr.send('action=dar_cofre_masivo&cofre_dar_id=' + encodeURIComponent(cofreId));
+    }
+
+    // Funcionalidad de búsqueda para staff
+    var isStaff = {$is_staff};
+    
+    // Función para renderizar resultados
+    function renderResultados() {
+        var pruebaDiv = document.getElementById('prueba');
+        var realesDiv = document.getElementById('reales');
+        
+        // Limpiar contenido previo
+        if (pruebaDiv) pruebaDiv.innerHTML = '';
+        if (realesDiv) realesDiv.innerHTML = '';
+        
+        // Renderizar aperturas propias
+        for (var i = 0; i < cofresPropios.length; i++) {
+            var nombre = cofresPropios[i].nombre;
+            var tier = cofresPropios[i].tier;
+            var timestamp = new Date(parseInt(cofresPropios[i].timestamp) * 1000).toLocaleString('es-es');
+            var tipoCofre = getTipoCofreName(tier);
+            if (pruebaDiv) {
+                pruebaDiv.innerHTML += '<div class="resultado-total" style="display: flex; flex-direction: row;">'
+                    + '<div class="resultado-nombre">' + nombre + ' <br>' + timestamp + '</div>'
+                    + '<div class="resultado-fruta">' + tipoCofre + '<br></div>'
+                    + '<div class="resultado-fruta">' + cofresPropios[i].objeto + '<br></div>'
+                + '</div>';
+            }
+        }
+        
+        // Renderizar aperturas globales
+        for (var i = 0; i < cofresGlobales.length; i++) {
+            var nombre = cofresGlobales[i].nombre;
+            var tier = cofresGlobales[i].tier;
+            var timestamp = new Date(parseInt(cofresGlobales[i].timestamp) * 1000).toLocaleString('es-es');
+            var tipoCofre = getTipoCofreName(tier);
+            if (realesDiv) {
+                realesDiv.innerHTML += '<div class="resultado-total" style="display: flex; flex-direction: row;">'
+                    + '<div class="resultado-nombre">' + nombre + ' <br>' + timestamp + '</div>'
+                    + '<div class="resultado-fruta">' + tipoCofre + '<br></div>'
+                    + '<div class="resultado-fruta">' + cofresGlobales[i].objeto + '<br></div>'
+                + '</div>';
+            }
+        }
+    }
+    
+    // Función para filtrar resultados
+    function filtrarResultados(filtro) {
+        var pruebaDiv = document.getElementById('prueba');
+        var realesDiv = document.getElementById('reales');
+        
+        // Si no hay filtro, mostrar todos los resultados
+        if (!filtro || filtro.trim() === '') {
+            renderResultados();
+            return;
+        }
+        
+        filtro = filtro.toLowerCase().trim();
+        
+        // Limpiar contenido previo
+        if (pruebaDiv) pruebaDiv.innerHTML = '';
+        if (realesDiv) realesDiv.innerHTML = '';
+        
+        // Filtrar aperturas propias
+        for (var i = 0; i < cofresPropios.length; i++) {
+            var nombre = (cofresPropios[i].nombre || '').toLowerCase();
+            var objeto = (cofresPropios[i].objeto || '').toLowerCase();
+            
+            if (nombre.indexOf(filtro) !== -1 || objeto.indexOf(filtro) !== -1) {
+                var timestamp = new Date(parseInt(cofresPropios[i].timestamp) * 1000).toLocaleString('es-es');
+                var tipoCofre = getTipoCofreName(cofresPropios[i].tier);
+                if (pruebaDiv) {
+                    pruebaDiv.innerHTML += '<div class="resultado-total" style="display: flex; flex-direction: row;">'
+                        + '<div class="resultado-nombre">' + cofresPropios[i].nombre + ' <br>' + timestamp + '</div>'
+                        + '<div class="resultado-fruta">' + tipoCofre + '<br></div>'
+                        + '<div class="resultado-fruta">' + cofresPropios[i].objeto + '<br></div>'
+                    + '</div>';
+                }
+            }
+        }
+        
+        // Filtrar aperturas globales
+        for (var i = 0; i < cofresGlobales.length; i++) {
+            var nombre = (cofresGlobales[i].nombre || '').toLowerCase();
+            var objeto = (cofresGlobales[i].objeto || '').toLowerCase();
+            
+            if (nombre.indexOf(filtro) !== -1 || objeto.indexOf(filtro) !== -1) {
+                var timestamp = new Date(parseInt(cofresGlobales[i].timestamp) * 1000).toLocaleString('es-es');
+                var tipoCofre = getTipoCofreName(cofresGlobales[i].tier);
+                if (realesDiv) {
+                    realesDiv.innerHTML += '<div class="resultado-total" style="display: flex; flex-direction: row;">'
+                        + '<div class="resultado-nombre">' + cofresGlobales[i].nombre + ' <br>' + timestamp + '</div>'
+                        + '<div class="resultado-fruta">' + tipoCofre + '<br></div>'
+                        + '<div class="resultado-fruta">' + cofresGlobales[i].objeto + '<br></div>'
+                    + '</div>';
+                }
+            }
+        }
+    }
+    
+    if (isStaff) {
+        var searchBox = document.querySelector('.staff-search');
+        if (searchBox) searchBox.style.display = 'block';
+        
+        var input = document.getElementById('staff-search-input');
+        if (input) {
+            input.addEventListener('input', function() {
+                var filter = this.value;
+                filtrarResultados(filter);
+            });
+            
+            // También manejar el evento keyup para mejor responsividad
+            input.addEventListener('keyup', function() {
+                var filter = this.value;
+                filtrarResultados(filter);
+            });
+        }
+    }
+    //]]>
+</script> 
+{$footer}	  
+</body>
+</html>

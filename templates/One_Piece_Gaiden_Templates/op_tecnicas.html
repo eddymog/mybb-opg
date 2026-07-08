@@ -1,0 +1,426 @@
+<html>
+
+<head>
+  <title>Archivo de Técnicas</title>
+  {$headerinclude}
+  <style>
+	  .akumaBanner {
+		  height: 75px;
+		  background-image: url('/images/op/uploads/TecnicasCabecera_One_Piece_Gaiden_Foro_Rol.jpg');
+		  width: 1000px;
+    	  background-size: cover;
+	  }
+	  
+	  .index-image {
+		  transition: all 0.25s ease;
+		  opacity: 0.9;
+		  filter: grayscale(0.2);
+	  }
+	  
+	  .index-image-hover, .index-image:hover {
+		  transform: scale(1.1);
+		  opacity: 1;
+		  filter: grayscale(0);
+	  }
+	  
+	  .index-image-shadow {
+			position: relative;
+			top: 3px;
+			left: 3px;
+			box-shadow: 0px 0px 2px 3px black;
+			border-radius: 2px;
+	  }
+	  
+	  .forum-index {
+	    	overflow: hidden;
+      }
+	  
+	  .titulo-tecnica {
+		  position: absolute;font-family: Naruto;font-size: 30px;z-index: 1;
+		  color: white; text-shadow: 3px 2px 1px black;
+		  -webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;
+		  transition: all 0.25s ease;
+	  }
+	  
+	  .titulo-tecnica-hover, .titulo-tecnica:hover {
+		  color: #ffba67;
+	  }
+	  
+	  .titulo-vertical {
+		  writing-mode: vertical-lr;text-orientation: upright;letter-spacing: -7px;
+	  }
+	  
+	  .titulo-horizontal {
+		  
+	  }
+  </style>
+	
+	
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				
+				<div class="akumaBanner"></div>
+<!-- 				/op/tecnicas.php?tipo=disciplinas -->
+				<if $tipo == '' then>
+				<div id="tecnicas-generales">
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas.php?tipo=disciplinas" style="position: relative;">
+							<span class="titulo-tecnica titulo-horizontal" style="top: 298px;left: 362px;font-size: 40px;">Disciplinas</span>
+							<div style="margin-right: 10px;width: 995px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplinas_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						
+					</div>
+
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas.php?tipo=estilos-canon" style="position: relative;">
+							<span class="titulo-tecnica" style="top: 5px;left: 10px;">Estilos Canon</span>
+							<div style=" margin-right: 10px; width: 392px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/EstilosCanon_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=RACIAL" style="position: relative;">
+							<span class="titulo-tecnica" style="top: 5px;left: 10px;">Raciales</span>
+							<div style=" margin-right: 10px; width: 191px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Raciales_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ELEMENTAL" style="position: relative;">
+							<span class="titulo-tecnica" style="top: 5px;left: 10px;">Dominios Elementales</span>
+							<div style=" width: 392px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Elementales_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+					<a href="/op/tecnicas_show.php?estilo=HAKI" style="position: relative;">
+						<span class="titulo-tecnica" style="top: 5px;left: 10px;">Haki</span>
+						<div style=" margin-right: 10px; width: 593px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Haki_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+					</a>
+					<a href="/op/tecnicas_show.php?estilo=ESPECIAL" style="position: relative;">
+						<span class="titulo-tecnica" style="top: 5px;left: 10px;">Poderes Especiales</span>
+						<div style=" width: 392px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Especiales_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+			    	</a>
+				</div>
+				</div>
+				</if>
+				
+				<if $tipo == 'estilos-canon' then>
+				<div id="estilos-canon">
+					
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=GUNKATA" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Gunkata</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Gunkata_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=HASSHOKEN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Hasshoken</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Hasshoken_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ASHURA SANTORYU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Ashura Santoryu</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Santoryu_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=KUROASHI" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Kuroashi</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Kuroashi_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=GYOJIN KARATE" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Gyojin</span>
+							<span class="titulo-tecnica titulo-vertical" style="top: 90px;left: 34px;">Karate</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/KarateGyojin_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=GYOJIN JUJUTSU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Gyojin</span>
+							<span class="titulo-tecnica titulo-vertical" style="top: 90px;left: 34px;">Jujutsu</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/JujutsuGyojin_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=OKAMA_KEMPO" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Okama</span>
+							<span class="titulo-tecnica titulo-vertical" style="top: 90px;left: 34px;">KEMPO</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/OkamaKempo_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=SORA_YOKUJIN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Sora</span>
+							<span class="titulo-tecnica titulo-vertical" style="top: 92px;left: 34px;">Yokujin</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/SoraYokujin_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=ROKUSHIKI" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Rokushiki</span>
+								<img class="index-image" src="/images/op/uploads/Rokushiki_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=NINJUTSU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Ninjutsu</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Ninjutsu_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=RYUSOKEN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Ryusoken</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Ryusoken_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=JIYUUMURA_KEMPO" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Jiyuumura</span>
+							<span class="titulo-tecnica titulo-vertical" style="top: 196px;left: 34px;">Kempo</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/JiyuumuraKempo_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+					
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=POP GREEN" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Pop Green</span>
+								<img class="index-image" src="/images/op/uploads/PopGreen_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=CLIMA TACT" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Clima Tact</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/ClimaTact_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=FUNEKIRI" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Funekiri</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Funekiri_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=HAKAI SHIN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Hakai Shin</span>
+<!-- 							<span class="titulo-tecnica titulo-vertical" style="top: 196px;left: 34px;">Kempo</span> -->
+							<div style=" width: 241px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/HakaiShin_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+					
+ 					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=RAILGUN STYLE" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Railgun Style</span>
+								<img class="index-image" src="/images/op/uploads/RailgunStyle_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=GYOJIN BUKIJUTSU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Gyojin Bukijutsu</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/GyojinBukijutsu_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=SHURON HAKKE" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Shuron Hakke</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/ShuronHakke_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=RAQISAt ALSAHRA" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Raqisat Alsahra</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/RaqisatAlsahra_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div> 
+					
+ 					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=BREESKJOLD" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Breeskjold</span>
+								<img class="index-image" src="/images/op/uploads/Breeskjold_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=IMPACTO EXPLOSIVO" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Impacto Explosivo</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/PunoExplosivo_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ROYAL GUARD" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Royal Guard</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/RoyalGuard_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=SHIKAKU TEIKOKU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Shikaku Teikoku</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/ShikakuTeikoku_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+					
+  				<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=DUELLISTE DE GIVRE" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Duelliste de Givre</span>
+								<img class="index-image" src="/images/op/uploads/DuellisteDeGivre_One_Piece_Gaiden_Foro_Rol.jpg" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=FILO DELLA VITA" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Filo Della Vita</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/FiloDellaVita_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=HAVETS SYMFONI" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Havets Symfoni</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/HavetsSymfoni_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=BAKUDAI KARIN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Bakudai Karin</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/BakudaiKarin_One_Piece_Gaiden_Foro_Rol.jpg" /></div>
+						</a>
+					</div>
+					
+  				<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=YAMA KURAI" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Yama Kurai</span>
+								<img class="index-image" src="/images/op/uploads/YamaKurai1.webp" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=SHISEIJU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Shiseiju</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Shiseiju1.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=SEA CORSAIR" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Sea Corsair</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/SeaCorsair.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=WANO NITORYU" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Wano Nitoryu</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Nitoryu1.webp" /></div>
+						</a>
+					</div>
+					
+  				<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=MANO DE TAHUR" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Mano de Tahur</span>
+								<img class="index-image" src="/images/op/uploads/Mano_De_Tahur_One_Piece_Gaiden_Foro_Rol.webp" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=KOKUDAN" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Kokudan</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Kokudan_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=KODAI NO BUSHIDO" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Kodai No Bushido</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Kodainobushido1.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ITTORYU SEKAI" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Ittoryu Sekai</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Ittoryu_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+					</div>
+					
+  				<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=GLOBAL PERFORMER" style="position: relative;">
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+								<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Global Performer</span>
+								<img class="index-image" src="/images/op/uploads/GlobalPerformer_One_Piece_Gaiden_Foro_Rol.webp" />
+							</div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=CAVALRY WARRIOR" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Cavalry Warrior</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/CavalryWarrior1.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ASHIGARA DOKOI" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Ashigara Dokoi</span>
+							<div style=" margin-right: 10px; width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/Ashigara_Dokoi_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=KANPO KENPO" style="position: relative;">
+							<span class="titulo-tecnica titulo-vertical" style="top: 11px;">Kanpo Kenpo</span>
+							<div style=" width: 241px;" class="forum-index index-image-shadow">
+							<img class="index-image" src="/images/op/uploads/KanpoKenpo_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+					</div> 
+					
+				</div>
+				</if>
+				
+				<if $tipo == 'disciplinas' then>
+				<div id="disciplinas" style="">
+					
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+						<a href="/op/tecnicas_show.php?estilo=COMBATIENTE" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Combatiente</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Combatiente.webp" /></div>
+                        </a>
+                        <a href="/op/tecnicas_show.php?estilo=ESPADACHÍN" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Espadachin</span>
+                            <div style=" width: 325px; margin-right: 10px; " class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Espadachín.webp" /></div>
+                        </a>
+                        <a href="/op/tecnicas_show.php?estilo=GUERRERO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Guerrero</span>
+                            <div style=" width: 325px; " class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Guerrero.webp" /></div>
+                        </a>
+					</div>
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+                        <a href="/op/tecnicas_show.php?estilo=TIRADOR" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Tirador</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Tirador.webp" /></div>
+                        </a>
+                        <a href="/op/tecnicas_show.php?estilo=ARQUERO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Arquero</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplina_Arquero_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ARTILLERO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Artillero</span>
+                            <div style=" width: 325px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Artillero.webp" /></div>
+						</a>
+					</div>
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+                        <a href="/op/tecnicas_show.php?estilo=TECNICISTA" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Tecnicista</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplina_Tecnicista_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+                        </a>
+                        <a href="/op/tecnicas_show.php?estilo=PÍCARO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Picaro</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Pícaro.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ARTISTA" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Artista</span>
+                            <div style=" width: 325px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Artista.webp" /></div>
+						</a>
+					</div>
+					<div style="margin-top: 10px;display: flex;flex-direction: row;">	
+                        <a href="/op/tecnicas_show.php?estilo=ESCUDERO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Escudero</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplina_Escudero_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+                        </a>
+                        <a href="/op/tecnicas_show.php?estilo=ASESINO" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Asesino</span>
+                            <div style=" width: 325px; margin-right: 10px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplina_Asesino_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+						<a href="/op/tecnicas_show.php?estilo=ARTISTA MARCIAL" style="position: relative;">
+                            <span class="titulo-tecnica titulo-vertical" style="top: 11px;">Artista Marcial</span>
+                            <div style=" width: 325px;" class="forum-index index-image-shadow"><img class="index-image" src="/images/op/uploads/Disciplina_Artista_Marcial_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+						</a>
+					</div>
+				</div>
+				</if>
+
+			</div>
+		</div>
+	 </div>
+  </div>
+	
+{$footer}
+<script>
+let myImg;
+$('.index-image').hover((img) => {
+	$(img.currentTarget.parentElement.parentElement).find('span').toggleClass('titulo-tecnica-hover');
+    // $(img.currentTarget.parentElement.nextElementSibling).toggleClass('forum-title-hover');
+});	
+	
+$('.titulo-tecnica').hover((img) => {
+	myImg = img;
+	$(img.currentTarget.parentElement).find('span').toggleClass('titulo-tecnica-hover');
+	$(img.currentTarget.parentElement).find('.index-image').toggleClass('index-image-hover');
+});	
+</script>
+</body>
+</html>

@@ -1,0 +1,1865 @@
+<html>
+<head>
+<title>One Piece Gaiden - Mapa Mundi</title>
+{$headerinclude}
+<style type="text/css">
+.mapa-container {
+  position: relative;
+  margin: 0 auto;
+  max-width: 100%;
+  overflow: hidden; /* Importante para ocultar partes que salen del contenedor */
+  cursor: crosshair;
+  border: 2px solid #333; /* Opcional: para visualizar mejor los límites */
+}
+.mapa-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.isla-nombre {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: none;
+  pointer-events: none;
+  z-index: 100;
+}
+.isla-descripcion {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  display: none;
+  pointer-events: none;
+  z-index: 100;
+  max-width: 300px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+}
+.isla-descripcion h3 {
+  margin: 0 0 10px 0;
+  color: #ffcc00;
+}
+.isla-descripcion p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.isla-descripcion a {
+  color: #66ccff;
+  text-decoration: none;
+}
+.isla-descripcion a:hover {
+  text-decoration: underline;
+}
+area {
+  cursor: cell;
+}
+.distancia-panel {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.ruta-linea {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  height: 3px;
+  transform-origin: 0 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.ruta-linea.tren {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 165, 0, 0.8) 0px,
+    rgba(255, 165, 0, 0.8) 10px,
+    rgba(139, 69, 19, 0.8) 10px,
+    rgba(139, 69, 19, 0.8) 20px
+  );
+  height: 5px;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
+}
+.selector-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+.selector-isla {
+  flex: 1;
+}
+select {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+}
+.resultado-viaje {
+  font-size: 18px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+.velocidad-container {
+  margin-top: 10px;
+}
+.instrucciones {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.error-ruta {
+  color: #ff6666;
+}
+.navegacion-mapa {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+.boton-mapa {
+  background: #0066cc;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  margin: 0 5px;
+}
+.boton-mapa:hover {
+  background: #0052a3;
+}
+.mapa-blue {
+  display: none;
+}
+.mapa-principal {
+  display: block;
+}
+.isla-info-panel {
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  display: none;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.isla-info-panel h3 {
+  color: #ffcc00;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+.isla-info-panel p {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+.isla-info-panel a {
+  color: #66ccff;
+  text-decoration: none;
+  padding: 10px 20px;
+  background: #0066cc;
+  border-radius: 5px;
+  display: inline-block;
+  margin-top: 10px;
+}
+.isla-info-panel a:hover {
+  background: #0052a3;
+  text-decoration: none;
+}
+.cerrar-info {
+  float: right;
+  background: #cc0000;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.cerrar-info:hover {
+  background: #990000;
+}
+.instrucciones-blue {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+/* Estilos para el popup de instrucciones */
+.popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
+
+.popup-contenido {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  background-image: url('https://i.pinimg.com/736x/11/60/de/1160debabca188906146e4dbc401831a.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  padding: 25px;
+  border-radius: 10px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  /* Agregar overlay semitransparente para mejor legibilidad del texto */
+  position: relative;
+}
+
+.popup-contenido::before {
+  content: '';
+  position: absolute;
+  height: 1750px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  z-index: -1;
+}
+
+.popup-contenido > * {
+  position: relative;
+  z-index: 1;
+}
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #0066cc;
+  padding-bottom: 10px;
+}
+
+.popup-header h2 {
+  color: #0066cc;
+  margin-left: 135px;
+  font-size: 24px;
+}
+
+.cerrar-popup {
+  background: #cc0000;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.cerrar-popup:hover {
+  background: #990000;
+}
+
+.popup-contenido h3 {
+  color: #0066cc;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.popup-contenido p, .popup-contenido li {
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.popup-contenido ul {
+  padding-left: 20px;
+}
+
+.popup-contenido .destacado {
+  background: #e6f3ff;
+  padding: 10px;
+  border-left: 4px solid #0066cc;
+  margin: 15px 0;
+}
+
+.boton-instrucciones {
+  background: #006600 !important;
+  color: white !important;
+  position: relative;
+}
+
+.boton-instrucciones:hover {
+  background: #004400 !important;
+}
+.velocidad-container {
+  margin-top: 10px;
+}
+
+#custom-container {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+#custom-container label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#custom-container input {
+  width: 98%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+{$header}
+<div class="fondo-blanco">
+  <div class="navegacion-mapa">
+    <button class="boton-mapa boton-instrucciones" onclick="mostrarInstrucciones()">Instrucciones</button>
+    <button class="boton-mapa activo" onclick="cambiarMapa('principal')">Mapa Principal</button>
+    <button class="boton-mapa" onclick="cambiarMapa('north')">North Blue</button>
+    <button class="boton-mapa" onclick="cambiarMapa('west')">West Blue</button>
+    <button class="boton-mapa" onclick="cambiarMapa('east')">East Blue</button>
+    <button class="boton-mapa" onclick="cambiarMapa('south')">South Blue</button>
+    
+    <div class="selector-container">
+      <div class="selector-isla">
+        <label for="isla-origen">Isla de origen:</label>
+        <select id="isla-origen">
+          <option value="">Selecciona origen</option>
+        </select>
+      </div>
+      <div class="selector-isla">
+        <label for="isla-destino">Isla de destino:</label>
+        <select id="isla-destino">
+          <option value="">Selecciona destino</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Selector de tipo de transporte -->
+    <div class="selector-container">
+      <div class="selector-isla">
+        <label for="tipo-transporte">Tipo de transporte:</label>
+        <select id="tipo-transporte">
+          <option value="barco">Barco</option>
+          <option value="tren">Tren (si disponible)</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Contenedor para barco y navegante en la misma fila -->
+    <div class="selector-container">
+      <div class="selector-isla">
+        <label for="velocidad-barco">Velocidad del barco:</label>
+        <select id="velocidad-barco">
+          <option value="0">Tartana (Tier 1) - Sin reducción</option>
+          <option value="5">Carabela (Tier 2) - Reduce 5% del tiempo total</option>
+          <option value="20">Steam Raft (Tier 2) - Reduce 20% del tiempo total</option>
+          <option value="10">Balandro (Tier 3) - Reduce 10% del tiempo total</option>
+          <option value="10">Mini Submarino (Tier 3) - Reduce 10% del tiempo total</option>
+          <option value="5">Galeón (Tier 4) - Reduce 5% del tiempo total</option>
+          <option value="20">Indiaman (Tier 4) - Reduce 20% del tiempo total</option>
+          <option value="5">Acorazado (Tier 5) - Reduce 5% del tiempo total</option>
+          <option value="25">Navío de Guerra (Tier 5) - Reduce 25% del tiempo total</option>
+          <option value="custom">Custom - Valor manual</option>
+        </select>
+      </div>
+      <div class="selector-isla">
+        <label for="navegante-nivel">Nivel de navegante:</label>
+        <select id="navegante-nivel">
+          <option value="0">Navegante inexperto (No reduce)</option>
+          <option value="5">Navegante Nv 2 (Reduce 5% del tiempo total)</option>
+          <option value="20">Timonel Nv 1 (Reduce 20% del tiempo total)</option>
+          <option value="30">Timonel Nv 2 (Reduce 30% del tiempo total)</option>
+          <option value="40">Timonel Nv 3 (Reduce 40% del tiempo total)</option>
+          <option value="50">Navegante Maxeado (Reduce 50% del tiempo total)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Campo para valor custom -->
+    <div id="custom-container" class="velocidad-container" style="display: none;">
+      <label for="custom-reduccion">Reducción personalizada (% del tiempo total):</label>
+      <input type="number" id="custom-reduccion" min="0" max="100" value="0" placeholder="Ingresa el porcentaje de reducción">
+    </div>
+    
+    <div class="resultado-viaje" id="resultado-viaje">
+      Selecciona dos islas para calcular la ruta
+    </div>
+  </div>
+
+  <!-- Popup de instrucciones -->
+  <div id="popup-instrucciones" class="popup-overlay" onclick="cerrarInstrucciones(event)">
+    <div class="popup-contenido" onclick="event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Instrucciones del Mapa</h2>
+        <button class="cerrar-popup" onclick="cerrarInstrucciones()">✕</button>
+      </div>
+      
+      <div class="destacado">
+        <strong>¡Bienvenido al Mapa Interactivo de One Piece Gaiden!</strong><br>
+        Aquí podrás explorar los diferentes mares y planificar tus rutas de navegación.
+      </div>
+
+      <h3>Navegación por Mapas</h3>
+      <ul>
+        <li><strong>Mapa Principal:</strong> Vista completa del mundo con todos los mares</li>
+        <li><strong>Blues individuales:</strong> Mapas detallados de cada mar (North, West, East, South Blue)</li>
+        <li>Usa los botones superiores para cambiar entre mapas</li>
+      </ul>
+
+      <h3>Cálculo de Rutas (Solo Mapa Principal)</h3>
+      <ul>
+        <li><strong>Método 1:</strong> Haz clic en una isla de origen y luego en una de destino</li>
+        <li><strong>Método 2:</strong> Usa los menús desplegables para seleccionar origen y destino</li>
+        <li><strong>Tipo de transporte:</strong> Elige entre barco o tren (si hay conexión disponible)</li>
+        <li>La ruta se dibujará automáticamente evitando obstáculos</li>
+        <li>El tiempo de viaje se calcula según el tipo de transporte elegido</li>
+        <li><strong>Rutas de tren:</strong> Se muestran en color naranja/marrón y tienen tiempo fijo</li>
+        <li><strong>Rutas de barco:</strong> Se muestran en color rojo y dependen de la velocidad del barco</li>
+      </ul>
+
+      <h3>Información de Islas</h3>
+      <ul>
+        <li><strong>Hover:</strong> Pasa el cursor sobre una isla para ver su nombre</li>
+        <li><strong>Ctrl + Clic o Doble clic</strong> Abre la página de la isla en una nueva pestaña</li>
+      </ul>
+
+      <h3>Obstáculos de Navegación</h3>
+      <ul>
+        <li><strong>Red Line:</strong> Muro vertical que divide el mundo</li>
+        <li><strong>Calm Belt:</strong> Zonas horizontales sin viento</li>
+        <li>Las rutas automáticas evitan estos obstáculos</li>
+        <li>Si una ruta está bloqueada, se mostrará un mensaje de error</li>
+      </ul>
+
+      <h3>Tipos de Barcos</h3>
+      <ul>
+        <li><strong>Tartana (Tier 1):</strong> Sin reducción de tiempo de viaje</li>
+        <li><strong>Carabela (Tier 2):</strong> Reduce 5% del tiempo total</li>
+        <li><strong>Steam Raft (Tier 2):</strong> Reduce 20% del tiempo total</li>
+        <li><strong>Balandro (Tier 3):</strong> Reduce 10% del tiempo total</li>
+        <li><strong>Mini Submarino (Tier 3):</strong> Reduce 10% del tiempo total</li>
+        <li><strong>Galeón (Tier 4):</strong> Reduce 5% del tiempo total</li>
+        <li><strong>Indiaman (Tier 4):</strong> Reduce 20% del tiempo total</li>
+        <li><strong>Acorazado (Tier 5):</strong> Reduce 5% del tiempo total</li>
+        <li><strong>Navío de Guerra (Tier 5):</strong> Reduce 25% del tiempo total</li>
+        <li><strong>Custom:</strong> Permite introducir un porcentaje personalizado</li>
+      </ul>
+
+      <h3>Sistema de Trenes</h3>
+      <ul>
+        <li><strong>Conexiones disponibles:</strong> Briss ↔ Ballywood ↔ Kano ↔ Eviland ↔ Archipielago Tako ↔ Ohara ↔ Ballywood</li>
+        <li><strong>Tiempo de viaje:</strong> 16 horas por cada tramo entre islas</li>
+        <li><strong>Ventajas:</strong> Tiempo fijo, rutas directas sin rodeos</li>
+        <li><strong>Nota:</strong> El tren no se ve afectado por bonificaciones de barco o navegante</li>
+        <li>El sistema calculará automáticamente la ruta más corta entre islas conectadas</li>
+      </ul>
+
+      <h3>Niveles de Navegante</h3>
+      <ul>
+        <li><strong>Navegante Inexperto:</strong> Sin reducción de tiempo</li>
+        <li><strong>Navegante Nv 2:</strong> Reduce 5% del tiempo total</li>
+        <li><strong>Timonel Nv 1:</strong> Reduce 20% del tiempo total</li>
+        <li><strong>Timonel Nv 2:</strong> Reduce 30% del tiempo total</li>
+        <li><strong>Timonel Nv 3:</strong> Reduce 40% del tiempo total</li>
+        <li><strong>Navegante Maxeado:</strong> Reduce 50% del tiempo total</li>
+      </ul>
+
+      <h3>Cálculo de Tiempo de Viaje</h3>
+      <ul>
+        <li>El tiempo base se calcula según la distancia entre islas</li>
+        <li>Los porcentajes de barco y navegante se <strong>suman</strong></li>
+        <li>La reducción total se aplica al tiempo total del viaje</li>
+        <li>El tiempo mínimo de viaje es de <strong>12 horas</strong></li>
+        <li>Ejemplo: Con Navío de Guerra (25%) + Navegante Maxeado (50%) = 75% de reducción total</li>
+      </ul>
+
+      <div class="destacado">
+        <strong>Consejo:</strong> Para obtener información detallada de cualquier isla, 
+        mantén presionado Ctrl mientras haces clic en ella.
+      </div>
+    </div>
+  </div>
+
+  <!-- Mapa Principal -->
+  <div id="mapa-principal" class="mapa-container mapa-principal">
+    <img src="https://onepiecegaiden.com/images/op/uploads/one piece azul (9).webp" usemap="#mapa-op" class="mapa-image" alt="Mapa de One Piece">
+    <div id="isla-nombre" class="isla-nombre"></div>
+    <div id="ruta-linea" class="ruta-linea"></div>
+    
+    <map name="mapa-op">
+    <area shape="rect" coords="620,35,655,65" alt="Cozia" 
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=50" data-nombre="Cozia">
+
+    <area shape="rect" coords="570,200,630,240" alt="Polestar" 
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=48" data-nombre="Polestar">
+    
+    <area shape="rect" coords="660,90,710,140" alt="Conomi"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=47" data-nombre="Conomi">
+    
+    <area shape="rect" coords="676,180,739,229" alt="Oykot"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=51" data-nombre="Oykot">
+    
+    <area shape="rect" coords="741,110,790,166" alt="Islas Gecko"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=45" data-nombre="Islas Gecko">
+    
+    <area shape="rect" coords="120,645,150,675" alt="Baratie"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=42" data-nombre="Baratie">
+    
+    <area shape="rect" coords="787,66,870,109" alt="Organ"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=44" data-nombre="Organ">
+    
+    <area shape="rect" coords="830,110,860,150" alt="Momobami"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=41" data-nombre="Momobami">
+    
+    <area shape="rect" coords="845,220,875,250" alt="Kilombo"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=52" data-nombre="Kilombo">
+    
+    <area shape="rect" coords="913,123,951,162" alt="Demontooth"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=46" data-nombre="Demontooth">
+    
+    <area shape="rect" coords="900,190,940,230" alt="Tequila Wolf"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=49" data-nombre="Tequila Wolf">
+    
+    <area shape="rect" coords="989,111,1002,123" alt="Refugio Goat"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=40" data-nombre="Refugio Goat">
+    
+    <area shape="rect" coords="931,73,962,98" alt="Dawn"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=39" data-nombre="Dawn">
+    
+    <area shape="rect" coords="909,9,968,62" alt="Yotsuba"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=43" data-nombre="Yotsuba">
+    
+    <area shape="rect" coords="868,31,901,79" alt="Rudra"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=53" data-nombre="Rudra">
+    
+    <area shape="rect" coords="431,260,584,474" alt="Reverse Mountain"
+        title="" href="..." data-nombre="Reverse Mountain">
+    
+    <area shape="rect" coords="340,180,410,240" alt="Kuen"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=228" data-nombre="Kuen">
+    
+    <area shape="rect" coords="363,69,426,106" alt="Tortuga"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=250" data-nombre="Tortuga">
+    
+    <area shape="rect" coords="269,25,350,102" alt="Lvneel"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=235" data-nombre="Lvneel">
+    
+    <area shape="rect" coords="191,100,262,130" alt="Swallow"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=251" data-nombre="Swallow">
+    
+    <area shape="rect" coords="185,183,226,228" alt="Flevance"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=249" data-nombre="Flevance">
+    
+    <area shape="rect" coords="120,102,190,155" alt="Ivansk"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=277" data-nombre="Ivansk">
+
+    <area shape="rect" coords="73,179,122,230" alt="Rakesh"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=284" data-nombre="Rakesh">
+    
+    <area shape="rect" coords="63,65,108,144" alt="Skjoldheim"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=215" data-nombre="Skjoldheim">
+    
+    <area shape="rect" coords="80,10,191,40" alt="Polo Norte"
+        title="" href="..." data-nombre="Polo Norte">
+
+    <area shape="rect" coords="240,220,340,140" alt="The Rift"
+        title="" href="..." data-nombre="The Rift">
+    
+    <area shape="rect" coords="20,293,440,449" alt="Gran Line New World"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=22" data-nombre="Gran Line New World">
+    
+    <area shape="rect" coords="573,293,1018,449" alt="Gran Line Paradise"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=21" data-nombre="Gran Line Paradise">
+    
+    <area shape="rect" coords="462,0,561,261" alt="Red Line"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=20" data-nombre="Red Line" data-tipo="muro"></area>
+
+    <area shape="rect" coords="462,476,561,770" alt="Red Line"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=20" data-nombre="Red Line" data-tipo="muro"></area>
+    
+    <area shape="rect" coords="40,268,429,292" alt="Calm Belt"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=14" data-nombre="Calm Belt" data-tipo="muro"></area>
+
+    <area shape="rect" coords="579,268,1000,292" alt="Calm Belt"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=14" data-nombre="Calm Belt" data-tipo="muro"></area>
+    
+    <area shape="rect" coords="40,447,421,473" alt="Calm Belt"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=14" data-nombre="Calm Belt" data-tipo="muro"></area>
+    
+    <area shape="rect" coords="583,447,1000,473" alt="Calm Belt"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=14" data-nombre="Calm Belt" data-tipo="muro"></area> 
+    <area shape="rect" coords="104,500,182,580" alt="Iruburu"
+        title="" href="..." data-nombre="Iruburu">
+    
+    <area shape="rect" coords="230,600,260,630" alt="Archipielago Tako"
+        title="" href="..." data-nombre="Archipielago Tako">
+
+    <area shape="rect" coords="220,480,260,510" alt="Las Camps"
+        title="" href="..." data-nombre="Las Camps">
+    
+    <area shape="rect" coords="293,530,323,570" alt="Ohara"
+        title="" href="..." data-nombre="Ohara">
+
+    <area shape="rect" coords="340,480,380,510" alt="God Valley"
+        title="" href="..." data-nombre="God Valley">
+      
+    <area shape="rect" coords="366,578,417,617" alt="Ballywood"
+        title="" href="..." data-nombre="Ballywood">
+
+    <area shape="rect" coords="330,665,413,728" alt="Kano"
+        title="" href="..." data-nombre="Kano">
+
+    <area shape="rect" coords="220,680,280,740" alt="Eviland"
+        title="" href="..." data-nombre="Eviland">
+
+    <area shape="rect" coords="100,700,150,750" alt="Daiblum"
+        title="" href="..." data-nombre="Daiblum">
+    
+    <area shape="rect" coords="580,600,645,660" alt="Briss"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=317" data-nombre="Briss">
+      
+    <area shape="rect" coords="639,655,700,692" alt="Reino Black Drum"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=352" data-nombre="Reino Black Drum">
+      
+    <area shape="rect" coords="650,720,750,750" alt="Libertalia"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=351" data-nombre="Libertalia">
+      
+    <area shape="rect" coords="776,680,845,712" alt="Isla Kutsukku"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=319" data-nombre="Isla Kutsukku">
+
+    <area shape="rect" coords="930,680,960,750" alt="Reino de Sorbet"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=322" data-nombre="Reino de Sorbet">
+      
+    <area shape="rect" coords="680,521,731,541" alt="Cliff"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=321" data-nombre="Cliff">
+
+    <area shape="rect" coords="762,521,811,541" alt="Bawic"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=353" data-nombre="Bawic">
+
+    <area shape="rect" coords="800,580,890,620" alt="Korinaru"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=320" data-nombre="Korinaru">
+      
+    <area shape="rect" coords="880,497,939,549" alt="Rubeck"
+        title="" href="https://onepiecegaiden.com/forumdisplay.php?fid=318" data-nombre="Rubeck">
+
+
+    <area shape="rect" coords="0,250,40,300" alt="North Blue"
+        title="Haz clic para explorar North Blue" onclick="cambiarMapa('north')" data-nombre="North Blue" data-tipo="blue">
+    <area shape="rect" coords="0,450,40,490" alt="West Blue"
+        title="Haz clic para explorar West Blue" onclick="cambiarMapa('west')" data-nombre="West Blue" data-tipo="blue">
+    <area shape="rect" coords="1000,250,1040,300" alt="East Blue"
+        title="Haz clic para explorar East Blue" onclick="cambiarMapa('east')" data-nombre="East Blue" data-tipo="blue">
+    <area shape="rect" coords="1000,450,1040,490" alt="South Blue"
+        title="Haz clic para explorar South Blue" onclick="cambiarMapa('south')" data-nombre="South Blue" data-tipo="blue">
+    </map>
+  </div>
+  
+  <!-- Mapa North Blue -->
+  <div id="mapa-north" class="mapa-container mapa-blue">
+    <img src="https://onepiecegaiden.com/images/op/uploads/NORTH BLUE (copy).webp" usemap="#mapa-north-blue" class="mapa-image" alt="North Blue">
+    <div id="isla-descripcion-north" class="isla-descripcion"></div>
+  </div>
+  
+  <!-- Mapa West Blue -->
+  <div id="mapa-west" class="mapa-container mapa-blue">
+    <img src="https://onepiecegaiden.com/images/op/uploads/West Blue (TREN).webp" usemap="#mapa-west-blue" class="mapa-image" alt="West Blue">
+    <div id="isla-descripcion-west" class="isla-descripcion"></div>
+  </div>
+
+  <!-- Mapa East Blue -->
+  <div id="mapa-east" class="mapa-container mapa-blue">
+    <img src="https://onepiecegaiden.com/images/op/uploads/EAST BLUE (1).webp" usemap="#mapa-east-blue" class="mapa-image" alt="East Blue">
+    <div id="isla-descripcion-east" class="isla-descripcion"></div>
+  </div>
+
+  <!-- Mapa South Blue -->
+
+  <div id="mapa-south" class="mapa-container mapa-blue">
+    <img src="https://onepiecegaiden.com/images/op/uploads/South blue (1).webp" usemap="#mapa-south-blue" class="mapa-image" alt="South Blue">
+    <div id="isla-descripcion-south" class="isla-descripcion"></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+
+// Variables globales
+var mapaActual = 'principal';
+
+jQuery(document).ready(function($) {
+  
+  // Función para mostrar popup de instrucciones - GLOBAL
+  window.mostrarInstrucciones = function() {
+    $('#popup-instrucciones').fadeIn(300);
+    $('body').css('overflow', 'hidden'); // Prevenir scroll del fondo
+  };
+  
+  // Función para cerrar popup de instrucciones - GLOBAL
+  window.cerrarInstrucciones = function(event) {
+    // Si se pasa un evento y no se hizo clic en el overlay, no cerrar
+    if (event && event.target !== event.currentTarget) {
+      return;
+    }
+    
+    $('#popup-instrucciones').fadeOut(300);
+    $('body').css('overflow', 'auto'); // Restaurar scroll
+  };
+  
+  // Cerrar popup con tecla Escape
+  $(document).keydown(function(e) {
+    if (e.key === 'Escape') {
+      cerrarInstrucciones();
+    }
+  });
+
+  // Función para cambiar entre mapas
+  window.cambiarMapa = function(tipoMapa) {
+    // Ocultar todos los mapas
+    $('.mapa-container').hide();
+    $('.isla-info-panel').hide();
+    
+    // Mostrar el mapa seleccionado
+    $('#mapa-' + tipoMapa).show();
+    
+    // Actualizar botones
+    $('.boton-mapa').removeClass('activo');
+    $('[onclick="cambiarMapa(\'' + tipoMapa + '\')"]').addClass('activo');
+    
+    // Mostrar/ocultar elementos según el tipo de mapa
+    if (tipoMapa === 'principal') {
+      $('#panel-distancia').show();
+    } else {
+      $('#panel-distancia').hide();
+      // Limpiar rutas existentes
+      $('.ruta-linea').remove();
+    }
+    
+    mapaActual = tipoMapa;
+    islaSeleccionada = null;
+    
+    // Inicializar eventos para el nuevo mapa
+    if (tipoMapa !== 'principal') {
+      inicializarMapaBlue(tipoMapa);
+    }
+  };
+  
+  // Función para manejar el zoom
+  function toggleZoom(tipoBlue, coordenadas) {
+    // Función removida - zoom deshabilitado
+  }
+
+  // Función para mostrar información de la isla
+  function mostrarInfoIsla(tipoBlue, area) {
+    var nombre = area.getAttribute('data-nombre');
+    var descripcion = area.getAttribute('data-descripcion');
+    var enlace = area.getAttribute('data-enlace');
+    
+    if (!nombre || !descripcion) return;
+    
+    var panelInfo = $('#mapa-' + tipoBlue).siblings('.isla-info-panel');
+    if (panelInfo.length === 0) {
+      // Crear el panel si no existe
+      panelInfo = $('<div class="isla-info-panel"></div>');
+      $('#mapa-' + tipoBlue).after(panelInfo);
+    }
+    
+    var contenidoHTML = '<button class="cerrar-info" onclick="cerrarInfoIsla(\'' + tipoBlue + '\')">✕</button>';
+    contenidoHTML += '<h3>' + nombre + '</h3>';
+    contenidoHTML += '<p>' + descripcion + '</p>';
+    if (enlace) {
+      contenidoHTML += '<a href="' + enlace + '" target="_blank">Información detallada →</a>';
+    }
+    
+    panelInfo.html(contenidoHTML);
+    panelInfo.show();
+    
+    islaSeleccionada = {
+      nombre: nombre,
+      descripcion: descripcion,
+      enlace: enlace
+    };
+  }
+  
+  // Función para cerrar información de la isla
+  window.cerrarInfoIsla = function(tipoBlue) {
+    $('#mapa-' + tipoBlue).siblings('.isla-info-panel').hide();
+    islaSeleccionada = null;
+  };
+
+  // Función para inicializar mapas de los blues
+  function inicializarMapaBlue(tipoBlue) {
+    var areas = document.querySelectorAll('#mapa-' + tipoBlue + ' area');
+    var descripcionDiv = document.getElementById('isla-descripcion-' + tipoBlue);
+    var mapaContainer = document.getElementById('mapa-' + tipoBlue);
+        
+    // Función para actualizar la posición del tooltip
+    function updatePositionBlue(e) {
+      var rect = mapaContainer.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      
+      descripcionDiv.style.left = (x + 15) + 'px';
+      descripcionDiv.style.top = (y + 15) + 'px';
+    }
+    
+    // Agregar eventos a cada área
+    for (var i = 0; i < areas.length; i++) {
+      var area = areas[i];
+      
+      area.onmouseover = function(e) {
+        var nombre = this.getAttribute('data-nombre');
+        var descripcion = this.getAttribute('data-descripcion');
+        var enlace = this.getAttribute('data-enlace');
+        
+        var contenidoHTML = '<h3>' + nombre + '</h3>';
+        contenidoHTML += '<p>' + descripcion + '</p>';
+        if (enlace) {
+          contenidoHTML += '<a href="' + enlace + '" target="_blank"></a>';
+        }
+        
+        descripcionDiv.innerHTML = contenidoHTML;
+        descripcionDiv.style.display = 'block';
+        updatePositionBlue(e);
+      };
+      
+      area.onmousemove = function(e) {
+        updatePositionBlue(e);
+      };
+      
+      area.onmouseout = function() {
+        descripcionDiv.style.display = 'none';
+      };
+      
+      // Manejar clic simple para mostrar información
+      area.onclick = function(e) {
+        e.preventDefault();
+        
+        // Mostrar información de la isla
+        mostrarInfoIsla(tipoBlue, this);
+        
+        // Ocultar tooltip
+        descripcionDiv.style.display = 'none';
+        
+        // Si hay Ctrl+clic, abrir enlace
+        var enlace = this.getAttribute('data-enlace');
+        if (enlace && e.ctrlKey) {
+          window.open(enlace, '_blank');
+        }
+      };
+    }
+  }
+  
+  // Código existente del mapa principal
+  var areas = document.querySelectorAll('#mapa-principal area');
+  var nombreDiv = document.getElementById('isla-nombre');
+  var mapaContainer = document.querySelector('#mapa-principal');
+  var rutaLinea = document.getElementById('ruta-linea');
+  var selectOrigen = document.getElementById('isla-origen');
+  var selectDestino = document.getElementById('isla-destino');
+  var selectVelocidad = document.getElementById('velocidad-barco');
+  var resultadoViaje = document.getElementById('resultado-viaje');
+  var imagenMapa = mapaContainer.querySelector('.mapa-image');
+  
+// Factor de conversión para calcular tiempos
+var FACTOR_CONVERSION = 1.7;
+  
+// Objeto para almacenar datos de las islas
+var islas = {};
+// Objeto para almacenar datos de los muros
+var muros = [];
+var mapaWidth = 0;
+
+// Sistema de trenes - Conexiones entre islas
+// Cada conexión toma 16 horas de viaje
+var conexionesTren = {
+  'Briss': ['Ballywood'],
+  'Ballywood': ['Briss', 'Eviland', 'Archipielago Tako'],
+  'Eviland': ['Ballywood', 'Archipielago Tako'],
+  'Archipielago Tako': ['Eviland', 'Ballywood']
+};
+
+// Función para verificar si existe ruta de tren entre dos islas
+function encontrarRutaTren(origen, destino) {
+  if (!conexionesTren[origen] || !conexionesTren[destino]) {
+    return null;
+  }
+  
+  // BFS para encontrar la ruta más corta
+  var cola = [[origen]];
+  var visitados = new Set([origen]);
+  
+  while (cola.length > 0) {
+    var rutaActual = cola.shift();
+    var ultimaIsla = rutaActual[rutaActual.length - 1];
+    
+    if (ultimaIsla === destino) {
+      return rutaActual;
+    }
+    
+    var conexiones = conexionesTren[ultimaIsla] || [];
+    for (var i = 0; i < conexiones.length; i++) {
+      var vecino = conexiones[i];
+      if (!visitados.has(vecino)) {
+        visitados.add(vecino);
+        var nuevaRuta = rutaActual.slice();
+        nuevaRuta.push(vecino);
+        cola.push(nuevaRuta);
+      }
+    }
+  }
+  
+  return null;
+}
+
+// Función para calcular tiempo de viaje en tren
+function calcularTiempoTren(ruta) {
+  // Cada tramo entre islas son 16 horas
+  var numeroTramos = ruta.length - 1;
+  return numeroTramos * 16;
+}
+
+// Esperar a que la imagen se cargue para tener dimensiones correctas
+imagenMapa.onload = function() {
+  mapaWidth = imagenMapa.naturalWidth;
+  inicializarMapa();
+};
+
+// Si la imagen ya está cargada en caché
+if (imagenMapa.complete) {
+  mapaWidth = imagenMapa.naturalWidth || 1200; // Valor por defecto si no está disponible
+  inicializarMapa();
+}
+
+// Función para actualizar la posición del tooltip
+function updatePosition(e) {
+  var rect = mapaContainer.getBoundingClientRect();
+  var x = e.clientX - rect.left;
+  var y = e.clientY - rect.top;
+  
+  nombreDiv.style.left = (x + 15) + 'px';
+  nombreDiv.style.top = (y + 15) + 'px';
+}
+
+// Función para comprobar si una línea interseca con un rectángulo
+function intersecaConMuro(x1, y1, x2, y2, muro) {
+  // Extraer coordenadas del muro
+  var rx1 = muro.x1;
+  var ry1 = muro.y1;
+  var rx2 = muro.x2;
+  var ry2 = muro.y2;
+  
+  // Comprobar si la línea cruza alguno de los bordes del rectángulo
+  // Algoritmo de Cohen-Sutherland para recortar líneas
+  
+  // Primero verificamos si la línea está completamente fuera del rectángulo
+  if ((x1 < rx1 && x2 < rx1) || (x1 > rx2 && x2 > rx2) || 
+      (y1 < ry1 && y2 < ry1) || (y1 > ry2 && y2 > ry2)) {
+    return false;
+  }
+  
+  // Verificamos si alguno de los puntos está dentro del rectángulo
+  if ((x1 >= rx1 && x1 <= rx2 && y1 >= ry1 && y1 <= ry2) ||
+      (x2 >= rx1 && x2 <= rx2 && y2 >= ry1 && y2 <= ry2)) {
+    return true;
+  }
+  
+  // Verificamos si la línea cruza alguno de los bordes del rectángulo
+  // Para cada borde del rectángulo, calculamos la intersección con la línea
+  // Borde superior: y = ry1
+  var t1 = (ry1 - y1) / (y2 - y1);
+  if (t1 >= 0 && t1 <= 1) {
+    var xi = x1 + t1 * (x2 - x1);
+    if (xi >= rx1 && xi <= rx2) return true;
+  }
+  
+  // Borde inferior: y = ry2
+  var t2 = (ry2 - y1) / (y2 - y1);
+  if (t2 >= 0 && t2 <= 1) {
+    var xi = x1 + t2 * (x2 - x1);
+    if (xi >= rx1 && xi <= rx2) return true;
+  }
+  
+  // Borde izquierdo: x = rx1
+  var t3 = (rx1 - x1) / (x2 - x1);
+  if (t3 >= 0 && t3 <= 1) {
+    var yi = y1 + t3 * (y2 - y1);
+    if (yi >= ry1 && yi <= ry2) return true;
+  }
+  
+  // Borde derecho: x = rx2
+  var t4 = (rx2 - x1) / (x2 - x1);
+  if (t4 >= 0 && t4 <= 1) {
+    var yi = y1 + t4 * (y2 - y1);
+    if (yi >= ry1 && yi <= ry2) return true;
+  }
+  
+  return false;
+}
+
+// Función para dibujar la línea de ruta entre dos islas
+function dibujarRuta(puntos, esTren) {
+  // Limpiar líneas anteriores
+  $('.ruta-linea').remove();
+  
+  // Obtener la imagen y calcular la escala actual
+  var imagenWidth = imagenMapa.offsetWidth;
+  var escalaActual = imagenWidth / mapaWidth;
+  
+  // CAMBIO PRINCIPAL: Siempre retornar la distancia directa
+  var distanciaDirecta = Math.sqrt(
+    Math.pow(puntos[puntos.length-1].x - puntos[0].x, 2) + 
+    Math.pow(puntos[puntos.length-1].y - puntos[0].y, 2)
+  );
+  
+  // Si tenemos solo 2 puntos, dibujamos una línea recta
+  if (puntos.length === 2) {
+    var x1 = puntos[0].x * escalaActual * 4;
+    var y1 = puntos[0].y * escalaActual * 4;
+    var x2 = puntos[1].x * escalaActual * 4;
+    var y2 = puntos[1].y * escalaActual * 4;
+    
+    // Calcular distancia del segmento para el dibujo
+    var distancia = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    
+    // Calcular ángulo de la línea
+    var angulo = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+    
+    // Crear una nueva línea para este segmento
+    var lineaSegmento = document.createElement('div');
+    lineaSegmento.className = 'ruta-linea';
+    if (esTren) {
+      lineaSegmento.className += ' tren';
+    }
+    lineaSegmento.style.width = distancia + 'px';
+    lineaSegmento.style.left = x1 + 'px';
+    lineaSegmento.style.top = y1 + 'px';
+    lineaSegmento.style.transform = 'rotate(' + angulo + 'deg)';
+    lineaSegmento.style.display = 'block';
+    
+    // Agregar la línea al contenedor
+    mapaContainer.appendChild(lineaSegmento);
+    
+    // Retornar la distancia directa (no cambia para líneas rectas)
+    return distanciaDirecta;
+  }
+  // Si hay más de 2 puntos, dibujamos una curva PERO retornamos distancia directa
+  else if (puntos.length > 2) {
+    // Generar una curva suave a través de los puntos SOLO PARA VISUALIZACIÓN
+    var puntosCurva = generarPuntosCurva(puntos);
+    
+    // Dibujar la curva como una serie de pequeños segmentos
+    for (var i = 0; i < puntosCurva.length - 1; i++) {
+      var x1 = puntosCurva[i].x * escalaActual * 4;
+      var y1 = puntosCurva[i].y * escalaActual * 4;
+      var x2 = puntosCurva[i+1].x * escalaActual * 4;
+      var y2 = puntosCurva[i+1].y * escalaActual * 4;
+      
+      // Calcular distancia del segmento para el dibujo
+      var distanciaSegmento = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      
+      // Calcular ángulo de la línea
+      var angulo = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+      
+      // Crear una nueva línea para este segmento
+      var lineaSegmento = document.createElement('div');
+      lineaSegmento.className = 'ruta-linea';
+      if (esTren) {
+        lineaSegmento.className += ' tren';
+      }
+      lineaSegmento.style.width = distanciaSegmento + 'px';
+      lineaSegmento.style.left = x1 + 'px';
+      lineaSegmento.style.top = y1 + 'px';
+      lineaSegmento.style.transform = 'rotate(' + angulo + 'deg)';
+      lineaSegmento.style.display = 'block';
+      
+      // Agregar la línea al contenedor
+      mapaContainer.appendChild(lineaSegmento);
+    }
+    
+    // CAMBIO PRINCIPAL: Retornar siempre la distancia directa para cálculos de tiempo
+    return distanciaDirecta;
+  }
+  
+  return 0;
+}
+
+// Función mejorada para generar puntos intermedios que formen una curva suave
+function generarPuntosCurva(puntos) {
+  // Si hay menos de 3 puntos, no necesitamos una curva compleja
+  if (puntos.length < 6) return puntos;
+  
+  var puntosCurva = [];
+  var numPuntosIntermedios = 200; // Aumentado para curvas más suaves
+  
+  // Factor de tensión para controlar cuánto se curva la línea
+  var tension = 0; // Valor entre 0 y 1, valores más altos = curvas más pronunciadas
+  
+  // Duplicar el primer y último punto para los cálculos de la curva
+  var puntosAmpliados = [puntos[0]].concat(puntos).concat([puntos[puntos.length - 1]]);
+  
+  // Para cada segmento entre puntos
+  for (var i = 0; i < puntosAmpliados.length - 3; i++) {
+    var p0 = puntosAmpliados[i];
+    var p1 = puntosAmpliados[i + 1];
+    var p2 = puntosAmpliados[i + 2];
+    var p3 = puntosAmpliados[i + 3];
+    
+    // Si es el primer segmento, añadir el punto inicial
+    if (i === 0) {
+      puntosCurva.push(p1);
+    }
+    
+    // Generar puntos de la curva usando la interpolación Catmull-Rom
+    for (var j = 1; j <= numPuntosIntermedios; j++) {
+      var t = j / numPuntosIntermedios;
+      var punto = calcularPuntoCatmullRom(p0, p1, p2, p3, t, tension);
+      puntosCurva.push(punto);
+    }
+    
+    // Si es el último segmento, añadir el punto final
+    if (i === puntosAmpliados.length - 4) {
+      puntosCurva.push(p2);
+    }
+  }
+  
+  return puntosCurva;
+}
+
+// Función para calcular un punto de desvío alrededor de una isla - Mejorada
+function calcularPuntoDesvio(x1, y1, x2, y2, isla) {
+    // Aumentar la distancia de desvío alrededor de las islas
+    var distanciaDesvio = 40; // Aumentado de 20 a 40 para curvas más amplias
+    
+    // Calcular puntos de desvío más alejados de la isla
+    var puntos = [
+      { x: isla.x, y: isla.y1 - distanciaDesvio }, // Arriba
+      { x: isla.x, y: isla.y2 + distanciaDesvio }, // Abajo
+      { x: isla.x1 - distanciaDesvio, y: isla.y }, // Izquierda
+      { x: isla.x2 + distanciaDesvio, y: isla.y }  // Derecha
+    ];
+    
+    // Añadir puntos diagonales para más opciones de desvío
+    puntos.push({ x: isla.x1 - distanciaDesvio*0.7, y: isla.y1 - distanciaDesvio*0.7 }); // Arriba-Izquierda
+    puntos.push({ x: isla.x2 + distanciaDesvio*0.7, y: isla.y1 - distanciaDesvio*0.7 }); // Arriba-Derecha
+    puntos.push({ x: isla.x1 - distanciaDesvio*0.7, y: isla.y2 + distanciaDesvio*0.7 }); // Abajo-Izquierda
+    puntos.push({ x: isla.x2 + distanciaDesvio*0.7, y: isla.y2 + distanciaDesvio*0.7 }); // Abajo-Derecha
+    
+    // Encontrar el punto que minimiza la distancia total del viaje
+    var distanciaMinima = Infinity;
+    var mejorPunto = null;
+    
+    for (var i = 0; i < puntos.length; i++) {
+      var punto = puntos[i];
+      
+      // Calcular distancia total de la ruta con este desvío
+      var dist1 = Math.sqrt(Math.pow(punto.x - x1, 2) + Math.pow(punto.y - y1, 2));
+      var dist2 = Math.sqrt(Math.pow(punto.x - x2, 2) + Math.pow(punto.y - y2, 2));
+      var distanciaTotal = dist1 + dist2;
+      
+      // Verificar si este desvío cruza otras islas
+      var cruceMuro = false;
+      for (var j = 0; j < muros.length; j++) {
+        if (intersecaConMuro(x1, y1, punto.x, punto.y, muros[j]) || 
+            intersecaConMuro(punto.x, punto.y, x2, y2, muros[j])) {
+          cruceMuro = true;
+          break;
+        }
+      }
+      
+      if (!cruceMuro && distanciaTotal < distanciaMinima) {
+        distanciaMinima = distanciaTotal;
+        mejorPunto = punto;
+      }
+    }
+    
+    return mejorPunto;
+  }
+
+// Implementación de interpolación Catmull-Rom para obtener curvas suaves
+function calcularPuntoCatmullRom(p0, p1, p2, p3, t, tension) {
+  var t2 = t * t;
+  var t3 = t2 * t;
+  
+  // Aplicar factor de tensión a los coeficientes
+  var s = (1 - tension) / 2;
+  
+  // Coeficientes para Catmull-Rom
+  var b1 = s * ((-t3 + 2*t2 - t) * (p0.x) + (3*t3 - 5*t2 + 2) * (p1.x) + (-3*t3 + 4*t2 + t) * (p2.x) + (t3 - t2) * (p3.x));
+  var b2 = s * ((-t3 + 2*t2 - t) * (p0.y) + (3*t3 - 5*t2 + 2) * (p1.y) + (-3*t3 + 4*t2 + t) * (p2.y) + (t3 - t2) * (p3.y));
+  
+  return { x: b1, y: b2 };
+}
+
+// Función mejorada para comprobar si una línea interseca con un rectángulo
+function intersecaConMuro(x1, y1, x2, y2, muro) {
+  // Extraer coordenadas del muro
+  var rx1 = muro.x1;
+  var ry1 = muro.y1;
+  var rx2 = muro.x2;
+  var ry2 = muro.y2;
+  
+  // Función para verificar si un punto está dentro del rectángulo
+  function puntoEnRectangulo(x, y) {
+    return (x >= rx1 && x <= rx2 && y >= ry1 && y <= ry2);
+  }
+  
+  // Si algún punto está dentro del rectángulo, hay intersección
+  if (puntoEnRectangulo(x1, y1) || puntoEnRectangulo(x2, y2)) {
+    return true;
+  }
+  
+  // Verificar intersección con cada lado del rectángulo
+  // Definir los cuatro lados del rectángulo
+  var lados = [
+    {x1: rx1, y1: ry1, x2: rx2, y2: ry1}, // Superior
+    {x1: rx1, y1: ry2, x2: rx2, y2: ry2}, // Inferior
+    {x1: rx1, y1: ry1, x2: rx1, y2: ry2}, // Izquierdo
+    {x1: rx2, y1: ry1, x2: rx2, y2: ry2}  // Derecho
+  ];
+  
+  // Función para verificar si dos segmentos de línea se intersectan
+  function segmentosIntersectan(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1, l2x2, l2y2) {
+    // Cálculo de orientaciones
+    function orientacion(px, py, qx, qy, rx, ry) {
+      var val = (qy - py) * (rx - qx) - (qx - px) * (ry - qy);
+      if (val === 0) return 0;  // Colineales
+      return (val > 0) ? 1 : 2; // Horario o antihorario
+    }
+    
+    // Verificar si el punto (px,py) está en el segmento (p1x,p1y)-(p2x,p2y)
+    function enSegmento(p1x, p1y, p2x, p2y, px, py) {
+      return px >= Math.min(p1x, p2x) && px <= Math.max(p1x, p2x) &&
+             py >= Math.min(p1y, p2y) && py <= Math.max(p1y, p2y);
+    }
+    
+    var o1 = orientacion(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1);
+    var o2 = orientacion(l1x1, l1y1, l1x2, l1y2, l2x2, l2y2);
+    var o3 = orientacion(l2x1, l2y1, l2x2, l2y2, l1x1, l1y1);
+    var o4 = orientacion(l2x1, l2y1, l2x2, l2y2, l1x2, l1y2);
+    
+    // Caso general
+    if (o1 !== o2 && o3 !== o4) return true;
+    
+    // Casos especiales para puntos colineales
+    if (o1 === 0 && enSegmento(l1x1, l1y1, l1x2, l1y2, l2x1, l2y1)) return true;
+    if (o2 === 0 && enSegmento(l1x1, l1y1, l1x2, l1y2, l2x2, l2y2)) return true;
+    if (o3 === 0 && enSegmento(l2x1, l2y1, l2x2, l2y2, l1x1, l1y1)) return true;
+    if (o4 === 0 && enSegmento(l2x1, l2y1, l2x2, l2y2, l1x2, l1y2)) return true;
+    
+    return false;
+  }
+  
+  // Verificar si la línea interseca con alguno de los lados del rectángulo
+  for (var i = 0; i < lados.length; i++) {
+    var lado = lados[i];
+    if (segmentosIntersectan(x1, y1, x2, y2, lado.x1, lado.y1, lado.x2, lado.y2)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+// Función para calcular el centro del área según el tipo de forma - CORREGIDA
+function calcularCentro(coords, shape) {
+  if (shape === 'rect') {
+    return {
+      x: (coords[0] + coords[2]) / 2,
+      y: (coords[1] + coords[3]) / 2
+    };
+  } else if (shape === 'circle') {
+    return {
+      x: coords[0],
+      y: coords[1]
+    };
+  } else if (shape === 'poly') {
+    var sumX = 0, sumY = 0;
+    for (var k = 0; k < coords.length; k += 2) {
+      sumX += coords[k];
+      sumY += coords[k + 1];
+    }
+    return {
+      x: sumX / (coords.length / 2),
+      y: sumY / (coords.length / 2)
+    };
+  }
+  return null;
+}
+
+// Modificación de la función inicializarMapa
+function inicializarMapa() {
+    // Procesar cada área del mapa
+    for (var i = 0; i < areas.length; i++) {
+      var area = areas[i];
+      var nombre = area.getAttribute('data-nombre');
+      var esMuro = area.getAttribute('data-tipo') === 'muro';
+      var esBlue = area.getAttribute('data-tipo') === 'blue';
+      
+      if (!nombre) continue;
+      
+      // Obtener coordenadas del área
+      var coords = area.getAttribute('coords').split(',');
+      for (var j = 0; j < coords.length; j++) {
+        coords[j] = parseInt(coords[j]);
+      }
+      
+      var shape = area.getAttribute('shape');
+      var centro = calcularCentro(coords, shape);
+      
+      if (centro) {
+        centro.esMuro = esMuro;
+        centro.esBlue = esBlue;
+        
+        // Guardar también las coordenadas del rectángulo para todas las islas
+        if (shape === 'rect') {
+          centro.x1 = coords[0];
+          centro.y1 = coords[1];
+          centro.x2 = coords[2];
+          centro.y2 = coords[3];
+        }
+        
+        // Guardar datos de la isla
+        islas[nombre] = centro;
+        
+        // Si es un muro, guardar sus coordenadas para verificación de intersección
+        if (esMuro) {
+          muros.push({
+            nombre: nombre,
+            x1: coords[0],
+            y1: coords[1],
+            x2: coords[2],
+            y2: coords[3]
+          });
+        }
+      }
+    
+      // No agregar muros ni blues a los selectores
+      if (!esMuro && !esBlue) {
+        // Añadir opciones a los selectores
+        var optionOrigen = document.createElement('option');
+        optionOrigen.value = nombre;
+        optionOrigen.textContent = nombre;
+        selectOrigen.appendChild(optionOrigen);
+        
+        var optionDestino = document.createElement('option');
+        optionDestino.value = nombre;
+        optionDestino.textContent = nombre;
+        selectDestino.appendChild(optionDestino);
+      }
+      
+      // Añadir eventos mouseover/mouseout para mostrar nombre (solo en mapa principal)
+      if (!esBlue) {
+        area.onmouseover = function(e) {
+          nombreDiv.textContent = this.getAttribute('data-nombre');
+          nombreDiv.style.display = 'block';
+          updatePosition(e);
+        };
+        
+        area.onmousemove = updatePosition;
+        
+        area.onmouseout = function() {
+          nombreDiv.style.display = 'none';
+        };
+      }
+    }
+
+    // Manejar clics en el mapa principal
+    $(mapaContainer).on('click', 'area', function(e) {
+    
+      var esBlue = $(this).attr('data-tipo') === 'blue';
+      
+      // Si es un blue, el evento onclick ya se encarga de cambiar el mapa
+      if (esBlue) {
+        return;
+      }
+      e.preventDefault();
+      
+      var nombreIsla = $(this).attr('data-nombre');
+      var esMuro = $(this).attr('data-tipo') === 'muro';
+      var url = $(this).attr('href');
+      
+      if (e.ctrlKey && url) {
+        window.location.href = url;
+        return;
+      }
+      
+      if (e.detail === 2 && url) {
+        window.location.href = url;
+        return;
+      }
+      
+      if (esMuro) {
+        resultadoViaje.textContent = 'No puedes navegar hacia o desde ' + nombreIsla;
+        resultadoViaje.className = 'resultado-viaje error-ruta';
+        return;
+      }
+      
+      // Lógica de selección de islas para rutas
+      if (!selectOrigen.value) {
+        selectOrigen.value = nombreIsla;
+        calcularRuta();
+      } else if (!selectDestino.value) {
+        selectDestino.value = nombreIsla;
+        calcularRuta();
+      } else {
+        selectOrigen.value = nombreIsla;
+        selectDestino.value = '';
+        rutaLinea.style.display = 'none';
+        resultadoViaje.textContent = 'Selecciona isla de destino';
+        resultadoViaje.className = 'resultado-viaje';
+      }
+    });
+  }
+
+// Agregar función para encontrar islas que intersectan con la ruta
+function encontrarIslasEnRuta(x1, y1, x2, y2, nombreOrigen, nombreDestino) {
+    var islasEnRuta = [];
+    
+    for (var nombre in islas) {
+      // Ignorar islas de origen y destino, y los muros (que ya se verifican por separado)
+      if (nombre === nombreOrigen || nombre === nombreDestino || islas[nombre].esMuro) {
+        continue;
+      }
+      
+      // Verificar si la isla tiene coordenadas de rectángulo definidas
+      var isla = islas[nombre];
+      if (isla.x1 && isla.y1 && isla.x2 && isla.y2) {
+        if (intersecaConMuro(x1, y1, x2, y2, {
+          x1: isla.x1,
+          y1: isla.y1,
+          x2: isla.x2,
+          y2: isla.y2
+        })) {
+          islasEnRuta.push({
+            nombre: nombre,
+            x1: isla.x1,
+            y1: isla.y1,
+            x2: isla.x2,
+            y2: isla.y2,
+            x: isla.x,
+            y: isla.y
+          });
+        }
+      }
+    }
+    
+    return islasEnRuta;
+  }
+
+// Función para calcular un punto de desvío alrededor de una isla
+function calcularPuntoDesvio(x1, y1, x2, y2, isla) {
+    // Calcular 4 posibles puntos de desvío (arriba, abajo, izquierda, derecha de la isla)
+    var puntos = [
+      { x: isla.x, y: isla.y1 - 20 }, // Arriba
+      { x: isla.x, y: isla.y2 + 20 }, // Abajo
+      { x: isla.x1 - 20, y: isla.y }, // Izquierda
+      { x: isla.x2 + 20, y: isla.y }  // Derecha
+    ];
+    
+    // Encontrar el punto que minimiza la distancia total del viaje
+    var distanciaMinima = Infinity;
+    var mejorPunto = null;
+    
+    for (var i = 0; i < puntos.length; i++) {
+      var punto = puntos[i];
+      
+      // Calcular distancia total de la ruta con este desvío
+      var dist1 = Math.sqrt(Math.pow(punto.x - x1, 2) + Math.pow(punto.y - y1, 2));
+      var dist2 = Math.sqrt(Math.pow(punto.x - x2, 2) + Math.pow(punto.y - y2, 2));
+      var distanciaTotal = dist1 + dist2;
+      
+      // Verificar si este desvío cruza otras islas
+      var cruceMuro = false;
+      for (var j = 0; j < muros.length; j++) {
+        if (intersecaConMuro(x1, y1, punto.x, punto.y, muros[j]) || 
+            intersecaConMuro(punto.x, punto.y, x2, y2, muros[j])) {
+          cruceMuro = true;
+          break;
+        }
+      }
+      
+      if (!cruceMuro && distanciaTotal < distanciaMinima) {
+        distanciaMinima = distanciaTotal;
+        mejorPunto = punto;
+      }
+    }
+    
+    return mejorPunto;
+  }
+  
+  // Función para calcular la ruta con desvíos
+  function calcularRutaConDesvios(origen, destino, nombreOrigen, nombreDestino) {
+  var puntosRuta = [];
+  
+  // Añadir el punto de origen
+  puntosRuta.push({ x: origen.x, y: origen.y });
+  
+  // Encontrar islas que intersectan con la ruta directa
+  var islasEnRuta = encontrarIslasEnRuta(origen.x, origen.y, destino.x, destino.y, nombreOrigen, nombreDestino);
+  
+  if (islasEnRuta.length > 0) {
+    console.log("Islas en la ruta:", islasEnRuta);
+    
+    // Ordenar las islas de la más cercana al origen a la más cercana al destino
+    islasEnRuta.sort(function(a, b) {
+      var distA = Math.sqrt(Math.pow(a.x - origen.x, 2) + Math.pow(a.y - origen.y, 2));
+      var distB = Math.sqrt(Math.pow(b.x - origen.x, 2) + Math.pow(b.y - origen.y, 2));
+      return distA - distB;
+    });
+    
+    // Para cada isla, encontrar un punto de desvío óptimo
+    var ultimoPunto = puntosRuta[0];
+    for (var i = 0; i < islasEnRuta.length; i++) {
+      var isla = islasEnRuta[i];
+      
+      // Calcular punto de desvío alrededor de esta isla
+      var puntoDesvio = encontrarMejorPuntoDesvio(ultimoPunto.x, ultimoPunto.y, destino.x, destino.y, isla, islasEnRuta);
+      
+      if (puntoDesvio) {
+        puntosRuta.push(puntoDesvio);
+        ultimoPunto = puntoDesvio;
+      }
+    }
+  }
+  
+  // Añadir el punto de destino
+  puntosRuta.push({ x: destino.x, y: destino.y });
+  
+  return puntosRuta;
+}
+
+function encontrarMejorPuntoDesvio(x1, y1, x2, y2, isla, todasIslas) {
+  // Aumentar significativamente la distancia de desvío para curvas más suaves y amplias
+  var distanciaDesvio = 80; // Valor mucho mayor para curvas más amplias
+  
+  // Generar múltiples puntos potenciales alrededor de la isla
+  var candidatos = [];
+  
+  // Generar puntos alrededor de la isla con diferentes distancias
+  for (var angulo = 0; angulo < 360; angulo += 45) {
+    var radianes = angulo * Math.PI / 180;
+    
+    // Calcular punto a una distancia del centro de la isla
+    var px = isla.x + Math.cos(radianes) * distanciaDesvio;
+    var py = isla.y + Math.sin(radianes) * distanciaDesvio;
+    
+    // Añadir el punto como candidato
+    candidatos.push({ x: px, y: py });
+  }
+  
+  // Encontrar el mejor punto entre los candidatos
+  var mejorPunto = null;
+  var menorDistanciaTotal = Infinity;
+  
+  for (var i = 0; i < candidatos.length; i++) {
+    var punto = candidatos[i];
+    
+    // Comprobar si el punto candidato cruza alguna isla o muro
+    var hayColision = false;
+    
+    // Comprobar colisión con muros
+    for (var j = 0; j < muros.length; j++) {
+      if (intersecaConMuro(x1, y1, punto.x, punto.y, muros[j]) || 
+          intersecaConMuro(punto.x, punto.y, x2, y2, muros[j])) {
+        hayColision = true;
+        break;
+      }
+    }
+    
+    // Comprobar colisión con otras islas
+    if (!hayColision) {
+      for (var j = 0; j < todasIslas.length; j++) {
+        var otraIsla = todasIslas[j];
+        if (otraIsla.nombre === isla.nombre) continue; // Omitir la isla actual
+        
+        if (intersecaConMuro(x1, y1, punto.x, punto.y, otraIsla) || 
+            intersecaConMuro(punto.x, punto.y, x2, y2, otraIsla)) {
+          hayColision = true;
+          break;
+        }
+      }
+    }
+    
+    if (!hayColision) {
+      // Calcular distancia total de la ruta pasando por este punto
+      var dist1 = Math.sqrt(Math.pow(punto.x - x1, 2) + Math.pow(punto.y - y1, 2));
+      var dist2 = Math.sqrt(Math.pow(punto.x - x2, 2) + Math.pow(punto.y - y2, 2));
+      var distanciaTotal = dist1 + dist2;
+      
+      // Usar un factor de penalización para favorecer rutas más directas
+      var distanciaDirecta = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      var factorDirecto = distanciaTotal / distanciaDirecta;
+      
+      // Ajustar la puntuación según lo directo que sea el desvío
+      var puntuacion = distanciaTotal * (1 + (factorDirecto - 1) * 0.5);
+      
+      if (puntuacion < menorDistanciaTotal) {
+        menorDistanciaTotal = puntuacion;
+        mejorPunto = punto;
+      }
+    }
+  }
+  
+  return mejorPunto;
+}
+
+// Función para calcular la ruta entre dos islas
+function calcularRuta() {
+    var nombreOrigen = selectOrigen.value;
+    var nombreDestino = selectDestino.value;
+    
+    // Ocultar línea si no hay dos islas seleccionadas
+    if (!nombreOrigen || !nombreDestino) {
+      $('.ruta-linea').remove();
+      return;
+    }
+    
+    var origen = islas[nombreOrigen];
+    var destino = islas[nombreDestino];
+    
+    if (!origen || !destino) {
+      resultadoViaje.textContent = 'Error al encontrar las islas seleccionadas';
+      resultadoViaje.className = 'resultado-viaje error-ruta';
+      return;
+    }
+    
+    // Verificar tipo de transporte seleccionado
+    var selectTransporte = document.getElementById('tipo-transporte');
+    var tipoTransporte = selectTransporte ? selectTransporte.value : 'barco';
+    
+    // Si se selecciona tren, verificar si hay ruta disponible
+    if (tipoTransporte === 'tren') {
+      var rutaTren = encontrarRutaTren(nombreOrigen, nombreDestino);
+      
+      if (rutaTren) {
+        // Calcular tiempo de viaje en tren
+        var tiempoTren = calcularTiempoTren(rutaTren);
+        
+        // Construir mensaje de ruta
+        var rutaTexto = rutaTren.join(' → ');
+        var dias = Math.floor(tiempoTren / 24);
+        var horas = tiempoTren % 24;
+        
+        var mensajeTiempo = '';
+        if (dias > 0) {
+          mensajeTiempo = dias + (dias === 1 ? ' día' : ' días');
+          if (horas > 0) {
+            mensajeTiempo += ' y ' + horas + (horas === 1 ? ' hora' : ' horas');
+          }
+        } else {
+          mensajeTiempo = horas + (horas === 1 ? ' hora' : ' horas');
+        }
+        
+        var numeroParadas = rutaTren.length - 2; // Excluir origen y destino
+        var mensajeParadas = numeroParadas > 0 ? ' | Paradas: ' + numeroParadas : ' | Ruta directa';
+        
+        resultadoViaje.textContent = 'Tren - ' + rutaTexto + ': ' + mensajeTiempo + mensajeParadas;
+        resultadoViaje.className = 'resultado-viaje';
+        
+        // Dibujar la ruta del tren en el mapa
+        var puntosRutaTren = [];
+        for (var i = 0; i < rutaTren.length; i++) {
+          var isla = islas[rutaTren[i]];
+          if (isla) {
+            puntosRutaTren.push({ x: isla.x, y: isla.y });
+          }
+        }
+        dibujarRuta(puntosRutaTren, true); // true indica que es una ruta de tren
+        
+        return;
+      } else {
+        resultadoViaje.textContent = 'No hay conexión de tren entre ' + nombreOrigen + ' y ' + nombreDestino + '. Mostrando ruta por barco.';
+        resultadoViaje.className = 'resultado-viaje error-ruta';
+        // Continuar con cálculo de ruta por barco
+        tipoTransporte = 'barco';
+      }
+    }
+    
+    // Ruta por barco (código original)
+    // Verificar si la ruta cruza algún muro
+    var rutaBloqueada = false;
+    var muroColisionado = '';
+    
+    for (var i = 0; i < muros.length; i++) {
+      if (intersecaConMuro(origen.x, origen.y, destino.x, destino.y, muros[i])) {
+        rutaBloqueada = true;
+        muroColisionado = muros[i].nombre;
+        break;
+      }
+    }
+    
+    if (rutaBloqueada) {
+      resultadoViaje.textContent = 'La ruta está bloqueada por: ' + muroColisionado;
+      resultadoViaje.className = 'resultado-viaje error-ruta';
+      $('.ruta-linea').remove();
+      return;
+    }
+    
+    // Calcular ruta con desvíos si hay islas en el camino
+    var puntosRuta = calcularRutaConDesvios(origen, destino, nombreOrigen, nombreDestino);
+    
+    // Calcular distancia y dibujar ruta (false indica que NO es tren)
+    var distancia = dibujarRuta(puntosRuta, false);
+    
+    // Obtener reducción de tiempo según el barco seleccionado
+    var valorSeleccionado = selectVelocidad.value;
+    var porcentajeBarco = 0;
+    var tipoBarco = '';
+    
+    if (valorSeleccionado === 'custom') {
+      var customInput = document.getElementById('custom-reduccion');
+      porcentajeBarco = parseInt(customInput.value) || 0;
+      tipoBarco = 'Custom';
+    } else {
+      porcentajeBarco = parseInt(valorSeleccionado) || 0;
+      // Obtener solo el nombre del barco, sin la reducción
+      var optionSeleccionada = selectVelocidad.options[selectVelocidad.selectedIndex];
+      var textoCompleto = optionSeleccionada.text;
+      // Extraer solo el nombre hasta el primer paréntesis o guión
+      tipoBarco = textoCompleto.split(' (')[0].split(' -')[0];
+    }
+    
+    // Obtener reducción de tiempo según el navegante seleccionado
+    var selectNavegante = document.getElementById('navegante-nivel');
+    var porcentajeNavegante = parseInt(selectNavegante.value) || 0;
+    var textoNavegante = selectNavegante.options[selectNavegante.selectedIndex].text;
+    // Extraer solo el tipo de navegante, sin la reducción
+    var tipoNavegante = textoNavegante.split(' (')[0].split(' -')[0];
+    
+    // Calcular tiempo base (sin modificaciones de velocidad)
+    var tiempoBaseHoras = Math.ceil((distancia / FACTOR_CONVERSION)) * 2; // Duplicar el tiempo base
+    
+    // Calcular el número de casillas aproximado basado en la distancia
+    var casillasViaje = Math.ceil(distancia / 50); // Asumimos 50 píxeles por casilla aproximadamente
+    
+    // Aplicar reducción porcentual total (barco + navegante) al tiempo total
+    var porcentajeTotal = Math.min(90, porcentajeBarco + porcentajeNavegante); // Máximo 90% de reducción
+    var factorReduccion = 1 - (porcentajeTotal / 100);
+    
+    // Aplicar la reducción al tiempo total
+    var tiempoFinalHoras = Math.max(12, Math.ceil(tiempoBaseHoras * factorReduccion)); // Mínimo 12 horas
+    
+    // Formatear el resultado
+    var dias = Math.floor(tiempoFinalHoras / 24);
+    var horas = tiempoFinalHoras % 24;
+    
+    var mensajeTiempo = '';
+    if (dias > 0) {
+      mensajeTiempo = dias + (dias === 1 ? ' día' : ' días');
+      if (horas > 0) {
+        mensajeTiempo += ' y ' + horas + (horas === 1 ? ' hora' : ' horas');
+      }
+    } else {
+      mensajeTiempo = horas + (horas === 1 ? ' hora' : ' horas');
+    }
+    
+    // Indicar si la ruta tiene desvíos
+    var mensajeDesvio = puntosRuta.length > 2 ? ' - Ruta con desvíos' : '';
+    
+    // Construir mensaje completo con información del nuevo sistema
+    var mensajeCompleto = '⛵ Barco - De ' + nombreOrigen + ' a ' + nombreDestino + ': ' + mensajeTiempo;
+    mensajeCompleto += ' | Casillas: ' + casillasViaje;
+    mensajeCompleto += ' | Reducción total: ' + porcentajeTotal + '%';
+    mensajeCompleto += ' | Barco: ' + tipoBarco + ' | Navegante: ' + tipoNavegante + mensajeDesvio;
+    
+    resultadoViaje.textContent = mensajeCompleto;
+    resultadoViaje.className = 'resultado-viaje';
+}
+
+// Eventos para los selectores
+selectOrigen.onchange = calcularRuta;
+selectDestino.onchange = calcularRuta;
+
+// Evento para el selector de transporte
+var selectTransporte = document.getElementById('tipo-transporte');
+if (selectTransporte) {
+  selectTransporte.onchange = function() {
+    var esTren = this.value === 'tren';
+    
+    // Mostrar/ocultar opciones de barco y navegante
+    if (esTren) {
+      // Ocultar selectores de barco y navegante cuando se usa tren
+      selectVelocidad.closest('.selector-container').style.display = 'none';
+      document.getElementById('navegante-nivel').closest('.selector-container').style.display = 'none';
+      document.getElementById('custom-container').style.display = 'none';
+    } else {
+      // Mostrar selectores cuando se usa barco
+      selectVelocidad.closest('.selector-container').style.display = 'flex';
+      document.getElementById('navegante-nivel').closest('.selector-container').style.display = 'flex';
+      // El custom container se muestra solo si está seleccionado custom
+      if (selectVelocidad.value === 'custom') {
+        document.getElementById('custom-container').style.display = 'block';
+      }
+    }
+    
+    calcularRuta();
+  };
+}
+
+selectVelocidad.onchange = function() {
+  // Mostrar/ocultar campo custom
+  var customContainer = document.getElementById('custom-container');
+  if (this.value === 'custom') {
+    customContainer.style.display = 'block';
+  } else {
+    customContainer.style.display = 'none';
+  }
+  calcularRuta(); // Recalcular después de mostrar/ocultar
+};
+
+// Evento para el navegante
+document.getElementById('navegante-nivel').onchange = calcularRuta;
+
+// Evento para el campo custom
+document.getElementById('custom-reduccion').onchange = function() {
+  if (selectVelocidad.value === 'custom') {
+    calcularRuta();
+  }
+};
+
+// Recalcular ruta al cambiar el tamaño de la ventana
+$(window).resize(function() {
+  if (selectOrigen.value && selectDestino.value) {
+    calcularRuta();
+  }
+});
+
+});
+</script>
+{$footer}
+</body>
+</html>

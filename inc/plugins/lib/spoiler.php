@@ -284,9 +284,15 @@ function create_technique_card($tecnica, $is_staff = false, $show_train_button =
 	$estilo = htmlspecialchars($tecnica['estilo']);
 	$tipo = htmlspecialchars($tecnica['tipo']);
 	$tier = htmlspecialchars($tecnica['tier']);
+	$rama = htmlspecialchars($tecnica['rama'] ?? '');
 	$requisitos = $tecnica['requisitos'];
 	$descripcion = $tecnica['descripcion'];
 	$efectos = $tecnica['efectos'];
+	$fecha_display = '';
+	if (!empty($tecnica['tiempo'])) {
+		$ts = is_numeric($tecnica['tiempo']) ? (int)$tecnica['tiempo'] : strtotime($tecnica['tiempo']);
+		if ($ts) $fecha_display = date('d/m/Y', $ts);
+	}
 	
 	$unique_id = 'tecnica_' . uniqid() . '_' . mt_rand(1000, 9999);
 	
@@ -346,13 +352,18 @@ function create_technique_card($tecnica, $is_staff = false, $show_train_button =
 		</div>';
 	}
 	
-	return '<div class="tecnica_card" style=
-		"background: linear-gradient(180deg, #8964dc, #734dc8); 
-		border-radius: 8px; 
-		margin: 7.5px 0; 
-		padding: 0; 
-		box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
-		overflow: hidden; 
+	return '<div class="tecnica_spoiler tecnica_card"
+		data-tier="'.intval($tier).'"
+		data-tipo="'.strtolower($tipo).'"
+		data-clase="'.strtolower($clase).'"
+		data-rama="'.$rama.'"
+		data-fecha="'.$fecha_display.'"
+		style="background: linear-gradient(180deg, #8964dc, #734dc8);
+		border-radius: 8px;
+		margin: 7.5px 0;
+		padding: 0;
+		box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+		overflow: hidden;
 		transition: all 1s ease;">
 		
 		<!-- Header: Nombre de la técnica -->

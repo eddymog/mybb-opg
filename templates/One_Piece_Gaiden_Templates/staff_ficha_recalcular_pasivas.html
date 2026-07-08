@@ -1,0 +1,119 @@
+<html>
+<head>
+  <title>Consola Súper Secreta</title>
+  {$headerinclude}
+  <style>
+    .form-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+    }
+
+    .form-table td, .form-table th {
+      padding: 0px 8px;
+      vertical-align: middle;
+      border: none;
+    }
+
+    .textbox {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .section-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: #000;
+      margin: 10px 0 0px 0;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-block {
+      margin-bottom: 10px;
+    }
+
+    .aviso-raza {
+      background: #fff3cd;
+      color: #664d03;
+      border: 1px solid #ffe69c;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .aviso-general {
+      background: #f8d7da;
+      color: #842029;
+      border: 1px solid #f5c2c7;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .comparacion-table th {
+      text-align: left;
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+    }
+
+    .detalle-list {
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $fid=='' then>
+      User ID*<br><input class="textbox" type="number" min="100" max="2000" required id='fid'><button class="button" style="margin-left: 5px;"
+        onclick=onClickUid()>Seleccionar</button><br><br>
+    </if>
+    <if $fid !='' then>
+      <p>Nombre de cuenta: <a href="/op/ficha.php?action=profile&uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+
+      <div class="aviso-general">
+        Este recálculo SOBREESCRIBE los valores pasivos actuales con el total calculado a partir de las técnicas, razas/tribus y virtudes/defectos registrados.
+        Cualquier ajuste manual de pasivas no derivado de estas fuentes se perderá al aplicar.
+      </div>
+
+      <if $aviso_raza !='' then>
+        <div class="aviso-raza">{$aviso_raza}</div>
+      </if>
+
+      <div class="section-block">
+        <div class="section-title">Comparativa de Pasivas</div>
+        <table class="form-table comparacion-table">
+          <tr><th>Atributo</th><th>Valor actual</th><th>Valor calculado</th><th>Diferencia</th></tr>
+          {$comparacion_filas}
+        </table>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">Origen de los valores calculados</div>
+        <ul class="detalle-list">
+          {$detalle_html}
+        </ul>
+      </div>
+
+      <form method="post" action="/op/staff/ficha_recalcular_pasivas.php" name="ficha_recalcular_pasivas" id="ficha_recalcular_pasivas" onsubmit="return confirm('¿Seguro que quieres aplicar el recálculo? Esto sobreescribirá los valores pasivos actuales.');">
+        <input type="hidden" name="ficha_id" value="{$fid}">
+        <input type="hidden" name="accion_post" value="aplicar_recalculo">
+        Razón: <br><input class="textbox" type="text" name="razon" required><br><br>
+        <input class="button" id="aplicar_recalculo" type="submit" value="Aplicar recálculo">
+      </form>
+    </if>
+  </div>
+  <if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+
+  {$footer}
+</body>
+{$reload_script}
+<script>
+  function onClickUid() {
+    window.location.href = window.location.pathname + '?fid=' + document.getElementById('fid').value;
+  }
+</script>
+</html>

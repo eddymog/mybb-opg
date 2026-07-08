@@ -1,0 +1,640 @@
+<?php
+// Pre-cálculo de estadísticas
+$defensa_pasiva = $resistencia_completa;
+$fortaleza_espiritual = $voluntad_completa;
+$umbral_dolor = ($voluntad_completa + $resistencia_completa)*5;
+$regeneracion_energia = $nivel;
+$regeneracion_haki = $nivel/2;
+$concentracion = $voluntad_completa + $resistencia_completa;
+$movimiento = floor($agilidad_completa/2 + $resistencia_completa/4);
+$salto = number_format(1 + ($fuerza_completa + $agilidad_completa) / 5);
+$trepar = number_format(1 + ($agilidad_completa + $destreza_completa) / 10);
+$nadar = number_format(floor($agilidad_completa/2 + $resistencia_completa/4) / 2);
+$distancia_lanzamiento = floor($fuerza_completa / 2);
+$limite_caida = number_format(2 + ($fuerza_completa + $resistencia_completa) / 4);
+?>
+<div id="belico" style="display:none;">
+    <div style="margin-top: 20px;">
+
+        <!-- Técnicas principales - primera fila -->
+        <div style="display: flex; justify-content: center; margin-top: 10px; position: relative;">
+            <div style="width: 900px; height: 290px; display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="width: 585px; display: flex; flex-direction: column;">
+                    <!-- Barra de título ESTILOS -->
+                    <div style="width: 565px; height: 30px; background: linear-gradient(to right, rgba(77, 92, 99, 0), rgba(78, 105, 119, 0.9) 30%, rgba(78, 105, 119, 0.9) 70%, rgba(77, 92, 99, 0)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative;" class="bbox">
+                        <span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 20px; text-shadow: 1px 1px 2px black;">ESTILOS</span>
+                    </div>
+
+                    <!-- Primera fila de técnicas (dentro del contenedor izquierdo) -->
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 22px;">
+                        <!-- Técnica izquierda -->
+                        <div id="estilo1">
+                            <if $ficha['estilo1'] then>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;" src="/images/op/uploads/FichaRoyal Guard_One_Piece_Gaiden_Foro_Rol.webp" />
+                            <else>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer;" src="/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp" onclick="openEstilosModal('estilo1')" />
+                            </if>
+                        </div>
+                        <!-- Espacio de separación: 45px -->
+
+                        <!-- Técnica central -->
+                        <div id="estilo2" style=" margin-left: 45px;">
+                            <if $ficha['estilo2'] then>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;" src="/images/op/uploads/FichaRoyal Guard_One_Piece_Gaiden_Foro_Rol.webp" />
+                            <else>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer;" src="/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp" onclick="openEstilosModal('estilo2')" />
+                            </if>
+                        </div>
+                        
+                    </div>
+
+                    <!-- Segunda fila de técnicas (dentro del contenedor izquierdo) -->
+                    <div style="display: flex; justify-content: space-between;">
+                        <!-- Estilo único -->
+                        <div id="estilo3">
+                            <if $ficha['estilo3'] then>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;" src="/images/op/uploads/FichaRoyal Guard_One_Piece_Gaiden_Foro_Rol.webp" />
+                            <else>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer;" src="/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp" onclick="openEstilosModal('estilo3')" />
+                            </if>
+                        </div>
+                    
+                        <!-- Espacio de separación: 45px -->
+
+                        <!-- NV35 -->
+                        <div id="estilo4" style=" margin-left: 45px;">
+                            <if $ficha['estilo4'] then>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden; " src="/images/op/uploads/FichaRoyal Guard_One_Piece_Gaiden_Foro_Rol.webp" />
+                            <else>
+                                <img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden; cursor: pointer;" src="/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp" onclick="openEstilosModal('estilo4')" />
+                            </if>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- Espacio de separación con el cuadro blanco: 35px -->
+                <div style="width: 35px;"></div>
+
+                <!-- Área derecha (personaje) - UN SOLO CUADRO BLANCO -->
+                <div style="background-color: white; border: 15px solid white; box-shadow: 0px 0px 10px black; position: relative;width: 250px;height: 290px;">
+                    <img onclick="openAvatar2Modal()" class="avatar_repu_1" src="{$ficha['avatar1']}" style="cursor: pointer;width: 250px;height: 290px;">
+                    
+                    
+                </div>
+                
+            
+            </div>
+        </div>
+
+		<!-- Barra de progreso/separador -->
+		<div style="display: flex;justify-content: center;margin-top: 21px;margin-bottom: -10px;">
+			<div style="width: 565px; height: 30px; background: linear-gradient(to right, rgba(77, 92, 99, 0), rgba(78, 105, 119, 0.9) 30%, rgba(78, 105, 119, 0.9) 70%, rgba(77, 92, 99, 0)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative;" class="bbox">
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 20px; text-shadow: 1px 1px 2px black;">HAKI</span>
+			</div>
+		</div>
+
+		<!-- Técnicas/habilidades especiales -->
+		<div style="display: flex; justify-content: center;">
+			<div style="width: 900px; height: 125px; display: flex; justify-content: space-between;">
+				<!-- Busoshoku Haki -->
+				<div id="buso_img" style="width: 290px; height: 125px; background-image: url('/images/op/uploads/HakiFichaBusoShoku_One_Piece_Gaiden_Foro_Rol.webp'); background-size: cover; background-position: center; position: relative; overflow: hidden;"><span id="buso_nivel" style=" font-size: 21px; color: white; font-family: 'moonGetHeavy'; -webkit-text-stroke: 1px black; position: relative; top: 6px; left: 10px; "></span>
+				</div>
+
+				<!-- Haoshoku Haki -->
+				<div id="hao_img" style="width: 290px; height: 125px; background-image: url('/images/op/uploads/HakiFichaHaoshoku_One_Piece_Gaiden_Foro_Rol.webp'); background-size: cover; background-position: center; position: relative; overflow: hidden;"><span id="hao_nivel" style=" font-size: 21px; color: white; font-family: 'moonGetHeavy'; -webkit-text-stroke: 1px black; position: relative; top: 6px; left: 10px; "></span>
+				</div>
+
+				<!-- Kenbunshoku Haki -->
+				<div id="kenbun_img" style="width: 290px; height: 125px; background-image: url('/images/op/uploads/HakiFichaKenbunshoku_One_Piece_Gaiden_Foro_Rol.webp'); background-size: cover; background-position: center; position: relative; overflow: hidden;"><span id="kenbun_nivel" style=" font-size: 21px; color: white; font-family: 'moonGetHeavy'; -webkit-text-stroke: 1px black; position: relative; top: 6px; left: 10px; "></span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Barra de progreso/separador -->
+		<div style="display: flex;justify-content: center;margin-top: 12px;margin-bottom: -10px;">
+			<div style="width: 565px; height: 30px; background: linear-gradient(to right, rgba(77, 92, 99, 0), rgba(78, 105, 119, 0.9) 30%, rgba(78, 105, 119, 0.9) 70%, rgba(77, 92, 99, 0)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative;" class="bbox">
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 20px; text-shadow: 1px 1px 2px black;">ESTADÍSTICAS</span>
+			</div>
+		</div>
+
+		<!-- Estadísticas -->
+        <div style="display: flex; justify-content: center; margin-top: -20px;">
+            <div style="width: 890px; display: flex; flex-wrap: wrap; justify-content: space-between; padding: 10px 0;">
+                <!-- Columna izquierda -->
+                <div style="width: 435px;">
+                    <!-- Defensa pasiva = Resistencia -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <!-- Fondo base rojo -->
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+
+                        <!-- Elemento diagonal -->
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+
+                        <!-- Área de valor -->
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+
+                        <!-- Texto del nombre de la estadística -->
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>DEFENSA PASIVA</span>
+                        </div>
+
+                        <!-- Valor numérico -->
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$defensa_pasiva}</div>
+                        </div>
+                    </div>
+
+                    <!-- Fortaleza espiritual = Voluntad -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>FORTALEZA ESPIRITUAL</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$fortaleza_espiritual}</div>
+                        </div>
+                    </div>
+
+                    <!-- Regeneración energía -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>REGENERACIÓN ENERGÍA</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$regeneracion_energia}</div>
+                        </div>
+                    </div>
+
+                    <!-- Regeneración haki -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>REGENERACIÓN HAKI</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$regeneracion_haki}</div>
+                        </div>
+                    </div>
+
+                    <!-- Concentración -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>CONCENTRACIÓN</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$concentracion}</div>
+                        </div>
+                    </div>
+
+                    <!-- Umbral del dolor = (Voluntad + Resistencia)*5 -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>UMBRAL DEL DOLOR</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$umbral_dolor}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha -->
+                <div style="width: 435px;">
+                    <!-- Movimiento = (Agilidad/2 + Resistencia/4) metros -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>MOVIMIENTO</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$movimiento} m</div>
+                        </div>
+                    </div>
+
+                    <!-- Salto = 1 + (Fuerza + Agilidad) / 5 -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>SALTO</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$salto} m</div>
+                        </div>
+                    </div>
+
+                    <!-- Trepar = 1 + (Agilidad + Destreza) / 10 -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>TREPAR</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$trepar} m</div>
+                        </div>
+                    </div>
+
+                    <!-- Nadar = Movimiento / 2 -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>NADAR</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$nadar} m</div>
+                        </div>
+                    </div>
+
+                    <!-- Distancia lanzamiento = Fuerza / 2 -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgb(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>DISTANCIA LANZAMIENTO</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$distancia_lanzamiento} m</div>
+                        </div>
+                    </div>
+
+                    <!-- Límite de caída = 2 metros base + [(Fuerza + Resistencia) / 4] -->
+                    <div style="width: 100%; display: flex; margin-bottom: 5px; position: relative; overflow: hidden; height: 28px; border-radius: 50px; border: 1px solid #000;">
+                        <div style="width: 100%; height: 100%; background-color: #a3180b; position: absolute;"></div>
+                        <div style="position: absolute; width: 50px; height: 100%; right: 80px; background-color: rgb(127, 66, 133); transform: skew(-45deg); transform-origin: top right;"></div>
+                        <div style="position: absolute; width: 120px; height: 100%; right: 0; background-color: rgba(127, 66, 133);"></div>
+                        <div style="width: 315px; position: relative; z-index: 2; color: white; font-family: 'moonGetHeavy'; line-height: 28px; height: 28px; text-align: center;">
+                            <span>LÍMITE DE CAÍDA</span>
+                        </div>
+                        <div style="width: 120px; position: relative; z-index: 2;">
+                            <div style="position: absolute; right: 10px; top: 4px; font-family: 'moonGetHeavy'; color: white;">{$limite_caida} m</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+		<!-- Barra de progreso/separador -->
+		<div style="display: flex;justify-content: center;margin-top: 0px;margin-bottom: -6px;">
+			<div style="width: 565px; height: 30px; background: linear-gradient(to right, rgba(77, 92, 99, 0), rgba(78, 105, 119, 0.9) 30%, rgba(78, 105, 119, 0.9) 70%, rgba(77, 92, 99, 0)); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; position: relative;" class="bbox">
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 20px; text-shadow: 1px 1px 2px black;">DISCIPLINAS</span>
+			</div>
+		</div>
+
+		<!-- Contenedor principal de disciplinas -->
+		<div style="display: flex; flex-direction: column; align-items: center; margin: 0 auto; width: 900px;">
+			<!-- Primera fila de disciplinas -->
+			<div style="display: flex; justify-content: center; margin-bottom: 10px;">
+				<!-- ESCUDERO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Escudero_img" src="/images/op/uploads/DisciFichaEscudero_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ESCUDERO</span>
+						<div id="Escudero_nivel_body" id="Artista_Marcial_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Escudero_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Vanguardia_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Vanguardia_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Vanguardia</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Bastión_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Bastión_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Bastión</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- ARTISTA MARCIAL -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Artista_Marcial_img" src="/images/op/uploads/DisciFichaArtistaMarcial_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ARTISTA MARCIAL</span>
+						<div id="Artista_Marcial_nivel_body" id="Artista_Marcial_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Artista_Marcial_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Acróbata_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Acróbata_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Acróbata</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Monje_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Monje_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Monje</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- COMBATIENTE -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Combatiente_img" src="/images/op/uploads/DisciFichaCombatiente_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute;filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">COMBATIENTE</span>
+						<div id="Combatiente_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Combatiente_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Berserker_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Berserker_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Berserker</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Campeón_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Campeón_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Campeón</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- MÚSICO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+				<img id="Artista_img" src="/images/op/uploads/DisciFichaMusico_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ARTISTA</span>
+						<div id="Artista_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Artista_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Bardo_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Bardo_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Bardo</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Trovador_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Trovador_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Trovador</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Segunda fila de disciplinas -->
+			<div style="display: flex; justify-content: center; margin-bottom: 10px;">
+				<!-- ASESINO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Asesino_img" src="/images/op/uploads/DisciFichaAsesino_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute;filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ASESINO</span>
+						<div id="Asesino_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Asesino_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Sombra_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Sombra_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Sombra</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Verdugo_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Verdugo_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Verdugo</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- GUERRERO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Guerrero_img" src="/images/op/uploads/DisciFichaGuerrero_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute;filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">GUERRERO</span>
+						<div id="Guerrero_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Guerrero_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Castigador_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Castigador_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Castigador</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Warhammer_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Warhammer_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Warhammer</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- ESPADACHIN -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Espadachín_img" src="/images/op/uploads/DisciFichaEspadachin2_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute;filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ESPADACHÍN</span>
+						<div id="Espadachín_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Espadachín_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Samurái_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Samurái_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Samurái</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Mosquetero_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Mosquetero_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Mosquetero</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- ESPECIALISTA -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Tecnicista_img" src="/images/op/uploads/DisciFichaEspecialista_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute;filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">TECNICISTA</span>
+						<div id="Tecnicista_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Tecnicista_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Diletante_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Diletante_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Diletante</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="WeaponMaster_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="WeaponMaster_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 8px; margin-left: 5px; text-shadow: 1px 1px 0px black;">WeaponMaster</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tercera fila de disciplinas -->
+			<div style="display: flex; justify-content: center; margin-bottom: 10px;">
+				<!-- ARTILLERO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Artillero_img" src="/images/op/uploads/DisciFichaArtillero_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ARTILLERO</span>
+						<div id="Artillero_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Artillero_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Destructor_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Destructor_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Destructor</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Juggernaut_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Juggernaut_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Juggernaut</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- ARQUERO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Arquero_img" src="/images/op/uploads/DisciFichaCazador_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">ARQUERO</span>
+						<div id="Arquero_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Arquero_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Ballestero_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Ballestero_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Ballestero</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Cazador_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Cazador_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Cazador</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- TIRADOR -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Tirador_img" src="/images/op/uploads/DisciFichaTirador_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">TIRADOR</span>
+						<div id="Tirador_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Tirador_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Duelista_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Duelista_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Duelista</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Francotirador_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Francotirador_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Francotirador</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- PICARO -->
+				<div style="width: 215px; height: 95px; margin: 0 5px; position: relative; border-radius: 5px; overflow: hidden; border: 2px solid #000;">
+					<img id="Pícaro_img" src="/images/op/uploads/DisciFichaPicaro_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; position: absolute; filter: grayscale(1);">
+					<!-- Encabezado -->
+					<div style="position: relative; height: 20px; background-color: rgba(0,0,0,0.7); display: flex; justify-content: space-between; align-items: center; padding: 0 5px;">
+						<span style="font-family: 'moonGetHeavy'; color: white; font-size: 12px; text-shadow: 1px 1px 0px black;">PÍCARO</span>
+						<div id="Pícaro_nivel_body" style="background-color: white; height: 14px; width: 14px; border-radius: 10px; display: flex; align-items: center; justify-content: center;cursor: pointer;">
+							<span id="Pícaro_nivel" style="font-family: 'moonGetHeavy'; font-size: 10px; color: black;"></span>
+						</div>
+					</div>
+					<!-- Área de suboficios -->
+					<div style="position: absolute; bottom: 5px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px;">
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Gambito_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Gambito_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Gambito</span>
+						</div>
+						<div style="background-color: rgba(0,0,0,0.7); width: 100px; height: 18px; border-radius: 10px; display: flex; align-items: center;">
+							<div id="Trickster_nivel_body" style="background-color: white; height: 12px; width: 12px; border-radius: 10px; margin-left: 3px; display: flex; align-items: center; justify-content: center;">
+								<span id="Trickster_nivel" style="font-family: 'moonGetHeavy'; font-size: 8px; color: black;"></span>
+							</div>
+							<span style="font-family: 'moonGetHeavy'; color: white; font-size: 10px; margin-left: 5px; text-shadow: 1px 1px 0px black;">Trickster</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

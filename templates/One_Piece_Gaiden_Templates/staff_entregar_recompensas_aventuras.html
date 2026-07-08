@@ -1,0 +1,436 @@
+<html>
+
+<head>
+  <title>Consola Súper Secreta</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $fid=='' then>
+      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
+      Accion:<br>
+      <select id="accion">
+        <option value="T1">T1</option>
+        <option value="T2">T2</option>
+	    <option value="T3">T3</option>
+		<option value="T4">T4</option>
+		<option value="T5">T5</option>
+		<option value="T6">T6</option>
+		<option value="T7">T7</option>
+		<option value="T8">T8</option>
+		<option value="T9">T9</option>
+		<option value="T10">T10</option>
+      </select><br><br>
+      <button onclick=onClickAccion()>Ir</button>
+      <br><br>
+    </if>
+	
+	<if $fid != '' && $accion == 'T1' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT1">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT1" name="resultadosT1"> 
+		</div><br>-->
+		<input onclick="entregarT1()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT1Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T2' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT2">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT2" name="resultadosT2">
+		</div><br> -->
+		<input onclick="entregarT2()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT2Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T3' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT3">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT3()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT3Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T4' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT4">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT4()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT4Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T5' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT5">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT5()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT5Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T6' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT6">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT6()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT6Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+<!--	<if $fid != '' && $accion == 'T6' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT6">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+	<!--	<input onclick="entregarT6()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT6Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 93px; font-size: 22px; ">
+	</if> -->
+	  
+	<if $fid != '' && $accion == 'T7' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT7">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT7()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT7Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T8' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT8">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT8()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT8Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T9' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT9">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT9()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT9Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	  
+	<if $fid != '' && $accion == 'T10' then>
+		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
+		Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+		<hr>
+		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
+		Reputación:<br>
+		<select id="reputacionT10">
+          <option value="positiva">Positiva</option>
+		  <option value="negativa">Negativa</option>
+        </select><br><br>
+<!-- 		Recompensas a entregar:<br>
+		<div id="resultadosT3" name="resultadosT3"> 
+		</div><br>-->
+		<input onclick="entregarT10()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
+		<input onclick="entregarT10Infra()" class="button" value="Entregar Servicio de inframundo" style=" width: 332px; font-size: 22px; ">
+	</if>
+	
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+	function entregarT1() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T1', reputacion: $('#reputacionT1').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+	function entregarT1Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T1Infra', reputacion: $('#reputacionT1').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT2() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T2', reputacion: $('#reputacionT2').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT2Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T2Infra', reputacion: $('#reputacionT2').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT3() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T3', reputacion: $('#reputacionT3').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+		
+		function entregarT3Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T3Infra', reputacion: $('#reputacionT3').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT4() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T4', reputacion: $('#reputacionT4').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT4Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T4Infra', reputacion: $('#reputacionT4').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT5() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T5', reputacion: $('#reputacionT5').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT5Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T5Infra', reputacion: $('#reputacionT5').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT6() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T6', reputacion: $('#reputacionT6').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT6Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T6Infra', reputacion: $('#reputacionT6').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT7() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T7', reputacion: $('#reputacionT7').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT7Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T7Infra', reputacion: $('#reputacionT7').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT8() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T8', reputacion: $('#reputacionT8').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT8Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T8Infra', reputacion: $('#reputacionT8').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT9() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T9', reputacion: $('#reputacionT9').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT9Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T9Infra', reputacion: $('#reputacionT9').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT10() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T10', reputacion: $('#reputacionT10').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+		function entregarT10Infra() {
+		$.post("/op/staff/entregar_recompensas_aventuras.php", { ficha_id: '{$fid}', accion: 'T10Infra', reputacion: $('#reputacionT10').val(), tid: $('#tid').val() }, function( data ) {
+			alert('¡Entregada recompensa!');
+			console.log(data);
+			window.location = "/op/staff/log_entregas.php";
+		}); 
+	}
+	
+  function onClickAccion() {
+    const fid = document.getElementById('fid').value;
+    const accion = document.getElementById('accion').value;
+    if (fid && accion) {
+      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+    }
+  }
+</script>
+
+</html>

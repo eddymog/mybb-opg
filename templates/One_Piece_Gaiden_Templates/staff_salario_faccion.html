@@ -1,0 +1,39 @@
+<html>
+
+<head>
+  <title>Salario Facción</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco" style="text-align: center;">
+      <form method="post" action="/op/staff/salario_faccion.php" name="salario_faccion" id="salario_faccion">
+        <div style="display: none">
+           <input type="text" id="salario" name="salario" value="1">
+        </div>
+        
+		<h2>¡Entrega los salarios!</h2>
+        <input  class="button" type="submit" onclick="entregarSalarios();" style=" font-size: 30px; " value="Entregar salarios">
+		<br><br><br><br>
+		<div>
+			{$salarios_entregados}
+		</div>  
+		
+      </form>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+function entregarSalarios() {
+	if (confirm('¿Estás seguro que quieres entregar los salarios?')) {
+		return true;
+	} else {
+		return false;
+	}
+}
+</script>
+
+</html>

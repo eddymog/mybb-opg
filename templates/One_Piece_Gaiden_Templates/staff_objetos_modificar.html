@@ -1,0 +1,359 @@
+<html>
+  <head>
+    <title>Modificar Objetos</title> {$headerinclude} 
+	  <style>
+      .form-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+      }
+
+      .form-table td {
+        padding: 0px 8px;
+        vertical-align: middle;
+        border: none;
+      }
+
+      .textbox,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      .section-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        color: #000;
+        margin: 10px 0 0px 0;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .section-block {
+        margin-bottom: 2px;
+      }
+    </style>
+  </head>
+  <body> {$header} <div class="fondo-blanco">
+      <if $objeto_id=='' then> Objeto ID: <input class="textbox" type="text" placeholder="" required id='objeto_id'>
+        <button onclick=onClickTid()>Buscar</button>
+        <br>
+        <br>
+      </if>
+      <if $objeto_id !='' then>
+        <form method="post" action="/op/staff/objetos_modificar.php" name="crear_objetos" id="crear_objetos">
+          <!-- Identificación -->
+          <input type="hidden" name="objeto_id_old" value="{$objeto_id}">
+          <table class="form-table">
+            <tr>
+              <td>Objeto ID: <br>
+                <input class="textbox" type="text" name="objeto_id" value="{$objeto_id}">
+              </td>
+              <td></td>
+              <td>Razón: <br>
+                <input class="textbox" type="text" name="razon">
+              </td>
+            </tr>
+          </table>
+          <!-- Información Básica -->
+          <div class="section-block">
+            <div class="section-title">Información Básica</div>
+            <table class="form-table">
+              <tr>
+                <td>Nombre de Objeto: <br>
+                  <input class="textbox" value="{$objeto['nombre']}" type="text" name="nombre" required>
+                </td>
+                <td>Tier: <br>
+                  <input class="textbox" value="{$objeto['tier']}" type="text" name="tier">
+                </td>
+                <td>ID usuarios que pueden craftear: <br>
+                  <input class="textbox" value="{$objeto['crafteo_usuarios']}" type="text" name="crafteo_usuarios" placeholder="U10,U50,U27,U346">
+                </td>
+              </tr>
+              <tr>
+                <td>Categoría: <br>
+                  <select class="textbox" name="categoria" id="categoria" onchange="updateSubcategoria(true)" required>
+                    <option value="">Seleccione una categoría</option>
+                    <option value="CONSUMIBLES">CONSUMIBLES</option>
+                    <option value="ARMAS">ARMAS</option>
+                    <option value="UTENSILIOS">UTENSILIOS</option>
+                    <option value="ESTRUCTURAS">ESTRUCTURAS</option>
+                    <option value="MATERIALES">MATERIALES</option>
+                    <option value="ESPECIALES">ESPECIALES</option>
+                  </select>
+                </td>
+                <td>Subcategoría: <br>
+                  <select class="textbox" name="subcategoria" id="subcategoria" required>
+                    <option value="">Seleccione primero una categoría</option>
+                  </select>
+                </td>
+                <td>Imagen ID: <br>
+                  <input class="textbox" value="{$objeto['imagen_id']}" type="text" name="imagen_id">
+                </td>
+                <td>Imagen Avatar: <br>
+                  <input class="textbox" value="{$objeto['imagen_avatar']}" type="text" name="imagen_avatar">
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- Información Comercial -->
+          <div class="section-block">
+            <div class="section-title">Información Comercial</div>
+            <table class="form-table">
+              <tr>
+                <td>Cantidad Máxima: <br>
+                  <input class="textbox" value="{$objeto['cantidadMaxima']}" type="text" name="cantidadMaxima" placeholder="1, 2, 3, etc...">
+                </td>
+                <td>Comerciable: <br>
+                  <input class="textbox" value="{$objeto['comerciable']}" type="text" name="comerciable" placeholder="1 = Si, 0 = No">
+                </td>
+                <td>Mercado Negro: <br>
+                  <input class="textbox" value="{$objeto['negro']}" type="text" name="negro" placeholder="1 = Si, 0 = No">
+                </td>
+              </tr>
+              <tr>
+                <td>Berries: <br>
+                  <input class="textbox" value="{$objeto['berries']}" type="text" name="berries">
+                </td>
+                <td>Berries Crafteo: <br>
+                  <input class="textbox" value="{$objeto['berriesCrafteo']}" type="text" name="berriesCrafteo">
+                </td>
+                <td>Berries Mercado Negro: <br>
+                  <input class="textbox" value="{$objeto['negro_berries']}" type="text" name="negro_berries">
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- Información de Crafteo -->
+          <div class="section-block">
+            <div class="section-title">Información de Crafteo</div>
+            <table class="form-table">
+              <tr>
+                <td>Oficio: <br>
+                  <input class="textbox" value="{$objeto['oficio']}" type="text" name="oficio" placeholder="Navegante, Herrero, etc...">
+                </td>
+                <td>Nivel de Oficio: <br>
+                  <input class="textbox" value="{$objeto['nivel']}" type="text" name="nivel" placeholder="1, 2, 3...">
+                </td>
+                <td>Tiempo de Crafteo: <br>
+                  <input class="textbox" value="{$objeto['tiempo_creacion']}" type="text" name="tiempo_creacion" placeholder="Solo números">
+                </td>
+                <td>Desbloquear: <br>
+                  <input class="textbox" value="{$objeto['desbloquear']}" type="text" name="desbloquear" placeholder="Solo números">
+                </td>
+              </tr>
+              <tr>
+                <td>Exclusivo: <br>
+                  <input class="textbox" value="{$objeto['exclusivo']}" type="text" name="exclusivo" placeholder="1 = Si, 0 = No">
+                </td>
+                <td>Invisible: <br>
+                  <input class="textbox" value="{$objeto['invisible']}" type="text" name="invisible" placeholder="1 = Si, 0 = No">
+                </td>
+                <td>Editable: <br>
+                  <input class="textbox" value="{$objeto['editable']}" type="text" name="editable" placeholder="1 = Si, 0 = No">
+                </td>
+                <td>Espacios: <br>
+                  <input class="textbox" value="{$objeto['espacios']}" type="text" name="espacios">
+                </td>
+              </tr>
+              <tr>
+                <td>Tipo de Fusión: <br>
+                  <input class="textbox" value="{$objeto['fusion_tipo']}" type="text" name="fusion_tipo">
+                </td>
+                <td>Engastes: <br>
+                  <input class="textbox" value="{$objeto['engastes']}" type="text" name="engastes">
+                </td>
+				<td>Imagen: <br>
+                  <input class="textbox" value="{$objeto['imagen']}" type="text" name="imagen">
+                </td>
+              </tr>
+            </table>
+          </div>
+          <!-- Información Técnica -->
+          <div class="section-block">
+            <div class="section-title">Información Técnica</div>
+            <table class="form-table">
+              <tr>
+                <td>Daño: <br>
+                  <input class="textbox" value="{$objeto['dano']}" type="text" name="dano">
+                </td>
+                <td>Bloqueo: <br>
+                  <input class="textbox" value="{$objeto['bloqueo']}" type="text" name="bloqueo">
+                </td>
+              </tr>
+              <tr>
+                <td>Efecto: <br>
+                  <input class="textbox" value="{$objeto['efecto']}" type="text" name="efecto">
+                </td>
+                <td>Alcance: <br>
+                  <input class="textbox" value="{$objeto['alcance']}" type="text" name="alcance">
+                </td>
+              </tr>
+              <tr>
+                <td>Requisitos: <br>
+                  <input class="textbox" value="{$objeto['requisitos']}" type="text" name="requisitos">
+                </td>
+                <td>Escalado: <br>
+                  <input class="textbox" value="{$objeto['escalado']}" type="text" name="escalado">
+                </td>
+              </tr>
+              <tr>
+                <td colspan="3">Descripción: <br>
+                  <textarea name="descripcion" style="height:120px;">{$objeto['descripcion']}</textarea>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <br>
+          <input class="button" type="submit" value="Modificar">
+        </form>
+      </if>
+    </div> {$footer} </body>
+  <if $log_var !='' then>
+    <script>
+      alert(`{$log_var}`);
+    </script>
+  </if> {$reload_script} <script>
+    const subcategorias = {
+      'CONSUMIBLES': ['ARSENAL', 'ARTILUGIO', 'FÁRMACOS', 'LIBROS Y MANUALES', 'PLATO', 'REMEDIO', 'SUMINISTRO'],
+      'ARMAS': ['AMULETOS', 'ARMA DE ASALTO', 'ARMAS ARROJADIZAS', 'ARMAS CONTUNDENTES', 'ARMAS CORPORALES', 'ARMAS DE ASTA', 'ARMAS DE FILO', 'ARMAS DE FUEGO', 'ARMAS DE TENSIÓN', 'ARMAS DEFENSIVAS', 'ARMAS EXÓTICAS', 'ESPECIAL MT', 'MUSICAL', 'WAZAMONO'],
+      'UTENSILIOS': ['DEN DEN MUSHIS', 'DIALES', 'EQUIPAJES', 'IMPLANTES', 'IMPLANTES BIOLOGICOS', 'LOG POSES', 'MAPAS', 'MEJORA DE BARCO', 'ROPA Y ARMADURAS'],
+      'ESTRUCTURAS': ['BARCOS'],
+      'MATERIALES': ['ARTESANO', 'CARPINTERO', 'COCINERO', 'AVENTURERO', 'INVENTOR', 'MÉDICO', 'NAVEGANTE','MERCADER','INVESTIGADOR', 'PARTES'],
+      'ESPECIALES': ['SÚPER ESPECIAL']
+    };
+
+    const valorCategoriaActual = '{$objeto['categoria']}';
+    const valorSubcategoriaActual = '{$objeto['subcategoria']}';
+
+    function updateSubcategoria(esEvento) {
+      const categoria = document.getElementById('categoria').value;
+      const subcategoriaSelect = document.getElementById('subcategoria');
+      const valorActual = esEvento ? '' : subcategoriaSelect.value;
+      
+      // Limpiar opciones actuales
+      subcategoriaSelect.innerHTML = '<option value="">Seleccione una subcategoría</option>';
+      
+      // Si hay una categoría seleccionada, agregar sus subcategorías
+      if (categoria && subcategorias[categoria]) {
+        subcategorias[categoria].forEach(function(subcat) {
+          const option = document.createElement('option');
+          option.value = subcat;
+          option.textContent = subcat;
+          subcategoriaSelect.appendChild(option);
+        });
+        
+        // Restaurar el valor si no es un evento de cambio
+        if (!esEvento && valorActual) {
+          subcategoriaSelect.value = valorActual;
+        }
+      }
+    }
+
+    // Inicializar categorías y subcategorías al cargar la página
+    window.addEventListener('DOMContentLoaded', function() {
+      const categoriaSelect = document.getElementById('categoria');
+      const subcategoriaSelect = document.getElementById('subcategoria');
+      const formulario = document.getElementById('crear_objetos');
+      
+      // Si hay una categoría actual, verificar si coincide con las opciones
+      if (valorCategoriaActual) {
+        // Intentar seleccionar la categoría actual
+        let categoriaEncontrada = false;
+        for (let i = 0; i < categoriaSelect.options.length; i++) {
+          if (categoriaSelect.options[i].value === valorCategoriaActual) {
+            categoriaSelect.value = valorCategoriaActual;
+            categoriaEncontrada = true;
+            break;
+          }
+        }
+        
+        // Si la categoría fue encontrada, actualizar subcategorías
+        if (categoriaEncontrada) {
+          updateSubcategoria(false);
+          
+          // Si hay una subcategoría actual, verificar si coincide
+          if (valorSubcategoriaActual) {
+            let subcategoriaEncontrada = false;
+            for (let i = 0; i < subcategoriaSelect.options.length; i++) {
+              if (subcategoriaSelect.options[i].value === valorSubcategoriaActual) {
+                subcategoriaSelect.value = valorSubcategoriaActual;
+                subcategoriaEncontrada = true;
+                break;
+              }
+            }
+            
+            // Si la subcategoría no se encontró, agregar una opción temporal con el valor antiguo
+            if (!subcategoriaEncontrada && valorSubcategoriaActual) {
+              const optionAntigua = document.createElement('option');
+              optionAntigua.value = valorSubcategoriaActual;
+              optionAntigua.textContent = valorSubcategoriaActual + ' (valor antiguo)';
+              optionAntigua.selected = true;
+              optionAntigua.style.color = '#ff6600';
+              subcategoriaSelect.appendChild(optionAntigua);
+            }
+          }
+        } else {
+          // Si la categoría no se encontró, agregar una opción temporal
+          const optionAntigua = document.createElement('option');
+          optionAntigua.value = valorCategoriaActual;
+          optionAntigua.textContent = valorCategoriaActual + ' (valor antiguo)';
+          optionAntigua.selected = true;
+          optionAntigua.style.color = '#ff6600';
+          categoriaSelect.appendChild(optionAntigua);
+          
+          // También mantener la subcategoría antigua si existe
+          if (valorSubcategoriaActual) {
+            subcategoriaSelect.innerHTML = '';
+            const optionSubAntigua = document.createElement('option');
+            optionSubAntigua.value = valorSubcategoriaActual;
+            optionSubAntigua.textContent = valorSubcategoriaActual + ' (valor antiguo)';
+            optionSubAntigua.selected = true;
+            optionSubAntigua.style.color = '#ff6600';
+            subcategoriaSelect.appendChild(optionSubAntigua);
+          }
+        }
+      }
+      
+      // Validar antes de enviar el formulario
+      if (formulario) {
+        formulario.addEventListener('submit', function(e) {
+          const categoriaVal = categoriaSelect.value;
+          const subcategoriaVal = subcategoriaSelect.value;
+          
+          if (!categoriaVal || categoriaVal === '') {
+            e.preventDefault();
+            alert('Por favor, seleccione una categoría');
+            return false;
+          }
+          
+          if (!subcategoriaVal || subcategoriaVal === '') {
+            e.preventDefault();
+            alert('Por favor, seleccione una subcategoría');
+            return false;
+          }
+          
+          // Debug: Mostrar los valores que se enviarán
+          console.log('Datos del formulario:');
+          console.log('Categoría:', categoriaVal);
+          console.log('Subcategoría:', subcategoriaVal);
+          console.log('Nombre:', document.getElementsByName('nombre')[0].value);
+          
+          return true;
+        });
+      }
+    });
+
+    function onClickTid() {
+      const objetoId = document.getElementById('objeto_id').value;
+      if (objetoId) {
+        window.location.href = window.location.pathname + '?objeto_id=' + objetoId;
+      }
+    }
+  </script>
+</html>

@@ -60,6 +60,7 @@ if ($subraza != '') {
 }
 
 $ficha_existe = false;
+$f = null;
 $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$fid' ");
 while ($f = $db->fetch_array($query_ficha)) { $ficha_existe = true; }
 
@@ -438,13 +439,13 @@ if ($has_info && $ficha_existe == false) {
         }
  
         // Amputación de Brazo
-        if ($virtud == 'D005') { $db->query(" UPDATE `mybb_op_fichas` SET `destreza_pasiva`=`destreza_pasiva` - 20 WHERE `fid`='$fid'; "); }
+        if ($virtud == 'D004') { $db->query(" UPDATE `mybb_op_fichas` SET `destreza_pasiva`=`destreza_pasiva` - 20 WHERE `fid`='$fid'; "); }
 
         // Amputación de Pierna
         if ($virtud == 'D005') { $db->query(" UPDATE `mybb_op_fichas` SET `agilidad_pasiva`=`agilidad_pasiva` - 20 WHERE `fid`='$fid'; "); }
 
         // Tuerto
-        if ($virtud == 'D029 ') { $db->query(" UPDATE `mybb_op_fichas` SET `reflejos_pasiva`=`reflejos_pasiva` - 15 WHERE `fid`='$fid'; "); }
+        if ($virtud == 'D029') { $db->query(" UPDATE `mybb_op_fichas` SET `reflejos_pasiva`=`reflejos_pasiva` - 15 WHERE `fid`='$fid'; "); }
 
         if ($virtud == 'D046') { $db->query(" UPDATE `mybb_op_fichas` SET `voluntad_pasiva`=`voluntad_pasiva` - 10 WHERE `fid`='$fid'; "); } // Pesimista
 
@@ -488,7 +489,39 @@ if ($has_info && $ficha_existe == false) {
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);
 } else  {
-    $mensaje_redireccion = "La ficha no pudo ser creada por alguna razón. Intenta crearla otra vez, si esto sigue ocurriendo, avisar al Staff por Discord.";
-    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    // Invitado sin sesión
+    if ($fid == 0) {
+        echo '<script>window.location.href="/member.php?action=login";</script>';
+        exit;
+    }
+
+    // Ficha ya existe y está en moderación (no guardada)
+    if ($ficha_existe && $f['aprobada_por'] != 'guardada') {
+        $mensaje_redireccion = "Tu ficha ya está enviada y está siendo revisada por el Staff.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        return;
+    }
+
+    // Mostrar formulario de creación
+    $razas = [];
+    $query_razas = $db->query(" SELECT * FROM mybb_op_razas ");
+    while ($q = $db->fetch_array($query_razas)) {
+        $q['caracteristicas'] = nl2br($q['caracteristicas']);
+        array_push($razas, $q);
+    }
+    $razas_json = json_encode($razas);
+
+    $virtudes = [];
+    $defectos  = [];
+    $query_virtudes = $db->query(" SELECT * FROM `mybb_op_virtudes` WHERE virtud_id LIKE 'V%' AND virtud_id != 'V057' ORDER BY `mybb_op_virtudes`.`nombre` ASC; ");
+    $query_defectos = $db->query(" SELECT * FROM `mybb_op_virtudes` WHERE virtud_id LIKE 'D%' ORDER BY `mybb_op_virtudes`.`nombre` ASC; ");
+    while ($virtud = $db->fetch_array($query_virtudes)) { array_push($virtudes, $virtud); }
+    while ($defecto = $db->fetch_array($query_defectos)) { array_push($defectos, $defecto); }
+    $virtudes_json = json_encode($virtudes);
+    $defectos_json = json_encode($defectos);
+
+    eval("\$op_ficha_crear_script = \"".$templates->get("op_ficha_crear_script")."\";");
+    eval("\$page = \"".$templates->get("op_ficha_crear")."\";");
     output_page($page);
 }

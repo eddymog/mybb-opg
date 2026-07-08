@@ -1,0 +1,369 @@
+<!-- staff_creador_objetos con estética de op_objetos -->
+<html>
+<head>
+	<title>Creador de Objetos</title>
+	{$headerinclude}
+	<style>
+		.fondo-blanco {
+			background-color: #ffe3a0;
+			padding: 20px 0px;
+			box-sizing: border-box;
+			border: 2px solid #ff7e00;
+		}
+		
+		.objeto_categoria {
+			text-align: right;
+			margin-top: 10px;
+			font-size: 17px;
+			font-family: 'moonGetHeavy';
+			color: white;
+			text-shadow: 2px 2px 0px black;
+			letter-spacing: 2px;
+		}
+		
+		.barra_categoria {
+			margin-bottom: 7px;
+			height: 4px;
+			background-color: #ff8900;
+			border-radius: 11px;
+		}
+		
+		.op-table-wrap {
+			overflow-x: auto;
+			overflow-y: auto;
+			max-height: 560px;
+			-webkit-overflow-scrolling: touch;
+			border: 2px solid #ff7e00;
+			border-radius: 6px;
+			background: #fff;
+			margin: 15px 0;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+		}
+		
+		.op-table {
+			width: 100%;
+			border-collapse: separate;
+			border-spacing: 0;
+			table-layout: auto;
+			font-size: 13px;
+		}
+		
+		.op-table thead th {
+			position: sticky;
+			background: linear-gradient(180deg, #ff8900 0%, #ff7e00 100%);
+			text-align: center;
+			font-weight: 600;
+			padding: 8px 10px;
+			border-bottom: 1px solid #ff7e00;
+			white-space: nowrap;
+			color: white;
+			text-shadow: 1px 1px 2px black;
+			font-family: 'moonGetHeavy', sans-serif;
+			letter-spacing: 0.5px;
+			z-index: 10;
+		}
+		
+		.op-table thead tr:first-child th {
+			top: 0;
+		}
+		
+		.op-table thead tr:nth-child(2) th {
+			top: 37px;
+		}
+		
+		.op-table tbody td {
+			padding: 8px 12px;
+			vertical-align: top;
+			border-bottom: 1px solid rgba(255, 126, 0, 0.2);
+			font-family: 'Open Sans', sans-serif;
+		}
+		
+		.op-table tbody tr:nth-child(odd) td {
+			background: #fff9f0;
+		}
+		
+		.op-table tbody tr:nth-child(even) td {
+			background: #ffffff;
+		}
+		
+		.op-table tbody tr:hover td {
+			background: #ffe3a0 !important;
+			transition: all 0.2s ease-out;
+		}
+		
+		.op-table__id, .op-table__tier, .op-table__dano-base, .op-table__bloqueo-base {
+			text-align: right;
+			white-space: nowrap;
+			color: #444;
+			font-weight: 600;
+		}
+		
+		.op-table__objetoid code {
+			font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+			background: #ff8900;
+			color: white;
+			padding: 3px 8px;
+			border-radius: 4px;
+			display: inline-block;
+			white-space: nowrap;
+			font-weight: 600;
+			text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+		}
+		
+		.op-table__efecto, .op-table__requisitos, .op-table__dano-raw, .op-table__bloqueo-raw, .op-table__escalado {
+			white-space: normal;
+			word-break: break-word;
+			font-size: 12px;
+		}
+		
+		.op-table__nombre {
+			font-weight: 600;
+			color: #ff7e00;
+		}
+		
+		.op-table__esc1p, .op-table__esc2p, .op-table__esc1bp, .op-table__esc2bp {
+			font-weight: 600;
+			color: #9664e0;
+		}
+		
+		.search-container {
+			display: flex;
+			justify-content: center;
+			margin: 20px 0;
+		}
+		
+		.search-box {
+			width: 100%;
+			max-width: 500px;
+			padding: 12px 20px;
+			border: 3px solid #ff7e00;
+			border-radius: 8px;
+			font-family: 'Open Sans', sans-serif;
+			font-size: 16px;
+			background: white;
+			color: #333;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+			transition: all 0.3s ease-out;
+		}
+		
+		.search-box:focus {
+			outline: none;
+			border-color: #9664e0;
+			box-shadow: 0 0 15px rgba(150, 100, 224, 0.3);
+		}
+		
+		.search-box::placeholder {
+			color: #999;
+		}
+		
+		.toggle-buttons {
+			display: flex;
+			justify-content: center;
+			gap: 15px;
+			margin: 20px 0;
+		}
+		
+		.toggle-btn {
+			font-family: 'moonGetHeavy', sans-serif;
+			padding: 12px 30px;
+			border: 3px solid #ff7e00;
+			border-radius: 8px;
+			background: linear-gradient(180deg, #ff8900 0%, #ff7e00 100%);
+			color: white;
+			text-shadow: 1px 1px 2px black;
+			cursor: pointer;
+			font-size: 16px;
+			letter-spacing: 1px;
+			transition: all 0.3s ease-out;
+			box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+		}
+		
+		.toggle-btn:hover {
+			background: linear-gradient(180deg, #ffa500 0%, #ff8900 100%);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+		}
+		
+		.toggle-btn.active {
+			background: #9664e0;
+			border-color: #6842a0;
+			box-shadow: 0 0 15px rgba(150, 100, 224, 0.5);
+		}
+		
+		.toggle-btn.active:hover {
+			background: #b08aff;
+		}
+		
+		.col-dano, .col-bloqueo {
+			transition: all 0.3s ease-out;
+		}
+		
+		.col-hidden {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	{$header}
+	<div id="objetos" class="fondo-blanco">
+		<div style="margin-bottom: 20px;">
+			<div class="objeto_categoria" style="text-align: center; font-size: 24px;">CREADOR DE OBJETOS</div>
+			<div class="barra_categoria"></div>
+		</div>
+		
+		<div class="search-container">
+			<input type="text" id="search-input" class="search-box" placeholder="Buscar objeto por nombre...">
+		</div>
+		
+		<div class="toggle-buttons">
+			<button class="toggle-btn active" id="btn-dano" onclick="mostrarColumnas('dano')">DAÑO</button>
+			<button class="toggle-btn" id="btn-bloqueo" onclick="mostrarColumnas('bloqueo')">BLOQUEO</button>
+		</div>
+		
+		<div class="op-table-wrap">
+			<table class="op-table">
+				<colgroup>
+					<col style="width:120px">
+					<col style="width:5px">
+					<!-- Grupo daño -->
+					<col class="col-dano" style="width:70px">
+					<col class="col-dano" style="width:60px">
+					<col class="col-dano" style="width:60px">
+					<col class="col-dano" style="width:60px">
+					<col class="col-dano" style="width:60px">
+					<col class="col-dano" style="width:100px">
+					<!-- Grupo bloqueo -->
+					<col class="col-bloqueo col-hidden" style="width:70px">
+					<col class="col-bloqueo col-hidden" style="width:60px">
+					<col class="col-bloqueo col-hidden" style="width:60px">
+					<col class="col-bloqueo col-hidden" style="width:60px">
+					<col class="col-bloqueo col-hidden" style="width:60px">
+					<col class="col-bloqueo col-hidden" style="width:100px">
+					<!-- Resto -->
+					<col style="width:auto">
+					<col style="width:auto">
+					<col style="width:auto">
+					<col style="width:auto">
+				</colgroup>
+
+				<thead>
+					<tr>
+						<th rowspan="2">Nombre</th>
+						<th rowspan="2">T</th>
+
+						<th colspan="6" class="col-dano" style="text-align:center;background:#ff6900;">DAÑO</th>
+						<th colspan="6" class="col-bloqueo col-hidden" style="text-align:center;background:#ff8900;">BLOQUEO</th>
+
+						<th rowspan="2">Alcance</th>
+						<th rowspan="2">Efecto</th>
+						<!--<th rowspan="2">Bloqueo (raw)</th>-->
+						<th rowspan="2">Escalado</th>
+						<th rowspan="2">Requisitos</th>
+					</tr>
+					<tr>
+						<!-- Subcabeceras de daño -->
+						<th class="col-dano">Base</th>
+						<th class="col-dano">Esc1 P</th>
+						<th class="col-dano">Esc1 V</th>
+						<th class="col-dano">Esc2 P</th>
+						<th class="col-dano">Esc2 V</th>
+						<th class="col-dano">Tipo</th>
+
+						<!-- Subcabeceras de bloqueo -->
+						<th class="col-bloqueo col-hidden">Base</th>
+						<th class="col-bloqueo col-hidden">Esc1 P</th>
+						<th class="col-bloqueo col-hidden">Esc1 V</th>
+						<th class="col-bloqueo col-hidden">Esc2 P</th>
+						<th class="col-bloqueo col-hidden">Esc2 V</th>
+						<th class="col-bloqueo col-hidden">Tipo</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					{$op_objetos_rows}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<br><br><br><br><br>
+	{$footer}
+	
+	<script>
+		// Agregar clases a las celdas del tbody dinámicamente
+		document.addEventListener('DOMContentLoaded', function() {
+			const tbody = document.querySelector('.op-table tbody');
+			if (!tbody) return;
+			
+			const rows = tbody.querySelectorAll('tr');
+			rows.forEach(row => {
+				const cells = row.querySelectorAll('td');
+				// Las columnas son: 0=Nombre, 1=Tier
+				// 2-7=Daño (Base, Esc1P, Esc1V, Esc2P, Esc2V, Tipo)
+				// 8-13=Bloqueo (Base, Esc1P, Esc1V, Esc2P, Esc2V, Tipo)
+				// 14=Alcance, 15=Efecto, 16=Bloqueo(raw), 17=Escalado, 18=Requisitos
+				
+				// Columnas de daño (índices 2-7)
+				for (let i = 2; i <= 7; i++) {
+					if (cells[i]) {
+						cells[i].classList.add('col-dano');
+					}
+				}
+				
+				// Columnas de bloqueo (índices 8-13)
+				for (let i = 8; i <= 13; i++) {
+					if (cells[i]) {
+						cells[i].classList.add('col-bloqueo', 'col-hidden');
+					}
+				}
+			});
+			
+			// Funcionalidad de búsqueda
+			const searchInput = document.getElementById('search-input');
+			if (searchInput) {
+				searchInput.addEventListener('input', function() {
+					const searchTerm = this.value.toLowerCase().trim();
+					const rows = tbody.querySelectorAll('tr');
+					
+					rows.forEach(row => {
+						const nombreCell = row.querySelector('td:first-child');
+						if (nombreCell) {
+							const nombreTexto = nombreCell.textContent.toLowerCase();
+							if (nombreTexto.includes(searchTerm)) {
+								row.style.display = '';
+							} else {
+								row.style.display = 'none';
+							}
+						}
+					});
+				});
+			}
+		});
+		
+		function mostrarColumnas(tipo) {
+			const danoColumns = document.querySelectorAll('.col-dano');
+			const bloqueoColumns = document.querySelectorAll('.col-bloqueo');
+			const btnDano = document.getElementById('btn-dano');
+			const btnBloqueo = document.getElementById('btn-bloqueo');
+			
+			if (tipo === 'dano') {
+				// Mostrar columnas de daño
+				danoColumns.forEach(col => col.classList.remove('col-hidden'));
+				bloqueoColumns.forEach(col => col.classList.add('col-hidden'));
+				
+				// Actualizar botones
+				btnDano.classList.add('active');
+				btnBloqueo.classList.remove('active');
+			} else if (tipo === 'bloqueo') {
+				// Mostrar columnas de bloqueo
+				danoColumns.forEach(col => col.classList.add('col-hidden'));
+				bloqueoColumns.forEach(col => col.classList.remove('col-hidden'));
+				
+				// Actualizar botones
+				btnDano.classList.remove('active');
+				btnBloqueo.classList.add('active');
+			}
+		}
+	</script>
+</body>
+</html>

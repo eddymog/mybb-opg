@@ -1,0 +1,135 @@
+<html>
+
+<head>
+  <title>Asignar Estadísticas</title>
+  {$headerinclude}
+  <style>
+    .statsedit input[type=button]:hover, .editstatsbutton input[type=button]:hover {
+      cursor: pointer;
+    }
+
+    .fichastats {
+      text-align: center;
+    }
+
+    .fichastatsupperbar {
+      margin: auto;
+      border: 1px solid transparent;
+      border-radius: 5px;
+    }
+
+    .habilidadpts, .habilidadpts input { font-family: 'Progress', "Arial Black"; }
+    .habilidadpts { margin-top: -3px; }
+    .fichastats { display: inline-block; border: 1px solid transparent; border-radius: 5px; }
+    .statstable { margin-top: 25px; }
+    .statsNames { text-align: right; }
+    .statsedit input { font-family: 'MontserratVariableFont'; text-align: center; }
+
+  </style>
+</head>
+
+<body>
+  {$header}
+    <div class="ficha fondo-blanco" style=" text-align: center; ">
+	<div style=" font-size: 20px; margin-bottom: 2px; ">¡Supera tus límites!</div><br>
+    <div class="fichastats">
+      <form id="editarstatsform" method="post" action="/op/ficha_estadisticas.php?uid={$ficha['fid']}&accion=editado">
+        <div class="fichastatsupperbar">
+          <div class="habilidadpts">Puntos Disponibles: <input class="textbox" type="text" value="{$ficha['puntos_estadistica']}" id="puntos_estadistica" name="puntos_estadistica"
+              readonly="readonly"></div>
+        </div>
+        <div class="statsedit">
+          <span class="statsedit">
+			  <div class="statname">Fuerza: 
+				  <if $ficha['fuerza_pasiva'] > 0 then>(+{$ficha['fuerza_pasiva']})</if>
+			  	  <if $ficha['fuerza_pasiva'] < 0 then>({$ficha['fuerza_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(fuerza,-1);">
+			  <input class="textbox" type="text" value="{$ficha['fuerza']}" name="fuerza" id="fuerza" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(fuerza,1);">
+		  </span><br>
+          <span class="statsedit">
+			  <div class="statname">Resistencia: 
+				  <if $ficha['resistencia_pasiva'] > 0 then>(+{$ficha['resistencia_pasiva']})</if>
+			  	  <if $ficha['resistencia_pasiva'] < 0 then>({$ficha['resistencia_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(resistencia,-1);">
+			  <input class="textbox" type="text" value="{$ficha['resistencia']}" name="resistencia" id="resistencia" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(resistencia,1);">
+		  </span><br>
+		  <span class="statsedit"><div class="statname">Destreza:
+			  <if $ficha['destreza_pasiva'] > 0 then>(+{$ficha['destreza_pasiva']})</if>
+			  <if $ficha['destreza_pasiva'] < 0 then>({$ficha['destreza_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(destreza,-1);">
+			  <input class="textbox" type="text" value="{$ficha['destreza']}" name="destreza" id="destreza" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(destreza,1);">
+		  </span><br>
+		  <span class="statsedit"><div class="statname">Agilidad: 
+			  <if $ficha['agilidad_pasiva'] > 0 then>(+{$ficha['agilidad_pasiva']})</if>
+			  <if $ficha['agilidad_pasiva'] < 0 then>({$ficha['agilidad_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(agilidad,-1);">
+			  <input class="textbox" type="text" value="{$ficha['agilidad']}" name="agilidad" id="agilidad" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(agilidad,1);">
+		  </span><br>
+		  <span class="statsedit"><div class="statname">Puntería:
+			  <if $ficha['punteria_pasiva'] > 0 then>(+{$ficha['punteria_pasiva']})</if>
+			  <if $ficha['punteria_pasiva'] < 0 then>({$ficha['punteria_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(punteria,-1);">
+			  <input class="textbox" type="text" value="{$ficha['punteria']}" name="punteria" id="punteria" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(punteria,1);">
+		  </span><br>
+
+          <span class="statsedit"><div class="statname">Reflejos:
+			  <if $ficha['reflejos_pasiva'] > 0 then>(+{$ficha['reflejos_pasiva']})</if>
+			  <if $ficha['reflejos_pasiva'] < 0 then>({$ficha['reflejos_pasiva']})</if>
+			  </div>
+			  <input class="button" type="button" value="-" onclick="changeStat(reflejos,-1);">
+			  <input class="textbox" type="text" value="{$ficha['reflejos']}" name="reflejos" id="reflejos" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(reflejos,1);">
+		  </span><br>
+		  <span class="statsedit"><div class="statname">Voluntad: 
+			  <if $ficha['voluntad_pasiva'] > 0 then>(+{$ficha['voluntad_pasiva']})</if>
+			  <if $ficha['voluntad_pasiva'] < 0 then>({$ficha['voluntad_pasiva']})</if></div>
+			  <input class="button" type="button" value="-" onclick="changeStat(voluntad,-1);">
+			  <input class="textbox" type="text" value="{$ficha['voluntad']}" name="voluntad" id="voluntad" readonly="readonly">
+			  <input class="button" type="button" value="+" onclick="changeStat(voluntad,1);">
+		  </span><br>
+  
+        </div><br>
+        <div>
+            <span>Nivel: </span><span class="nivel">{$ficha['nivel']}</span><br>
+			<input style="display: none;" value="{$ficha['nivel']}" name="nivel" id="nivel">
+            <span>Puntos invertidos: </span><span class="total_puntos">0</span>
+        </div>
+        <div class="statstable">
+          <div class="vida">
+			  Vitalidad: <if $vitalidad_extra > 0 then><span>(+{$vitalidad_extra})</span></if><if $vitalidad_extra < 0 then><span>({$vitalidad_extra})</span></if>
+			  <br><input class="textbox" type="text" value="{$ficha['vitalidad']}" id="vitalidad" name="vitalidad" readonly="">
+          </div>
+          <div class="estamina">
+            Energía: <if $energia_extra > 0 then><span>(+{$energia_extra})</span></if><if $energia_extra < 0 then><span>({$energia_extra})</span></if>
+			  <br><input class="textbox" type="text" value="{$ficha['energia']}" id="energia" name="energia" readonly="">
+          </div>
+          <div class="chakra">
+            Haki: <if $haki_extra > 0 then><span>(+{$haki_extra})</span></if><if $haki_extra < 0 then><span>({$haki_extra})</span></if>
+			  <br><input  class="textbox" type="text" value="{$ficha['haki']}" id="haki" name="haki" readonly="">
+          </div>
+		  
+        </div><br>
+        <div class="editstatsbutton">
+          <input type="button"
+			class="button"
+            onclick="javascript: document.getElementById('editarstatsform').submit();"
+            value="Guardar Estadísticas">
+        </div>
+      </form>
+    </div>
+  </div>
+  {$footer}
+</body>
+{$op_ficha_asignar_estadisticas_script}
+
+</html>

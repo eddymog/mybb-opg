@@ -1,0 +1,355 @@
+<html>
+
+<head>
+    <style>
+		.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.mini-button {
+			font-size: 17px;
+			background-color: #e86200;
+			font-family: InterRegular;
+			border: 2px solid black;
+			color: white;
+			border-radius: 8px;
+			text-shadow: 0px 0px 3px black;
+			cursor: pointer;
+			padding: 2px 6px;
+			transition: all 0.2s ease-out;
+		}
+		
+		.mini-button:hover, .crear-button:hover {
+			background-color: #9151b5;
+		}
+		
+		.mini-button-active {
+			background-color: #8632b5;
+		}
+		
+		.crear-button {
+			font-size: 17px; background-color: #e86200; font-family: InterRegular; border: 2px solid black; color: white; border-radius: 8px; margin: -10px 0px; text-shadow: 0px 0px 3px black; cursor: pointer;transition: all 0.2s ease-out;
+		}
+		
+		.item-nombre {
+			font-size: 20px !important;
+		}
+		
+		.item-outer {
+			width: 80px !important;
+   		    height: 99px !important;
+			margin-right: 3px !important;
+			margin-left: 3px !important;
+		}
+	
+    </style>
+    <title>Creaciones</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+	  <div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<div style="margin-bottom: 10px;">
+						<img src="/images/op/uploads/NuevasPosibilidades_One_Piece_Gaiden_Foro_Rol.jpg" />
+					</div>
+					
+					<div id="tickets" style="display: flex;justify-content: space-evenly;margin-top: -7px;">
+						
+						
+					</div>
+					
+					<div class="poneglyph">
+						<div style=" margin: 10px auto; width: 338px;">
+							
+							<div style="display: grid; grid-template-columns: 1fr 1fr;">
+								
+								<div id="tecnica_unica" class="mini-button mini-button-active">Técnica Única</div>
+								<div id="mejora_tecnica" class="mini-button">Mejora Técnica</div>
+								<div id="nuevo_objeto" class="mini-button">Nota de Crafteo</div>
+								<div id="manual_crafteo" class="mini-button">Manual de Crafteo</div>
+								
+							</div>
+							
+							<div style="margin: 10px -36px; "><img style="border: 2px solid black; " src="/images/op/uploads/PrepararUnica_One_Piece_Gaiden_Foro_Rol.gif" /></div>
+							
+							<div id="creacion" style=" text-align: center; display: none;">
+								<div class="crear-button">
+									¡Elige un ticket!<br>Coste 0 Nikas | Duración 0 días
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		 </div>
+	  </div>
+	<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+
+	<script>
+
+let nikasUsuario = {$ficha['nika']};
+let puntosOficioUsuario = {$ficha['puntos_oficio']};
+let nikas = 10000;
+let dias = 10000;
+let puntosOficio = 0;
+let objetoId = '???';
+let nombreObjeto = '???';
+let nivel = {$ficha['nivel']};
+let nivelTicket = 100;
+		
+const tecnicas = {
+	TTUN001: { nikas: 3, dias: 3, nivelTicket: 1, nombreTicket: 'Ticket de Técnica Única T1' },
+	TTUN002: { nikas: 5, dias: 5, nivelTicket: 3, nombreTicket: 'Ticket de Técnica Única T2' },
+	TTUN003: { nikas: 10, dias: 7, nivelTicket: 5, nombreTicket: 'Ticket de Técnica Única T3' },
+	TTUN004: { nikas: 15, dias: 10, nivelTicket: 7, nombreTicket: 'Ticket de Técnica Única T4' },
+	TTUN005: { nikas: 20, dias: 13, nivelTicket: 9, nombreTicket: 'Ticket de Técnica Única T5' },
+	TTUN006: { nikas: 25, dias: 17, nivelTicket: 11, nombreTicket: 'Ticket de Técnica Única T6' },
+	TTUN007: { nikas: 30, dias: 22, nivelTicket: 13, nombreTicket: 'Ticket de Técnica Única T7' },
+	TTUN008: { nikas: 40, dias: 28, nivelTicket: 15, nombreTicket: 'Ticket de Técnica Única T8' },
+	TTUN009: { nikas: 50, dias: 36, nivelTicket: 17, nombreTicket: 'Ticket de Técnica Única T9' },
+	TTUN010: { nikas: 60, dias: 45, nivelTicket: 19, nombreTicket: 'Ticket de Técnica Única T10' }
+};
+		
+const mejoras = {
+	TMJT001: { nikas: 3, dias: 2, nivelTicket: 1, nombreTicket: 'Ticket de Mejora de Técnica T1' },
+	TMJT002: { nikas: 6, dias: 4, nivelTicket: 3, nombreTicket: 'Ticket de Mejora de Técnica T2' },
+	TMJT003: { nikas: 9, dias: 6, nivelTicket: 5, nombreTicket: 'Ticket de Mejora de Técnica T3' },
+	TMJT004: { nikas: 12, dias: 8, nivelTicket: 7, nombreTicket: 'Ticket de Mejora de Técnica T4' },
+	TMJT005: { nikas: 15, dias: 10, nivelTicket: 9, nombreTicket: 'Ticket de Mejora de Técnica T5' },
+	TMJT006: { nikas: 18, dias: 12, nivelTicket: 11, nombreTicket: 'Ticket de Mejora de Técnica T6' },
+	TMJT007: { nikas: 21, dias: 14, nivelTicket: 13, nombreTicket: 'Ticket de Mejora de Técnica T7' },
+	TMJT008: { nikas: 24, dias: 16, nivelTicket: 15, nombreTicket: 'Ticket de Mejora de Técnica T8' },
+	TMJT009: { nikas: 27, dias: 18, nivelTicket: 17, nombreTicket: 'Ticket de Mejora de Técnica T9' },
+	TMJT010: { nikas: 30, dias: 20, nivelTicket: 19, nombreTicket: 'Ticket de Mejora de Técnica T10' }
+};
+		
+const objetos = {
+	NTC001: { nikas: 4, dias: 4, puntosOficio: 250, nivelTicket: 1, nombreTicket: 'Notas de Crafteo T1' },
+	NTC002: { nikas: 7, dias: 7, puntosOficio: 500, nivelTicket: 4, nombreTicket: 'Notas de Crafteo T2' },
+	NTC003: { nikas: 14, dias: 11, puntosOficio: 1000, nivelTicket: 8, nombreTicket: 'Notas de Crafteo T3' },
+	NTC004: { nikas: 25, dias: 16, puntosOficio: 1500, nivelTicket: 12, nombreTicket: 'Notas de Crafteo T4' },
+	NTC005: { nikas: 35, dias: 22, puntosOficio: 2000, nivelTicket: 16, nombreTicket: 'Notas de Crafteo T5' }
+};
+
+const manuales = {
+	RTO001: { nikas: 5, dias: 5, puntosOficio: 250, nivelTicket: 1, nombreTicket: 'Manual de Crafteo T1' },
+	RTO002: { nikas: 10, dias: 10, puntosOficio: 500, nivelTicket: 4, nombreTicket: 'Manual de Crafteo T2' },
+	RTO003: { nikas: 20, dias: 15, puntosOficio: 1000, nivelTicket: 8, nombreTicket: 'Manual de Crafteo T3' },
+	RTO004: { nikas: 35, dias: 22, puntosOficio: 1500, nivelTicket: 12, nombreTicket: 'Manual de Crafteo T4' },
+	RTO005: { nikas: 50, dias: 30, puntosOficio: 2000, nivelTicket: 16, nombreTicket: 'Manual de Crafteo T5' }
+};
+		
+const tecnicasKeys = Object.keys(tecnicas);
+const mejorasKeys = Object.keys(mejoras);
+const objetosKeys = Object.keys(objetos);
+const manualesKeys = Object.keys(manuales);
+		
+for (let i = 1; i < tecnicasKeys.length + 1; i++) {
+	
+	let tecnicaId = tecnicasKeys[i - 1];
+	$('#tickets').append(`
+		<div onclick="selectTicketTecnica('` + tecnicaId + `');" class="item-outer" id="` + tecnicaId + `">
+			<div class="item-nombre">Tier ` + i + `</a></div>
+			<div class="item-image"><div><img id="imagen-item" src="/images/op/iconos/tecnicas_` + ((i * 2)) + `_One_Piece_Gaiden_Foro_Rol.gif"></div></div>
+		</div>
+	`);
+}
+		
+$('#tecnica_unica').on('click', function() {
+	
+	if (!$('#tecnica_unica').hasClass('mini-button-active')) {
+		nikas = 1000; dias = 1000; puntosOficio = 0; 
+		$('#creacion').css('display', 'none');
+		$('#mejora_tecnica').removeClass('mini-button-active');
+		$('#nuevo_objeto').removeClass('mini-button-active');
+		$('#manual_crafteo').removeClass('mini-button-active');
+		$('#tecnica_unica').addClass('mini-button-active');
+		
+		$('#tickets').html('');
+		
+		for (let i = 1; i < tecnicasKeys.length + 1; i++) {
+			
+			let tecnicaId = tecnicasKeys[i - 1];
+			$('#tickets').append(`
+				<div onclick="selectTicketTecnica('` + tecnicaId + `');" class="item-outer" id="` + tecnicaId + `">
+					<div class="item-nombre">Tier ` + i + `</a></div>
+					<div class="item-image"><div><img id="imagen-item" src="/images/op/iconos/tecnicas_` + ((i * 2)) + `_One_Piece_Gaiden_Foro_Rol.gif"></div></div>
+				</div>
+			`);
+		}
+	}
+	
+});
+		
+$('#mejora_tecnica').on('click', function() {
+	
+	if (!$('#mejora_tecnica').hasClass('mini-button-active')) {
+		nikas = 1000; dias = 1000; puntosOficio = 0; 
+		$('#creacion').css('display', 'none');
+		$('#tecnica_unica').removeClass('mini-button-active');
+		$('#nuevo_objeto').removeClass('mini-button-active');
+		$('#manual_crafteo').removeClass('mini-button-active');
+		$('#mejora_tecnica').addClass('mini-button-active');
+		
+		$('#tickets').html('');
+		
+		for (let i = 1; i < mejorasKeys.length + 1; i++) {
+			let mejoraId = mejorasKeys[i - 1];
+			$('#tickets').append(`
+				<div onclick="selectTicketMejora('` + mejoraId + `');" class="item-outer" id="` + mejoraId + `">
+					<div class="item-nombre">Tier ` + (i) + `</a></div>
+					<div class="item-image"><div><img id="imagen-item" src="/images/op/iconos/tecnicas_` + ((i * 2) - 1) + `_One_Piece_Gaiden_Foro_Rol.gif"></div></div>
+				</div>
+			`);
+		}
+	}
+	
+	
+	
+});
+		
+$('#nuevo_objeto').on('click', function() {
+	
+	if (!$('#nuevo_objeto').hasClass('mini-button-active')) {
+		nikas = 1000; dias = 1000; puntosOficio = 0; 
+		$('#creacion').css('display', 'none');
+		$('#mejora_tecnica').removeClass('mini-button-active');
+		$('#tecnica_unica').removeClass('mini-button-active');
+		$('#manual_crafteo').removeClass('mini-button-active');
+		$('#nuevo_objeto').addClass('mini-button-active');
+		
+		$('#tickets').html('');
+		
+		for (let i = 1; i < objetosKeys.length + 1; i++) {
+			$('#tickets').append(`
+				<div onclick="selectTicketObjeto('NTC00` + i + `');" class="item-outer" id="NTC00` + i + `">
+					<div class="item-nombre">Tier ` + i + `</a></div>
+					<div class="item-image"><div><img id="imagen-item" src="/images/op/uploads/MejoraObjetoT` + i + `_One_Piece_Gaiden_Foro_Rol.gif"></div></div>
+				</div>
+			`);
+		}
+	}
+	
+});
+
+$('#manual_crafteo').on('click', function() {
+	
+	if (!$('#manual_crafteo').hasClass('mini-button-active')) {
+		nikas = 1000; dias = 1000; puntosOficio = 0; 
+		$('#creacion').css('display', 'none');
+		$('#mejora_tecnica').removeClass('mini-button-active');
+		$('#tecnica_unica').removeClass('mini-button-active');
+		$('#nuevo_objeto').removeClass('mini-button-active');
+		$('#manual_crafteo').addClass('mini-button-active');
+		
+		$('#tickets').html('');
+		
+		for (let i = 1; i < manualesKeys.length + 1; i++) {
+			$('#tickets').append(`
+				<div onclick="selectTicketManual('RTO00` + i + `');" class="item-outer" id="RTO00` + i + `">
+					<div class="item-nombre">Tier ` + i + `</a></div>
+					<div class="item-image"><div><img id="imagen-item" src="/images/op/uploads/MejoraItemT` + i + `_One_Piece_Gaiden_Foro_Rol.gif"></div></div>
+				</div>
+			`);
+		}
+	}
+	
+});
+
+function selectTicketTecnica(id) {
+	let idTag = '#' + id;
+	let ticketTecnica = tecnicas[id];
+	puntosOficio = 0; 
+	if ($(idTag).hasClass('item-active')) {
+		$(idTag).removeClass('item-active');
+		$('#creacion').css('display', 'none');
+		nikas = 1000; dias = 1000; objetoId = '???'; nombreObjeto = '???'; nivelTicket = 50;
+	} else {	
+		$('.item-outer').removeClass('item-active');
+		$(idTag).addClass('item-active');
+		nikas = ticketTecnica.nikas; dias = ticketTecnica.dias; objetoId = id; nombreObjeto = ticketTecnica.nombreTicket; nivelTicket = ticketTecnica.nivelTicket;
+		
+		$('.crear-button').html(`Crear Técnica Única (` + ticketTecnica.dias + ` días)<br>Coste: ` + ticketTecnica.nikas + ` Nikas`);
+		$('#creacion').css('display', 'block');
+	}
+}
+		
+function selectTicketMejora(id) {
+	let idTag = '#' + id;
+	let ticketTecnica = mejoras[id];
+	puntosOficio = 0; 
+	if ($(idTag).hasClass('item-active')) {
+		$(idTag).removeClass('item-active');
+		$('#creacion').css('display', 'none');
+		nikas = 1000; dias = 1000; objetoId = '???'; nombreObjeto = '???'; nivelTicket = 50;
+	} else {	
+		$('.item-outer').removeClass('item-active');
+		$(idTag).addClass('item-active');
+		nikas = ticketTecnica.nikas; dias = ticketTecnica.dias; objetoId = id; nombreObjeto = ticketTecnica.nombreTicket; nivelTicket = ticketTecnica.nivelTicket;
+		
+		$('.crear-button').html(`Crear Mejora de Técnica (` + ticketTecnica.dias + ` días)<br>Coste: ` + ticketTecnica.nikas + ` Nikas`);
+		$('#creacion').css('display', 'block');
+	}
+}
+		
+function selectTicketObjeto(id) {
+	let idTag = '#' + id;
+	let ticketTecnica = objetos[id];
+
+	if ($(idTag).hasClass('item-active')) {
+		$(idTag).removeClass('item-active');
+		$('#creacion').css('display', 'none');
+		nikas = 1000; dias = 1000; puntosOficio = 0; objetoId = '???'; nombreObjeto = '???'; nivelTicket = 50;
+	} else {	
+		$('.item-outer').removeClass('item-active');
+		$(idTag).addClass('item-active');
+		nikas = ticketTecnica.nikas; dias = ticketTecnica.dias; puntosOficio = ticketTecnica.puntosOficio; objetoId = id; nombreObjeto = ticketTecnica.nombreTicket; nivelTicket = ticketTecnica.nivelTicket;
+		
+		$('.crear-button').html(`Crear Nota de Crafteo (` + ticketTecnica.dias + ` días)<br>Coste: ` + ticketTecnica.nikas + ` Nikas y ` + ticketTecnica.puntosOficio + ` Puntos de Oficio`);
+		$('#creacion').css('display', 'block');
+	}
+}
+
+function selectTicketManual(id) {
+	let idTag = '#' + id;
+	let ticketManual = manuales[id];
+
+	if ($(idTag).hasClass('item-active')) {
+		$(idTag).removeClass('item-active');
+		$('#creacion').css('display', 'none');
+		nikas = 1000; dias = 1000; puntosOficio = 0; objetoId = '???'; nombreObjeto = '???'; nivelTicket = 50;
+	} else {	
+		$('.item-outer').removeClass('item-active');
+		$(idTag).addClass('item-active');
+		nikas = ticketManual.nikas; dias = ticketManual.dias; puntosOficio = ticketManual.puntosOficio; objetoId = id; nombreObjeto = ticketManual.nombreTicket; nivelTicket = ticketManual.nivelTicket;
+		
+		$('.crear-button').html(`Crear Manual de Crafteo (` + ticketManual.dias + ` días)<br>Coste: ` + ticketManual.nikas + ` Nikas y ` + ticketManual.puntosOficio + ` Puntos de Oficio`);
+		$('#creacion').css('display', 'block');
+	}
+}
+		
+$('#creacion').on('click', function() {
+	
+	if (nikasUsuario >= nikas && puntosOficioUsuario >= puntosOficio && nivel >= nivelTicket) {
+		if (confirm(`¿Estás seguro que quieres crear ` + nombreObjeto + `?`)) {
+			window.location.href = '/op/creacion.php?accion=crear&ticket=' + objetoId;
+		}
+	} else {
+		alert('No tienes suficientes recursos o nivel para obtener este ticket.');
+	}
+	
+
+});	
+		
+// Crear Nueva Técnica Única<br>Coste 15 Nikas | Duración 10 días		
+</script>
+{$reload_script}
+{$footer}
+</body>
+
+</html>

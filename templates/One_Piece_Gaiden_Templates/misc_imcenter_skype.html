@@ -1,0 +1,21 @@
+<div class="modal">
+<div style="overflow-y: auto; max-height: 400px; width: 415px;">
+<table width="100%" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" border="0" align="center" class="tborder">
+<tr>
+<td class="thead" align="center" style="border-radius: 0 !important;"><strong>{$user['username']} - {$lang->skype_center}</strong></td>
+</tr>
+<tr>
+<td class="tcat" align="center"><span class="smalltext"><strong>{$navigationbar}</strong></span></td>
+</tr>
+<tr>
+<td class="trow1" align="center"><strong>{$user['skype']}</strong></td>
+</tr>
+<tr>
+<td class="trow1" align="center"><i class="fa fa-skype" alt="{$lang->skype_status}" style="color: #01bcf3; font-size: 26px;" title="{$lang->skype_status}"></i></td>
+</tr>
+<tr>
+<td class="trow1" align="center"><span class="smalltext"><a href="skype:{$user['skype']}?chat">{$lang->chat_on_skype}</a>  &nbsp;&bull;&nbsp;  <a href="skype:{$user['skype']}?call">{$lang->call_on_skype}</a></span></td>
+</tr>
+</table>
+</div>
+</div>

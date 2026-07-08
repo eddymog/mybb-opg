@@ -1,0 +1,1150 @@
+<html>
+
+<head>
+  <title>Solicitud Narraciones - One Piece Gaiden</title>
+  {$headerinclude}
+  <style>
+    /* Estilos generales */
+    .mainBackground {
+        background-color: #1a1a2e;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .secondBackground {
+        background: linear-gradient(135deg, #0f3443, #16213e);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .thirdBackground {
+        background-image:
+          linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)),
+          url('https://i.pinimg.com/1200x/04/ac/b0/04acb05d8e9a2930b88b08610b2ffe96.jpg');
+        background-position: center;
+        background-size: cover;
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .akumaBanner {
+        background: linear-gradient(90deg, transparent 0%, #ff7b00 20%, #ff9500 50%, #ff7b00 80%, transparent 100%);
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Estilos para los items de jugadores */
+    .jugador-item {
+        background: linear-gradient(90deg, rgba(22, 160, 133, 0.8), rgba(26, 188, 156, 0.6));
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 2px solid #0f7864;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: all 0.3s ease;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+        width: calc(50% - 4px);
+        box-sizing: border-box;
+    }
+
+    .jugador-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .jugador-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .jugador-nombre {
+        font-family: 'moonGetHeavy';
+        color: white;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px black;
+    }
+
+    .jugador-nivel {
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-family: 'moonGetHeavy';
+        color: #ff7b00;
+        font-size: 16px;
+    }
+
+    .jugador-eliminar {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: 'moonGetHeavy';
+        font-size: 11px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .jugador-eliminar:hover {
+        background-color: #c0392b;
+        transform: scale(1.05);
+    }
+
+    /* Estilos para los items de enemigos */
+    .enemigo-item {
+        background: linear-gradient(90deg, rgba(192, 57, 43, 0.8), rgba(231, 76, 60, 0.6));
+        padding: 12px 15px;
+        border-radius: 8px;
+        border: 2px solid #8b1e1e;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: all 0.3s ease;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+        width: calc(50% - 4px);
+        box-sizing: border-box;
+    }
+
+    .enemigo-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .enemigo-info {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .enemigo-nombre {
+        font-family: 'moonGetHeavy';
+        color: white;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px black;
+    }
+
+    .enemigo-nivel {
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-family: 'moonGetHeavy';
+        color: #ff7b00;
+        font-size: 14px;
+    }
+
+    .enemigo-cantidad {
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-family: 'moonGetHeavy';
+        color: white;
+        font-size: 14px;
+    }
+
+    .enemigo-xp {
+        background-color: rgba(255, 215, 0, 0.3);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-family: 'moonGetHeavy';
+        color: #ffd700;
+        font-size: 14px;
+    }
+
+    .enemigo-eliminar {
+        background-color: #8b1e1e;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: 'moonGetHeavy';
+        font-size: 11px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .enemigo-eliminar:hover {
+        background-color: #5a0f0f;
+        transform: scale(1.05);
+    }
+
+    /* Mensaje vacío */
+    .lista-vacia {
+        text-align: center;
+        padding: 30px;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: 'InterRegular';
+        font-style: italic;
+        width: 100%;
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .jugador-item,
+    .enemigo-item {
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* Scrollbar personalizado */
+    #listaJugadores::-webkit-scrollbar,
+    #listaEnemigos::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #listaJugadores::-webkit-scrollbar-track,
+    #listaEnemigos::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+
+    #listaJugadores::-webkit-scrollbar-thumb {
+        background: #16a085;
+        border-radius: 10px;
+    }
+
+    #listaEnemigos::-webkit-scrollbar-thumb {
+        background: #c0392b;
+        border-radius: 10px;
+    }
+
+    #listaJugadores::-webkit-scrollbar-thumb:hover {
+        background: #1abc9c;
+    }
+
+    #listaEnemigos::-webkit-scrollbar-thumb:hover {
+        background: #e74c3c;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .jugador-item,
+        .enemigo-item {
+            width: 100%;
+        }
+
+        #listaJugadores,
+        #listaEnemigos {
+            flex-direction: column;
+        }
+    }
+
+    /* Tabs */
+    .tabContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .tabNavigation {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 0;
+    }
+
+    .tabButton {
+        flex: 1 1 150px;
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 2px solid #ff7b00;
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        color: #ff7b00;
+        font-family: 'moonGetHeavy';
+        font-size: 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .tabButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.45);
+    }
+
+    .tabButton.active {
+        background: linear-gradient(135deg, #ff7b00, #ff9500);
+        color: #fff;
+        border-color: #ff9500;
+    }
+
+    .tabPanels {
+        width: 100%;
+    }
+
+    .tabPanel {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tabPanel.active {
+        display: block;
+    }
+
+    .registroFilterBar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 10px 0 20px 0;
+    }
+    #registroFilterBar {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    #registroFilterBar .registroFilterRow {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .registroFilterBtn {
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(0, 0, 0, 0.25);
+        color: #fff;
+        font-family: 'moonGetHeavy';
+        font-size: 12px;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .registroFilterBtn:hover {
+        border-color: #ff7b00;
+        color: #ffb347;
+    }
+
+    .registroFilterBtn.active {
+        background: linear-gradient(135deg, #ff7b00, #ff9500);
+        border-color: #ff9500;
+        color: #fff;
+        box-shadow: 0 0 12px rgba(255, 123, 0, 0.3);
+    }
+
+    .registroActions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .registroRefresh {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid #ff7b00;
+        background: rgba(255, 123, 0, 0.15);
+        color: #ffb347;
+        font-family: 'moonGetHeavy';
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .registroRefresh:hover {
+        background: #ff7b00;
+        color: #fff;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.45);
+    }
+
+    .registroLista {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .registroItem {
+        background: linear-gradient(135deg, rgba(15, 36, 54, 0.9), rgba(24, 49, 73, 0.8));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .registroItem.status-pendiente,
+    .registroItem.status-pendiente-narrador {
+        border-color: rgba(255, 123, 0, 0.45);
+        box-shadow: 0 0 15px rgba(255, 123, 0, 0.15);
+    }
+
+    .registroItem.status-pendiente-borrado {
+        border-color: rgba(150, 150, 150, 0.5);
+        background: linear-gradient(135deg, rgba(30, 30, 30, 0.9), rgba(45, 45, 45, 0.85));
+        box-shadow: 0 0 18px rgba(150, 150, 150, 0.15);
+        opacity: 0.85;
+    }
+
+    .registroItem.status-aprobada,
+    .registroItem.status-aprobado {
+        border-color: rgba(39, 174, 96, 0.6);
+        background: linear-gradient(135deg, rgba(15, 54, 45, 0.95), rgba(24, 73, 60, 0.85));
+        box-shadow: 0 0 18px rgba(39, 174, 96, 0.25);
+    }
+
+    .registroItem.status-denegada,
+    .registroItem.status-denegado {
+        border-color: rgba(192, 57, 43, 0.65);
+        background: linear-gradient(135deg, rgba(54, 15, 15, 0.95), rgba(73, 24, 24, 0.85));
+        box-shadow: 0 0 18px rgba(192, 57, 43, 0.25);
+    }
+
+    .registroItem.status-creado {
+        border-color: rgba(52, 152, 219, 0.45);
+        background: linear-gradient(135deg, rgba(15, 31, 54, 0.9), rgba(24, 43, 73, 0.8));
+        box-shadow: 0 0 15px rgba(52, 152, 219, 0.15);
+    }
+
+    .registroItem.status-finalizado {
+        border-color: rgba(155, 89, 182, 0.5);
+        background: linear-gradient(135deg, rgba(34, 16, 54, 0.95), rgba(53, 25, 79, 0.85));
+        box-shadow: 0 0 18px rgba(155, 89, 182, 0.2);
+    }
+
+    .registroItem h3 {
+        margin: 0 0 6px 0;
+        font-family: 'moonGetHeavy';
+        color: #ff7b00;
+        letter-spacing: 0.5px;
+    }
+
+    .registroMeta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .registroBadge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-family: 'moonGetHeavy';
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .statusBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-family: 'moonGetHeavy';
+        font-size: 11px;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .statusBadge.pendiente,
+    .statusBadge.pendiente-narrador {
+        background: rgba(255, 123, 0, 0.15);
+        color: #ffb347;
+        border-color: rgba(255, 123, 0, 0.5);
+    }
+
+    .statusBadge.aprobada,
+    .statusBadge.aprobado {
+        background: rgba(39, 174, 96, 0.2);
+        color: #2ecc71;
+        border-color: rgba(39, 174, 96, 0.5);
+    }
+
+    .statusBadge.denegada,
+    .statusBadge.denegado {
+        background: rgba(192, 57, 43, 0.2);
+        color: #e57373;
+        border-color: rgba(192, 57, 43, 0.6);
+    }
+
+    .statusBadge.creado {
+        background: rgba(52, 152, 219, 0.18);
+        color: #5dade2;
+        border-color: rgba(52, 152, 219, 0.45);
+    }
+
+    .statusBadge.finalizado {
+        background: rgba(155, 89, 182, 0.18);
+        color: #c39bd3;
+        border-color: rgba(155, 89, 182, 0.45);
+    }
+
+    .statusBadge.pendiente-borrado {
+        background: rgba(200, 200, 200, 0.2);
+        color: #cccccc;
+        border-color: rgba(200, 200, 200, 0.5);
+    }
+
+    /* Badge para narraciones Inframundo */
+    .registroInframundoBadge {
+        display:inline-flex;
+        align-items:center;
+        padding:4px 10px;
+        border-radius:999px;
+        font-family:'moonGetHeavy';
+        font-size:12px;
+        font-weight: bold;
+        letter-spacing:0.5px;
+        background: linear-gradient(135deg, #3b0b0b, #6b1e4a);
+        color: #ffd700;
+        border: 1px solid rgba(0,0,0,0.25);
+    }
+
+    .registroEmpty,
+    .registroError,
+    .registroLoader {
+        text-align: center;
+        padding: 20px;
+        font-family: 'InterRegular';
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .registroComment {
+        margin-top: 14px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .registroComment strong {
+        color: #ffb347;
+        font-family: 'moonGetHeavy';
+        letter-spacing: 0.4px;
+    }
+
+    .registroOwnerActions {
+        margin-top: 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .registroHideBtn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 123, 0, 0.6);
+        background: rgba(255, 123, 0, 0.15);
+        color: #ffb347;
+        font-family: 'moonGetHeavy';
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .registroHideBtn:hover:not(:disabled) {
+        background: rgba(255, 123, 0, 0.3);
+        color: #fff;
+    }
+
+    .registroHideBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .registroShareBtn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(22, 160, 133, 0.6);
+        background: rgba(22, 160, 133, 0.15);
+        color: #8be0cf;
+        font-family: 'moonGetHeavy';
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .registroShareBtn:hover:not(:disabled) {
+        background: rgba(22, 160, 133, 0.35);
+        color: #fff;
+    }
+
+    .registroShareBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .registroClaimWrapper {
+        margin-top: 16px;
+        padding: 14px;
+        border-radius: 10px;
+        border: 1px dashed rgba(255, 123, 0, 0.5);
+        background: rgba(255, 123, 0, 0.05);
+    }
+
+    .registroClaimTitle {
+        font-family: 'moonGetHeavy';
+        color: #ffb347;
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        letter-spacing: 0.4px;
+    }
+
+    .registroClaimInput {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        font-family: 'InterRegular';
+        box-sizing: border-box;
+    }
+
+    .registroClaimInput:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .registroClaimResults {
+        background: rgba(15, 22, 35, 0.95);
+        border: 1px solid rgba(255, 123, 0, 0.4);
+        border-radius: 8px;
+        margin-top: 6px;
+        max-height: 220px;
+        overflow-y: auto;
+        display: none;
+        z-index: 3;
+        position: relative;
+    }
+
+    .registroClaimResultItem {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #fff;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .registroClaimResultItem:hover {
+        background: rgba(255, 123, 0, 0.2);
+    }
+
+    .registroClaimChip {
+        display: inline-flex;
+        margin-top: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(15, 120, 100, 0.3);
+        color: #fff;
+        font-size: 12px;
+        font-family: 'InterRegular';
+    }
+
+    .registroClaimBtn {
+        margin-top: 12px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 1px solid #16a085;
+        background: rgba(22, 160, 133, 0.2);
+        color: #fff;
+        font-family: 'moonGetHeavy';
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .registroClaimBtn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .registroClaimBtn:not(:disabled):hover {
+        background: rgba(22, 160, 133, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .registroListas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 15px;
+    }
+
+    .registroListas ul {
+        list-style: none;
+        margin: 0;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0, 0, 0, 0.25);
+        min-width: 240px;
+        flex: 1 1 240px;
+    }
+
+    .registroListas li {
+        font-size: 13px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .registroListas li:last-child {
+        border-bottom: none;
+    }
+
+    .registroListTitle {
+        font-family: 'moonGetHeavy';
+        font-size: 13px;
+        color: #ffb347;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: inline-block;
+    }
+
+    .consolaTips {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        margin: 15px 0 10px 0;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.75);
+        font-family: 'InterRegular';
+    }
+
+    .consolaTips span {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 10px 12px;
+        border-radius: 10px;
+    }
+
+    .consolaTextarea {
+        width: 100%;
+        min-height: 70px;
+        resize: vertical;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        font-family: 'InterRegular';
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+
+    .consolaTextarea:focus {
+        outline: none;
+        border-color: #ff7b00;
+        box-shadow: 0 0 8px rgba(255, 123, 0, 0.4);
+    }
+
+    .consolaButtonRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .consolaBtn {
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-family: 'moonGetHeavy';
+        font-size: 12px;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .consolaBtn.primary {
+        border-color: #27ae60;
+        background: rgba(39, 174, 96, 0.2);
+    }
+
+    .consolaBtn.warning {
+        border-color: #ff7b00;
+        background: rgba(255, 123, 0, 0.2);
+    }
+
+    .consolaBtn.danger {
+        border-color: #e74c3c;
+        background: rgba(231, 76, 60, 0.2);
+    }
+
+    .consolaBtn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .consolaBtn.compact {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
+    .consolaNoteLabel {
+        font-family: 'moonGetHeavy';
+        font-size: 12px;
+        letter-spacing: 0.4px;
+        color: #ffb347;
+        margin-top: 12px;
+        display: inline-block;
+    }
+
+    .consolaBtn[data-action="pagar"] {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        margin-left: 8px;
+    }
+
+    .consolaBtn[data-action="pagar"]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #229954, #27ae60);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .consolaBtn[data-action="pagar"]:disabled {
+        background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground tabContainer">
+                <div class="tabNavigation">
+                    <button class="tabButton active" data-tab="solicitud">Solicitud</button>
+                    <button class="tabButton" data-tab="registro">Registro</button>
+                    <if $g_is_staff or $g_is_narra then>
+                    <button class="tabButton" data-tab="consola">Consola</button>
+                    </if>
+                </div>
+                <div class="tabPanels">
+                <div class="tabPanel active" data-tab="solicitud">
+                
+                <!-- Banner principal -->
+                <div class="akumaBanner" style="text-align: center; padding: 20px 0;">
+                    <span style="font-family: 'moonGetHeavy'; font-size: 42px; color: white; text-shadow: 3px 3px 6px black; letter-spacing: 2px;">SOLICITUD NARRACIONES</span>
+                </div>
+                
+                <!-- Panel de información del grupo -->
+                <div style="display: flex; justify-content: center; margin: 20px 0;">
+                    <div style="width: 95%; background: linear-gradient(135deg, #2c3e50, #34495e); border: 3px solid #e74c3c; border-radius: 15px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                            <!-- Nivel promedio del grupo -->
+                            <div style="text-align: center; margin: 10px;">
+                                <div style="font-family: 'moonGetHeavy'; color: #ff7b00; font-size: 18px; margin-bottom: 5px;">NIVEL PROMEDIO</div>
+                                <div id="nivelPromedio" style="font-family: 'moonGetHeavy'; color: white; font-size: 36px; text-shadow: 2px 2px 4px black;">0</div>
+                            </div>
+                            
+                            <!-- Número de jugadores -->
+                            <div style="text-align: center; margin: 10px;">
+                                <div style="font-family: 'moonGetHeavy'; color: #ff7b00; font-size: 18px; margin-bottom: 5px;">JUGADORES</div>
+                                <div id="numJugadores" style="font-family: 'moonGetHeavy'; color: white; font-size: 36px; text-shadow: 2px 2px 4px black;">0</div>
+                            </div>
+                            
+                            <!-- Tier del Encuentro -->
+                            <div style="text-align: center; margin: 10px;">
+                                <div style="font-family: 'moonGetHeavy'; color: #ff7b00; font-size: 18px; margin-bottom: 12px;">TIER DEL ENCUENTRO</div>
+                                <div style="display:flex; align-items:center; gap:12px; justify-content:center;">
+                                    <select id="tierEncuentro" onchange="calcularEncuentro()" style="font-family: 'moonGetHeavy'; font-size: 24px; padding: 0px 8px; border-radius: 8px; border: 1px solid #ff7b00; background: linear-gradient(135deg, #2c3e50, #34495e); color: #ff7b00; text-align: center; cursor: pointer; box-shadow: 0px 4px 6px black;">
+                                        <option value="1">TIER 1</option>
+                                        <option value="2">TIER 2</option>
+                                        <option value="3">TIER 3</option>
+                                        <option value="4">TIER 4</option>
+                                        <option value="5">TIER 5</option>
+                                        <option value="6">TIER 6</option>
+                                        <option value="7">TIER 7</option>
+                                        <option value="8">TIER 8</option>
+                                        <option value="9">TIER 9</option>
+                                        <option value="10">TIER 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Dificultad del Encuentro -->
+                            <div style="text-align: center; margin: 10px;">
+                                <div style="font-family: 'moonGetHeavy'; color: #ff7b00; font-size: 18px; margin-bottom: 5px;">DIFICULTAD</div>
+                                <div id="dificultadEncuentro" style="font-family: 'moonGetHeavy'; color: white; font-size: 36px; text-shadow: 2px 2px 4px black;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Jugadores y Enemigos -->
+                <div style="display: flex; justify-content: center; margin: 20px 0; gap: 20px; flex-wrap: wrap;">
+                    
+                    <!-- Panel de Jugadores -->
+                    <div style="width: 43%; min-width: 400px; background: linear-gradient(135deg, #16a085, #1abc9c); border: 3px solid #0f7864; border-radius: 15px; padding: 20px; max-width: 600px;">
+                        <div style="background: linear-gradient(90deg, #0f7864, #16a085); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <h2 style="color: white; text-align: center; font-family: 'moonGetHeavy'; margin: 0; font-size: 24px; text-shadow: 2px 2px 4px black;">
+                                JUGADORES
+                            </h2>
+                        </div>
+                        
+                        <!-- Formulario para añadir jugador -->
+                        <div style="background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 150px; position: relative;">
+                                    <input type="text" id="nombreJugador" placeholder="Nombre del jugador" autocomplete="off"
+                                        style="width: 100%; padding: 8px; border-radius: 5px; border: 2px solid #0f7864; font-family: 'InterRegular'; box-sizing: border-box; background:#0e3a32; color:#fff;">
+                                    <div id="resultadosJugadores" style="position:absolute; z-index:5; top:42px; left:0; right:0; background:#0a241f; border:1px solid #0f7864; border-radius:6px; max-height:200px; overflow-y:auto; display:none;"></div>
+                                </div>
+                                <div style="width: 80px;">
+                                    <label style="display: block; color: white; font-family: 'moonGetHeavy'; font-size: 10px; margin-bottom: 3px; text-align: center;">NIVEL</label>
+                                    <input type="number" id="nivelJugador" placeholder="Nivel" min="1" max="50" value="1"
+                                        style="width: 100%; padding: 8px; border-radius: 5px; border: 2px solid #0f7864; font-family: 'InterRegular'; box-sizing: border-box;">
+                                </div>
+                                <button onclick="agregarJugador()" 
+                                    style="padding: 10px 20px; background-color: #ff7b00; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 14px;">
+                                    AÑADIR
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de jugadores -->
+                        <div id="listaJugadores" style="max-height: 400px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px;">
+                            <!-- Los jugadores se añadirán aquí dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <!-- Panel de Enemigos -->
+                    <div style="width: 43%; min-width: 400px; background: linear-gradient(135deg, #c0392b, #e74c3c); border: 3px solid #8b1e1e; border-radius: 15px; padding: 20px; max-width: 600px;">
+                        <div style="background: linear-gradient(90deg, #8b1e1e, #c0392b); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <h2 style="color: white; text-align: center; font-family: 'moonGetHeavy'; margin: 0; font-size: 24px; text-shadow: 2px 2px 4px black;">
+                                ENEMIGOS
+                            </h2>
+                        </div>
+                        
+                        <!-- Formulario para añadir enemigo -->
+                        <div style="background-color: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                                <div style="flex: 1; min-width: 150px;">
+                                    <input type="text" id="nombreEnemigo" placeholder="Nombre del enemigo" 
+                                        style="width: 100%; padding: 8px; border-radius: 5px; border: 2px solid #8b1e1e; font-family: 'InterRegular'; box-sizing: border-box;">
+                                </div>
+                                <div style="width: 80px;">
+                                    <label style="display: block; color: white; font-family: 'moonGetHeavy'; font-size: 10px; margin-bottom: 3px; text-align: center;">NIVEL</label>
+                                    <input type="number" id="nivelEnemigo" placeholder="Nivel" min="1" max="50" value="1"
+                                        style="width: 100%; padding: 8px; border-radius: 5px; border: 2px solid #8b1e1e; font-family: 'InterRegular'; box-sizing: border-box;">
+                                </div>
+                                <div style="width: 70px;">
+                                    <label style="display: block; color: white; font-family: 'moonGetHeavy'; font-size: 10px; margin-bottom: 3px; text-align: center;">CANTIDAD</label>
+                                    <input type="number" id="cantidadEnemigo" placeholder="Cant." min="1" max="100" value="1"
+                                        style="width: 100%; padding: 8px; border-radius: 5px; border: 2px solid #8b1e1e; font-family: 'InterRegular'; box-sizing: border-box;">
+                                </div>
+                                <button onclick="agregarEnemigo()" 
+                                    style="padding: 10px 20px; background-color: #ff7b00; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 14px;">
+                                    AÑADIR
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de enemigos -->
+                        <div id="listaEnemigos" style="max-height: 400px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px;">
+                            <!-- Los enemigos se añadirán aquí dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+				<!-- Selector de Narrador -->
+				<div style="display:flex; justify-content:center; margin: 10px 0;">
+				  <div style="width:95%; background: linear-gradient(135deg, #2c3e50, #34495e); border: 3px solid #16a085; border-radius: 15px; padding: 20px;">
+					<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+					  <div style="font-family:'moonGetHeavy'; color:#ff7b00; font-size:18px;">NARRADOR</div>
+					  <div style="position:relative; flex:1; min-width:280px;">
+						<input type="text" id="buscadorNarrador" placeholder="Buscar por nombre o apodo de ficha..."
+						  style="width:100%; padding:10px; border-radius:6px; border:2px solid #16a085; background:#1f2d3a; color:#fff; font-family:'InterRegular';">
+						<div id="resultadosNarrador" style="position:absolute; z-index:5; top:42px; left:0; right:0; background:#10212e; border:1px solid #16a085; border-radius:6px; max-height:220px; overflow-y:auto; display:none;"></div>
+					  </div>
+					  <div>
+						<span id="narradorSeleccionado" style="font-family:'moonGetHeavy'; color:#fff; background:#0f7864; border-radius:20px; padding:6px 12px; display:none;"></span>
+					  </div>
+					  <!-- Campos ocultos para el guardado -->
+					  <input type="hidden" id="narrador_fid" value="">
+					  <input type="hidden" id="narrador_nombre" value="">
+					</div>
+                      <div style="width:95%; margin: 8px 35px 0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" id="sinNarradorCheck" onchange="toggleSinNarrador()" style="transform: scale(1.2);">
+                          <label for="sinNarradorCheck" style="color:#fff; font-family:'InterRegular';">Sin narrador</label>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="checkbox" id="inframundoCheck" style="transform: scale(1.2);">
+                          <label for="inframundoCheck" style="color:#fff; font-family:'InterRegular';">Requerimiento de inframundo</label>
+                        </div>
+                        <input type="hidden" id="narrador_uid" value="">
+                      </div>
+				  </div>
+				</div>
+
+                <!-- Comentario público -->
+                <div style="display:flex; justify-content:center; margin: 10px 0;">
+                  <div style="width:95%; background: linear-gradient(135deg, #1f2d3a, #273849); border: 3px solid #ff7b00; border-radius: 15px; padding: 20px;">
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                      <label for="comentarioPublicoSolicitud" style="font-family:'moonGetHeavy'; color:#ffb347; font-size:15px;">Comentario público (se mostrará en el registro · máx 500 caracteres · fecha e isla)</label>
+                      <textarea id="comentarioPublicoSolicitud" maxlength="500" placeholder="Mensaje corto para narradores/jugadores"
+                        style="width:100%; min-height:60px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.35); color:#fff; font-family:'InterRegular'; resize:none;"></textarea>
+                    </div>
+                  </div>
+                </div>
+	
+                <!-- Panel de estadísticas detalladas -->
+                <div style="display: flex; justify-content: center; margin: 20px 0;">
+                    <div style="width: 95%; background: linear-gradient(135deg, #34495e, #2c3e50); border: 3px solid #ff7b00; border-radius: 15px; padding: 20px;">
+                        <div style="background: linear-gradient(90deg, #ff7b00, #ff9500); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <h2 style="color: white; text-align: center; font-family: 'moonGetHeavy'; margin: 0; font-size: 24px; text-shadow: 2px 2px 4px black;">
+                                INFORMACIÓN DEL TIER
+                            </h2>
+                        </div>
+                        
+                        <div id="infoTier" style="padding: 20px; color: white; font-family: 'InterRegular'; font-size: 14px; line-height: 1.8; text-align: center;">
+                            <p style="margin: 0; opacity: 0.7;">Agrega jugadores y enemigos para calcular el Tier del encuentro</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador de aventuras activas -->
+                <div id="indicadorAventurasActivas" style="display:none; text-align:center; margin:20px auto 10px; max-width:600px; background:linear-gradient(135deg, rgba(255,123,0,0.15), rgba(255,149,0,0.15)); border:2px solid rgba(255,123,0,0.5); border-radius:12px; padding:15px;">
+                    <div style="font-family:'moonGetHeavy'; color:#ff7b00; font-size:14px; margin-bottom:8px;">TUS AVENTURAS ACTIVAS</div>
+                    <div style="display:flex; justify-content:center; gap:30px; flex-wrap:wrap;">
+                        <div style="text-align:center;">
+                            <div style="font-family:'InterRegular'; color:#fff; font-size:12px; opacity:0.8; margin-bottom:4px;">Individuales</div>
+                            <div style="font-family:'moonGetHeavy'; font-size:24px;">
+                                <span id="contadorIndividual" style="color:#fff;">0</span>
+                                <span style="color:rgba(255,255,255,0.5);">/</span>
+                                <span style="color:#ff7b00;">3</span>
+                            </div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-family:'InterRegular'; color:#fff; font-size:12px; opacity:0.8; margin-bottom:4px;">Grupo</div>
+                            <div style="font-family:'moonGetHeavy'; font-size:24px;">
+                                <span id="contadorGrupo" style="color:#fff;">0</span>
+                                <span style="color:rgba(255,255,255,0.5);">/</span>
+                                <span style="color:#ff7b00;">1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div style="text-align: center; margin: 30px 0;">
+					<button id="btnPeticion" onclick="enviarPeticion()" disabled
+						style="padding: 15px 30px; background-color: #ff7b00; color: white; border: none; border-radius: 5px; cursor: not-allowed; opacity: 0.6; font-family: 'moonGetHeavy'; font-size: 18px; margin: 0 10px; box-shadow: 0px 4px 6px black;">
+						PETICIÓN
+					</button>
+                </div>
+
+            </div>
+            <div class="tabPanel" data-tab="registro">
+                <div style="text-align:center; padding:40px 20px 10px 20px; color:#fff; font-family:'InterRegular';">
+                    <h2 style="font-family:'moonGetHeavy'; color:#ff7b00; margin-bottom:15px;">Registro de Solicitudes</h2>
+                    <p style="max-width:760px; margin:0 auto; line-height:1.6;">
+                        Consulta las peticiones más recientes que se han enviado.
+                    </p>
+                </div>
+                <div class="registroFilterBar" id="registroFilterBar">
+                    <div class="registroFilterRow">
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="creado">Creadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="pendiente-narrador">Pendiente de narradores</button>
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="aprobado">Aprobadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="denegado">Denegadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="finalizado">Finalizadas</button>
+                    </div>
+                    <div class="registroFilterRow">
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="soy-narrador">Soy Narrador</button>
+                        <button type="button" class="registroFilterBtn" data-rol="registro" data-filter="soy-jugador">Soy Jugador</button>
+                    </div>
+                    <div class="registroFilterRow">
+                        <input type="number" id="registroUidFiltro" placeholder="Buscar por UID (narrador o participante)" min="1" style="padding:6px 10px;border-radius:6px;border:1px solid #16a085;background:#0b1e1a;color:#fff;min-width:280px;">
+                    </div>
+                </div>
+                <div class="registroActions">
+                    <button type="button" class="registroRefresh" onclick="cargarRegistroPeticiones(true)">ACTUALIZAR</button>
+                </div>
+                <div id="registroPeticiones" class="registroLista">
+                    <p class="registroEmpty">Selecciona la pestaña Registro para cargar las solicitudes.</p>
+                </div>
+            </div>
+            <if $g_is_staff or $g_is_narra then>
+            <div class="tabPanel" data-tab="consola">
+                <div style="text-align:center; padding:40px 20px 10px 20px; color:#fff; font-family:'InterRegular';">
+                    <h2 style="font-family:'moonGetHeavy'; color:#ff7b00; margin-bottom:15px;">Consola del Staff</h2>
+                    <p style="max-width:760px; margin:0 auto; line-height:1.6;">
+                        Gestiona las solicitudes registradas: ajusta notas internas, genera comentarios públicos, cambia su estado y elimina peticiones duplicadas o inválidas.
+                    </p>
+                </div>
+                <div class="registroFilterBar" id="consolaFilterBar" style="flex-direction:column;align-items:center;gap:12px;">
+                    <div class="registroFilterRow">
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="creado">Creadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="pendiente-narrador">Pendiente de narradores</button>
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="aprobado">Aprobadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="denegado">Denegadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="finalizado">Finalizadas</button>
+                        <button type="button" class="registroFilterBtn" data-rol="consola" data-filter="pendiente-borrado">Pendientes de borrado</button>
+                    </div>
+                    <div class="registroFilterRow">
+                        <input type="number" id="consolaUidFiltro" placeholder="Buscar por UID (narrador o participante)" min="1" style="padding:6px 10px;border-radius:6px;border:1px solid #16a085;background:#0b1e1a;color:#fff;min-width:280px;">
+                    </div>
+                </div>
+                <div class="registroActions">
+                    <button type="button" class="registroRefresh" onclick="cargarRegistroPeticiones(true)">ACTUALIZAR</button>
+                </div>
+                <div class="consolaTips">
+                    <span>• Las notas internas solo son visibles para el staff.</span>
+                    <span>• Los comentarios públicos se mostrarán en la pestaña Registro.</span>
+                    <span>• Aprobaciones/denegaciones colorean ambas vistas.</span>
+                </div>
+                <div id="consolaPeticiones" class="registroLista consolaLista">
+                    <p class="registroEmpty">Selecciona la pestaña Consola para cargar las solicitudes.</p>
+                </div>
+            </div>
+            </if>
+            </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+<!-- Definiciones globales -->
+<script>
+  window.CURRENT_UID = {$current_uid};
+  window.IS_STAFF = parseInt('{$g_is_staff}', 10) === 1 || parseInt('$g_is_narra', 10) === 1;
+</script>
+	
+<!-- Bloque core común -->
+<script defer src="{$mybb->settings['bburl']}/jscripts/calculadoraDificultad/core.js?v=2"></script>
+
+<!-- Pestaña Solicitud -->
+<script defer src="{$mybb->settings['bburl']}/jscripts/calculadoraDificultad/solicitud.js?v=5"></script>
+
+<!-- Pestañas Registro + Consola -->
+<script defer src="{$mybb->settings['bburl']}/jscripts/calculadoraDificultad/registro_consola.js?v=5"></script>
+
+{$footer}
+</body>
+</html>

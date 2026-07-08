@@ -31,6 +31,7 @@ $puntos_oficio = $_POST["puntos_oficio"];
 
 $akuma = $_POST["akuma"];
 $akuma_subnombre = $_POST["akuma_subnombre"];
+$akuma_origen = in_array($_POST["akuma_origen"] ?? '', ['', 'aventura']) ? ($_POST["akuma_origen"] ?? '') : '';
 $nivelnarrador = $_POST["nivelnarrador"];
 
 $sexo = $_POST["sexo"];
@@ -40,6 +41,7 @@ $raza = $_POST["raza"];
 
 $rango = $_POST["rango"];
 $rango_inframundo = $_POST["rango_inframundo"];
+$movidoInframundo = max(0, (int)($_POST["movidoInframundo"] ?? 0));
 $fama = $_POST["fama"];
 
 $camino = $_POST["camino"];
@@ -77,6 +79,7 @@ $belica12 = $_POST["belica12"];
 
 $fx = $_POST["fx"];
 $wantedGuardado = $_POST["wantedGuardado"];
+$wantedcustom   = max(0, (int)$_POST["wantedcustom"]);
 
 $estilo1 = $_POST["estilo1"];
 $estilo2 = $_POST["estilo2"];
@@ -223,6 +226,11 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
         $db->query(" UPDATE `mybb_op_fichas` SET akuma_subnombre='$akuma_subnombre' WHERE `fid`='$ficha_id'; ");
     }
 
+    if ($akuma_origen != ($f_var['akuma_origen'] ?? '')) {
+        $log .= "-- De ".($f_var['akuma_origen'] ?? '')." a $akuma_origen akuma_origen.\n";
+        $db->query(" UPDATE `mybb_op_fichas` SET akuma_origen='$akuma_origen' WHERE `fid`='$ficha_id'; ");
+    }
+
     if ($nivelnarrador != $f_var['nivelnarrador']) {
         $log .="-- De " .$f_var['nivelnarrador']." a $nivelnarrador nivelnarrador.\n";
         $db->query(" UPDATE `mybb_op_fichas` SET nivelnarrador='$nivelnarrador' WHERE `fid`='$ficha_id'; ");
@@ -236,6 +244,12 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
     if ($rango_inframundo != $f_var['rango_inframundo']) {
         $log .= "-- De ".$f_var['rango_inframundo']." a $rango_inframundo rango_inframundo.\n";
         $db->query(" UPDATE `mybb_op_fichas` SET rango_inframundo='$rango_inframundo' WHERE `fid`='$ficha_id'; ");
+    }
+
+    if ($movidoInframundo != (int)($f_var['movidoInframundo'] ?? 0)) {
+        $log .= "-- De ".($f_var['movidoInframundo'] ?? 0)." a $movidoInframundo movidoInframundo.\n";
+        $db->query(" UPDATE `mybb_op_fichas` SET movidoInframundo='$movidoInframundo' WHERE `fid`='$ficha_id'; ");
+        log_audit_currency($uid, $username, $ficha_id, '[Modificación de movidoInframundo]', 'movidoInframundo', $movidoInframundo);
     }
 
     if ($fama != $f_var['fama']) {
@@ -479,6 +493,9 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
                 if (isset($oficio_data['espe2']) && $oficio_data['espe2'] === '') {
                     unset($oficio_data['espe2']);
                 }
+                if (array_key_exists('sub', $oficio_data) && is_array($oficio_data['sub'])) {
+                    $oficio_data['sub'] = (object)$oficio_data['sub'];
+                }
             }
             $oficios = json_encode($oficios_decoded, JSON_UNESCAPED_UNICODE);
         }
@@ -539,6 +556,11 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
     if ($wantedGuardado != $f_var['wantedGuardado']) {
         $log .= "-- De ".$f_var['wantedGuardado']." a $wantedGuardado wantedGuardado.\n";
         $db->query(" UPDATE `mybb_op_fichas` SET wantedGuardado='$wantedGuardado' WHERE `fid`='$ficha_id'; ");
+    }
+
+    if ($wantedcustom != (int)$f_var['wantedcustom']) {
+        $log .= "-- De ".(int)$f_var['wantedcustom']." a $wantedcustom wantedcustom.\n";
+        $db->query(" UPDATE `mybb_op_fichas` SET wantedcustom='$wantedcustom' WHERE `fid`='$ficha_id'; ");
     }
 
     // Valor base: lo que está en la ficha sin bonus

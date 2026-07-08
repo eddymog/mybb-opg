@@ -1,0 +1,30 @@
+</td>
+            <td class="trow1">
+            <fieldset class="trow2">
+            <legend><strong>{$lang->as_usercp_privacy} - {$lang->aj_memberlist_more}</strong></legend>
+            <form method="post" action="usercp.php">
+                            <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                            <table border="0" style="margin-top: 20px; padding: 5px;">
+                                <tr>
+                                    <td class="trow1" width="400px;">
+                                        <span class="smalltext" style="margin-right: 20px;"><label for="do_as_privacy_master">{$lang->as_usercp_priv_hideall}</label></span>
+                                        <input type="hidden" name="action" value="do_as_privacy_master" />
+                                        <input type="submit" value="{$lang->as_usercp_secaccount}" id="do_as_privacy_master" name="{$lang->as_usercp_secaccount}" class="button float_right" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
+                        <form method="post" action="usercp.php">
+                            <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                            <table border="0" style="margin-top: 20px; padding: 5px;">
+                                <tr>
+                                    <td class="trow1" width="400px;">
+                                        <span class="smalltext" style="margin-right: 20px;"><label for="undo_as_privacy_master">{$lang->as_usercp_priv_showall}</label></span>
+                                        <input type="hidden" name="action" value="undo_as_privacy_master" />
+                                        <input type="submit" value="{$lang->as_usercp_secaccount}" id="undo_as_privacy_master" name="{$lang->as_usercp_secaccount}" class="button float_right" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
+            </fieldset>
+        

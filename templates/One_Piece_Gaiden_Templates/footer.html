@@ -1,0 +1,224 @@
+<script type="text/javascript">    
+	    
+jQuery(function($) {    
+	$("#backtop").hide();    
+  	$(window).scroll(function () {    
+  	  if ($(this).scrollTop() > 400) {    
+    	   $("#backtop").fadeIn(160);    
+	  } else {    
+		  $("#backtop").fadeOut(160);    
+	  }    
+	});    
+  $('.backtop').on( "click", function () {    
+	  $('html, body').animate({    
+		  scrollTop: 0    
+	  }, 650);    
+	  return false;    
+  });    
+});    
+</script>    
+<script type="text/javascript">    
+jQuery(function($) {    
+    $(".leftbutton").hide();    
+    $(".rightbutton").on("click", function() {    
+        $(".sidebar").animate({    
+            height: "hide",    
+            opacity: 0    
+        }, 150, function() {    
+            $(".forums").animate({    
+                width: "100%"    
+            }, 400)    
+        });    
+        $(this).hide();    
+        $(".leftbutton").show();    
+        Cookie.set("sidebar", "collapsed", 60 * 60 * 24 * 365);    
+        return false;    
+    });    
+    $(".leftbutton").on("click", function() {    
+        $(".forums").animate({    
+            width: "76%"    
+        }, 400, function() {    
+            $(".sidebar").animate({    
+                height: "show",    
+                opacity: 1    
+            }, 150)    
+        });    
+        $(this).hide();    
+        $(".rightbutton").show();    
+        Cookie.set("sidebar", "expanded", 60 * 60 * 24 * 365);    
+        return false;    
+    });    
+    if (Cookie.get("sidebar") == "collapsed") {    
+        $(".rightbutton").hide();    
+        $(".leftbutton").show();    
+        $(".forums").css("width", "100%");    
+        $(".sidebar").hide();    
+    }    
+    if ($(".forums").length < 1) $(".toggle-container").hide();    
+});    
+</script>    
+	<debugstuff> 
+	</div>    
+</div>    
+<a class="backtop"><span id='backtop'><i class="fa fa-angle-up arr-adj"></i></span></a>    
+    
+<!-- The following piece of code allows MyBB to run scheduled tasks. DO NOT REMOVE -->{$task_image}<!-- End task image code -->    
+{$auto_dst_detection}    
+</div>    
+<script>    
+	
+	var _second = 1000;
+	var _minute = _second * 60;
+	var _hour = _minute * 60;
+	var _day = _hour * 24;
+	var timerEntreno;
+	var timerTecnica;
+	var timerCrafteo;
+	var timerOficio;
+	var timerCreaciones;
+	
+	function showRemaining1(end, tagName) {
+		var now = new Date();
+		var distance = end - now;
+
+		var days = Math.floor(distance / _day);
+		var hours = Math.floor((distance % _day) / _hour);
+		var minutes = Math.floor((distance % _hour) / _minute);
+		var seconds = Math.floor((distance % _minute) / _second);
+
+		document.getElementById(tagName).innerHTML = '';
+		
+		if (days == 1) {
+			document.getElementById(tagName).innerHTML += days + ' día, ';
+		} else {
+			document.getElementById(tagName).innerHTML += days + ' días, ';
+		}
+		
+		document.getElementById(tagName).innerHTML += hours + ' horas, <br>';
+		document.getElementById(tagName).innerHTML += minutes + ' minutos y ';
+		document.getElementById(tagName).innerHTML += seconds + ' segundos.';
+	}
+	
+	const entrenamiento_completo = '{$g_entrenamiento_completo}';    
+	const entrenamiento_en_curso = '{$g_entrenamiento_en_curso}';    
+	const entrenamiento_tecnica_completo = '{$g_entrenamiento_tecnica_completo}';    
+	const entrenamiento_tecnica_en_curso = '{$g_entrenamiento_tecnica_en_curso}';    
+	const oficio_completo = '{$g_oficio_completo}';    
+	const oficio_en_curso = '{$g_oficio_en_curso}';  
+	const crafteo_completo = '{$g_crafteo_completo}';    
+	const crafteo_en_curso = '{$g_crafteo_en_curso}';  
+	const creaciones_completo = '{$g_creaciones_completo}';    
+	const creaciones_en_curso = '{$g_creaciones_en_curso}';  
+	const recompensa_en_curso = '{$g_recompensa_en_curso}';    
+	const recompensa_completa = '{$g_recompensa_completa}';     
+	const recompensa_pendiente = '{$g_recompensa_pendiente}';
+	
+	function sleep (time) {
+	  return new Promise((resolve) => setTimeout(resolve, time));
+	}
+	
+	let tiempo_recomp = '{$tiempo_recompensas}';
+	
+	if (recompensa_pendiente && tiempo_recomp != '') {
+		// $('#recompensas').css({ color: "#3762a7" });    
+		$('#recompensas-tiempo').css({ display: "block" }); 
+		$('#recompensas-tiempo-horas').css('display', 'block');
+		$('#recompensas-tiempo-texto').html("Puedes reclamar en: <br>");
+		var tiempo_recompensas = new Date(new Date().getTime() + (parseInt(tiempo_recomp) * 1000));
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_recompensas, 'recompensas-tiempo-horas'), 1000);
+		
+	}
+	
+	if (recompensa_en_curso && tiempo_recomp != '') {    
+		$('#recompensas').css({ color: "#fb7c00" });    
+		$('#rol').css({ color: "#fb7c00" });
+		$('#recompensas-tiempo').css({ display: "block" }); 
+		$('#recompensas-tiempo-horas').css('display', 'block');
+		$('#recompensas-tiempo-texto').html("Debes postear en: <br>");
+		var tiempo_recompensas = new Date(new Date().getTime() + (parseInt(tiempo_recomp) * 1000));
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_recompensas, 'recompensas-tiempo-horas'), 1000);
+	}    
+	
+	if (entrenamiento_tecnica_en_curso) {
+		$('#entrenar-tecnicas').css({ color: "#fb7c00" });
+		$('#rol').css({ color: "#fb7c00" });
+		$('#tecnicas-tiempo').css({ display: "block" });
+		var tiempo_tecnicas = new Date({$tiempo_tecnicas});
+		$('#tecnicas-tiempo').css({ display: "block" });
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_tecnicas, 'tecnicas-tiempo'), 1000);
+	}
+	
+	if (entrenamiento_en_curso) {    
+		$('#entrenar').css({ color: "#fb7c00" });     
+		$('#rol').css({ color: "#fb7c00" });    
+		$('#entrenar-tiempo').css({ display: "block" });   
+		
+		var tiempo_entreno = new Date({$tiempo_entreno});
+		timerEntreno = setInterval(showRemaining1.bind(null, tiempo_entreno, 'entrenar-tiempo'), 1000);
+	}    
+	
+	if (creaciones_en_curso) {
+		$('#creaciones').css({ color: "#fb7c00" });    
+		$('#rol').css({ color: "#fb7c00" });    
+		$('#creaciones-tiempo').css({ display: "block" });   
+		
+		var tiempo_creaciones = new Date({$tiempo_creaciones});
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_creaciones, 'creaciones-tiempo'), 1000);
+		
+	}  
+	
+	if (oficio_en_curso) {
+		$('#oficio').css({ color: "#fb7c00" });    
+		$('#rol').css({ color: "#fb7c00" });    
+		$('#oficio-tiempo').css({ display: "block" });   
+		
+		var tiempo_oficio = new Date({$tiempo_oficio});
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_oficio, 'oficio-tiempo'), 1000);
+		
+	}  
+	
+	if (crafteo_en_curso) {
+		$('#crafteo').css({ color: "#fb7c00" });    
+		$('#rol').css({ color: "#fb7c00" });    
+		$('#crafteo-tiempo').css({ display: "block" });   
+		
+		var tiempo_crafteo = new Date({$tiempo_crafteo});
+		console.log(tiempo_crafteo);
+		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_crafteo, 'crafteo-tiempo'), 1000);
+	}    
+	
+	if (entrenamiento_tecnica_completo) {
+		$('#entrenar-tecnicas').css({ color: "#0BD93C" });
+		$('#rol').css({ color: "#0BD93C" });
+	}
+	
+	if (entrenamiento_completo) {    
+		$('#entrenar').css({ color: "#0BD93C" });    
+		$('#rol').css({ color: "#0BD93C" });    
+	}
+		
+	if (oficio_completo) {    
+		$('#oficio').css({ color: "#0BD93C" });    
+		$('#rol').css({ color: "#0BD93C" });    
+	} 
+	
+	if (crafteo_completo) {    
+		$('#crafteo').css({ color: "#0BD93C" });    
+		$('#rol').css({ color: "#0BD93C" });    
+	} 
+	
+	if (recompensa_completa) {    
+		$('#recompensas').css({ color: "#0BD93C" });    
+		$('#rol').css({ color: "#0BD93C" });    
+	} 
+	
+	
+	$("#logo").mouseover(function() {
+		const time = Math.round(Date.now() / 1000) % 360;
+		$(this).css("transition","all 15s ease-out");
+		$(this).css("filter","hue-rotate(" + time + "deg)");
+	}).mouseout(function() {
+		$(this).css("transition","all 5s ease-out");
+		$(this).css("filter","none");
+	});
+</script>

@@ -1,0 +1,1259 @@
+<html>
+
+<head>
+  <title>Tirada de Haki</title>
+  {$headerinclude}
+  <style>
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('/images/op/uploads/TituloDespertarHaki_One_Piece_Gaiden_Foro_Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+      .akumaTirBody {
+          display: flex;
+          flex-direction: row;
+          gap: 25px;
+      }
+      
+      .akumaTirIzquierda {
+          display: flex;
+          flex-direction: column;
+          width: 50%;
+            gap:25px;
+      }
+      
+      .akumaTirDerecha {
+          width: 50%;
+      }
+      
+      .testDraw {
+          background: rgba(70,12,110,1);
+          margin-bottom: 25px;
+          text-shadow: 2px 2px 0px black;
+      }
+
+      .realDraw, .realDrawSmall {
+          background: #d26500;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .blockedDraw {
+          background: #71706f;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .realDraw:hover, .realDrawSmall:hover {
+          background: #ff9b00;
+      }
+      
+      .testDraw:hover {
+          background: rgba(126,32,191,1);	  
+      }
+      
+      .realDraw, .testDraw, .blockedDraw {
+          width: 423px;
+             height: 65px;
+          color: white;
+          font-size: 1.5rem;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid black;
+          border-radius: 15px;
+          filter: drop-shadow(0px 0px 4px black);
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-family: 'moonGetHeavy';
+          letter-spacing: 2px;
+          margin-bottom: 15px;
+      }
+      
+      .realDrawSmall {
+          width: 30%;
+             height: 65px;
+          color: white;
+          font-size: 1.1rem;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid black;
+          border-radius: 15px;
+          filter: drop-shadow(0px 0px 4px black);
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-family: 'moonGetHeavy';
+          letter-spacing: 2px;
+          margin-bottom: 15px;
+          margin: 0 5px;
+      }
+      
+      .imageBox {
+          height: 300px;
+          background-color: black;
+          border: 2px solid black;
+          width: 480px;
+          height: 270px;
+      }
+
+      .akumaTirTable {
+          height: 150px;
+          width: 490px;
+      }
+      
+      .tableHeader {
+          background-color: #8f59f7;
+          color: white;
+          text-align: center;
+          padding: 2px;
+          border: 2px solid black;
+          border-start-end-radius: 10px;
+            border-start-start-radius: 10px;
+          font-family: moonGetHeavy;
+          font-size: 16px;
+          letter-spacing: 2px;
+          text-shadow: 2px 2px 0px black;
+          position: relative;
+      }
+      
+      .tableContent {
+          display: flex;
+          gap:20px;
+          padding: 15px;
+          border-end-end-radius: 10px;
+          border-end-start-radius: 10px;
+          background-color: #d7b5ff;
+          border: 2px solid black;
+          border-top: 0px;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .tableTotalTestDraw {
+            width: 175px;
+            height: 90px;
+            background-color: #8f59f7;
+            color: white;
+            border: 1px solid black;
+            box-sizing: border-box;
+         	padding: 6px;
+      }
+      
+      .tablerTierContent {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          width: 230px;
+      }
+      
+      .tierBox {
+          background-color:#8e59f7;
+          height: 40px;
+          width: 70px;
+          border: 1px solid black;
+          box-sizing: border-box;
+          padding: 2px;
+             color: white;
+      }
+      
+      .tierBoxText1 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .tierBoxText2 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+      
+      .akumaTypeRow  {
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 14px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .categoriaBox {
+        flex: 1;
+          border-right: 2px solid black;
+        text-align: center;
+        background-color: #ff7b00;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 10px 0 0; 
+      }
+      
+      .categoriaBox:first-child {
+            border-radius: 10px 0 0 0; 
+      }
+      
+      .categoriaBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      .resultado-total {
+          color: red;
+      }
+      
+      .resultado-nombre {
+          width: 50%;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+          color: black;
+          padding: 4px 7px;
+          box-sizing: border-box;
+      }
+      
+      .resultado-fruta {
+        width: 50%;
+        font-size: 12px;
+        font-family: 'moonGetHeavy';
+        color: #4b1aae;
+        padding: 4px 7px;
+        box-sizing: border-box;
+        text-shadow: 2px 2px 1px #f3ecff;
+        text-align: center;
+      }
+      
+      
+      .resultado-total:nth-child(odd) {
+        background: #ffe59b;
+      }
+
+      .resultado-total:nth-child(even) {
+        background: #ffeed2;
+      }
+      
+      .boton-estadistica {
+          display: inline;
+          position: absolute;
+          left: 464px;
+          top: 3px;
+          transition: all 0.2s ease-out;
+          cursor: pointer;
+      }
+      
+      .boton-estadistica:hover {
+          filter: saturate(1.5);
+      }
+      
+      .icono-haki {
+          border: 2px solid black;
+          border-radius: 50px;
+          padding: 2px;
+          filter: drop-shadow(0px 0px 4px black);
+          background: #71706f;
+          margin-bottom: 7px;
+        	  margin-right: 10px;
+      }
+
+      /* ===== ESTILOS MODAL HAKI ===== */
+    #haki-awakening-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .haki-awakening-container {
+        text-align: center;
+        max-width: 90%;
+        max-height: 90%;
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    #haki-animation-stage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    #haki-effect-container {
+        width: 400px;
+        height: 400px;
+        margin: 0 auto;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .haki-effect-image {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+        animation: hakiPulse 2s ease-in-out infinite;
+        /* Siempre mostrar el GIF de despertar inicialmente */
+        background-image: url('https://i.pinimg.com/originals/5d/54/ed/5d54edac59595cc9bf9e601465509c7a.gif');
+    }
+
+    @keyframes hakiPulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+        }
+        50% { 
+            transform: scale(1.05);
+            box-shadow: 0 15px 60px rgba(255, 215, 0, 0.6);
+        }
+    }
+
+    #haki-instruction {
+        color: #ffd700;
+        margin-top: 30px;
+        font-size: 1.8em;
+        font-family: 'moonGetHeavy';
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px #ffd700; }
+        50% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px #ffd700, 0 0 30px #ffd700; }
+    }
+
+    .haki-awakening {
+        animation: hakiAwakening 1s ease-in-out;
+    }
+
+    @keyframes hakiAwakening {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(-5deg); }
+        75% { transform: scale(1.1) rotate(5deg); }
+    }
+
+      #haki-reward-display {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .haki-reward-item {
+            background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid #ffd700;
+            min-width: 500px;
+            animation: hakiRewardAppear 1.5s ease-out;
+            position: relative;
+            /* Eliminar transform de aquí ya que está en el contenedor padre */
+        }
+
+        @keyframes hakiRewardAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) rotateY(180deg);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
+        }
+
+      .haki-reward-image {
+          width: 200px;
+          height: 200px;
+          margin: 0 auto 20px;
+          border-radius: 50%;
+          border: 4px solid #ffd700;
+          background-size: cover;
+          background-position: center;
+          box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+          animation: hakiGlow 3s ease-in-out infinite;
+      }
+
+      @keyframes hakiGlow {
+          0%, 100% { 
+              box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+              border-color: #ffd700;
+          }
+          50% { 
+              box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+              border-color: #ffed4e;
+          }
+      }
+
+      .haki-reward-name {
+          font-size: 2.5em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 15px;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          letter-spacing: 2px;
+      }
+
+      .haki-reward-subtitle {
+          font-size: 1.3em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 30px;
+          opacity: 0.9;
+      }
+
+      .busoshoku-theme {
+          background: linear-gradient(145deg, #2d1810, #4a2818);
+          color: #ff6b35;
+      }
+
+      .busoshoku-theme .haki-reward-name {
+          color: #ff6b35;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 107, 53, 0.5);
+      }
+
+      .kenbunshoku-theme {
+          background: linear-gradient(145deg, #1a1a2e, #16213e);
+          color: #4dfe45;
+      }
+
+      .kenbunshoku-theme .haki-reward-name {
+          color: #4dfe45;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(77, 254, 69, 0.5);
+      }
+
+      .haoshoku-theme {
+          background: linear-gradient(145deg, #2e1a2e, #4a1a4a);
+          color: #cf44ff;
+      }
+
+      .haoshoku-theme .haki-reward-name {
+          color: #cf44ff;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(207, 68, 255, 0.5);
+      }
+
+      .close-haki-modal-btn {
+          background: linear-gradient(145deg, #ff6b35, #ff8c42);
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 10px;
+          font-size: 1.2em;
+          font-family: 'moonGetHeavy';
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          letter-spacing: 1px;
+      }
+
+      .close-haki-modal-btn:hover {
+          background: linear-gradient(145deg, #ff8c42, #ffab68);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Partículas de energía */
+      .energy-particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+      }
+
+      .energy-particle {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background: #ffd700;
+          border-radius: 50%;
+          animation: energyFloat 4s linear infinite;
+      }
+
+      .energy-particle:nth-child(2n) { background: #ff6b35; }
+      .energy-particle:nth-child(3n) { background: #4dfe45; }
+      .energy-particle:nth-child(4n) { background: #cf44ff; }
+
+      @keyframes energyFloat {
+          0% {
+              transform: translateY(100vh) scale(0);
+              opacity: 0;
+          }
+          10% {
+              opacity: 1;
+          }
+          90% {
+              opacity: 1;
+          }
+          100% {
+              transform: translateY(-10vh) scale(1);
+              opacity: 0;
+          }
+      }
+
+      /* Efecto de onda de choque */
+      .shock-wave {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 20px;
+          height: 20px;
+          border: 3px solid #ffd700;
+          border-radius: 50%;
+          animation: shockWaveExpand 2s ease-out;
+          pointer-events: none;
+      }
+
+      @keyframes shockWaveExpand {
+          0% {
+              width: 20px;
+              height: 20px;
+              opacity: 1;
+          }
+          100% {
+              width: 800px;
+              height: 800px;
+              opacity: 0;
+          }
+      }
+    </style>
+</head>
+
+<body>
+  {$header}
+  
+  <!-- Modal de despertar de haki -->
+  <div id="haki-awakening-modal">
+      <div class="haki-awakening-container">
+          <div class="energy-particles" id="energy-particles"></div>
+          
+          <div id="haki-animation-stage">
+              <div id="haki-effect-container">
+                  <div class="haki-effect-image" id="haki-effect-image"></div>
+              </div>
+              <p id="haki-instruction">¡Tu Haki está despertando!</p>
+          </div>
+          
+          <div id="haki-reward-display">
+              <div class="haki-reward-item" id="haki-reward-item">
+                  <div class="haki-reward-image" id="haki-reward-image"></div>
+                  <div class="haki-reward-name" id="haki-reward-name">¡Haki Despertado!</div>
+                  <div class="haki-reward-subtitle" id="haki-reward-subtitle">¡Has despertado un nuevo poder!</div>
+                  <button class="close-haki-modal-btn" onclick="closeHakiModal()">¡Increíble!</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground">
+                <div class= "akumaBanner"></div>
+            <div class="akumaTirBody">
+                    
+                <div class ="akumaTirIzquierda">
+                    <div style=" margin: auto; display: flex; flex-direction: row;">
+                        
+                        <div style="display: flex;flex-direction: column;">
+
+                            <img id="icono-armadura" class="icono-haki" src="/images/op/uploads/IconoArmadura_One_Piece_Gaiden_Foro_Rol.png">
+                            <img id="icono-observacion" class="icono-haki" src="/images/op/uploads/IconoObservacion_One_Piece_Gaiden_Foro_Rol.png">
+                            <img id="icono-rey" class="icono-haki" src="/images/op/uploads/IconoRey_One_Piece_Gaiden_Foro_Rol.png">
+                    
+                        </div>
+                        <div style="display: flex;flex-direction: column;">
+                            <div onclick="tiradaAleatoria()" class="testDraw">
+                                <strong>TIRADA DE PRUEBA</strong>
+                            </div>
+
+                            <if $chances_tiradas > 0 && $has_full_haki == false then>
+                                <div onclick="tiradaReal()" class="realDraw">
+                                    <strong>TIRADA DEFINITIVA</strong>
+                                    <span style=" font-size: 13px; ">¡Una tirada, solo para valientes!</span>
+                                </div>
+                            </if>
+                            
+                            <if $chances_tiradas > 0 && $has_full_haki == true then>
+                                <div style="display: flex; justify-content: center;">
+                                    <if $select_buso == true then>
+                                    <div onclick="tiradaFullHaki('buso')" class="realDrawSmall">
+                                        <strong>BUSO</strong>
+                                    </div>
+                                    </if>
+                                    <if $select_kenbun == true then>
+                                    <div onclick="tiradaFullHaki('kenbun')" class="realDrawSmall">
+                                        <strong>KENBUN</strong>
+                                    </div>
+                                    </if>
+                                    <if $select_hao == true then>
+                                    <div onclick="tiradaFullHaki('hao')" class="realDrawSmall">
+                                        <strong>HAO</strong>
+                                    </div>
+                                    </if>
+                                </div>
+                            </if>
+
+                            <if $hakis_arr_count == 0 then>
+                                <div class="blockedDraw">
+                                    <strong>TIRADA REALIZADA</strong>
+                                    <span style=" font-size: 13px; ">Ya despertaste tus Hakis</span>
+                                </div>
+                            </if>
+
+                            <if $chances_tiradas == 0 && $hakis_arr_count > 0 then>
+                                <div class="blockedDraw">
+                                    <strong>TIRADA BLOQUEADA</strong>
+                                    <span style=" font-size: 13px; ">No cumples requisitos</span>
+                                </div>
+                            </if>
+                        </div>
+                        
+                        
+                        
+                    </div>
+                    <div style=" margin-top: -21px; ">
+                        <img class="imageBox" src="/images/op/uploads/GifDespertarHaki_One_Piece_Foro_Rol.gif">
+                    </div>
+                </div>
+
+                <div class="akumaTirDerecha">
+                    <div class="akumaTirTable">
+                        <div class="tableHeader">
+                            <strong id="estadisticasTitulo">Estadísticas de Pruebas Globales</strong>
+                            <div onclick="cambiarEstadisticas()" class="boton-estadistica"><img src="/images/op/uploads/BotonEstadisticaGeneral_One_Piece_Gaiden_Foro_Rol.png"></div>
+                        </div>
+                        <div class="tableContent">
+                            <div class="tableTotalTestDraw" style=" width: 220px; ">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Tiradas de Prueba</div>
+                                <div id="tiradaTotal" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">157</div>
+                            </div>
+                            <div class="tableTotalTestDraw">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Buso Haki</div>
+                                <div id="tiradaBuso" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">155</div>
+                            </div>
+                            <div class="tableTotalTestDraw">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Kenbun Haki</div>
+                                <div id="tiradaKenbun" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">153</div>
+                            </div>
+                            <div class="tableTotalTestDraw">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Hao Haki</div>
+                                <div id="tiradaHao" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">153</div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="filterBox" style=" margin-top: 20px; ">
+                        <div class="akumaTypeRow">
+                            <div id="resultado-real" onclick="toggleResultados('reales')" class="pestana-resultado categoriaBox filterClass">
+                                <span>Resultados Reales</span>
+                            </div>
+                            <div id="resultado-prueba" onclick="toggleResultados('prueba')" class="pestana-resultado categoriaBox filterClass box-active">
+                                <span>Resultados de Prueba</span>
+                            </div>
+                        </div>
+                        <div style=" border: 2px solid black; height: 241px; box-sizing: border-box; border-top: 0px;overflow: auto; ">
+                            <div id="reales" style="display: none; flex-direction: column;"></div>
+                            <div id="prueba" style="display: flex; flex-direction: column;"></div>
+                        </div>
+                    </div>
+                
+                </div>
+
+            </div>
+        </div>
+     </div>
+  </div>
+<script>
+    
+    
+    let estadisticaGeneral = true;
+    
+    let hakis_arr_count = '{$hakis_arr_count}';
+    let chances_tiradas = '{$chances_tiradas}';
+    
+    let tiradas_totales = '{$tiradas_totales}';
+    let tiradas_buso = '{$tiradas_buso}';
+    let tiradas_kenbun = '{$tiradas_kenbun}';
+    let tiradas_hao = '{$tiradas_hao}';
+    
+    let tiradas_totales_id = '{$tiradas_totales_id}';
+    let tiradas_buso_id = '{$tiradas_buso_id}';
+    let tiradas_kenbun_id = '{$tiradas_kenbun_id}';
+    let tiradas_hao_id = '{$tiradas_hao_id}';
+    
+    let tiradasAleatorias = {$tiradas_aleatorias_json};
+    let tiradasReales = {$tiradas_reales_json};
+    
+    let select_hao = '{$select_hao}';
+    let has_hao = '{$has_hao}';
+    let select_kenbun = '{$select_kenbun}';
+    let has_kenbun = '{$has_kenbun}';
+    let select_buso = '{$select_buso}';
+    let has_buso = '{$has_buso}';
+
+    // Variables para el modal de haki
+    var currentHakiData = null;
+    var isHakiAwakening = false;
+    
+    if (select_hao == '1') { $('#icono-rey').css('background', '#460c6e'); }
+    if (has_hao == '1') { $('#icono-rey').css('background', '#106e0c'); }
+    if (select_kenbun == '1') { $('#icono-observacion').css('background', '#460c6e'); }
+    if (has_kenbun == '1') { $('#icono-observacion').css('background', '#106e0c'); }
+    if (select_buso == '1') { $('#icono-armadura').css('background', '#460c6e'); }
+    if (has_buso == '1') { $('#icono-armadura').css('background', '#106e0c'); }
+    
+    for (let i = 0; i < tiradasAleatorias.length; i++) {
+        let nombre = tiradasAleatorias[i].nombre;
+        let haki = tiradasAleatorias[i].haki;
+        let timestamp = new Date(parseInt(tiradasAleatorias[i].timestamp) * 1000).toLocaleString('es-es');
+        
+        let hakiCompletoAleatorio = '';
+        if (haki == 'buso') { hakiCompletoAleatorio = 'Busoshoku Haki'; }
+        if (haki == 'kenbun') { hakiCompletoAleatorio = 'Kenbunshoku Haki'; }
+        if (haki == 'hao') { hakiCompletoAleatorio = 'Haoshoku Haki'; }
+        
+        $('#prueba').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                <div class="resultado-fruta">` + hakiCompletoAleatorio + `<br></div>
+            </div>
+        `);
+    }
+    
+    for (let i = 0; i < tiradasReales.length; i++) {
+        let nombre = tiradasReales[i].nombre;
+        let haki = tiradasReales[i].haki;
+        let timestamp = new Date(parseInt(tiradasReales[i].timestamp) * 1000).toLocaleString('es-es');
+
+        let hakiCompletoReal = '';
+        if (haki == 'buso') { hakiCompletoReal = 'Busoshoku Haki'; }
+        if (haki == 'kenbun') { hakiCompletoReal = 'Kenbunshoku Haki'; }
+        if (haki == 'hao') { hakiCompletoReal = 'Haoshoku Haki'; }
+        
+        $('#reales').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                <div class="resultado-fruta">` + hakiCompletoReal + `<br></div>
+            </div>
+        `);
+    }
+    
+    $('#tiradaTotal').html(tiradas_totales);
+    $('#tiradaBuso').html(tiradas_buso);
+    $('#tiradaKenbun').html(tiradas_kenbun);
+    $('#tiradaHao').html(tiradas_hao);
+
+    // ===== FUNCIONES DEL MODAL DE HAKI =====
+    
+    function getHakiGif(haki) {
+        var hakiGifs = {
+            'buso': 'https://i.pinimg.com/originals/62/9a/10/629a107ededebf907acf36ae0f0a7d46.gif',
+            'kenbun': 'https://i.pinimg.com/originals/09/4c/db/094cdbd7195c974d70d489e9038898f7.gif',
+            'hao': 'https://i.pinimg.com/originals/8b/ec/1a/8bec1a89ea31c7e9f838cca92a641432.gif'
+        };
+        return hakiGifs[haki] || hakiGifs['buso'];
+    }
+
+    function getHakiName(haki) {
+        var hakiNames = {
+            'buso': 'Busoshoku Haki',
+            'kenbun': 'Kenbunshoku Haki',
+            'hao': 'Haoshoku Haki'
+        };
+        return hakiNames[haki] || 'Haki Desconocido';
+    }
+
+    function getHakiTheme(haki) {
+        var themes = {
+            'buso': 'busoshoku-theme',
+            'kenbun': 'kenbunshoku-theme',
+            'hao': 'haoshoku-theme'
+        };
+        return themes[haki] || 'busoshoku-theme';
+    }
+
+    function openHakiModal(hakiType, isReal = false) {
+        if (isHakiAwakening) return;
+        
+        currentHakiData = { type: hakiType, isReal: isReal };
+        
+        // Configurar imagen inicial del despertar (siempre el mismo GIF)
+        var hakiImage = document.getElementById('haki-effect-image');
+        if (hakiImage) {
+            hakiImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/5d/54/ed/5d54edac59595cc9bf9e601465509c7a.gif)';
+        }
+        
+        // Mostrar modal
+        var modal = document.getElementById('haki-awakening-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Crear partículas de energía
+        createEnergyParticles();
+        
+        // Iniciar despertar del haki después de un breve delay
+        setTimeout(function() {
+            startHakiAwakening(hakiType, isReal);
+        }, 2000);
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    function startHakiAwakening(hakiType, isReal) {
+        if (isHakiAwakening) return;
+        isHakiAwakening = true;
+        
+        var hakiContainer = document.getElementById('haki-effect-container');
+        var instruction = document.getElementById('haki-instruction');
+        
+        // Mantener el GIF de despertar durante toda la animación
+        var hakiImage = document.getElementById('haki-effect-image');
+        if (hakiImage) {
+            hakiImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/5d/54/ed/5d54edac59595cc9bf9e601465509c7a.gif)';
+        }
+        
+        // Animación de despertar
+        if (hakiContainer) {
+            hakiContainer.classList.add('haki-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡Has despertado...!';
+        }
+        
+        // Crear onda de choque
+        createShockWave();
+        
+        setTimeout(function() {
+            // Ahora sí cambiar al GIF específico del haki obtenido
+            if (hakiImage) {
+                hakiImage.style.backgroundImage = 'url(' + getHakiGif(hakiType) + ')';
+            }
+            
+            // Mostrar resultado del haki
+            showHakiResult(hakiType, isReal);
+        }, 2000);
+    }
+
+    function showHakiResult(hakiType, isReal) {
+        var hakiStage = document.getElementById('haki-animation-stage');
+        var rewardDisplay = document.getElementById('haki-reward-display');
+        var rewardItem = document.getElementById('haki-reward-item');
+        var rewardImage = document.getElementById('haki-reward-image');
+        var rewardName = document.getElementById('haki-reward-name');
+        var rewardSubtitle = document.getElementById('haki-reward-subtitle');
+        
+        // Ocultar animación y mostrar resultado
+        if (hakiStage) {
+            hakiStage.style.display = 'none';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'block';
+        }
+        
+        // Configurar tema del haki
+        if (rewardItem) {
+            rewardItem.className = 'haki-reward-item ' + getHakiTheme(hakiType);
+        }
+        
+        // Configurar imagen del resultado
+        if (rewardImage) {
+            rewardImage.style.backgroundImage = 'url(' + getHakiGif(hakiType) + ')';
+        }
+        
+        // Configurar textos
+        if (rewardName) {
+            rewardName.textContent = getHakiName(hakiType);
+        }
+        if (rewardSubtitle) {
+            rewardSubtitle.textContent = isReal ? '¡Has despertado tu verdadero poder!' : '¡Esto es lo que podrías despertar!';
+        }
+        
+        // Crear más efectos de partículas para el resultado
+        createConfettiExplosion();
+        
+        // Si es una tirada real, actualizar la lista de resultados
+        if (isReal) {
+            addToHakiResultsList(hakiType);
+        }
+    }
+
+    function createEnergyParticles() {
+        var particlesContainer = document.getElementById('energy-particles');
+        if (!particlesContainer) return;
+        
+        // Crear partículas constantemente mientras el modal esté abierto
+        var particleInterval = setInterval(function() {
+            var modal = document.getElementById('haki-awakening-modal');
+            if (!modal || modal.style.display === 'none') {
+                clearInterval(particleInterval);
+                return;
+            }
+            
+            var particle = document.createElement('div');
+            particle.className = 'energy-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            particle.style.animationDelay = Math.random() * 1 + 's';
+            
+            particlesContainer.appendChild(particle);
+            
+            // Remover partícula después de la animación
+            setTimeout(function() {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 6000);
+        }, 200);
+    }
+
+    function createShockWave() {
+        var container = document.getElementById('haki-effect-container');
+        if (!container) return;
+        
+        var shockWave = document.createElement('div');
+        shockWave.className = 'shock-wave';
+        container.appendChild(shockWave);
+        
+        // Remover la onda después de la animación
+        setTimeout(function() {
+            if (shockWave.parentNode) {
+                shockWave.parentNode.removeChild(shockWave);
+            }
+        }, 2000);
+    }
+
+    function createConfettiExplosion() {
+        // Reutilizar la función del modal de cofres pero adaptada para haki
+        var rewardDisplay = document.getElementById('haki-reward-display');
+        if (!rewardDisplay) return;
+        
+        var colors = ['#ffd700', '#ff6b35', '#4dfe45', '#cf44ff'];
+        
+        for (var i = 0; i < 30; i++) {
+            var confetti = document.createElement('div');
+            confetti.style.position = 'absolute';
+            confetti.style.width = '8px';
+            confetti.style.height = '8px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = '50%';
+            confetti.style.left = Math.random() * 500 + 'px';
+            confetti.style.top = Math.random() * 300 + 'px';
+            confetti.style.animation = 'energyFloat 3s ease-out forwards';
+            
+            rewardDisplay.appendChild(confetti);
+            
+            // Limpiar confeti después de la animación
+            setTimeout(function() {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 3000);
+        }
+    }
+
+    function addToHakiResultsList(hakiType) {
+        var timestamp = new Date().toLocaleString('es-es');
+        var hakiName = getHakiName(hakiType);
+        
+        var newResult = '<div class="resultado-total" style="display: flex; flex-direction: row;"><div class="resultado-nombre">Usuario <br>' + timestamp + '</div><div class="resultado-fruta">' + hakiName + '<br></div></div>';
+        
+        var realesDiv = document.getElementById('reales');
+        if (realesDiv) {
+            realesDiv.innerHTML = newResult + realesDiv.innerHTML;
+            
+            // Mantener solo los últimos 20 resultados
+            var results = realesDiv.querySelectorAll('.resultado-total');
+            if (results.length > 20) {
+                realesDiv.removeChild(results[results.length - 1]);
+            }
+        }
+    }
+
+    function closeHakiModal() {
+        var modal = document.getElementById('haki-awakening-modal');
+        var hakiStage = document.getElementById('haki-animation-stage');
+        var rewardDisplay = document.getElementById('haki-reward-display');
+        var hakiContainer = document.getElementById('haki-effect-container');
+        var instruction = document.getElementById('haki-instruction');
+        var particlesContainer = document.getElementById('energy-particles');
+        var hakiImage = document.getElementById('haki-effect-image');
+        
+        // Ocultar modal
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Resetear estado del modal
+        if (hakiStage) {
+            hakiStage.style.display = 'block';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'none';
+        }
+        if (hakiContainer) {
+            hakiContainer.classList.remove('haki-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡Tu Haki está despertando!';
+        }
+        // Resetear al GIF de despertar por defecto
+        if (hakiImage) {
+            hakiImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/5d/54/ed/5d54edac59595cc9bf9e601465509c7a.gif)';
+        }
+        
+        // Limpiar partículas
+        if (particlesContainer) {
+            particlesContainer.innerHTML = '';
+        }
+        
+        // Resetear variables
+        currentHakiData = null;
+        isHakiAwakening = false;
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+        
+        // Si fue una tirada real, recargar la página
+        if (currentHakiData && currentHakiData.isReal) {
+            window.location.reload();
+        }
+    }
+    
+    function cambiarEstadisticas() {
+    
+        if (estadisticaGeneral) {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Personales');
+            $('#tiradaTotal').html(tiradas_totales_id);
+            $('#tiradaBuso').html(tiradas_buso_id);
+            $('#tiradaKenbun').html(tiradas_kenbun_id);
+            $('#tiradaHao').html(tiradas_hao_id);
+            estadisticaGeneral = false;
+        } else {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Globales');
+            $('#tiradaTotal').html(tiradas_totales);
+            $('#tiradaBuso').html(tiradas_buso);
+            $('#tiradaKenbun').html(tiradas_kenbun);
+            $('#tiradaHao').html(tiradas_hao_id);
+            estadisticaGeneral = true;
+        }
+        
+    }
+    
+    function toggleResultados(resultado) {
+        $('.pestana-resultado').removeClass('box-active');
+        
+        if (resultado == 'reales') {
+            $('#reales').css('display', 'flex');
+            $('#prueba').css('display', 'none');
+            $('#resultado-real').addClass('box-active');
+        }
+        
+        if (resultado == 'prueba') {
+            $('#reales').css('display', 'none');
+            $('#prueba').css('display', 'flex');
+            $('#resultado-prueba').addClass('box-active');
+        }
+    }
+
+    <if $chances_tiradas > 0 then>
+    function tiradaReal() {
+        if (confirm(`¡Has lanzado una tirada de despertar de Haki para tu personaje! Esta tirada es real y definitiva, y se actualizará tu ficha una vez se lance el resultado final. ¿Aceptas esta tirada?`)) {
+            if (confirm(`¿De verdad? ¿Sin arrepentimientos? Recuerda que esta tirada es irrevocable.`)) {
+                $.post("/opg/tirada_haki.php", { tirada_real: 'true' }, function( data ) {
+                    if (!data || !data[0] || !data[0].haki) { return; }
+                    // Mostrar modal con el resultado
+                    openHakiModal(data[0].haki, true);
+                    
+                    // Actualizar estadísticas locales
+                    tiradas_totales = parseInt(tiradas_totales) + 1;
+                    tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+                    
+                    if (data[0].haki == 'buso') { 
+                        tiradas_buso = parseInt(tiradas_buso) + 1; 
+                        tiradas_buso_id = parseInt(tiradas_buso_id) + 1; 
+                    }
+                    if (data[0].haki == 'kenbun') { 
+                        tiradas_kenbun = parseInt(tiradas_kenbun) + 1; 
+                        tiradas_kenbun_id = parseInt(tiradas_kenbun_id) + 1; 
+                    }
+                    if (data[0].haki == 'hao') { 
+                        tiradas_hao = parseInt(tiradas_hao) + 1; 
+                        tiradas_hao_id = parseInt(tiradas_hao_id) + 1; 
+                    }
+                    
+                    // Actualizar display si está en modo general
+                    if (estadisticaGeneral) {
+                        $('#tiradaTotal').text(tiradas_totales);
+                        if (data[0].haki == 'buso') $('#tiradaBuso').text(tiradas_buso);
+                        if (data[0].haki == 'kenbun') $('#tiradaKenbun').text(tiradas_kenbun);
+                        if (data[0].haki == 'hao') $('#tiradaHao').text(tiradas_hao);
+                    }
+                }); 
+            }
+        }
+    }	  
+    </if>
+    
+    <if $chances_tiradas > 0 && $has_full_haki == true then>
+    function tiradaFullHaki(haki) {
+        let hakiCompleto = '';
+        if (haki == 'buso') { hakiCompleto = 'Busoshoku Haki'; }
+        if (haki == 'kenbun') { hakiCompleto = 'Kenbunshoku Haki'; }
+        if (haki == 'hao') { hakiCompleto = 'Haoshoku Haki'; }
+        
+        if (confirm(`¡Has lanzado una tirada para despertar ` + hakiCompleto + `! Esta tirada es real y definitiva, y se actualizará tu ficha una vez se lance el resultado final. ¿Aceptas esta tirada?`)) {
+            if (confirm(`¿De verdad? ¿Sin arrepentimientos? Recuerda que esta tirada es irrevocable.`)) {
+                $.post("/opg/tirada_haki.php", { choose_haki: haki }, function( data ) {
+                    if (!data || data.success === false) { return; }
+                    // Mostrar modal con el resultado
+                    openHakiModal(haki, true);
+                    
+                    // Actualizar estadísticas locales
+                    tiradas_totales = parseInt(tiradas_totales) + 1;
+                    tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+                    
+                    if (haki == 'buso') { 
+                        tiradas_buso = parseInt(tiradas_buso) + 1; 
+                        tiradas_buso_id = parseInt(tiradas_buso_id) + 1; 
+                    }
+                    if (haki == 'kenbun') { 
+                        tiradas_kenbun = parseInt(tiradas_kenbun) + 1; 
+                        tiradas_kenbun_id = parseInt(tiradas_kenbun_id) + 1; 
+                    }
+                    if (haki == 'hao') { 
+                        tiradas_hao = parseInt(tiradas_hao) + 1; 
+                        tiradas_hao_id = parseInt(tiradas_hao_id) + 1; 
+                    }
+                    
+                    // Actualizar display si está en modo general
+                    if (estadisticaGeneral) {
+                        $('#tiradaTotal').text(tiradas_totales);
+                        if (haki == 'buso') $('#tiradaBuso').text(tiradas_buso);
+                        if (haki == 'kenbun') $('#tiradaKenbun').text(tiradas_kenbun);
+                        if (haki == 'hao') $('#tiradaHao').text(tiradas_hao);
+                    }
+                }); 
+            }
+        }
+
+    }
+    </if>
+    
+    function tiradaAleatoria() {
+        $.post("/opg/tirada_haki.php", { tirada_aleatoria: 'true' }, function( data ) { 
+            console.log(data);
+            
+            // Mostrar modal con el resultado de prueba
+            openHakiModal(data[0].haki, false);
+            
+            tiradas_totales = parseInt(tiradas_totales) + 1;
+            tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+            
+            if (data[0].haki == 'buso') { tiradas_buso = parseInt(tiradas_buso) + 1; tiradas_buso_id = parseInt(tiradas_buso_id) + 1; };
+            if (data[0].haki == 'kenbun') { tiradas_kenbun = parseInt(tiradas_kenbun) + 1; tiradas_kenbun_id = parseInt(tiradas_kenbun_id) + 1; };
+            if (data[0].haki == 'hao') { tiradas_hao = parseInt(tiradas_hao) + 1; tiradas_hao_id = parseInt(tiradas_hao_id) + 1; };
+            
+            $('#tiradaTotal').text(
+                parseInt($('#tiradaTotal').text()) + 1
+            );
+            
+            if (data[0].haki == 'buso') {
+                $('#tiradaBuso').text(
+                    parseInt($('#tiradaBuso').text()) + 1
+                );
+            }
+            
+            if (data[0].haki == 'kenbun') {
+                $('#tiradaKenbun').text(
+                    parseInt($('#tiradaKenbun').text()) + 1
+                );
+            }
+            
+            if (data[0].haki == 'hao') {
+                $('#tiradaHao').text(
+                    parseInt($('#tiradaHao').text()) + 1
+                );
+            }
+
+            let timestamp = new Date(parseInt(data[0].timestamp) * 1000).toLocaleString('es-es');
+            let hakiCompleto = getHakiName(data[0].haki);
+            
+            $('#prueba').prepend(`
+                <div class="resultado-total" style="display: flex; flex-direction: row;">
+                    <div class="resultado-nombre">` + data[0].nombre + ` <br>` + timestamp + `</div>
+                    <div class="resultado-fruta">` + hakiCompleto + `<br></div>
+                </div>
+            `);
+            $('#prueba').children().last().remove();
+      }); 
+    }
+
+    // Cerrar modal con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var hakiModal = document.getElementById('haki-awakening-modal');
+            if (hakiModal && hakiModal.style.display === 'flex') {
+                closeHakiModal();
+            }
+        }
+    });
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('haki-awakening-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHakiModal();
+        }
+    });
+</script>
+{$footer}
+</body>
+</html>

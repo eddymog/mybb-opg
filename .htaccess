@@ -91,6 +91,11 @@ RewriteRule . /index.php [L]
 
 # END WordPress
 
+# BEGIN debug temporal — ELIMINAR tras diagnóstico
+php_flag display_errors On
+php_value error_reporting 32767
+# END debug temporal
+
 # php -- BEGIN cPanel-generated handler, do not edit
 # Set the “ea-php82” package as the default “PHP” programming language.
 <IfModule mime_module>

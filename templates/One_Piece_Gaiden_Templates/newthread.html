@@ -1,0 +1,436 @@
+<html>
+<head>
+<title>{$lang->newthread_in}</title>
+{$headerinclude}
+{$post_javascript}
+<script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
+<script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=20"></script>
+</head>
+<body>
+{$header}
+{$preview}
+{$thread_errors}
+{$attacherror}
+{$moderation_notice}
+<form action="newthread.php?fid={$fid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
+<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+<tr>
+<td class="thead" colspan="2"><strong>{$lang->post_new_thread}</strong><a name="switch" id="switch"></a></td>
+</tr>
+<!-- {loginbox} -->
+<tr>
+<!-- <td class="trow2" width="20%"><strong>{$lang->thread_subject}</strong></td> -->
+<td class="trow2"><strong>Prefijo:</strong><strong style=" margin-left: 114px; ">Título:</strong><br> {$prefixselect}<input type="text" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" /> 
+<div style=" display: inline; float: right; margin-top: 8px; ">
+	<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
+		<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
+	</div>
+	<strong>Palabras</strong>: <span id="palabras">0</span>
+</div></td>
+</tr>
+<!-- {posticons} -->
+<if $is_mundo_rol then>
+<tr>
+    <td class="trow2" colspan="2">
+        <strong>Fecha del tema<strong>*</strong>:</strong><br>
+        <strong>Estación:</strong><strong style=" margin-left: 72px; ">Día (1-90):</strong><strong style=" margin-left: 27px; ">Año:</strong><br>
+        <select name="estacion_input" id="estacion_input" required>
+            <option value="Invierno">Invierno</option>
+            <option value="Primavera">Primavera</option>
+            <option value="Verano">Verano</option>
+            <option value="Otoño">Otoño</option>
+        </select>
+        <input type="number" class="textbox" name="day_input" min="1" max="90" style="margin-right: 10px;width: 80px;margin-left: 11px;" required />
+        <input type="number" class="textbox" name="year_input" min="700" max="725" style=" width: 80px;" required />
+    </td>
+</tr>
+</if>
+<tr>
+<!-- <td class="trow2" valign="top"><strong>{$lang->your_message}</strong><br /><br /><strong>Palabras</strong>: <span id="palabras">0</span></td> -->
+<td class="trow2" colspan="2"><strong>Mensaje:</strong><br>
+<textarea name="message" id="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
+{$codebuttons}
+{$multiquote_external}
+</td>
+</tr>
+ {$postoptions}
+<!-- {modoptions}
+{subscriptionmethod}
+{pollbox} -->
+{$captcha}
+</table>
+<!-- {attachbox} -->
+<br />
+<div style="text-align:center"><input type="submit" class="button" name="submit" value="{$lang->post_thread}" tabindex="4" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="5" />{$savedraftbutton}
+<button id="recuperar-post" class="button">Recuperar post</button>	
+</div>
+<input type="hidden" name="action" value="do_newthread" />
+<input type="hidden" name="posthash" value="{$posthash}" />
+<input type="hidden" name="attachmentaid" value="" />
+<input type="hidden" name="attachmentact" value="" />
+<input type="hidden" name="quoted_ids" value="{$quoted_ids}" />
+<input type="hidden" name="tid" value="{$tid}" />
+{$editdraftpid}
+</form>
+{$forumrules}
+<br />
+<br />
+<br />
+<br />
+<br />
+{$footer}
+<script>
+// Función para generar un número aleatorio entre min y max (inclusivo)
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Función para determinar la dirección del viento
+function tirarDireccionViento() {
+    const resultado = getRandomInt(1, 10);
+    const direcciones = [
+        "En calma", "Norte", "Noreste", "Este", "Sureste", 
+        "Sur", "Suroeste", "Oeste", "Noroeste", "En calma"
+    ];
+    return {
+        tirada: resultado,
+        resultado: direcciones[resultado - 1]
+    };
+}
+
+// Función para determinar el clima según el mar seleccionado
+function tirarClima(mar) {
+    const tirada = getRandomInt(1, 100);
+    let resultado = "Clima normal";
+    let umbral;
+    
+    switch(mar) {
+        case "blue":
+            umbral = 75;
+            break;
+        case "paraiso":
+            umbral = 60;
+            break;
+        case "nuevo_mundo":
+            umbral = 40;
+            break;
+        case "calm_belt":
+            umbral = 95;
+            break;
+        default:
+            umbral = 75;
+    }
+    
+    if (tirada > umbral) {
+        resultado = "Clima tormentoso";
+    }
+    
+    return {
+        tirada: tirada,
+        resultado: resultado
+    };
+}
+
+// Función para determinar encuentros especiales
+function tirarEncuentro(mar, conKairouseki = false) {
+    const tirada = getRandomInt(1, 100);
+    let resultado = "Todo en calma";
+    
+    if (mar === "blue") {
+        if (tirada >= 91 && tirada <= 92) resultado = "Aparición de navío pirata";
+        else if (tirada >= 93 && tirada <= 94) resultado = "Aparición de buque marine";
+        else if (tirada >= 95 && tirada <= 96) resultado = "Aparición de navío de facción predominante";
+        else if (tirada >= 97 && tirada <= 98) resultado = "Basura/Naufragio/Iceberg...";
+        else if (tirada === 99) resultado = "Shichibukai/Vicealmirante/Comandante/CP9 1D4 = " + getRandomInt(1, 4) + "";
+        else if (tirada === 100) resultado = "Yonkou/Almirante/CP0/Bestia Marina 1D4 = " + getRandomInt(1, 4) + "";
+    } 
+    else if (mar === "paraiso") {
+        if (tirada >= 81 && tirada <= 87) resultado = "Aparición de buque marine";
+        else if (tirada >= 88 && tirada <= 89) resultado = "Aparición de navío pirata";
+        else if (tirada >= 90 && tirada <= 91) resultado = "Aparición de barco Kuja";
+        else if (tirada >= 92 && tirada <= 93) resultado = "Aparición de grupo Gyojin";
+        else if (tirada >= 94 && tirada <= 95) resultado = "Aparición de Islote/Naufragio";
+        else if (tirada === 96) resultado = "Aparición de Bestia Marina";
+        else if (tirada === 97) resultado = "Shichibukai/Vicealmirante/Comandante/CP9 1D4 = " + getRandomInt(1, 4) + " ";
+        else if (tirada === 98) resultado = "Yonkou/Almirante/CP0/Bestia Marina 1D4 = " + getRandomInt(1, 4) + "";
+        else if (tirada === 99) resultado = "Aparición de Rey Marino";
+        else if (tirada === 100) resultado = "Aparición de 2 Reyes Marinos";
+    }
+    else if (mar === "nuevo_mundo") {
+        if (tirada >= 71 && tirada <= 80) resultado = "Aparición de navío pirata";
+        else if (tirada >= 81 && tirada <= 84) resultado = "Aparición de buque marine";
+        else if (tirada === 85) resultado = "Aparición de barco Mink";
+        else if (tirada === 86) resultado = "Aparición de " + getRandomInt(1, 10) + " Bestias Marinas";
+        else if (tirada === 87) resultado = "Zunesha crea maremoto y golpea el barco";
+        else if (tirada === 88) resultado = "Shichibukai/Vicealmirante/Comandante/CP9 1D4 = " + getRandomInt(1, 4) + "";
+        else if (tirada === 89) resultado = "Almirante/CP0 1D2 = " + getRandomInt(1, 2) + "";
+        else if (tirada >= 90 && tirada <= 96) resultado = "Yonkou";
+        else if (tirada >= 97 && tirada <= 98) resultado = "Aparición de Rey Marino";
+        else if (tirada === 99) resultado = "Aparición de 2 Reyes Marinos";
+        else if (tirada === 100) resultado = "Aparición de 3 Reyes Marinos";
+    }
+    else if (mar === "calm_belt") {
+        if (conKairouseki) {
+            if (tirada >= 91 && tirada <= 94) resultado = "Aparece 1 Rey Marino";
+            else if (tirada >= 95 && tirada <= 96) resultado = "Aparecen 2 Reyes Marinos";
+            else if (tirada >= 97 && tirada <= 98) resultado = "Aparecen 3 Reyes Marinos";
+            else if (tirada >= 99) resultado = "Aparecen " + getRandomInt(1, 20) + " Reyes Marinos";
+        } else {
+            if (tirada >= 21 && tirada <= 85) resultado = "Aparece 1 Rey Marino";
+            else if (tirada >= 86 && tirada <= 90) resultado = "Aparecen 2 Reyes Marinos";
+            else if (tirada >= 91 && tirada <= 95) resultado = "Aparecen 3 Reyes Marinos";
+            else if (tirada >= 96) resultado = "Aparecen " + getRandomInt(1, 20) + " Reyes Marinos";
+        }
+    }
+    
+    return {
+        tirada: tirada,
+        resultado: resultado
+    };
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+    
+$('#recuperar-post').on('click', function(event) {
+    event.preventDefault();
+    if ($('.sceditor-button-source').hasClass('active')) {
+        alert('Sólo puedes recuperar lo último escrito en el post si el botón de "Ver código de Fuente (<>)" no está apretado/activo.');
+    } else {
+        if ($($('.sceditor-container')[0].children[1].contentDocument.body).html() == localStorage.getItem('user-post')) {
+            alert('El último texto guardado es idéntico al que está actual en la página. No hay nada que recuperar.');
+        } else {
+            $($('.sceditor-container')[0].children[1].contentDocument.body).html(localStorage.getItem('user-post'));
+        }
+    }
+});
+    
+async function contarPalabras() {
+    await sleep(100);
+    console.log('Contar palabras automáticamente.');
+    $($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
+      before = $(this).html();
+    }).on('keyup', function() { 
+      if (before != $(this).html()) { $(this).trigger('change'); }
+    });
+
+    $($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
+        const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
+        // console.log(palabras);
+        $('#palabras')[0].innerText = palabras;
+        if (parseInt(palabras) >= 10) {
+            localStorage.setItem('user-post', $($('.sceditor-container')[0].children[1].contentDocument.body).html());
+        }
+    });
+}
+contarPalabras();
+</script>
+    <script type="text/javascript">
+    let pestana = null;
+    $('.pestanas_avatar').on('click', function() {
+        pestana = $(this);
+        let pid  = pestana.data('pid');
+        let tipo = pestana.data('tipo');
+
+        $('#pestana_avatar' + pid).removeClass('pestana_active');
+        $('#pestana_info'   + pid).removeClass('pestana_active');
+        $('#pestana_stats'  + pid).removeClass('pestana_active');
+        $('#pestana_akuma'  + pid).removeClass('pestana_active');
+
+        $('#avatar_info'  + pid).css({'opacity':'0','pointer-events':'none'});
+        $('#avatar_stats' + pid).css({'opacity':'0','pointer-events':'none'});
+        $('#avatar_akuma' + pid).css({'opacity':'0','pointer-events':'none'});
+
+        if (tipo === 'stats') {
+            $('#avatar_stats' + pid).css({'opacity':'1','pointer-events':'auto'});
+        } else if (tipo === 'info') {
+            $('#avatar_info' + pid).css({'opacity':'1','pointer-events':'auto'});
+        } else if (tipo === 'akuma') {
+            $('#avatar_akuma' + pid).css({'opacity':'1','pointer-events':'auto'});
+        }
+        pestana.addClass('pestana_active');
+    });
+
+    const circularProgress = document.querySelectorAll(".circular-progress");
+
+    Array.from(circularProgress).forEach((progressBar) => {
+      const progressValue = progressBar.querySelector(".percentage");
+      const innerCircle = progressBar.querySelector(".inner-circle");
+      let startValue = 0,
+        endValue = Number(progressBar.getAttribute("data-percentage")),
+        speed = 25,
+        progressColor = progressBar.getAttribute("data-progress-color"),
+        nivel = progressBar.getAttribute("data-nivel");
+
+      const progress = setInterval(() => {
+        startValue++;
+        progressValue.textContent = nivel + '';
+        progressValue.style.color = progressColor;
+
+        innerCircle.style.backgroundColor = progressBar.getAttribute("data-inner-circle-color");
+
+        progressBar.style.background = `conic-gradient(` + progressColor + ` ` + startValue * 3.6 + `deg,` + progressBar.getAttribute("data-bg-color") + ` 0deg)`;
+        if (startValue === endValue) {
+          clearInterval(progress);
+        }
+      }, speed);
+    });
+
+
+    let post_content = $('.post_content');
+
+    for (let i = 0; i < post_content.length; i++) {
+        let height = post_content[i].offsetHeight;
+        if (height < 610) { height = 610; }
+        $($('.post_author')[i]).css('height', height);
+    }
+
+    $('.spoiler').on('click', function() {
+        for (let i = 0; i < post_content.length; i++) {
+            let height = post_content[i].offsetHeight;
+            if (height < 610) { height = 610; }
+            $($('.post_author')[i]).css('height', height);
+        }
+    });
+
+    let modoLectura = localStorage.getItem("modoLectura");
+    let modoNoche = localStorage.getItem("modoNoche");
+
+    if (modoNoche == 'true') {
+        $('.post_body').css("color", "#d9d6d6");
+        $('.post_content').css("background-color", "#1a1423");
+        // $('.post_controls').css('background-color', '#1a1423');
+        // $('#posts_container').css('background-color', '#1a1423');
+        $('.tfoot').css('background-color', '#1a1423');
+        $('.post').css('background-color', '#1a1423');
+        $('.spoiler_content').css('background-color', '#2a203a');
+
+        $('.tecnica_spoiler_content').css('background-color', '#2a203a');
+        $('.rangoStyle').css("color", "#7a21ff");
+        $('.rangoStyle').css("color", "#7a21ff");
+        $('.tecnicaDes span').css("color", "white");
+        $('.tecnicaId span').css("color", "white");
+        $('.tecnicaId span').css("background", "#571caf");
+        $('.tecnicaId span').css("border", "#6e23dd");
+        $('.tecnicaCost span').css("color", "white");
+
+        // tecnica_spoiler_content
+        $('#modoNoche').html(`
+            <img onclick="toggleModoNoche()" class="modo_dia" src="/images/op/misc/ModoDia_One_Piece_Gaiden_Foro_Rol.png">					 
+         `);
+    } else {
+        $('.post_body').css("color", "black");
+        $('.post_content').css("background-color", "#ffeed2");
+        // // $('.post_controls').css('background-color', '#ffeed2');
+        // $('#posts_container').css('background-color', '#ffeed2');
+        $('.tfoot').css('background-color', '#ffeed2');
+        $('.post').css('background-color', '#ffeed2');
+        $('.spoiler_content').css('background-color', '#ffe6bd');
+
+        $('.tecnica_spoiler_content').css('background-color', 'rgb(255 230 189)');
+        $('.tecnicaLvl span').css("color", "#ff5a00");
+        $('.tecnicaLvl span').css("color", "#ff5a00");
+        $('.tecnicaDes span').css("color", "black");
+        $('.tecnicaId span').css("color", "white");
+        $('.tecnicaId span').css("background", "#ff6d1d");
+        $('.tecnicaId span').css("border", "#843105");
+        $('.tecnicaCost span').css("color", "black");
+
+        $('#modoNoche').html(`
+            <img onclick="toggleModoNoche()" class="modo_noche" src="/images/op/misc/ModoNoche_One_Piece_Gaiden_Foro_Rol.png">					 
+         `);
+    }
+
+    if (modoLectura != 'true') {
+        $('.post_author').css('display', 'block');
+        $('.usuario-derecha').css('display', 'none');
+        $('.post_content').css('width', '847px');
+        $('.post_body').css('font-size', '15px');
+    } else {
+        $('.post_author').css('display', 'none');
+        $('.usuario-derecha').css('display', 'block');
+        $('.post_content').css('width', '1100px');
+        $('.post_body').css('font-size', '19px');
+    }
+
+    const toggleModoNoche = () => {
+        if (modoNoche != 'true') {
+            $('.post_body').css("color", "#d9d6d6");
+            $('.post_content').css("background-color", "#1a1423");
+            // $('.post_controls').css('background-color', '#1a1423');
+            // $('#posts_container').css('background-color', '#1a1423');
+            $('.tfoot').css('background-color', '#1a1423');
+            $('.post').css('background-color', '#1a1423');
+            $('.spoiler_content').css('background-color', '#2a203a');
+
+            $('.tecnica_spoiler_content').css('background-color', '#2a203a');
+            $('.rangoStyle').css("color", "#7a21ff");
+            $('.rangoStyle').css("color", "#7a21ff");
+            $('.tecnicaDes span').css("color", "white");
+            $('.tecnicaId span').css("color", "white");
+            $('.tecnicaId span').css("background", "#571caf");
+            $('.tecnicaId span').css("border", "#6e23dd");
+            $('.tecnicaCost span').css("color", "white");
+
+            $('#modoNoche').html(`
+                <img onclick="toggleModoNoche()" class="modo_dia" src="/images/op/misc/ModoDia_One_Piece_Gaiden_Foro_Rol.png">					 
+             `);
+            localStorage.setItem("modoNoche", 'true');
+            modoNoche = 'true';
+        } else {
+            $('.post_body').css("color", "black");
+            $('.post_content').css("background-color", "#ffeed2");
+            // $('.post_controls').css('background-color', '#ffeed2');
+            // $('#posts_container').css('background-color', '#ffeed2');
+            $('.tfoot').css('background-color', '#ffeed2');
+            $('.post').css('background-color', '#ffeed2');
+            $('.spoiler_content').css('background-color', '#ffe6bd');
+
+            $('.tecnica_spoiler_content').css('background-color', 'rgb(255 230 189)');
+            $('.tecnicaLvl span').css("color", "#ff5a00");
+            $('.tecnicaLvl span').css("color", "#ff5a00");
+            $('.tecnicaDes span').css("color", "black");
+            $('.tecnicaId span').css("color", "white");
+            $('.tecnicaId span').css("background", "#ff6d1d");
+            $('.tecnicaId span').css("border", "#843105");
+            $('.tecnicaCost span').css("color", "black");
+
+            $('#modoNoche').html(`
+                <img onclick="toggleModoNoche()" class="modo_noche" src="/images/op/misc/ModoNoche_One_Piece_Gaiden_Foro_Rol.png">					 
+             `);
+            localStorage.setItem("modoNoche", 'false');
+            modoNoche = 'false';
+        }
+    };
+
+    const toggleModoLectura = () => {
+        if (modoLectura == 'true') {
+            $('.post_author').css('display', 'block');
+            $('.usuario-derecha').css('display', 'none');
+            $('.post_content').css('width', '847px');
+            $('.post_body').css('font-size', '15px');
+            localStorage.setItem("modoLectura", 'false');
+            modoLectura = 'false';
+        } else {
+            $('.post_author').css('display', 'none');
+            $('.usuario-derecha').css('display', 'block');
+            $('.post_content').css('width', '1100px');
+            $('.post_body').css('font-size', '19px');
+            localStorage.setItem("modoLectura", 'true');
+            modoLectura = 'true';
+        }
+    };
+
+    // toggleModoNoche();
+    // toggleModoLectura();
+
+    var thread_deleted = "{$thread_deleted}";
+    if(thread_deleted == "1") {
+        $("#quick_reply_form, .new_reply_button, .thread_tools, .inline_rating").hide();
+        $("#moderator_options_selector option.option_mirage").attr("disabled","disabled");
+    }
+</script>
+</body>
+</html>

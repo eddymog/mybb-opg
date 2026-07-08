@@ -378,12 +378,20 @@ function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $iss
 		return;
 		
 	$ficha = null;
-	$query_ficha = $db->query(" SELECT fid, nombre, kuro, newpoints FROM mybb_op_fichas INNER JOIN mybb_users ON mybb_users.uid = mybb_op_fichas.fid WHERE fid = '$uid'; ");
+	$query_ficha = $db->query(" SELECT fid, nombre, kuro, newpoints, mybb_users.usergroup, mybb_users.additionalgroups FROM mybb_op_fichas INNER JOIN mybb_users ON mybb_users.uid = mybb_op_fichas.fid WHERE fid = '$uid'; ");
 	while ($q = $db->fetch_array($query_ficha)) { $ficha = $q; }
 
 	$user_username = $ficha['nombre'];
 	$kuros_actual = $ficha['kuro'];
 	$exp_actual = $ficha['newpoints'];
+
+	// Grupos de usuarios para multiplicadores de experiencia
+	$newpoints_admin_grupos = [4]; // Administradores
+	$newpoints_otros_grupos = [3, 6, 14, 15, 16]; // Super Moderadores, Moderadores, Staff, Narradores, Programadores
+	$user_grupos_arr = array_filter(array_map('intval', explode(',', $ficha['additionalgroups'])));
+	$user_grupos_arr[] = (int)$ficha['usergroup'];
+	$es_admin  = count(array_intersect($user_grupos_arr, $newpoints_admin_grupos)) > 0;
+	$es_otros  = !$es_admin && count(array_intersect($user_grupos_arr, $newpoints_otros_grupos)) > 0;
 
 	$doesLimitExistByWeek = false;
 	// $timeSinceOPGOpened = time() - 1721620800 - (3600 * 6); 
@@ -404,28 +412,10 @@ function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $iss
 		");
 	}
 	
-	if  (  
-			$uid == '279' 	|| 	// Dark E. Satou
-			$uid == '871' 	|| 	// Giselle D. Woldwood
-			$uid == '304' 	|| 	// Od D. Ysseus
-			$uid == '863' 	||	// Ban
-			$uid == '23'	||	// Oklab
-			$uid == '7'		||	// Lance
-			$uid == '10' 		// Dragonel D. Revan
-	    ) {
+	if ($es_admin) {
 		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 2;
-	} else if (
-			$uid == '69' 	|| 	// Ubben
-			$uid == '146' 	||	// Teruyoshi
-			$uid == '303'	||	// Ospeb
-			$uid == '849'	|| 	// Lightning
-			$uid == '347'	||	// Aranagi
-			$uid == '123'	||	// Gretta
-			$uid == '310'	||	// Prald
-			$uid == '329'		// Darrow
-		) {
+	} else if ($es_otros) {
 		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 1.5;
-		// $pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 2;
 	} else {
 		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 1;
 	}
@@ -446,30 +436,9 @@ function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $iss
 		$minusExperiencia = ($experienciaSemanal + $pointsAwarded) - 100.0;
 		$kuroExperiencia = ($experienciaSemanal + $pointsAwarded) - 100.0;
 
-		if (
-			$uid == '279' 	|| 	// Dark E. Satou
-			$uid == '871' 	|| 	// Giselle D. Woldwood
-			$uid == '304' 	|| 	// Od D. Ysseus
-			$uid == '863' 	||	// Ban
-			$uid == '23'	||	// Oklab
-			$uid == '7'		||	// Lance
-			$uid == '10' 		// Dragonel D. Revan
-		)
-		{
+		if ($es_admin) {
 			$kuroExperiencia = $kuroExperiencia / 2;
-		}
-
-		if (
-			$uid == '69' 	|| 	// Ubben
-			$uid == '146' 	||	// Teruyoshi
-			$uid == '303'	||	// Ospeb
-			$uid == '849'	|| 	// Lightning
-			$uid == '347'	||	// Aranagi
-			$uid == '123'	||	// Gretta
-			$uid == '310'	||	// Prald
-			$uid == '329'		// Darrow
-		) 
-		{
+		} else if ($es_otros) {
 			$kuroExperiencia = $kuroExperiencia / 1.5;
 		}
 

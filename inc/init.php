@@ -47,13 +47,6 @@ if(function_exists('date_default_timezone_set') && !ini_get('date.timezone'))
 require_once MYBB_ROOT."inc/class_error.php";
 $error_handler = new errorHandler();
 
-// ── Debug helper: logs ALL errors (incl. fatales) to inc/debug_log.txt ───────
-// Set MYBB_DEBUG_LOG to false in debug_helper.php to disable without removing.
-if(file_exists(MYBB_ROOT."inc/debug_helper.php"))
-{
-	require_once MYBB_ROOT."inc/debug_helper.php";
-}
-
 // Show errors triggered during initialization
 $error_handler->force_display_errors = true;
 

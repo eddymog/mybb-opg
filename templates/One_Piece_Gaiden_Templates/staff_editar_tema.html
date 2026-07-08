@@ -1,0 +1,51 @@
+<html>
+
+<head>
+  <title>Editar Tema</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $tid == '' then>
+      Tema ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='tid'><button
+        onclick=onClickTid()>Buscar</button><br><br>
+    </if>
+	<if $tid !='' then>
+
+		Tema ID:<br><input id='tid' class="textbox" type="text" name="tid" value='{$tid}' disabled><br>
+        
+        Dia*: <br><input style="width: 300px;" class="textbox" value="{$thread['day']}" type="text" name="dia" id="dia" required /><br>
+        Año*: <br><input style="width: 300px;" class="textbox" value="{$thread['year']}" type="text" name="ano" id="ano" required /><br>
+        Estación* (Primavera, Verano, Invierno, Otoño):<br><input value="{$thread['estacion']}" style="width: 300px;" class="textbox" value="" type="text" name="estacion" id="estacion" required /><br>
+        <button onclick=editarFecha()>Editar Fecha</button>
+    </if>
+
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickTid() {
+    const temaId = document.getElementById('tid').value;
+    if (temaId) {
+		    window.location.href = window.location.pathname + '?tid=' + temaId;		
+	}
+  }
+	
+  function editarFecha() {
+    const dia = document.getElementById('dia').value;
+	const temaId = document.getElementById('tid').value;
+	const ano = document.getElementById('ano').value;
+	const estacion = document.getElementById('estacion').value;
+    if (temaId && dia && ano && estacion) {
+		// https://onepiecegaiden.com/op/editar_tema.php?tid=3533&estacion=Primavera&dia=421&ano=725
+		// alert(window.location.pathname + '?tid=' + temaId + '&estacion=' + estacion + '&dia=' + dia + '&ano=' + ano);
+		window.location.href = window.location.pathname + '?tid=' + temaId + '&estacion=' + estacion + '&dia=' + dia + '&ano=' + ano;		
+	}
+  }
+</script>
+
+</html>

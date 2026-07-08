@@ -1,0 +1,128 @@
+<script>
+  /* Función para calcular vida del personaje */
+	let fuerza = document.getElementById('fuerza');
+    let resistencia = document.getElementById('resistencia');
+	let destreza = document.getElementById('destreza');
+	let agilidad = document.getElementById('agilidad');
+	let punteria = document.getElementById('punteria');
+    let reflejos = document.getElementById('reflejos');
+	let voluntad = document.getElementById('voluntad');
+
+    let vitalidad = document.getElementById('vitalidad');
+    let energia = document.getElementById('energia');
+    let haki = document.getElementById('haki');
+	
+    let puntos_estadistica = document.getElementById('puntos_estadistica');
+	let nivel = {$ficha['nivel']};
+
+    $('.total_puntos')[0].innerHTML = getSumOfAllStats();
+	$('.nivel')[0].innerHTML = nivel;
+	
+	function calcVitalidad(fuerza, resistencia, destreza, agilidad, punteria, reflejos, voluntad) {
+		return ((fuerza * 6) + (resistencia * 15) + (destreza * 4) + (agilidad * 3) + (punteria * 2) + (reflejos * 1) + (voluntad * 1));
+	}
+
+	function calcEnergia(fuerza, resistencia, destreza, agilidad, punteria, reflejos, voluntad) {
+		return (fuerza * 2) + (resistencia * 4) + (destreza * 4) + (agilidad * 5) + (punteria * 5) + (reflejos * 1) + (voluntad * 1);
+	}
+
+	function calcHaki(voluntad) {
+		return (voluntad * 10);
+	}
+
+    function modifyAttributes() {
+        vitalidad.value = calcVitalidad(parseInt(fuerza.value), parseInt(resistencia.value), parseInt(destreza.value), parseInt(agilidad.value), parseInt(punteria.value), parseInt(reflejos.value), parseInt(voluntad.value));
+	
+		energia.value = calcEnergia(parseInt(fuerza.value), parseInt(resistencia.value), parseInt(destreza.value), parseInt(agilidad.value), parseInt(punteria.value), parseInt(reflejos.value), parseInt(voluntad.value));
+		
+        haki.value = calcHaki(parseInt(voluntad.value));
+   }
+  
+    function changeStat(statId, num) {
+   		const statLimit = calculateMinMaxStat();
+		
+		if (num >= 1 && getSumOfAllStats() >= 550) {
+		  alert('Ya has asignado la máxima cantidad de estadísticas. ¡Felicidades!');
+		} else if (puntos_estadistica.value == 0 && num >= 1) {
+		  alert('No tienes más puntos de estadísticas.');
+		} else if (statId.value >= statLimit.max) {
+		  alert('Ya has asignado el máximo de puntos para esta estadística.')
+		} else if (num <= -1 && checkStatGoLessThanAlreadySet(statId)) {
+		  alert('No puedes quitar mas puntos a esta estadistica.');
+		} else if (num >= 1 && (checkMinimumForEachStat(statLimit.min) && parseInt(statId.value) >= statLimit.min)) {
+		  alert('Tienes que subir primero las estadísticas inferiores a ' + statLimit.min + '.');
+		} else {
+			statId.value = parseInt(statId.value) + parseInt(num);
+			puntos_estadistica.value = parseInt(puntos_estadistica.value) - parseInt(num);
+			$('.total_puntos')[0].innerHTML = getSumOfAllStats();
+			modifyAttributes();
+		}
+    }
+	
+	function calculateMinMaxStat() {
+		const statLimit = {
+		  min: 1,
+		  max: 30
+		}
+		
+		statLimit.min = Math.ceil(nivel / 5);
+		
+		if (nivel % 2 == 1) {
+			statLimit.max = 40 + (Math.floor(nivel / 2) * 5);
+		} else {
+			statLimit.max = 40 + ((nivel / 2) * 5) - 5;
+		}
+		
+		if (statLimit.max >= 150) { statLimit.max = 150; }
+		
+		return statLimit;
+	}
+	
+	// Atributo Minimo Inicial a Nivel 1 = 1, luego cada 5 Niveles sube 1, hasta quedarse en Minimo 10 al 46.
+	// Atributo Maximo Inicial a Nivel 1 = 30, luego sube +5 el Maximo en cada nivel, hasta llegar a 200 Maximo al Nivel 35.
+	
+	function checkMinimumForEachStat(minStat) {
+
+		let fuerzaActual = document.getElementById('fuerza');
+		let resistenciaActual = document.getElementById('resistencia');
+		let reflejosActual = document.getElementById('reflejos');
+		let punteriaActual = document.getElementById('punteria');
+		let voluntadActual = document.getElementById('voluntad');
+		let agilidadActual = document.getElementById('agilidad');
+		let destrezaActual = document.getElementById('destreza');
+		
+		if (fuerzaActual.value < minStat || resistenciaActual.value < minStat || 
+			reflejosActual.value < minStat || punteriaActual.value < minStat || 
+			voluntadActual.value < minStat || agilidadActual.value < minStat || 
+			destrezaActual.value < minStat) {
+		  return true;
+		}
+		return false;
+	}
+	
+	function checkStatGoLessThanAlreadySet(statId) {
+		switch (statId.name) {
+		  case "fuerza": if (statId.value == {$ficha['fuerza']}) return true; break;
+		  case "resistencia": if (statId.value == {$ficha['resistencia']}) return true; break;
+		  case "reflejos": if (statId.value == {$ficha['reflejos']}) return true; break;
+		  case "punteria": if (statId.value == {$ficha['punteria']}) return true; break;
+		  case "voluntad": if (statId.value == {$ficha['voluntad']}) return true; break;
+		  case "agilidad": if (statId.value == {$ficha['agilidad']}) return true; break;
+		  case "destreza": if (statId.value == {$ficha['destreza']}) return true; break;
+		}
+		return false;
+	}
+  
+    function getSumOfAllStats() {
+        let fuerza = document.getElementById('fuerza');
+        let resistencia = document.getElementById('resistencia');
+        let reflejos = document.getElementById('reflejos');
+        let punteria = document.getElementById('punteria');
+        let voluntad = document.getElementById('voluntad');
+        let agilidad = document.getElementById('agilidad');
+        let destreza = document.getElementById('destreza');
+        return parseInt(fuerza.value) + parseInt(resistencia.value) + parseInt(destreza.value) + parseInt(agilidad.value) + 
+            parseInt(voluntad.value) + parseInt(punteria.value) + parseInt(reflejos.value);
+    }
+  
+</script>

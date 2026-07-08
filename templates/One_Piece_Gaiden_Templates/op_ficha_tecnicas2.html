@@ -1,0 +1,248 @@
+<script>
+var TF={
+    filtroActual:{tipos:[],tiers:[],categorias:[],fecha:null},
+    todasLasTecnicas:[],
+    _tidIndex:null,
+
+    init:function(){
+        var self=this;
+        if(document.readyState==='loading'){
+            document.addEventListener('DOMContentLoaded',function(){
+                setTimeout(function(){self.setup()},500);
+            });
+        }else{
+            setTimeout(function(){self.setup()},500);
+        }
+    },
+    setup:function(){
+        this.initFiltros();
+    },
+
+    buildTidIndex:function(){
+        this._tidIndex={};
+        if(typeof tec_aprendidas_json==='undefined'||!tec_aprendidas_json)return;
+        for(var key in tec_aprendidas_json){
+            var arr=tec_aprendidas_json[key];
+            if(!Array.isArray(arr))continue;
+            for(var i=0;i<arr.length;i++){
+                var t=arr[i];
+                if(t&&t.tid){
+                    this._tidIndex[t.tid]={
+                        tipo:(t.tipo||'').toLowerCase(),
+                        clase:(t.clase||'').toLowerCase()
+                    };
+                }
+            }
+        }
+    },
+
+    initFiltros:function(){
+        if(!this._tidIndex)this.buildTidIndex();
+        var tecnicas=document.querySelectorAll('.tecnica_spoiler');
+        this.todasLasTecnicas=[];
+        for(var i=0;i<tecnicas.length;i++){
+            var datos=this.extraerDatosTecnica(tecnicas[i]);
+            this.todasLasTecnicas.push({elemento:tecnicas[i],datos:datos});
+        }
+    },
+
+    filtrarTier:function(tier){
+        var btn=document.getElementById('btn-t'+tier);
+        if(!btn)return;
+        var idx=this.filtroActual.tiers.indexOf(tier);
+        if(idx>-1){
+            this.filtroActual.tiers.splice(idx,1);
+            btn.style.backgroundColor='#666666';
+        }else{
+            this.filtroActual.tiers.push(tier);
+            btn.style.backgroundColor='#000000';
+        }
+        this.aplicarFiltros();
+    },
+
+    filtrarCategoria:function(categoria){
+        var btn=document.getElementById('btn-'+categoria);
+        if(!btn)return;
+        var idx=this.filtroActual.categorias.indexOf(categoria);
+        if(idx>-1){
+            this.filtroActual.categorias.splice(idx,1);
+            btn.style.backgroundColor='#666666';
+        }else{
+            this.filtroActual.categorias.push(categoria);
+            btn.style.backgroundColor='#000000';
+        }
+        this.aplicarFiltros();
+    },
+
+    filtrarPorFecha:function(fechaInput){
+        this.filtroActual.fecha = fechaInput;
+        this.aplicarFiltros();
+    },
+
+    parsearFecha:function(fechaTexto){
+        if(!fechaTexto) return null;
+        var partes = fechaTexto.split('/');
+        if(partes.length === 3){
+            var dia = parseInt(partes[0], 10);
+            var mes = parseInt(partes[1], 10) - 1;
+            var ano = parseInt(partes[2], 10);
+            if(ano < 100) ano += 2000;
+            var fecha = new Date(ano, mes, dia);
+            if(fecha.getFullYear() === ano && fecha.getMonth() === mes && fecha.getDate() === dia){
+                return fecha;
+            }
+        }
+        return null;
+    },
+
+    aplicarFiltros:function(){
+        if(!this.todasLasTecnicas.length)this.initFiltros();
+        var visibles=0;
+        for(var i=0;i<this.todasLasTecnicas.length;i++){
+            var el=this.todasLasTecnicas[i].elemento;
+            var datos=this.todasLasTecnicas[i].datos;
+            var mostrar = this.evaluarFiltros(datos);
+            el.style.display=mostrar?'block':'none';
+            if(mostrar)visibles++;
+        }
+        // Ocultar contenedores de rama que no tienen ninguna técnica visible
+        var contenedores=document.querySelectorAll('#tecnicas-caja [data-spoiler="1"]');
+        for(var j=0;j<contenedores.length;j++){
+            var cont=contenedores[j];
+            var hijos=cont.querySelectorAll('.tecnica_spoiler');
+            var hayVisible=false;
+            for(var k=0;k<hijos.length;k++){
+                if(hijos[k].style.display!=='none'){hayVisible=true;break;}
+            }
+            cont.style.display=hayVisible?'':'none';
+        }
+        this.mostrarSinResultados(visibles===0);
+    },
+
+    evaluarFiltros:function(datos){
+        if(!datos) return true;
+
+        if(this.filtroActual.tiers.length>0){
+            var tierOk=this.filtroActual.tiers.indexOf(datos.tier)!==-1;
+            if(!tierOk)return false;
+        }
+
+        if(this.filtroActual.categorias.length>0){
+            var catOk=false;
+            for(var l=0;l<this.filtroActual.categorias.length;l++){
+                var cat=this.filtroActual.categorias[l];
+                switch(cat){
+                    case'pasiva':if(!datos.esTecnica)catOk=true;break;
+                    case'activa':if(datos.esActiva)catOk=true;break;
+                    case'mantenida':if(datos.esMantenida)catOk=true;break;
+                    case'ofensiva':if(datos.esOfensiva)catOk=true;break;
+                    case'defensiva':if(datos.esDefensiva)catOk=true;break;
+                }
+                if(catOk)break;
+            }
+            if(!catOk)return false;
+        }
+
+        if(this.filtroActual.fecha){
+            var fechaTecnica = this.parsearFecha(datos.fecha);
+            var fechaFiltro = this.parsearFecha(this.filtroActual.fecha);
+            if(fechaFiltro && fechaTecnica){
+                if(fechaTecnica >= fechaFiltro) return false;
+            } else if(fechaFiltro && !fechaTecnica){
+                return false;
+            }
+        }
+
+        return true;
+    },
+
+    mostrarSinResultados:function(mostrar){
+        var msg=document.getElementById('mensaje-sin-resultados');
+        if(mostrar){
+            if(!msg){
+                msg=document.createElement('div');
+                msg.id='mensaje-sin-resultados';
+                msg.style.cssText='text-align:center;padding:40px;font-family:moonGetHeavy;font-size:16px;color:#666;';
+                msg.textContent='No se encontraron técnicas con los filtros seleccionados';
+                var caja=document.getElementById('tecnicas-caja');
+                if(caja)caja.appendChild(msg);
+            }
+            msg.style.display='block';
+        }else{
+            if(msg)msg.style.display='none';
+        }
+    },
+
+    extraerDatosTecnica:function(el){
+        var nomEl=el.querySelector('.tecnica_spoiler_button');
+        var nombre=nomEl?(nomEl.textContent||'').trim():'';
+        nombre=nombre.replace(/^\[.*?\]\s*/,'');
+        if(!nombre){
+            var campos=el.querySelectorAll('.tecnica_field');
+            if(campos.length>0)nombre=(campos[0].textContent||'').trim();
+        }
+
+        var esDefensivaPorBloqueo=false;
+        var efectoEl=el.querySelector('.tecnica_efecto');
+        if(efectoEl){
+            var efectoTexto=(efectoEl.textContent||efectoEl.innerHTML||'').trim();
+            esDefensivaPorBloqueo=efectoTexto.indexOf('[Bloqueo Básico]')===0;
+        }
+
+        if(el.dataset && el.dataset.tipo!==undefined){
+            var tipo=(el.dataset.tipo||'').toLowerCase();
+            var clase=(el.dataset.clase||'').toLowerCase();
+            var tier=parseInt(el.dataset.tier,10)||0;
+            var rama=el.dataset.rama||'';
+            var fecha=el.dataset.fecha||'';
+            return{
+                nombre:nombre,
+                rama:rama,
+                tipoCompleto:tipo,
+                tier:tier,
+                fecha:fecha,
+                esTecnica:clase.indexOf('pasiva')===-1,
+                esOfensiva:tipo.indexOf('ofensiva')!==-1,
+                esDefensiva:tipo.indexOf('defensiva')!==-1||esDefensivaPorBloqueo,
+                esUtilidad:tipo.indexOf('utilidad')!==-1,
+                esAmbiental:tipo.indexOf('ambiental')!==-1,
+                esActiva:clase.indexOf('activa')!==-1,
+                esMantenida:clase.indexOf('mantenida')!==-1
+            };
+        }
+
+        var campos=el.querySelectorAll('.tecnica_field');
+        if(campos.length<4){
+            return nombre?{nombre:nombre,rama:'',tipoCompleto:'',tier:0,esTecnica:true,esOfensiva:false,esDefensiva:esDefensivaPorBloqueo,esUtilidad:false,esAmbiental:false,esActiva:false,esMantenida:false,fecha:''}:null;
+        }
+        var tid=(campos[0].textContent||'').trim();
+        var rama=(campos[1].textContent||'').trim();
+        var claseTexto=(campos[2].textContent||'').trim().toLowerCase();
+        var tierTexto=(campos[3].textContent||'').trim();
+        var tierMatch=tierTexto.match(/tier\s*(\d+)/i);
+        var tier=tierMatch?parseInt(tierMatch[1],10):0;
+        var fecha=campos.length>4?(campos[4].textContent||'').trim():'';
+        var tipoCompleto='';
+        if(tid&&TF._tidIndex&&TF._tidIndex[tid]){
+            tipoCompleto=TF._tidIndex[tid].tipo;
+            if(TF._tidIndex[tid].clase)claseTexto=TF._tidIndex[tid].clase;
+        }
+        return{
+            nombre:nombre,
+            rama:rama,
+            tipoCompleto:tipoCompleto,
+            tier:tier,
+            fecha:fecha,
+            esTecnica:claseTexto.indexOf('pasiva')===-1,
+            esOfensiva:tipoCompleto.indexOf('ofensiva')!==-1,
+            esDefensiva:tipoCompleto.indexOf('defensiva')!==-1||esDefensivaPorBloqueo,
+            esUtilidad:tipoCompleto.indexOf('utilidad')!==-1,
+            esAmbiental:tipoCompleto.indexOf('ambiental')!==-1,
+            esActiva:claseTexto.indexOf('activa')!==-1,
+            esMantenida:claseTexto.indexOf('mantenida')!==-1
+        };
+    }
+};
+
+TF.init();
+</script>

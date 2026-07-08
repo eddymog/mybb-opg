@@ -1,0 +1,44 @@
+<html>
+
+<head>
+  <title>Modificar Virtudes y Defectos</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $virtud_id == '' then>
+      Virtud/Defecto ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='virtud_id'><button
+        onclick=onClickTid()>Buscar</button><br><br>
+    </if>
+	<if $virtud_id !='' then>
+
+        <form method="post" action="/op/staff/virtudes_modificar.php" name="crear_virtudes" id="crear_virtudes">
+		Virtud/Defecto ID:<br><input  class="textbox" type="text" name="virtud_id" value='{$virtud_id}'><br>
+        <div style="display: none">
+           <input type="text" name="virtud_id_old" value="{$virtud_id}">
+        </div><br>
+        Nombre de virtud/defecto*: <br><input style="width: 300px;" class="textbox" value="{$virtud['nombre']}" type="text" name="nombre" id="nombre" required /><br>
+        Puntos*: <br><input style="width: 300px;" class="textbox" value="{$virtud['puntos']}" type="text" name="puntos" id="puntos" required /><br>
+        Descripción*:<br>
+        <textarea style="width: 400px;height: 125px;" name="descripcion" minlength="1" required>{$virtud['descripcion']}</textarea><br><br>
+        <input class="button" type="submit" value="Modificar">
+      </form>
+    </if>
+
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickTid() {
+    const virtudId = document.getElementById('virtud_id').value;
+    if (virtudId) {
+		    window.location.href = window.location.pathname + '?virtud_id=' + virtudId;		
+	}
+  }
+</script>
+
+</html>

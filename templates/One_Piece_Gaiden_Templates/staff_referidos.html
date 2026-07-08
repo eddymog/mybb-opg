@@ -1,0 +1,57 @@
+<html>
+
+<head>
+  <title>Consola Súper Secreta</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+	<div style=" text-align: center; font-weight: bolder; font-size: 21px; ">Referidos</div>
+    <if $user_fid=='' then>
+      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
+      Accion:<br>
+      <select id="accion">
+        <option value="Añadir">Añadir</option>
+        <option value="Remover">Remover</option>
+      </select><br><br>
+      <button onclick=onClickAccion()>Buscar</button>
+      <br><br>
+    </if>
+    <if $user_fid !='' && $accion != '' then>
+      <form method="post" action="/op/staff/referidos.php" name="referidos" id="referidos">
+        <div style="display: none">
+           <input type="text" id="ficha_id" name="ficha_id" value="{$user_fid}">
+           <input type="text" id="accion" name="accion" value="{$accion}">
+        </div>
+        User ID (<a href="/op/ficha.php?uid={$user_fid}">{$ficha['nombre']}</a>):<br><input class="textbox" type="number" name="ficha_id" required id='ficha_id' value={$user_fid} disabled><br>
+        Accion:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		Referido ID:<br><input class="textbox" type="number" name="ref_id" required id='ref_id' value={$ref_id} ><br><br>
+        <input  class="button" type="submit" value="Guardar">
+      </form><br>
+	  <div>
+      <strong>Referidos:</strong><br>
+	  {$referidos}
+	  </div>
+	  
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log !='' then><script>alert(`{$log}`);</script></if>
+{$reload_js}
+<script>
+  function onClickAccion() {
+    const fid = document.getElementById('fid').value;
+    const accion = document.getElementById('accion').value;
+    if (fid && accion) {
+      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+    }
+  }
+</script>
+
+</html>

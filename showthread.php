@@ -1119,12 +1119,15 @@ if($mybb->input['action'] == "thread")
 			WHERE $pids
 			ORDER BY p.dateline, p.pid
 		");
+		$post_number = $start;
 		while($post = $db->fetch_array($query))
 		{
 			if($thread['firstpost'] == $post['pid'] && $thread['visible'] == 0)
 			{
 				$post['visible'] = 0;
 			}
+			$post_number++;
+			$post['postnumber'] = $post_number;
 			$posts .= build_postbit($post);
 			$post = '';
 		}

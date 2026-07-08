@@ -355,8 +355,6 @@ class errorHandler {
 
 	/**
 	 * Logs the error in the specified error log file.
-	 * Enhanced: also writes to inc/debug_log.txt via MyBBDebugLogger when available,
-	 * with full HTTP context (URL, IP, UA, referer) and backtrace.
 	 *
 	 * @param string  $type    Warning type
 	 * @param string  $message Warning message
@@ -365,15 +363,9 @@ class errorHandler {
 	 */
 	function log_error($type, $message, $file, $line)
 	{
-		global $mybb, $mybb_debug_logger;
+		global $mybb;
 
-		// ── Delegate to MyBBDebugLogger for rich context when available ────────
-		if(isset($mybb_debug_logger) && $mybb_debug_logger instanceof MyBBDebugLogger)
-		{
-			$mybb_debug_logger->write($type, $message, $file, $line, 2);
-		}
-
-		// ── Build the legacy XML-style entry for the MyBB error log ───────────
+		// ── Build the XML-style entry for the MyBB error log ─────────────────
 		$sql_message = $message;
 		if($type == MYBB_SQL)
 		{
@@ -419,15 +411,9 @@ class errorHandler {
 		$error_data .= $back_trace;
 		$error_data .= "</error>\n\n";
 
-		// ── Write to the configured location, or fall back to inc/debug_log.txt ─
 		if(isset($mybb->settings['errorloglocation']) && trim($mybb->settings['errorloglocation']) != "")
 		{
 			@error_log($error_data, 3, $mybb->settings['errorloglocation']);
-		}
-		elseif(defined('MYBB_ROOT') && defined('MYBB_DEBUG_LOG_FILE'))
-		{
-			// Fallback: write alongside the debug helper log
-			@file_put_contents(MYBB_DEBUG_LOG_FILE, $error_data, FILE_APPEND | LOCK_EX);
 		}
 		else
 		{

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Piece Gaiden - DenDenSpy</title>
+  {$headerinclude}
+  <style>
+    /* Estilos principales */
+    .fondo-blanco {
+      text-align: center;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 0;
+      box-sizing: border-box;
+    }
+
+    .den-den-container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #ffe8b3 0%, #ffd280 100%);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .den-den-title {
+      text-align: center;
+      font-family: 'Trebuchet MS', Arial, sans-serif;
+      font-size: 28px;
+      color: #ff7e00;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+
+    .den-den-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .den-den-controls {
+      flex: 1;
+      border: 3px solid #a3180b;
+      border-radius: 10px;
+      padding: 15px;
+      background-color: #101010;
+      position: relative;
+      text-align: center;
+    }
+
+    .wave-container {
+      width: 100%;
+      height: 150px;
+      background-color: #001a00;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto 15px;
+    }
+
+    .wave {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom, transparent, #00ff00, transparent);
+      opacity: 0.7;
+    }    .control-panel {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .knob-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }    .control-knob {
+      width: 60px;
+      height: 60px;
+      background-color: #444;
+      border-radius: 50%;
+      border: 3px solid #a3180b;
+      position: relative;
+      box-shadow: 0px 0px 10px rgba(255,0,0,0.3);
+      margin: 5px 0;
+      --knob-rotation: 150deg;
+    }
+
+    .control-knob::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 5px;
+      width: 50%;
+      height: 4px;
+      background-color: white;
+      transform-origin: right center;
+      transform: translateY(-50%) rotate(var(--knob-rotation));
+      transition: transform 0.3s;
+    }
+
+    .knob-buttons {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .knob-btn {
+      width: 25px;
+      height: 25px;
+      background-color: #a3180b;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'moonGetHeavy';
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .knob-btn:hover {
+      background-color: #ff2e1f;
+      transform: scale(1.1);
+    }
+
+    .knob-btn:active {
+      transform: scale(0.95);
+    }
+
+    .control-label {
+      text-align: center;
+      font-family: 'moonGetHeavy';
+      color: white;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .message-display {
+      height: 60px;
+      background-color: #333;
+      border-radius: 5px;
+      border: 2px solid #a3180b;
+      padding: 10px;
+      font-family: 'moonGetHeavy';
+      color: #04ff7f;
+      font-size: 18px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 3px;
+      overflow: hidden;
+      text-shadow: 0px 0px 5px #04ff7f;
+      margin: 0 auto;
+    }
+
+    .signal-strength {
+      width: 100%;
+      height: 20px;
+      background-color: #222;
+      border-radius: 10px;
+      margin: 10px auto 0;
+      overflow: hidden;
+    }
+
+    .signal-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #ff0000, #ffff00, #00ff00);
+      transition: width 0.5s;
+    }
+
+    .game-instructions {
+      margin: 20px auto 0;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      color: white;
+      font-family: 'InterRegular';
+      text-align: center;
+    }
+    
+    .game-instructions p {
+      text-align: center;
+      margin: 10px auto;
+    }
+
+    .level-display {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #a3180b;
+      color: white;
+      font-family: 'moonGetHeavy';
+      padding: 5px 15px;
+      border-radius: 15px;
+      font-size: 16px;
+      box-shadow: 0px 0px 5px rgba(0,0,0,0.5);
+    }
+
+    .score-display {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #004d00;
+      color: #04ff7f;
+      font-family: 'moonGetHeavy';
+      padding: 5px 15px;
+      border-radius: 15px;
+      font-size: 16px;
+      box-shadow: 0px 0px 5px rgba(0,0,0,0.5);
+    }
+
+    .time-display {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background-color: #4d0000;
+      color: #ff7e00;
+      font-family: 'moonGetHeavy';
+      padding: 5px 15px;
+      border-radius: 15px;
+      font-size: 16px;
+      box-shadow: 0px 0px 5px rgba(0,0,0,0.5);
+    }
+
+    .btn {
+      background-color: #a3180b;
+      color: white;
+      font-family: 'moonGetHeavy';
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 15px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #ff2e1f;
+      transform: scale(1.05);
+    }
+
+    /* Modal para mensajes descifrados */
+    .message-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .message-content {
+      background-image: url('https://wallpapers.com/images/hd/old-paper-background-0xdcncwjxxfo0ewd.jpg');
+      background-size: cover;
+      width: 400px;
+      height: 300px;
+      padding: 40px;
+      border-radius: 10px;
+      text-align: center;
+      position: relative;
+    }
+
+    .message-text {
+      font-family: 'InterRegular';
+      font-size: 18px;
+      color: #3b1300;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #a3180b;
+    }
+
+    /* Animación de ondas */
+    @keyframes wave {
+      0% { transform: translateX(-100%) scaleY(0.5); }
+      50% { transform: translateX(50%) scaleY(1); }
+      100% { transform: translateX(200%) scaleY(0.5); }
+    }
+
+    .frequency-band {
+      height: 30px;
+      border-top: 1px solid rgba(0, 255, 0, 0.5);
+      position: absolute;
+      width: 100%;
+      left: 0;
+      text-align: center;
+    }
+
+    .frequency-label {
+      position: absolute;
+      left: 5px;
+      color: rgba(0, 255, 0, 0.8);
+      font-size: 10px;
+      font-family: 'moonGetHeavy';
+    }
+
+    .hidden-pattern {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: rgba(255, 0, 0, 0.0);
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background-color 0.3s;
+    }
+
+    .hidden-pattern.revealed {
+      background-color: rgba(255, 0, 0, 0.5);
+      animation: denden_pulse 1s infinite;
+    }
+
+    @keyframes denden_pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+    }
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <div class="den-den-container" id="dendenMushiContainer">
+      <div class="level-display">NIVEL: <span id="current-level">1</span></div>
+      <div class="score-display">PUNTOS: <span id="score">0</span></div>
+      <div class="time-display">TIEMPO: <span id="timer">60</span></div>
+      <h1 class="den-den-title">INTERCEPTOR DE DEN DEN MUSHI</h1>
+      
+      <div class="den-den-box">
+        
+        <div class="den-den-controls">
+          <div class="wave-container" id="wave-container">
+            <!-- Las ondas se generarán dinámicamente con JavaScript -->
+          </div>
+            <div class="control-panel">
+            <div class="control-group">
+              <div class="knob-container">
+                <div class="control-knob" id="frequency-knob" data-value="50"></div>
+                <div class="knob-buttons">
+                  <button class="knob-btn" id="frequency-left">◀</button>
+                  <button class="knob-btn" id="frequency-right">▶</button>
+                </div>
+              </div>
+              <div class="control-label">FRECUENCIA</div>
+            </div>
+            <div class="control-group">
+              <div class="knob-container">
+                <div class="control-knob" id="amplitude-knob" data-value="50"></div>
+                <div class="knob-buttons">
+                  <button class="knob-btn" id="amplitude-left">◀</button>
+                  <button class="knob-btn" id="amplitude-right">▶</button>
+                </div>
+              </div>
+              <div class="control-label">AMPLITUD</div>
+            </div>
+            <div class="control-group">
+              <div class="knob-container">
+                <div class="control-knob" id="filter-knob" data-value="50"></div>
+                <div class="knob-buttons">
+                  <button class="knob-btn" id="filter-left">◀</button>
+                  <button class="knob-btn" id="filter-right">▶</button>
+                </div>
+              </div>
+              <div class="control-label">FILTRO</div>
+            </div>
+            <div class="control-group">
+              <div class="knob-container">
+                <div class="control-knob" id="clarity-knob" data-value="50"></div>
+                <div class="knob-buttons">
+                  <button class="knob-btn" id="clarity-left">◀</button>
+                  <button class="knob-btn" id="clarity-right">▶</button>
+                </div>
+              </div>
+              <div class="control-label">CLARIDAD</div>
+            </div>
+          </div>
+          
+          <div class="message-display" id="message-display">...</div>
+          
+          <div class="signal-strength">
+            <div class="signal-bar" id="signal-bar"></div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 10px;">
+            <button class="btn" id="start-btn">INICIAR INTERCEPTACIÓN</button>
+            <button class="btn" id="decode-btn" style="display: none;">DESCIFRAR MENSAJE</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="game-instructions">
+        <h3 style="margin-top: 0; color: #ff7e00;">INSTRUCCIONES:</h3>
+        <p>1. Ajusta los controles para sintonizar correctamente la señal del Den Den Mushi.</p>
+        <p>2. Busca anomalías en los patrones de onda que puedan indicar mensajes ocultos.</p>
+        <p>3. Haz clic en los puntos sospechosos para revelar partes del mensaje encriptado.</p>
+        <p>4. Una vez que hayas encontrado todas las partes del mensaje, haz clic en &quot;DESCIFRAR MENSAJE&quot;.</p>
+        <p>5. ¡Ten cuidado! Los Cipher Pol y la Marina están constantemente cambiando sus códigos.</p>
+      </div>
+    </div>
+
+    <!-- Modal para mostrar el mensaje descifrado -->
+    <div class="message-modal" id="message-modal">
+      <div class="message-content">
+        <span class="close-modal" id="close-modal-btn">&times;</span>
+        <h2 style="margin-top: 0; color: #a3180b; font-family: 'moonGetHeavy';">¡MENSAJE DESCIFRADO!</h2>
+        <p class="message-text" id="decrypted-message"></p>
+        <button class="btn" id="next-level-btn">SIGUIENTE NIVEL</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  //<![CDATA[
+  // Encapsulamos todo el juego en un objeto para evitar conflictos
+  var denDenMushi = (function() {
+    // Configuración del juego
+    const levels = [
+      {
+        message: "L--A-----F--E--C--H--A", 
+        difficulty: 1,
+        timeLimit: 100,
+        patterns: 5
+      },
+      {
+        message: "D--E------A--P--E--R--T--U--R--A", 
+        difficulty: 2,
+        timeLimit: 80,
+        patterns: 6
+      },
+      {
+        message: "D--E--L------S--E--R--V--I--D--O--R", 
+        difficulty: 3,
+        timeLimit: 70,
+        patterns: 7
+      },
+      {
+        message: "------------ES----------", 
+        difficulty: 4,
+        timeLimit: 60,
+        patterns: 8
+      },
+      {
+        message: "EL DIA xx DE JULIO DE 2025", 
+        difficulty: 5,
+        timeLimit: 50,
+        patterns: 9
+      }
+    ];
+
+    let currentLevel = 0;
+    let score = 0;
+    let timeRemaining = 60;
+    let timerInterval;
+    let gameActive = false;
+    let discoveredPatterns = 0;
+    let requiredPatterns = 5;    let knobRotations = {
+      frequency: 50,
+      amplitude: 50,
+      filter: 50,
+      clarity: 50
+    };
+    let hiddenPatterns = [];
+
+    // Elementos DOM
+    let waveContainer, messageDisplay, signalBar, startBtn, decodeBtn;
+    let scoreDisplay, levelDisplay, timerDisplay, messageModal, decryptedMessage;
+    let frequencyKnob, amplitudeKnob, filterKnob, clarityKnob;
+    let closeModalBtn, nextLevelBtn;
+    
+    // Inicializar elementos DOM después de cargar la página
+    function initDOMElements() {
+      waveContainer = document.getElementById('wave-container');
+      messageDisplay = document.getElementById('message-display');
+      signalBar = document.getElementById('signal-bar');
+      startBtn = document.getElementById('start-btn');
+      decodeBtn = document.getElementById('decode-btn');
+      scoreDisplay = document.getElementById('score');
+      levelDisplay = document.getElementById('current-level');
+      timerDisplay = document.getElementById('timer');
+      messageModal = document.getElementById('message-modal');
+      decryptedMessage = document.getElementById('decrypted-message');
+      closeModalBtn = document.getElementById('close-modal-btn');
+      nextLevelBtn = document.getElementById('next-level-btn');
+
+      // Configurar los controles
+      frequencyKnob = document.getElementById('frequency-knob');
+      amplitudeKnob = document.getElementById('amplitude-knob');
+      filterKnob = document.getElementById('filter-knob');
+      clarityKnob = document.getElementById('clarity-knob');
+      
+      // Configurar eventos para los botones del modal
+      closeModalBtn.addEventListener('click', closeMessageModal);
+      nextLevelBtn.addEventListener('click', nextLevel);
+    }
+
+    // Inicializar el juego
+    function initGame() {
+      initDOMElements();
+      setupLevel(currentLevel);
+      setupKnobControls();
+      
+      startBtn.addEventListener('click', startGame);
+      decodeBtn.addEventListener('click', checkMessage);
+    }
+
+    // Configurar nivel actual
+    function setupLevel(level) {
+      // Actualizar UI
+      levelDisplay.textContent = level + 1;
+      
+      // Configurar nivel específico
+      const levelData = levels[level];
+      requiredPatterns = levelData.patterns;
+      timeRemaining = levelData.timeLimit;
+      timerDisplay.textContent = timeRemaining;
+
+      // Reiniciar valores
+      discoveredPatterns = 0;
+      updateSignalStrength(0);
+      messageDisplay.textContent = '...';
+      
+      // Limpiar patrones anteriores
+      hiddenPatterns = [];
+      while (waveContainer.firstChild) {
+        waveContainer.removeChild(waveContainer.firstChild);
+      }
+    }
+
+    // Iniciar juego
+    function startGame() {
+      gameActive = true;
+      startBtn.style.display = 'none';
+      decodeBtn.style.display = 'inline-block';
+      
+      // Generar ondas y patrones
+      generateWaves();
+      generateHiddenPatterns();
+      
+      // Iniciar temporizador
+      startTimer();
+    }
+
+    // Generar ondas
+    function generateWaves() {
+      // Crear bandas de frecuencia
+      for (let i = 1; i <= 5; i++) {
+        const band = document.createElement('div');
+        band.className = 'frequency-band';
+        band.style.top = (i * 30 - 15) + 'px';
+        
+        const label = document.createElement('div');
+        label.className = 'frequency-label';
+        label.textContent = (i * 20) + ' Hz';
+        label.style.top = '5px';
+        
+        band.appendChild(label);
+        waveContainer.appendChild(band);
+      }
+      
+      // Generar ondas aleatorias
+      for (let i = 0; i < 5; i++) {
+        const wave = document.createElement('div');
+        wave.className = 'wave';
+        wave.style.animation = 'wave ' + (2 + Math.random() * 3) + 's linear infinite';
+        wave.style.opacity = (0.3 + Math.random() * 0.4).toString();
+        wave.style.animationDelay = (i * 0.2) + 's';
+        waveContainer.appendChild(wave);
+      }
+    }
+
+    // Generar patrones ocultos
+    function generateHiddenPatterns() {
+      const levelData = levels[currentLevel];
+      
+      // Crear patrones aleatorios
+      for (let i = 0; i < levelData.patterns; i++) {
+        const pattern = document.createElement('div');
+        pattern.className = 'hidden-pattern';
+        
+        // Posición aleatoria
+        const x = 50 + Math.random() * (waveContainer.clientWidth - 100);
+        const y = 20 + Math.random() * (waveContainer.clientHeight - 40);
+        
+        pattern.style.left = x + 'px';
+        pattern.style.top = y + 'px';
+        
+        pattern.dataset.index = i.toString();
+        pattern.addEventListener('click', revealPattern);
+        
+        hiddenPatterns.push({
+          element: pattern,
+          discovered: false,
+          optimalFrequency: Math.random() * 100,
+          optimalAmplitude: Math.random() * 100,
+          optimalFilter: Math.random() * 100,
+          optimalClarity: Math.random() * 100
+        });
+        
+        waveContainer.appendChild(pattern);
+      }
+    }
+
+    // Revelar un patrón al hacer clic
+    function revealPattern(e) {
+      const index = parseInt(e.target.dataset.index);
+      const pattern = hiddenPatterns[index];
+      
+      if (!pattern.discovered) {
+        // Comprobar si estamos cerca de la configuración óptima
+        const frequencyDiff = Math.abs(knobRotations.frequency - pattern.optimalFrequency);
+        const amplitudeDiff = Math.abs(knobRotations.amplitude - pattern.optimalAmplitude);
+        const filterDiff = Math.abs(knobRotations.filter - pattern.optimalFilter);
+        const clarityDiff = Math.abs(knobRotations.clarity - pattern.optimalClarity);
+        
+        const totalDifference = frequencyDiff + amplitudeDiff + filterDiff + clarityDiff;
+        
+        if (totalDifference < 120) { // Umbral para descubrir (ajustar según dificultad)
+          pattern.discovered = true;
+          e.target.classList.add('revealed');
+          discoveredPatterns++;
+          
+          // Actualizar puntuación
+          const pointsEarned = Math.floor(200 - totalDifference);
+          score += pointsEarned;
+          scoreDisplay.textContent = score.toString();
+          
+          // Mostrar una parte del mensaje
+          updateMessageDisplay();
+          
+          // Actualizar fuerza de la señal
+          updateSignalStrength((discoveredPatterns / requiredPatterns) * 100);
+          
+          // Comprobar si hemos encontrado todos los patrones
+          if (discoveredPatterns === requiredPatterns) {
+            decodeBtn.style.backgroundColor = '#04ff7f';
+          }
+        }
+      }
+    }
+
+    // Actualizar la visualización del mensaje a medida que se descubren patrones
+    function updateMessageDisplay() {
+      const levelData = levels[currentLevel];
+      const message = levelData.message;
+      
+      // Mostrar parte del mensaje basado en cuántos patrones se han descubierto
+      const progress = discoveredPatterns / requiredPatterns;
+      const messageLength = Math.floor(message.length * progress);
+      
+      let displayText = message.substring(0, messageLength);
+      
+      // Añadir caracteres aleatorios para el resto
+      for (let i = messageLength; i < message.length; i++) {
+        displayText += Math.random() > 0.5 ? '?' : '#';
+      }
+      
+      messageDisplay.textContent = displayText;
+    }    // Configurar controles de ajuste
+    function setupKnobControls() {
+      setupKnobButtons('frequency');
+      setupKnobButtons('amplitude');
+      setupKnobButtons('filter');
+      setupKnobButtons('clarity');
+      
+      // Inicializar valores por defecto
+      initializeKnobValues();
+    }    function initializeKnobValues() {
+      const knobTypes = ['frequency', 'amplitude', 'filter', 'clarity'];
+      knobTypes.forEach(function(type) {
+        const knob = document.getElementById(type + '-knob');
+        knobRotations[type] = 50; // Establecer valor inicial explícitamente
+        knob.style.setProperty('--knob-rotation', '150deg'); // 50 * 3 = 150 grados
+      });
+    }
+    
+    function setupKnobButtons(type) {
+      const leftBtn = document.getElementById(type + '-left');
+      const rightBtn = document.getElementById(type + '-right');
+      const knob = document.getElementById(type + '-knob');
+      
+      leftBtn.addEventListener('click', function() {
+        let currentValue = knobRotations[type];
+        // Asegurar que tenemos un valor válido
+        if (currentValue === undefined || currentValue === null || isNaN(currentValue)) {
+          currentValue = 50;
+        }
+        
+        // Decrementar solo si no estamos en el mínimo
+        if (currentValue > 0) {
+          currentValue = Math.max(0, currentValue - 5);
+          knobRotations[type] = currentValue;
+          knob.style.setProperty('--knob-rotation', (currentValue * 3) + 'deg');
+          updatePatternVisibility();
+        }
+      });
+      
+      rightBtn.addEventListener('click', function() {
+        let currentValue = knobRotations[type];
+        // Asegurar que tenemos un valor válido
+        if (currentValue === undefined || currentValue === null || isNaN(currentValue)) {
+          currentValue = 50;
+        }
+        
+        // Incrementar solo si no estamos en el máximo
+        if (currentValue < 100) {
+          currentValue = Math.min(100, currentValue + 5);
+          knobRotations[type] = currentValue;
+          knob.style.setProperty('--knob-rotation', (currentValue * 3) + 'deg');
+          updatePatternVisibility();
+        }
+      });
+    }
+
+    // Actualizar visibilidad de patrones en base a los ajustes
+    function updatePatternVisibility() {
+      hiddenPatterns.forEach(pattern => {
+        if (!pattern.discovered) {
+          const frequencyDiff = Math.abs(knobRotations.frequency - pattern.optimalFrequency);
+          const amplitudeDiff = Math.abs(knobRotations.amplitude - pattern.optimalAmplitude);
+          const filterDiff = Math.abs(knobRotations.filter - pattern.optimalFilter);
+          const clarityDiff = Math.abs(knobRotations.clarity - pattern.optimalClarity);
+          
+          const totalDifference = frequencyDiff + amplitudeDiff + filterDiff + clarityDiff;
+          
+          // Hacer que el patrón sea más visible cuando estamos cerca
+          let opacity = 0;
+          if (totalDifference < 60) opacity = 0.2;
+          if (totalDifference < 40) opacity = 0.3;
+          if (totalDifference < 20) opacity = 0.4;
+          
+          pattern.element.style.backgroundColor = 'rgba(255, 0, 0, ' + opacity + ')';
+        }
+      });
+    }
+
+    // Actualizar la barra de fuerza de señal
+    function updateSignalStrength(percentage) {
+      signalBar.style.width = percentage + '%';
+      
+      // Cambiar color basado en fuerza
+      if (percentage < 30) {
+        signalBar.style.background = 'linear-gradient(to right, #ff0000, #ff3300)';
+      } else if (percentage < 70) {
+        signalBar.style.background = 'linear-gradient(to right, #ff3300, #ffff00)';
+      } else {
+        signalBar.style.background = 'linear-gradient(to right, #ffff00, #00ff00)';
+      }
+    }
+
+    // Comprobar si el mensaje está completamente descifrado
+    function checkMessage() {
+      if (discoveredPatterns === requiredPatterns) {
+        // Mensaje descifrado con éxito
+        clearInterval(timerInterval);
+        
+        // Bonificación de tiempo
+        const timeBonus = timeRemaining * 10;
+        score += timeBonus;
+        scoreDisplay.textContent = score.toString();
+        
+        // Mostrar modal con mensaje
+        decryptedMessage.textContent = levels[currentLevel].message;
+        messageModal.style.display = 'flex';
+      } else {
+        // Penalización por intentar descifrar demasiado pronto
+        score -= 50;
+        if (score < 0) score = 0;
+        scoreDisplay.textContent = score.toString();
+        
+        messageDisplay.textContent = "ERROR DE DESCIFRAMIENTO";
+        setTimeout(function() { updateMessageDisplay(); }, 1000);
+      }
+    }
+
+    // Temporizador
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(function() {
+        timeRemaining--;
+        timerDisplay.textContent = timeRemaining.toString();
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          gameOver();
+        }
+      }, 1000);
+    }
+
+    // Fin del juego
+    function gameOver() {
+      gameActive = false;
+      messageDisplay.textContent = "TIEMPO AGOTADO";
+      startBtn.style.display = 'inline-block';
+      startBtn.textContent = 'REINTENTAR';
+      decodeBtn.style.display = 'none';
+    }
+
+    // Cerrar modal de mensaje
+    function closeMessageModal() {
+      messageModal.style.display = 'none';
+    }
+
+    // Avanzar al siguiente nivel
+    function nextLevel() {
+      messageModal.style.display = 'none';
+      
+      // Avanzar nivel o finalizar juego
+      currentLevel++;
+      if (currentLevel >= levels.length) {
+        // Juego completado
+        messageDisplay.textContent = "¡TODOS LOS MENSAJES DESCIFRADOS!";
+        startBtn.style.display = 'inline-block';
+        startBtn.textContent = 'VOLVER A JUGAR';
+        decodeBtn.style.display = 'none';
+
+        // Reiniciar para próxima partida
+        currentLevel = 0;
+      } else {
+        // Configurar siguiente nivel
+        setupLevel(currentLevel);
+        startGame();
+      }
+    }
+
+    // Exponer funciones públicas
+    return {
+      init: function() {
+        // Esperar a que el DOM esté completamente cargado
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initGame);
+        } else {
+          initGame();
+        }
+      }
+    };
+  })();
+
+  // Inicializar el juego cuando la página se cargue
+  denDenMushi.init();
+  //]]>
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,1377 @@
+<script>
+let uid = '{$uid}';
+let mar = '{$mar}'; 
+let partida = '{$partida}'; 
+let llegada = '{$llegada}'; 
+let id_viajeros = '{$id_viajeros}'; 
+	
+const maresIslas = {
+	'East Blue': [
+		'Conomi Islands', 'Isla de Rudra', 'Isla de Dawn', 'Refugio de Goat', 'Islas Organ', 'Isla Momobami',
+		'DemonTooth', 'Tequila Wolf', 'Isla Kilombo', 'Islas Gecko', 'Loguetown', 'Sabana de Cozia', 'Reino de Oykot'
+	],
+	'North Blue': [
+		'Isla Tortuga', 'Isla Swallow', 'Isla de Kuen','Reino de Lvneel', 'Flevance', 'Isla de Rakesh', 'Isla de Ivansk', 'Skjodheilm', 'Polo Norte'
+	],
+	'South Blue': [
+		'Cliff', 'Bawic', 'Reino Black Drum', 'Isla Kutsukku', 'Reino de Sorbet', 'Korinaru',
+		'Rubeck', 'Briss', 'Libertalia'
+	],
+	'West Blue': [
+		'Iruburu', 'Las Camps', 'Ohara', 'God Valley', 'Archipielago Tako', 'Ballywood', 'Eviland',
+		'Daiblum', 'Kano', 'Baratie'
+	]
+};
+
+function sanitizeLogContent(logText) {
+	if (!logText) { return ''; }
+	const escaped = logText
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
+	return escaped
+		.replace(/&lt;br\s*\/??&gt;/gi, '<br>')
+		.replace(/&lt;strong&gt;/gi, '<strong>')
+		.replace(/&lt;\/strong&gt;/gi, '</strong>');
+}
+
+function buildIslandOptions(marSeleccionado) {
+	const islands = maresIslas[marSeleccionado] || [];
+	const baseOption = '<option value="" selected></option>';
+	const islandOptions = islands.map(nombre => '<option value="' + nombre + '">' + nombre + '</option>').join('');
+	return baseOption + islandOptions;
+}
+
+function populateIslands(marSeleccionado, selectorIds) {
+	const htmlOptions = buildIslandOptions(marSeleccionado);
+	selectorIds.forEach(selector => {
+		const element = $(selector);
+		if (element.length) {
+			if (!marSeleccionado) {
+				element.empty().append('<option value="" selected></option>');
+			} else {
+				element.html(htmlOptions);
+			}
+		}
+	});
+}
+
+populateIslands(mar, ['#partida', '#llegada', '#partida_solitario', '#llegada_solitario']);
+
+$('#mar').on('change', function() {
+	populateIslands($(this).val(), ['#partida', '#llegada']);
+});
+
+$('#mar_solitario').on('change', function() {
+	populateIslands($(this).val(), ['#partida_solitario', '#llegada_solitario']);
+});
+	
+if (mar != '' && partida != '' && llegada != '') {
+	$('#mar')[0].disabled = true;
+	$('#partida')[0].disabled = true;
+	$('#llegada')[0].disabled = true;
+	$('#id_viajeros')[0].disabled = true;
+}
+	
+let islasTiempos = {
+	"Conomi Islands->Isla de Rudra": 60,
+	"Conomi Islands->Isla de Dawn": 96,
+	"Conomi Islands->Refugio de Goat": 120,
+	"Conomi Islands->Islas Organ": 48,
+	"Conomi Islands->Isla Momobami": 54,
+	"Conomi Islands->DemonTooth": 96,
+	"Conomi Islands->Tequila Wolf": 72,
+	"Conomi Islands->Isla Kilombo": 102,
+	"Conomi Islands->Islas Gecko": 30,
+	"Conomi Islands->Reino de Oykot": 72,
+	"Isla de Rudra->Conomi Islands": 60,
+	"Isla de Rudra->Isla de Dawn": 30,
+	"Isla de Rudra->Refugio de Goat": 72,
+	"Isla de Rudra->Islas Organ": 6,
+	"Isla de Rudra->Isla Momobami": 42,
+	"Isla de Rudra->DemonTooth": 48,
+	"Isla de Rudra->Tequila Wolf": 84,
+	"Isla de Rudra->Isla Kilombo": 108,
+	"Isla de Rudra->Islas Gecko": 60,
+	"Isla de Rudra->Reino de Oykot": 108,
+	"Isla de Rudra->Loguetown": 126,
+	"Isla de Rudra->Sabana de Cozia": 6,
+	"Isla de Dawn->Conomi Islands": 96,
+	"Isla de Dawn->Isla de Rudra": 30,
+	"Isla de Dawn->Refugio de Goat": 48,
+	"Isla de Dawn->Islas Organ": 36,
+	"Isla de Dawn->Isla Momobami": 48,
+	"Isla de Dawn->DemonTooth": 48,
+	"Isla de Dawn->Tequila Wolf": 72,
+	"Isla de Dawn->Isla Kilombo": 96,
+	"Isla de Dawn->Islas Gecko": 90,
+	"Isla de Dawn->Reino de Oykot": 108,
+	"Isla de Dawn->Loguetown": 144,
+	"Isla de Dawn->Sabana de Cozia": 6,
+	"Refugio de Goat->Conomi Islands": 120,
+	"Refugio de Goat->Isla de Rudra": 48,
+	"Refugio de Goat->Isla de Dawn": 48,
+	"Refugio de Goat->Islas Organ": 72,
+	"Refugio de Goat->Isla Momobami": 84,
+	"Refugio de Goat->DemonTooth": 36,
+	"Refugio de Goat->Tequila Wolf": 72,
+	"Refugio de Goat->Isla Kilombo": 120,
+	"Refugio de Goat->Islas Gecko": 120,
+	"Refugio de Goat->Reino de Oykot": 132,
+	"Refugio de Goat->Loguetown": 180,
+	"Refugio de Goat->Sabana de Cozia": 72,
+	"Islas Organ->Conomi Islands": 48,
+	"Islas Organ->Isla de Rudra": 6,
+	"Islas Organ->Isla de Dawn": 36,
+	"Islas Organ->Refugio de Goat": 72,
+	"Islas Organ->Isla Momobami": 6,
+	"Islas Organ->DemonTooth": 36,
+	"Islas Organ->Tequila Wolf": 42,
+	"Islas Organ->Isla Kilombo": 72,
+	"Islas Organ->Islas Gecko": 36,
+	"Islas Organ->Reino de Oykot": 72,
+	"Islas Organ->Loguetown": 90,
+	"Islas Organ->Sabana de Cozia": 30,
+	"Isla Momobami->Conomi Islands": 54,
+	"Isla Momobami->Isla de Rudra": 42,
+	"Isla Momobami->Isla de Dawn": 48,
+	"Isla Momobami->Refugio de Goat": 84,
+	"Isla Momobami->Islas Organ": 6,
+	"Isla Momobami->DemonTooth": 42,
+	"Isla Momobami->Tequila Wolf": 42,
+	"Isla Momobami->Isla Kilombo": 84,
+	"Isla Momobami->Islas Gecko": 36,
+	"Isla Momobami->Reino de Oykot": 72,
+	"Isla Momobami->Loguetown": 96,
+	"Isla Momobami->Sabana de Cozia": 60,
+	"DemonTooth->Conomi Islands": 96,
+	"DemonTooth->Isla de Rudra": 48,
+	"DemonTooth->Isla de Dawn": 48,
+	"DemonTooth->Refugio de Goat": 36,
+	"DemonTooth->Islas Organ": 36,
+	"DemonTooth->Isla Momobami": 42,
+	"DemonTooth->Tequila Wolf": 30,
+	"DemonTooth->Isla Kilombo": 84,
+	"DemonTooth->Islas Gecko": 84,
+	"DemonTooth->Reino de Oykot": 36,
+	"DemonTooth->Loguetown": 144,
+	"DemonTooth->Sabana de Cozia": 60,
+	"Tequila Wolf->Conomi Islands": 72,
+	"Tequila Wolf->Isla de Rudra": 84,
+	"Tequila Wolf->Isla de Dawn": 72,
+	"Tequila Wolf->Refugio de Goat": 72,
+	"Tequila Wolf->Islas Organ": 42,
+	"Tequila Wolf->Isla Momobami": 42,
+	"Tequila Wolf->DemonTooth": 30,
+	"Tequila Wolf->Isla Kilombo": 18,
+	"Tequila Wolf->Islas Gecko": 42,
+	"Tequila Wolf->Reino de Oykot": 78,
+	"Tequila Wolf->Loguetown": 120,
+	"Tequila Wolf->Sabana de Cozia": 84,
+	"Isla Kilombo->Conomi Islands": 102,
+	"Isla Kilombo->Isla de Rudra": 108,
+	"Isla Kilombo->Isla de Dawn": 96,
+	"Isla Kilombo->Refugio de Goat": 120,
+	"Isla Kilombo->Islas Organ": 72,
+	"Isla Kilombo->Isla Momobami": 84,
+	"Isla Kilombo->DemonTooth": 84,
+	"Isla Kilombo->Tequila Wolf": 18,
+	"Isla Kilombo->Islas Gecko": 48,
+	"Isla Kilombo->Reino de Oykot": 60,
+	"Isla Kilombo->Loguetown": 108,
+	"Isla Kilombo->Sabana de Cozia": 120,
+	"Islas Gecko->Conomi Islands": 30,
+	"Islas Gecko->Isla de Rudra": 60,
+	"Islas Gecko->Isla de Dawn": 90,
+	"Islas Gecko->Refugio de Goat": 120,
+	"Islas Gecko->Islas Organ": 36,
+	"Islas Gecko->Isla Momobami": 36,
+	"Islas Gecko->DemonTooth": 84,
+	"Islas Gecko->Tequila Wolf": 18,
+	"Islas Gecko->Isla Kilombo": 48,
+	"Islas Gecko->Reino de Oykot": 30,
+	"Islas Gecko->Loguetown": 42,
+	"Islas Gecko->Sabana de Cozia": 108,
+	"Reino de Oykot->Conomi Islands": 72,
+	"Reino de Oykot->Isla de Rudra": 96,
+	"Reino de Oykot->Isla de Dawn": 108,
+	"Reino de Oykot->Refugio de Goat": 132,
+	"Reino de Oykot->Islas Organ": 60,
+	"Reino de Oykot->Isla Momobami": 72,
+	"Reino de Oykot->DemonTooth": 96,
+	"Reino de Oykot->Tequila Wolf": 72,
+	"Reino de Oykot->Isla Kilombo": 54,
+	"Reino de Oykot->Islas Gecko": 36,
+	"Reino de Oykot->Loguetown": 48,
+	"Reino de Oykot->Sabana de Cozia": 108,
+	"Loguetown->Conomi Islands": 72,
+	"Loguetown->Isla de Rudra": 126,
+	"Loguetown->Isla de Dawn": 144,
+	"Loguetown->Refugio de Goat": 48,
+	"Loguetown->Islas Organ": 90,
+	"Loguetown->Isla Momobami": 96,
+	"Loguetown->DemonTooth": 144,
+	"Loguetown->Tequila Wolf": 120,
+	"Loguetown->Isla Kilombo": 108,
+	"Loguetown->Islas Gecko": 42,
+	"Loguetown->Reino de Oykot": 48,
+	"Loguetown->Sabana de Cozia": 72,
+	"Sabana de Cozia->Conomi Islands": 84,
+	"Sabana de Cozia->Isla de Rudra": 6,
+	"Sabana de Cozia->Isla de Dawn": 6,
+	"Sabana de Cozia->Refugio de Goat": 72,
+	"Sabana de Cozia->Islas Organ": 30,
+	"Sabana de Cozia->Isla Momobami": 60,
+	"Sabana de Cozia->DemonTooth": 60,
+	"Sabana de Cozia->Tequila Wolf": 84,
+	"Sabana de Cozia->Isla Kilombo": 120,
+	"Sabana de Cozia->Islas Gecko": 108,
+	"Sabana de Cozia->Reino de Oykot": 108,
+	"Sabana de Cozia->Loguetown": 72,
+	"Isla Tortuga->Isla Swallow": 18,
+	"Isla Tortuga->Isla de Kuen": 84,
+	"Isla Tortuga->Reino de Lvneel": 36,
+	"Isla Tortuga->Flevance": 108,
+	"Isla Tortuga->Isla de Rakesh": 138,
+	"Isla Tortuga->Isla de Ivansk": 84,
+	"Isla Tortuga->Skjodheilm": 96,
+	"Isla Tortuga->Polo Norte": 90,
+	"Isla Swallow->Isla Tortuga": 18,
+	"Isla Swallow->Isla de Kuen": 48,
+	"Isla Swallow->Reino de Lvneel": 36,
+	"Isla Swallow->Flevance": 108,
+	"Isla Swallow->Isla de Rakesh": 132,
+	"Isla Swallow->Isla de Ivansk": 84,
+	"Isla Swallow->Skjodheilm": 96,
+	"Isla Swallow->Polo Norte": 90,
+	"Isla de Kuen->Isla Tortuga": 84,
+	"Isla de Kuen->Isla Swallow": 48,
+	"Isla de Kuen->Reino de Lvneel": 120,
+	"Isla de Kuen->Flevance": 144,
+	"Isla de Kuen->Isla de Rakesh": 132,
+	"Isla de Kuen->Isla de Ivansk": 168,
+	"Isla de Kuen->Skjodheilm": 168,
+	"Isla de Kuen->Polo Norte": 162,
+	"Reino de Lvneel->Isla Tortuga": 36,
+	"Reino de Lvneel->Isla Swallow": 36,
+	"Reino de Lvneel->Isla de Kuen": 120,
+	"Reino de Lvneel->Flevance": 72,
+	"Reino de Lvneel->Isla de Rakesh": 102,
+	"Reino de Lvneel->Isla de Ivansk": 48,
+	"Reino de Lvneel->Skjodheilm": 48,
+	"Reino de Lvneel->Polo Norte": 36,
+	"Flevance->Isla Tortuga": 108,
+	"Flevance->Isla Swallow": 108,
+	"Flevance->Isla de Kuen": 144,
+	"Flevance->Reino de Lvneel": 72,
+	"Flevance->Isla de Rakesh": 24,
+	"Flevance->Isla de Ivansk": 42,
+	"Flevance->Skjodheilm": 72,
+	"Flevance->Polo Norte": 84,
+	"Isla de Rakesh->Isla Tortuga": 138,
+	"Isla de Rakesh->Isla Swallow": 132,
+	"Isla de Rakesh->Isla de Kuen": 132,
+	"Isla de Rakesh->Reino de Lvneel": 102,
+	"Isla de Rakesh->Flevance": 24,
+	"Isla de Rakesh->Isla de Ivansk": 42,
+	"Isla de Rakesh->Skjodheilm": 48,
+	"Isla de Rakesh->Polo Norte": 96,
+	"Isla de Ivansk->Isla Tortuga": 84,
+	"Isla de Ivansk->Isla Swallow": 84,
+	"Isla de Ivansk->Isla de Kuen": 168,
+	"Isla de Ivansk->Reino de Lvneel": 48,
+	"Isla de Ivansk->Flevance": 42,
+	"Isla de Ivansk->Isla de Rakesh": 42,
+	"Isla de Ivansk->Skjodheilm": 18,
+	"Isla de Ivansk->Polo Norte": 36,
+	"Skjodheilm->Isla Tortuga": 96,
+	"Skjodheilm->Isla Swallow": 96,
+	"Skjodheilm->Isla de Kuen": 168,
+	"Skjodheilm->Reino de Lvneel": 48,
+	"Skjodheilm->Flevance": 72,
+	"Skjodheilm->Isla de Rakesh": 48,
+	"Skjodheilm->Isla de Ivansk": 18,
+	"Skjodheilm->Polo Norte": 18,
+	"Polo Norte->Isla Tortuga": 90,
+	"Polo Norte->Isla Swallow": 90,
+	"Polo Norte->Isla de Kuen": 162,
+	"Polo Norte->Reino de Lvneel": 36,
+	"Polo Norte->Flevance": 84,
+	"Polo Norte->Isla de Rakesh": 96,
+	"Polo Norte->Isla de Ivansk": 36,
+	"Polo Norte->Skjodheilm": 18,
+
+	"Cliff->Bawic": 96,
+    "Cliff->Reino Black Drum": 174,
+    "Cliff->Isla Kutsukku": 232,
+    "Cliff->Reino de Sorbet": 356,
+    "Cliff->Korinaru": 184,
+    "Cliff->Rubeck": 242,
+    "Cliff->Briss": 160,
+    "Cliff->Libertalia": 242,
+
+    "Bawic->Cliff": 96,
+    "Bawic->Reino Black Drum": 218,
+    "Bawic->Isla Kutsukku": 174,
+    "Bawic->Reino de Sorbet": 218,
+    "Bawic->Korinaru": 108,
+    "Bawic->Rubeck": 146,
+    "Bawic->Briss": 236,
+    "Bawic->Libertalia": 262,
+
+    "Reino Black Drum->Cliff": 174,
+    "Reino Black Drum->Bawic": 218,
+    "Reino Black Drum->Isla Kutsukku": 168,
+    "Reino Black Drum->Reino de Sorbet": 328,
+    "Reino Black Drum->Korinaru": 224,
+    "Reino Black Drum->Rubeck": 334,
+    "Reino Black Drum->Briss": 86,
+    "Reino Black Drum->Libertalia": 82,
+
+    "Isla Kutsukku->Bawic": 198,
+    "Isla Kutsukku->Reino Black Drum": 168,
+    "Isla Kutsukku->Cliff": 232,
+    "Isla Kutsukku->Reino de Sorbet": 160,
+    "Isla Kutsukku->Korinaru": 122,
+    "Isla Kutsukku->Rubeck": 236,
+    "Isla Kutsukku->Briss": 246,
+    "Isla Kutsukku->Libertalia": 138,
+		
+	"Reino de Sorbet->Bawic": 286,
+	"Reino de Sorbet->Reino Black Drum": 328,
+	"Reino de Sorbet->Isla Kutsukku": 160,
+	"Reino de Sorbet->Cliff": 356,
+	"Reino de Sorbet->Korinaru": 180,
+	"Reino de Sorbet->Rubeck": 230,
+	"Reino de Sorbet->Briss": 404,
+	"Reino de Sorbet->Libertalia": 290,
+	
+	"Korinaru->Bawic": 108,
+	"Korinaru->Reino Black Drum": 224,
+	"Korinaru->Isla Kutsukku": 122,
+	"Korinaru->Reino de Sorbet": 180,
+	"Korinaru->Cliff": 184,
+	"Korinaru->Rubeck": 120,
+	"Korinaru->Briss": 276,
+	"Korinaru->Libertalia": 234,
+	
+	"Rubeck->Bawic": 146,
+	"Rubeck->Reino Black Drum": 334,
+	"Rubeck->Isla Kutsukku": 236,
+	"Rubeck->Reino de Sorbet": 230,
+	"Rubeck->Korinaru": 120,
+	"Rubeck->Cliff": 242,
+	"Rubeck->Briss": 372,
+	"Rubeck->Libertalia": 240,
+	
+	"Briss->Bawic": 236,
+	"Briss->Reino Black Drum": 86,
+	"Briss->Isla Kutsukku": 246,
+	"Briss->Reino de Sorbet": 404,
+	"Briss->Korinaru": 276,
+	"Briss->Rubeck": 372,
+	"Briss->Cliff": 160,
+	"Briss->Libertalia": 162,
+	
+	"Libertalia->Bawic": 262,
+	"Libertalia->Reino Black Drum": 82,
+	"Libertalia->Isla Kutsukku": 138,
+	"Libertalia->Reino de Sorbet": 290,
+	"Libertalia->Korinaru": 234,
+	"Libertalia->Rubeck": 352,
+	"Libertalia->Briss": 162,
+	"Libertalia->Cliff": 242,
+
+	"Iruburu->Las Camps": 126,
+	"Iruburu->God Valley": 262,
+	"Iruburu->Ohara": 196,
+	"Iruburu->Ballywood": 302,
+	"Iruburu->Archipielago Tako": 150,
+	"Iruburu->Kano": 326,
+	"Iruburu->Eviland": 238,
+	"Iruburu->Daiblum": 220,
+	"Iruburu->Baratie": 142,
+	"Las Camps->Iruburu": 126,
+	"Las Camps->God Valley": 142,
+	"Las Camps->Ohara": 104,
+	"Las Camps->Ballywood": 216,
+	"Las Camps->Archipielago Tako": 142,
+	"Las Camps->Kano": 284,
+	"Las Camps->Eviland": 254,
+	"Las Camps->Daiblum": 304,
+	"Las Camps->Baratie": 232,
+	"God Valley->Iruburu": 262,
+	"God Valley->Las Camps": 142,
+	"God Valley->Ohara": 90,
+	"God Valley->Ballywood": 128,
+	"God Valley->Archipielago Tako": 196,
+	"God Valley->Kano": 238,
+	"God Valley->Eviland": 286,
+	"God Valley->Daiblum": 388,
+	"God Valley->Baratie": 330,
+	"Ohara->Iruburu": 196,
+	"Ohara->Las Camps": 104,
+	"Ohara->God Valley": 90,
+	"Ohara->Ballywood": 114,
+	"Ohara->Archipielago Tako": 108,
+	"Ohara->Kano": 188,
+	"Ohara->Eviland": 202,
+	"Ohara->Daiblum": 298,
+	"Ohara->Baratie": 242,
+	"Ballywood->Iruburu": 302,
+	"Ballywood->Las Camps": 216,
+	"Ballywood->God Valley": 128,
+	"Ballywood->Ohara": 114,
+	"Ballywood->Archipielago Tako": 174,
+	"Ballywood->Kano": 120,
+	"Ballywood->Eviland": 214,
+	"Ballywood->Daiblum": 348,
+	"Ballywood->Baratie": 312,
+	"Archipielago Tako->Iruburu": 150,
+	"Archipielago Tako->Las Camps": 142,
+	"Archipielago Tako->God Valley": 196,
+	"Archipielago Tako->Ohara": 108,
+	"Archipielago Tako->Ballywood": 174,
+	"Archipielago Tako->Kano": 178,
+	"Archipielago Tako->Eviland": 112,
+	"Archipielago Tako->Daiblum": 192,
+	"Archipielago Tako->Baratie": 140,
+	"Kano->Iruburu": 326,
+	"Kano->Las Camps": 284,
+	"Kano->God Valley": 238,
+	"Kano->Ohara": 188,
+	"Kano->Ballywood": 120,
+	"Kano->Archipielago Tako": 178,
+	"Kano->Eviland": 144,
+	"Kano->Daiblum": 292,
+	"Kano->Baratie": 282,
+	"Eviland->Iruburu": 238,
+	"Eviland->Las Camps": 254,
+	"Eviland->God Valley": 286,
+	"Eviland->Ohara": 202,
+	"Eviland->Ballywood": 214,
+	"Eviland->Archipielago Tako": 112,
+	"Eviland->Kano": 144,
+	"Eviland->Daiblum": 150,
+	"Eviland->Baratie": 148,
+	"Daiblum->Iruburu": 220,
+	"Daiblum->Las Camps": 304,
+	"Daiblum->God Valley": 388,
+	"Daiblum->Ohara": 298,
+	"Daiblum->Ballywood": 348,
+	"Daiblum->Archipielago Tako": 192,
+	"Daiblum->Kano": 292,
+	"Daiblum->Eviland": 150,
+	"Daiblum->Baratie": 78,
+	"Baratie->Iruburu": 142,
+	"Baratie->Las Camps": 232,
+	"Baratie->God Valley": 330,
+	"Baratie->Ohara": 242,
+	"Baratie->Ballywood": 312,
+	"Baratie->Archipielago Tako": 140,
+	"Baratie->Eviland": 148,
+	"Baratie->Daiblum": 78,
+	"Baratie->Kano": 282
+	
+};
+	
+	
+let barcos_array_json = {$barcos_array_json};
+let barcos_json = {$barcos_json};
+let mapas_array_json = {$mapas_array_json};
+let mapas_json = {$mapas_json};
+let brujulas_array_json = {$brujulas_array_json};
+let brujulas_json = {$brujulas_json};
+let usuarios_array_json = {$usuarios_array_json};
+let usuarios_json = {$usuarios_json};
+	
+let viajes_json = {$viajes_json};
+	
+let maxNavegante = 0;
+let maxTimonel = 0;
+let maxCartografo = 0;
+	
+let modificador = 0;
+let modificadorOficio = 0;
+let modificadorMapa = 0;
+let modificadorBrujula = 0;
+let modificadorNPC = 0;
+	
+let naveganteNivel = 0;
+let timonelNivel = 0;
+let cartografoNivel = 0;
+	
+let horas = 12;
+let horasBarco = 0;
+
+const barcoReducciones = {
+	'BARC502': 0.25,
+	'BARC501': 0.05,
+	'BARC402': 0.20,
+	'BARC401': 0.05,
+	'BARC302': 0.10,
+	'BARC301': 0.10,
+	'BARC202': 0.20,
+	'BARC201': 0.10,
+	'BARC101': 0,	
+};
+	
+let tipo_viaje = '{$tipo_viaje}';
+if (tipo_viaje) { clickTipo(tipo_viaje);	
+} else { clickTipo('grupal'); }
+
+
+	
+if (mar) { $('#mar').val(mar); }
+if (partida) { $('#partida').val(partida); }
+if (llegada) { $('#llegada').val(llegada); }
+if (id_viajeros) { $('#id_viajeros').val(id_viajeros); }
+
+$('#ids-grupo').css('display', 'none');
+$('#resultados').css('display', 'none');
+$('#fechas').css('display', 'none');
+$('#link-viaje').css('display', 'none');
+$('#tirada-viaje').css('display', 'none');
+$('#resetear-viaje').css('display', 'none');
+	
+for (let i = 0; i < viajes_json.length; i++) {
+	let viaje = viajes_json[i];
+	
+	// Solo mostrar viajes navales (hechos con barco, navegando)
+	if (viaje.log && (viaje.log.includes('barco') || viaje.log.includes('navegan') || viaje.log.includes('navegando'))) {
+		let naveganteInfo = 'Navegante inexperto (No reduce)';
+		
+		// Buscar navegante en el campo tiempo que ahora incluye el formato "X (Navegante...)"
+		if (viaje.tiempo && viaje.tiempo.includes('(') && viaje.tiempo.includes(')')) {
+			let naveganteMatch = viaje.tiempo.match(/\(([^)]+)\)/);
+			if (naveganteMatch) {
+				naveganteInfo = naveganteMatch[1].trim();
+			}
+		}
+		// Prioridad 2: Buscar en la propiedad navegante directamente
+		else if (viaje.navegante && viaje.navegante !== '') {
+			naveganteInfo = viaje.navegante;
+		}
+		// Prioridad 3: Extraer información del navegante del log si existe
+		else if (viaje.log && viaje.log.includes('Navegante:')) {
+			let naveganteMatch = viaje.log.match(/Navegante:\s*([^,\-\n\r]+)/);
+			if (naveganteMatch) {
+				naveganteInfo = naveganteMatch[1].trim();
+			}
+		}
+
+		// Extraer solo el tiempo numérico para mostrar
+		let tiempoNumerico = viaje.tiempo || '48';
+		if (tiempoNumerico.includes('(')) {
+			tiempoNumerico = tiempoNumerico.split('(')[0].trim();
+		}
+
+		const historialItem = $('<div/>', { 'class': 'resultado-total' });
+		historialItem.append(document.createTextNode('ID del Viaje: ' + viaje.id + ' - '));
+		historialItem.append($('<span/>').html(sanitizeLogContent(viaje.log)));
+		$('#historial').append(historialItem);
+	}
+}
+
+// Cargar historial de viajes solitarios (todos los usuarios)
+for (let i = 0; i < viajes_json.length; i++) {
+	let viaje = viajes_json[i];
+	
+	// Mostrar todos los viajes solitarios (hechos nadando, volando o levitando) de cualquier usuario
+	if (viaje.log && (viaje.log.includes('nada') || viaje.log.includes('nadando') || 
+					  viaje.log.includes('vuela') || viaje.log.includes('volando') || 
+					  viaje.log.includes('levita') || viaje.log.includes('levitando'))) {
+		const historialSolitarioItem = $('<div/>', { 'class': 'resultado-total' });
+		historialSolitarioItem.append(document.createTextNode('ID del Viaje Solitario: ' + viaje.id + ' - '));
+		historialSolitarioItem.append($('<span/>').html(sanitizeLogContent(viaje.log)));
+		$('#historial-solitario').append(historialSolitarioItem);
+	}
+}
+	
+let islasHoras = 0;
+
+const HORAS_RUTA_POR_DEFECTO = 48;
+	
+console.log('DEBUG - Valores iniciales:', { mar, partida, llegada, id_viajeros });
+	
+if (mar && partida && llegada && id_viajeros) {
+	
+	console.log('DEBUG - Entrando al bloque de cálculo de datos');
+	
+	islasHoras = obtenerHorasRuta(partida, llegada);
+	horas = islasHoras;
+	$('#tiempo').html(horas);
+	
+	$('#buscar-datos').html('');
+	
+	$('#ids-grupo').css('display', 'flex');
+	$('#resultados').css('display', 'flex');
+	$('#fechas').css('display', 'flex');
+	$('#link-viaje').css('display', 'block');
+	$('#tirada-viaje').css('display', 'flex');
+	$('#resetear-viaje').css('display', 'flex');
+
+	if (barcos_array_json.length) {
+		let barcosCount = barcos_array_json.length;
+		for (let i = 0; i < barcosCount; i++) {
+			let barcoId = barcos_array_json[i];
+			let barcoObj = barcos_json[barcoId][0];
+			let displayName = barcoObj.nombre;
+			let alcanceVal = null;
+			if (barcoObj && barcoObj.alcance !== undefined && barcoObj.alcance !== null && barcoObj.alcance !== '') {
+				alcanceVal = parseAlcanceValue(barcoObj.alcance);
+			}
+			if (alcanceVal !== null) {
+				displayName += ' (-' + Math.round(alcanceVal * 100) + '%)';
+			} else if (barcoReducciones[barcoId]) {
+				displayName += ' (-' + Math.round(barcoReducciones[barcoId] * 100) + '%)';
+			}
+			$('#barco').append(`<option value="` + barcoId + `">` + displayName + `</option>`);
+		}
+		// Asegurar que exista un contenedor para mostrar info del barco (p.e. reducción custom en campo 'alcance')
+		if ($('#barco_info').length === 0) {
+			$('#barco').after('<div id="barco_info" style="margin-top:6px;font-size:11px;color:#444;min-height:16px;"></div>');
+		}
+		// Si hay un barco preseleccionado, mostrar su info y aplicar reducción
+		if ($('#barco').val()) { 
+			updateBarcoInfo($('#barco').val());
+			aplicarModificadorNavegante();
+		}
+	}
+	
+	if (mapas_array_json.length) {
+		let mapasCount = mapas_array_json.length;
+		for (let i = 0; i < mapasCount; i++) {
+			let mapaId = mapas_array_json[i];
+			let mapaObj = mapas_json[mapaId][0];
+			$('#mapa').append(`<option value="` + mapaId + `">` + mapaObj.nombre + `</option>`);
+		}
+	}
+	
+	if (brujulas_array_json.length) {
+		let brujulasCount = brujulas_array_json.length;
+		for (let i = 0; i < brujulasCount; i++) {
+			let brujulaId = brujulas_array_json[i];
+			let brujulaObj = brujulas_json[brujulaId][0];
+			$('#brujula').append('<option value="' + brujulaId + '">' + brujulaObj.nombre + '</option>');
+		}
+	}
+	
+	if (usuarios_array_json.length) {
+		let usuariosCount = usuarios_array_json.length;
+		for (let i = 0; i < usuariosCount; i++) {
+			let usuarioId = usuarios_array_json[i];
+			let usuarioObj = usuarios_json[usuarioId][0];
+			let oficios = JSON.parse(usuarioObj.oficios);
+			
+			naveganteNivel = oficios['Navegante'].nivel;
+			timonelNivel = oficios['Navegante'].sub['Timonel'];
+			cartografoNivel = oficios['Navegante'].sub['Cartógrafo'];
+			
+			if (naveganteNivel > maxNavegante) { maxNavegante = naveganteNivel; }
+			if (timonelNivel > maxTimonel) { maxTimonel = timonelNivel; }
+			if (cartografoNivel > maxCartografo) { maxCartografo = cartografoNivel; }
+		}
+	}
+	
+	// Bonificador base por oficios (para la tirada de navegación)
+	// Usar los valores máximos del grupo, no individuales
+	let bonificadorOficio = 0;
+	
+	// Calcular bonificador según nivel de navegante del grupo
+	if (maxNavegante == 1) {
+		bonificadorOficio = 6;
+	} else if (maxNavegante == 2) {
+		bonificadorOficio = 12;
+	} else if (maxNavegante == 3) {
+		bonificadorOficio = 18;
+	} else if (maxNavegante == 4) {
+		bonificadorOficio = 24;
+	} else if (maxNavegante >= 5) {
+		bonificadorOficio = 32;
+	}
+	
+	// Reducción de tiempo por oficio (porcentaje)
+	let porcentajeOficio = 0;
+	if (maxCartografo == 3) {
+		if (maxNavegante >= 5) {
+			porcentajeOficio = 0.50; // Navegante maxeado -50%
+		} else if (maxTimonel == 3) {
+			porcentajeOficio = 0.40; // Timonel 3 -40%
+		} else if (maxTimonel == 2) {
+			porcentajeOficio = 0.30; // Timonel 2 -30%
+		} else if (maxTimonel == 1) {
+			porcentajeOficio = 0.20; // Timonel 1 -20%
+		} else if (maxCartografo == 3 || maxCartografo == 2 || maxCartografo == 1 || maxNavegante == 1 || maxNavegante == 2) {
+			porcentajeOficio = 0.05; // Cartógrafo 1,2,3 y Navegante 1,2 -5%
+		}
+		// No mostramos el modificador de tiempo aquí, solo se usa internamente
+	}
+	
+	// Guardar el bonificador de oficio para sumarlo al modificador de tirada
+	modificadorOficio = bonificadorOficio;
+	modificador = modificadorOficio + modificadorMapa + modificadorBrujula + modificadorNPC;
+	
+	console.log('DEBUG - Bonificadores calculados:', { 
+		bonificadorOficio, 
+		modificadorOficio, 
+		modificadorMapa, 
+		modificadorBrujula, 
+		modificador,
+		maxNavegante,
+		maxTimonel,
+		maxCartografo
+	});
+	
+	// Mostrar el modificador de tirada
+	$('#modificador').html((modificador >= 0 ? "+" : "") + modificador);
+	
+	// Aplicar modificador de navegante seleccionado al tiempo inicial
+	aplicarModificadorNavegante();
+} else {
+	console.log('DEBUG - No hay datos cargados, mostrando valores por defecto');
+	// Si no hay datos cargados, mostrar +0
+	$('#modificador').html('+0');
+}
+
+// Función para aplicar modificador de navegante seleccionado
+function aplicarModificadorNavegante() {
+	const navegante = document.getElementById('navegante');
+	const tiempoElement = document.getElementById('tiempo');
+	
+	if (navegante && tiempoElement) {
+		const porcentajeReduccion = parseInt(navegante.value) || 0;
+		let tiempoBase = islasHoras;
+		
+		const barco = document.getElementById('barco');
+		if (barco && barco.value != '') {
+			const porcentajeBarco = getBarcoReduction(barco.value);
+			tiempoBase = Math.round(islasHoras * (1 - porcentajeBarco));
+		}
+		
+		// Aplicar reducción del navegante
+		const reduccion = (tiempoBase * porcentajeReduccion) / 100;
+		const tiempoFinal = Math.max(1, Math.round(tiempoBase - reduccion));
+		
+		horas = tiempoFinal;
+		tiempoElement.textContent = tiempoFinal;
+	}
+}
+	
+$('#barco').on('change', function() {
+  updateBarcoInfo(this.value);
+  if (this.value == '') { 
+	  horas = islasHoras; 
+	  $('#tiempo').html(horas); 
+	  aplicarModificadorNavegante(); // Aplicar modificador de navegante incluso sin barco
+	  return; 
+  }
+  aplicarModificadorNavegante(); // Aplicar modificador que incluye barco y navegante
+});
+
+function parseAlcanceValue(val) {
+    if (val === undefined || val === null || val === '') return null;
+    let s = String(val).trim();
+    if (s.endsWith('%')) s = s.slice(0, -1).trim();
+    // Replace comma with dot for locales
+    s = s.replace(',', '.');
+    let num = parseFloat(s);
+    if (isNaN(num)) return null;
+    // If the value is > 1 assume it's a percentage like 25 -> 0.25
+    if (num > 1) num = num / 100;
+    return num;
+}
+
+function getBarcoReduction(barcoId) {
+	if (!barcoId) { return 0; }
+	try {
+		let barcoObj = barcos_json[barcoId] && barcos_json[barcoId][0];
+		if (barcoObj && barcoObj.alcance !== undefined && barcoObj.alcance !== null && barcoObj.alcance !== '') {
+			const v = parseAlcanceValue(barcoObj.alcance);
+			if (v !== null) return v;
+		}
+	} catch (e) {
+		// ignore and fall back
+	}
+	return barcoReducciones[barcoId] || 0;
+}
+
+function updateBarcoInfo(barcoId) {
+	const infoEl = $('#barco_info');
+	if (!infoEl.length) return;
+	if (!barcoId) { infoEl.text(''); return; }
+	let barcoObj = barcos_json[barcoId] && barcos_json[barcoId][0];
+	let text = '';
+	if (barcoObj && barcoObj.alcance !== undefined && barcoObj.alcance !== null && barcoObj.alcance !== '') {
+		let v = parseAlcanceValue(barcoObj.alcance);
+		if (v !== null) text = 'Reducción personal del barco: -' + Math.round(v * 100) + '%';
+		else text = 'Reducción personal del barco: ' + barcoObj.alcance;
+	} else if (barcoReducciones[barcoId]) {
+		text = 'Reducción de barco: -' + Math.round(barcoReducciones[barcoId] * 100) + '%';
+	} else {
+		text = '';
+	}
+	infoEl.text(text);
+}
+
+// Agregar evento de cambio para el selector de habilidad de transporte
+$('#transporte').on('change', function() {
+	if ($('#mar_solitario').val() && $('#partida_solitario').val() && $('#llegada_solitario').val()) {
+		// Solo recalcular tiempo, no modificadores
+		recalcularTiempoSolitario();
+	}
+});
+
+// Función para recalcular solo el tiempo basado en habilidad de transporte
+function recalcularTiempoSolitario() {
+	let partida = $('#partida_solitario').val();
+	let llegada = $('#llegada_solitario').val();
+	let tiempoBase = obtenerHorasRuta(partida, llegada);
+	
+	if (!tiempoBase) return;
+	
+	let habilidadTransporte = $('#transporte option:selected').text();
+	let tiempoSolitario = 0;
+	
+	// Calcular tiempo según la habilidad de transporte (solo afecta tiempo)
+	if (habilidadTransporte === 'Nado normal (+100% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 2);
+	} else if (habilidadTransporte === 'Nado ningyo (-20% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.8);
+	} else if (habilidadTransporte === 'Nado gyojin (-10% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.9);
+	} else if (habilidadTransporte === 'Nado híbrido marino (-0% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 1);
+	} else if (habilidadTransporte === 'Levitación (+105% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 2.05);
+	} else if (habilidadTransporte === 'Vuelo tier bajo (-0% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 1);
+	} else if (habilidadTransporte === 'Vuelo tier medio (-10% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.9);
+	} else if (habilidadTransporte === 'Vuelo tier god (-20% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.8);
+	} else {
+		tiempoSolitario = Math.round(tiempoBase * 2);
+	}
+	
+	// Actualizar solo el tiempo
+	$('#tiempo_solitario').text(tiempoSolitario);
+	
+	// Recalcular fechas
+	let fechaSalida = parseInt($('#fecha_salida_solitario').val());
+	let diasViaje = Math.ceil(tiempoSolitario / 24);
+	let fechaLlegada = fechaSalida + diasViaje;
+	if (fechaLlegada > 90) fechaLlegada = 90;
+	$('#fecha_llegada_solitario').val(fechaLlegada);
+	
+	console.log('DEBUG - Tiempo recalculado:', tiempoSolitario);
+}
+
+// Agregar evento para brújula solitario
+$('#brujula_solitario').on('change', function() {
+	recalcularModificadorSolitario();
+});
+
+// Agregar evento para mapa solitario
+$('#mapa_solitario').on('change', function() {
+	recalcularModificadorSolitario();
+});
+
+// Función para recalcular modificadores solitarios basados en mapa y brújula
+function recalcularModificadorSolitario() {
+	let modificadorMapa = 0;
+	let modificadorBrujula = 0;
+	
+	// Calcular modificador de mapa (usar misma lógica que en naval)
+	let mapaSeleccionado = $('#mapa_solitario').val();
+	let marActual = $('#mar_solitario').val();
+	
+	console.log('DEBUG - Mapa seleccionado:', mapaSeleccionado);
+	console.log('DEBUG - Mar actual:', marActual);
+	
+	if (mapaSeleccionado && mapaSeleccionado !== '' && mapaSeleccionado !== 'Sin mapa') {
+		// Buscar el mapa en el JSON usando el ID
+		if (mapas_json[mapaSeleccionado] && mapas_json[mapaSeleccionado][0]) {
+			let mapaObj = mapas_json[mapaSeleccionado][0];
+			
+			console.log('DEBUG - Objeto mapa encontrado:', mapaObj);
+			
+			let modificadorExtra = 0;
+			if (mapaObj.oficios && mapaObj.oficios != 'null') {
+				try {
+					let oficiosObj = JSON.parse(mapaObj.oficios);
+					let nivelCartografo = oficiosObj['Navegante']['sub']['Cartógrafo'];
+					if (nivelCartografo == 1) {
+						modificadorExtra = 2;
+					} else if (nivelCartografo >= 2) {
+						modificadorExtra = 4;		 
+					}
+					console.log('DEBUG - Nivel cartógrafo:', nivelCartografo, 'Modificador extra:', modificadorExtra);
+				} catch(e) {
+					console.log('Error parsing mapa oficios:', e);
+				}
+			}
+			
+			// Verificar tipo de mapa según ID y mar actual (usar misma lógica que naval)
+			if ((mapaSeleccionado.includes('MI002') && marActual == 'East Blue') || 
+				(mapaSeleccionado.includes('MNB001') && marActual == 'North Blue') || 
+				(mapaSeleccionado.includes('MWB001') && marActual == 'West Blue') || 
+				(mapaSeleccionado.includes('MSB001') && marActual == 'South Blue')) { 
+				modificadorMapa = 4 + modificadorExtra; 
+			} else if (mapaSeleccionado.includes('MI001-')) {
+				modificadorMapa = 2 + modificadorExtra;
+			}
+		}
+	}
+	
+	// Calcular modificador de brújula (por ahora 0, se puede expandir en el futuro)
+	let brujulaSeleccionada = $('#brujula_solitario').val();
+	if (brujulaSeleccionada && brujulaSeleccionada !== '' && brujulaSeleccionada !== 'Sin brújula') {
+		modificadorBrujula = getBrujulaBonus(brujulaSeleccionada, marActual);
+	}
+	
+	let modificadorTotal = modificadorMapa + modificadorBrujula;
+	
+	// Actualizar la interfaz
+	$('#modificador_solitario').text((modificadorTotal >= 0 ? '+' : '') + modificadorTotal);
+	
+	console.log('DEBUG - Modificador mapa:', modificadorMapa);
+	console.log('DEBUG - Modificador brújula:', modificadorBrujula);
+	console.log('DEBUG - Modificador total:', modificadorTotal);
+}
+
+function getBrujulaBonus(brujulaId, marActual) {
+	if (!brujulaId || !brujulas_json[brujulaId] || !brujulas_json[brujulaId][0]) {
+		return 0;
+	}
+	const nombre = (brujulas_json[brujulaId][0].nombre || '').toLowerCase();
+	let bonus = 1; // Tener una brújula básica otorga un leve control adicional
+	if (nombre.includes('eternal')) {
+		bonus = 4;
+	} else if (nombre.includes('log pose')) {
+		bonus = 2;
+	}
+	if (marActual) {
+		const marNormalizado = marActual.toLowerCase();
+		if (nombre.includes(marNormalizado)) {
+			bonus += 1;
+		}
+	}
+	return bonus;
+}
+
+function obtenerHorasRuta(origen, destino) {
+	if (!origen || !destino) {
+		return HORAS_RUTA_POR_DEFECTO;
+	}
+	const claveDirecta = origen + '->' + destino;
+	if (islasTiempos[claveDirecta]) {
+		return islasTiempos[claveDirecta];
+	}
+	const claveInversa = destino + '->' + origen;
+	if (islasTiempos[claveInversa]) {
+		return islasTiempos[claveInversa];
+	}
+	console.warn('Ruta no encontrada, usando valor por defecto', { origen, destino });
+	return HORAS_RUTA_POR_DEFECTO;
+}
+
+// Agregar evento de cambio para el selector de navegante
+$('#navegante').on('change', function() {
+  aplicarModificadorNavegante();
+});
+	
+$('#mapa').on('change', function() {
+
+  console.log('DEBUG - Cambio de mapa detectado. Valor:', this.value);
+  console.log('DEBUG - modificadorOficio antes del cálculo:', modificadorOficio);
+
+  if (this.value == '') { 
+	  modificadorMapa = 0;
+	  console.log('DEBUG - Mapa vacío, modificadorMapa = 0');
+  } else {
+	  let modificadorExtra = 0;
+	  let mapaOficios = mapas_json[this.value][0].oficios;
+	  console.log('DEBUG - Oficios del mapa:', mapaOficios);
+	  
+	  if (mapaOficios != 'null') {
+		  let nivelCartografo = JSON.parse(mapaOficios)['Navegante']['sub']['Cartógrafo'];
+		  if (nivelCartografo == 1) {
+			  modificadorExtra = 2;
+		  } else if (nivelCartografo >= 2) {
+			  modificadorExtra = 4;		 
+		 }
+		 console.log('DEBUG - Nivel cartógrafo del mapa:', nivelCartografo, 'modificadorExtra:', modificadorExtra);
+	  }
+		
+	  if ((this.value.includes('MI002') && mar == 'East Blue') || (this.value.includes('MNB001') && mar == 'North Blue') || (this.value.includes('MWB001') && mar == 'West Blue') || (this.value.includes('MSB001') && mar == 'South Blue') ) { 
+		  modificadorMapa = 4 + modificadorExtra;
+		  console.log('DEBUG - Mapa regional detectado, modificadorMapa:', modificadorMapa);
+	  } else if (this.value.includes('MI001-')) {
+		  modificadorMapa = 2 + modificadorExtra;
+		  console.log('DEBUG - Mapa local detectado, modificadorMapa:', modificadorMapa);
+	  } else {
+		  modificadorMapa = 0;
+		  console.log('DEBUG - Mapa no reconocido, modificadorMapa:', modificadorMapa);
+	  }
+  }
+	
+  // Verificar si el checkbox de Navegante NPC está marcado
+  const npcChecked = $('#navegante_npc').is(':checked');
+  if (npcChecked) {
+    // Si NPC está marcado, no incluir modificadorOficio
+    modificador = modificadorMapa + modificadorBrujula + modificadorNPC;
+    console.log('DEBUG - Cálculo final (con NPC): modificadorMapa(' + modificadorMapa + ') + modificadorBrujula(' + modificadorBrujula + ') + modificadorNPC(' + modificadorNPC + ') = ' + modificador);
+  } else {
+    // Si NPC no está marcado, incluir modificadorOficio
+    modificador = modificadorOficio + modificadorMapa + modificadorBrujula + modificadorNPC;
+    console.log('DEBUG - Cálculo final: modificadorOficio(' + modificadorOficio + ') + modificadorMapa(' + modificadorMapa + ') + modificadorBrujula(' + modificadorBrujula + ') + modificadorNPC(' + modificadorNPC + ') = ' + modificador);
+  }
+  
+  $('#modificador').html((modificador >= 0 ? "+" : "") + modificador);
+});
+	
+$('#brujula').on('change', function() {
+  console.log('DEBUG - Cambio de brújula detectado. Valor:', this.value);
+	
+	modificadorBrujula = getBrujulaBonus(this.value, $('#mar').val());
+  
+	const npcChecked = $('#navegante_npc').is(':checked');
+	if (npcChecked) {
+		modificador = modificadorMapa + modificadorBrujula + modificadorNPC;
+		console.log('DEBUG - Recalculando modificador (con NPC): modificadorMapa(' + modificadorMapa + ') + modificadorBrujula(' + modificadorBrujula + ') + modificadorNPC(' + modificadorNPC + ') = ' + modificador);
+	} else {
+		modificador = modificadorOficio + modificadorMapa + modificadorBrujula + modificadorNPC;
+		console.log('DEBUG - Recalculando modificador: modificadorOficio(' + modificadorOficio + ') + modificadorMapa(' + modificadorMapa + ') + modificadorBrujula(' + modificadorBrujula + ') + modificadorNPC(' + modificadorNPC + ') = ' + modificador);
+	}
+  
+  $('#modificador').html((modificador >= 0 ? "+" : "") + modificador);
+});
+
+// Agregar evento para el checkbox de Navegante NPC
+$('#navegante_npc').on('change', function() {
+  if (this.checked) {
+    modificadorNPC = 6;
+    console.log('DEBUG - Navegante NPC activado, modificadorNPC = 6');
+    console.log('DEBUG - Al usar Navegante NPC, el modificador de oficio NO se aplica');
+    // Cuando se marca NPC, NO se aplica el modificador de oficio
+    modificador = modificadorMapa + modificadorBrujula + modificadorNPC;
+  } else {
+    modificadorNPC = 0;
+    console.log('DEBUG - Navegante NPC desactivado, modificadorNPC = 0');
+    // Cuando se desmarca NPC, vuelve a aplicarse el modificador de oficio
+    modificador = modificadorOficio + modificadorMapa + modificadorBrujula + modificadorNPC;
+  }
+  
+  console.log('DEBUG - Recalculando modificador: modificadorOficio(' + (this.checked ? '0 (ignorado)' : modificadorOficio) + ') + modificadorMapa(' + modificadorMapa + ') + modificadorBrujula(' + modificadorBrujula + ') + modificadorNPC(' + modificadorNPC + ') = ' + modificador);
+  
+  $('#modificador').html((modificador >= 0 ? "+" : "") + modificador);
+});
+	
+	
+// let barco = '';
+// let mapa = '';
+// let brujula = '';
+
+// let dificultad = 0;
+// let bonificar = 0;
+// let tiempo = 0;
+
+let datosBuscados = false;
+
+function resetear() {
+	if (confirm("¿Estás seguro que quieres hacer resetear el viaje?")) {
+		window.location = "/op/viajes.php";
+	}
+
+}
+	
+function viajar() {
+	
+	if ($('#barco').val() == '') {
+		alert('¡Debes seleccionar un barco!'); return;
+	}
+	
+	if ($('#post_inicio_viaje').val().trim() == '') {
+		alert('¡Debes proporcionar el link del post de viaje!'); return;
+	}
+	
+	let fecha_salida = parseInt($('#fecha_salida').val());
+	let fecha_llegada = parseInt($('#fecha_llegada').val());
+	
+	if (fecha_salida > (fecha_llegada - Math.floor(horas / 24))) {
+		alert('Tu viaje toma ' + horas + ' horas. Si empiezas a viajar el Día ' + fecha_salida + ', mínimo debes esperar hasta el día ' + (fecha_salida + Math.floor(horas / 24)) + '.'); return;
+	}
+	
+	if (confirm("¿Estás seguro que quieres hacer este viaje?")) {
+		// Obtener el navegante seleccionado
+		const naveganteTexto = $('#navegante option:selected').text() || 'Navegante inexperto (No reduce)';
+		const tiempoConNavegante = $('#tiempo').html() + ' (' + naveganteTexto + ')';
+		
+		// Verificar si el checkbox de Navegante NPC está marcado
+		const tieneNaveganteNPC = $('#navegante_npc').is(':checked');
+		
+		const viajesObj = { 
+			accion: 'viajar', mar: $('#mar').val(), partida: $('#partida').val(), llegada: $('#llegada').val(), dificultad: $('#dificultad').html(), modificador: parseInt($('#modificador').html()), 
+			tiempo: tiempoConNavegante, id_viajeros: $('#id_viajeros').val(), barco: $('#barco option:selected').text(), mapa: $('#mapa option:selected').text(), 
+			navegante: naveganteTexto, navegante_npc: tieneNaveganteNPC ? 'Si' : 'No', fecha_salida: $('#fecha_salida').val(), fecha_llegada: $('#fecha_llegada').val(), temporada: 'Verano',
+			post_inicio_viaje: $('#post_inicio_viaje').val()
+	  };
+
+		$.post("/op/viajes.php", viajesObj, function( data ) {
+			alert('¡Tirada de viajes realizada! Verás los resultados cuando se actualice la pagina. Suerte, o no... ;)');
+			window.location = "/op/viajes.php";
+		}); 
+	}
+	
+}
+	
+function buscarDatos() {
+	let mar = $('#mar').val();
+	let partida = $('#partida').val();
+	let llegada = $('#llegada').val();
+	let id_viajeros = $('#id_viajeros').val();
+	
+	if (partida == llegada) { alert('¡No puedes viajar a la misma isla! ¿Te embriagaste?'); return;	}
+	if (!id_viajeros.split(',').includes(uid)) { alert('¡Debes colocar el ID de tu usuario para el viaje!'); return; }
+	
+	window.location.href = `/op/viajes.php?tipo_viaje=grupal&mar=` + mar + `&partida=` + partida + `&llegada=` + llegada + `&id_viajeros=` + id_viajeros;
+	// window.location.href = `/op/viajes.php?tipo_viaje=grupal&mar=East Blue&partida=Isla de Dawn&llegada=Loguetown&id_viajeros=17`;
+}
+
+function buscarDatosSolitario() {
+	let mar = $('#mar_solitario').val();
+	let partida = $('#partida_solitario').val();
+	let llegada = $('#llegada_solitario').val();
+	
+	if (!mar || !partida || !llegada) {
+		alert('Debes seleccionar el mar, isla de partida e isla de llegada.');
+		return;
+	}
+	
+	if (partida == llegada) {
+		alert('¡No puedes viajar a la misma isla! ¿Te embriagaste?');
+		return;
+	}
+	
+	// Cargar mapas disponibles para solitario
+	$('#mapa_solitario').empty();
+	$('#mapa_solitario').append('<option value="">Sin mapa</option>');
+	for (let i = 0; i < mapas_array_json.length; i++) {
+		let mapa_id = mapas_array_json[i];
+		let mapa_objeto = mapas_json[mapa_id][0];
+		$('#mapa_solitario').append('<option value="' + mapa_id + '">' + mapa_objeto.nombre + '</option>');
+	}
+	
+	// Cargar brújulas disponibles para solitario
+	$('#brujula_solitario').empty();
+	$('#brujula_solitario').append('<option value="">Sin brújula</option>');
+	for (let i = 0; i < brujulas_array_json.length; i++) {
+		let brujula_id = brujulas_array_json[i];
+		let brujula_objeto = brujulas_json[brujula_id][0];
+		$('#brujula_solitario').append('<option value="' + brujula_id + '">' + brujula_objeto.nombre + '</option>');
+	}
+	
+	// Calcular tiempo base para viaje solitario
+	let ruta = partida + '->' + llegada;
+	let tiempoBase = obtenerHorasRuta(partida, llegada);
+	
+	if (!tiempoBase) {
+		alert('No se encontró una ruta válida entre las islas seleccionadas.');
+		return;
+	}
+	
+	// Para viajes solitarios, aplicar modificadores según habilidad de transporte
+	let tiempoSolitario = 0;
+	let dificultadSolitario = 10; // Misma dificultad que naval
+	
+	// Aplicar modificadores de tiempo según habilidad de transporte (NO afecta tirada)
+	let habilidadTransporte = $('#transporte option:selected').text();
+	
+	console.log('DEBUG - Habilidad seleccionada:', habilidadTransporte);
+	console.log('DEBUG - Tiempo base:', tiempoBase);
+	
+	// Calcular tiempo según la habilidad de transporte (solo afecta tiempo, no modificadores)
+	if (habilidadTransporte === 'Nado normal (+100% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 2); // +100% tiempo (doble)
+	} else if (habilidadTransporte === 'Nado ningyo (-20% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.8); // -20% tiempo
+	} else if (habilidadTransporte === 'Nado gyojin (-10% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.9); // -10% tiempo
+	} else if (habilidadTransporte === 'Nado híbrido marino (-0% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 1); // -0% tiempo (tiempo base naval)
+	} else if (habilidadTransporte === 'Levitación (+105% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 2.05); // +105% tiempo
+	} else if (habilidadTransporte === 'Vuelo tier bajo (-0% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 1); // -0% tiempo (tiempo base naval)
+	} else if (habilidadTransporte === 'Vuelo tier medio (-10% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.9); // -10% tiempo
+	} else if (habilidadTransporte === 'Vuelo tier god (-20% tiempo)') {
+		tiempoSolitario = Math.round(tiempoBase * 0.8); // -20% tiempo
+	} else {
+		// Default: nado normal
+		tiempoSolitario = Math.round(tiempoBase * 2);
+	}
+	
+	// Calcular modificadores de tirada basados en mapa y brújula (igual que en naval)
+	let modificadorMapa = 0;
+	let modificadorBrujula = 0;
+	
+	// Los modificadores se calcularán cuando se seleccionen mapa/brújula
+	let modificadorTotal = modificadorMapa + modificadorBrujula;
+	
+	// Debug: mostrar en consola los valores
+	console.log('DEBUG - Habilidad de transporte:', habilidadTransporte);
+	console.log('DEBUG - Tiempo calculado:', tiempoSolitario);
+	console.log('DEBUG - Modificador total:', modificadorTotal);
+	
+	// Mostrar resultados
+	$('#dificultad_solitario').text(dificultadSolitario);
+	$('#modificador_solitario').text((modificadorTotal >= 0 ? '+' : '') + modificadorTotal);
+	$('#tiempo_solitario').text(tiempoSolitario);
+	
+	// Calcular fechas
+	let fechaSalida = parseInt($('#fecha_salida_solitario').val());
+	let diasViaje = Math.ceil(tiempoSolitario / 24);
+	let fechaLlegada = fechaSalida + diasViaje;
+	if (fechaLlegada > 90) fechaLlegada = 90; // Límite de temporada
+	
+	$('#fecha_llegada_solitario').val(fechaLlegada);
+	
+	// Mostrar elementos
+	$('#habilidades-solitario').css('display', 'flex');
+	$('#fechas-solitario').css('display', 'flex');
+	$('#link-post-solitario').css('display', 'block');
+	$('#resultados-solitario').css('display', 'flex');
+	$('#tirada-viaje-solitario').css('display', 'block');
+	$('#resetear-viaje-solitario').css('display', 'block');
+	
+	// Ocultar el botón de buscar datos solitario (equivalente a calcular viaje)
+	$('#buscar-datos-solitario').css('display', 'none');
+	
+	// Deshabilitar campos
+	$('#mar_solitario')[0].disabled = true;
+	$('#partida_solitario')[0].disabled = true;
+	$('#llegada_solitario')[0].disabled = true;
+}
+
+function viajarSolitario() {
+	let mar = $('#mar_solitario').val();
+	let partida = $('#partida_solitario').val();
+	let llegada = $('#llegada_solitario').val();
+	let dificultad = $('#dificultad_solitario').text();
+	let modificador = $('#modificador_solitario').text().replace('+', '');
+	let tiempo = $('#tiempo_solitario').text();
+	let fechaSalida = parseInt($('#fecha_salida_solitario').val());
+	let fechaLlegada = parseInt($('#fecha_llegada_solitario').val());
+	let habilidadTransporte = $('#transporte option:selected').text();
+	let mapa = $('#mapa_solitario option:selected').text() || 'Sin mapa';
+	let brujula = $('#brujula_solitario option:selected').text() || 'Sin brújula';
+	
+	if ($('#post_inicio_viaje_solitario').val().trim() == '') {
+		alert('¡Debes proporcionar el link del post de viaje!'); return;
+	}
+	
+	// Validar que el tiempo de viaje sea compatible con las fechas
+	let tiempoHoras = parseInt(tiempo);
+	if (fechaSalida > (fechaLlegada - Math.floor(tiempoHoras / 24))) {
+		alert('Tu viaje solitario toma ' + tiempoHoras + ' horas. Si empiezas a viajar el Día ' + fechaSalida + ', mínimo debes esperar hasta el día ' + (fechaSalida + Math.floor(tiempoHoras / 24)) + '.'); 
+		return;
+	}
+	
+	if (!confirm("¿Estás seguro que quieres hacer este viaje solitario?")) {
+		return;
+	}
+	
+	$.ajax({
+		type: "POST",
+		url: "/op/viajes.php",
+		dataType: "json",
+		data: {
+			accion: 'viajar_solitario',
+			mar: mar,
+			partida: partida,
+			llegada: llegada,
+			dificultad: dificultad,
+			modificador: modificador,
+			tiempo: tiempo,
+			fecha_salida: fechaSalida,
+			fecha_llegada: fechaLlegada,
+			habilidad_transporte: habilidadTransporte,
+			mapa: mapa,
+			brujula: brujula,
+			temporada: 'Verano',
+			post_inicio_viaje: $('#post_inicio_viaje_solitario').val()
+		},
+		success: function(data) {
+			alert('¡Tirada de viaje solitario realizada con éxito!');
+			location.reload();
+		},
+		error: function() {
+			alert('Error al realizar la tirada de viaje.');
+		}
+	});
+}
+
+function resetearSolitario() {
+	if (confirm("¿Estás seguro que quieres resetear el viaje solitario?")) {
+		location.reload();
+	}
+}	
+	
+function clickTipo(tipo) {
+	
+	$('.tienda_tipos').removeClass('tienda_tipos_active');
+
+	if (tipo == 'grupal') {
+		$('#objetos_grupal').css('display', 'block');
+		$('#objetos_solitario').css('display', 'none');
+		$('#objetos_travel_path').css('display', 'none');
+		$('#objetos_taxis').css('display', 'none');
+		$('#objetos_faccion').css('display', 'none');
+		
+		$('#grupal').addClass('tienda_tipos_active');
+	}
+
+	if (tipo == 'solitario') {
+		$('#objetos_grupal').css('display', 'none');
+		$('#objetos_solitario').css('display', 'block');
+		$('#objetos_travel_path').css('display', 'none');
+		$('#objetos_taxis').css('display', 'none');
+		$('#objetos_faccion').css('display', 'none');
+		
+		$('#solitario').addClass('tienda_tipos_active');
+	}
+
+	if (tipo == 'travel_path') {
+		$('#objetos_grupal').css('display', 'none');
+		$('#objetos_solitario').css('display', 'none');
+		$('#objetos_travel_path').css('display', 'block');
+		$('#objetos_taxis').css('display', 'none');
+		$('#objetos_faccion').css('display', 'none');
+		
+		$('#travel_path').addClass('tienda_tipos_active');
+	}
+
+	if (tipo == 'taxis') {
+		$('#objetos_grupal').css('display', 'none');
+		$('#objetos_solitario').css('display', 'none');
+		$('#objetos_travel_path').css('display', 'none');
+		$('#objetos_taxis').css('display', 'block');
+		$('#objetos_faccion').css('display', 'none');
+		
+		$('#taxis').addClass('tienda_tipos_active');
+	}
+	
+	if (tipo == 'faccion') {
+		$('#objetos_grupal').css('display', 'none');
+		$('#objetos_solitario').css('display', 'none');
+		$('#objetos_travel_path').css('display', 'none');
+		$('#objetos_taxis').css('display', 'none');
+		
+		$('#faccion').addClass('tienda_tipos_active');
+	}
+	
+}	
+
+</script>

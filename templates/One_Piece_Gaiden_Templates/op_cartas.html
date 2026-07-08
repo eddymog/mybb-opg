@@ -1,0 +1,202 @@
+<html>
+<head>
+  <title>Cartas de {$ficha['nombre']} - One Piece Gaiden</title>
+  {$headerinclude}
+  {$op_cartas_css}
+  
+  <!-- CSS básico necesario -->
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
+    <div class="card-game-container">
+        <!-- Header del juego -->
+        <header class="game-header">
+            <h1>⚔️ One Piece Gaiden - Colección de Cartas ⚔️</h1>
+            <div class="player-stats">
+                <div class="money-display">
+                    <span class="money-icon"></span>
+                    <span id="player-money">999,999</span> Berries
+                </div>
+                <div class="collection-stats">
+                    Cartas: <span id="cards-collected">0</span>/<span id="total-cards">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navegación principal -->
+        <nav class="game-navigation">
+            <button class="nav-btn active" onclick="showSection('tienda')">Tienda</button>
+            <button class="nav-btn" onclick="showSection('inventario')">Inventario</button>
+            <button class="nav-btn" onclick="showSection('coleccion')">Colección</button>
+            <button class="nav-btn" onclick="unlockAllCards()">Desbloquear todo</button>
+            <button class="nav-btn" onclick="resetPlayerData()">Reiniciar</button>
+        </nav>
+
+        <!-- Sección Tienda -->
+        <section id="tienda-section" class="game-section active">
+            <h2>Tienda de Sobres</h2>
+            <div id="packs-container" class="packs-container">
+                <!-- Los packs se cargarán dinámicamente aquí -->
+            </div>
+        </section>
+
+        <!-- Sección Inventario -->
+        <section id="inventario-section" class="game-section">
+            <h2>Tu Inventario</h2>
+            <div id="inventory-grid" class="inventory-grid">
+                <!-- El inventario se cargará dinámicamente aquí -->
+            </div>
+        </section>
+
+        <!-- Sección Colección -->
+        <section id="coleccion-section" class="game-section">
+            <h2>Tu Colección</h2>
+            
+            <!-- Filtros de colección -->
+            <div class="collection-filters">
+                <select id="pack-filter" onchange="filterCollection()">
+                    <option value="">Todos los Packs</option>
+                    <!-- Las opciones se cargarán dinámicamente -->
+                </select>
+                
+                <select id="rarity-filter" onchange="filterCollection()">
+                    <option value="">Todas las Rarezas</option>
+                    <option value="1">⭐ 1 Estrella</option>
+                    <option value="2">⭐⭐ 2 Estrellas</option>
+                    <option value="3">⭐⭐⭐ 3 Estrellas</option>
+                    <option value="4">⭐⭐⭐⭐ 4 Estrellas</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5 Estrellas</option>
+                </select>
+                
+                <select id="type-filter" onchange="filterCollection()">
+                    <option value="">Todos los Tipos</option>
+                    <option value="personaje">Personajes</option>
+                    <option value="tecnica">Técnicas</option>
+                    <option value="objeto">Objetos</option>
+                    <option value="especial">Especiales</option>
+                </select>
+                
+                <select id="owned-filter" onchange="filterCollection()">
+                    <option value="">Todas</option>
+                    <option value="owned">Poseídas</option>
+                    <option value="not-owned">No Poseídas</option>
+                </select>
+            </div>
+            
+            <div id="collection-grid" class="collection-grid">
+                <!-- La colección se cargará dinámicamente aquí -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para apertura de sobres -->
+    <div id="pack-opening-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div class="pack-opening-container">
+                <h2 id="pack-opening-title">Abriendo Sobre...</h2>
+                
+                <!-- Contenedor del sobre animado -->
+                <div id="pack-animation-container" style="text-align: center; margin: 20px 0;">
+                    <div id="pack-image-container" style="position: relative; display: inline-block;">
+                        <img id="pack-opening-image" src="" alt="Sobre" style="width: 200px; height: auto; cursor: pointer; transition: transform 0.3s ease;">
+                    </div>
+                    <p style="margin: 20px 0; font-size: 1.2em; color: #666;">Haz clic en el sobre para abrirlo</p>
+                </div>
+                
+                <!-- Resultados del sobre -->
+                <div id="pack-results" class="pack-results" style="display: none;">
+                    <h3> ¡Cartas Obtenidas! </h3>
+                    <div id="cards-revealed" class="cards-revealed">
+                        <!-- Las cartas se mostrarán aquí -->
+                    </div>
+                    <button class="close-modal-button" onclick="closeModal()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para detalle de carta -->
+    <div id="card-detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('card-detail-modal')">&times;</span>
+            <div class="card-detail-container">
+                <div class="card-display">
+                    <div class="card-flip-container">
+                        <div class="card-flip-inner">
+                            <div class="card-front">
+                                <img id="card-detail-image" src="" alt="Carta">
+                                <div id="card-detail-rarity-visual" class="card-rarity-visual"></div>
+                            </div>
+                            <div class="card-back">
+                                <img src="https://i.imgur.com/baUibTp.png" alt="Reverso de carta">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-info">
+                    <h3 id="card-detail-name">Nombre de la Carta</h3>
+                    
+                    <div class="card-pack">
+                        <strong>Pack:</strong> <span id="card-detail-pack">-</span>
+                    </div>
+                    
+                    <div class="card-rarity">
+                        <strong>Rareza:</strong> <span id="card-detail-rarity">-</span>
+                    </div>
+                    
+                    <div class="card-type">
+                        <strong>Tipo:</strong> <span id="card-detail-type">-</span>
+                    </div>
+                    
+                    <div class="card-description">
+                        <strong>Descripción:</strong>
+                        <p id="card-detail-description">-</p>
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stat">
+                            <span class="stat-label">En tu colección:</span>
+                            <span id="card-detail-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de notificaciones -->
+    <div id="notification-container" class="notification-container">
+        <!-- Las notificaciones aparecerán aquí -->
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading" style="display: none;">
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 3em; margin-bottom: 20px;">⚓</div>
+            <div style="font-size: 1.5em;">Cargando...</div>
+        </div>
+    </div>
+
+	<!-- Script principal del juego -->
+    <!--{$op_cartas_script2}-->
+	
+    <!-- Scripts -->
+    <!-- Cargar primero la base de datos de cartas -->
+    <!--{$cartas_js}-->
+
+</body>
+
+<script src="{$mybb->settings['bburl']}/jscripts/cartas/core.js?v=2"></script>
+<script defer src="{$mybb->settings['bburl']}/jscripts/cartas/cartas_script.js?v=2"></script>
+<script defer src="{$mybb->settings['bburl']}/jscripts/cartas/cartas_script2.js?v=2"></script>
+</html>

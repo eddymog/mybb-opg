@@ -1,0 +1,363 @@
+<html>
+<head>
+  <title>{$barco_nombre} &mdash; Barco</title>
+  {$headerinclude}
+  <style>
+    /* Palette: orange base (#fff3e0→#ffe8c2), card layer (#ffe8c2→#ffdca3), purple accent #8f59f7, header #ff8900 */
+    .bai-wrapper{padding:20px 0}
+    /* ── Ship header ── */
+    .bai-header{display:flex;gap:18px;align-items:flex-start;background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #000;border-left:5px solid #ff8900;border-radius:8px;padding:16px 20px;margin-bottom:16px}
+    .bai-header-img{width:100px;height:100px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#ffe8c2}
+    .bai-header-img--ph{width:100px;height:100px;border-radius:6px;flex-shrink:0;background:linear-gradient(135deg,#e0d2fd,#d7b5ff);display:flex;align-items:center;justify-content:center;font-size:36px;color:#8f59f7}
+    .bai-header-info{flex:1;min-width:0}
+    .bai-back{font-family:moonGetHeavy;font-size:11px;color:#8f59f7;text-decoration:none;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:inline-block}
+    .bai-back:hover{color:#ff8900}
+    .bai-barco-nombre{font-family:moonGetHeavy;font-size:24px;color:#2c1810;margin-bottom:4px}
+    .bai-barco-id{font-family:moonGetHeavy;font-size:10px;color:#8f59f7;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+    .bai-stats-row{display:flex;flex-wrap:wrap;gap:6px}
+    .bai-stat{font-family:moonGetHeavy;font-size:10px;padding:3px 9px;border-radius:12px;background:#8f59f7;border:1px solid #6c10ab;color:#fff}
+    /* ── Tabs ── */
+    .bai-tabs{display:flex;gap:6px;margin-bottom:6px}
+    .bai-tab-btn{padding:7px 18px;border:2px solid #000;border-radius:5px;background:#fff3e0;color:#6c10ab;font-family:moonGetHeavy;font-size:12px;cursor:pointer;transition:all .15s}
+    .bai-tab-btn:hover{color:#fff;background:#ff8900}
+    .bai-tab-btn.bai-tab-active{background:#ff8900;color:#fff}
+    /* ── Panel ── */
+    .bai-panel{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #000;border-radius:6px;padding:18px 20px}
+    /* ── Berries ── */
+    .bai-berries-box{background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3);border-radius:6px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .bai-berries-label{font-family:moonGetHeavy;font-size:12px;color:#8f59f7;text-transform:uppercase;letter-spacing:1px}
+    .bai-berries-cant{font-family:moonGetHeavy;font-size:20px;color:#d26500;flex:1}
+    .bai-berries-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    /* ── Buttons ── */
+    .bai-btn{padding:5px 12px;border:none;border-radius:4px;font-family:moonGetHeavy;font-size:11px;cursor:pointer;transition:background .15s;text-decoration:none;display:inline-block}
+    .bai-btn-deposit{background:#1b5e20;color:#fff}.bai-btn-deposit:hover{background:#2e7d32}
+    .bai-btn-withdraw{background:#4a1010;color:#ef9a9a;border:1px solid #7f1818}.bai-btn-withdraw:hover{background:#7f1818}
+    .bai-btn-neutral{background:#e0d2fd;color:#6c10ab;border:1px solid #8f59f7}.bai-btn-neutral:hover{background:#d7b5ff}
+    .bai-btn-danger{background:#7f1818;color:#fff}.bai-btn-danger:hover{background:#b71c1c}
+    .bai-btn-sm{padding:3px 8px;font-size:10px}
+    .bai-btn-primary{background:#ff8900;color:#fff}.bai-btn-primary:hover{background:#e07800}
+    /* ── Inputs ── */
+    .bai-input{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:13px;padding:5px 8px;outline:none}
+    .bai-input:focus{border-color:#a708d6}
+    .bai-input-num{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:13px;padding:5px 8px;outline:none;width:100px}
+    .bai-input-num:focus{border-color:#a708d6}
+    /* ── Section header ── */
+    .bai-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .bai-section-title{font-family:moonGetHeavy;font-size:13px;color:#ff8900;text-transform:uppercase;letter-spacing:1px}
+    /* ── Items grid ── */
+    .bai-items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+    .bai-item-card{background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3);border-radius:6px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+    .bai-item-card:hover{border-color:#8f59f7}
+    .bai-item-img{width:60px;height:60px;object-fit:cover;border-radius:4px}
+    .bai-item-img--empty{width:60px;height:60px;border-radius:4px;background:linear-gradient(135deg,#e0d2fd,#d7b5ff);display:flex;align-items:center;justify-content:center;font-size:24px;color:#8f59f7}
+    .bai-item-nombre{font-family:moonGetHeavy;font-size:11px;color:#2c1810;line-height:1.3}
+    .bai-item-cant{font-family:moonGetHeavy;font-size:11px;color:#d26500}
+    /* ── Salas grid ── */
+    .bai-salas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+    .bai-sala-card{background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3);border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+    .bai-sala-filled{border-color:rgba(143,89,247,.4)}
+    .bai-sala-filled:hover{border-color:#8f59f7}
+    .bai-sala-empty{border:2px dashed #8f59f7;align-items:center;padding:24px 16px;text-align:center;gap:10px}
+    .bai-sala-img{width:100%;height:100px;object-fit:cover}
+    .bai-sala-img--empty{width:100%;height:100px;background:linear-gradient(135deg,#e0d2fd,#d7b5ff);display:flex;align-items:center;justify-content:center;font-size:32px;color:#8f59f7}
+    .bai-sala-slot{font-family:moonGetHeavy;font-size:9px;color:#8f59f7;letter-spacing:1px;text-transform:uppercase;padding:6px 10px 0}
+    .bai-sala-nombre{font-family:moonGetHeavy;font-size:13px;color:#2c1810;padding:4px 10px}
+    .bai-sala-desc{font-family:InterRegular;font-size:11px;color:#393939;padding:0 10px 6px;line-height:1.4}
+    .bai-sala-actions{display:flex;gap:5px;padding:6px 10px 10px}
+    .bai-sala-empty-label{font-family:InterRegular;font-size:13px;color:#8f59f7;opacity:.7}
+    /* ── Empty states ── */
+    .bai-empty-small{text-align:center;padding:30px 0;font-family:InterRegular;font-size:14px;color:#8f59f7;opacity:.5}
+    /* ── Tripulación ── */
+    .bai-trip-list{display:flex;flex-direction:column;gap:6px}
+    .bai-trip-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid rgba(143,89,247,.3);border-radius:6px;padding:8px 12px}
+    .bai-trip-item:hover{border-color:#8f59f7}
+    .bai-trip-role{font-family:moonGetHeavy;font-size:10px;padding:2px 8px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab;flex-shrink:0;text-transform:uppercase;letter-spacing:1px}
+    .bai-trip-role--cap{border-color:#ff8900;color:#ff8900;background:#fff3e0}
+    .bai-trip-role--dueno{border-color:#607d8b;color:#607d8b;background:#eceff1}
+    .bai-trip-role--npc{border-color:#5a7a5a;color:#5a7a5a;background:#f1f8f1}
+    .bai-npc-rol-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    .bai-npc-rol-sel{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:12px;padding:3px 6px;outline:none}
+    .bai-npc-rol-sel:focus{border-color:#a708d6}
+    .bai-trip-nombre{font-family:InterRegular;font-size:13px;color:#2c1810;flex:1}
+    .bai-trip-rangos{display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0}
+    .bai-trip-rango{font-family:moonGetHeavy;font-size:10px;padding:2px 8px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab;flex-shrink:0;text-transform:uppercase;letter-spacing:1px}
+    .bai-trip-rango--vice{border-color:#ff8900;color:#ff8900;background:#fff3e0}
+    .bai-trip-rango--capitan{border-color:#d4a017;color:#d4a017;background:#fffde7}
+    .bai-trip-rango--tesorero{border-color:#4caf50;color:#2e7d32;background:#f1f8f1}
+    .bai-trip-rango--navegante{border-color:#1565c0;color:#1565c0;background:#e3f2fd}
+    .bai-trip-rango--carpintero{border-color:#795548;color:#795548;background:#fbe9e7}
+    .bai-rango-dropdown{position:relative;display:inline-flex;align-items:center}
+    .bai-rango-toggle{background:#fff3e0;border:2px solid #000;border-radius:4px;color:#6c10ab;font-family:moonGetHeavy;font-size:10px;padding:3px 8px;cursor:pointer;white-space:nowrap;text-transform:uppercase;letter-spacing:1px}
+    .bai-rango-toggle:hover{background:#ff8900;color:#fff;border-color:#000}
+    .bai-rango-dropmenu{position:absolute;top:calc(100% + 4px);right:0;background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #8f59f7;border-radius:6px;padding:10px 12px;z-index:200;min-width:160px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+    .bai-trip-rango-check{display:flex;align-items:center;gap:5px;font-family:moonGetHeavy;font-size:10px;color:#2c1810;cursor:pointer;user-select:none;text-transform:uppercase;letter-spacing:1px}
+    .bai-trip-rango-check input[type=checkbox]{accent-color:#ff8900;cursor:pointer;flex-shrink:0}
+    .bai-rango-dropfooter{padding-top:8px;border-top:1px solid rgba(143,89,247,.3);display:flex;justify-content:flex-end}
+    /* ── Salas construir ── */
+    .bai-sala-budget{font-family:moonGetHeavy;font-size:12px;color:#393939;margin-bottom:14px}
+    .bai-sala-budget b{color:#ff8900}
+    /* ── Trip espacios ── */
+    .bai-trip-budget{font-family:moonGetHeavy;font-size:12px;color:#393939;margin:-8px 0 10px;padding:4px 0}
+    .bai-trip-budget b{color:#ff8900}
+    .bai-trip-budget--over b{color:#c0392b}
+    .bai-trip-espacio{font-family:moonGetHeavy;font-size:10px;color:#6c10ab;background:#e0d2fd;border:1px solid #8f59f7;border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0}
+    /* ── Image edit overlay ── */
+    .bai-header-img-wrap{position:relative;flex-shrink:0;width:100px}
+    .bai-img-edit-btn{position:absolute;bottom:4px;right:4px;background:rgba(255,236,196,.9);border:1px solid #8f59f7;border-radius:4px;color:#8f59f7;font-size:13px;width:24px;height:24px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .bai-img-edit-btn:hover{background:#8f59f7;color:#fff}
+    .bai-trip-item--ausente{opacity:.5}
+    .bai-trip-item--ausente .bai-trip-espacio{text-decoration:line-through;color:#888}
+    .bai-ausente-label{display:flex;align-items:center;gap:4px;font-family:moonGetHeavy;font-size:10px;color:#666;cursor:pointer;user-select:none;white-space:nowrap;flex-shrink:0;text-transform:uppercase;letter-spacing:1px}
+    .bai-ausente-label input[type=checkbox]{accent-color:#c0392b;cursor:pointer;flex-shrink:0}
+    .bai-ausente-label:hover{color:#c0392b}
+    .bai-sala-tipo-item{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:6px;border:2px solid rgba(143,89,247,.3);background:linear-gradient(135deg,#ffe8c2,#ffdca3);cursor:pointer;transition:border-color .15s;margin-bottom:6px}
+    .bai-sala-tipo-item:hover:not(.bai-sala-tipo-disabled){border-color:#ff8900}
+    .bai-sala-tipo-item.bai-sala-tipo-selected{border-color:#ff8900;background:linear-gradient(135deg,#fff3e0,#ffe8c2)}
+    .bai-sala-tipo-disabled{opacity:.4;cursor:not-allowed}
+    .bai-sala-tipo-radio{flex-shrink:0;margin-top:3px;accent-color:#ff8900}
+    .bai-sala-tipo-info{flex:1;min-width:0}
+    .bai-sala-tipo-nombre{font-family:moonGetHeavy;font-size:13px;color:#2c1810;margin-bottom:3px}
+    .bai-sala-tipo-bonus{font-family:InterRegular;font-size:11px;color:#393939;line-height:1.4;margin-bottom:5px}
+    .bai-sala-tipo-costes{display:flex;flex-wrap:wrap;gap:6px}
+    .bai-sala-tipo-coste{font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab}
+    .bai-sala-tipo-coste--berries{border-color:#d4a017;color:#d4a017;background:#fffde7}
+    .bai-sala-tipo-coste--mejora{border-color:#5c6bc0;color:#5c6bc0;background:#e8eaf6}
+    .bai-sala-tipo-coste--trip{border-color:#5a7a5a;color:#5a7a5a;background:#f1f8f1}
+    /* ── Modals ── */
+    .bai-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .bai-modal{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #8f59f7;border-radius:12px;padding:20px 24px;max-width:500px;width:90%;max-height:80vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .bai-modal-title{font-family:moonGetHeavy;font-size:16px;color:#2c1810;letter-spacing:1px}
+    .bai-modal-scroll{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px}
+    .bai-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding-top:8px;border-top:1px solid rgba(143,89,247,.3)}
+    .bai-form-group{display:flex;flex-direction:column;gap:4px}
+    .bai-form-label{font-family:moonGetHeavy;font-size:11px;color:#6c10ab;text-transform:uppercase}
+    .bai-form-input{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box}
+    .bai-form-input:focus{border-color:#a708d6}
+    textarea.bai-form-input{min-height:80px;resize:vertical}
+    /* ── Inventory list in deposit modal ── */
+    .bai-inv-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3)}
+    .bai-inv-item:hover{border-color:#8f59f7}
+    .bai-inv-nombre{font-family:moonGetHeavy;font-size:12px;color:#2c1810;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bai-inv-cant{font-family:moonGetHeavy;font-size:11px;color:#d26500;flex-shrink:0}
+    /* ── Viajes tab ── */
+    .bai-viaje-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+    .bai-viaje-grid.bai-viaje-grid--full{grid-template-columns:1fr}
+    .bai-viaje-select{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box}
+    .bai-viaje-select:focus{border-color:#a708d6}
+    .bai-viaje-section{margin-bottom:18px}
+    .bai-viaje-section-title{font-family:moonGetHeavy;font-size:13px;color:#fff;background:#ff8900;padding:5px 12px;border-radius:4px 4px 0 0;margin-bottom:0;letter-spacing:1px;text-transform:uppercase;border:2px solid #000;border-bottom:none}
+    .bai-viaje-badge{display:inline-block;font-family:moonGetHeavy;font-size:11px;padding:3px 8px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab;margin:2px}
+    .bai-viaje-badge--mod{border-color:#ff8900;color:#ff8900;background:#fff3e0}
+    .bai-viaje-badge--horas{border-color:#a708d6;color:#a708d6}
+    .bai-viaje-badge--nav{border-color:#5a7a5a;color:#5a7a5a;background:#f1f8f1}
+    .bai-viaje-result-box{background:#d7b5ff;border:2px solid #8f59f7;border-radius:6px;padding:12px 14px;margin-bottom:14px}
+    .bai-viaje-result-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(143,89,247,.35);font-size:12px;color:#4b1aae;font-family:InterRegular}
+    .bai-viaje-result-row:last-child{border-bottom:none}
+    .bai-viaje-result-row b{color:#2c1810;font-family:moonGetHeavy}
+    .bai-viaje-log{background:#e0d2fd;border:2px solid #8f59f7;border-radius:0 0 4px 4px;padding:10px 12px;margin-top:0;font-size:12px;color:#393939;line-height:1.6;max-height:160px;overflow-y:auto}
+    .bai-viaje-hist-item{padding:8px 10px;border-radius:5px;background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3);margin-bottom:6px;font-size:11px;color:#393939;line-height:1.5}
+    .bai-viaje-hist-item strong{color:#ff8900}
+    .bai-viaje-hist-route{font-family:moonGetHeavy;font-size:12px;color:#2c1810}
+    .bai-viaje-checkbox-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12px;color:#393939}
+    .bai-viaje-checkbox-row input[type=checkbox]{accent-color:#ff8900;width:14px;height:14px}
+    /* ── Historial de viajes ── */
+    .bai-hist-list{display:flex;flex-direction:column;gap:8px}
+    .bai-hist-card{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid rgba(143,89,247,.3);border-radius:6px;padding:10px 14px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+    .bai-hist-card:hover{border-color:#8f59f7}
+    .bai-hist-route{font-family:moonGetHeavy;font-size:13px;color:#2c1810;margin-bottom:6px}
+    .bai-hist-meta{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+    .bai-hist-badge{font-family:moonGetHeavy;font-size:10px;padding:2px 8px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab}
+    .bai-hist-badge--mar{border-color:#1565c0;color:#1565c0;background:#e3f2fd}
+    .bai-hist-crew{font-family:InterRegular;font-size:11px;color:#666}
+    .bai-hist-post{font-family:moonGetHeavy;font-size:11px;color:#d26500;text-decoration:none}
+    .bai-hist-post:hover{color:#ff9b00;text-decoration:underline}
+    .bai-hist-empty{text-align:center;padding:50px 0;font-family:InterRegular;font-size:14px;color:#8f59f7;opacity:.5}
+  </style>
+</head>
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+          <div class="bai-wrapper">
+
+            <!-- Ship header -->
+            <div class="bai-header">
+              {$barco_header_img_html}
+              <div class="bai-header-info">
+                <a class="bai-back" href="/op/barco.php">&#x2190; Mis barcos</a>
+                <div class="bai-barco-nombre">{$barco_nombre}</div>
+                <div class="bai-barco-id">{$barco_id_js}</div>
+                <div class="bai-stats-row">
+                  {$barco_stat_vitalidad}
+                  {$barco_stat_velocidad}
+                  {$barco_stat_resistencia}
+                  {$barco_stat_espacios_c}
+                  {$barco_stat_mejoras}
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bai-tabs">
+              <button type="button" class="bai-tab-btn bai-tab-active" data-tab="cofre" onclick="baiSwitchTab('cofre')">&#x1F5C3; Cofre</button>
+              <button type="button" class="bai-tab-btn" data-tab="salas" onclick="baiSwitchTab('salas')">&#x1F3E0; Salas</button>
+              <button type="button" class="bai-tab-btn" data-tab="trip" onclick="baiSwitchTab('trip')">&#x1F9ED; Tripulaci&oacute;n</button>
+              {$viajes_tab_html}
+              {$hist_interior_tab_btn}
+            </div>
+
+            <!-- Cofre panel -->
+            <div id="bai-cofre-panel" class="bai-panel">
+              <!-- Rendered by barco.js -->
+            </div>
+
+            <!-- Salas panel -->
+            <div id="bai-salas-panel" class="bai-panel" style="display:none;">
+              <!-- Rendered by barco.js -->
+            </div>
+
+            <!-- Tripulación panel -->
+            <div id="bai-trip-panel" class="bai-panel" style="display:none;">
+              <!-- Rendered by barco.js -->
+            </div>
+
+            <!-- Viajes panel -->
+            <div id="bai-viajes-panel" class="bai-panel" style="display:none;">
+              <!-- Rendered by barco.js -->
+            </div>
+
+            <!-- Historial panel -->
+            {$interior_hist_panel_html}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: depositar ítem ── -->
+  <div id="bai-modal-depositar" class="bai-modal-overlay">
+    <div class="bai-modal">
+      <div class="bai-modal-title">&#x1F4E6; Depositar ítem en el cofre</div>
+      <div class="bai-modal-scroll" id="bai-modal-inv-list"></div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarModalDepositar()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: retirar ítem ── -->
+  <div id="bai-modal-retirar" class="bai-modal-overlay">
+    <div class="bai-modal" style="max-width:340px;">
+      <div class="bai-modal-title">Retirar: <span id="bai-modal-ret-nombre"></span></div>
+      <div class="bai-form-group">
+        <label class="bai-form-label">Cantidad a retirar</label>
+        <input type="number" id="bai-modal-ret-input" class="bai-form-input" min="1" value="1" />
+      </div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarModalRetirar()">Cancelar</button>
+        <button type="button" class="bai-btn bai-btn-withdraw" onclick="baiConfirmarRetirar()">Retirar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: añadir NPC/Mascota ── -->
+  <div id="bai-modal-add-npc" class="bai-modal-overlay">
+    <div class="bai-modal" style="max-width:360px;">
+      <div class="bai-modal-title">&#x1F43E; A&ntilde;adir NPC / Mascota</div>
+      <div class="bai-form-group">
+        <label class="bai-form-label">ID del NPC o Mascota</label>
+        <input type="text" id="bai-add-npc-id" class="bai-form-input" placeholder="Ej: 11-NPC001 o 11-PET001" />
+      </div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarAddNpc()">Cancelar</button>
+        <button type="button" class="bai-btn bai-btn-deposit" onclick="baiConfirmarAddNpc()">A&ntilde;adir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: invitar tripulante ── -->
+  <div id="bai-modal-invitar" class="bai-modal-overlay">
+    <div class="bai-modal" style="max-width:340px;">
+      <div class="bai-modal-title">&#x1F9ED; Invitar tripulante</div>
+      <div class="bai-form-group">
+        <label class="bai-form-label">UID del usuario</label>
+        <input type="number" id="bai-invitar-uid" class="bai-form-input" min="1" placeholder="Ej: 123" />
+      </div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarInvitar()">Cancelar</button>
+        <button type="button" class="bai-btn bai-btn-deposit" onclick="baiConfirmarInvitar()">Invitar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: sala ── -->
+  <div id="bai-modal-sala" class="bai-modal-overlay">
+    <div class="bai-modal" style="max-width:520px;">
+      <div class="bai-modal-title">&#x1F3E0; Construir sala</div>
+      <div id="bai-sala-budget-info" class="bai-sala-budget"></div>
+      <div class="bai-modal-scroll" id="bai-sala-tipo-list"></div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarModalSala()">Cancelar</button>
+        <button type="button" class="bai-btn bai-btn-primary" id="bai-sala-confirmar-btn" onclick="baiConstruirSala()" style="display:none;">Construir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: editar imagen del barco ── -->
+  <div id="bai-modal-img" class="bai-modal-overlay">
+    <div class="bai-modal" style="max-width:420px;">
+      <div class="bai-modal-title">&#x1F5BC; Imagen del barco</div>
+      <div class="bai-form-group">
+        <label class="bai-form-label">URL de la imagen</label>
+        <input type="url" id="bai-img-url-input" class="bai-form-input" placeholder="https://..." oninput="baiUpdateImgPreview(this.value)" />
+      </div>
+      <div id="bai-img-preview-wrap" style="display:none;margin-top:4px;text-align:center">
+        <img id="bai-img-preview" style="max-width:100%;max-height:120px;border-radius:4px;border:1px solid #333;" />
+      </div>
+      <div class="bai-modal-footer">
+        <button type="button" class="bai-btn bai-btn-neutral" onclick="baiCerrarEditarImagen()">Cancelar</button>
+        <button type="button" class="bai-btn bai-btn-primary" onclick="baiGuardarImagen()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  var BC = {
+    barcoId:       '{$barco_id_js}',
+    ownerUid:      {$owner_uid_js},
+    isOwner:         !!'{$is_owner_js}',
+    isCarpintero:    !!'{$is_carpintero_js}',
+    maxSalas:        {$max_salas_js},
+    mejoraUsada:   {$mejora_usada_js},
+    berries:       {$barco_berries_js},
+    cofre:         {$barco_cofre_json},
+    salas:         {$barco_salas_json},
+    inventario:    {$mi_inventario_json},
+    tripulacion:   {$barco_tripulacion_json},
+    ownerUsername: {$owner_username_json},
+    ownerRangos:     {$owner_rangos_json},
+    npcs:            {$barco_npcs_json},
+    maxEspaciosTrip: {$espacios_trip_js},
+    ownerAltura:     {$owner_altura_js},
+    ownerAusente:    !!{$owner_ausente_js},
+    viewerUid:       {$viewer_uid_js},
+    postCode:      '{$post_code}',
+    isNavegante:   !!'{$is_navegante_js}',
+    canCofre:      !!'{$can_cofre_js}',
+    crewUids:      {$viaje_crew_uids_json},
+    tierBarco:          {$tier_barco_js},
+    vitalidadBarco:     {$barco_vitalidad},
+    resistenciaBarco:   {$barco_resistencia},
+    ruputura:           {$ruputura_js},
+    mejorasAplicadas:   {$mejoras_aplicadas_js},
+    isCarpinteroMejora: !!'{$is_carpintero_mejora_js}'
+  };
+  </script>
+  <script type="text/javascript" src="{$mybb->asset_url}/jscripts/barco.js?v={$fileVersion}"></script>
+
+  {$footer}
+</body>
+</html>

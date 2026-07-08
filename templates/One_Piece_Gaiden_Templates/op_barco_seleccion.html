@@ -1,0 +1,168 @@
+<html>
+<head>
+  <title>Mis Barcos</title>
+  {$headerinclude}
+  <style>
+    /* Palette: soft orange base (#fff3e0→#ffe8c2), card layer (#ffe8c2→#ffdca3) */
+    .ba-wrapper{padding:20px 0}
+    /* Banner */
+    .ba-banner{min-height:70px;border-radius:8px;margin-bottom:16px;background:linear-gradient(135deg,#ff8900,#e07800);display:flex;align-items:center;padding:0 24px;border:2px solid #000;filter:drop-shadow(0 0 5px rgba(0,0,0,.35));gap:14px}
+    .ba-banner-title{font-family:moonGetHeavy;font-size:30px;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,.6)}
+    /* Tabs */
+    .ba-tabs{display:flex;gap:6px;margin-bottom:6px}
+    .ba-tab-btn{padding:7px 18px;border:2px solid #000;border-radius:5px;background:#fff3e0;color:#6c10ab;font-family:moonGetHeavy;font-size:12px;cursor:pointer;transition:all .15s}
+    .ba-tab-btn:hover{color:#fff;background:#ff8900}
+    .ba-tab-btn.ba-tab-active{background:#ff8900;color:#fff}
+    .ba-main-panel{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #000;border-radius:6px;padding:18px 20px}
+    /* Ships grid */
+    .ba-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px}
+    .ba-card{background:linear-gradient(135deg,#ffe8c2,#ffdca3);border:2px solid rgba(143,89,247,.3);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .ba-card:hover{border-color:#8f59f7;box-shadow:0 4px 20px rgba(143,89,247,.25)}
+    .ba-card-img{width:100%;height:155px;object-fit:cover}
+    .ba-card-img--ph{width:100%;height:155px;background:linear-gradient(135deg,#e0d2fd,#d7b5ff);display:flex;align-items:center;justify-content:center;font-size:42px;color:#8f59f7}
+    .ba-card-body{padding:12px 14px;flex:1}
+    .ba-card-nombre{font-family:moonGetHeavy;font-size:16px;color:#2c1810;margin-bottom:3px}
+    .ba-card-id{font-family:moonGetHeavy;font-size:10px;color:#8f59f7;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+    .ba-card-stats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+    .ba-stat{font-family:moonGetHeavy;font-size:10px;padding:2px 8px;border-radius:12px;background:#8f59f7;border:1px solid #6c10ab;color:#fff}
+    .ba-card-desc{font-family:InterRegular;font-size:12px;color:#393939;line-height:1.5}
+    .ba-btn-acceder{display:block;text-align:center;padding:11px;background:#ff8900;color:#fff;font-family:moonGetHeavy;font-size:13px;text-decoration:none;letter-spacing:2px;transition:background .2s ease-out;border-top:2px solid rgba(0,0,0,.15)}
+    .ba-btn-acceder:hover{background:#e07800;color:#fff;text-decoration:none}
+    .ba-empty{text-align:center;padding:70px 0;font-family:InterRegular;font-size:16px;color:#8f59f7;opacity:.5}
+    /* Muelle */
+    .ba-muelle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+    .ba-muelle-card{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid rgba(143,89,247,.3);border-radius:8px;display:flex;gap:12px;align-items:flex-start;padding:12px}
+    .ba-muelle-card:hover{border-color:#8f59f7}
+    .ba-muelle-img{width:70px;height:70px;object-fit:cover;border-radius:5px;flex-shrink:0}
+    .ba-muelle-img--ph{width:70px;height:70px;border-radius:5px;flex-shrink:0;background:linear-gradient(135deg,#e0d2fd,#d7b5ff);display:flex;align-items:center;justify-content:center;font-size:28px;color:#8f59f7}
+    .ba-muelle-info{flex:1;min-width:0}
+    .ba-muelle-tipo{font-family:moonGetHeavy;font-size:13px;color:#2c1810;margin-bottom:2px}
+    .ba-muelle-cant{font-family:moonGetHeavy;font-size:10px;color:#8f59f7;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+    .ba-muelle-form{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .ba-muelle-input{background:#e0d2fd;border:2px solid #8f59f7;border-top:0;color:#2c1810;font-family:InterRegular;font-size:13px;padding:5px 8px;outline:none;flex:1;min-width:120px;box-sizing:border-box;border-radius:0}
+    .ba-muelle-input:focus{border-color:#a708d6}
+    .ba-btn-bautizar{background:rgba(70,12,110,1);color:#fff;font-family:moonGetHeavy;font-size:11px;padding:5px 14px;border:1px solid #000;border-radius:10px;cursor:pointer;transition:background .15s;white-space:nowrap}
+    .ba-btn-bautizar:hover{background:rgba(126,32,191,1)}
+    .ba-btn-bautizar:disabled{background:#71706f;color:#ccc;cursor:not-allowed}
+    .ba-bautismo-ok{background:#e8f5e8;border:2px solid #4caf50;border-radius:6px;padding:10px 14px;font-family:InterRegular;font-size:13px;color:#2e7d32;margin-bottom:12px}
+    .ba-muelle-empty{text-align:center;padding:40px 0;font-family:InterRegular;font-size:14px;color:#8f59f7;opacity:.5}
+    /* Sección tripulante e invitaciones */
+    .ba-section-title{display:block;font-family:moonGetHeavy;font-size:13px;color:#6c10ab;text-transform:uppercase;letter-spacing:2px;margin:24px 0 12px;padding-left:6px;border-left:4px solid #8f59f7}
+    .ba-card-owner{font-family:InterRegular;font-size:11px;color:#666;margin-bottom:6px}
+    .ba-inv-actions{display:flex}
+    .ba-btn-aceptar{flex:1;padding:11px;background:#1b5e20;color:#a5d6a7;font-family:moonGetHeavy;font-size:12px;border:none;border-top:1px solid rgba(0,0,0,.2);cursor:pointer;transition:background .15s}
+    .ba-btn-aceptar:hover{background:#2e7d32}
+    .ba-btn-rechazar{flex:1;padding:11px;background:#4a1010;color:#ef9a9a;font-family:moonGetHeavy;font-size:12px;border:none;border-top:1px solid rgba(0,0,0,.2);cursor:pointer;transition:background .15s}
+    .ba-btn-rechazar:hover{background:#7f1818}
+    /* ── Historial de viajes ── */
+    .ba-hist-list{display:flex;flex-direction:column;gap:10px}
+    .ba-hist-card{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid rgba(143,89,247,.3);border-radius:8px;padding:14px 16px;transition:border-color .15s;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+    .ba-hist-card:hover{border-color:#8f59f7}
+    .ba-hist-route{font-family:moonGetHeavy;font-size:15px;color:#2c1810;margin-bottom:6px}
+    .ba-hist-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .ba-hist-badge{font-family:moonGetHeavy;font-size:10px;padding:2px 8px;border-radius:10px;background:#e0d2fd;border:1px solid #8f59f7;color:#6c10ab}
+    .ba-hist-badge--mar{border-color:#1565c0;color:#1565c0;background:#e3f2fd}
+    .ba-hist-log{font-size:12px;color:#393939;line-height:1.6}
+    .ba-hist-crew{font-family:InterRegular;font-size:11px;color:#666;margin-top:4px}
+    .ba-hist-post{font-family:moonGetHeavy;font-size:11px;color:#d26500;text-decoration:none}
+    .ba-hist-post:hover{color:#ff9b00;text-decoration:underline}
+    /* ── Viaje solitario ── */
+    .ba-viaje-panel-wrap{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #8f59f7;border-radius:8px;padding:18px 20px}
+    .ba-viaje-section{margin-bottom:18px}
+    .ba-viaje-section-title{font-family:moonGetHeavy;font-size:13px;color:#fff;background:#ff8900;padding:6px 14px;border-radius:5px 5px 0 0;letter-spacing:2px;text-transform:uppercase;margin-bottom:0;border:2px solid #000;border-bottom:none}
+    .ba-viaje-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-bottom:10px}
+    .ba-viaje-grid--full{grid-template-columns:1fr}
+    .ba-viaje-form-group{display:flex;flex-direction:column;gap:0;margin-bottom:8px}
+    .ba-viaje-form-label{font-family:moonGetHeavy;font-size:11px;color:#fff;background:#ff8900;padding:4px 10px;text-transform:uppercase;letter-spacing:1px;display:block}
+    .ba-viaje-select,.ba-viaje-form-input{background:#e0d2fd;border:2px solid #8f59f7;border-top:0;color:#2c1810;font-family:InterRegular;font-size:13px;padding:6px 8px;outline:none;width:100%;box-sizing:border-box;border-radius:0}
+    .ba-viaje-select:focus,.ba-viaje-form-input:focus{border-color:#a708d6}
+    .ba-viaje-badge{display:inline-block;font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid #8f59f7;color:#6c10ab;background:rgba(143,89,247,.15)}
+    .ba-viaje-badge--horas{border-color:#a708d6;color:#a708d6}
+    .ba-viaje-result-box{background:#d7b5ff;border:2px solid #8f59f7;border-radius:6px;padding:10px 14px;margin-bottom:12px}
+    .ba-viaje-result-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(143,89,247,.35);font-size:12px;color:#4b1aae;font-family:InterRegular}
+    .ba-viaje-result-row:last-child{border-bottom:none}
+    .ba-viaje-result-row b{color:#2c1810;font-family:moonGetHeavy}
+    .ba-viaje-log{background:#e0d2fd;border:2px solid #8f59f7;padding:10px 12px;font-size:12px;color:#393939;line-height:1.6;max-height:200px;overflow-y:auto;font-family:InterRegular}
+    .ba-viaje-btn{display:inline-flex;align-items:center;justify-content:center;background:rgba(70,12,110,1);color:#fff;font-family:moonGetHeavy;font-size:13px;letter-spacing:2px;padding:10px 24px;border:2px solid #000;border-radius:15px;filter:drop-shadow(0 0 4px #000);transition:all .3s ease-out;cursor:pointer}
+    .ba-viaje-btn:hover:not(:disabled){background:rgba(126,32,191,1)}
+    .ba-viaje-btn:disabled{background:#71706f;cursor:not-allowed}
+    .ba-viaje-btn--nuevo{background:#d26500;font-size:11px;padding:6px 16px;border-radius:10px;filter:none}
+    .ba-viaje-btn--nuevo:hover{background:#ff9b00}
+    /* ── Image edit overlay ── */
+    .ba-card-img-wrap{position:relative}
+    .ba-img-edit-btn{position:absolute;bottom:6px;right:6px;background:rgba(255,236,196,.9);border:1px solid #8f59f7;border-radius:4px;color:#8f59f7;font-size:13px;width:26px;height:26px;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .ba-img-edit-btn:hover{background:#8f59f7;color:#fff}
+    /* ── Image edit modal ── */
+    .ba-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .ba-modal{background:linear-gradient(135deg,#fff3e0,#ffe8c2);border:2px solid #8f59f7;border-radius:12px;padding:20px 24px;max-width:420px;width:90%;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .ba-modal-title{font-family:moonGetHeavy;font-size:16px;color:#2c1810;letter-spacing:2px}
+    .ba-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding-top:8px;border-top:1px solid rgba(143,89,247,.3)}
+    .ba-form-group{display:flex;flex-direction:column;gap:4px}
+    .ba-form-label{font-family:moonGetHeavy;font-size:11px;color:#6c10ab;text-transform:uppercase}
+    .ba-form-input{background:#e0d2fd;border:2px solid #8f59f7;border-radius:4px;color:#2c1810;font-family:InterRegular;font-size:13px;padding:7px 10px;outline:none;width:100%;box-sizing:border-box}
+    .ba-form-input:focus{border-color:#a708d6}
+    .ba-btn-img{padding:5px 12px;border:none;border-radius:8px;font-family:moonGetHeavy;font-size:11px;cursor:pointer;transition:background .15s}
+    .ba-btn-img-neutral{background:#ffe8c2;color:#6c10ab;border:1px solid #8f59f7}.ba-btn-img-neutral:hover{background:#ffdca3}
+    .ba-btn-img-primary{background:rgba(70,12,110,1);color:#fff;border:1px solid #000}.ba-btn-img-primary:hover{background:rgba(126,32,191,1)}
+  </style>
+</head>
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+          <div class="ba-wrapper">
+
+            <div class="ba-banner">
+              <span style="font-size:36px;color:#fff;filter:drop-shadow(1px 1px 2px rgba(0,0,0,.5));">&#x2693;</span>
+              <span class="ba-banner-title">MIS BARCOS</span>
+            </div>
+
+            {$invitaciones_html}
+
+            {$main_tabs_html}
+            {$main_panel_open}
+            <div class="ba-grid">
+              {$barcos_html}
+            </div>
+            {$main_panel_close}
+
+            {$historial_panel_html}
+
+            <div id="ba-viaje-panel" class="ba-viaje-panel-wrap" style="display:none;"></div>
+
+            {$barcos_tripulante_html}
+
+            {$muelle_panel_html}
+
+            {$staff_panel_html}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: editar imagen del barco ── -->
+  <div id="ba-modal-img" class="ba-modal-overlay">
+    <div class="ba-modal">
+      <div class="ba-modal-title">&#x1F5BC; Imagen del barco</div>
+      <div class="ba-form-group">
+        <label class="ba-form-label">URL de la imagen</label>
+        <input type="url" id="ba-img-url-input" class="ba-form-input" placeholder="https://..." oninput="baUpdateImgPreview(this.value)" />
+      </div>
+      <div id="ba-img-preview-wrap" style="display:none;margin-top:4px;text-align:center">
+        <img id="ba-img-preview" style="max-width:100%;max-height:120px;border-radius:4px;border:1px solid #333;" />
+      </div>
+      <div class="ba-modal-footer">
+        <button type="button" class="ba-btn-img ba-btn-img-neutral" onclick="baCerrarEditarImagen()">Cancelar</button>
+        <button type="button" class="ba-btn-img ba-btn-img-primary" onclick="baGuardarImagen()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  {$muelle_script_html}
+  {$footer}
+</body>
+</html>

@@ -1,0 +1,12 @@
+<form method="post" action="usercp.php">
+                <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                <table border="0" style="margin-top: 50px; padding: 5px;" width="430px;">
+                    <tr>
+                        <td valign="top" width="1"><input type="checkbox" class="checkbox" style="{$checkbox}" name="buddyshare" id="buddyshare" value="1" {$buddy_check} /></td>
+                        <td class="trow1"><span class="smalltext"><label for="buddyshare">{$lang->as_usercp_buddyshare_desc}</label></span>
+                            <input type="hidden" name="action" value="do_buddyshare" />
+                            <input type="submit" value="{$lang->as_usercp_secaccount}" name="{$lang->as_usercp_secaccount}" class="button float_right" /></td>
+                    </tr>
+                </table>
+                </form>
+        

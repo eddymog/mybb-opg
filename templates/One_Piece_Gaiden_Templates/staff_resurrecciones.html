@@ -1,0 +1,99 @@
+<html>
+
+<head>
+    <title>Reencarnaciones</title>
+    <style>
+    .resur-wrap { max-width: 980px; margin: 30px auto; font-family: Arial, sans-serif; }
+    .resur-wrap h1 { font-family: moonGetHeavy, Arial; color: #ff7e00; text-align: center; font-size: 28px; letter-spacing: 1px; margin: 0 0 5px; }
+    .resur-subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 24px; }
+    .resur-info-box { background: #111827; border: 1px solid #1d4ed8; border-radius: 8px; padding: 14px 18px; margin-bottom: 22px; font-size: 13px; color: #9ca3af; line-height: 1.9; }
+    .resur-info-box strong { color: #d1d5db; }
+    .resur-alert { padding: 13px 17px; border-radius: 7px; margin-bottom: 20px; font-size: 14px; }
+    .resur-alert-err { background: #450a0a; border: 1px solid #991b1b; color: #fca5a5; }
+    .resur-alert-ok  { background: #052e16; border: 1px solid #166534; color: #86efac; }
+    .resur-form label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; color: #9ca3af; }
+    .resur-form input[type=text],
+    .resur-form input[type=number],
+    .resur-form select {
+        width: 100%; padding: 9px 13px; background: #111827; border: 1px solid #374151;
+        border-radius: 6px; color: #f9fafb; font-size: 14px; margin-bottom: 16px; box-sizing: border-box;
+    }
+    .resur-row { display: flex; gap: 18px; }
+    .resur-col { flex: 1; }
+    .resur-btn-calc    { background: #ea580c; color: white; padding: 11px 32px; border: none; border-radius: 7px; font-size: 15px; cursor: pointer; font-family: moonGetHeavy, Arial; }
+    .resur-btn-confirm { background: #991b1b; color: white; padding: 14px 50px; border: none; border-radius: 8px; font-family: moonGetHeavy, Arial; font-size: 18px; cursor: pointer; }
+    .resur-preview { background: #111827; border: 2px solid #ea580c; border-radius: 12px; padding: 24px; margin-top: 26px; }
+    .resur-preview-title { color: #fb923c; font-family: moonGetHeavy, Arial; margin: 0 0 12px; font-size: 19px; }
+    .resur-preview-meta { display: flex; gap: 30px; margin-bottom: 14px; font-size: 14px; flex-wrap: wrap; }
+    .resur-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .resur-th { background: #ea580c; color: white; padding: 9px 11px; font-family: moonGetHeavy, Arial; font-size: 12px; text-align: left; }
+    .resur-td { padding: 8px 11px; border-bottom: 1px solid #1f2937; }
+    .resur-table tbody tr:nth-child(even) .resur-td { background: rgba(255,255,255,0.025); }
+    .resur-num  { text-align: right; font-variant-numeric: tabular-nums; }
+    .resur-gain { color: #4ade80; font-weight: bold; }
+    .resur-dim  { color: #6b7280; }
+    .resur-bold { font-weight: bold; color: #f9fafb; }
+    .resur-note-col    { font-family: Arial; font-weight: normal; color: #6b7280; margin-left: 4px; font-size: 11px; }
+    .resur-note-bottom { font-size: 12px; color: #6b7280; margin-top: 12px; font-style: italic; line-height: 1.6; }
+    </style>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+
+    <div class="resur-wrap">
+        <h1>REENCARNACIONES</h1>
+        <div class="resur-subtitle">Sistema de herencia de personajes &middot; Solo staff</div>
+
+        {$resur_alert}
+
+        <div class="resur-info-box">
+            <strong>Porcentajes de herencia:</strong><br>
+            Muerte Torpe: <strong>20%</strong> &nbsp;&middot;&nbsp;
+            Muerte Normal: <strong>30%</strong> &nbsp;&middot;&nbsp;
+            Muerte Respetable: <strong>50%</strong> &nbsp;&middot;&nbsp;
+            Muerte Épica: <strong>60%</strong> &nbsp;&middot;&nbsp;
+            Muerte Legendaria: <strong>75%</strong><br>
+            <small>
+                Nikas y Puntos de Oficio: (valor actual + gastados en mejoras) &times; %. &nbsp;
+                Berries, Kuros, Exp y Reputación: valor actual &times; %. &nbsp;
+                Objetos, Akuma no Mi y Hakis <strong>no</strong> se transfieren.
+            </small>
+        </div>
+
+        <form method="POST" class="resur-form">
+            <input type="hidden" name="accion" value="calcular">
+            <div class="resur-row">
+                <div class="resur-col">
+                    <label>UID del personaje fallecido / retirado</label>
+                    <input type="number" name="fid_old" value="{$resur_fid_old}" min="1" required placeholder="ej: 42">
+                </div>
+                <div class="resur-col">
+                    <label>UID del nuevo personaje (heredero)</label>
+                    <input type="number" name="fid_new" value="{$resur_fid_new}" min="1" required placeholder="ej: 99">
+                </div>
+            </div>
+            <div class="resur-row">
+                <div class="resur-col">
+                    <label>Tipo de muerte</label>
+                    <select name="tipo" required>
+                        {$resur_options_tipo}
+                    </select>
+                </div>
+                <div class="resur-col">
+                    <label>Enlace al tema de muerte / retiro (opcional)</label>
+                    <input type="text" name="link_muerte" value="{$resur_link_muerte}" placeholder="https://...">
+                </div>
+            </div>
+            <button type="submit" class="resur-btn-calc">CALCULAR HERENCIA</button>
+        </form>
+
+        {$resur_preview}
+
+    </div>
+
+    {$footer}
+</body>
+
+</html>

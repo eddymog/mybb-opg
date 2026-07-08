@@ -1,0 +1,565 @@
+<html>
+    <head>
+        <style>
+            /* Animaciones CSS */
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            
+            @keyframes glow {
+                0% { box-shadow: 0 0 5px #ca25fd; }
+                50% { box-shadow: 0 0 20px #ca25fd, 0 0 30px #ca25fd; }
+                100% { box-shadow: 0 0 5px #ca25fd; }
+            }
+            
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            @keyframes progressFill {
+                from { width: 0%; }
+                to { width: 100%; }
+            }
+            
+            /* Estilos principales */
+            .rewards-container {
+                border-radius: 20px;
+                padding: 0px;
+                margin: 20px auto;
+                animation: fadeIn 1s ease-in-out;
+            }
+            
+            .rewards-header {
+                text-align: center;
+                margin-bottom: 30px;
+                animation: slideInUp 0.8s ease-out;
+            }
+            
+            .rewards-header img {
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            }
+            
+            /* Barra de progreso moderna */
+            .progress-bar-container {
+                border-radius: 50px;
+                padding: 20px;
+                margin: 30px 0;
+                animation: slideInUp 1s ease-out 0.2s both;
+            }
+            
+            .progress-track {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                position: relative;
+                margin: 0 20px;
+            }
+            
+            .progress-line {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                right: 0;
+                height: 8px;
+                background: linear-gradient(90deg, #333534 0%, #ca25fd 100%);
+                border-radius: 4px;
+                transform: translateY(-50%);
+                z-index: 1;
+                animation: progressFill 2s ease-in-out 0.5s both;
+            }
+            
+            .milestone {
+                position: relative;
+                z-index: 2;
+                text-align: center;
+                transition: all 0.3s ease;
+            }
+            
+            .milestone-circle {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: moonGetHeavy;
+                font-size: 14px;
+                color: white;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                border: 3px solid transparent;
+                background-clip: padding-box;
+                cursor: pointer;
+                transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+            
+            .milestone-circle.completed {
+                background: linear-gradient(135deg, #ca25fd, #9b1fd4);
+                animation: pulse 2s infinite;
+            }
+            
+            .milestone-circle.current {
+                background: linear-gradient(135deg, #ffd700, #ff8c00);
+                border-color: #ca25fd;
+                animation: glow 2s infinite;
+                transform: scale(1.2);
+            }
+            
+            .milestone-circle.locked {
+                background: #363437;
+                border-color: #555;
+            }
+            
+            .milestone:hover .milestone-circle {
+                transform: scale(1.1);
+            }
+            
+            .milestone:hover .milestone-circle.current {
+                transform: scale(1.3);
+            }
+            
+            /* Tarjetas de información */
+            .info-card {
+                background: rgba(255,255,255,0.95);
+                border-radius: 20px;
+                padding: 25px;
+                text-align: center;
+                font-size: medium;
+                margin: 20px 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                border: 1px solid rgba(255,255,255,0.3);
+                backdrop-filter: blur(15px);
+                transition: all 0.3s ease;
+                animation: slideInUp 1.2s ease-out 0.4s both;
+            }
+            
+            .info-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            }
+            
+            /* Sección principal */
+            .main-content {
+                display: flex;
+                gap: 30px;
+                margin: 30px 0;
+                animation: slideInUp 1.4s ease-out 0.6s both;
+            }
+            
+            .reward-display {
+                flex: 1;
+                text-align: center;
+            }
+            
+            .reward-image-container {
+                position: relative;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+            
+            .reward-image-container img {
+                border-radius: 15px;
+                transition: all 0.3s ease;
+                filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            }
+            
+            .reward-number {
+                position: absolute;
+                font-size: 42px;
+                font-family: moonGetHeavy;
+                color: #2c3e50;
+                text-shadow: 2px 2px 4px rgba(255,255,255,0.8);
+                font-weight: 900;
+                animation: pulse 3s infinite;
+            }
+            
+            .reward-title {
+                background: linear-gradient(135deg, #8b4aee, #6a3ad4);
+                color: white;
+                padding: 15px 30px;
+                border-radius: 25px;
+                margin-top: -21px;
+                font-family: moonGetHeavy;
+                font-size: 24px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                border: 3px solid rgba(255,255,255,0.2);
+                box-shadow: 0 8px 25px rgba(139,74,238,0.4);
+                transition: all 0.3s ease;
+            }
+            
+            .reward-title:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 35px rgba(139,74,238,0.6);
+            }
+            
+            /* Centro de información */
+            .center-info {
+                flex: 2;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .next-reward-card {
+                background: linear-gradient(135deg, #8c4aec, #6a3ad4);
+                border-radius: 20px;
+                overflow: hidden;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(140,74,236,0.3);
+                transition: all 0.3s ease;
+            }
+            
+            .next-reward-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 40px rgba(140,74,236,0.4);
+            }
+            
+            .next-reward-header {
+                background: rgba(255,255,255,0.1);
+                color: white;
+                padding: 15px 20px;
+                font-family: moonGetHeavy;
+                font-size: 18px;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                border-bottom: 2px solid rgba(255,255,255,0.2);
+            }
+            
+            .next-reward-content {
+                background: rgba(255,255,255,0.95);
+                color: #333;
+                text-align: center;
+                padding: 20px;
+                font-size: 20px;
+            }
+            
+            .animated-gif {
+                border-radius: 15px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                max-width: 100%;
+                height: auto;
+            }
+            
+            .animated-gif:hover {
+                box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            }
+            
+            /* Botón de reclamar */
+            .claim-button {
+                background: linear-gradient(135deg, #00c851, #00a142);
+                color: white;
+                border: none;
+                padding: 20px 40px;
+                font-size: 24px;
+                font-family: moonGetHeavy;
+                border-radius: 50px;
+                cursor: pointer;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+                box-shadow: 0 10px 30px rgba(0,200,81,0.3);
+                transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                animation: pulse 2s infinite;
+            }
+            
+            .claim-button:hover {
+                transform: translateY(-3px) scale(1.05);
+                box-shadow: 0 15px 40px rgba(0,200,81,0.5);
+                animation: none;
+            }
+            
+            .claim-button:active {
+                transform: translateY(-1px) scale(1.02);
+            }
+            
+            /* Lista de recompensas */
+            .rewards-list {
+                border-radius: 20px;
+                padding: 25px;
+                margin-top: 30px;
+                animation: slideInUp 1.6s ease-out 0.8s both;
+            }
+            
+            .rewards-list-title {
+                font-family: moonGetHeavy;
+                font-size: 18px;
+                color: #333;
+                text-align: center;
+                margin-bottom: 20px;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            }
+            
+            .reward-item {
+                background: linear-gradient(135deg, #f8f9ff, #e8eeff);
+                margin: 10px 0;
+                padding: 15px;
+                text-align: center;
+                font-size: 20px;
+                border-radius: 12px;
+                border-left: 4px solid #8b4aee;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            }
+            
+            .reward-item:hover {
+                transform: translateX(5px);
+                box-shadow: 0 8px 25px rgba(139,74,238,0.15);
+            }
+            
+            /* Responsividad */
+            @media (max-width: 768px) {
+                .main-content {
+                    flex-direction: column;
+                    gap: 20px;
+                }
+                
+                .progress-track {
+                    flex-wrap: wrap;
+                    gap: 10px;
+                }
+                
+                .milestone-circle {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 12px;
+                }
+                
+                .reward-number {
+                    font-size: 28px;
+                }
+                
+                .reward-title {
+                    font-size: 20px;
+                    padding: 12px 20px;
+                }
+            }
+            
+            /* Efectos de hover para elementos interactivos */
+            .interactive:hover {
+                cursor: pointer;
+                transform: translateY(-2px);
+            }
+        </style>
+        <title>Recompensas</title>
+        {$headerinclude}
+    </head>
+
+    <body>
+        {$header}
+        <div class="indice">
+            <div class="mainBackground">
+                <div class="secondBackground">
+                    <div class="thirdBackground">
+                        
+                        <div class="rewards-container">
+                            <div class="rewards-header">
+                                <img src="/images/op/misc/BannerRecomPost_One_Piece_Gaiden_Foro_Rol.png" />
+                            </div>
+                            
+                            <div class="progress-bar-container">
+                                <div class="progress-track">
+                                    <div class="progress-line"></div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle current" id="racha_actual">15</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha5">5</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha10">10</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha15">15</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha20">20</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha25">25</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha30">30</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha35">35</div>
+                                    </div>
+                                    <div class="milestone">
+                                        <div class="milestone-circle" id="racha40">40</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-card">
+                                <if $num_posts == 0 && $days_count == '0' then>
+                                    Llevas 0 posts en las últimas 48 horas, para cobrar tu recompensa debes realizar 1 post como mínimo. Vuelve aquí cuando lo tengas para cobrar tu recompensa. <br><br>Dale, un post aunque sea... 
+                                </if>
+                                <if $num_posts == 0 && $days_count >= '1' then>
+                                    ¡Lograste reclamar la recompensa! <br>...Pero ahora vuelves a tener 0 posts desde la última vez que reclamaste. Está feo, la verdad... A veces la vida tiene estas cosas... <br><br>Tienes <span id="mytiempo" style="font-weight: 800; color: #e74c3c;"></span> para hacer otro post y mantener la recompensa, eso o se reiniciará el contador de recompensas a 0. No sé, tú sabrás.
+                                </if>
+                                <if $num_posts >= 1 && $should_accept then>
+                                    Llevas {$num_posts} posts en las últimas 48 horas, ¡Nada mal, oye! ¡Corre a reclamar tu recompensa! <br><br>Pero cuidadito, tienes <span id="mytiempo" style="font-weight: 800; color: #e74c3c;"></span> para reclamar tu recompensa, o el contador se reiniciará otra vez desde 0. Ayayayayay ¡Que mal! <br><br>
+                                </if>
+                                <if $num_posts >= 1 && !$should_accept then>
+                                    Llevas {$num_posts} posts en las últimas 48 horas. ¡Oda estaría orgulloso de ti! <br><br>... Sin embargo, debes esperar <span id="mytiempo" style="font-weight: 800; color: #f39c12;"></span> para reclamar tu recompensa. Así que toca practicar un poco esa paciencia tuya, me lo agradecerás con el tiempo. Espero que un día te digan: "¡Qué paciencia tienes!" Y sonrías recordando OPG.
+                                </if>
+                            </div>
+                            
+                            <div class="main-content">
+                                <div class="reward-display">
+                                    <div class="reward-image-container">
+                                        <img src="/images/op/misc/RecompensaActual_One_Piece_Gaiden_Foro_Rol.png" />
+                                        <span class="reward-number" style="top: 134px; left: 27%; transform: translateX(-50%) rotate(353deg);">{$days_count}</span>
+                                    </div>
+                                    <div class="reward-title">RACHA ACTUAL</div>
+                                </div>
+                                
+                                <div class="center-info">
+                                    <div class="next-reward-card">
+                                        <div class="next-reward-header">PRÓXIMA RECOMPENSA</div>
+                                        <div class="next-reward-content">{$recompensa_items}</div>
+                                    </div>
+                                    
+                                    <div style="text-align: center;">
+                                        <if $num_posts == 0 && $days_count == '0' then>
+                                            <img class="animated-gif" src="/images/op/misc/GifPost1_One_Piece_Foro_Rol.gif" />
+                                        </if>
+                                        <if $num_posts == 0 && $days_count >= '1' then>
+                                            <img class="animated-gif" src="/images/op/misc/GifPost3_One_Piece_Foro_Rol.gif" />
+                                        </if>
+                                        <if $num_posts >= 1 && $should_accept then>
+                                            <img class="animated-gif" src="/images/op/misc/GifPost5_One_Piece_Foro_Rol.gif" />
+                                        </if>
+                                        <if $num_posts >= 1 && !$should_accept then>
+                                            <img class="animated-gif" src="/images/op/misc/GifPost4_One_Piece_Foro_Rol.gif" />
+                                        </if>
+                                    </div>
+                                </div>
+                                
+                                <div class="reward-display">
+                                    <div class="reward-image-container">
+                                        <img src="/images/op/misc/RecompensaMaxima_One_Piece_Gaiden_Foro_Rol.png" />
+                                        <span class="reward-number" style="top: 128px; left: 31%; transform: translateX(-50%) rotate(357deg);">{$recompensas_racha_maxima}</span>
+                                    </div>
+                                    <div class="reward-title">RACHA MÁXIMA</div>
+                                </div>
+                            </div>
+                            
+                            <if $num_posts >= 1 && $should_accept then>
+                                <div style="text-align: center; margin-top: 30px;">
+                                    <form style="display: none" id="recform" method="post" action="/op/recompensas.php">
+                                        <input type="text" id="rec_ready" name="rec_ready" value="false">
+                                    </form>
+                                    <button class="claim-button" onclick="javascript: document.getElementById('rec_ready').value = 'true'; document.getElementById('recform').submit();">
+                                        ¡RECLAMA TU RECOMPENSA!
+                                    </button>
+                                </div>
+                            </if>
+                            
+                            <div class="rewards-list">
+                                <div class="rewards-list-title">Recompensas por Rachas de Temporada</div>
+                                <div class="reward-item"><strong>5 días:</strong> 1 Cofre Decente y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>10 días:</strong> 1 Cofre Gigante y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>15 días:</strong> 1 Cofre Cobrizo y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>20 días:</strong> 2 Cofres Cobrizos y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>25 días:</strong> 1 Cofre Argénteo y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>30 días:</strong> 2 Cofres Argénteos y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>35 días:</strong> 1 Cofre Áureo y 1 Cofre Básico</div>
+                                <div class="reward-item"><strong>40 días:</strong> 2 Cofres Áureos y 1 Cofre Básico</div>
+								
+								<!--<if $mybb->user['uid'] == '304' then>
+						<form method="post" action="/op/recompensas.php" style="text-align:center; margin:20px 0;">
+						  <input type="hidden" name="force_manual" value="1">
+						  <input type="hidden" name="my_post_key" value="{$mybb->post_code}">
+						  <button type="submit" class="claim-button">Forzar recompensa (manual)</button>
+						</form>
+						</if>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+        {$reload_script}
+        {$footer}
+        
+        <script>
+            let time_left = '{$time_left}';
+            let num_posts = '{$num_posts}';
+            let should_accept = '{$should_accept}';
+            let days_count = '{$days_count}';
+			let is_working_recompensa_query = '{$is_working_recompensa_query}';
+            let days_season_count = {$recompensas_temporada_maxima};
+            
+            const one_minute = 60;
+            const one_hour = one_minute * 60;
+            const one_day = one_hour * 24;
+            let timer;
+
+            function calcularSegundos() {
+                var days = Math.floor(time_left / one_day);
+                var hours = Math.floor((time_left % one_day) / one_hour);
+                var minutes = Math.floor((time_left % one_hour) / one_minute);
+                var seconds = Math.floor((time_left % one_minute));
+
+                let timeString = '';
+                if (days >= 1) {
+                    timeString += days + ' día' + (days > 1 ? 's' : '') + ', ';
+                }
+                timeString += hours + ' hora' + (hours !== 1 ? 's' : '') + ', ';
+                timeString += minutes + ' minuto' + (minutes !== 1 ? 's' : '') + ' y ';
+                timeString += seconds + ' segundo' + (seconds !== 1 ? 's' : '');
+
+                document.getElementById('mytiempo').innerHTML = timeString;
+                time_left = time_left - 1;
+                
+                if (time_left < 0) {
+                    clearInterval(timer);
+                    location.reload();
+                    return;
+                }
+            }
+            
+            if (document.getElementById('mytiempo')) {
+                document.getElementById('mytiempo').innerHTML = '2 días, 0 horas, 0 minutos y 0 segundos';
+                timer = setInterval(calcularSegundos, 1000);
+            }
+            
+            // Configurar barra de progreso
+            $('#racha_actual').html(days_season_count);
+            
+            // Aplicar estados a los milestone
+            const milestones = [5, 10, 15, 20, 25, 30, 35, 40];
+            milestones.forEach(milestone => {
+                const element = $('#racha' + milestone);
+                if (days_season_count >= milestone) {
+                    element.addClass('completed');
+                } else {
+                    element.addClass('locked');
+                }
+            });
+            
+            // Añadir efectos hover a elementos interactivos
+            $('.milestone-circle, .claim-button, .reward-item').addClass('interactive');
+            
+            // Efecto de partículas en el botón de reclamar (opcional)
+            if ($('.claim-button').length) {
+                $('.claim-button').on('mouseenter', function() {
+                    $(this).css('animation', 'pulse 0.5s ease-in-out');
+                }).on('mouseleave', function() {
+                    $(this).css('animation', 'pulse 2s infinite');
+                });
+            }
+        </script>
+    </body>
+</html>

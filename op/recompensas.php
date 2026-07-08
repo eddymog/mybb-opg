@@ -19,6 +19,7 @@ $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
 $recompensa_accepted = $_POST["rec_ready"];
 $reload_js = "<script>window.location.href = window.location.href;</script>";
+$reload_script = '';
 
 if ($g_ficha['muerto'] == '1') {
     $mensaje_redireccion = "Estás muerto, no puedes acceder a esta página.";
@@ -27,6 +28,17 @@ if ($g_ficha['muerto'] == '1') {
     return;
 }
 
+
+// Usergroups con mínimo 1 post garantizado en la racha de recompensas.
+// Añade o elimina IDs de grupo según necesites.
+$recompensas_min_post_grupos = [
+    3,   // Super Moderadores
+    4,   // Administradores
+    6,   // Moderadores
+    14,  // Staff
+    16,  // Programadores
+    15,  // Narradores
+];
 
 $should_delete_recompensa = false;
 $ficha_existe = false;
@@ -39,6 +51,14 @@ $last_two_days = time() - $two_days;
 $time_to_accept = 0;
 $days_count = 0;
 $days_season_count = 0;
+
+function tiene_min_post_garantizado() {
+    global $mybb, $recompensas_min_post_grupos;
+    $user_group   = (int)$mybb->user['usergroup'];
+    $extra_groups = array_filter(array_map('intval', explode(',', $mybb->user['additionalgroups'])));
+    $all_groups   = array_merge([$user_group], $extra_groups);
+    return count(array_intersect($all_groups, $recompensas_min_post_grupos)) > 0;
+}
 
 function darObjeto($objeto_id) {
     global $db, $uid, $username;
@@ -336,7 +356,7 @@ if ($recompensa_accepted == 'true' && $should_accept) {
     } else if ($days_season_count == 40) {
         darObjeto('CFR006'); darObjeto('CFR006'); darObjeto('CFR001');
     }
-
+    
     $db->query("
         DELETE FROM mybb_op_recompensas_usuarios WHERE uid='$uid'
     ");
@@ -354,9 +374,9 @@ if ($recompensa_accepted == 'true' && $should_accept) {
     eval('$log_var = $complete_log;');
     eval('$reload_script = $reload_js;');
 } else if ($recompensa_accepted == 'true') {
+    // Intento fallido (aún no es hora de reclamar). No recargar para evitar loops.
     // $complete_log = "Hola, tramposill@. Ser pirata off-rol no es lo mismo que ser pirata on-rol. ¡Cuidadito que te coge la Cipher Pol, eh!";
     eval('$log_var = $complete_log;');
-    eval('$reload_script = $reload_js;');
 }
 
 /* Check if ficha exists */
@@ -405,29 +425,7 @@ if ($ficha_existe == true) {
 
     $num_posts = count($dates_arr);
 
-    if ((
-        $uid == '279' 	|| 	// Dark E. Satou
-        $uid == '871' 	|| 	// Giselle D. Woldwood
-        $uid == '304' 	|| 	// Od D. Ysseus
-        $uid == '276' 	|| 	// Sephiroth
-        $uid == '941' 	||	// Dante
-        $uid == '23' 	|| 	// Juuken
-        $uid == '69' 	|| 	// Ubben
-        $uid == '146' 	||	// Teruyoshi
-        $uid == '347'	||	// Aranagi
-        $uid == '329'	||	// Darrow
-        $uid == '123'	||	// Gretta
-        $uid == '7'	    ||	// Lance
-        $uid == '930'	||  // Vulkan
-        $uid == '352'   ||  // Hazel
-        $uid == '870'   ||  // Ikaro (Sirius)
-        $uid == '932'   ||  // Vox (Sirius)
-        $uid == '310'	||	// Prald
-        $uid == '897'   ||  // Noah
-        $uid == '881'   ||  // Hazel 2
-        $uid == '10'	  	// Dragonel
-        ) && $num_posts == 0) 
-    {
+    if (tiene_min_post_garantizado() && $num_posts == 0) {
         $num_posts = 1;
     }
 
@@ -461,29 +459,7 @@ if ($ficha_existe == true) {
         }
 
         $num_posts = count($dates_arr);
-        if ((
-            $uid == '279' 	|| 	// Dark E. Satou
-            $uid == '871' 	|| 	// Giselle D. Woldwood
-            $uid == '304' 	|| 	// Od D. Ysseus
-            $uid == '276' 	|| 	// Sephiroth
-            $uid == '941' 	||	// Dante
-            $uid == '23' 	|| 	// Juuken
-            $uid == '69' 	|| 	// Ubben
-            $uid == '146' 	||	// Teruyoshi
-            $uid == '347'	||	// Aranagi
-            $uid == '329'	||	// Darrow
-            $uid == '123'	||	// Gretta
-            $uid == '7'	    ||	// Lance
-            $uid == '930'	||  // Vulkan
-            $uid == '352'   ||  // Hazel
-            $uid == '870'   ||  // Ikaro (Sirius)
-            $uid == '932'   ||  // Vox (Sirius)
-            $uid == '310'	||	// Prald
-            $uid == '897'   ||  // Noah
-            $uid == '881'   ||  // Hazel 2
-            $uid == '10'	  	// Dragonel
-            ) && $num_posts == 0) 
-        {
+        if (tiene_min_post_garantizado() && $num_posts == 0) {
             $num_posts = 1;
         }
 
@@ -493,7 +469,9 @@ if ($ficha_existe == true) {
         $time_left = $two_days + $time_to_accept;
     } else if ($num_posts >= 1 && $should_accept) {
         // if no rewards yet, time left is 48 hours before second to last post
-        $time_left = $dates_arr[$num_posts - 1];
+        // $dates_arr puede estar vacío si $num_posts fue forzado a 1 por grupo privilegiado.
+        // En ese caso usamos $two_days para que el countdown no llegue a 0 inmediatamente.
+        $time_left = !empty($dates_arr) ? $dates_arr[count($dates_arr) - 1] : $two_days;
     } else if ($num_posts >= 1 && !$should_accept) {
         // reward has been claimed, and it has to wait 48 hours after it was claimed
         $time_left = $time_to_accept;

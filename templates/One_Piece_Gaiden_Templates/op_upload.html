@@ -1,0 +1,21 @@
+<html>
+
+<head>
+    <title>Upload</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+    <div class="fondo-blanco" style="text-align: center;">
+		<form action="/op/staff/upload.php" method="post" enctype="multipart/form-data">
+		  Selecciona imagen a subir:
+		  <input type="file" name="fileToUpload" id="fileToUpload">
+		  <input type="submit" value="Upload Image" name="submit">
+		</form>
+    </div>
+
+    {$footer}
+</body>
+
+</html>

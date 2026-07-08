@@ -1,0 +1,195 @@
+<html>
+
+<head>
+  <title>Personaje - {$ficha['nombre']}</title>
+  {$headerinclude}
+  {$op_ficha_css}
+</head>
+
+<body>
+  {$header}
+	<div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<if $ficha['aprobada_por'] == 'sin_aprobar' then>
+						<div style=" border-radius: 3px;color: white;font-family: InterRegular;text-align: center; background-color: #b71010; padding: 10px; font-size: 16px; border: 4px dotted black; ">Esta ficha está todavía en revisión y no ha sido aprobada.</div><br>
+					</if>
+					<div style=" display: flex; flex-direction: row; ">
+						<div class='pestana pestana-active' id='pestana_portada' onclick="clickPestana('portada');"><span class="pestana-texto">PORTADA</span></div>
+						<div class='pestana' id='pestana_biografia' onclick="clickPestana('biografia');"><span class="pestana-texto">BIOGRAFÍA</span></div>
+						<div class='pestana' id='pestana_belico' onclick="clickPestana('belico');"><span class="pestana-texto">BÉLICO</span></div>
+						<div class='pestana' id='pestana_tecnicas' onclick="clickPestana('tecnicass');"><span class="pestana-texto">TÉCNICAS</span></div>
+						<div class='pestana' id='pestana_inventario' onclick="clickPestana('inventario');" style=" width: 196px; "><span class="pestana-texto">INVENTARIO</span></div>
+					</div>
+					<div class="fondo-ficha">
+						<div style=" display: flex; flex-direction: column; ">
+							<div style=" margin-top: 40px; text-align: center; ">
+								<img src="/images/op/ficha/MarcoNombre_One_Piece_Gaiden_Foro_Rol.png" />
+								<div style=" margin-top: -112px; ">
+									<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;text-shadow: 2px 2px 0px black;color: #ff7e00;font-size: 50px;"><a class="nombre" href="/member.php?action=profile&uid={$ficha['fid']}">{$ficha['nombre']}</a></span>
+								</div>
+								<div style=" margin-top: 3px; ">
+									<span onclick="openApodoModal()" class="apodo" style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: {$faccionColor};font-size: 25px;">{$ficha['apodo']}</span>
+								</div>
+							</div>
+
+						{$op_ficha_portada}
+						{$op_ficha_biografia}
+						{$op_ficha_belico}
+						{$op_ficha_tecnicas}
+						{$op_ficha_tecnicas2}
+						{$op_ficha_inventario}
+						{$op_ficha_reset_panel}
+						<if $ficha['secret1'] == '1' && (($g_is_staff || $is_owner) || $ficha_secret1['es_invisible1'] == 1) then>{$op_ficha_secreto}</if>
+
+						<div style="position: absolute; bottom: -50px; right: 270px; z-index: 10; cursor: pointer;" onclick="openCronologiaModal()">
+							<img src="https://cdn-icons-png.flaticon.com/512/1067/1067374.png" style="width: 45px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
+						</div>
+						<div style="position: absolute; bottom: -50px; right: 15px; z-index: 10; cursor: pointer;" onclick="openBandaSonoraModal()">
+							<img src="/images/op/uploads/BandaSonora_One_Piece_Gaiden_Foro_Rol.webp" style="width: 250px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
+						</div>
+					</div>
+				</div>
+					<if $ficha['secret1'] == '1' && (($g_is_staff || $is_owner) || $ficha_secret1['es_invisible1'] == 1) then><div style=" display: flex; flex-direction: row; ">
+						<div class='pestana' id='pestana_secreto1' onclick="clickPestana('secreto1');" style="border-end-start-radius: 50px; border-end-end-radius: 50px;border-start-start-radius: 0px; border-start-end-radius: 0px;"><span class="pestana-texto">TOP SECRET</span></div>
+					</div></if>
+				<br><br>
+				<if $g_is_staff then><a href="/op/staff/ficha_atributos.php?fid={$ficha['fid']}">Cambiar datos de la ficha</a> | <a href="/op/staff/ficha_recalcular_pasivas.php?fid={$ficha['fid']}">Recalcular pasivas</a></if>
+
+				<!-- The Modal -->
+				<div id="myModal" class="modal">
+					<div class="modal-content" style="background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px;">
+						<div class="modal-body" style="display: flex; flex-direction: column;"></div>
+					</div>
+				</div>
+
+				<!-- Cronologia Modal -->
+				<div id="cronologiaModal" class="modal">
+					<div class="modal-content" style="background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 245px; width: 400px; max-width: 90vw;">
+						<div class="modal-header" style="padding: 10px 15px; text-align: center; border-bottom: 2px solid #ffe59b; position: relative;">
+							<h3 style="color: #8B4513; font-family: 'moonGetHeavy'; margin: 0; font-size: 18px;">CRONOLOGÍA</h3>
+							<span class="close" onclick="closeCronologiaModal()" style="position: absolute; top: 5px; right: 10px; font-size: 24px; font-weight: bold; cursor: pointer; color: #8B4513;">&times;</span>
+						</div>
+						<div class="modal-body" style="padding: 15px;">
+							<div id="cronologiaContent"></div>
+							<div id="cronologiaActions" style="margin-top: 15px;"></div>
+						</div>
+					</div>
+				</div>
+
+				<style>
+				.modal { display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+				.modal-content { position: relative; z-index: 100000; margin: 10% auto; max-width: 90%; }
+				[onclick*="openModal"] { cursor: pointer; }
+				</style>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+let hasAkuma        = !!"{$ficha['akuma']}";
+let hasFullHaki     = !!"{$has_full_haki}";
+let faccionColor    = '{$faccionColor}';
+let limite_nivel    = {$ficha['limite_nivel']};
+let faccion         = `{$faccion}`;
+let berries         = {$ficha['berries']};
+let virtudes_array_json = {$virtudes_array_json};
+let virtudes_json       = {$virtudes_json};
+let defectos_array_json = {$defectos_array_json};
+let defectos_json       = {$defectos_json};
+let npcs_array_json     = {$npcs_array_json};
+let npcs_json           = {$npcs_json};
+let mascotas_array_json = {$mascotas_array_json};
+let mascotas_json       = {$mascotas_json};
+let puntosExp       = {$usuario['newpoints']};
+let nivel           = {$ficha['nivel']};
+let kenbun          = {$ficha['kenbun']};
+let buso            = {$ficha['buso']};
+let hao             = {$ficha['hao']};
+let nivelPorcentaje = '{$nivelPorcentaje}';
+let tec_aprendidas_json = {$tec_aprendidas_json};
+const belica1  = "{$ficha['belica1']}";
+const belica2  = "{$ficha['belica2']}";
+const belica3  = "{$ficha['belica3']}";
+const belica4  = "{$ficha['belica4']}";
+const belica5  = "{$ficha['belica5']}";
+const belica6  = "{$ficha['belica6']}";
+const belica7  = "{$ficha['belica7']}";
+const belica8  = "{$ficha['belica8']}";
+const belica9  = "{$ficha['belica9']}";
+const belica10 = "{$ficha['belica10']}";
+const belica11 = "{$ficha['belica11']}";
+const belica12 = "{$ficha['belica12']}";
+const oficio1  = "{$ficha['oficio1']}";
+const oficio2  = "{$ficha['oficio2']}";
+let estilo1 = "{$ficha['estilo1']}";
+let estilo2 = "{$ficha['estilo2']}";
+let estilo3 = "{$ficha['estilo3']}";
+let estilo4 = "{$ficha['estilo4']}";
+const altura    = {$ficha['altura']};
+let nikas       = {$ficha['nika']};
+let raza        = "{$ficha['raza']}";
+let belicas     = {$ficha['belicas']};
+let oficios     = {$ficha['oficios']};
+let elementos   = {$ficha['elementos']};
+let has_sin_oficio  = !!'{$has_sin_oficio}';
+let has_estudioso   = !!'{$has_estudioso}';
+let has_polivalente = !!'{$has_polivalente}';
+let has_erudito     = !!'{$has_erudito}';
+const puntos_oficio = {$ficha['puntos_oficio']};
+let subraza1    = "{$ficha['raza']}";
+let borderColor = "{$borderColor};"
+let apariencia1  = `{$apariencia}`;
+let apariencia2  = `{$ficha['apariencia']}`;
+let personalidad1 = `{$personalidad}`;
+let personalidad2 = `{$ficha['personalidad']}`;
+let extras1  = `{$extra}`;
+let extras2  = `{$ficha['extra']}`;
+let historia1 = `{$historia}`;
+let historia2 = `{$ficha['historia']}`;
+let is_owner    = !!'{$is_owner}';
+let g_is_staff  = !!'{$g_is_staff}';
+let banda_sonora   = `{$ficha['banda_sonora']}`;
+let apodo          = `{$ficha['apodo']}`;
+let query_uid      = `{$query_uid}`;
+let akumaNombre    = `{$ficha['akuma']}`;
+let akumaSubnombre = `{$ficha['akuma_subnombre']}`;
+let akumaTier      = `{$akuma['tier']}`;
+let akumaCategoria = `{$akuma['categoria']}`;
+let akumaImagen    = `{$akuma_imagen}`;
+let akumaDescripcion = `{$akuma['descripcion']}`;
+let akumaDominios  = `{$akuma['dominios']}`;
+let akumaPasivas   = `{$akuma['pasivas']}`;
+let personaje_nombre = `{$ficha['nombre']}`;
+let peso    = `{$ficha['peso']}`;
+let ranuras = `{$ficha['ranuras']}`;
+let ficha_secret1     = {$ficha_secret1_json};
+let hasSecret1        = !!`{$ficha['secret1']}`;
+let equipamiento_espacio = `{$ficha['equipamiento_espacio']}`;
+let implantes         = `{$ficha['implantes']}`.split(',');
+let control_akuma     = {$ficha['dominio_akuma']} || 0;
+let historial_kuro          = JSON.parse(`{$historial_kuro_json}`);
+let historial_experiencia   = JSON.parse(`{$historial_experiencia_json}`);
+let historial_berries       = JSON.parse(`{$historial_berries_json}`);
+let historial_nikas         = JSON.parse(`{$historial_nikas_json}`);
+let historial_puntos_oficio = JSON.parse(`{$historial_puntos_oficio_json}`);
+let cronologia       = `{$ficha['cronologia']}`;
+let objetosEquipados = JSON.parse(`{$ficha['equipamiento']}`);
+var espaciosOcupados = 0;
+let pestana = `{$pestana}`;
+</script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/core.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/pestanas.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/tecnicas.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/belicas.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/oficios.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/inventario.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/modales.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/portada.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/init.js?v={$fileVersion}"></script>
+</body>
+{$footer}
+</html>

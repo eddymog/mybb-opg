@@ -829,6 +829,7 @@ function accountswitcher_profile()
     global $mybb, $db, $memprofile, $theme, $eas, $profile_attached, $lang, $user_sec_reason;
     global $as_profile_userbit, $as_profile_hidden, $attachedUser, $userUid, $masterUid, $templates;
     global $attachedPostUser, $userAvatar, $numattached, $templates, $attached_post_count, $masteraccount;
+    global $faccion_color;
 
     // Get the permission to view the list, super admins are always allowed
     if (isset($mybb->settings['aj_groupperm'])

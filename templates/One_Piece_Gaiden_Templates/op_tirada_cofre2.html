@@ -1,0 +1,745 @@
+<html>
+
+<head><title>Apertura cofres</title>
+  {$headerinclude}
+  <style>
+	  .akumaBanner {
+		  width: 100%;
+		  height: 75px;
+		  background-image: url('/images/op/uploads/TituloCofres_One_Piece_Gaiden_Foro_Rol.png');
+		  background-size: contain;
+		  margin-bottom: 20px;
+	  }
+	  
+	  .akumaTirBody {
+		  display: flex;
+		  flex-direction: row;
+		  gap: 25px;
+	  }
+
+	  
+	  .akumaTirIzquierda {
+		  display: flex;
+		  flex-direction: column;
+		  width: 50%;
+			gap:25px;
+	  }
+	  
+	  .akumaTirDerecha {
+		  width: 50%;
+	  }
+	  
+	  .testDraw {
+/* 		  background: linear-gradient(90deg, rgba(70,12,110,1) 0%, rgba(126,32,191,1) 50%, rgba(70,12,110,1) 100%);
+height: 5rem ; */
+		  background: rgba(70,12,110,1);
+/* 		  margin-bottom: 25px; */
+	  }
+
+	  .realDraw {
+/* 		  background: linear-gradient(90deg, rgba(57,56,56,1) 0%, rgba(101,102,102,1) 50%, rgba(57,56,56,1) 100%); */
+/* height: 5rem ; */
+/* 		  background: #71706f; */
+		  background: #d26500;
+	  }
+	  
+	  .blockedDraw {
+		  background: #71706f;
+	  }
+	  
+	  .realDraw:hover {
+		  background: #ff9b00;
+	  }
+	  
+	  .testDraw:hover {
+		  background: rgba(126,32,191,1);	  
+	  }
+	  
+	  .realDraw, .testDraw, .blockedDraw {
+/* 		  width: 450px; */
+   		  height: 30px;
+		  color: white;
+		  font-size: 1.5rem;
+		  text-align: center;
+		  display: flex;
+		  flex-direction: column;
+		  align-items: center;
+		  justify-content: center;
+		  border: 2px solid black;
+		  border-radius: 15px;
+		  filter: drop-shadow(0px 0px 4px black);
+		  transition: all 0.5s ease-out;
+		  cursor: pointer;
+		  font-family: 'moonGetHeavy';
+		  letter-spacing: 2px;
+/* 		  margin-bottom: 15px; */
+	  }
+	  
+	  .imageBox {
+		  height: 300px;
+		  background-color: black;
+		  border: 2px solid black;
+		  width: 480px;
+		  height: 270px;
+	  }
+
+	  .akumaTirTable {
+		  height: 150px;
+    	  width: 490px;
+	  }
+	  
+	  .tableHeader {
+		  background-color: #8f59f7;
+		  color: white;
+		  text-align: center;
+		  padding: 2px;
+		  border: 2px solid black;
+		  border-start-end-radius: 10px;
+  		  border-start-start-radius: 10px;
+		  font-family: moonGetHeavy;
+		  font-size: 16px;
+		  letter-spacing: 2px;
+		  text-shadow: 2px 2px 0px black;
+		  position: relative;
+	  }
+	  
+	  .tableContent {
+		  display: flex;
+		  gap:7px;
+		  padding: 15px;
+		  border-end-end-radius: 10px;
+		  border-end-start-radius: 10px;
+		  background-color: #d7b5ff;
+		  border: 2px solid black;
+    	  border-top: 0px;
+		  flex-direction: column;
+	  }
+	  
+	  .tableTotalTestDraw {
+			width: 175px;
+			height: 91px;
+			background-color: #8f59f7;
+			color: white;
+			border: 1px solid black;
+			box-sizing: border-box;
+		 	padding: 6px;
+	  }
+	  
+	  .tablerTierContent {
+		  display: flex;
+		  flex-wrap: wrap;
+		  gap: 5px;
+		  width: 439px;
+	  }
+	  
+	  .tierBox {
+		  background-color:#8e59f7;
+			height: 43px;
+			width: 67px;
+		  border: 1px solid black;
+		  box-sizing: border-box;
+		  padding: 2px;
+   		  color: white;
+	  }
+	  
+	  .tierBoxText1 {
+		text-align: center;
+			font-family: moonGetHeavy;
+			letter-spacing: 0px;
+			text-shadow: 1px 1px 0px black;
+			font-size: 9px;
+	  }
+	  
+	  .tierBoxText2 {
+		  text-align: center;
+		  font-family: moonGetHeavy;
+		  letter-spacing: 1px;
+		  text-shadow: 1px 1px 0px black;
+		  font-size: 17px;
+	  }
+	  
+	  .tierBoxAlt {
+		  background-color:#8e59f7;
+		height: 60px;
+			width: 172px;
+			border: 1px solid black;
+			box-sizing: border-box;
+			padding: 2px;
+			color: white;
+			margin-top: 15px;
+	  }
+	  
+	  .tierBoxTextAlt1 {
+		text-align: center;
+			font-family: moonGetHeavy;
+			letter-spacing: 1px;
+			text-shadow: 1px 1px 0px black;
+			font-size: 14px;
+	  }
+	  
+	  .tierBoxTextAlt2 {
+		  text-align: center;
+		  font-family: moonGetHeavy;
+		  letter-spacing: 1px;
+		  text-shadow: 1px 1px 0px black;
+		  font-size: 25px;
+	  }
+	  
+	  .filterBox {
+		  display:flex; 
+		  flex-direction: column;
+	  }
+	  
+	  .akumaTypeRow  {
+		  display: flex;
+		  flex-direction: row;
+		  border: 2px solid black;
+		  border-radius: 10px 10px 0px 0px;
+		  cursor: pointer;
+	  }
+	  
+	  .filterClass span {
+		  font-weight: bolder;
+		  color: white;
+		  text-transform: uppercase;
+		  display: inline-block;
+		  padding: 5px 10px;
+		  font-size: 14px;
+		  font-family: 'moonGetHeavy';
+	  }
+	  
+	  .categoriaBox {
+		flex: 1; /* Hace que cada caja ocupe el mismo espacio disponible */
+  		border-right: 2px solid black; /* Solo para visualización */
+		text-align: center;
+		background-color: #ff7b00;
+	  }
+	  
+	  .categoriaBox:last-child {
+		  border: none;
+		  border-radius: 0 10px 0 0; 
+	  }
+	  
+	  .categoriaBox:first-child {
+			border-radius: 10px 0 0 0; 
+	  }
+	  
+	  .categoriaBox:hover {
+		  background-color: #dc822a;
+		  cursor: pointer;
+	  }
+	  
+	  .box-active {
+		  background-color: #ffa600;
+	  }
+	  
+	  .resultado-total {
+		  color: red;
+	  }
+	  
+	  .resultado-nombre {
+		  width: 50%;
+		  font-size: 12px;
+		  font-family: 'moonGetHeavy';
+		  color: black;
+		  padding: 4px 7px;
+		  box-sizing: border-box;
+	  }
+	  
+	  .resultado-fruta {
+		width: 50%;
+		font-size: 12px;
+		font-family: 'moonGetHeavy';
+		color: #4b1aae;
+		padding: 4px 7px;
+		box-sizing: border-box;
+		text-shadow: 2px 2px 1px #f3ecff;
+		text-align: center;
+	  }
+	  
+	  
+	  .resultado-total:nth-child(odd) {
+		background: #ffe59b;
+	  }
+
+	  .resultado-total:nth-child(even) {
+		background: #ffeed2;
+	  }
+	  
+	  .boton-estadistica {
+		  display: inline;
+		  position: absolute;
+		  left: 464px;
+		  top: 3px;
+	      transition: all 0.2s ease-out;
+	      cursor: pointer;
+	  }
+	  
+	  .boton-estadistica:hover {
+		  filter: saturate(1.5);
+		  transform: 
+	  }
+	  
+	</style>
+	<style>
+/* 	.item-outer {
+			width: 120px; height: 147px; background-color: #ff8400; border-radius: 5px; box-sizing: border-box; border: 2px solid black; margin-top: 30px; margin-left: 15px;cursor: pointer;
+			transition: all 0.2s ease-out;
+		}
+		
+		.item-outer:hover {
+			background-color: #9664e0;
+		}
+		
+		.item-active {
+			background-color: #6842a0;
+		}
+		
+		.item-nombre {
+			color: white; font-family: moonGetHeavy; text-shadow: 1px 1px 1px black; text-align: center; margin-top: 6px;height: 40px;font-size: 13px;align-content: space-evenly;
+		}
+		
+		.item-price {
+			color: white; font-family: moonGetHeavy; text-shadow: 1px 1px 1px black; text-align: center; margin-top: 6px;
+		}
+		
+		.item-image {
+			width: 70px;
+			height: 70px;
+			text-align: center;
+			background: linear-gradient(0deg, #3c3c3c, #828282);
+			box-sizing: border-box;
+			border: 2px solid black;
+			margin: auto;
+		} */
+	
+	</style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<div class= "akumaBanner"></div>
+			<div class="akumaTirBody">
+					
+				<div class ="akumaTirIzquierda">
+					<div style="">
+<!-- 						<div onclick="tiradaCofre()" class="testDraw">
+							<strong>APERTURA DE COFRE</strong>
+							<span id="cofre_seleccionado" style=" font-size: 13px; ">¡Selecciona un cofre!</span>
+						</div> -->
+						
+						<div class="filterBox" style="">
+							<div class="akumaTypeRow" style=" background-color: #ff7e00; ">
+								<div class="filterClass" style=" background-color: #ff7e00; text-align: center; margin: auto; ">
+									<span>Cofres Disponibles</span>
+								</div>
+								
+							</div>
+							<div style="border: 2px solid black;height: 219px;box-sizing: border-box;border-top: 0px;background-color: #feedd1;border-bottom-left-radius: 10px;border-bottom-right-radius: 10px; padding: 5px 10px;">
+								<div id="cofres_inventario" style="flex-direction: row;display: flex;flex-wrap: wrap;overflow: auto;height: 207px;width: 460px;"></div>
+							</div>
+						</div>
+						
+
+					</div>
+					<div style=" margin-top: -21px; ">
+						<img class="imageBox" src="/images/op/uploads/GifCofres_One_Piece_Foro_Rol.gif">
+					</div>
+				</div>
+
+				<div class="akumaTirDerecha">
+					<div class="akumaTirTable">
+						<div class="tableHeader">
+							<strong id="estadisticasTitulo">Estadísticas de Pruebas Globales</strong>
+							<div onclick="cambiarEstadisticas()" class="boton-estadistica"><img src="/images/op/uploads/BotonEstadisticaGeneral_One_Piece_Gaiden_Foro_Rol.png"></div>
+						</div>
+						<div class="tableContent">
+							
+							<div style="display: flex;width: 523px;">
+								<div class="tableTotalTestDraw"style="width: 110px;margin-right: 4px;">
+									<div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 1px 1px 0px black; font-size: 13px; ">Cofres Abiertos</div>
+									<div id="cofresTotal" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">157</div>
+								</div>
+								<div class="tablerTierContent">
+									<div class="tierBox">
+										<div class="tierBoxText1">Básico</div>
+										<div id="basico" class="tierBoxText2">157</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Decente</div>
+										<div id="decente" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Gigante</div>
+										<div id="gigante" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Cobrizo</div>
+										<div id="cobrizo" class="tierBoxText2">120</div>
+									</div>							
+									<div class="tierBox">
+										<div class="tierBoxText1">Argénteo</div>
+										<div id="argenteo" class="tierBoxText2">120</div>
+									</div>
+
+									<div class="tierBox">
+										<div class="tierBoxText1">Aureo</div>
+										<div id="aureo" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Épico</div>
+										<div id="epico" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Legendario</div>
+										<div id="legendario" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Majestuoso</div>
+										<div id="majestuoso" class="tierBoxText2">120</div>
+									</div>
+									<div class="tierBox">
+										<div class="tierBoxText1">Diamantino</div>
+										<div id="diamantino" class="tierBoxText2">120</div>
+									</div>
+								</div>
+							</div>
+							<div style="display: flex;width: 523px;">
+								<div class="tableTotalTestDraw" style="width: 110px;margin-right: 4px;background: radial-gradient(circle, rgb(214 186 143) 0%, rgb(147 120 98) 100%);">
+									<div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 1px 1px 0px black; font-size: 13px; ">¡JACKPOT!</div>
+									<div id="cofresTotal" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 38px;">0</div>
+								</div>
+								<div class="tablerTierContent">
+									<div class="tierBoxAlt" style=" background: radial-gradient(circle, rgba(149,26,27,1) 0%, rgba(45,5,5,1) 100%); ">
+										<div class="tierBoxTextAlt1">Bajada de Tier</div>
+										<div id="basico" class="tierBoxTextAlt2">0</div>
+									</div>
+									<div class="tierBoxAlt" style=" background: radial-gradient(circle, rgb(30 149 26) 0%, rgb(5 45 10) 100%) ">
+										<div class="tierBoxTextAlt1">Subida de Tier</div>
+										<div id="basico" class="tierBoxTextAlt2">0</div>
+									</div>
+								</div>
+							</div>
+						
+						</div>
+					</div>
+					
+					<div class="filterBox" style=" margin-top: 106px; ">
+						<div class="akumaTypeRow">
+							<div id="resultado-real" onclick="toggleResultados('reales')" class="pestana-resultado categoriaBox filterClass">
+								<span>Aperturas Globales</span>
+							</div>
+							<div id="resultado-prueba" onclick="toggleResultados('prueba')" class="pestana-resultado categoriaBox filterClass box-active">
+								<span>Aperturas Propias</span>
+							</div>
+						</div>
+						<div style=" border: 2px solid black; height: 241px; box-sizing: border-box; border-top: 0px;overflow: auto; ">
+							<div id="reales" style="display: none; flex-direction: column;"></div>
+							<div id="prueba" style="display: flex; flex-direction: column;"></div>
+						</div>
+					</div>
+				
+				</div>
+
+			</div>
+		</div>
+	 </div>
+  </div>
+<script>
+	
+	let estadisticaGeneral = true;
+	const objetos_json = {$objetos_json};
+	const objetos_array_json = {$objetos_array_json};
+	
+	let cofres_abiertos = '{$cofres_abiertos}';
+	let cofre_basico = '{$cofre_basico}';
+	let cofre_decente = '{$cofre_decente}';
+	let cofre_gigante = '{$cofre_gigante}';
+	let cofre_cobrizo = '{$cofre_cobrizo}';
+	let cofre_argenteo = '{$cofre_argenteo}';
+	let cofre_aureo = '{$cofre_aureo}';
+	let cofre_epico = '{$cofre_epico}';
+	let cofre_legendario = '{$cofre_legendario}';
+	let cofre_majestuoso = '{$cofre_majestuoso}';
+	let cofre_diamantino = '{$cofre_diamantino}';
+	
+	let cofres_abiertos_id = '{$cofres_abiertos_id}';
+	let cofre_basico_id = '{$cofre_basico_id}';
+	let cofre_decente_id = '{$cofre_decente_id}';
+	let cofre_gigante_id = '{$cofre_gigante_id}';
+	let cofre_cobrizo_id = '{$cofre_cobrizo_id}';
+	let cofre_argenteo_id = '{$cofre_argenteo_id}';
+	let cofre_aureo_id = '{$cofre_aureo_id}';
+	let cofre_epico_id = '{$cofre_epico_id}';
+	let cofre_legendario_id = '{$cofre_legendario_id}';
+	let cofre_majestuoso_id = '{$cofre_majestuoso_id}';
+	let cofre_diamantino_id = '{$cofre_diamantino_id}';
+	
+	let cofresPropios = {$cofres_globales_json};
+	let cofresGlobales = {$cofres_propios_json};
+	
+	// for (let i = 0; i < objetos_array_json.length; i++) {
+	for (let i = 0; i < objetos_array_json.length; i++) {
+		
+		let objeto = objetos_json[objetos_array_json[i]][0];
+		
+		objeto.categoria = objeto.categoria.toLowerCase();
+		const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+		const tier = objeto.tier;
+		const imagen_id = objeto.imagen_id;
+		// let imagen = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+		let imagen = objeto.imagen_avatar;
+		
+		let nombre = objeto.nombre;
+		
+		let colorTier = '#faa500';
+	
+		if (imagen_id == '1') { colorTier = '#808080'; }
+		if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+		if (imagen_id == '3') { colorTier = '#457bfe'; }
+		if (imagen_id == '4') { colorTier = '#cf44ff'; }
+		if (imagen_id == '5') { colorTier = '#febb46'; }
+		if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+									   
+		$('#cofres_inventario').append(`<div>
+			<div class="item-outer" id="` + objeto.objeto_id + `">
+				<div class="item-nombre">` + objeto.nombre + `</div>
+				<div class="item-image">
+
+					<div class="tooltip">
+						<img id=imagen-item src="` + imagen + `" />
+						<div class="tooltiptext item-tooltip">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.nombre + `</div>
+							<div style="font-family: InterRegular;padding: 5px;text-align: justify;">
+								<div onclick="tiradaCofre('` + objeto.objeto_id + `')" class="testDraw">
+									<span id="cofre_seleccionado" style=" font-size: 13px; ">¡Abre este cofre!</span>
+								</div>
+							</div>
+							<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+							<div>Cantidad: ` + objeto.cantidad + `</div>								
+							<div>` + objeto.espacios + ` Espacios</div>
+								<div>ID: <span>` + objeto.objeto_id + `</span></div>
+								<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span>B</div>
+							</div>
+							<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+						</div>
+					</div>
+
+
+				</div>
+
+			</div>
+
+		</div>
+		`);
+	}
+	
+	for (let i = 0; i < cofresGlobales.length; i++) {
+		let nombre = cofresGlobales[i].nombre;
+		let tier = cofresGlobales[i].tier;
+		let timestamp = new Date(parseInt(cofresGlobales[i].timestamp) * 1000).toLocaleString('es-es');
+				
+		let tipoCofre = '';
+		console.log(tier);
+		if (tier == 'CFR001') { tipoCofre = 'Cofre Básico'; }
+		if (tier == 'CFR002') { tipoCofre = 'Cofre Decente'; }		
+		if (tier == 'CFR003') { tipoCofre = 'Cofre Gigante'; }	
+		if (tier == 'CFR004') { tipoCofre = 'Cofre Cobrizo'; }	
+		if (tier == 'CFR005') { tipoCofre = 'Cofre Argénteo'; }	
+		if (tier == 'CFR006') { tipoCofre = 'Cofre Aureo'; }	
+		if (tier == 'CFR007') { tipoCofre = 'Cofre Épico'; }	
+		if (tier == 'CFR008') { tipoCofre = 'Cofre Legendario'; }	
+		if (tier == 'CFR009') { tipoCofre = 'Cofre Majestuoso'; }	
+		if (tier == 'CFR010') { tipoCofre = 'Cofre Diamantino'; }	
+		
+		if (tier == 'INV001') { tipoCofre = 'Caja de Artefacto T1'; }
+		if (tier == 'INV002') { tipoCofre = 'Caja de Artefacto T2'; }
+		if (tier == 'INV003') { tipoCofre = 'Caja de Artefacto T3'; }
+		if (tier == 'INV004') { tipoCofre = 'Caja de Artefacto T4'; }
+		if (tier == 'INV005') { tipoCofre = 'Caja de Artefacto T5'; }
+
+		if (tier == 'CFD002') { tipoCofre = 'Cofre de Dial T2'; }
+		if (tier == 'CFD003') { tipoCofre = 'Cofre de Dial T3'; }
+		if (tier == 'CFD004') { tipoCofre = 'Cofre de Dial T4'; }
+		if (tier == 'CRM003') { tipoCofre = 'Barril Rescatado'; }
+		
+		console.log(tipoCofre);
+	
+		$('#prueba').append(`
+			<div class="resultado-total" style="display: flex; flex-direction: row;">
+				<div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+				<div class="resultado-fruta">` + tipoCofre + `<br></div>
+				<div class="resultado-fruta">` + cofresGlobales[i].objeto + `<br></div>
+			</div>
+		`);
+	}
+	
+	for (let i = 0; i < cofresPropios.length; i++) {
+		let nombre = cofresPropios[i].nombre;
+		let tier = cofresPropios[i].tier;
+		let timestamp = new Date(parseInt(cofresPropios[i].timestamp) * 1000).toLocaleString('es-es');
+
+		let tipoCofre = '';
+
+		if (tier == 'CFR001') { tipoCofre = 'Cofre Básico'; }
+		if (tier == 'CFR002') { tipoCofre = 'Cofre Decente'; }
+		if (tier == 'CFR003') { tipoCofre = 'Cofre Gigante'; }	
+		if (tier == 'CFR004') { tipoCofre = 'Cofre Cobrizo'; }	
+		if (tier == 'CFR005') { tipoCofre = 'Cofre Argénteo'; }	
+		if (tier == 'CFR006') { tipoCofre = 'Cofre Aureo'; }	
+		if (tier == 'CFR007') { tipoCofre = 'Cofre Épico'; }	
+		if (tier == 'CFR008') { tipoCofre = 'Cofre Legendario'; }	
+		if (tier == 'CFR009') { tipoCofre = 'Cofre Majestuoso'; }	
+		if (tier == 'CFR010') { tipoCofre = 'Cofre Diamantino'; }	
+		
+		if (tier == 'INV001') { tipoCofre = 'Caja de Artefacto T1'; }
+		if (tier == 'INV002') { tipoCofre = 'Caja de Artefacto T2'; }
+		if (tier == 'INV003') { tipoCofre = 'Caja de Artefacto T3'; }
+		if (tier == 'INV004') { tipoCofre = 'Caja de Artefacto T4'; }
+		if (tier == 'INV005') { tipoCofre = 'Caja de Artefacto T5'; }
+
+		if (tier == 'CFD002') { tipoCofre = 'Cofre de Dial T2'; }
+		if (tier == 'CFD003') { tipoCofre = 'Cofre de Dial T3'; }
+		if (tier == 'CFD004') { tipoCofre = 'Cofre de Dial T4'; }
+		if (tier == 'CRM003') { tipoCofre = 'Barril Rescatado'; }
+		
+		$('#reales').append(`
+			<div class="resultado-total" style="display: flex; flex-direction: row;">
+				<div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+				<div class="resultado-fruta">` + tipoCofre + `<br></div>
+				<div class="resultado-fruta">` + cofresPropios[i].objeto + `<br></div>
+			</div>
+		`);
+	}
+	
+	$('#cofresTotal').html(cofres_abiertos);
+	$('#basico').html(cofre_basico);
+	$('#decente').html(cofre_decente);
+	$('#gigante').html(cofre_gigante);
+	$('#cobrizo').html(cofre_cobrizo);
+	$('#argenteo').html(cofre_argenteo);
+	$('#aureo').html(cofre_aureo);
+	$('#epico').html(cofre_epico);
+	$('#legendario').html(cofre_legendario);
+	$('#majestuoso').html(cofre_majestuoso);
+	$('#diamantino').html(cofre_diamantino);
+	
+	function cambiarEstadisticas() {
+	
+		if (estadisticaGeneral) {
+			$('#estadisticasTitulo').text('Estadísticas de Pruebas Personales');
+			$('#cofresTotal').html(cofres_abiertos_id);
+			$('#basico').html(cofre_basico_id);
+			$('#decente').html(cofre_decente_id);
+			$('#gigante').html(cofre_gigante_id);
+			$('#cobrizo').html(cofre_cobrizo_id);
+			$('#argenteo').html(cofre_argenteo_id);
+			$('#aureo').html(cofre_aureo_id);
+			$('#epico').html(cofre_epico_id);
+			$('#legendario').html(cofre_legendario_id);
+			$('#majestuoso').html(cofre_majestuoso_id);
+			$('#diamantino').html(cofre_diamantino_id);
+			estadisticaGeneral = false;
+		} else {
+			$('#estadisticasTitulo').text('Estadísticas de Pruebas Globales');
+			$('#cofresTotal').html(cofres_abiertos);
+			$('#basico').html(cofre_basico);
+			$('#decente').html(cofre_decente);
+			$('#gigante').html(cofre_gigante);
+			$('#cobrizo').html(cofre_cobrizo);
+			$('#argenteo').html(cofre_argenteo);
+			$('#aureo').html(cofre_aureo);
+			$('#epico').html(cofre_epico);
+			$('#legendario').html(cofre_legendario);
+			$('#majestuoso').html(cofre_majestuoso);
+			$('#diamantino').html(cofre_diamantino);
+			estadisticaGeneral = true;
+		}
+		
+	}
+	
+	function toggleResultados(resultado) {
+		$('.pestana-resultado').removeClass('box-active');
+		
+		if (resultado == 'reales') {
+			$('#reales').css('display', 'flex');
+			$('#prueba').css('display', 'none');
+			$('#resultado-real').addClass('box-active');
+		}
+		
+		if (resultado == 'prueba') {
+			$('#reales').css('display', 'none');
+			$('#prueba').css('display', 'flex');
+			$('#resultado-prueba').addClass('box-active');
+		}
+	}
+	
+	function tiradaCofre(cofreId) {
+		$.post("/op/tirada_cofre2.php", { tirada_cofre: 'true', cofre_id: cofreId }, function( data ) { 
+			console.log(data);
+						
+			alert(`¡Has abierto un cofre! Esto es lo que te ha salido: ` + data[0].objeto + ` (` + data[0].objeto_id + `)`);
+			
+			cofres_abiertos = parseInt(cofres_abiertos) + 1;
+			cofres_abiertos_id = parseInt(cofres_abiertos_id) + 1;
+			
+			if (data[0].tier == '1') { cofre_basico = parseInt(cofre_basico) + 1; cofre_basico_id = parseInt(cofre_basico_id) + 1; $('#basico').text(parseInt($('#basico').text()) + 1); };
+			if (data[0].tier == '1') { cofre_decente = parseInt(cofre_decente) + 1; cofre_decente_id = parseInt(cofre_decente_id) + 1; $('#decente').text(parseInt($('#decente').text()) + 1); };
+			if (data[0].tier == '1') { cofre_gigante = parseInt(cofre_gigante) + 1; cofre_gigante_id = parseInt(cofre_gigante_id) + 1; $('#gigante').text(parseInt($('#gigante').text()) + 1); };
+			if (data[0].tier == '1') { cofre_cobrizo = parseInt(cofre_cobrizo) + 1; cofre_cobrizo_id = parseInt(cofre_cobrizo_id) + 1; $('#cobrizo').text(parseInt($('#cobrizo').text()) + 1); };
+			if (data[0].tier == '1') { cofre_argenteo = parseInt(cofre_argenteo) + 1; cofre_argenteo_id = parseInt(cofre_argenteo_id) + 1; $('#argenteo').text(parseInt($('#argenteo').text()) + 1); };
+			if (data[0].tier == '1') { cofre_aureo = parseInt(cofre_aureo) + 1; cofre_aureo_id = parseInt(cofre_aureo_id) + 1; $('#aureo').text(parseInt($('#aureo').text()) + 1); };
+			if (data[0].tier == '1') { cofre_epico = parseInt(cofre_epico) + 1; cofre_epico_id = parseInt(cofre_epico_id) + 1; $('#epico').text(parseInt($('#epico').text()) + 1); };
+			if (data[0].tier == '1') { cofre_legendario = parseInt(cofre_legendario) + 1; cofre_legendario_id = parseInt(cofre_legendario_id) + 1; $('#legendario').text(parseInt($('#legendario').text()) + 1); };
+			if (data[0].tier == '1') { cofre_majestuoso = parseInt(cofre_majestuoso) + 1; cofre_majestuoso_id = parseInt(cofre_majestuoso_id) + 1; $('#majestuoso').text(parseInt($('#majestuoso').text()) + 1); };
+			if (data[0].tier == '1') { cofre_diamantino = parseInt(cofre_diamantino) + 1; cofre_diamantino_id = parseInt(cofre_diamantino_id) + 1; $('#diamantino').text(parseInt($('#diamantino').text()) + 1); };
+			
+			$('#cofresTotal').text(
+				parseInt($('#cofresTotal').text()) + 1
+			);
+
+			let timestamp = new Date(parseInt(data[0].timestamp) * 1000).toLocaleString('es-es');
+			
+			let tipoCofre = '';
+			if (data[0].tier == 'CFR001') { tipoCofre = 'Cofre Básico'; }
+			if (data[0].tier == 'CFR002') { tipoCofre = 'Cofre Decente'; }	
+			if (data[0].tier == 'CFR003') { tipoCofre = 'Cofre Gigante'; }	
+			if (data[0].tier == 'CFR004') { tipoCofre = 'Cofre Cobrizo'; }	
+			if (data[0].tier == 'CFR005') { tipoCofre = 'Cofre Argénteo'; }	
+			if (data[0].tier == 'CFR006') { tipoCofre = 'Cofre Aureo'; }	
+			if (data[0].tier == 'CFR007') { tipoCofre = 'Cofre Épico'; }	
+			if (data[0].tier == 'CFR008') { tipoCofre = 'Cofre Legendario'; }	
+			if (data[0].tier == 'CFR009') { tipoCofre = 'Cofre Majestuoso'; }	
+			if (data[0].tier == 'CFR010') { tipoCofre = 'Cofre Diamantino'; }	
+			
+			if (data[0].tier == 'INV001') { tipoCofre = 'Caja de Artefacto T1'; }
+			if (data[0].tier == 'INV002') { tipoCofre = 'Caja de Artefacto T2'; }
+			if (data[0].tier == 'INV003') { tipoCofre = 'Caja de Artefacto T3'; }
+			if (data[0].tier == 'INV004') { tipoCofre = 'Caja de Artefacto T4'; }
+			if (data[0].tier == 'INV005') { tipoCofre = 'Caja de Artefacto T5'; }
+			
+			if (data[0].tier == 'CFD002') { tipoCofre = 'Cofre de Dial T2'; }
+			if (data[0].tier == 'CFD003') { tipoCofre = 'Cofre de Dial T3'; }
+			if (data[0].tier == 'CFD004') { tipoCofre = 'Cofre de Dial T4'; }
+			if (data[0].tier == 'CRM003') { tipoCofre = 'Barril Rescatado'; }
+			
+			$('#prueba').prepend(`
+				<div class="resultado-total" style="display: flex; flex-direction: row;">
+					<div class="resultado-nombre">` + data[0].nombre + ` <br>` + timestamp + `</div>
+					<div class="resultado-fruta">` + tipoCofre + `<br></div>
+					<div class="resultado-fruta">` + data[0].objeto + `<br></div>
+				</div>
+			`);
+			$('#prueba').children().last().remove();
+			
+			location.reload(); 
+	  }); 
+	}
+</script>
+{$footer}
+</body>
+</html>

@@ -1,0 +1,67 @@
+<div class="tecnica_spoiler">
+	<div class="spoiler_title">
+		<span class="tecnica_spoiler_button" onclick="javascript: console.log('hello');console.log(parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight); if(parentNode.parentNode.getElementsByTagName('div')[1].style.height == parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'){ parentNode.parentNode.getElementsByTagName('div')[1].style.height = '0px'; this.innerHTML='{$tecnica['nombre']}';parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden'; });} else { parentNode.parentNode.getElementsByTagName('div')[1].style.height = parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'; this.innerHTML='{$tecnica['nombre']}'; parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'visible'; });}">{$tecnica['nombre']}</span>
+	</div>
+
+  <div class="tecnica_spoiler_content" style="height: 0px;">
+	  
+	<div class="tecnica_spoiler_content2" style='display: flex;flex-direction: row;'>
+		
+		<div style="display: flex; flex-direction: column;width: 20%; margin-right: 26px;">
+			<if $g_is_staff then><div class="tecnica_field"><a href="/op/staff/tecnicas_modificar.php?tecnica_id={$tecnica['tid']}">{$tecnica['tid']}</a></div></if>
+			<if !$g_is_staff then><div class="tecnica_field">{$tecnica['tid']}</div></if>
+			<div class="tecnica_field">{$tecnica['clase']}</div>
+			<div class="tecnica_field">{$tecnica['estilo']}</div>
+			<div class="tecnica_field">Tier {$tecnica['tier']}</div>
+			
+			<div style="display: flex;flex-direction: row;justify-content: space-around;margin-top: 7px;width: 160px;">
+				
+				<if $tecnica['energia'] then>
+				<div style=" display: flex; flex-direction: row; " title="Costo de Energía">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['energia']}</div>
+					<img src="/images/op/uploads/Energia_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+				</div>
+				</if>
+				
+				<if $tecnica['energia_turno'] then>
+				<div style=" display: flex; flex-direction: row; " title="Costo de Energía por Turno">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['energia_turno']}</div>
+					<img src="/images/op/uploads/EnergiaPorTurno_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+				</div>
+				</if>	
+				
+				<if $tecnica['haki'] then>
+				<div style=" display: flex; flex-direction: row; " title="Costo de Haki">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['haki']}</div>
+					<img src="/images/op/uploads/PuntosHaki_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+				</div>
+				</if>
+				
+				<if $tecnica['haki_turno'] then>
+				<div style=" display: flex; flex-direction: row; " title="Costo de Haki por Turno">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['haki_turno']}</div>
+					<img src="/images/op/uploads/PuntosHakiMantenido_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+				</div>
+				</if>	
+					
+				<if $tecnica['enfriamiento'] != '' then>
+				<div style=" display: flex; flex-direction: row; " title="Enfriamiento">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #D8EC13; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">{$tecnica['enfriamiento']}</div>
+					
+					<img src="/images/op/uploads/CD_One_Piece_Gaiden_Foro_Rol.png" style="height: 30px;margin-top: 4px;" alt="Enfriamiento" />
+				</div>
+				</if>
+			</div>
+			
+		</div>
+		
+		<div style="display: flex; flex-direction: column;width: 80%;">
+			<if $tecnica['requisitos'] != '' then><div class="tecnica_requisito">{$tecnica['requisitos']}</div></if>
+			<div class="tecnica_descripcion">{$tecnica['descripcion']}</div>
+			<div class="tecnica_efecto">{$tecnica['efectos']}</div>
+		</div>
+		
+    </div>
+	  
+  </div>
+</div>

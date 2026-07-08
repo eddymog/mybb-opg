@@ -1,0 +1,192 @@
+<html>
+
+<head>
+  <title>Virtudes y Defectos</title>
+  {$headerinclude}
+  <style>	  
+	  .virtudesList, .defectosList {
+		margin-top: 20px;
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		justify-content: space-between;
+		gap: 5px;
+	  }
+	  
+	  .virtudCaja {
+		margin: auto;
+		position: relative;
+		margin-top: 15px;
+		margin-bottom: 15px;
+	  }
+	  
+	  .virtudPuntos {
+		  font-family: monospace; 
+		  letter-spacing: 0px; 
+		  font-size: 48px; 
+		  margin-left: 15px; 
+		  margin-top: 6px; 
+		  position: absolute; 
+		  top: -45px; 
+		  left: -9px; 
+		  text-shadow: 3px 3px 3px black;
+	  }
+	  
+	  .virtudNombre {
+		  font-family: moonGetHeavy; 
+		  letter-spacing: 0px; 
+		  font-size: 17px; 
+		  margin-left: 15px; 
+		  margin-top: 6px; 
+		  position: absolute; 
+		  top: -30px; 
+		  left: 23px; 
+		  text-shadow: 1px 1px 0px #134c18;
+	  }
+	  
+	  .virtudCajaTexto {
+		  width: 280px; border-radius: 10px; padding-bottom: 7px;transition: all 0.2s ease-out;
+		  max-height: 65px;
+    	  min-height: 65px;
+		  overflow: hidden;
+	  }
+	  
+	  .virtudCajaTexto:hover {
+		  max-height: 200px;
+	  }
+	  
+	  .virtudColor { 
+	  	color: #00a514;
+	  }
+	  
+	  .defectoColor {
+		color: #db0101;
+	  }
+	  
+	  .virtudBackground {
+		  background: linear-gradient(180deg, rgba(56,200,66,1) 0%, rgba(17,68,21,1) 100%);
+	  }
+	  
+	  .defectoBackground {
+		  background: linear-gradient(180deg, rgba(200,56,56,1) 0%, rgba(68,17,17,1) 100%);
+	  }
+	  
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<div style="margin-bottom: 10px;">
+					<img src="/images/op/misc/TituloVirtudesyDefectos_One_Piece_Gaiden_Foro_Rol.png" />
+				</div>
+				<div style="display: flex; flex-direction: row;">
+					<img src="/images/op/misc/VirtudesIzquierda_One_Piece_Gaiden_Foro_Rol.png" />
+					
+					<div style=" width: 310px; height: 770px; box-sizing: border-box; background-color: #ba8ce6; border-top: 8px solid black; border-bottom: 8px solid black; border-right: 4px solid black;overflow: scroll;scrollbar-width: none;">
+						<div class="virtudesList"></div>
+					</div>
+					<div style=" width: 310px; height: 770px; box-sizing: border-box; background-color: #ba8ce6; border-top: 8px solid black; border-bottom: 8px solid black; border-left: 4px solid black;overflow: scroll;scrollbar-width: none;">
+						<div class="defectosList"></div>
+					</div>
+					<img src="/images/op/misc/VirtudesDerecha_One_Piece_Gaiden_Foro_Rol.png" />
+				</div>
+						
+			</div>
+		</div>
+	 </div>
+  </div>
+<script>
+const virtudes = {$virtudes_json};
+const defectos = {$defectos_json};
+	
+for (let i = 0; i < virtudes.length; i++) {
+	let virtudesNombre = virtudes[i].nombre;
+	
+	<if $g_is_staff then>
+		virtudesNombre = `<a href="/op/staff/virtudes_modificar.php?virtud_id=` + virtudes[i].virtud_id + `">` + virtudesNombre + `</a>`;
+	</if>	
+	
+	$('.virtudesList').append(`
+		<div class="virtudCaja">
+			<div class="virtudPuntos virtudColor">` + Math.abs(virtudes[i].puntos) + `</div>
+			` + (parseInt(virtudes[i].puntos) < 0 ? `<div class="virtudPuntos virtudColor" style=" top: -51px; left: -27px; ">-</div>` : ``) + `
+			<div class="virtudNombre virtudColor">` + virtudesNombre + `</div>
+			<div class="virtudCajaTexto virtudBackground">
+				<div style="display: flex; flex-direction: row;">
+					<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + virtudes[i].virtud_id + `</span>
+					</div>
+					<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + virtudes[i].descripcion + `</div>
+				</div>
+			</div>
+
+		</div>
+	`);
+}
+	
+for (let i = 0; i < defectos.length; i++) {
+	console.log(defectos[i]);
+	let defectosNombre = defectos[i].nombre;
+	
+	<if $g_is_staff then>
+		defectosNombre = `<a href="/op/staff/virtudes_modificar.php?virtud_id=` + defectos[i].virtud_id + `">` + defectosNombre + `</a>`;
+	</if>	
+	
+	$('.defectosList').append(`
+		<div class="virtudCaja">
+			<div class="virtudPuntos defectoColor">` + Math.abs(defectos[i].puntos) + `</div>
+			<div class="virtudNombre defectoColor">` + defectosNombre + `</div>
+			<div class="virtudCajaTexto defectoBackground">
+				<div style="display: flex; flex-direction: row;">
+					<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+						<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + defectos[i].virtud_id + `</span>
+					</div>
+					<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + defectos[i].descripcion + `</div>
+				</div>
+			</div>
+
+		</div>
+	`);
+}
+	
+	
+// for (let i = 0; i < akumas.length; i++) {
+//     console.log(akumas[i]);
+// 	const nombre = akumas[i].nombre;
+// 	const categoria = akumas[i].categoria;
+// 	// categoria, ocupada, tier
+// 	const ocupada = akumas[i].ocupada;
+// 	const isOcupadaClass = parseInt(ocupada) ? 'statusOcupada' : 'statusLibre';
+// 	const isOcupadaText = parseInt(ocupada) ? 'Ocupada' : 'Libre';
+	
+// 	$('.akumaList').append(`
+//      <div class="akumaItem" data-type="` + categoria +`" onclick="clickAkuma(` + i + `)">
+// 		<div class="nameSection">
+// 				<div class="nameText">
+// 					<span class="akumaName">` + nombre + `</span>
+// 				<br>
+// 				<span class="akumaDscpt">` + categoria + ` | Tier ` + akumas[i].tier +`</span>
+// 			</div>
+// 				<img src= '` + frutaImagen +`' class="fruitImage" >	
+// 		</div>
+// 		<div class="statusSection ` + isOcupadaClass + `">
+// 			<div style="margin: auto;">` + isOcupadaText + `</div>
+// 		</div>	
+// 	</div>
+// `);
+// }	
+	
+
+	
+</script>
+{$footer}
+</body>
+</html>

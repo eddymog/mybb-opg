@@ -269,6 +269,18 @@ $ficha = null;
         return $map[$key] ?? 0;
     }
 
+    // Helper que convierte el nivel de sub-especialización Contrabandista al nivel efectivo del inframundo
+    // Contrabandista rango 1 (sub nivel 1) = Capo (nivel 3)
+    // Contrabandista rango 2 (sub nivel 2) = Broker (nivel 4)
+    // Contrabandista rango 3 (sub nivel 3) = Broker Estrella/Emperador (nivel 5)
+    function contrabandista_to_level(int $sub_nivel): int
+    {
+        if ($sub_nivel <= 0) return 0;
+        if ($sub_nivel == 1) return 3; // Capo
+        if ($sub_nivel == 2) return 4; // Broker
+        return 5;                      // Broker Estrella / Emperador
+    }
+
     // Helper de mezcla de arrays para los distintos rangos de inframundo
     function blend_random_multi(array $sources, int $take, array &$used, ?array $weights = null): array
     {
@@ -358,9 +370,9 @@ $ficha = null;
     }
 
     // Helper que construye la visión final del usuario
-    function build_user_visible_pool(array $pool_semanal, string $rango_inframundo): array
+    function build_user_visible_pool(array $pool_semanal, string $rango_inframundo, int $nivel_override = 0): array
     {
-        $lvl = rango_to_level($rango_inframundo);
+        $lvl = max(rango_to_level($rango_inframundo), $nivel_override);
         // Sin rango → nada
         if ($lvl <= 0) return ['items' => []];
 
@@ -1389,19 +1401,40 @@ function son_cuentas_vinculadas($db, int $uid1, int $uid2): bool {
         return;
     }
 
-    // Verificar rango del inframundo
-    $query_rango_inframundo = $db->query("SELECT rango_inframundo FROM mybb_op_fichas WHERE fid='$uid'");
+    // Verificar rango del inframundo y nivel de Contrabandista
+    $query_rango_inframundo = $db->query("SELECT rango_inframundo, oficios FROM mybb_op_fichas WHERE fid='$uid'");
     $rango_inframundo = '';
-    while ($q = $db->fetch_array($query_rango_inframundo)) { 
-        $rango_inframundo = $q['rango_inframundo']; 
+    $nivel_contrabandista_sub = 0; // nivel de sub-especialización 0-3
+    while ($q = $db->fetch_array($query_rango_inframundo)) {
+        $rango_inframundo = $q['rango_inframundo'];
+        if (!empty($q['oficios'])) {
+            $oficios_obj = json_decode($q['oficios']);
+            if (
+                isset($oficios_obj->{'Mercader'}->{'nivel'}) &&
+                (int)$oficios_obj->{'Mercader'}->{'nivel'} >= 2 &&
+                isset($oficios_obj->{'Mercader'}->{'sub'}->{'Contrabandista'})
+            ) {
+                $nivel_contrabandista_sub = (int)$oficios_obj->{'Mercader'}->{'sub'}->{'Contrabandista'};
+            }
+        }
     }
+    $nivel_efectivo_contrabandista = contrabandista_to_level($nivel_contrabandista_sub);
 
-    // Si no tiene rango o es "Sin rango", no puede acceder
-    if (empty($rango_inframundo) || $rango_inframundo == 'Sin rango') {
-        $mensaje_redireccion = "Necesitas tener un rango en el inframundo para acceder al mercado negro.";
+    // Sin rango en el inframundo NI Contrabandista → sin acceso
+    $tiene_rango_inframundo = !empty($rango_inframundo) && $rango_inframundo != 'Sin rango';
+    $tiene_acceso_contrabandista = $nivel_contrabandista_sub >= 1;
+    if (!$tiene_rango_inframundo && !$tiene_acceso_contrabandista) {
+        $mensaje_redireccion = "Necesitas tener un rango en el inframundo o ser Contrabandista para acceder al mercado negro.";
         eval("\$page = \"".$templates->get("op_redireccion")."\";");
         output_page($page);
         return;
+    }
+
+    // Si el Contrabandista no tiene rango propio, proyectar su nivel efectivo como rango
+    // para que el template JS (que puede chequear {$rango_inframundo}) funcione igual.
+    if (!$tiene_rango_inframundo && $tiene_acceso_contrabandista) {
+        $rangos_por_nivel = [0 => '', 1 => 'Alimaña', 2 => 'Operativo', 3 => 'Capo', 4 => 'Broker', 5 => 'Broker Estrella'];
+        $rango_inframundo = $rangos_por_nivel[$nivel_efectivo_contrabandista] ?? 'Capo';
     }
 // #endregion Displays
 
@@ -1415,6 +1448,8 @@ function son_cuentas_vinculadas($db, int $uid1, int $uid2): bool {
     $oficio2 = $ficha['oficio2'];
 
     $movido_inframundo = isset($ficha['movidoInframundo']) ? (int)$ficha['movidoInframundo'] : 0;
+    $q_v019 = $db->query("SELECT 1 FROM mybb_op_virtudes_usuarios WHERE uid='$uid' AND virtud_id='V019' LIMIT 1");
+    if ($db->fetch_array($q_v019)) { $movido_inframundo += 50000000; }
 
     $negro = get_objetos_negro($db);       // ← usamos la función para objetos del mercado negro
     $objetos = $negro['map'];              // mismo formato que se usaba (pero más limpito)
@@ -1449,8 +1484,8 @@ function son_cuentas_vinculadas($db, int $uid1, int $uid2): bool {
 
     $pool_semanal_json = json_encode($pool_semanal, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-    // Ahora sacamos la visión del usuario según su rango
-    $pool_visible = build_user_visible_pool($pool_semanal, $rango_inframundo);
+    // Ahora sacamos la visión del usuario según su rango (o nivel de Contrabandista)
+    $pool_visible = build_user_visible_pool($pool_semanal, $rango_inframundo, $nivel_efectivo_contrabandista);
 
     // Para pasar al JS
     $pool_visible_json = json_encode($pool_visible, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

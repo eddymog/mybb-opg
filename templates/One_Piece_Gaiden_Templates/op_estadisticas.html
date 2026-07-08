@@ -1,0 +1,217 @@
+<html>
+	<head>
+		<style>
+			.text-center {
+				text-align: center;	
+			}
+			
+			.lista-usuarios p {
+				margin: 0;
+			}
+			
+			.lista-usuarios h3 {
+				font-weight: bold;
+				font-size: 18px;
+				margin: 0;
+			}
+			
+			.censo-titulo-grupo {
+				font-family: moonGetHeavy; font-size: 22px; color: white; text-align: center; background-color: #00bbed; height: 34px; text-shadow: 1px 1px 3px black; border-start-start-radius: 10px; border-start-end-radius: 10px; border: 2px solid black; position: relative;
+			}
+			
+			.censo-bottom {
+				font-family: moonGetHeavy; font-size: 14px; color: white; text-align: center; background-color: #00bbed; height: 22px; text-shadow: 1px 1px 3px black; border-end-start-radius: 10px; border-end-end-radius: 10px; border: 2px solid black; display: flex; justify-content: space-around;
+			}
+			
+			.userPosts:even {
+				background-color: red;
+			}
+			
+			.imagenTitulo1 {
+				position: absolute;
+				width: 40px;
+				top: -3px;
+				left: 11px;
+			}
+			
+			.imagenTitulo2 {
+				position: absolute;
+				width: 40px;
+				top: -3px;
+				left: 250px;
+			}
+
+		</style>
+		<title>Censo y Estadísticas</title>
+		{$headerinclude}
+	</head>
+	<body>
+		{$header}
+		<div class="indice">
+			<div class="mainBackground">
+				<div class="secondBackground">
+					<div class="thirdBackground" style="height: 1000px;">
+						<div style="margin-bottom: 10px;">
+							<img src="/images/op/uploads/Censo_One_Piece_Gaiden_Foro_Rol.png" />
+						</div>
+						<div style="display: flex; flex-direction: column;">
+							<div style="display: flex; flex-direction: row">
+								<div class="row" style=" display: flex; flex-direction: column; ">
+									<div class="col-3" style=" display: flex; ">
+										<div class="h6" style=" font-size: 13px; color: white; background-color: #8f59f7; border: 1px solid black; font-family: moonGetHeavy; text-shadow: 1px 1px black; width: 82px; text-align: center; "><span style=" position: relative; top: 5px; ">Acción:</span></div><br>
+										<select class="form-control" id="select-accion" onchange="onChangeAccion(this)" style=" border: 1px solid black; width: 135px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
+											<option value='censo'>Censo</option>
+										</select>
+									</div>
+									<div class="col-3" style=" display: flex; ">
+										<div class="h6" style=" font-size: 13px; color: white; background-color: #8f59f7; border: 1px solid black; font-family: moonGetHeavy; text-shadow: 1px 1px black; width: 82px; text-align: center; "><span style=" position: relative; top: 5px; ">Duración:</span></div><br>
+										<select class="form-control" id="select-tiempo" onchange="onChangeTiempo(this)" style=" border: 1px solid black; width: 135px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
+											<option value='1'>24 horas</option>
+											<option value='2'>48 horas</option>
+											<option value='7'>1 semana</option>
+											<option value='14'>2 semanas</option>
+											<option value='28'>4 semanas</option>
+										</select>
+									</div>
+								</div>
+								<div style=" font-size: 21px;font-family: moonGetHeavy;color: black;width: 100%;background-color: #ff8500;text-align: center;">
+									<div style=" position: relative; top: 1px; ">
+										<span style="color: white;">{$totalPjs}</span> Personajes han posteado <span style="color: white;">{$numeroPosts} veces</span> en zonas de rol <br>y <span style="color: white;">{$numeroPostsTotal} veces</span> en todo el foro.
+									</div>
+								</div>
+							</div>
+							<br>
+
+							<if $accion == 'censo' then>
+
+								<div style="display: flex; flex-direction: column;">
+								
+									<div style="display: flex; flex-direction: row; justify-content: space-between;">
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" style="background-color: #ff0909">
+												<span><img class="imagenTitulo1" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Piratas
+												<span><img class="imagenTitulo2" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$pirataUsuariosStr}
+											</div>
+											<div class="censo-bottom" style="background-color: #ff0909">
+												<div style=" margin-top: 2px; ">{$pirataUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsPirata} Posts</div>
+											</div>
+										</div>
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" >
+												<span><img class="imagenTitulo1" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Marines
+												<span><img class="imagenTitulo2" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$marineUsuariosStr}
+											</div>
+											<div class="censo-bottom">
+												<div style=" margin-top: 2px; ">{$marineUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsMarine} Posts</div>
+											</div>
+										</div>
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" style="background-color: #0d114b">
+												<span><img class="imagenTitulo1" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Cipher Pol
+												<span><img class="imagenTitulo2" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$cipherPolUsuariosStr}
+											</div>
+											<div class="censo-bottom" style="background-color: #0d114b">
+												<div style=" margin-top: 2px; ">{$cipherPolUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsCP} Posts</div>
+											</div>
+										</div>
+										
+									</div>
+									<div style="display: flex; flex-direction: row; justify-content: space-between;margin-top: 110px;">
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" style="background-color: #e1b078">
+												<span><img class="imagenTitulo1" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Revos
+												<span><img class="imagenTitulo2" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$revoUsuariosStr}
+											</div>
+											<div class="censo-bottom" style="background-color: #e1b078">
+												<div style=" margin-top: 2px; ">{$revoUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsRevo} Posts</div>
+											</div>
+										</div>
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" style="background-color: #00f700">
+												<span><img class="imagenTitulo1" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Cazadores
+												<span><img class="imagenTitulo2" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$cazarrecompensasUsuariosStr}
+											</div>
+											<div class="censo-bottom" style="background-color: #00f700">
+												<div style=" margin-top: 2px; ">{$cazarrecompensasUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsCaza} Posts</div>
+											</div>
+										</div>
+										
+										<div style=" width: 300px; height: 300px; ">
+											<div class="censo-titulo-grupo" style="background-color: #ff17fc">
+												<span><img class="imagenTitulo1" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+												Civil
+												<span><img class="imagenTitulo2" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
+											</div>
+											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
+												{$civilUsuariosStr}
+											</div>
+											<div class="censo-bottom" style="background-color: #ff17fc">
+												<div style=" margin-top: 2px; ">{$civilUsuarios} Usuarios</div>
+												<div style=" margin-top: 2px; ">{$totalNumPostsCivil} Posts</div>
+											</div>
+										</div>
+										
+									</div>
+									<div style="display: flex; flex-direction: row;">
+
+									</div>
+								</div>
+
+							</if>
+						</div>
+
+					</div>
+				</div>
+			 </div>
+	    </div>
+
+		{$footer}
+	</body>
+	<script>
+		function onChangeTiempo(tiempo) {
+			console.log(tiempo);
+			window.location.href = window.location.pathname + '?accion={$accion}&tiempo=' + tiempo.value;
+		}
+		
+		function onChangeAccion(accion) {
+			console.log(accion);
+			window.location.href = window.location.pathname + '?accion=' + accion.value + '&tiempo={$tiempo}';
+		}
+		
+		document.getElementById("select-tiempo").value = "{$tiempo}";
+		document.getElementById("select-accion").value = "{$accion}";
+		$('.duracion').map((i) => {
+			$('.duracion')[i].innerHTML = $("#select-tiempo").find("option[value='{$tiempo}']").text();
+		});
+	</script>
+</html>

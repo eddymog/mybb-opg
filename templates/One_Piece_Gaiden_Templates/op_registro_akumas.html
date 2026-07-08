@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<style>
+
+
+		</style>
+		<title>Registro de Akumas</title>
+		{$headerinclude}
+	</head>
+	<body>
+		{$header}
+		<div class="fondo-blanco">
+			<div style=" text-align: center; "><button class="button" onclick="randomAkuma()">Arriésgate por tu Akuma</button></div>
+			<br />
+			<h2 style=" text-align: center; ">Akumas:</h2><br>
+			<div style=" text-align: center; font-size: 17px; ">
+				{$registro}
+			</div>
+		</div>
+		{$footer}
+		<script>
+			function randomAkuma() {
+				alert('{$akuma_magica} [{$akuma_categoria} - Tier {$akuma_tier}]\n{$akuma_magica_descripcion}');
+			}
+		</script>
+	</body>
+</html>

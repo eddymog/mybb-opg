@@ -122,8 +122,8 @@
         
         var nivelInput = document.createElement('input');
         nivelInput.type = 'number';
-        nivelInput.min = '1';
-        nivelInput.max = '10';
+        nivelInput.min = '0';
+        nivelInput.max = '3';
         nivelInput.value = (dataActual[oficio] && dataActual[oficio].sub && dataActual[oficio].sub[sub]) || 1;
         nivelInput.setAttribute('data-oficio', oficio);
         nivelInput.setAttribute('data-sub', sub);
@@ -190,52 +190,42 @@
   function actualizarJSON() {
     var textarea = document.getElementById('oficios');
     if (!textarea) return;
-    
+
     var checkboxes = document.querySelectorAll('input[data-oficio]:not([data-sub])');
     var nuevoData = {};
-    
+
     for (var i = 0; i < checkboxes.length; i++) {
-      if (checkboxes[i].checked) {
-        var oficio = checkboxes[i].getAttribute('data-oficio');
-        
-        // Obtener el nivel del oficio general
-        var nivelOficioInput = document.querySelector('.nivel-oficio-input-' + oficio.replace(/\s+/g, '_'));
-        var nivelOficio = nivelOficioInput ? parseInt(nivelOficioInput.value, 10) : 1;
-        
-        var subData = {sub: {}, espe1: '', espe2: '', nivel: nivelOficio};
-        
-        // Obtener especialidades marcadas
-        var subChecks = document.querySelectorAll('input[type="checkbox"][data-oficio="' + oficio + '"][data-sub]');
-        var especialidadesActivas = [];
-        
-        for (var j = 0; j < subChecks.length; j++) {
-          var subNombre = subChecks[j].getAttribute('data-sub');
-          if (subChecks[j].checked) {
-            var nivelInput = document.querySelector('input[type="number"][data-oficio="' + oficio + '"][data-sub="' + subNombre + '"]');
-            var nivelValor = nivelInput ? parseInt(nivelInput.value, 10) : 1;
-            if (nivelValor > 0) {
-              subData.sub[subNombre] = nivelValor;
-              especialidadesActivas.push(subNombre);
-            }
-          }
-        }
-        
-        // Asignar espe1 y espe2 si hay especialidades activas
-        if (especialidadesActivas.length > 0) {
-          subData.espe1 = especialidadesActivas[0];
-          if (especialidadesActivas.length > 1) {
-            subData.espe2 = especialidadesActivas[1];
-          }
+      if (!checkboxes[i].checked) continue;
+      var oficio = checkboxes[i].getAttribute('data-oficio');
+
+      var nivelOficioInput = document.querySelector('.nivel-oficio-input-' + oficio.replace(/\s+/g, '_'));
+      var nivelOficio = nivelOficioInput ? parseInt(nivelOficioInput.value, 10) : 1;
+
+      var subData = {sub: {}, nivel: nivelOficio};
+      var especialidadesActivas = [];
+
+      // Iterate over the OFICIOS template so all sub keys are always present
+      for (var sub in OFICIOS[oficio].sub) {
+        if (!OFICIOS[oficio].sub.hasOwnProperty(sub)) continue;
+        var subCheck = document.querySelector('input[type="checkbox"][data-oficio="' + oficio + '"][data-sub="' + sub + '"]');
+        if (subCheck && subCheck.checked) {
+          var nivelInput = document.querySelector('input[type="number"][data-oficio="' + oficio + '"][data-sub="' + sub + '"]');
+          var nivelValor = nivelInput ? Math.max(0, parseInt(nivelInput.value, 10) || 0) : 1;
+          subData.sub[sub] = nivelValor;
+          if (nivelValor > 0) especialidadesActivas.push(sub);
         } else {
-          // Si no hay especialidades, limpiar los campos
-          delete subData.espe1;
-          delete subData.espe2;
+          subData.sub[sub] = 0;
         }
-        
-        nuevoData[oficio] = subData;
       }
+
+      if (especialidadesActivas.length > 0) {
+        subData.espe1 = especialidadesActivas[0];
+        if (especialidadesActivas.length > 1) subData.espe2 = especialidadesActivas[1];
+      }
+
+      nuevoData[oficio] = subData;
     }
-    
+
     textarea.value = OPG.utils.safeJSON.stringify(nuevoData, '{}');
   }
   

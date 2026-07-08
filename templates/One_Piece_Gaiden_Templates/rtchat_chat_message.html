@@ -1,0 +1,47 @@
+<div style=" display: flex; width: 1000px; background-color: 
+			<if $row['usergroup'] == '8' then>#ff7c7c</if>
+			<if $row['usergroup'] == '9' then>#84bbff</if>
+			<if $row['usergroup'] == '10' then>#85ff97</if>
+			<if $row['usergroup'] == '12' then>#ffcd85</if>
+			<if $row['usergroup'] == '11' then>#464646</if>
+			<if $row['usergroup'] == '13' then>#f58bff</if>
+			<if $row['usergroup'] == '14' then>#c295ff</if>
+			<if $row['usergroup'] == '4' then>#c295ff</if>
+			<if $row['usergroup'] == '2' then>#d7d7d7</if>;
+			">
+	<div class="rt_chat-message-avatar">
+		<a href="/op/ficha.php?uid={$row['uid']}"><img src="{$row['avatar']}" alt=""></a>
+	</div>
+	<div class="rt_chat-message-content">
+		<div class="rt_chat-message-meta">
+			<span class="rt_chat-message-author">{$row['username']}{$rt_chat_whisper}</span>
+			<div style=" display: inline; position: relative; top: 3px; "><span class="rt_chat-message-timestamp" data-timestamp="{$row['dateline']}"></span></div>
+			<div class="rt_chat-message-action" style="display: inline;position: relative;top: 2px;">{$rt_chat_actions}</div>
+		</div>
+		<div class="rt_chat-message-text" style="background-color:
+			<if $row['usergroup'] == '8' then>#ff7c7c</if>
+			<if $row['usergroup'] == '9' then>#84bbff</if>
+			<if $row['usergroup'] == '10' then>#85ff97</if>
+			<if $row['usergroup'] == '12' then>#ffcd85</if>
+			<if $row['usergroup'] == '11' then>#464646</if>
+			<if $row['usergroup'] == '13' then>#f58bff</if>
+			<if $row['usergroup'] == '14' then>#c295ff</if>
+			<if $row['usergroup'] == '4' then>#c295ff</if>
+			<if $row['usergroup'] == '2' then>#d7d7d7</if>									 
+	 		"> 
+<!-- 			 background -->
+			{$row['message']}
+			<input type="hidden" name="original_message" value="{$row['original_message']}">
+		</div>
+		
+	</div>
+</div>
+
+
+
+<!--  
+8 pirata
+9 marine
+10 cazarrecompensas
+
+-->

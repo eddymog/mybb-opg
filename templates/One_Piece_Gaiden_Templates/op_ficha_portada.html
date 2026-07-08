@@ -1,0 +1,794 @@
+<div id="portada" style="display:block;">
+    <!-- Wanted en esquina superior derecha -->
+    <if $ficha['wanted'] == '1' then>
+        <div id="wantedCorner" style="position: fixed; top: 735px; right: 148px; z-index: 1; cursor: pointer; transition: all 0.3s ease; transform: rotate(-5deg);">
+            <div style="background-image: url('/images/op/uploads/Wanted2_One_Piece_Gaiden_Foro_Rol.png'); background-size: cover; background-repeat: no-repeat; width: 210px; height: 340px; position: relative;">
+                <div class="miniNombreWanted" style="position: absolute; top: 244px; left: 50%; transform: translateX(-50%); width: 100%;">{$ficha['nombre']}</div>
+                <div style="position: absolute; top: 65px; left: 50%; transform: translateX(-50%); width: 169px; height: 172px; overflow: hidden;">
+                    <img src="{$ficha['avatar1']}" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+                <div id="miniWantedValue" class="miniBerriesWanted" style="position: absolute; top: 305px; left: 33%; transform: translateX(-50%);" data-value="{$ficha['wantedGuardado']}">{$ficha['wantedGuardado']}</div>
+            </div>
+        </div>
+    </if>
+    
+    <div class="tooltip" style=" position: relative;">
+        <div>
+            <img id="solColor" src="/images/op/ficha/SolNivel_One_Piece_Gaiden_Foro_Rol.png" style="left: 850px; top: 10px;">
+            <!-- Añadir indicador de puntos de estadística disponibles con GIF de Chopper -->
+            <if $ficha['puntos_estadistica'] > 0 && $mybb->user['uid'] == $query_uid && $aprobada then>
+                <a href="/op/ficha_estadisticas.php?uid={$ficha['fid']}" style="text-decoration: none; outline: none;">
+                    <div style="position: absolute; top: -20px; left: 847px; width: 120px; height: 120px; cursor: pointer; z-index: 10;">
+                        <img src="https://custom-doodle.com/wp-content/uploads/doodle/one-piece-tony-tony-chopper-hat/one-piece-tony-tony-chopper-hat-doodle.gif" style="width: 100%; height: 70%; background: none; border: none; outline: none; box-shadow: none;">
+                    </div>
+                </a>
+            </if>
+            <div class="tooltiptext item-tooltip" style="position: absolute;top: 60px;left: 452px;z-index: 9999;box-shadow: 0 0 10px rgba(0, 0, 0, 0);">
+                <div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">Experiencia</div>
+                <div><img src=""></div>
+                <div style="font-family: InterRegular;padding: 5px;text-align: justify;">- Has acumulado un total de {$usuario['newpoints']} puntos de experiencia.<br>- Esta semana has acumulado {$experiencia_limite['experiencia_semanal']} de 100 puntos de experiencia.<br>- Necesitas {$expRem} puntos de experiencia para subir al siguiente nivel.</div>
+				 <if $is_owner then><div style="font-family: InterRegular;padding: 5px;text-align: justify;margin: auto;"><button id="limite_nivel">Nivel Máximo: {$ficha['limite_nivel']}. ¡SUBIR LÍMITE DE NIVEL!</button></div></if>
+				<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;"></div>
+			</div>
+		</div>
+		<div class="circular-progress" data-inner-circle-color="#101010f0" data-percentage="{$nivelPorcentaje}" data-progress-color="#ff7e00" data-bg-color="transparent" data-nivel="{$ficha['nivel']}" style="background: conic-gradient(yellow 26190deg, transparent 0deg); position: absolute; left: 354px; top: 19px; width: 580px; height: 580px; z-index: -3; cursor: pointer; transform: translate(0px, 0px);">
+			<div class="inner-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(16, 16, 16, 0.94); width: calc(100% - 10px); height: calc(100% - 10px); border-radius: 50%; z-index: 3;"></div>
+			<p class="percentage" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 4; color: white; font-family: 'moonGetHeavy';">{$ficha['nivel']}</p>
+		</div>
+		<div class="circular-progress" data-inner-circle-color="#101010f0" data-percentage="{$nivelPorcentaje}" data-progress-color="#a3180b" data-bg-color="#989898" data-nivel="{$ficha['nivel']}" style="background: conic-gradient(rgb(163, 24, 11) 104.4deg, rgb(152, 152, 152) 0deg); position: relative; left: 878px; top: 37px; width: 56px; height: 55px; z-index: 2; cursor: pointer;">
+			<div class="inner-circle" style="background-color: rgba(16, 16, 16, 0.94);width: calc(58px - 10px);height: calc(58px - 10px);z-index: 3;"></div>
+			<p class="percentage" style="z-index: 3;">{$ficha['nivel']}</p>
+		</div>						
+	</div>
+	<div style="margin-top: -30px;flex-direction: row;display: flex;height: 500px;">
+		<div>
+			<div class="tag-ficha">
+				<div class="tag-ficha-texto">{$ficha['raza']}</div>
+				<div class="tag-ficha-kanji"><div class="tag-ficha-kanji-texto">族</div></div>
+			</div>
+			<div class="tag-pincelada">
+				<img style="margin-left: 26px;margin-top: -32px;position: absolute;" src="/images/op/uploads/PinceladaInformamción_One_Piece_Gaiden_Foro_Rol.webp" />
+				<div class="tag-pincelada-texto" id="subraza"></div>
+			</div>
+			<div class="tag-ficha">
+				<div class="tag-ficha-texto">{$ficha['altura']} cm</div>
+				<div class="tag-ficha-kanji"><div class="tag-ficha-kanji-texto">丈</div></div>
+			</div>
+			<div class="tag-pincelada">
+				<img style="margin-left: 26px;margin-top: -32px;position: absolute;" src="/images/op/uploads/PinceladaInformamción_One_Piece_Gaiden_Foro_Rol.webp" />
+				<div class="tag-pincelada-texto"><span id="espacios"></span> Espacios</div>
+			</div>
+			<div class="tag-ficha">
+				<div class="tag-ficha-texto">{$ficha['peso']} kg</div>
+				<div class="tag-ficha-kanji"><div class="tag-ficha-kanji-texto">重</div></div>
+			</div>
+			<div class="tag-pincelada">
+				<img style="margin-left: 26px;margin-top: -32px;position: absolute;" src="/images/op/uploads/PinceladaInformamción_One_Piece_Gaiden_Foro_Rol.webp" />
+				<div class="tag-pincelada-texto"><span id="fuerza_alzar">0</span> Fuerza para levantarlo</div>
+			</div>
+			<div class="tag-ficha">
+				<div class="tag-ficha-texto">{$ficha['sexo']}</div>
+				<div class="tag-ficha-kanji"><div class="tag-ficha-kanji-texto">性</div></div>
+			</div>
+			<div class="tag-pincelada">
+				<img style="margin-left: 26px;margin-top: -32px;position: absolute;" src="/images/op/uploads/PinceladaInformamción_One_Piece_Gaiden_Foro_Rol.webp" />
+				<div class="tag-pincelada-texto">Sangre {$ficha['sangre']}</div>
+			</div>
+			<div class="tag-ficha">
+				<div class="tag-ficha-texto">{$ficha['edad']} años</div>
+				<div class="tag-ficha-kanji"><div class="tag-ficha-kanji-texto">歳</div></div>
+			</div>
+			<div class="tag-pincelada">
+				<img style="margin-left: 26px;margin-top: -32px;position: absolute;" src="/images/op/uploads/PinceladaInformamción_One_Piece_Gaiden_Foro_Rol.webp" />
+				<div class="tag-pincelada-texto">{$ficha['dia']} de {$ficha['temporada']} del {$ano_edad}</div>
+			</div>
+			<div style="margin-top: 28px;margin-left: 65px; position: relative; display: inline-block;">
+				<img src="/images/op/rangos/{$rango_imagen}_One_Piece_Gaiden_Foro_Rol.webp"/>
+				<if $ficha['rango_inframundo'] != '' && $ficha['rango_inframundo'] != 'Sin rango' && $ficha['rango_inframundo'] != 'Alimaña' then>
+				<div style="position: absolute; bottom: 4px; left: 100%; margin-left: 8px; white-space: nowrap;">
+					<div style="
+						background: linear-gradient(145deg, #0d0005, #200010);
+						border: 2px solid #7c1230;
+						border-radius: 7px;
+						padding: 5px 12px;
+						box-shadow: 0 0 12px rgba(124,18,48,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+						text-align: center;
+						position: relative;
+						overflow: hidden;
+					">
+						<div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(220,80,120,0.5),transparent);"></div>
+						<div style="font-family:'moonGetHeavy';font-size:8px;letter-spacing:2px;color:#c0406a;text-shadow:0 0 6px rgba(192,64,106,0.7);margin-bottom:3px;">— INFRAMUNDO —</div>
+						<div style="font-family:'moonGetHeavy';font-size:14px;letter-spacing:1px;color:#f8d0dc;text-shadow:0 0 8px rgba(200,50,80,0.6);text-transform:uppercase;">{$ficha['rango_inframundo']}</div>
+						<if $movido_inframundo_fmt != '' then>
+						<div style="font-family:'LemonMilkLight';font-size:7px;letter-spacing:1px;color:rgba(248,208,220,0.6);margin-top:4px;">{$movido_inframundo_fmt} ฿ movidos</div>
+						</if>
+					</div>
+				</div>
+				</if>
+			</div>
+		</div>
+		<div>
+			<div style="position: relative; width: 560px; height: 560px; margin-left: 42px;">
+				<!-- Círculo base con borde de estadísticas -->
+				<div style="position: absolute; width: 100%; height: 100%; border-radius: 100%; z-index: 1; border: 4px solid black; background: conic-gradient(
+					/* Parte superior */
+					#04ff7f 0deg 30deg,  /* PV */
+					#8cb7ff 30deg 90deg, /* PE */
+					#a3180b 90deg 116deg,  /* FUERZA */
+					#a3180b 116deg 142deg, /* RESISTENCIA */
+					#a3180b 142deg 168deg, /* DESTREZA */
+					#a3180b 168deg 194deg, /* PUNTERIA */
+					#a3180b 194deg 220deg, /* AGILIDAD */
+					#a3180b 220deg 246deg, /* REFLEJOS */
+					#a3180b 246deg 270deg,  /* VOLUNTAD */
+					#ffe496 270deg 330deg, /* PH */
+					#04ff7f 330deg 0deg  /* PV */);">
+				</div>
+				<div style="position: absolute; width: 285px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(25deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 285px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(50deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 284px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(76deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 284px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(104deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 282px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(130deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 280px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(155deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 280px; height: 6px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(180deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 280px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(240deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 280px; height: 3px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(301deg); z-index: 2;"></div>
+				<div style="position: absolute; width: 284px; height: 6px; background-color: black; top: 50%; left: 50%; transform-origin: left center; transform: rotate(0deg); z-index: 2;"></div>
+				<div style="position: absolute; top: 50px; left: 50px; right: 50px; bottom: 50px; border-radius: 100%; background-color: #101010; z-index: 2; border: 2px solid black;"></div>
+				<div style="position: absolute; top: 80px; left: 80px; right: 80px; bottom: 80px; z-index: 3; border-radius: 100%; overflow: hidden; border: 2px solid black;">
+					<img onclick="openAvatar4Modal();" class="avatar_biografia" src="{$avatar}" style="width: 100%; height: 100%; object-fit: cover;" />
+				</div>
+				<!-- Indicadores de valores en las posiciones del círculo (stats principales) en semicírculo -->
+				<div style="position: absolute; top: 13px; left: 53%; transform: translateX(-50%) rotate(0deg); color: white; font-family: 'moonGetHeavy'; z-index: 4; text-shadow: 1px 1px 2px black; transform-origin: center bottom; width: 80px;">
+					<div class="tooltip">
+						<div style="font-size: 18px; text-align: center; width: 100%;">{$vitalidad_completa}</div>
+						<div style="font-size: 14px; text-align: center; margin-top: 15px;">PV</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(360deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">VITALIDAD</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['vitalidad']} Vitalidad Base<br>{$ficha['vitalidad_pasiva']} Vitalidad Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="position: absolute; top: 120px; left: 60px; color: white; font-family: 'moonGetHeavy'; z-index: 4; text-shadow: 1px 1px 2px black; transform: rotate(-60deg); transform-origin: center bottom; width: 80px;">
+					<div class="tooltip">
+						<div style="font-size: 18px; text-align: center; width: 100%;">{$energia_completa}</div>
+						<div style="font-size: 14px; text-align: center; margin-top: 15px;">PE</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(60deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">ENERGÍA</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['energia']} Energía Base<br>{$ficha['energia_pasiva']} Energía Pasiva</div>				
+						</div>
+					</div>
+				</div>
+				<div style="position: absolute; top: 120px; right: 60px; color: white; font-family: 'moonGetHeavy'; z-index: 4; text-shadow: 1px 1px 2px black; transform: rotate(60deg); transform-origin: center bottom; width: 80px;">
+					<div class="tooltip">
+						<div style="font-size: 18px; text-align: center; width: 100%;">{$haki_completo}</div>    
+						<div style="font-size: 14px; text-align: center; margin-top: 15px;">PH</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(300deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">HAKI</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['haki']} Haki Base<br>{$ficha['haki_pasiva']} Haki Pasivo</div>				
+						</div>
+					</div>
+				</div>
+				<!-- Indicadores de estadísticas en posiciones inferiores con z-index aumentado -->
+				<div style="cursor: pointer;position: absolute;bottom: 116px;left: 443px;color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform: rotate(-51deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">FUE</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$fuerza_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(411deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">FUERZA</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['fuerza']} Fuerza Base<br>{$ficha['fuerza_pasiva']} Fuerza Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 45px;left: 368px;color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform: rotate(-25deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">RES</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$resistencia_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(385deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">RESISTENCIA</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['resistencia']} Resistencia Base<br>{$ficha['resistencia_pasiva']} Resistencia Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 14px;left: 53%;transform: translateX(-50%) rotate(0deg);color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">DES</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$destreza_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(360deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">DESTREZA</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['destreza']} Destreza Base<br>{$ficha['destreza_pasiva']} Destreza Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 34px;right: 344px;color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform: rotate(25deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">PUN</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$punteria_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(335deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">PUNTERÍA</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['punteria']} Puntería Base<br>{$ficha['punteria_pasiva']} Puntería Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 95px;right: 425px;color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform: rotate(51deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">AGI</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$agilidad_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(309deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">AGILIDAD</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['agilidad']} Agilidad Base<br>{$ficha['agilidad_pasiva']} Agilidad Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 180px;right: 475px;color: white;font-family: 'moonGetHeavy';z-index: 4;text-shadow: 1px 1px 2px black;transform: rotate(75deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">REF</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$reflejos_completa}</div>
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(285deg);">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">REFLEJOS</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['reflejos']} Reflejos Base<br>{$ficha['reflejos_pasiva']} Reflejos Pasiva</div>					
+						</div>
+					</div>
+				</div>
+				<div style="cursor: pointer;position: absolute;bottom: 213px;left: 486px;color: white;font-family: 'moonGetHeavy';z-index: 3;text-shadow: 1px 1px 2px black;transform: rotate(-75deg);transform-origin: center;width: 60px;">
+					<div class="tooltip">
+						<div style="font-size: 12px; text-align: center;">VOL</div>
+						<div style="font-size: 18px; text-align: center; margin-top: 15px;">{$voluntad_completa}</div> 	
+						<div class="tooltiptext item-tooltip" style="min-width: 200px;transform: rotate(435deg)">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">VOLUNTAD</div>
+							<div class="mydescripcion" style="font-family: moonGetHeavy;padding: 5px;text-align: justify;">{$ficha['voluntad']} Voluntad Base<br>{$ficha['voluntad_pasiva']} Voluntad Pasiva</div>					
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style="margin-top: 85px;flex-direction: row;display: flex;">
+		<div style=" flex-direction: column; display: flex; margin-left: 25px;">
+			<div style="background-color: transparent;margin-left: 38px;width: 225px; margin-top: 20px;flex-direction: column;display: flex;">
+				<!-- Contenedor principal de reputación con nuevo diseño -->
+				<div style="box-shadow: 0px 0px 0px black;">
+					<!-- Título de reputación con fondo rojo -->
+					<div style="width: 100%;height: 40px;text-align: center;background-color: {$borderColor};" class="barra-op bbox">
+						<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 21px;line-height: 36px;text-shadow: 1px 1px 1px black;">REPUTACIÓN</span>
+					</div>
+					<!-- Panel central con "RUMOR" y valor principal -->
+					<div style="width: 100%;height: 105px;background-color: #ffe8b3;text-align: center;border-left: 2px solid black;border-right: 2px solid black;padding: 3px 5px;display: flex;flex-direction: column;justify-content: center;box-sizing: border-box;" class="bbox">
+						<div style="font-family: 'moonGetHeavy';letter-spacing: 0px;color: black;background: linear-gradient(90deg, rgb(229 209 160) 0%, rgba(146, 4, 255, 1) 50%, rgb(229 209 160) 100%);position: relative;text-transform: uppercase;padding: 0px 5px;font-size: clamp(10px, 3vw, 25px);overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width: 100%;"><span style="text-shadow: 0px 0px 3px #ffffff;">{$fama}</span></div>
+						<div style="font-family: 'moonGetHeavy';letter-spacing: 0.5px;color: black;position: relative;font-size: clamp(16px, 5vw, 40px);line-height: 1.1;margin-top: 5px;word-break: break-all;hyphens: auto;padding: 0 2px;max-width: 100%;box-sizing: border-box;">{$reputacion}</div>
+					</div>
+					<!-- Panel de reputación positiva y negativa -->
+					<div style="width: 100%;height: 45px;background-color:rgb(255, 255, 255);text-align: center;flex-direction: row;display: flex;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;border-top: 2px solid black;" class="bbox">
+						<!-- Reputación positiva -->
+						<div style="text-align: center; width: 50%; background-color:rgb(255, 255, 255); height: 100%; border-right: 1px solid #444;">
+							<div style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: black; font-size: 10px; margin-top: 3px;">R. POSITIVA</div>
+							<div style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: black; font-size: 16px;">{$reputacionPositiva}</div>
+						</div>
+						<!-- Reputación negativa -->
+						<div style="text-align: center; width: 50%; background-color:rgb(0, 0, 0); height: 100%;">
+							<div style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 10px; margin-top: 3px;">R. NEGATIVA</div>
+							<div style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 16px;">{$reputacionNegativa}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="akuma_espacio" style="background-color: black; margin-left: 38px; height: 280px; width: 225px; margin-top: 15px; flex-direction: column; display: flex; border-radius: 8px;">
+				
+			</div>
+		</div>
+		<div style=" flex-direction: column; display: flex; margin-left: 50px;">
+			<div style="height: 390px; width: 295px; margin-top: 20px;flex-direction: column;display: flex;">
+				<!-- Inicio del código de virtudes y defectos -->
+				<div style="height: 295px;height: 40px;background-color: {$borderColor};" class="barra-op bbox">
+					<span style="top: 4px;font-size: 21px;" class="barra-texto-op">RASGOS</span>
+				</div>
+				<div id="rasgos_virtudes" class="bbox" style="overflow: auto;display:block;border-left: 2px solid black;border-right: 2px solid black;width: 295px;height: 320px;background-color: rgb(181 181 181 / 70%);padding-top: 25px;"></div>
+				<div id="rasgos_defectos" class="bbox" style="overflow: auto;display: none;border-left: 2px solid black;border-right: 2px solid black;width: 295px;height: 320px;background-color: rgb(181 181 181 / 70%);padding-top: 25px;"></div>
+				<div style="display: flex;flex-direction: row;text-align: center;">
+					<div onClick="clickRasgos('virtudes');" id="virtudes_box" class="rasgos-active rasgos_box bbox" style="width: 147px;height: 34px;background-color: {$borderColor};border-bottom-left-radius: 10px;border-left: 2px solid black;border-bottom: 2px solid black;border-top: 2px solid black;">
+						<span style="position: relative;top: 8px;text-shadow: 1px 1px 1px black;font-size: 11px;letter-spacing: 1px;font-family: moonGetHeavy;color: white;left: 2px;">VIRTUDES (<span id="virtudes_puntos"></span>)</span>
+					</div>
+					<div onClick="clickRasgos('defectos');" id="defectos_box" style="width: 148px;height: 34px;background-color: {$borderColor};border-left: 2px solid black;border-bottom: 2px solid black;border-top: 2px solid black;border-right: 2px solid black;border-bottom-right-radius: 10px;" class="rasgos_box bbox">
+						<span style="position: relative;top: 8px;text-shadow: 1px 1px 1px black;font-size: 11px;letter-spacing: 1px;font-family: moonGetHeavy;color: white;left: 1px;">DEFECTOS (<span id="defectos_puntos"></span>)</span>
+					</div>
+				</div>
+				<!-- Fin del código de virtudes y defectos -->
+			</div>
+			<div style="height: 80px; width: 290px; margin-top: 15px;flex-direction: column;display: flex;">
+				<div class="tooltip">
+					<img src="/images/op/uploads/CaminoDe{$ficha['camino']}_One_Piece_Gaiden_Foro_Rol.webp" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" />
+					<if isset($ficha['camino']) && $ficha['camino'] == 'Haki' then>
+						<div class="tooltiptext item-tooltip" style="top: -340px; left: -52px; min-width: 400px;">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">CAMINO DEL HAKI</div>
+							<div class="mydescripcion" style="font-family: InterRegular;padding: 10px;text-align: justify;">
+								<strong>Despertar prematuro:</strong> Los que tomen el Camino del Haki lo despiertan 5 niveles antes, tanto los tiers de técnicas como los tipos de haki. Además, tienen un poco más de probabilidades de despertar el Haoshoku.<br><br>
+								<strong>Ahorro de CD:</strong> Las técnicas de haki tendrán 1 turno menos de CD (mínimo: 1 turno)<br><br>
+								<strong>Optimización de energía espiritual:</strong> Obtendrán una reducción de Energía igual a su [Nivel], para sus técnicas de haki. (Mínimo de 10 de Puntos de energía para técnicas y solo 1 técnica por turno.)<br><br>
+								<strong>Regeneración de energía espiritual:</strong> Fuera de combate los usuarios del Camino del Haki regeneran el doble de Puntos de energía espiritual por turno.<br><br>
+								<strong>Habilidades especiales:</strong> Tienen acceso completo a las técnicas Tier 8 del Haki y despiertan una habilidad única para ellos en el tier 9 de cada tipo de haki.
+							</div>
+						</div>
+					<elseif isset($ficha['camino']) && $ficha['camino'] == 'Akuma' then>
+						<div class="tooltiptext item-tooltip" style="top: -323px; left: -51px; min-width: 400px;">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">CAMINO DE LA AKUMA</div>
+							<div class="mydescripcion" style="font-family: InterRegular;padding: 10px;text-align: justify;">
+								<strong>Gran umbral de dolor:</strong> El umbral de dolor para cancelar tus acciones de [Concentración] o [Canalización] se verán interrumpidas deberán sobrepasar un daño mayor a tu atributo de [Voluntad] + [Nivel].<br><br>
+								<strong>Ahorro de CD:</strong> Las técnicas basadas en akuma tendrán 1 turno menos de CD (mínimo 1 turno)<br><br>
+								<strong>Optimización de energía:</strong> Obtendrán una reducción de Energía igual a su [Nivel], tanto para las fases de su akuma como para sus técnicas. (Mínimo de 10 de Puntos de energía para técnicas y solo 1 técnica por turno.).<br><br>
+								<strong>Regeneración de energía:</strong> Fuera de combate los usuarios del Full Akuma regeneran el doble de Puntos de energía por turno.<br><br>
+								<strong>Despertar de Akuma:</strong> Obtendrán un nuevo poder para su akuma que la potenciará reforzando sus particularidades.
+							</div>
+						</div>
+					<elseif isset($ficha['camino']) && $ficha['camino'] == 'Voz' then>
+						<div class="tooltiptext item-tooltip" style="top: -397px; left: -206px; width: 728px;">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: orange;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">CAMINO DE LA VOZ</div>
+							<div class="mydescripcion" style="font-family: InterRegular;padding: 10px;text-align: justify;">
+								<strong>Susurros del mundo:</strong> Desbloquean el [Poder Especial] de "La Voz de Todas las Cosas".<br><br>
+								<strong>Las entidades ancestrales te conocen:</strong> Menor probabilidad de ser atacado por reyes marinos u otros seres, en caso de suceder, lanzan un dado de 10 caras donde 1, 2 y 3 será fracaso. Tienen una pequeña posibilidad de obtener su ayuda, para ello, han de sacar un 10, dicha ayuda nunca podrá suponer un riesgo para enemigos en PVP.<br><br>
+								<strong>Afinidad con la gente:</strong> A diferencia del Kenbunshoku, que siente miedos o intenciones, esta habilidad percibe el ambiente colectivo como algo personal y empático, por lo que permite estrechar lazos más fácilmente con NPCs al intuirlos mejor.<br><br>
+								<strong>Visiones del pasado:</strong> Si el usuario se concentra en las emociones de una zona de la isla, un barco naufragado o un lugar de importancia histórica, podrá canalizar recuerdos de aquel momento importante, como si los viviera en persona, extrayendo hechos pasados que ocurrieron para obtener la información de lo sucedido.<br><br>
+								<strong>Unísono:</strong> Aumenta la probabilidad de ganar aliados y de hacer dudar a los enemigos, creando oportunidades donde antes no las había.<br><br>
+								<strong>Versatilidad:</strong> Los seguidores de este camino tienen muchas posibilidades y podrán elegir una de las siguientes tres opciones para complementar su personaje:<br>
+								1. Podrán mejorar uno de sus Hakis hasta el Tier 8, adquiriendo sus correspondientes técnicas.<br>
+								2. Podrá realizar 1 Aventura de Akuma no Mi adicional para obtener uno de los frutos prohibidos.<br>
+								3. Serán capaces de acceder a un estilo que normalmente estaría bloqueado por algún requisito de oficio, raza, facción, etc.
+							</div>
+						</div>
+					</if>
+				</div>
+			</div>
+		</div>								
+		<div style=" flex-direction: column; display: flex; margin-left: 40px;">
+			<div style="height: 450px; width: 250px; margin-top: 20px; flex-direction: column; display: flex; position: relative; z-index: 10;">
+				<!-- Imagen de reputación en la esquina superior derecha -->
+				<img style="position: absolute; width: 100px; height: 100px; z-index: 2; transform: rotate(5deg); filter: drop-shadow(2px 4px 6px black); right: -35px; top: -65px;" src="/images/op/misc/{$reputacionImagen}_One_Piece_Gaiden_Foro_Rol.png"/>
+				<!-- Contenedor del Avatar1 -->
+				<div style="width: 250px; height: 450px; background-color: white; border: 15px solid white; box-shadow: 0px 0px 10px black; border-bottom: 20px solid white; position: relative;">
+					<img onclick="openAvatar1Modal();" class="avatar_repu_1" src="{$ficha['avatar3']}" style="width: 250px; height: 450px;" />
+					<div style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: black; font-size: 10px; top: 3px; position: relative; text-align: center;">
+						{$ficha['fisico_de_pj']}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style="margin-left: 38px;margin-top: 10px;flex-direction: row;display: flex;">
+		
+<!-- 		<div class="stats-sign"><span>$$</span></div> -->
+		
+		<!-- NIKAS -->
+		<div style="background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1)); height: 35px; width: 190px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 2px; border-radius: 30px;">
+			<div style="display: flex; align-items: center; margin-left: 1px;">
+				<!-- Círculo blanco alrededor de la imagen -->
+				<div style="background-color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+					<img style="height: 28px;" src="/images/op/indice/SolMenu_One_Piece_Gaiden_Foro_Rol.png">
+				</div>
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 15px; margin-left: 8px;"></span>
+			</div>
+			<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 18px;margin: auto;">{$ficha['nika']}</span>
+		</div>
+		<!-- KUROS -->
+		<div style="background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1)); height: 35px; width: 190px; margin-left: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 2px; border-radius: 30px;">
+			<div style="display: flex; align-items: center; margin-left: 1px;">
+				<!-- Círculo blanco alrededor de la imagen -->
+				<div style="background-color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+					<img style="height: 28px;" src="/images/op/uploads/KuroPoint_One_Piece_Gaiden_Foro_Rol.png">
+				</div>
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 15px; margin-left: 8px;"></span>
+			</div>
+			<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 18px;margin: auto;">{$ficha['kuro']}</span>
+		</div>
+		<!-- PUNTOS DE OFICIO -->
+		<div style="background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1)); height: 35px; width: 190px; margin-left: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 2px; border-radius: 30px;">
+			<div style="display: flex; align-items: center; margin-left: 1px;">
+				<!-- Círculo blanco alrededor de la imagen -->
+				<div style="background-color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+					<img style="height: 32px;" src="https://static.thenounproject.com/png/5421605-200.png">
+				</div>
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 15px; margin-left: 8px;"></span>
+			</div>
+			<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 18px;margin: auto;">{$ficha['puntos_oficio']}</span>
+		</div>
+		<!-- BERRIES -->
+		<div style="background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1)); height: 35px; width: 233px; margin-left: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 2px; border-radius: 30px;">
+			<div style="display: flex; align-items: center; margin-left: 1px;">
+				<!-- Círculo blanco alrededor de la imagen -->
+				<div style="background-color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 3px rgba(0,0,0,0.5);">
+					<img style="height: 28px;" src="https://64.media.tumblr.com/ef457fd69a4ae7fdfb7ce6d2daa27de1/tumblr_nkz8u0C2UL1up54j8o1_1280.png">
+				</div>
+				<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 15px; margin-left: 8px;"></span>
+			</div>
+			<!--<span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 18px;margin: auto;">{$ficha['berries']}</span>-->
+			<span id="berries" data-value="{$ficha['berries']}" style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 18px;margin: auto;">{$ficha['berries']}</span>
+		</div>
+		<!-- HISTORIAL -->
+        <div onclick="openHistorialModal()" style="background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0.1)); height: 35px; width: 55px; margin-left: 5px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px 0 2px; border-radius: 30px; cursor: pointer;">
+            <div style="display: flex; align-items: center; margin-left: 1px;">
+                <!-- Círculo blanco alrededor del texto -->
+                <div style="width: 62px; height: 33px; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 8px; text-align: center;">HISTORIAL</span>
+                </div>
+                <span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 15px; margin-left: 8px;"></span>
+            </div>
+        </div>
+	</div>
+			
+<script>
+	var fichaCamino = "<?php echo addslashes($ficha['camino']); ?>"
+	var nivelUsuario = "<?php echo addslashes($ficha['nivel']); ?>"
+</script>
+<style>
+/* Estilos para el modal de akuma con diseño de libro*/
+.akuma-libro-modal {
+    position: relative;
+    background-image: url('/images/op/misc/LibroBase_One_Piece_Gaiden_Foro_Rol.png');
+    margin: auto;
+    padding: 0;
+    width: 1200px;
+    height: 644px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s;
+}
+
+.akuma-libro-body {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    padding: 0;
+}
+
+.akuma-libro-left {
+    display: flex;
+    flex-direction: column;
+    width: 42%;
+    margin-left: 123px;
+    position: relative;
+}
+
+.akuma-libro-right {
+    display: flex;
+    flex-direction: column;
+    width: 42%;
+    position: relative;
+}
+
+.akuma-id-badge {
+    position: absolute;
+    top: 260px;
+    transform: rotate(15deg);
+    font-size: 11px;
+    font-family: 'moonGetHeavy';
+    color: black;
+    left: -110px;
+    width: 88px;
+    text-align: center;
+    z-index: 5;
+}
+
+.akuma-nombre-libro {
+    font-family: 'moonGetHeavy';
+    color: black;
+    font-size: 36px;
+    margin: auto;
+    text-shadow: 2px 2px 1px white;
+    margin-top: 29px;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.akuma-subnombre-libro {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 17px;
+    margin: auto;
+    text-shadow: 2px 2px 1px black;
+    letter-spacing: 1px;
+    text-align: center;
+}
+
+.akuma-tipo-tier-libro {
+    margin: auto;
+    margin-top: 25px;
+    width: 483px;
+    text-align: center;
+    border-radius: 25px;
+    padding: 8px 0;
+}
+
+.akuma-tipo-tier-text {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 29px;
+    margin: auto;
+    text-shadow: 2px 2px 1px black;
+    letter-spacing: 2px;
+}
+
+.akuma-imagen-libro-container {
+    margin: auto;
+    margin-top: 20px;
+}
+
+.akuma-imagen-libro {
+    height: 411px;
+    max-width: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+}
+
+.npc-info-akuma {
+    display: flex;
+    flex-direction: row;
+    margin-top: -77px;
+    min-height: 120px;
+}
+
+.akuma-descripcion-background-libro {
+    margin: auto;
+    margin-top: 46px;
+    width: 483px;
+    text-align: center;
+    margin-bottom: 0px;
+    border-radius: 25px;
+    padding: 8px 0;
+}
+
+.akuma-descripcion-titulo-libro {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 24px;
+    margin: auto;
+    text-shadow: 2px 2px 1px black;
+    letter-spacing: 2px;
+}
+
+.akuma-descripcion-libro {
+    text-align: justify;
+    margin-top: 11px;
+    font-family: 'InterRegular';
+    color: black;
+    font-size: 16px;
+    padding: 7px 26px;
+    text-shadow: 1px 0px 0px #0000004d;
+    font-weight: 600;
+    line-height: 1.4;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Animaciones para el modal */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+/* Estilos para la vista previa en portada */
+.akuma-preview {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #ff7e00 0%, #ff4500 100%);
+    border-radius: 8px;
+}
+
+.akuma-preview-header {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 16px;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px black;
+    letter-spacing: 1px;
+}
+
+.akuma-preview-name {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 18px;
+    margin: 10px 0 5px 0;
+    text-shadow: 2px 2px 4px black;
+}
+
+.akuma-preview-category {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.akuma-preview-hint {
+    font-family: 'InterRegular';
+    color: white;
+    font-size: 12px;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+/* Estilos para el historial (mantener los existentes) */
+.historial-modal-content {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin: 1% auto;
+    padding: 0;
+    border: 4px solid #007bff;
+    border-radius: 15px;
+    width: 95%;
+    max-width: 1400px;
+    max-height: 95vh;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 123, 255, 0.3);
+}
+
+.historial-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-family: 'moonGetHeavy';
+    letter-spacing: 2px;
+}
+
+.historial-header h2 {
+    margin: 0;
+    font-size: 28px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.historial-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: calc(100vh - 200px);
+    max-height: 600px;
+}
+
+.historial-column {
+    border-right: 2px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+}
+
+.historial-column:last-child {
+    border-right: none;
+}
+
+.historial-column-header {
+    padding: 15px;
+    color: white;
+    font-family: 'moonGetHeavy';
+    font-size: 16px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.nikas-header { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
+.kuros-header { background: linear-gradient(135deg, #6f42c1 0%, #5a2d91 100%); }
+.puntos-oficio-header { background: linear-gradient(135deg, #20c997 0%, #1a9671 100%); }
+.berries-header { background: linear-gradient(135deg, #fd7e14 0%, #d63384 100%); }
+
+.historial-column-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(255,255,255,0.5);
+}
+
+.historial-item {
+    background: white;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-left: 4px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.historial-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.nikas-item { border-left-color: #ffc107; }
+.kuros-item { border-left-color: #6f42c1; }
+.puntos-oficio-item { border-left-color: #20c997; }
+.berries-item { border-left-color: #fd7e14; }
+
+.historial-item-fecha {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+    font-family: 'moonGetHeavy';
+}
+
+.historial-item-descripcion {
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 8px;
+    font-family: 'InterRegular';
+}
+
+.historial-item-cantidad {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'moonGetHeavy';
+}
+
+.cantidad-positiva { color: #28a745; }
+.cantidad-negativa { color: #dc3545; }
+/* Estilos para el wanted en esquina */
+@keyframes tambaleo {
+    0%, 100% { transform: rotate(-5deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(-2deg); }
+}
+
+#wantedCorner:hover {
+    animation: tambaleo 0.5s ease-in-out 3;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5));
+    z-index: 100 !important;
+}
+
+/* Modal del wanted eliminado */
+
+.miniNombreWanted {
+    margin-top: 18px;
+    margin-bottom: -7px;
+    text-align: center;
+    font-size: 27px;
+    color: #3b1300;
+    font-family: fantasy;
+    line-height: 15px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.miniBerriesWanted {
+    margin-top: -20px;
+    text-align: center;
+    font-size: 27px;
+    color: #3b1300;
+    font-family: timesNewRoman;
+    width: 108px;
+    margin-left: 24px;
+    font-weight: 800;
+}</style>
+
+<!-- Modal del wanted eliminado -->
+
+</div>
+		
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Formatear berries
+    const el = document.getElementById('berries');
+    if (el && el.dataset.value) {
+      const val = parseInt(el.dataset.value, 10);
+      if (!isNaN(val)) {
+        el.textContent = val.toLocaleString('es-ES');
+      }
+    }
+    
+    // Formatear wanted en versión mini
+    const miniWanted = document.getElementById('miniWantedValue');
+    if (miniWanted && miniWanted.dataset.value) {
+      const wantedVal = parseInt(miniWanted.dataset.value, 10);
+      if (!isNaN(wantedVal)) {
+        miniWanted.textContent = wantedVal.toLocaleString('es-ES');
+      }
+    }
+  });
+</script>

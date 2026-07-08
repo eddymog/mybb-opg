@@ -1,0 +1,476 @@
+<html>
+
+<head>
+  <title>One Piece Gaiden - Guías del Rol</title>
+  {$headerinclude}
+  <style>
+    /* Estilos generales */
+    .guias-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-left: 10px;
+      gap: 40px;
+      padding: 0px;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Título principal con efecto de trazo dorado */
+    .main-title {
+      text-align: center; 
+      color: #f8d78e; 
+      margin-bottom: 30px; 
+      text-shadow: 0 0 10px #8b4513, 0 0 15px #000;
+      font-size: 40px;
+      font-family: moonGetHeavy, sans-serif;
+      letter-spacing: 2px;
+      position: relative;
+      padding-bottom: 15px;
+      width: 100%;
+    }
+
+    .main-title:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #f8d78e, transparent);
+    }
+
+    /* Diseño de pergamino para categorías */
+    .categoria {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+      position: relative;
+      background-color: rgba(31, 28, 24, 0.85);
+      border: 2px solid #8b4513;
+      text-align: center;
+    }    /* Estilo pergamino para guías básicas */
+    .categoria.basicas {
+      background-image: url('/images/op/uploads/IslaGrande35_One_Piece_Gaiden_Foro_Rol.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .categoria.basicas:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }
+
+    /* Usar imágenes como fondos para cada categoría */
+    .categoria.belicas {
+      background-image: url('/images/op/uploads/IslaGrande37_One_Piece_Gaiden_Foro_Rol.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .categoria.otras {
+      background-image: url('/images/op/uploads/IslaGrande38_One_Piece_Gaiden_Foro_Rol.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .categoria.enciclopedia {
+      background-image: url('/images/op/uploads/IslaGrande33_One_Piece_Gaiden_Foro_Rol.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    
+    /* Overlay para categorías no básicas */
+    .categoria.belicas:before,
+    .categoria.otras:before,
+    .categoria.enciclopedia:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }    .categoria-header {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+      padding: 20px 0;
+    }    /* Efecto de brújula para los títulos de las categorías */
+    .categoria-title {
+      position: relative;
+      color: #f8d78e;
+      padding: 5px;
+      font-size: 26px;
+      text-shadow: 2px 2px 4px #000;
+      text-align: center;
+      font-family: moonGetHeavy, sans-serif;
+      background: rgba(0, 0, 0, 0);
+      border-bottom: 1px solid #8b4513;
+      margin-top: -20px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    /* Decoración para los títulos */
+    .categoria-title:before,
+    .categoria-title:after {
+      content: '✦';
+      margin: 0 10px;
+      color: #f8d78e;
+    }
+
+    /* Contenido de las categorías */
+    .categoria-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.6s ease-in-out;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }    .categoria.active .categoria-content {
+      max-height: 2500px;
+    }
+
+    /* Lista de guías */
+    .guias-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Efecto de tarjeta para cada guía */
+    .guia-item {
+      width: calc(50% - 20px);
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .guia-item {
+        width: 100%;
+      }
+    }
+
+    .guia-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .guia-item img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .guia-item:hover img {
+      transform: scale(1.1);
+    }
+
+    /* Overlay para títulos de guías con efecto de revelado */
+    .guia-title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.9));
+      color: #fff;
+      padding: 30px 10px 10px;
+      font-size: 14px;
+      font-weight: normal;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      text-shadow: 1px 1px 3px #000;
+      text-align: center;
+    }
+
+    .guia-item:hover .guia-title {
+      transform: translateY(0);
+    }
+
+    /* Iconos decorativos piratas */
+    .pirate-icon {
+      font-size: 24px;
+      color: #f8d78e;
+      margin: 0 10px;
+    }
+
+    /* Indicador de expansión */
+    .expand-indicator {
+      position: relative;
+      color: #f8d78e;
+      font-size: 20px;
+      transition: transform 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .categoria.active .expand-indicator {
+      transform: rotate(180deg);
+    }
+
+    /* Contenedor principal - Fondo invisible */
+    .tripulacion-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      /* Eliminada la imagen de fondo */
+      background-color: transparent;
+      padding: 20px 0;
+      position: relative;
+    }
+
+    .tripulacion-container:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      /* Fondo negro sólido en lugar del semi-transparente */
+      background: rgba(0, 0, 0, 1);
+      z-index: 0;
+    }
+
+    .inner-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    /* Estilo para el botón de Enciclopedia */
+    .categoria.enciclopedia {
+      cursor: pointer;
+      padding: 5px;
+      transition: transform 0.3s ease;
+      margin-top: -20px;
+      margin: 0 auto;
+      max-width: 100%;
+    }
+
+    .categoria.enciclopedia:hover {
+      transform: translateY(-5px);
+    }
+
+    .enciclopedia .categoria-title {
+      padding: 5px -20px;
+      font-size: 28px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+          <div class="tripulacion-container">
+            <div class="inner-container">
+              <h1 class="main-title">
+                <span class="pirate-icon">☠</span>
+                Guías de One Piece Gaiden
+                <span class="pirate-icon">☠</span>
+              </h1>
+              
+              <!-- Botón central de Normativa -->
+              <div style="margin-bottom: 40px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; display: flex; justify-content: center;">
+                <a href="https://onepiecegaiden.com/showthread.php?tid=3754" class="guia-item" style="width: 100%; display: block;">
+                  <img src="https://onepiecegaiden.com/images/op/uploads/GuiaNormativa2_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Normativa">
+                  <div class="guia-title"></div>
+                </a>
+              </div>
+              
+              <div class="guias-container">                <!-- Guías Básicas -->
+                <div class="categoria basicas">
+                  <div class="categoria-header">
+                    <div class="categoria-title">Guías Básicas</div>
+                    <span class="expand-indicator">▼</span>
+                  </div>
+                  <div class="categoria-content">
+                    <div class="guias-list">
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3728" class="guia-item">
+                        <img src="/images/op/uploads/GuiaInicio_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Introducción">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3736" class="guia-item">
+                        <img src="/images/op/uploads/GuiaCrafteos_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Oficios">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3729" class="guia-item">
+                        <img src="/images/op/uploads/GuiaProgreso_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Progreso">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3733" class="guia-item">
+                        <img src="/images/op/uploads/GuiaTemas_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Temporalidad">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3734" class="guia-item">
+                        <img src="/images/op/uploads/BannerRazas_One_Piece_Gaiden_Foro_Rol.webp" alt="Guía de Temporalidad">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3741" class="guia-item">
+                        <img src="/images/op/uploads/GuiaReputación_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Temporalidad">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3742" class="guia-item">
+                        <img src="/images/op/uploads/GuiaFacciones_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Temporalidad">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3745" class="guia-item">
+                        <img src="/images/op/uploads/BannerNarradoresGuia_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Temporalidad">
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Guías Bélicas -->
+                <div class="categoria belicas">
+                  <div class="categoria-header">
+                    <div class="categoria-title">Guías Bélicas</div>
+                    <span class="expand-indicator">▼</span>
+                  </div>
+                  <div class="categoria-content">
+                    <div class="guias-list">
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3731" class="guia-item">
+                        <img src="/images/op/uploads/GuiaBelica_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía Bélica">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3730" class="guia-item">
+                        <img src="/images/op/uploads/GuiaEstilos_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía Bélica">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3735" class="guia-item">
+                        <img src="/images/op/uploads/GuiaHaki_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía del Haki">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3740" class="guia-item">
+                        <img src="/images/op/uploads/guía%20de%20técnicas.jpg" alt="Guía de Batallas Navales">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3732" class="guia-item">
+                        <img src="/images/op/uploads/BannerAkumaNoMi_One_Piece_Gaiden_Foro_Rol.webp" alt="Guía de Batallas Navales">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3746" class="guia-item">
+                        <img src="/images/op/uploads/GuiaObjetos_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Batallas Navales">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3747" class="guia-item">
+                        <img src="/images/op/uploads/GuiaInventario_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Batallas Navales">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3748" class="guia-item">
+                        <img src="/images/op/uploads/GuiaCyborgs_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Batallas Navales">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3752" class="guia-item">
+                        <img src="/images/op/uploads/CONQUISTAS%20Y%20EDIFICIOS.webp" alt="Guía de Batallas Navales">
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Otras Guías -->
+                <div class="categoria otras">
+                  <div class="categoria-header">
+                    <div class="categoria-title">Otras Guías</div>
+                    <span class="expand-indicator">▼</span>
+                  </div>
+                  <div class="categoria-content">
+                    <div class="guias-list">
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3737" class="guia-item">
+                        <img src="/images/op/uploads/BannerViajes_One_Piece_Gaiden_Foro_Rol.webp" alt="Guía del Inframundo">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3738" class="guia-item">
+                        <img src="/images/op/uploads/GuiaBarcos_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Conquistas">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3739" class="guia-item">
+                        <img src="/images/op/uploads/GuiaBatallaNaval_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=6127" class="guia-item">
+                        <img src="/images/op/uploads/INFRAMUNDO.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3744" class="guia-item">
+                        <img src="/images/op/uploads/GuiaMascotas_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3750" class="guia-item">
+                        <img src="/images/op/uploads/GuiaMultisMuerte_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3751" class="guia-item">
+                        <img src="/images/op/uploads/BannerRecompensas_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                      <a href="https://onepiecegaiden.com/showthread.php?tid=3753" class="guia-item">
+                        <img src="/images/op/uploads/BannerCodigos_One_Piece_Gaiden_Foro_Rol.jpg" alt="Guía de Mascotas y NPC">
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Enciclopedia (como botón directo) -->
+                <a href="https://onepiecegaiden.com/forumdisplay.php?fid=33" class="categoria enciclopedia">
+                  <div class="categoria-header">
+                    <div class="categoria-title">Enciclopedia</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {$footer}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Animación de entrada
+      const categorias = document.querySelectorAll('.categoria');
+      categorias.forEach((categoria, index) => {
+        categoria.style.opacity = '0';
+        setTimeout(() => {
+          categoria.style.opacity = '1';
+        }, index * 200);
+      });
+        // Hacer que las categorías se expandan al hacer clic (excepto enciclopedia)
+      const categoriasToggle = document.querySelectorAll('.categoria:not(.enciclopedia) .categoria-header');
+      categoriasToggle.forEach(header => {
+        header.addEventListener('click', () => {
+          const parent = header.parentElement;
+          parent.classList.toggle('active');
+        });
+      });
+      
+      // Efecto de revelado al hacer scroll
+      function revealOnScroll() {
+        const elementos = document.querySelectorAll('.guia-item');
+        elementos.forEach(elem => {
+          const elementTop = elem.getBoundingClientRect().top;
+          const elementVisible = 150;
+          if (elementTop < window.innerHeight - elementVisible) {
+            elem.classList.add('visible');
+          }
+        });
+      }
+      
+      window.addEventListener('scroll', revealOnScroll);
+      revealOnScroll(); // Verificar al cargar la página
+    });
+  </script>
+</body>
+</html>

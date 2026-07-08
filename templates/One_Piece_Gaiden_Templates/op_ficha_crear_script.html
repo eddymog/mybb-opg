@@ -1,0 +1,1196 @@
+  <script>
+	  
+    let subrazaSelected = false;
+	let subraza = '';  
+	let raza = '';
+	let sexo = 'Hombre';
+    let faccion = 'NA';
+    let test = null;
+	let temporada = '';
+	let razas = {$razas_json};
+    let id_raza = 0;
+	const virtudes = {$virtudes_json};
+    const defectos = {$defectos_json};
+	let balanceRaza = 0;
+	let balance = 0;
+	let balancePositivo = 0;
+	let balanceNegativo = 0;
+	let showElecciones = false;
+	let showTribus = false;
+	let raza1 = '';
+	let sentido1 = '';
+	let sentido2 = '';
+	let sentido3 = '';
+	let tribu = '';
+	let hasDiferente = false;
+	  
+	  
+	function buscarVirtud(virtudId) {
+		for (let i = 0; i < virtudes.length; i++) {
+		  if (virtudes[i].virtud_id == virtudId) {
+			return virtudes[i];
+		  }
+		}
+	}
+	  
+	function buscarDefecto(defectoId) {
+		for (let i = 0; i < defectos.length; i++) {
+		  if (defectos[i].virtud_id == defectoId) {
+			return defectos[i];
+		  }
+		}
+	}
+	  
+	for (let i = 0; i < virtudes.length; i++) {
+		let virtudesNombre = virtudes[i].nombre;
+		console.log(virtudes[i].requisito == '1');
+		let virtudGris = '';
+		if (virtudes[i].requisito == '1') { virtudGris = 'virtudGris'; }
+			
+		$('#virtudes').append(`
+			<div class="virtudCaja ` + virtudGris + `" id="` + virtudes[i].virtud_id + `">
+				<div class="virtudPuntos virtudColor">` + Math.abs(virtudes[i].puntos) + `</div>
+				` + (parseInt(virtudes[i].puntos) < 0 ? `<div class="virtudPuntos virtudColor" style=" top: -51px; left: -27px; ">-</div>` : ``) + `
+				<div class="virtudNombre virtudColor">` + virtudesNombre + `</div>
+				<div class="virtudCajaTexto virtudBackground">
+					<div style="display: flex; flex-direction: row;">
+						<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+							<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+							<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + virtudes[i].virtud_id + `</span>
+						</div>
+						<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + virtudes[i].descripcion + `</div>
+					</div>
+				</div>
+
+			</div>
+		`);
+	}
+	  
+	for (let i = 0; i < defectos.length; i++) {
+		let defectosNombre = defectos[i].nombre;
+		let virtudGris = '';
+		if (defectos[i].requisito == '1') { virtudGris = 'virtudGris'; }
+		
+		if (defectos[i].virtud_id != 'D066') {
+		
+		$('#defectos').append(`
+			<div class="virtudCaja ` + virtudGris + `" id="` + defectos[i].virtud_id + `">
+				<div class="virtudPuntos defectoColor">` + Math.abs(defectos[i].puntos) + `</div>
+				<div class="virtudNombre defectoColor">` + defectosNombre + `</div>
+				<div class="virtudCajaTexto defectoBackground">
+					<div style="display: flex; flex-direction: row;">
+						<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+							<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+							<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + defectos[i].virtud_id + `</span>
+						</div>
+						<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + defectos[i].descripcion + `</div>
+					</div>
+				</div>
+
+			</div>
+		`);
+		}
+	}
+	  
+	function addGris(ids) {
+		for (let i = 0; i < ids.length; i++) { $('#' + ids[i]).addClass('virtudGris'); }
+	}  
+	  
+	function removeGris(ids) {
+		for (let i = 0; i < ids.length; i++) { $('#' + ids[i]).removeClass('virtudGris'); }
+	}  
+	  
+	function checkVirtudes(id, isClicked) {
+		if (!isClicked) {
+			if (id == 'V002') { // Adinerado 2, 3, Pobre123
+				addGris(['V003', 'V004', 'D021', 'D022', 'D023']); }
+			if (id == 'V003') { // Adinerado 1, 3, Pobre123
+				addGris(['V002', 'V004', 'D021', 'D022', 'D023']); }
+			if (id == 'V004') { // Adinerado 1, 2, Pobre123
+				addGris(['V002', 'V003', 'D021', 'D022', 'D023']); }
+			
+			if (id == 'D021') { // Pobre 2, 3, Adinerado123
+				addGris(['D022', 'D023', 'V002', 'V003', 'V004']); }
+			if (id == 'D022') { // Pobre 1, 3, Adinerado123
+				addGris(['D021', 'D023', 'V002', 'V003', 'V004']); }
+			if (id == 'D023') { // Pobre 1, 2, Adinerado123
+				addGris(['D021', 'D022', 'V002', 'V003', 'V004']); }
+			
+			if (id == 'V022') { // Pasado Maldito 2
+				addGris(['V023']); }
+			if (id == 'V023') { // Pasado Maldito 1
+				addGris(['V022']); }
+			
+			if (id == 'V058') { // Espiritual 1
+				addGris(['V059']); }
+			if (id == 'V059') { // Espiritual 2
+				addGris(['V058']); }
+			
+			if (id == 'V037') { // Vigoroso 1
+				addGris(['V038', 'V039']); }
+			if (id == 'V038') { // Vigoroso 2
+				addGris(['V037', 'V039']); }
+			if (id == 'V039') { // Vigoroso 3
+				addGris(['V037', 'V038']); }
+			
+			if (id == 'D044') { // TOC 1
+				addGris(['D043']); }
+			if (id == 'D043') { // TOC 2
+				addGris(['D044']); }
+			
+			if (id == 'D056') { // Incompatible
+				addGris(['D063']); }
+			if (id == 'D063') { // Cuerpo Puro
+				addGris(['D056']); }
+			
+			if (id == 'D054') { // Herida Permanente 1
+				addGris(['D050', 'D049']); }
+			if (id == 'D050') { // Herida Permanente 2
+				addGris(['D054', 'D049']); }
+			if (id == 'D049') { // Herida Permanente 3
+				addGris(['D054', 'D050']); }
+			
+			if (id == 'D035') { // Alergia 3
+				addGris(['D003', 'D002']); }
+			if (id == 'D003') { // Alergia 2
+				addGris(['D035', 'D002']); }
+			if (id == 'D002') { // Alergia 1
+				addGris(['D003', 'D035']); }
+						
+			if (id == 'V028') { // Erudito
+				addGris(['D024', 'V035', 'V036']); } // Sin Oficio, Estudioso, Polivalente
+			if (id == 'D024') { // Sin Oficio
+				addGris(['V028', 'V035', 'V036']); } // Erudito, Estudioso, Polivalente
+			if (id == 'V035') { // Estudioso
+				addGris(['D024', 'V028', 'V036']); } // Sin Oficio, Erudito, Polivalente
+			if (id == 'V036') { // Polivalente
+				addGris(['D024', 'V028', 'V035']); } // Sin Oficio, Erudito, Estudioso
+			
+			if (id == 'D016') { // Fobia 3
+				addGris(['D036', 'D038']); }
+			if (id == 'D036') { // Fobia 2
+				addGris(['D038', 'D016']); }
+			if (id == 'D038') { // Fobia 1
+				addGris(['D036', 'D016']); }
+			
+			if (id == 'V027') { // Voluntad de D.
+				addGris(['V060']); }
+			if (id == 'V060') { // Descendiente de Dragon
+				addGris(['V027']); }
+			
+			if (id == 'V044') { // Grandullon
+				addGris(['V045', 'V046', 'V047']); }
+			if (id == 'V045') { // El más Grande
+				addGris(['V044', 'V046', 'V047']); }
+			if (id == 'V046') { // Pequeñin
+				addGris(['V044', 'V045', 'V047']); }
+			if (id == 'V047') { // La Pulga
+				addGris(['V044', 'V045', 'V046']); }
+			
+			if (id == 'V011') { // Fortaleza al calor -> Debilidad al calor
+				addGris(['D010']); }
+			if (id == 'D010') { // Debilidad al calor -> Fortaleza al calor
+				addGris(['V011']); }
+			if (id == 'V012') { // Fortaleza al frio -> Debilidad al frio
+				addGris(['D011']); }
+			if (id == 'D011') { // Debilidad al frio -> Fortaleza al frio
+				addGris(['V012']); }
+			if (id == 'V013') { // Fortaleza al veneno -> Debilidad al veneno
+				addGris(['D012']); }
+			if (id == 'D012') { // Debilidad al veneno -> Fortaleza al veneno
+				addGris(['V013']); }
+			
+			if (id == 'D001') { // Adiccion -> Vicio
+				addGris(['D030']); }
+			if (id == 'D030') { // Vicio -> Adicción
+				addGris(['D001']); }
+			
+			if (id == 'V001') { // Acto Triunfal -> Acto Maléfico
+				addGris(['V032']); }
+			if (id == 'V032') { // Acto Maléfico -> Acto Triunfal
+				addGris(['V001']); }
+			
+			if (id == 'D001') { // Adiccion -> Vicio
+				addGris(['D030']); }
+			if (id == 'D030') { // Vicio -> Adicción
+				addGris(['D001']); }
+	
+			if (id == 'D009') { // Ceguera -> Tuerto
+				addGris(['D029']); }
+			if (id == 'D029') { // Tuerto -> Ceguero
+				addGris(['D009']); }
+			
+			if (id == 'V006') { // Belleza -> Fealdad
+				addGris(['D015']); }
+			if (id == 'D015') { // Fealdad -> Belleza
+				addGris(['V006']); }
+			
+			if (id == 'V017') { // Mejora de Reputacion -> Baja de Reputacion
+				addGris(['D013']); }
+			if (id == 'D013') { // Baja de Reputacion -> Mejora de Reputacio
+				addGris(['V017']); }
+			
+			if (id == 'V008') { // Sentidos Aumentados 1 -> Sentidos Aumentados 2
+				addGris(['V033']); }
+			if (id == 'V033') { // Sentidos Aumentados 2 -> Sentidos Aumentados 1
+				addGris(['V008']); }
+			
+			if (id == 'D018') { // Lealtad
+				addGris(['D060']); }
+			if (id == 'D060') { // Nakama
+				addGris(['D018']); }
+			
+			
+			if (id == 'D048') { // Desganado 1
+				addGris(['V040', 'V041']); }
+			
+			if (id == 'V040') { // Hiperactivo 2
+				addGris(['V041', 'D048']); }
+			if (id == 'V041') { // Hiperactivo 1
+				addGris(['V040', 'D048']); }
+			
+			if (id == 'V055') { // Buen Apetito
+				addGris(['D059']); }
+			if (id == 'D059') { // Mal Paladar
+				addGris(['V055']); }
+			
+			if (id == 'V055') { // Buen Apetito
+				addGris(['D059']); }
+			if (id == 'D059') { // Mal Paladar
+				addGris(['V055']); }
+			
+			if (id == 'D031') { // Gula
+				addGris(['V024']); }
+			if (id == 'V024') { // Sin hambre
+				addGris(['D031']); }
+			
+			if (id == 'V052') { // Gran Trabajador
+				addGris(['D024']); }
+			if (id == 'D024') { // Sin Oficio
+				addGris(['V052']); }
+			
+			if (id == 'D056') { // Incompatible
+				addGris(['D063']); }
+			if (id == 'D063') { // Cuerpo puro
+				addGris(['D056']); }
+			
+			if (id == 'V054') { // Optimista
+				addGris(['D046']); }
+			if (id == 'D046') { // Pesimista
+				addGris(['V054']); }
+			
+			
+		} else {
+			if (id == 'V002') { // Adinerado 2, 3, Pobre123
+				removeGris(['V003', 'V004', 'D021', 'D022', 'D023']); }
+			if (id == 'V003') { // Adinerado 1, 3, Pobre123
+				removeGris(['V002', 'V004', 'D021', 'D022', 'D023']); }
+			if (id == 'V004') { // Adinerado 1, 2, Pobre123
+				removeGris(['V002', 'V003', 'D021', 'D022', 'D023']); }
+			
+			if (id == 'D021') { // Pobre 2, 3, Adinerado123
+				removeGris(['D022', 'D023', 'V002', 'V003', 'V004']); }
+			if (id == 'D022') { // Pobre 1, 3, Adinerado123
+				removeGris(['D021', 'D023', 'V002', 'V003', 'V004']); }
+			if (id == 'D023') { // Pobre 1, 2, Adinerado123
+				removeGris(['D021', 'D022', 'V002', 'V003', 'V004']); }
+			
+			if (id == 'V022') { // Pasado Maldito 2
+				removeGris(['V023']); }
+			if (id == 'V023') { // Pasado Maldito 1
+				removeGris(['V022']); }
+		
+			if (id == 'V058') { // Espiritual 1
+				removeGris(['V059']); }
+			if (id == 'V059') { // Espiritual 2
+				removeGris(['V058']); }
+			
+			if (id == 'D056') { // Incompatible
+				removeGris(['D063']); }
+			if (id == 'D063') { // Cuerpo Puro
+				removeGris(['D056']); }
+			
+			if (id == 'V037') { // Vigoroso 1
+				removeGris(['V038', 'V039']); }
+			if (id == 'V038') { // Vigoroso 2
+				removeGris(['V037', 'V039']); }
+			if (id == 'V039') { // Vigoroso 3
+				removeGris(['V037', 'V038']); }
+			
+			if (id == 'D044') { // TOC 1
+				removeGris(['D043']); }
+			if (id == 'D043') { // TOC 2
+				removeGris(['D044']); }
+			
+			if (id == 'D054') { // Herida Permanente 1
+				removeGris(['D050', 'D049']); }
+			if (id == 'D050') { // Herida Permanente 2
+				removeGris(['D054', 'D049']); }
+			if (id == 'D049') { // Herida Permanente 3
+				removeGris(['D054', 'D050']); }
+			
+			if (id == 'D035') { // Alergia 3
+				removeGris(['D003', 'D002']); }
+			if (id == 'D003') { // Alergia 2
+				removeGris(['D035', 'D002']); }
+			if (id == 'D002') { // Alergia 1
+				removeGris(['D003', 'D035']); }
+			
+			if (id == 'V028') { // Erudito
+				removeGris(['D024', 'V035', 'V036']); } // Sin Oficio, Estudioso, Polivalente
+			if (id == 'D024') { // Sin Oficio
+				removeGris(['V028', 'V035', 'V036']); } // Erudito, Estudioso, Polivalente
+			if (id == 'V035') { // Estudioso
+				removeGris(['D024', 'V028', 'V036']); } // Sin Oficio, Erudito, Polivalente
+			if (id == 'V036') { // Polivalente
+				removeGris(['D024', 'V028', 'V035']); } // Sin Oficio, Erudito, Estudioso
+			
+			if (id == 'D016') { // Fobia 3
+				removeGris(['D036', 'D038']); }
+			if (id == 'D036') { // Fobia 2
+				removeGris(['D038', 'D016']); }
+			if (id == 'D038') { // Fobia 1
+				removeGris(['D036', 'D016']); }
+			
+			if (id == 'V027') { // Voluntad de D.
+				removeGris(['V060']); }
+			if (id == 'V060') { // Descendiente de Dragon
+				removeGris(['V027']); }
+			
+			if (id == 'V044') { // Grandullon
+				removeGris(['V045', 'V046', 'V047']); }
+			if (id == 'V045') { // El más Grande
+				removeGris(['V044', 'V046', 'V047']); }
+			if (id == 'V046') { // Pequeñin
+				removeGris(['V044', 'V045', 'V047']); }
+			if (id == 'V047') { // La Pulga
+				removeGris(['V044', 'V045', 'V046']); }
+			
+			if (id == 'V011') { // Fortaleza al calor -> Debilidad al calor
+				removeGris(['D010']); }
+			if (id == 'D010') { // Debilidad al calor -> Fortaleza al calor
+				removeGris(['V011']); }
+			if (id == 'V012') { // Fortaleza al frio -> Debilidad al frio
+				removeGris(['D011']); }
+			if (id == 'D011') { // Debilidad al frio -> Fortaleza al frio
+				removeGris(['V012']); }
+			if (id == 'V013') { // Fortaleza al veneno -> Debilidad al veneno
+				removeGris(['D012']); }
+			if (id == 'D012') { // Debilidad al veneno -> Fortaleza al veneno
+				removeGris(['V013']); }
+			
+			if (id == 'D001') { // Adiccion -> Vicio
+				removeGris(['D030']); }
+			if (id == 'D030') { // Vicio -> Adicción
+				removeGris(['D001']); }
+			
+			if (id == 'V001') { // Acto Triunfal -> Acto Maléfico
+				removeGris(['V032']); }
+			if (id == 'V032') { // Acto Maléfico -> Acto Triunfal
+				removeGris(['V001']); }
+			
+			if (id == 'D001') { // Adiccion -> Vicio
+				removeGris(['D030']); }
+			if (id == 'D030') { // Vicio -> Adicción
+				removeGris(['D001']); }
+	
+			if (id == 'D009') { // Ceguera -> Tuerto
+				removeGris(['D029']); }
+			if (id == 'D029') { // Tuerto -> Ceguero
+				removeGris(['D009']); }
+			
+			if (id == 'V006') { // Belleza -> Fealdad
+				removeGris(['D015']); }
+			if (id == 'D015') { // Fealdad -> Belleza
+				removeGris(['V006']); }
+			
+			if (id == 'V017') { // Mejora de Reputacion -> Baja de Reputacion
+				removeGris(['D013']); }
+			if (id == 'D013') { // Baja de Reputacion -> Mejora de Reputacio
+				removeGris(['V017']); }
+			
+			if (id == 'V008') { // Sentidos Aumentados 1 -> Sentidos Aumentados 2
+				removeGris(['V033']); }
+			if (id == 'V033') { // Sentidos Aumentados 2 -> Sentidos Aumentados 1
+				removeGris(['V008']); }
+			
+			if (id == 'D018') { // Lealtad
+				removeGris(['D060']); }
+			if (id == 'D060') { // Nakama
+				removeGris(['D018']); }
+			
+			if (id == 'D048') { // Desganado 1
+				removeGris(['V040', 'V041']); }
+			
+			if (id == 'V040') { // Hiperactivo 2
+				removeGris(['V041', 'D048']); }
+			if (id == 'V041') { // Hiperactivo 1
+				removeGris(['V040', 'D048']); }
+			
+			if (id == 'V055') { // Buen Apetito
+				removeGris(['D059']); }
+			if (id == 'D059') { // Mal Paladar
+				removeGris(['V055']); }
+			
+			if (id == 'V055') { // Buen Apetito
+				removeGris(['D059']); }
+			if (id == 'D059') { // Mal Paladar
+				removeGris(['V055']); }
+			
+			if (id == 'D031') { // Gula
+				removeGris(['V024']); }
+			if (id == 'V024') { // Sin hambre
+				removeGris(['D031']); }
+			
+			if (id == 'V052') { // Gran Trabajador
+				removeGris(['D024']); }
+			if (id == 'D024') { // Sin Oficio
+				removeGris(['V052']); }
+			
+			if (id == 'D056') { // Incompatible
+				removeGris(['D063']); }
+			if (id == 'D063') { // Cuerpo puro
+				removeGris(['D056']); }
+			
+			if (id == 'V054') { // Optimista
+				removeGris(['D046']); }
+			if (id == 'D046') { // Pesimista
+				removeGris(['V054']); }
+			
+		}
+	
+	}  
+	  
+	$(".virtudCaja").on( "click", function() {
+		const id = this.id;
+		const isVirtud = id[0] == 'V';
+		
+		if ($(this).hasClass('virtudGris')) {
+			return;
+		}
+		
+		if ($(this).hasClass('virtudClicked')) {
+			$(this).removeClass('virtudClicked');
+			checkVirtudes(id, true);
+			
+			if (isVirtud) {
+				const virtud = buscarVirtud(id);
+				balance -= parseInt(virtud.puntos);
+				balancePositivo -= parseInt(virtud.puntos);
+				
+				if (balanceRaza == 0) {
+					$('#balance').html(balance + balanceRaza);
+				} else if (balanceRaza > 0) {
+					$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+				} else if (balanceRaza < 0) {
+					$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+				}
+
+				$('#balance_positivo').html("<span>" + balancePositivo + "</span>");
+			} else {
+				const defecto = buscarDefecto(id);
+				balance -= parseInt(defecto.puntos);
+				balanceNegativo -= parseInt(defecto.puntos);
+				// $('#balance').html(balance + balanceRaza);
+				
+				if (balanceRaza == 0) {
+					$('#balance').html(balance + balanceRaza);
+				} else if (balanceRaza > 0) {
+					$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+				} else if (balanceRaza < 0) {
+					$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+				}
+				
+				$('#balance_negativo').html("<span>" + balanceNegativo + "</span>");
+			}
+			$('#B' + id).remove();
+			
+			if (id == 'V008') {  // sentidos aumentados 1
+				$('#sentidos-aumentados').css("display", "none");
+				$('#elec_sentido_1').css("display", "none");
+			}
+			
+			if (id == 'V033') {  // sentidos aumentados 2
+				$('#sentidos-aumentados').css("display", "none");
+				$('#elec_sentido_1').css("display", "none");
+				$('#elec_sentido_2').css("display", "none");
+			}
+			
+			if (id == 'D008') {  // sentidos disminuidos 1
+				$('#sentidos-disminuidos').css("display", "none");
+				$('#elec_sentido_3').css("display", "none");
+			}
+			
+			if (id == 'V043') {  // Diferente 2
+	    		showTribus = false;
+				hasDiferente = false;
+		    	$('#tribus').css("display", "none");
+				tribu = '';
+				$('.tribu').removeClass('tribu_active');
+			}
+			
+		} else {
+			$(this).addClass('virtudClicked');
+			checkVirtudes(id, false);
+			
+			if (isVirtud) {
+				const virtud = buscarVirtud(id);
+				balance += parseInt(virtud.puntos);
+				balancePositivo += parseInt(virtud.puntos);
+				// $('#balance').html(balance + balanceRaza);
+				if (balanceRaza == 0) {
+					$('#balance').html(balance + balanceRaza);
+				} else if (balanceRaza > 0) {
+					$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+				} else if (balanceRaza < 0) {
+					$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+				}
+				$('#balance_positivo').html("<span>" + balancePositivo + "</span>");
+
+				$('#balance_virtudes').append(`
+					<div class="virtudCaja" id="B` + virtud.virtud_id + `">
+						<div class="virtudPuntos virtudColor">` + Math.abs(virtud.puntos) + `</div>
+						` + (parseInt(virtud.puntos) < 0 ? `<div class="virtudPuntos virtudColor" style=" top: -51px; left: -27px; ">-</div>` : ``) + `
+						<div class="virtudNombre virtudColor">` + virtud.nombre + `</div>
+						<div class="virtudCajaTexto virtudBackground">
+							<div style="display: flex; flex-direction: row;">
+								<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+									<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+									<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + virtud.virtud_id + `</span>
+								</div>
+								<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + virtud.descripcion + `</div>
+							</div>
+						</div>
+
+					</div>
+				`);
+			} else {
+				const defecto = buscarDefecto(id);
+				balance += parseInt(defecto.puntos);
+				balanceNegativo += parseInt(defecto.puntos);
+				// $('#balance').html(balance + balanceRaza);
+				if (balanceRaza == 0) {
+					$('#balance').html(balance + balanceRaza);
+				} else if (balanceRaza > 0) {
+					$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+				} else if (balanceRaza < 0) {
+					$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+				}
+				$('#balance_negativo').html("<span>" + balanceNegativo + "</span>");
+				
+				$('#balance_virtudes').append(`
+					<div class="virtudCaja" id="B` + defecto.virtud_id + `">
+						<div class="virtudPuntos defectoColor">` + Math.abs(defecto.puntos) + `</div>
+						<div class="virtudNombre defectoColor">` + defecto.nombre + `</div>
+						<div class="virtudCajaTexto defectoBackground">
+							<div style="display: flex; flex-direction: row;">
+								<div style="width: 40px;text-align: center;position: relative;top: 17px;left: 2px;">
+									<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 14px;color: red;"></span><br>
+
+									<span style="color: #ffffff;font-family: moonGetHeavy;letter-spacing: 0px;font-size: 8px;">ID<br>` + defecto.virtud_id + `</span>
+								</div>
+								<div style="color: #ffffff;font-family: interRegular;letter-spacing: 0px;font-size: 11px;margin-top: 6px;padding-right: 5px;width: 240px;">` + defecto.descripcion + `</div>
+							</div>
+						</div>
+
+					</div>
+				`);
+			}
+			
+			if (id == 'V008') {  // sentidos aumentados 1
+				$('#sentidos-aumentados').css("display", "block");
+				$('#elec_sentido_1').css("display", "flex");
+				$('#elec_sentido_2').css("display", "none");
+			}
+			
+			if (id == 'V033') {  // sentidos aumentados 2
+				$('#sentidos-aumentados').css("display", "block");
+				$('#elec_sentido_1').css("display", "flex");
+				$('#elec_sentido_2').css("display", "flex");
+			}
+			
+			if (id == 'D008') {  // sentidos disminuidos 1
+				$('#sentidos-disminuidos').css("display", "block");
+				$('#elec_sentido_3').css("display", "flex");
+			}
+			
+			if (id == 'V043') {  // Diferente 2
+				hasDiferente = true;
+				tribu = '';
+				$('.tribu').removeClass('tribu_active');
+				if ((raza == 'Humano' || raza == 'Mink' || raza == 'Lunarian' || raza == 'Gyojin' || raza == 'Gigante' || raza == 'Ningyo') && subraza == '') {
+				  showTribus = true;
+				  $('#tribus').css("display", "block");
+				  $('#elecciones-tribu').html(raza);
+				} else {
+				  showTribus = false;
+				  $('#tribus').css("display", "none");
+				}
+				
+			}
+			
+		}
+		
+	});
+	  
+	$('#ficha_crear').submit(function() { //listen for submit event
+		
+		console.log(this);
+		
+		if (faccion == 'NA') {
+			alert('Debes elegir una facción.');
+			return false;
+		}
+		
+		if (temporada == '') {
+			alert('Debes elegir la temporada de cumpleaños de tu personaje.');
+			return false;
+		}
+		
+		if (raza == '') {
+			alert('Debes elegir la raza de tu personaje.');
+			return false;
+		}
+		
+		$('<input />').attr('type', 'hidden').attr('name', 'raza').attr('value', raza).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'subraza').attr('value', subraza).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'temporada').attr('value', temporada).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'faccion').attr('value', faccion).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'raza1').attr('value', raza1).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'sentido1').attr('value', sentido1).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'sentido2').attr('value', sentido2).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'sentido3').attr('value', sentido3).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'tribu').attr('value', tribu).appendTo('#ficha_crear');
+		
+		
+		if (balance + balanceRaza > 0) {
+			alert('Tu balance de virtudes y defectos debe ser 0 o negativo.');
+			return false;
+		}
+		
+		let virtudesDefectos = [];
+		
+		let sentAum1 = false;
+		let sentAum2 = false;
+		let sentDis1 = false;
+		
+		let grande1 = false;
+		let grande2 = false;
+		let peque1 = false;
+		let peque2 = false;
+		
+		let hasLeal = false;
+		
+		for (let i = 0; i < $('#balance_virtudes').children().length; i++) {
+			
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'D018') { hasLeal = true; }
+			
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V008') { sentAum1 = true; }
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V033') { sentAum2 = true; }
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'D008') { sentDis1 = true; }
+			
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V044') { grande1 = true; }
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V045') { grande2 = true; }
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V046') { peque1 = true; }
+		  if ($('#balance_virtudes').children()[i].id.substring(1) == 'V047') { peque2 = true; }
+			
+		  virtudesDefectos.push($('#balance_virtudes').children()[i].id.substring(1));
+		}
+		
+		$('<input />').attr('type', 'hidden').attr('name', 'virtudes').attr('value', virtudesDefectos.join(',')).appendTo('#ficha_crear');
+		$('<input />').attr('type', 'hidden').attr('name', 'balance').attr('value', balance + balanceRaza).appendTo('#ficha_crear');
+		
+		if (!hasLeal && faccion == 'Revolucionario') {
+			alert('Para crear la ficha con la facción de Revolucionario, debes tener el defecto Lealtad.');
+			return false;
+		}
+		
+		if ((subraza == 'Komink' || subraza == 'Jujin' || subraza == 'Daimink' || subraza == 'Solarian' || (raza == 'Humano' && subraza == '') || (raza == 'Mink' && subraza == '')) && raza1 == '') { 
+			alert('Elige tu bono de estadísticas de raza.');
+			return false; 
+		}
+		
+		if (sentAum1 && sentido1 == '') {
+			alert('Elige el sentido aumentado.');
+			return false;
+		}
+		
+		if (sentAum2 && (sentido1 == '' || sentido2 == '')) {
+			alert('Elige el primer o segundo sentido aumentado.');
+			return false;
+		}
+		
+		if (sentDis1 && sentido3 == '') {
+			alert('Elige el sentido disminuido.');
+			return false;
+		}
+		
+		if (subraza != '' && tribu != '') {
+			alert('No puedes elegir una tribu ni la virtud Tribus Raciales con una subraza.');
+			return false;
+		}
+		
+		let altura = parseInt($('#altura').val());
+		let edad = parseInt($('#edad').val());
+	
+		let alturaMin = 0;
+		let alturaMax = 5000;
+		
+		if (raza == "Humano" || raza == "Skypian") { alturaMin = 140; alturaMax = 500; } 
+		if (raza == "Gyojin") { alturaMin = 150; alturaMax = 650; } 
+		if (raza == "Ningyo") { alturaMin = 150; alturaMax = 600; } 
+		if (raza == "Oni") { alturaMin = 250; alturaMax = 800; } 
+		if (raza == "Tontatta") { alturaMin = 10; alturaMax = 40; } 
+		if (raza == "Gigante") { alturaMin = 1400; alturaMax = 2500; } 
+		if (raza == "Gigante" && tribu == "ancestral") { alturaMin = 1680; alturaMax = 3000; } 
+		if (raza == "Mink") { alturaMin = 140; alturaMax = 650; } 
+		if (raza == "Lunarian") { alturaMin = 200; alturaMax = 700; } 
+		if (subraza == "Hafugyo") { alturaMin = 140; alturaMax = 550; } 
+		if (subraza == "Buccaneers") { alturaMin = 500; alturaMax = 1500; }  
+		if (subraza == "Kobito") { alturaMin = 50; alturaMax = 120; } 
+		if (subraza == "Jujin") { alturaMin = 150; alturaMax = 500; } 
+		if (subraza == "Wotan") { alturaMin = 600; alturaMax = 1600; } 
+		if (subraza == "Woko") { alturaMin = 40; alturaMax = 100; } 
+		if (subraza == "Daimink") { alturaMin = 350; alturaMax = 1700; } 
+		if (subraza == "Komink") { alturaMin = 40; alturaMax = 110; } 
+		if (subraza == "Solarian") { alturaMin = 170; alturaMax = 500; } 
+		if (subraza == "Donsudada") { alturaMin = 30; alturaMax = 50; } 
+		if (subraza == "Oceanian") { alturaMin = 150; alturaMax = 600; }																		
+		if (subraza == "Diablos") { alturaMin = 150; alturaMax = 600; } 
+		if (subraza == "Ravnos") { alturaMin = 200; alturaMax = 700; } 
+		
+		if (grande1) { alturaMax = alturaMax * 1.25; } 
+		if (grande2) { alturaMax = alturaMax * 1.50; } 
+		if (peque1) { alturaMin = alturaMin * 0.75; } 
+		if (peque2) { alturaMin = alturaMin * 0.50; } 
+		
+		if ((altura < alturaMin || altura > alturaMax)) {
+			alert('La altura de la raza ' + raza + ' debe ser entre ' + alturaMin + ' y ' + alturaMax + ' centímetros.'); return false;
+		}
+		
+		return true;
+	});
+	  
+	$("#sexo").on("change", () => {
+		sexo = $('#sexo')[0].value;
+		if (sexo == 'Hombre' && subraza == 'Oceanian') {
+			alert('Debes cambiar la subraza de Oceanian antes de cambiar el sexo.');
+			return;
+		}
+		
+		if ((raza == 'Gyojin' || raza == 'Ningyo' || raza == 'Skypian') && sexo == 'Hombre') {
+			$('#subraza3').html('<div class="subraza_empty subraza_end bbox"></div>');
+		}
+		
+		if ((raza == 'Gyojin' || raza == 'Ningyo' || raza == 'Skypian') && sexo == 'Mujer') {
+			$('#subraza3').html(`
+				<img onclick="clickSubraza('Oceanian')" id="Oceanian" src="/images/op/ficha/Oceanian_One_Piece_Gaiden_Foro_Rol.png" class="subraza bbox" />
+			`);
+		}
+		
+		  if (sexo == 'Hombre') {
+			  $('#tribu-kuja').css('display', 'none');
+		  } else {
+			  $('.tribu-humano').css('display', 'block');
+		  }
+		
+		$('#Humano')[0].src = "https://onepiecegaiden.com/images/op/ficha/Humano" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Gyojin')[0].src = "https://onepiecegaiden.com/images/op/ficha/Gyojin" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Ningyo')[0].src = "https://onepiecegaiden.com/images/op/ficha/Sirena" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Gigante')[0].src = "https://onepiecegaiden.com/images/op/ficha/Gigante" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Tontatta')[0].src = "https://onepiecegaiden.com/images/op/ficha/Tontatta" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Mink')[0].src = "https://onepiecegaiden.com/images/op/ficha/Mink" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Skypian')[0].src = "https://onepiecegaiden.com/images/op/ficha/Skypian" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Oni')[0].src = "https://onepiecegaiden.com/images/op/ficha/Oni" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		$('#Lunarian')[0].src = "https://onepiecegaiden.com/images/op/ficha/Lunarian" + sexo + "_One_Piece_Gaiden_Foro_Rol.png";
+		
+		if (raza) {
+			$('#mostrar-imagen')[0].src = "https://onepiecegaiden.com/images/op/ficha/" + raza + sexo + "Grande_One_Piece_Gaiden_Foro_Rol.png";
+		}
+		
+		
+
+	});
+	  
+	function getRazaId(raza) {
+	  if (raza == 'Humano') { return 0; }
+	  if (raza == 'Gyojin') { return  1; }
+	  if (raza == 'Ningyo') { return 2; }
+
+	  if (raza == 'Gigante') { return 3; }
+	  if (raza == 'Tontatta') { return 4; }
+	  if (raza == 'Mink') { return 5; }
+
+	  if (raza == 'Skypian') { return 6; }
+	  if (raza == 'Oni') { return 7; }
+	  if (raza == 'Lunarian') { return 8; }
+		
+	  if (raza == 'Hafugyo') { return 9; }
+	  if (raza == 'Buccaneers') { return 10; }
+	  if (raza == 'Kobito') { return 11; }
+	  if (raza == 'Jujin') { return 12; }
+	  if (raza == 'Wotan') { return 13; }
+	  if (raza == 'Woko') { return 14; }
+	  if (raza == 'Daimink') { return 15; }
+	  if (raza == 'Komink') { return 16; }
+	  if (raza == 'Solarian') { return 17; }
+	  if (raza == 'Donsudada') { return 18; }		
+	  if (raza == 'Diablos') { return 19; }
+	  if (raza == 'Ravnos') { return 20; }
+	  if (raza == 'Oceanian') { return 21; }
+	}
+	  
+	function changeBalanceRaza(raza) {
+	  if (raza == 'Humano') { return -4; }
+	  if (raza == 'Gyojin') { return 2; }
+	  if (raza == 'Ningyo') { return 0; }
+
+	  if (raza == 'Gigante') { return 7; }
+	  if (raza == 'Tontatta') { return 0; }
+	  if (raza == 'Mink') { return 2; }
+
+	  if (raza == 'Skypian') { return 0; }
+	  if (raza == 'Oni') { return 0; }
+	  if (raza == 'Lunarian') { return 7; }
+		
+	  if (raza == 'Hafugyo') { return -1; }
+	  if (raza == 'Buccaneers') { return -2; }
+	  if (raza == 'Kobito') { return -2; }
+	  if (raza == 'Jujin') { return 0; }
+	  if (raza == 'Wotan') { return 2; }
+	  if (raza == 'Woko') { return 2; }
+	  if (raza == 'Daimink') { return 2; }
+	  if (raza == 'Komink') { return 0; }
+	  if (raza == 'Solarian') { return 3; }
+	  if (raza == 'Donsudada') { return 0; }
+	  
+	  if (raza == 'Diablos') { return 1; }
+	  if (raza == 'Ravnos') { return 1; }
+	  if (raza == 'Oceanian') { return 3; }
+	}
+	  
+	const subrazasMap = {
+		'Humano': ['Buccaneers', 'Hafugyo', 'Kobito', 'Jujin', 'Diablos'],
+		'Gyojin': ['Hafugyo', 'Wotan', 'Woko', 'Oceanian'],
+		'Ningyo': ['Hafugyo', 'Wotan', 'Woko', 'Oceanian'],
+		'Gigante': ['Buccaneers', 'Wotan', 'Daimink'],
+		'Tontatta': ['Kobito', 'Woko', 'Komink', 'Donsudada'],
+		'Mink': ['Jujin', 'Daimink', 'Komink'],
+		'Skypian': ['Solarian', 'Donsudada','Ravnos', 'Oceanian'],
+		'Oni': ['Ravnos', 'Diablos'],
+		'Lunarian': ['Solarian']
+	}
+	
+	$( ".raza1" ).on( "click", function(target) {
+		raza1 = $(target.currentTarget).data("stat");
+		$(".raza1").removeClass('raza1_active');
+		$(target.currentTarget).addClass('raza1_active');
+	});
+	  
+	$( ".sentido1" ).on( "click", function(target) {
+		sentido1 = $(target.currentTarget).data("sentido");
+		$(".sentido1").removeClass('sentido1_active');
+		$(target.currentTarget).addClass('sentido1_active');
+	});
+	  
+	$( ".sentido2" ).on( "click", function(target) {
+		sentido2 = $(target.currentTarget).data("sentido");
+		$(".sentido2").removeClass('sentido2_active');
+		$(target.currentTarget).addClass('sentido2_active');
+	});
+	  
+	$( ".sentido3" ).on( "click", function(target) {
+		sentido3 = $(target.currentTarget).data("sentido");
+		$(".sentido3").removeClass('sentido3_active');
+		$(target.currentTarget).addClass('sentido3_active');
+	});
+	  
+	$( ".tribu" ).on( "click", function(target) {
+		tribu = $(target.currentTarget).data("tribu");
+		$(".tribu").removeClass('tribu_active');
+		$(target.currentTarget).addClass('tribu_active');
+	});
+		
+	$( ".raza" ).on( "click", function() {
+	  raza = this.id; 
+	  sexo = $('#sexo')[0].value;
+	  $('#mostrar-imagen').css('visibility', 'visible');
+	  $('#mostrar-imagen')[0].src = "https://onepiecegaiden.com/images/op/ficha/" + raza + sexo + "Grande_One_Piece_Gaiden_Foro_Rol.png";
+	  $(".raza").css('filter', 'grayscale(0.9)');  
+	  for (let i = 0; i < 6; i++) {
+		  $('#subraza' + i).html(`<div class="subraza_empty subraza_end bbox" />`);
+	  }
+	  
+	  let id_raza = getRazaId(raza);
+	  balanceRaza = changeBalanceRaza(raza);
+	  // $('#balance').html(balance + balanceRaza);
+		if (balanceRaza == 0) {
+			$('#balance').html(balance + balanceRaza);
+		} else if (balanceRaza > 0) {
+			$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+		} else if (balanceRaza < 0) {
+			$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+		}
+		
+	  $('#detalles_raza').html(`
+			<div style="font-weight: 900;padding-top: 6px;">` + razas[id_raza].nombre + `</div>
+			<div id="raza_descripcion">` + razas[id_raza].descripcion + `</div>					
+			<div style=" font-weight: 900; ">Características:</div>
+			<div id="raza_caracteristicas">` + razas[id_raza].caracteristicas + `</div>
+	  `);
+		   
+	       
+	  const subRazas = subrazasMap[raza];
+	  for (let i = 0; i < subRazas.length; i++) {
+		  
+		  if (subRazas[i] == 'Oceanian' && sexo == 'Hombre') {
+			  continue;
+		  }
+		  $('#subraza' + i).html(`
+			<img onclick="clickSubraza('` + subRazas[i] + `')" id="` + subRazas[i] + `" src="/images/op/ficha/` + subRazas[i] + `_One_Piece_Gaiden_Foro_Rol.png" class="subraza bbox" />
+		  `);
+	  }		
+	        
+	  subraza = '';
+	  $(this).css('filter', 'drop-shadow(0px 0px 10px #000)');
+		// id="elec_stats_1">
+		
+		// ELECCIONES TRIBU
+		tribu = '';
+		$('.tribu').removeClass('tribu_active');
+		
+		if ((raza == 'Humano' || raza == 'Mink' || raza == 'Lunarian' || raza == 'Gyojin' || raza == 'Gigante' || raza == 'Ningyo') && hasDiferente) {
+		  showTribus = true;
+		  $('#tribus').css("display", "block");
+		  $('#elecciones-tribu').html(raza);
+	    } else {
+		  showTribus = false;
+		  $('#tribus').css("display", "none");
+	    }
+		
+		if (raza == 'Humano') {
+		  $('.tribu').css('display', 'none');
+		  $('.tribu-humano').css('display', 'block');
+		  if (sexo == 'Hombre') {
+			  $('#tribu-kuja').css('display', 'none');
+		  } else {
+			  $('.tribu-humano').css('display', 'block');
+		  }
+	    }
+		
+		if (raza == 'Gigante') {
+		  $('.tribu').css('display', 'none');
+		  $('.tribu-gigante').css('display', 'block');
+	    }
+		
+		if (raza == 'Lunarian') {
+		  $('.tribu').css('display', 'none');
+		  $('.tribu-lunarian').css('display', 'block');
+	    }
+		
+		if (raza == 'Gyojin' || raza == 'Ningyo') {
+		  $('.tribu').css('display', 'none');
+		  $('.tribu-gyojin').css('display', 'block');
+	    }
+		
+		if (raza == 'Mink') {
+		  $('.tribu').css('display', 'none');
+		  $('.tribu-mink').css('display', 'block');
+	    }
+		
+		// ELECCIONES DE RAZAS
+		raza1 = '';
+
+		$('.fue1').removeClass('raza1_active');
+		$('.res1').removeClass('raza1_active');
+		$('.agi1').removeClass('raza1_active');
+		$('.ref1').removeClass('raza1_active');
+		$('.des1').removeClass('raza1_active');
+		$('.pun1').removeClass('raza1_active');
+		$('.vol1').removeClass('raza1_active');
+		$('.ca1').removeClass('raza1_active');	
+	
+	  if (raza == 'Humano' || raza == 'Mink') {
+		  showElecciones = true;
+		  $('#elecciones').css("display", "block");
+		  $('#elecciones-raza').html(raza);
+	  } else {
+		  showElecciones = false;
+		  $('#elecciones').css("display", "none");
+	  }
+		
+	  if (raza == 'NONECESARIO') {
+		  $('#elec_stats_1').css("display", "flex");
+	  } else if (raza == 'Humano' || raza == 'Mink') {
+		  $('#elec_stats_1').css("display", "flex");
+	  } else {
+		  $('#elec_stats_1').css("display", "none");
+	  }
+		
+ 	 if (raza == 'Mink') {
+		  $('.fue1').css('display', 'block');
+		  $('.res1').css('display', 'block');
+		  $('.agi1').css('display', 'block');
+		  $('.ref1').css('display', 'block');
+		  $('.des1').css('display', 'block');
+		  $('.pun1').css('display', 'block');
+		  $('.vol1').css('display', 'none');
+		  $('.ca1').css('display', 'none');
+	  }
+		
+	  if (raza == 'Humano') {
+		  $('.fue1').css('display', 'block');
+		  $('.res1').css('display', 'block');
+		  $('.agi1').css('display', 'block');
+		  $('.ref1').css('display', 'block');
+		  $('.des1').css('display', 'block');
+		  $('.pun1').css('display', 'block');
+		  $('.vol1').css('display', 'block');
+		  $('.ca1').css('display', 'block');  
+	  }
+		 
+	});  
+	  
+	function clickSubraza(subrazaArg) {
+	  subrazaSelected = true;
+	  $(".subraza").css('filter', 'transition: 0.50s ease');  
+	  $(".subraza").css('filter', 'grayscale(0.9)');  
+		
+	  if (subraza != subrazaArg) {  
+		  $('#' + subrazaArg).css('filter', 'drop-shadow(0px 0px 10px #000)');
+		  subraza = subrazaArg; 
+		  id_raza = getRazaId(subraza);
+		  balanceRaza = changeBalanceRaza(subraza);
+		  // $('#balance').html(balance + balanceRaza);
+	  } else {
+		  subraza = '';
+		  id_raza = getRazaId(raza);
+		  balanceRaza = changeBalanceRaza(raza);
+		  // $('#balance').html(balance + balanceRaza);
+	  }
+		
+	 	// ELECCIONES DE RAZAS
+		raza1 = '';
+
+		$('.fue1').removeClass('raza1_active');
+		$('.res1').removeClass('raza1_active');
+		$('.agi1').removeClass('raza1_active');
+		$('.ref1').removeClass('raza1_active');
+		$('.des1').removeClass('raza1_active');
+		$('.pun1').removeClass('raza1_active');
+		$('.vol1').removeClass('raza1_active');
+		$('.ca1').removeClass('raza1_active');	
+
+	  // Jujin Komink Woko Solarian
+	  if (subraza == 'Solarian') {
+		  $('.fue1').css('display', 'none');
+		  $('.res1').css('display', 'none');
+		  $('.agi1').css('display', 'block');
+		  $('.ref1').css('display', 'none');
+		  $('.des1').css('display', 'block');
+		  $('.pun1').css('display', 'none');
+		  $('.vol1').css('display', 'none');
+	  }
+		
+	  if (subraza == 'Jujin' || subraza == 'Komink' || subraza == 'Daimink') {
+		  $('.fue1').css('display', 'block');
+		  $('.res1').css('display', 'block');
+		  $('.agi1').css('display', 'block');
+		  $('.ref1').css('display', 'block');
+		  $('.des1').css('display', 'block');
+		  $('.pun1').css('display', 'block');
+		  $('.vol1').css('display', 'none');
+	  }
+		
+  	  if (subraza == 'Komink' || subraza == 'Solarian' || subraza == 'Jujin' || subraza == 'Daimink') {
+		  showElecciones = true;
+		  $('#elecciones').css("display", "block");
+		  $('#elecciones-raza').html(subraza);
+	  } else {
+		  showElecciones = false;
+		  $('#elecciones').css("display", "none");
+	  }
+		
+	  if (subraza == 'Jujin' || subraza == 'Komink' || subraza == 'Solarian' || subraza == 'Daimink') {
+		  $('#elec_stats_1').css("display", "flex");
+	  } else if (subraza == 'LOQUESEANOIMPORTAPALFUTURO') {
+		  $('#elec_stats_1').css("display", "flex");
+	  } else {
+		  $('#elec_stats_1').css("display", "none");
+	  }
+		
+	/* OTRAS */
+		
+	if (balanceRaza == 0) {
+		$('#balance').html(balance + balanceRaza);
+	} else if (balanceRaza > 0) {
+		$('#balance').html(balance + ' + ' + balanceRaza + ' = ' + (balance + balanceRaza));
+	} else if (balanceRaza < 0) {
+		$('#balance').html(balance + ' - ' + Math.abs(balanceRaza) + ' = ' + (balance + balanceRaza));
+	}
+		
+	  if (subraza != '') {
+		  $('#mostrar-imagen')[0].src = "https://onepiecegaiden.com/images/op/ficha/" + subraza + "Grande_One_Piece_Gaiden_Foro_Rol.png";
+	  } else {
+		  $('#mostrar-imagen')[0].src = "https://onepiecegaiden.com/images/op/ficha/" + razas[id_raza].nombre + sexo + "Grande_One_Piece_Gaiden_Foro_Rol.png";
+	  }
+		
+	  $('#detalles_raza').html(`
+		 <div style="font-weight: 900;padding-top: 6px;">` + razas[id_raza].nombre + `</div>
+		 <div id="raza_descripcion">` + razas[id_raza].descripcion + `</div>					
+		 <div style=" font-weight: 900; ">Características:</div>
+		 <div id="raza_caracteristicas">` + razas[id_raza].caracteristicas + `</div>
+	  `);
+		
+
+	}    
+	  
+	$( ".temporada" ).on( "click", function() {
+	  temporada = this.id; 
+	  $(".temporada").css('filter', 'grayscale(0.9)');  
+	  $(this).css('filter', 'drop-shadow(0px 0px 10px #000)');
+	});
+	  
+	$( ".faccion" ).on( "click", function() {
+      faccion = this.id;
+	  console.log(faccion);
+		
+	  checkVirtudes('D018', true); // Remove
+	  checkVirtudes('V001', true); // Remove
+	  
+	  if (faccion == 'Pirata') {
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgb(255 0 0) 5%, rgb(180 0 0) 72%, rgb(78 0 0) 99%)');
+		  // check id D018 Lealtad
+		  
+		  // checkVirtudes('D060', true);  // Nakama
+		  checkVirtudes('D060', false); // Nakama
+	  } else if (faccion == 'Marina') {
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgba(0,212,255,1) 5%, rgba(1,72,215,1) 72%, rgba(0,11,167,1) 99%)');
+		  // check id V032 Marina
+		  checkVirtudes('D018', false); // Lealtad
+		  checkVirtudes('V001', false); // Acto Maléfico
+	  } else if (faccion == 'CipherPol') {
+		  checkVirtudes('D018', false); // Lealtad
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgb(255 255 255) 5%, rgb(72 72 72) 72%, rgb(21 21 21) 99%)');	 
+	  } else if (faccion == 'Revolucionario') {
+		  checkVirtudes('D018', false); // Lealtad
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgb(255 122 61) 5%, rgb(194 109 27) 72%, rgb(134 68 6) 99%)');	 
+	  } else if (faccion == 'Cazadores') {
+		  checkVirtudes('D018', false); // Lealtad
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgb(0 246 40) 5%, rgb(0 148 46) 72%, rgb(0 70 22) 99%)');	
+	  } else if (faccion == 'Civil') {
+		  checkVirtudes('D018', false);
+		  checkVirtudes('D060', false);
+		  $('#mostrar-imagen-div').css('background', 'radial-gradient(circle, rgb(255 0 137) 5%, rgb(163 0 88) 72%, rgb(105 0 56) 99%)');
+	  }
+		
+		
+	  $(".faccion").css('filter', 'grayscale(0.9)');  
+		  $(this).css('filter', 'drop-shadow(0px 0px 10px #000)');
+		});
+	  
+
+  </script>

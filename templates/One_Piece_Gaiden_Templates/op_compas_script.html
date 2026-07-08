@@ -1,0 +1,876 @@
+<script>
+	
+let faccionFilterActive = false;
+let tierFilterActive = false;
+let currentFaccionFilter = '';
+let currentTierFilter = 0;
+	
+let NPCs = {$npcs_json};
+// NPCs = {...NPCs[0], ...mascotas[0], ...npc_usuarios[0]};
+
+for (let i = 0; i < NPCs.length; i++) {
+	let faccion = NPCs[i].faccion;
+	let npcBoxBorderColor = "red";
+	let clipBoxBackgroundColor = "red";
+	
+	if (faccion == 'Pirata') {
+		npcBoxBorderColor = "#e30502";
+		clipBoxBackgroundColor = "#a20000";
+	}
+	
+	if (faccion == 'Marina') {
+		npcBoxBorderColor = "#0bbefc";
+		clipBoxBackgroundColor = "#003f8d";
+	}
+	
+	if (faccion == 'Revo') {
+		npcBoxBorderColor = "#ff7900";
+		clipBoxBackgroundColor = "#c56103";
+	}
+	
+	if (faccion == 'Cazador') {
+		npcBoxBorderColor = "#00d600";
+		clipBoxBackgroundColor = "#008500";
+	}
+	
+	if (faccion == 'Gobierno') {
+		npcBoxBorderColor = "#5500ff";
+		clipBoxBackgroundColor = "#3a00ae";
+	}
+	
+	if (faccion == 'Civil') {
+		npcBoxBorderColor = "#ff00ff";
+		clipBoxBackgroundColor = "#99008e";
+	}
+	
+	$('.npcList').append(`
+	 <div class="npcBox npcItem" data-npc_id="` + NPCs[i].npc_id +`" data-faccion="` + NPCs[i].faccion +`" onclick="clickNpc(` + i +`)" style="position: relative; background-size: cover;background: url(` + NPCs[i].avatar1 +`);border: 3px solid ` + npcBoxBorderColor + `;">
+		<div class="clipBox" style=" background-color: ` + clipBoxBackgroundColor + `;  "></div>
+		<div style=" text-align: center; transform: rotate(349deg); ">
+			<span class="npcName">` + NPCs[i].nombre +`</span>
+		</div>
+	 </div>
+`);
+}		
+	
+const npcItems = document.querySelectorAll('.npcItem');	
+	
+function filterByFaccion(faccion) {
+
+  $('.categoriaBox').removeClass("box-active");
+  
+  if (currentFaccionFilter == faccion && faccionFilterActive == false) {
+	 faccionFilterActive = true;  
+	 $('#' + faccion).addClass("box-active");
+  } else {
+	  faccionFilterActive = false;   
+  }
+	
+  if (currentFaccionFilter != faccion) {
+	  $('#' + faccion).addClass("box-active");
+	  faccionFilterActive = true;
+  }
+	
+  currentFaccionFilter = faccion;
+  applyFilters();
+}
+
+function searchByName() {
+  // Restablecer todos los filtros activos previamente
+  $('.categoriaBox').removeClass("box-active");
+  faccionFilterActive = false;
+  currentFaccionFilter = '';
+  
+  // Obtener el texto de bUsqueda
+  const searchText = document.getElementById('searchInput').value.toLowerCase();
+  
+  // Si no hay texto de bUsqueda, mostrar todos los elementos
+  if (!searchText) {
+    npcItems.forEach(item => {
+      item.style.display = 'block';
+    });
+    return;
+  }
+  
+  npcItems.forEach(item => {
+    const npcIndex = parseInt(item.getAttribute('onclick').match(/\d+/)[0]);
+    const npcName = NPCs[npcIndex].nombre.toLowerCase();
+    const npcEtiqueta = NPCs[npcIndex].etiqueta ? NPCs[npcIndex].etiqueta.toLowerCase() : '';
+    
+    let showItem = false;
+    
+    // Caso 1: Buscar por nombre
+    if (npcName.includes(searchText)) {
+      showItem = true;
+    }
+    // Caso 2: Buscar por etiqueta 
+    else if (npcEtiqueta && npcEtiqueta.includes(searchText)) {
+      showItem = true;
+    }
+    // Caso 3: Buscar por prefijo NPC- 
+    else if (searchText.startsWith('npc-')) {
+      // Si la facciOn comienza con NPC- y el resto coincide con la bUsqueda
+      if (NPCs[npcIndex].faccion.toLowerCase().startsWith('npc-')) {
+        // Si solo escribiO el prefijo o la facciOn contiene el texto completo
+        if (searchText === 'npc-' || NPCs[npcIndex].faccion.toLowerCase().includes(searchText)) {
+          showItem = true;
+        }
+      }
+    }
+    // Caso 4: Buscar por prefijo MAS-
+    else if (searchText.startsWith('mas-')) {
+      // Si la facciOn comienza con MAS- y el resto coincide con la bUsqueda
+      if (NPCs[npcIndex].faccion.toLowerCase().startsWith('mas-')) {
+        // Si solo escribiO el prefijo o la facciOn contiene el texto completo
+        if (searchText === 'mas-' || NPCs[npcIndex].faccion.toLowerCase().includes(searchText)) {
+          showItem = true;
+        }
+      }
+    }
+    
+    item.style.display = showItem ? 'block' : 'none';
+  });
+}
+
+// También podemos añadir la bUsqueda al presionar Enter en el campo de texto
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchByName();
+    }
+  });
+});
+
+function filterByTier(tier) {
+  $('.tierBox').removeClass("box-active");
+
+  if (currentTierFilter == tier && tierFilterActive == false) {
+	 tierFilterActive = true;  
+	  $('#tier' + tier).addClass("box-active");
+  } else {
+	  tierFilterActive = false;   
+  }
+
+  if (currentTierFilter != tier) {
+	  $('#tier' + tier).addClass("box-active");
+	  tierFilterActive = true;
+ }
+	  
+  currentTierFilter = tier;
+  // applyFilters();
+}
+
+function applyFilters() {
+  npcItems.forEach(item => {
+	  
+	console.log(item);  
+	  
+    const itemFaccion = item.getAttribute('data-faccion');
+    const itemNPCId = item.getAttribute('data-npc_id');
+    let itemMatches = false;
+    
+    // Caso especial para NPCUsuarios - buscar facciones que comiencen con "NPC-"
+    if (currentFaccionFilter === 'NPC-') {
+      itemMatches = itemNPCId.includes('-NPC');
+    } else if (currentFaccionFilter === 'MAS-') {
+      // Puedes definir aquí la lOgica para filtrar mascotas si es necesario
+      itemMatches = itemNPCId.includes('-PET');
+    } else {
+      // Para el resto de facciones, mantener la comparaciOn exacta
+      itemMatches = itemFaccion === currentFaccionFilter;
+    }
+    
+    const itemTier = parseInt(item.getAttribute('data-tier')) === currentTierFilter;
+
+    if (faccionFilterActive && tierFilterActive) {
+      item.style.display = itemMatches && itemTier ? 'block' : 'none';
+    } else if (faccionFilterActive) {
+      item.style.display = itemMatches ? 'block' : 'none';
+    } else if (tierFilterActive) {
+      item.style.display = itemTier ? 'block' : 'none';
+    } else {
+      item.style.display = 'block'; // No hay filtros activos, mostrar todos los elementos
+    }
+  });
+}
+</script>
+	
+<script>
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+	
+// Funciones para manejar el modal del cartel de Wanted
+function showWantedModal() {
+  document.getElementById('wantedModal').style.display = 'block';
+}
+
+// Cerrar el modal de Wanted al hacer clic fuera
+window.addEventListener('click', function(event) {
+  const wantedModal = document.getElementById('wantedModal');
+  if (event.target == wantedModal) {
+    wantedModal.style.display = 'none';
+  }
+});
+
+// Modificar la funciOn clickNpc para incluir la lOgica del wanted
+function clickNpc(id) {
+	
+	modal.style.display = "block";
+	$('#npcNombre').html(NPCs[id].nombre);
+	$('#npcApodo').html(NPCs[id].apodo);
+
+	$('#npcId').html(NPCs[id].npc_id);
+	if (g_is_staff) {
+		$('#npcId').html("<a href='/op/staff/npcs_modificar.php?npc_id=" + NPCs[id].npc_id + "'>" + NPCs[id].npc_id + "</a>");
+	}
+	
+	$('#npcFaccion').html(NPCs[id].faccion);
+	$('#npcRaza').html(NPCs[id].raza);
+	$('#npcEdad').html(NPCs[id].edad + " Años");
+	$('#npcAltura').html(NPCs[id].altura + " CM");
+	$('#npcPeso').html(NPCs[id].peso + " KG");
+	$('#npcSexo').html(NPCs[id].sexo);
+	$('#npcTemporada').html(NPCs[id].temporada);
+	$('#npcNivel').html(NPCs[id].nivel);
+	
+	$('#npcFuerza').html(NPCs[id].fuerza);
+	$('#npcResistencia').html(NPCs[id].resistencia);
+	$('#npcDestreza').html(NPCs[id].destreza);
+	$('#npcVoluntad').html(NPCs[id].voluntad);
+	$('#npcPunteria').html(NPCs[id].punteria);
+	$('#npcAgilidad').html(NPCs[id].agilidad);
+	$('#npcReflejos').html(NPCs[id].reflejos);
+	
+	$('#npcVitalidad').html(NPCs[id].vitalidad);
+	$('#npcEnergia').html(NPCs[id].energia);
+	$('#npcEspiritu').html(NPCs[id].haki);
+	
+	$('#npcApariencia').html(NPCs[id].apariencia);
+	$('#npcPersonalidad').html(NPCs[id].personalidad);
+	$('#npcHistoria1').html(NPCs[id].historia1);
+	$('#npcHistoria2').html(NPCs[id].historia2);
+	$('#npcHistoria3').html(NPCs[id].historia3);
+	$('#npcExtra').html(NPCs[id].extra);
+	
+	$('#npcAvatar1').attr("src", NPCs[id].avatar1);
+	$('#npcAvatar2').attr("src", NPCs[id].avatar2);
+	$('#npcAkuma').html(NPCs[id].akuma);
+	$('#npcSangre').html(NPCs[id].sangre);
+	$('#npcRango').html(NPCs[id].rango);
+
+	$('#fueStat').html(NPCs[id].fuerza);
+	$('#resStat').html(NPCs[id].resistencia);
+	$('#desStat').html(NPCs[id].destreza);
+	$('#agiStat').html(NPCs[id].agilidad);
+	$('#volStat').html(NPCs[id].voluntad);
+	$('#refStat').html(NPCs[id].reflejos);
+	$('#punStat').html(NPCs[id].punteria);
+	
+	$('#busoTexto').html(NPCs[id].buso);
+	$('#kenbunTexto').html(NPCs[id].kenbun);
+	$('#haoTexto').html(NPCs[id].haoshoku);
+    $('#npcEtiqueta').html(NPCs[id].etiqueta);
+	
+	if (NPCs[id].rango != '???') {
+		// Modificar el estilo para adaptarse a la nueva posiciOn
+		$('#imagenRango').html(`<img src='/images/op/rangos/` + NPCs[id].rango + `_One_Piece_Gaiden_Foro_Rol.webp' style="height: 169px; margin-top: 10px;">`);
+	} else {
+		$('#imagenRango').html(``);
+	}
+	
+	$('#vitalidadStat').html(NPCs[id].vitalidad + " / " + NPCs[id].vitalidad);
+	$('#energiaStat').html(NPCs[id].energia + " / " + NPCs[id].energia);
+	$('#hakiStat').html(NPCs[id].haki + " / " + NPCs[id].haki);
+	
+	$('#estiloCombateTexto').html(NPCs[id].estilo_combate);
+	
+	// Render NPC disciplines (belicas) in the habilidades tab to match ficha_belico
+	(function renderNpcBelicas(npc) {
+		// Reset all nivel indicators and bodies
+		// Main discipline bodies start purple (not in JSON = purple)
+		$('[id$="_nivel"]').html('');
+		$('[id$="_nivel_body"]').css('background-color', '#9d57b4').css('cursor','auto');
+		$('[id$="_img"]').css('filter', 'grayscale(1)');
+
+		if (!npc.belicas) return;
+
+		let npcBelicas = null;
+		try {
+			npcBelicas = typeof npc.belicas === 'string' ? JSON.parse(npc.belicas) : npc.belicas;
+		} catch (e) {
+			console.warn('Error parsing NPC belicas JSON:', e);
+			return;
+		}
+
+		Object.keys(npcBelicas).forEach(belicaName => {
+			let belica = npcBelicas[belicaName];
+			if (!belica) return;
+
+			let nivel = belica.nivel || 0;
+			let belicaKey = belicaName.replace(/ /g, "_");
+			let nivelBodyEl = document.getElementById(belicaKey + '_nivel_body');
+			let nivelIdEl   = document.getElementById(belicaKey + '_nivel');
+			let imgEl        = document.getElementById(belicaKey + '_img');
+
+			// Main belica visual
+			if (nivel == 1) {
+				if (nivelBodyEl) { nivelBodyEl.style.cursor = 'auto'; nivelBodyEl.style.backgroundColor = '#28ce26'; }
+				if (nivelIdEl)   nivelIdEl.innerHTML = 'I';
+				if (imgEl)       imgEl.style.filter = 'grayscale(0)';
+			} else {
+				if (nivelBodyEl) nivelBodyEl.style.backgroundColor = '#9d57b4';
+				if (nivelIdEl)   nivelIdEl.innerHTML = '';
+				if (imgEl)       imgEl.style.filter = 'grayscale(1)';
+			} 
+
+			// Sub caminos
+			if (belica.sub) {
+				Object.keys(belica.sub).forEach(camino => {
+					let caminoNivel = belica.sub[camino];
+					let caminoKey = camino.replace(/ /g, "_");
+					// Usar getElementById para evitar problemas con tildes en selectores CSS jQuery
+					let bodyEl = document.getElementById(caminoKey + '_nivel_body');
+					let spanEl = document.getElementById(caminoKey + '_nivel');
+
+					if (!bodyEl) return;
+
+					// Si la disciplina madre no está activa, los subs van a blanco
+					if (nivel != 1) {
+						bodyEl.style.backgroundColor = 'white';
+						return;
+					}
+
+					if (caminoNivel == 0) {
+						bodyEl.style.backgroundColor = '#9d57b4';
+					} else if (caminoNivel == 1) {
+						bodyEl.style.backgroundColor = '#e1740a';
+						if (spanEl) spanEl.innerHTML = 'C';
+					} else if (caminoNivel == 2) {
+						bodyEl.style.backgroundColor = '#28ce26';
+						if (spanEl) spanEl.innerHTML = 'E';
+					}
+				});
+			}
+		});
+	})(NPCs[id]);
+	// Render NPC oficios below avatar (historia tab)
+	(function renderNpcOficios(npc) {
+		$('#oficiosContainer').html('');
+		let shown = false;
+		let html = '';
+
+		if (npc.oficios) {
+			let npcOficios = null;
+			try {
+				npcOficios = typeof npc.oficios === 'string' ? JSON.parse(npc.oficios) : npc.oficios;
+			} catch (e) {
+				console.warn('Error parsing NPC oficios JSON:', e);
+				npcOficios = null;
+			}
+
+			if (npcOficios) {
+				Object.keys(npcOficios).forEach(name => {
+					let oficio = npcOficios[name];
+					let nivel = parseInt(oficio.nivel) || 0;
+					let actStyle = 'background-color:#9664e0;background-image:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:black;color:black;';
+					let p1 = nivel >= 1 ? actStyle : '';
+					let p2 = nivel >= 2 ? actStyle : '';
+					let subsHtml = '';
+					if (oficio.sub) {
+						Object.keys(oficio.sub).forEach(subName => {
+							let sv = parseInt(oficio.sub[subName]) || 0;
+							let sp1 = sv >= 1 ? actStyle : '';
+							let sp2 = sv >= 2 ? actStyle : '';
+							let sp3 = sv >= 3 ? actStyle : '';
+							subsHtml += '<div class="oficio-pill-color"><div class="oficio-titulo2">' + subName + '</div><div class="oficio-pill-caja"><div class="oficio-pill-1" style="' + sp1 + '">I</div><div class="oficio-pill-2" style="' + sp2 + '">II</div><div class="oficio-pill-3" style="' + sp3 + '">III</div></div></div>';
+						});
+					}
+					html += '<div class="oficio-caja" style="margin-top:8px;"><div style="display:flex;margin-top:5px;flex-direction:row;"><div class="oficio-titulo">' + name + '</div><div class="oficio-titulo-caja"><div class="oficio-titulo-pill-1" style="' + p1 + '">I</div><div class="oficio-titulo-pill-2" style="' + p2 + '">II</div></div></div>' + subsHtml + '</div>';
+					shown = true;
+				});
+			}
+		}
+
+		// Fallback: campos oficio1/oficio2 directos
+		if (!shown) {
+			if (npc.oficio1 && npc.oficio1.trim() !== '') {
+				html += '<div class="oficio-caja" style="margin-top:8px;"><div style="display:flex;margin-top:5px;"><div class="oficio-titulo">' + npc.oficio1 + '</div></div></div>';
+				shown = true;
+			}
+			if (npc.oficio2 && npc.oficio2.trim() !== '') {
+				html += '<div class="oficio-caja" style="margin-top:8px;"><div style="display:flex;margin-top:5px;"><div class="oficio-titulo">' + npc.oficio2 + '</div></div></div>';
+				shown = true;
+			}
+		}
+
+		$('#oficiosContainer').html(html);
+		if (shown) {
+			$('#oficiosColumn').show();
+		} else {
+			$('#oficiosColumn').hide();
+		}
+
+	})(NPCs[id]);
+
+	// Render NPC estilos: mostrar siempre los 4 slots
+	(function renderNpcEstilos(npc){
+		console.log('NPC estilos raw:', npc.estilo1, npc.estilo2, npc.estilo3, npc.estilo4, 'estilosJSON:', npc.estilos);
+
+		const SLOT_LIBRE     = '/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp';
+		const SLOT_BLOQUEADO = '/images/op/uploads/FichaSlotBloqueado_One_Piece_Gaiden_Foro_Rol.webp';
+
+		function isRealEstilo(val) {
+			return val && val !== '' && val.toLowerCase() !== 'bloqueado' && val.toLowerCase() !== 'no_bloqueado';
+		}
+
+		function getEstiloImg(val) {
+			if (!val || val === '' || val.toLowerCase() === 'bloqueado') return SLOT_BLOQUEADO;
+			if (val.toLowerCase() === 'no_bloqueado') return SLOT_LIBRE;
+			return '/images/op/uploads/Ficha' + encodeURIComponent(val) + '_One_Piece_Gaiden_Foro_Rol.webp';
+		}
+
+		let e1 = npc.estilo1 ? String(npc.estilo1).trim() : '';
+		let e2 = npc.estilo2 ? String(npc.estilo2).trim() : '';
+		let e3 = npc.estilo3 ? String(npc.estilo3).trim() : '';
+		let e4 = npc.estilo4 ? String(npc.estilo4).trim() : '';
+
+		$('#estilo1Box,#estilo2Box,#estilo3Box,#estilo4Box').show();
+		$('#npcEstilo1_img').attr('src', getEstiloImg(e1)).css('filter', isRealEstilo(e1) ? 'grayscale(0)' : 'grayscale(1)');
+		$('#npcEstilo2_img').attr('src', getEstiloImg(e2)).css('filter', isRealEstilo(e2) ? 'grayscale(0)' : 'grayscale(1)');
+		$('#npcEstilo3_img').attr('src', getEstiloImg(e3)).css('filter', isRealEstilo(e3) ? 'grayscale(0)' : 'grayscale(1)');
+		$('#npcEstilo4_img').attr('src', getEstiloImg(e4)).css('filter', isRealEstilo(e4) ? 'grayscale(0)' : 'grayscale(1)');
+
+	})(NPCs[id]);
+
+	// Render NPC Hakis: always show all three cards, locked (grayscale) when not unlocked
+	(function renderNpcHakis(npc){
+		// helper to parse int safely
+		function toInt(v){ if (v === null || v === undefined) return NaN; let n = parseInt(String(v).trim(),10); return isNaN(n) ? NaN : n; }
+
+		let busoVal = toInt(npc.buso);
+		let kenVal  = toInt(npc.kenbun);
+		let haoVal  = toInt(npc.haoshoku ?? npc.hao);
+
+		// Reset all to locked state
+		$('#buso_img_npc,#hao_img_npc,#kenbun_img_npc').css('filter', 'grayscale(1)');
+		$('#buso_nivel_npc').html('No Despertado');
+		$('#hao_nivel_npc').html('No Despertado');
+		$('#kenbun_nivel_npc').html('No Despertado');
+
+		// Busoshoku
+		if (!isNaN(busoVal) && busoVal > 0) {
+			$('#buso_img_npc').css('filter', 'grayscale(0)');
+			$('#buso_nivel_npc').html('Nv' + busoVal);
+		}
+
+		// Haoshoku (-1 = Sin Obtener, 0 = No Despertado, >0 = activo)
+		if (!isNaN(haoVal) && haoVal == -1) {
+			$('#hao_nivel_npc').html('Sin Obtener');
+		} else if (!isNaN(haoVal) && haoVal > 0) {
+			$('#hao_img_npc').css('filter', 'grayscale(0)');
+			$('#hao_nivel_npc').html('Nv' + haoVal);
+		}
+
+		// Kenbunshoku
+		if (!isNaN(kenVal) && kenVal > 0) {
+			$('#kenbun_img_npc').css('filter', 'grayscale(0)');
+			$('#kenbun_nivel_npc').html('Nv' + kenVal);
+		}
+
+	})(NPCs[id]);
+
+	if (NPCs[id].wanted != '' && (NPCs[id].faccion == 'Pirata' || NPCs[id].faccion == 'Revo' || NPCs[id].faccion == 'Cazador')) {
+		$('#npcWanted').html(`
+			<div style="margin-left: 42px;width: 147px;transform: rotate(4deg);background: url(/images/op/uploads/Wanted_One_Piece_Gaiden_Foro_Rol.png);background-repeat: no-repeat;background-size: cover;height: 188px;box-shadow: 0px 0px 10px black;"><img src="` + NPCs[id].avatar2 + `" style="width: 121px;margin-top: 20px;margin-left: 20px;position: relative;top: 25px;left: -6px;height: 92px;">
+				<div style="text-align: center;font-size: 20px;color: #3b1300;font-family: Georgia;margin-top: 41px;">` + NPCs[id].nombre + `</div>
+			</div>
+		`);
+	} else {
+		$('#npcWanted').html(``);
+	}
+	
+	if (NPCs[id].akuma != '') {
+		
+		$.post("/op/npcs.php", { get_akuma: 'true', akuma_uid: NPCs[id].akuma }, function( data ) { 
+			console.log(data);
+			let imagenAkuma = data[0].imagen;
+			let nombreAkuma = data[0].nombre;
+			
+			$('#npcFrutaLogo').html(`
+				<div style="margin-left: 42px;width: 147px;transform: rotate(358deg);background: url(/images/op/uploads/FondoAkumaFicha_One_Piece_Gaiden_Foro_Rol.png);background-repeat: no-repeat;background-size: cover;height: 188px;box-shadow: 0px 0px 10px black;"><img src="` + imagenAkuma + `" style="width: 143px;margin-top: -7px;margin-left: 0px;">
+					<div style=" text-align: center; font-size: 18px; color: white; font-family: moonGetHeavy; text-shadow: 2px 2px 1px black; ">` + nombreAkuma + `</div>
+				</div>
+			`);
+
+		}); 	
+	} else {
+		$('#npcFrutaLogo').html(``);
+	}
+
+	let npcGradient = '';
+	let solColor = '';
+	
+	if (NPCs[id].faccion == 'Pirata') {
+		$('.stat-diamante-pequeno').css('background-color', '#ff0000');
+		solColor = 'invert(20%) sepia(91%) saturate(6821%) hue-rotate(16deg) brightness(93%) contrast(107%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #ef3c3c 20%, #810b0b 50%, #ef3c3c 80%, #00748f00 100%)';
+	} else if (NPCs[id].faccion == 'Gobierno') { 
+		$('.stat-diamante-pequeno').css('background-color', '#6534aa');
+		solColor = 'invert(22%) sepia(27%) saturate(5058%) hue-rotate(250deg) brightness(94%) contrast(93%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #4c2365 20%, #1e062d 50%, #4c2365 80%, #00748f00 100%)';
+	} else if (NPCs[id].faccion == 'Marina') { 
+		$('.stat-diamante-pequeno').css('background-color', '#0039ed');
+		solColor = 'invert(13%) sepia(78%) saturate(7249%) hue-rotate(231deg) brightness(91%) contrast(105%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #05516a 20%, #00212e 50%, #05516a 80%, #00748f00 100%)';
+	} else if (NPCs[id].faccion == 'Cazador') {
+		$('.stat-diamante-pequeno').css('background-color', '#00ab00');
+		solColor = 'invert(35%) sepia(98%) saturate(1562%) hue-rotate(94deg) brightness(99%) contrast(104%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #076a0d 20%, #002d01 50%, #076a0d 80%, #00748f00 100%)';
+	} else if (NPCs[id].faccion == 'Revo') { // 7d6452
+		$('.stat-diamante-pequeno').css('background-color', '#7d6452');
+		solColor = 'invert(41%) sepia(10%) saturate(1249%) hue-rotate(342deg) brightness(92%) contrast(84%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #845f07 20%, #432d00 50%, #845f07 80%, #00748f00 100%)';
+	} else if (NPCs[id].faccion == 'Civil') { // #c6005c
+		$('.stat-diamante-pequeno').css('background-color', '#c6005c');
+		solColor = 'invert(13%) sepia(97%) saturate(5318%) hue-rotate(324deg) brightness(76%) contrast(105%)';
+		npcGradient = 'linear-gradient(90deg, #00748f00 0%, #880d74 20%, #310128 50%, #880d74 80%, #00748f00 100%)';
+	}
+	// $('.stat-diamante-pequeno').css('background-color', 'blue');
+	$('#solColor').css('filter', solColor);
+	$('.gradientBox').css('background', npcGradient);
+	$('#personalidadBox').css('background', npcGradient);
+	$('#aparienciaBox').css('background', npcGradient);
+    $('#etiquetaBox').css('background', npcGradient);
+	
+	$('#historiaBox1').css('background', npcGradient);
+	$('#historiaBox2').css('background', npcGradient);
+	$('#historiaBox3').css('background', npcGradient);
+	$('#estiloCombateBox').css('background', npcGradient);
+	
+	$('#busoTitulo').css('background', npcGradient);
+	$('#kenbunTitulo').css('background', npcGradient);
+	$('#haoTitulo').css('background', npcGradient);
+
+	$('#hakiBox').css('background', npcGradient);
+	$('#estiloCombateBox').css('background', npcGradient);
+	$('#oficiosBox').css('background', npcGradient);
+	$('#disciplinasBox').css('background', npcGradient);
+	
+	
+	// $('#frutaDescripcionBackground').css('background', frutaGradient);
+	// $('#akumaImagen').attr('src', akumas[id].imagen);
+
+	// Mostrar u ocultar pestaña de habilidades según permisos
+	(function updateHabilidadesTab(npcId) {
+		const isOwner = String(npcId).startsWith(g_uid + '-');
+		if (g_is_staff || isOwner) {
+			$('#pestana_habilidades').show();
+		} else {
+			$('#pestana_habilidades').hide();
+			// Si estaba activa, redirigir a informacion2
+			if ($('#pestana_habilidades').hasClass('pestana-active')) {
+				clickPestana('informacion2');
+			}
+		}
+	})(NPCs[id].npc_id);
+
+	// Mostrar u ocultar el cartel de Wanted segUn corresponda
+	const wantedCorner = document.getElementById('wantedCorner');
+	if (NPCs[id].wanted != '' && (NPCs[id].faccion == 'Pirata' || NPCs[id].faccion == 'Revo' || NPCs[id].faccion == 'Cazador')) {
+		// Configurar la vista previa del Wanted
+		document.getElementById('wantedCornerImg').src = NPCs[id].avatar2;
+		document.getElementById('wantedCornerName').innerText = NPCs[id].nombre;
+		
+		// Configurar el modal del Wanted
+		document.getElementById('wantedModalImg').src = NPCs[id].avatar2;
+		document.getElementById('wantedModalName').innerText = NPCs[id].nombre;
+		document.getElementById('wantedModalPrice').innerText = NPCs[id].wanted + " ฿";
+		
+		// Mostrar el Wanted en la esquina con posiciOn ajustada
+		wantedCorner.style.display = 'block';
+		wantedCorner.style.bottom = '-30px';  // Ajustar para que sobresalga menos
+		wantedCorner.style.right = '120px';   // Ajustar para que sobresalga menos
+		
+		// Eliminar el wanted del div original ya que ahora se muestra en la esquina
+		$('#npcWanted').html('');
+	} else {
+		wantedCorner.style.display = 'none';
+		$('#npcWanted').html('');
+	}
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+
+let npc_input_id = '{$npc_input_id}';
+console.log(npc_input_id);
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+if (npc_input_id != '') {
+	sleep(500).then(() => {
+		for (let i = 0; i < NPCs.length; i++) {
+			if (NPCs[i].npc_id == npc_input_id) {
+				console.log('');
+				clickNpc(i);
+			}
+		}
+	});
+}
+
+function clickPestana(tipo) {
+	$('.pestana').removeClass('pestana-active');
+
+	// Posiciones base
+	var base = { informacion2: 16, historia: 8, habilidades: 0 };
+
+	// Resetear todas a posición base
+	$('#pestana_informacion2').css('left', base.informacion2 + 'px');
+	$('#pestana_historia').css('left', base.historia + 'px');
+	$('#pestana_habilidades').css('left', base.habilidades + 'px');
+
+	if (tipo == 'informacion2') {
+		$('#informacion2').css('display', 'block');
+		$('#historia').css('display', 'none');
+		$('#habilidades').css('display', 'none');
+		$('#pestana_informacion2').addClass('pestana-active');
+		// informacion2 ya está en 16px (su base), sin swap
+	}
+
+	if (tipo == 'historia') {
+		$('#informacion2').css('display', 'none');
+		$('#historia').css('display', 'block');
+		$('#habilidades').css('display', 'none');
+		$('#pestana_historia').addClass('pestana-active');
+		// historia sube a la posición de informacion2, informacion2 baja a la de historia
+		$('#pestana_historia').css('left', base.informacion2 + 'px');
+		$('#pestana_informacion2').css('left', base.historia + 'px');
+	}
+	
+	if (tipo == 'habilidades') {
+	 	$('#informacion2').css('display', 'none');
+	 	$('#historia').css('display', 'none');
+	 	$('#habilidades').css('display', 'block');
+	 	$('#pestana_habilidades').addClass('pestana-active');
+		// habilidades sube a la posición de informacion2, informacion2 baja a la de habilidades
+		$('#pestana_habilidades').css('left', base.informacion2 + 'px');
+		$('#pestana_informacion2').css('left', base.habilidades + 'px');
+	}
+	
+}	
+</script>
+
+
+<script>
+// Variables para controlar el estado de ordenamiento
+let currentSortColumn = 'id';
+let currentSortOrder = 'asc'; // 'asc' o 'desc'
+
+// Funciones para el modal de Staff
+function showStaffModal() {
+    const staffModal = document.getElementById('staffModal');
+    const staffNpcList = document.getElementById('staffNpcList');
+    
+    // Limpiar lista anterior
+    staffNpcList.innerHTML = '';
+    
+    // Agregar encabezados con botones de ordenamiento
+    const headerRow = document.createElement('div');
+    headerRow.style.cssText = 'display: flex; background: #34495e; margin-bottom: 10px; border-radius: 5px; font-weight: bold;';
+    
+    headerRow.innerHTML = 
+        '<div style="width: 15%; text-align: center; padding: 10px;">' +
+            '<button onclick="sortStaffList(\'id\')" style="background: none; border: none; color: #ecf0f1; font-family: \'moonGetHeavy\'; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%;">' +
+                'ID <span id="sortArrowId" style="margin-left: 5px;">' + (currentSortColumn === 'id' ? (currentSortOrder === 'asc' ? '\u25B2' : '\u25BC') : '\u25B2') + '</span>' +
+            '</button>' +
+        '</div>' +
+        '<div style="width: 40%; text-align: center; padding: 10px;">' +
+            '<button onclick="sortStaffList(\'nombre\')" style="background: none; border: none; color: #ecf0f1; font-family: \'moonGetHeavy\'; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%;">' +
+                'NOMBRE <span id="sortArrowNombre" style="margin-left: 5px;">' + (currentSortColumn === 'nombre' ? (currentSortOrder === 'asc' ? '\u25B2' : '\u25BC') : '\u25B2') + '</span>' +
+            '</button>' +
+        '</div>' +
+        '<div style="width: 25%; text-align: center; padding: 10px;">' +
+            '<button onclick="sortStaffList(\'faccion\')" style="background: none; border: none; color: #ecf0f1; font-family: \'moonGetHeavy\'; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%;">' +
+                'FACCION <span id="sortArrowFaccion" style="margin-left: 5px;">' + (currentSortColumn === 'faccion' ? (currentSortOrder === 'asc' ? '\u25B2' : '\u25BC') : '\u25B2') + '</span>' +
+            '</button>' +
+        '</div>' +
+        '<div style="width: 20%; text-align: center; padding: 10px; color: #ecf0f1; font-family: \'moonGetHeavy\'; font-size: 12px;">ACCION</div>';
+    
+    staffNpcList.appendChild(headerRow);
+    
+    // Ordenar NPCs segUn la columna y orden actual
+    const sortedNPCs = getSortedNPCs();
+    
+    // Llenar la lista con los NPCs ordenados
+    for (let i = 0; i < sortedNPCs.length; i++) {
+        const npc = sortedNPCs[i];
+        
+        // Encontrar el índice original del NPC en el array NPCs para mantener la funcionalidad
+        const originalIndex = NPCs.findIndex(originalNpc => originalNpc.npc_id === npc.npc_id);
+        
+        // Determinar color de facciOn
+        let factionColor = '#95a5a6';
+        switch(npc.faccion) {
+            case 'Pirata': factionColor = '#e74c3c'; break;
+            case 'Marina': factionColor = '#3498db'; break;
+            case 'Revo': factionColor = '#f39c12'; break;
+            case 'Cazador': factionColor = '#27ae60'; break;
+            case 'Gobierno': factionColor = '#9b59b6'; break;
+            case 'Civil': factionColor = '#e91e63'; break;
+        }
+        
+        const npcRow = document.createElement('div');
+        npcRow.style.cssText = 'display: flex; background: #2c3e50; margin-bottom: 5px; border-radius: 5px; transition: all 0.2s ease; border-left: 4px solid ' + factionColor + ';';
+        
+        npcRow.innerHTML = '<div style="width: 15%; text-align: center; padding: 10px; color: #bdc3c7; font-family: \'moonGetHeavy\'; font-size: 12px;">' + 
+            npc.npc_id + 
+            '</div>' +
+            '<div style="width: 40%; text-align: left; padding: 10px; color: white; font-family: \'moonGetHeavy\'; font-size: 13px;">' + 
+            npc.nombre + 
+            '</div>' +
+            '<div style="width: 25%; text-align: center; padding: 10px; color: ' + factionColor + '; font-family: \'moonGetHeavy\'; font-size: 12px;">' + 
+            npc.faccion + 
+            '</div>' +
+            '<div style="width: 20%; text-align: center; padding: 10px;">' +
+                '<button onclick="openNpcFromStaff(' + originalIndex + ')" style="background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-family: \'moonGetHeavy\'; font-size: 10px; transition: all 0.2s ease;">VER NPC</button>' +
+            '</div>';
+        
+        // Agregar efecto hover
+        npcRow.addEventListener('mouseenter', function() {
+            this.style.background = '#34495e';
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        npcRow.addEventListener('mouseleave', function() {
+            this.style.background = '#2c3e50';
+            this.style.transform = 'translateX(0px)';
+        });
+        
+        staffNpcList.appendChild(npcRow);
+    }
+    
+    staffModal.style.display = 'block';
+}
+
+function getSortedNPCs() {
+    return [...NPCs].sort((a, b) => {
+        let valueA, valueB;
+        
+        switch(currentSortColumn) {
+            case 'id': {
+                // Descompone el ID en: numero inicial, parte de texto, numero final
+                // Ejemplos: "816-PET001" => {n1:816, txt:"PET", n2:1}
+                //           "338-NPC001" => {n1:338, txt:"NPC", n2:1}
+                //           "NPC002"     => {n1:0,   txt:"NPC", n2:2}
+                function parseNpcId(id) {
+                    const m = String(id).match(/^(\d*)[-]?([a-zA-Z]*)(\d*)$/);
+                    return {
+                        n1:  (m && m[1] !== '') ? parseInt(m[1], 10) : 0,
+                        txt: (m && m[2])        ? m[2].toUpperCase() : String(id).toUpperCase(),
+                        n2:  (m && m[3] !== '') ? parseInt(m[3], 10) : 0
+                    };
+                }
+                const pA = parseNpcId(a.npc_id);
+                const pB = parseNpcId(b.npc_id);
+                let r = pA.n1 - pB.n1;
+                if (r !== 0) return currentSortOrder === 'asc' ? r : -r;
+                r = pA.txt.localeCompare(pB.txt);
+                if (r !== 0) return currentSortOrder === 'asc' ? r : -r;
+                r = pA.n2 - pB.n2;
+                return currentSortOrder === 'asc' ? r : -r;
+            }
+                
+            case 'nombre':
+                valueA = a.nombre.toLowerCase();
+                valueB = b.nombre.toLowerCase();
+                break;
+                
+            case 'faccion':
+                valueA = a.faccion.toLowerCase();
+                valueB = b.faccion.toLowerCase();
+                break;
+                
+            default:
+                return 0;
+        }
+        
+        // ComparaciOn
+        let result = 0;
+        if (currentSortColumn === 'id') {
+            result = valueA - valueB; // ComparaciOn numérica
+        } else {
+            result = valueA.localeCompare(valueB); // ComparaciOn alfabética
+        }
+        
+        // Invertir si el orden es descendente
+        return currentSortOrder === 'asc' ? result : -result;
+    });
+}
+
+function sortStaffList(column) {
+    // Si se hace clic en la misma columna, cambiar el orden
+    if (currentSortColumn === column) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        // Si es una columna diferente, establecer orden ascendente por defecto
+        currentSortColumn = column;
+        currentSortOrder = 'asc';
+    }
+    
+    // Actualizar las flechas de ordenamiento
+    updateSortArrows();
+    
+    // Recargar la lista con el nuevo ordenamiento
+    showStaffModal();
+}
+
+function updateSortArrows() {
+    // Resetear todas las flechas
+    const arrows = ['sortArrowId', 'sortArrowNombre', 'sortArrowFaccion'];
+    arrows.forEach(arrowId => {
+        const arrow = document.getElementById(arrowId);
+        if (arrow) {
+            arrow.textContent = '\u25B2';
+            arrow.style.opacity = '0.5';
+        }
+    });
+    
+    // Actualizar la flecha de la columna activa
+    const activeArrowId = 'sortArrow' + currentSortColumn.charAt(0).toUpperCase() + currentSortColumn.slice(1);
+    const activeArrow = document.getElementById(activeArrowId);
+    if (activeArrow) {
+        activeArrow.textContent = currentSortOrder === 'asc' ? '\u25B2' : '\u25BC';
+        activeArrow.style.opacity = '1';
+    }
+}
+
+function closeStaffModal() {
+    document.getElementById('staffModal').style.display = 'none';
+}
+
+function openNpcFromStaff(npcIndex) {
+    // Cerrar el modal de staff
+    closeStaffModal();
+    
+    // Abrir el modal del NPC específico
+    clickNpc(npcIndex);
+}
+
+// Cerrar modal de staff al hacer clic fuera
+window.addEventListener('click', function(event) {
+    const staffModal = document.getElementById('staffModal');
+    if (event.target == staffModal) {
+        staffModal.style.display = 'none';
+    }
+});
+</script>

@@ -1,0 +1,80 @@
+<html>
+
+<head>
+  <title>Crear Virtudes y Defectos</title>
+  {$headerinclude}
+</head>
+
+<body>
+{$header}
+<div class="fondo-blanco">
+<if $accion=='' then>
+     Acción:<br>
+      <select id="accion" onchange="onClickAccion()">
+		<option value=""></option>
+        <option value="Agregar">Agregar</option>
+        <option value="Remover">Remover</option>
+      </select><br><br>
+      <br><br>
+    </if>
+    <if $accion == 'Agregar' then><br>
+      <form method="post" action="/op/staff/virtudes_crear.php" name="crear_virtudes" id="crear_virtudes">
+        <div style="display: none">
+           <input type="text" id="fid" name="accion" value="{$accion}">
+        </div>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		ID de Virtud/Defecto*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="virtud_id" id="virtud_id" required /><br>
+        Nombre de Virtud/Defecto*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="nombre" id="nombre" required /><br>
+        Puntos*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="puntos" id="puntos" required /><br>
+        Descripción*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="descripcion" minlength="1" required placeholder=""></textarea><br><br>
+        <input class="button" type="submit" value="Crear virtud/defecto">
+      </form>	
+    </if>
+    <if $accion == 'Remover' && $virtud_id == '' then>
+        Acción: {$virtud_id}<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		Virtud/Defecto ID:<br><input class="textbox" type="text" name="virtud_id" required id='virtud_id'><br><br>
+		<button onclick=onClickAccion()>Buscar</button><br><br>
+    </if>
+	<if $accion == 'Remover' && $virtud_id != '' then>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		Virtud/Defecto ID:<br><input style="width: 300px;" class="textbox" type="text" name="virtud_id" required id='virtud_id' value='{$virtud_id}' disabled><br><br>
+		<span>Nombre: {$virtud['nombre']}</span><br>
+		<span>Puntos: {$virtud['puntos']}</span><br>
+		<span>Descripción: {$virtud['descripcion']}</span><br>
+		<form method="post" action="/op/staff/virtudes_crear.php" name="crear_virtudes" id="crear_virtudes">
+			<div style="display: none">
+           		<input type="text" name="virtud_id" value="{$virtud_id}">
+				<input type="text" name="accion" value="{$accion}">
+        	</div><br>
+        	<!-- Razón: <br><input style="width: 300px;" class="textbox" type="text" name="razon" required><br><br> -->
+			<input class="button" type="submit" value="Remover"><br><br>
+		</form>
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const accion = document.getElementById('accion').value;
+	const virtud_id = document.getElementById('virtud_id')?.value;
+	if (accion && virtud_id) {
+      window.location.href = window.location.pathname + '?accion=' + accion + '&virtud_id=' + virtud_id;
+    } else if (accion) {
+      window.location.href = window.location.pathname + '?accion=' + accion;
+    }
+  }
+</script>
+
+</html>

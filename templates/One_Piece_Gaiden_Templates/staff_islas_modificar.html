@@ -1,0 +1,57 @@
+<html>
+
+<head>
+  <title>Modificar Islas</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+    <if $isla_id == '' then>
+      Isla ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='isla_id'><button
+        onclick=onClickTid()>Buscar</button><br><br>
+    </if>
+	<if $isla_id !='' then>
+      Isla ID<br><input style="width: 300px;" class="textbox" type="text" value='{$isla_id}' disabled><br>
+        <form method="post" action="/op/staff/islas_modificar.php" name="crear_islas" id="crear_islas">
+        <div style="display: none">
+           <input type="text" name="isla_id" value="{$isla_id}">
+        </div><br>
+		ID de Isla*: <br><input style="width: 300px;" class="textbox" value="{$isla_id}" type="text" name="nuevo_isla_id" id="nuevo_isla_id" required /><br>
+			
+        Nombre: <br><input style="width: 300px;" class="textbox" value="{$isla['nombre']}" type="text" name="nombre" id="nombre" /><br>
+		
+        Gobierno:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="gobierno" minlength="1" placeholder="">{$isla['gobierno']}</textarea><br>
+		Facción Dominante*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="faccion" minlength="1" placeholder="">{$isla['faccion']}</textarea><br>
+		Tamaño:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="tamano" minlength="1" placeholder="">{$isla['tamano']}</textarea><br>
+		Actividad comercial:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="comercio" minlength="1" placeholder="">{$isla['comercio']}</textarea><br>
+		Habitantes destacados (separados por coma, sin espacio):<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="habitantes" minlength="1" placeholder="">{$isla['habitantes']}</textarea><br>
+		Zonas:<br>
+        <textarea placeholder="" style="width: 800px;height: 250px;" name="zonas" minlength="1" placeholder="">{$isla['zonas']}</textarea><br>
+		<br>
+        <input class="button" type="submit" value="Modificar Isla">
+      </form>
+    </if>
+	<br>
+	Link de la isla: <a href="/op/isla.php?isla_id={$isla_id}">/op/isla.php?isla_id={$isla_id}</a>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickTid() {
+    const islaId = document.getElementById('isla_id').value;
+    if (islaId) {
+		window.location.href = window.location.pathname + '?isla_id=' + islaId;		
+	}
+  }
+</script>
+
+</html>

@@ -1,0 +1,102 @@
+<html>
+<head>
+<title>{$mybb->settings['bbname']} - {$foruminfo['name']} </title>
+{$headerinclude}
+{$rssdiscovery}
+<script type="text/javascript">
+<!--
+	lang.no_new_posts = "{$lang->no_new_posts}";
+	lang.click_mark_read = "{$lang->click_mark_read}";
+	lang.inline_edit_description = "{$lang->inline_edit_description}";
+	lang.post_fetch_error = "{$lang->post_fetch_error}";
+// -->
+</script>
+<!-- jeditable (jquery) -->
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/jeditable/jeditable.min.js"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/inline_edit.js?ver=1822"></script>
+	
+<style>
+	
+	.subforoAnchor {
+		overflow: hidden;
+		box-shadow: 2px 0px 5px black;
+		box-sizing: border-box;
+		border: 1px solid black;
+	}
+
+	.subforoImagenOP {
+		width: 328px !important;
+		height: 165px !important;
+		position: relative;
+		transition: all 0.25s ease;
+		opacity: 0.9;
+		filter: grayscale(0.2);
+		width: 495px;
+		height: 250px;
+		box-sizing: border-box;
+	}
+	
+	.subforoOP {
+		width: 327px !important;
+		height: 165px !important;
+		position: relative;
+		box-sizing: border-box;
+	}	
+	
+	.subforoImagenOP:hover, .subforoImagenHover {
+		transform: scale(1.1);
+		opacity: 1;
+		filter: grayscale(0);
+	}
+	
+	.subforoTexto {
+		font-size: 32px !important;
+		margin-top: 0px !important;
+		position: absolute;
+		top: 47%;
+		transform: translateY(-50%);
+		width: 328px;
+	}
+	
+	.subforoVerticalTexto {
+/* 		margin: 0;
+	  position: absolute;
+	  top: 50%;
+	  -ms-transform: translateY(-50%);
+	  transform: translateY(-50%); */
+	}
+</style>
+</head>
+<body>
+{$header}         
+<div class="indice">
+  <div class="mainBackground">
+	 <div class="secondBackground">
+		 <div class="thirdBackground">
+{$moderatedby}
+{$rules}
+{$subforums}
+{$threadslist}
+<if $g_forum_oculto != '1' then>
+{$usersbrowsing}
+</if>
+{$footer}
+
+		 </div>
+	  </div>
+	</div>
+</div>
+</body>
+<script>
+let myImg;
+// $('.index-image').hover((img) => {
+// 	$(img.currentTarget.parentElement.parentElement).find('span').toggleClass('titulo-tecnica-hover');
+//     // $(img.currentTarget.parentElement.nextElementSibling).toggleClass('forum-title-hover');
+// });	
+	
+$('.subforoTexto').hover((img) => {
+	myImg = img;
+	$(img.currentTarget.parentElement).find('.subforoImagenOP').toggleClass('subforoImagenHover');
+});	
+</script>
+</html>

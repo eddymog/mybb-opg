@@ -1,0 +1,65 @@
+<html>
+	<head>
+		<style>
+
+
+		</style>
+		<title>Código Promocional</title>
+		{$headerinclude}
+	</head>
+	<body>
+		{$header}
+		<br>
+		<div class="fondo-blanco" style=" text-align: center; ">
+			<h3>Códigos Promocionales</h3><br>
+			<if $codigo_activo then>
+				<p>Ya tienes un código promocional activado de nombre "{$codigo_activo['codigo']}" y de categoría "{$codigo_activo['categoria']}" que expira en: <span id="countdown"></span>.</p>
+			<else />
+				
+				<if $codigos_disponibles then>Los siguientes códigos se pueden reclamar: <br>{$codigos_disponibles}<br></if>
+				
+				<form id="promocion_form" method="post" action="codigo_promocional.php">
+					<input id="codigo" type="text" name="codigo" style=" width: 150px; height: 30px; padding: 5px; "><br>
+				</form>
+				<br>
+				<button id="submitButtonCode" onclick="document.getElementById('promocion_form').submit();">Enviar</button>
+			</if>
+			
+		</div>
+		{$footer}
+	</body>
+	<script>
+            var end = new Date({$codigo_activo['expiracion']});
+
+            var _second = 1000;
+            var _minute = _second * 60;
+            var _hour = _minute * 60;
+            var _day = _hour * 24;
+            var timer;
+
+            function showRemaining() {
+                var now = new Date({$time_now});
+                var distance = (end - now) * 1000;
+                if (distance < 1000 && distance > 1) {
+                    location.reload(true);
+                    return;
+                }
+                if (distance < 0) {
+                    clearInterval(timer);
+                    document.getElementById('countdown').innerHTML = '0 dias, 0 horas, 0 minutos y 0 segundos';
+                    return;
+                }
+                var days = Math.floor(distance / _day);
+                var hours = Math.floor((distance % _day) / _hour);
+                var minutes = Math.floor((distance % _hour) / _minute);
+                var seconds = Math.floor((distance % _minute) / _second);
+
+                document.getElementById('countdown').innerHTML = days + ' dias, ';
+                document.getElementById('countdown').innerHTML += hours + ' horas, ';
+                document.getElementById('countdown').innerHTML += minutes + ' minutos y ';
+                document.getElementById('countdown').innerHTML += seconds + ' segundos';
+            }
+
+            timer = setInterval(showRemaining, 1000);
+        </script>
+</html>

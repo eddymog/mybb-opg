@@ -1,0 +1,877 @@
+<html>
+
+<head>
+  <title>Lista de Akumas</title>
+  {$headerinclude}
+  <style>
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('https://i.ibb.co/cgdZ0SF/Titulo-Registro-Akumas-One-Piece-Gaiden-Foro-Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+      
+      .tierRow {
+          display: flex;
+          flex-direction: row;
+      }
+      
+      .akumaTypeRow  {
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 20px;
+          font-family: 'moonGetHeavy';
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      }
+      
+      .categoriaBox, .tierBox, .libreBox {
+        flex: 1; /* Hace que cada caja ocupe el mismo espacio disponible */
+          border-right: 2px solid black; /* Solo para visualización */
+        text-align: center;
+        background-color: #ff7b00;
+        position: relative;
+      }
+      
+      /* Imágenes de fondo específicas para cada categoría */
+      .categoriaBox[id="Paramecia"] {
+          background-image: url('https://i.pinimg.com/736x/59/6e/67/596e67f8f559d2865824bb7554d0ea3b.jpg');
+          background-size: cover;
+          background-position: center;
+          background-blend-mode: multiply;
+      }
+      
+      .categoriaBox[id="Logia"] {
+          background-image: url('https://i.pinimg.com/736x/eb/ab/60/ebab60a96f862dc02fd8b237068e6156.jpg');
+          background-size: cover;
+          background-position: center;
+          background-blend-mode: multiply;
+      }
+      
+      .categoriaBox[id="Zoan"] {
+          background-image: url('https://i.pinimg.com/736x/21/43/09/214309d4105e9e2a1f66ee704238750e.jpg');
+          background-size: cover;
+          background-position: center;
+          background-blend-mode: multiply;
+      }
+      
+      .tierBox{
+          border-bottom: 2px solid black;
+      }
+      
+      .libreBox{
+          border-bottom: 2px solid black;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 7px 0 0; 
+      }
+      
+      .categoriaBox:first-child {
+            border-radius: 7px 0 0 0; 
+      }
+      
+      .categoriaBox:hover, .tierBox:hover, .libreBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      /* Ajuste para el hover en las categorías con imagen de fondo */
+      .categoriaBox[id="Paramecia"]:hover,
+      .categoriaBox[id="Logia"]:hover,
+      .categoriaBox[id="Zoan"]:hover {
+          background-color: rgba(175, 149, 92, 0.8);
+          background-blend-mode: multiply;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      /* Ajuste para el estado activo en las categorías con imagen de fondo */
+      .categoriaBox[id="Paramecia"].box-active,
+      .categoriaBox[id="Logia"].box-active,
+      .categoriaBox[id="Zoan"].box-active {
+          background-color: rgba(255, 255, 255, 0.9);
+          background-blend-mode: multiply;
+      }
+      
+      /* Estilos específicos para botones de disponibilidad con mayor especificidad */
+      .libreBox[id="Libre"] {
+          background: linear-gradient(0deg, rgb(0 132 49) 0%, rgb(0 255 20) 50%, rgb(0 132 49) 100%) !important;
+      }
+      
+      .libreBox[id="Ocupada"] {
+          background: linear-gradient(0deg, rgb(132 0 0) 0%, rgba(255,0,0,1) 50%, rgb(169 3 3) 100%) !important;
+      }
+      
+      .libreBox[id="Reservada"] {
+          background: linear-gradient(0deg, rgb(132 100 0) 0%, rgb(255 193 0) 50%, rgb(132 100 0) 100%) !important;
+      }
+      
+      /* Hover específico para botones de disponibilidad */
+      .libreBox[id="Libre"]:hover {
+          background: linear-gradient(0deg, rgb(0 100 37) 0%, rgb(0 200 16) 50%, rgb(0 100 37) 100%) !important;
+      }
+      
+      .libreBox[id="Ocupada"]:hover {
+          background: linear-gradient(0deg, rgb(100 0 0) 0%, rgba(200,0,0,1) 50%, rgb(130 3 3) 100%) !important;
+      }
+      
+      .libreBox[id="Reservada"]:hover {
+          background: linear-gradient(0deg, rgb(100 75 0) 0%, rgb(200 150 0) 50%, rgb(100 75 0) 100%) !important;
+      }
+      
+      /* Estados activos específicos para botones de disponibilidad */
+      .libreBox[id="Libre"].box-active {
+          background: linear-gradient(0deg, rgb(0 150 56) 0%, rgb(0 255 24) 50%, rgb(0 150 56) 100%) !important;
+      }
+      
+      .libreBox[id="Ocupada"].box-active {
+          background: linear-gradient(0deg, rgb(150 0 0) 0%, rgba(255,50,50,1) 50%, rgb(190 3 3) 100%) !important;
+      }
+      
+      .libreBox[id="Reservada"].box-active {
+          background: linear-gradient(0deg, rgb(150 115 0) 0%, rgb(255 210 0) 50%, rgb(150 115 0) 100%) !important;
+      }
+      
+      .tierBox:last-child {
+          border-right: 2px solid black;
+      }
+
+        .tierBox:first-child, .libreBox:first-child {
+          border-left: 2px solid black;
+      }
+      
+      .akumaList {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 5px;
+      }
+      
+      .akumaItem {
+          display: flex;
+          cursor: pointer;
+          transition: all 0.2s ease-out;
+      }
+      
+      .akumaItem:hover {
+          filter: drop-shadow(0px 0px 4px black) brightness(1.1);
+      }
+      
+      .nameSection {
+        background-color: #ffeed2;
+        padding-left: 10px;
+        width: 310px;
+        border: 2px solid black;
+        color: black;
+        overflow: hidden;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+      
+      .fruitImage {
+        height: 80px;
+        display: inline-block;
+        top: 10px;
+        position: relative;
+      }
+      
+      .statusSection {
+          background-color: red;
+          display: flex;
+          align-items: center;
+          color: white;
+          padding-left: 25px;
+          padding-right: 25px;
+          border-radius: 0px 25px 25px 0px;
+          border: 2px solid black;
+          border-left: none;
+          background: rgb(214,0,0);	  
+          width: 109px;
+      }
+      
+      .statusOcupada {
+          background: linear-gradient(0deg, rgb(132 0 0) 0%, rgba(255,0,0,1) 50%, rgb(169 3 3) 100%);
+      }
+      
+      .statusLibre {
+          background: linear-gradient(0deg, rgb(0 132 49) 0%, rgb(0 255 20) 50%, rgb(0 132 49) 100%);
+      }
+
+      .statusReservada {
+        background: linear-gradient(0deg, rgb(132 100 0) 0%, rgb(255 193 0) 50%, rgb(132 100 0) 100%);
+      }
+
+      .akumaName, .akumaDscpt, .statusSection{
+          font-family: 'moonGetHeavy'
+      }
+      
+      .statusSection {
+          font-size: 20px;
+      }
+
+      .akumaName {
+          font-size: 17px;
+      }
+      
+      .akumaDscpt {
+          font-size: 8.5px;
+      }
+      
+  </style>
+	
+	<style>
+	/* The Modal (background) */
+	.modal {
+	  display: none; /* Hidden by default */
+	  position: fixed; /* Stay in place */
+	  z-index: 1; /* Sit on top */
+	  padding-top: 100px; /* Location of the box */
+	  left: 0;
+	  top: 0;
+	  width: 100%; /* Full width */
+	  height: 100%; /* Full height */
+	  overflow: auto; /* Enable scroll if needed */
+	  background-color: rgb(0,0,0); /* Fallback color */
+	  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	}
+
+	/* Modal Content */
+	.modal-content {
+		position: relative;
+		background-image: url(/images/op/misc/LibroBase_One_Piece_Gaiden_Foro_Rol.png);
+/* 		background-image: url(/images/op/uploads/LibroBase_One_Piece_Gaiden_Foro_Rol.png); */
+		margin: auto;
+		padding: 0;
+		width: 1200px;
+		-webkit-animation-name: animatetop;
+		-webkit-animation-duration: 0.4s;
+		animation-name: animatetop;
+		animation-duration: 0.4s;
+		height: 644px;
+		background-repeat: no-repeat;
+	}
+
+	/* Add Animation */
+	@-webkit-keyframes animatetop {
+	  from {top:-300px; opacity:0} 
+	  to {top:0; opacity:1}
+	}
+
+	@keyframes animatetop {
+	  from {top:-300px; opacity:0}
+	  to {top:0; opacity:1}
+	}
+
+	/* The Close Button */
+	.close {
+	  color: white;
+	  float: right;
+	  font-size: 28px;
+	  font-weight: bold;
+	}
+
+	.close:hover,
+	.close:focus {
+	  color: #000;
+	  text-decoration: none;
+	  cursor: pointer;
+	}
+
+	.modal-header {
+	  padding: 2px 16px;
+	  background-color: #5cb85c;
+	  color: white;
+	}
+
+	.modal-body {padding: 2px 16px;}		
+	</style>
+	
+	
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				
+				<div class="akumaBanner">
+				</div>
+				<div class="filterBox">
+					<div class="akumaTypeRow">
+						<div id="Paramecia" onclick="filterByType('Paramecia')" class="categoriaBox filterClass">
+							<span>Paramecia</span>
+						</div>
+						<div id="Zoan" onclick="filterByType('Zoan')" class="categoriaBox filterClass">
+							<span>Zoan</span>
+						</div>
+						<div id="Logia" onclick="filterByType('Logia')" class="categoriaBox filterClass">
+							<span>Logia</span>
+						</div>
+					</div>
+					<div class="tierRow">
+						<div id="tier1" onclick="filterByTier(1)" class="tierBox filterClass">
+							<span>Tier 1</span>
+						</div>
+						<div id="tier2" onclick="filterByTier(2)" class="tierBox filterClass">
+							<span>Tier 2</span>
+						</div>
+						<div id="tier3" onclick="filterByTier(3)" class="tierBox filterClass">
+							<span>Tier 3</span>
+						</div>
+						<div id="tier4" onclick="filterByTier(4)" class="tierBox filterClass">
+							<span>Tier 4</span>
+						</div>
+						<div id="tier5" onclick="filterByTier(5)" class="tierBox filterClass">
+							<span>Tier 5</span>
+						</div>
+						<div id="tier6" onclick="filterByTier(6)" class="tierBox filterClass">
+							<span>Tier 6</span>
+						</div>
+					</div>
+					<div class="tierRow">
+						<div id="Libre" onclick="filterByLibre('Libre')" class="libreBox filterClass">
+							<span>Libre</span>
+						</div>
+						<div id="Ocupada" onclick="filterByLibre('Ocupada')" class="libreBox filterClass">
+							<span>Ocupada</span>
+						</div>
+						<div id="Reservada" onclick="filterByLibre('Reservada')" class="libreBox filterClass">
+							<span>Reservada</span>
+						</div>
+					</div>
+					<!-- Cuadro de búsqueda con diseño homogéneo -->
+					<div class="tierRow" style="margin-top: 0;">
+						<div style="width: 100%; background-color: #853dee; text-align: center; border-bottom: 2px solid black; border-left: 2px solid black; border-right: 2px solid black; border-radius: 0;" class="categoriaBox">
+							<div style="display: flex; align-items: center; justify-content: center; padding: 2px;">
+								<input type="text" id="searchInput" placeholder="Buscar por nombre o descripción..." style="width: 70%; height: 24px; border: 1px solid black; padding: 0 5px; font-family: inherit; border-radius: 0;">
+								<button onclick="searchByName()" style="margin-left: 5px; height: 24px; background-color: #ff7b00; color: white; border: 1px solid black; cursor: pointer; font-family: inherit; border-radius: 0;">Buscar</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="akumaList">
+
+				</div>
+				<!-- The Modal -->
+				<div id="myModal" class="modal">
+
+				  <!-- Modal content -->
+				  <div class="modal-content">
+					<div class="modal-body" style=" display: flex; flex-direction: row; ">
+						<div style="display: flex;flex-direction: column;width: 42%;margin-left: 123px;">
+							<div style="position: absolute;top: 253px;transform: rotate(14deg);font-size: 11px;font-family: 'moonGetHeavy';color: black;left: 10px;width: 88px;text-align: center;" id="frutaId"></div>
+							<div style="font-family: moonGetHeavy;color: black;font-size: 36px;margin: auto;text-shadow: 2px 2px 1px white;margin-top: 29px;letter-spacing: 1px;" id="frutaNombre">Beri Beri no Mi</div>
+							<div style="font-family: moonGetHeavy;color: white;font-size: 17px;margin: auto;text-shadow: 2px 2px 1px black;letter-spacing: 1px;" id="frutaSubnombre">Modelo Leopardo</div>
+							<div id="frutaTipoTier" style=" margin: auto; margin-top: 25px; width: 483px; text-align: center; "><div style="font-family: moonGetHeavy;color: white;font-size: 29px;margin: auto;text-shadow: 2px 2px 1px black;letter-spacing: 2px;"><span id="frutaTipo">Paramecia</span> | Tier <span id="frutaTier">3</span></div></div>
+							<div style=" margin: auto; "><img id="akumaImagen" src="" style=" height: 411px; "></div></div>
+							
+						<div style="display: flex;flex-direction: column;width: 42%;">
+							<div id="npc_info" style=" display: flex; flex-direction: row; ">
+<!-- 								<div style=" margin-top: -77px; display: flex; ">
+									<div>
+										<img class="avatar_inventario" src="https://i.imgur.com/XCydmOO.png" style="width: 150px;height: 150px;border: 7px solid white;border-bottom: 9px solid white;box-shadow: 0px 0px 10px black;margin-left: 34px;transform: rotate(352deg);position: relative; top: 45px;">
+									</div>
+									<div style="display: flex;flex-direction: column;margin-top: 90px;margin-left: 27px;">
+										<div style=" font-size: 22px; color: black; text-shadow: 1px 1px 5px white; font-family: moonGetHeavy;text-align: center;margin-top: 15px; ">
+											Rob Lucci
+										</div>
+										<div style="display: flex;margin-top: 8px;">
+											<div style=""><a href="/op/estadisticas.php"><button style="width: 120px;height: 43px;font-size: 18px;margin-right:7px;" class="button-op-custom">Perfil</button></a></div>
+											<div style=""><a href="/op/estadisticas.php"><button style="width: 120px;height: 43px;font-size: 18px;" class="button-op-custom">Ficha</button></a></div>
+										</div>
+									</div>
+								</div> -->
+							</div>
+							<div id="frutaDescripcionBackground" style="margin: auto;background-color: red;margin-top: 46px;width: 483px;text-align: center;margin-bottom: 0px;">
+								<div style="font-family: moonGetHeavy;color: white;font-size: 24px;margin: auto;text-shadow: 2px 2px 1px black;/* margin-top: 46px; */letter-spacing: 2px;">Descripción</div>
+							</div>
+							<div id="frutaDescripcion" style="text-align: justify;margin-top: 11px;font-family: InterRegular;color: black;font-size: 16px;padding: 7px 26px;text-shadow: 1px 0px 0px #0000004d;font-weight: 600;">
+                                
+                            </div>
+                            
+                            <!-- Nuevas secciones de Dominio y Pasivas -->
+                            <!-- Fila de títulos -->
+                            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                                <div style="width: 49%;">
+                                    <div id="frutaDominioBackground" onclick="toggleDominio()" style="background-color: red;width: 100%;text-align: center;cursor: pointer;">
+                                        <div style="font-family: moonGetHeavy;color: white;font-size: 24px;margin: auto;text-shadow: 2px 2px 1px black;letter-spacing: 2px;">DOMINIO</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="width: 49%;">
+                                    <div id="frutaPasivasBackground" onclick="togglePasivas()" style="background-color: red;width: 100%;text-align: center;cursor: pointer;">
+                                        <div style="font-family: moonGetHeavy;color: white;font-size: 24px;margin: auto;text-shadow: 2px 2px 1px black;letter-spacing: 2px;">PASIVAS</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contenido que ocupa todo el ancho -->
+                            <div id="frutaDominioContent" style="display: none; margin-top: 10px; margin-left: 10px; width: 97%; max-height: 241px; overflow-y: auto;">
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Básico</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Intermedio</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Maestro</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                            </div>
+                            
+                            <div id="frutaPasivasContent" style="display: none; margin-top: 10px; margin-left: 10px; width: 97%; max-height: 241px; overflow-y: auto;">
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 1</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 2</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 3</div>
+                                    <div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">TEXTO DESCRIPTIVO</div>
+                                </div>
+                            </div>
+                            
+                        </div>			 
+                    </div>
+                  </div>
+
+                </div>
+				
+			</div>
+		</div>
+	 </div>z
+  </div>
+<script>
+const akumas = {$akumas_json};
+
+function searchByName() {
+  // Restablecer todos los filtros activos previamente
+  $('.categoriaBox').removeClass("box-active");
+  $('.tierBox').removeClass("box-active");
+  $('.libreBox').removeClass("box-active");
+  typeFilterActive = false;
+  tierFilterActive = false;
+  libreFilterActive = false;
+  currentTypeFilter = '';
+  currentTierFilter = 0;
+  currentLibreFilter = '';
+  
+  // Obtener el texto de búsqueda
+  const searchText = document.getElementById('searchInput').value.toLowerCase();
+  
+  // Si no hay texto de búsqueda, mostrar todos los elementos
+  if (!searchText) {
+    akumaItems.forEach(item => {
+      item.style.display = 'flex';
+    });
+    return;
+  }
+  
+  akumaItems.forEach(item => {
+    const akumaIndex = parseInt(item.getAttribute('onclick').match(/\d+/)[0]);
+    const akumaName = akumas[akumaIndex].nombre.toLowerCase();
+    const akumaSubName = akumas[akumaIndex].subnombre ? akumas[akumaIndex].subnombre.toLowerCase() : '';
+    const akumaDesc = akumas[akumaIndex].descripcion ? akumas[akumaIndex].descripcion.toLowerCase() : '';
+    
+    let showItem = false;
+    
+    // Caso 1: Buscar por nombre
+    if (akumaName.includes(searchText)) {
+      showItem = true;
+    }
+    // Caso 2: Buscar por subnombre (modelo en caso de zoan)
+    else if (akumaSubName && akumaSubName.includes(searchText)) {
+      showItem = true;
+    }
+    // Caso 3: Buscar en la descripción
+    else if (akumaDesc && akumaDesc.includes(searchText)) {
+      showItem = true;
+    }
+    
+    item.style.display = showItem ? 'flex' : 'none';
+  });
+}
+
+// Añadir la búsqueda al presionar Enter en el campo de texto
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchByName();
+    }
+  });
+});
+	
+function randomAkuma() {
+	alert(`{$akuma_magica} [{$akuma_categoria} - Tier {$akuma_tier}]\n{$akuma_magica_descripcion}`);
+}
+	
+function randomAkumaReal() {
+	$.post("/op/akumas.php", { akuma_aleatoria: "akuma_aleatoria" }, function( data ) {
+	  alert( "¡Has elegido una Akuma aleatoria. Ve y revisa tu ficha para saber qué te tocó.");
+	});
+}
+	
+for (let i = 0; i < akumas.length; i++) {
+    const nombre = akumas[i].nombre;
+    const categoria = akumas[i].categoria;
+    const ocupada = akumas[i].ocupada;
+    
+    let isOcupadaClass = '';
+    let isOcupadaText = '';
+    
+    // Modificar la lógica para incluir el estado Reservada
+    if (parseInt(ocupada) === 1) {
+        isOcupadaClass = 'statusOcupada';
+        isOcupadaText = 'Ocupada';
+    } else if (parseInt(ocupada) === 2) {
+        isOcupadaClass = 'statusReservada';
+        isOcupadaText = 'Reservada';
+    } else {
+        isOcupadaClass = 'statusLibre';
+        isOcupadaText = 'Libre';
+    }
+    
+    let frutaGradient = 'red';
+    let frutaImagen = '';
+    
+    if (categoria == 'Paramecia') {
+        frutaImagen = '/images/op/misc/TipoParamecia_One_Piece_Gaiden_Foro_Rol.png';
+    } else if (categoria == 'Logia') {
+        frutaImagen = '/images/op/misc/TipoLogia_One_Piece_Gaiden_Foro_Rol.png';
+    } else if (categoria == 'Zoan') {
+        frutaImagen = '/images/op/misc/TipoZoan_One_Piece_Gaiden_Foro_Rol.png';	
+    }
+    
+    $('.akumaList').append(`
+     <div class="akumaItem" data-tier="` + akumas[i].tier +`" data-type="` + categoria +`" data-libre="` + isOcupadaText +`" onclick="clickAkuma(` + i + `)">
+        <div class="nameSection">
+                <div class="nameText">
+                    <span class="akumaName">` + nombre + `</span>
+                <br>
+                <span class="akumaDscpt">` + categoria + ` | Tier ` + akumas[i].tier +` | ` + akumas[i].subnombre + `</span>
+            </div>
+                <img src= '` + frutaImagen +`' class="fruitImage" >	
+        </div>
+        <div class="statusSection ` + isOcupadaClass + `">
+            <div style="margin: auto;">` + isOcupadaText + `</div>
+        </div>	
+    </div>
+`);
+}
+	
+const akumaItems = document.querySelectorAll('.akumaItem');
+let typeFilterActive = false;
+let tierFilterActive = false;
+let libreFilterActive = false;
+let currentTypeFilter = '';
+let currentTierFilter = 0;
+let currentLibreFilter = '';
+
+function filterByType(type) {
+  $('.categoriaBox').removeClass("box-active");
+  
+  if (currentTypeFilter == type && typeFilterActive == false) {
+	 typeFilterActive = true;  
+	 $('#' + type).addClass("box-active");
+  } else {
+	  typeFilterActive = false;   
+  }
+	
+  if (currentTypeFilter != type) {
+	  $('#' + type).addClass("box-active");
+	  typeFilterActive = true;
+  }
+	
+  currentTypeFilter = type;
+  applyFilters();
+}
+
+function filterByTier(tier) {
+  $('.tierBox').removeClass("box-active");
+
+  if (currentTierFilter == tier && tierFilterActive == false) {
+	 tierFilterActive = true;  
+	  $('#tier' + tier).addClass("box-active");
+  } else {
+	  tierFilterActive = false;   
+  }
+
+  if (currentTierFilter != tier) {
+	  $('#tier' + tier).addClass("box-active");
+	  tierFilterActive = true;
+ }
+	  
+  currentTierFilter = tier;
+  applyFilters();
+}
+	
+function filterByLibre(type) {
+  $('.libreBox').removeClass("box-active");
+
+  if (currentLibreFilter == type && libreFilterActive == false) {
+	 libreFilterActive = true;  
+	  $('#' + type).addClass("box-active");
+  } else {
+	  libreFilterActive = false;   
+  }
+
+  if (currentLibreFilter != type) {
+	  $('#' + type).addClass("box-active");
+	  libreFilterActive = true;
+  }
+	  
+  currentLibreFilter = type;
+  applyFilters();
+}
+
+function applyFilters() {
+  akumaItems.forEach(item => {
+    const itemType = item.getAttribute('data-type') === currentTypeFilter;
+    const itemTier = parseInt(item.getAttribute('data-tier')) === currentTierFilter;
+	const itemLibre = item.getAttribute('data-libre') === currentLibreFilter;
+
+	if (typeFilterActive && tierFilterActive && libreFilterActive) {
+	  item.style.display = itemType && itemTier && itemLibre ? 'flex' : 'none';
+	} else if (typeFilterActive && tierFilterActive) {
+      item.style.display = itemType && itemTier ? 'flex' : 'none';
+    } else if (typeFilterActive && libreFilterActive) {
+      item.style.display = itemType && itemLibre ? 'flex' : 'none';
+    } else if (tierFilterActive && libreFilterActive) {
+      item.style.display = itemTier && itemLibre ? 'flex' : 'none';
+    } else if (typeFilterActive) {
+      item.style.display = itemType ? 'flex' : 'none';
+    } else if (libreFilterActive) {
+      item.style.display = itemLibre ? 'flex' : 'none';
+    } else if (tierFilterActive) {
+      item.style.display = itemTier ? 'flex' : 'none';
+    } else {
+      item.style.display = 'flex'; // No hay filtros activos, mostrar todos los elementos
+    }
+	
+  });
+}
+</script>
+	
+<script>
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+	
+function clickAkuma(id) {
+    modal.style.display = "block";
+    $('#frutaNombre').html(akumas[id].nombre);
+    $('#frutaSubnombre').html(akumas[id].subnombre);
+    $('#frutaTipo').html(akumas[id].categoria);
+    $('#frutaTier').html(akumas[id].tier);
+    $('#frutaDescripcion').html(akumas[id].descripcion);
+    $('#frutaId').html(akumas[id].akuma_id);
+    <if $g_is_staff then>
+        $('#frutaId').html("<a href='/op/staff/akumas_modificar.php?akuma_id=" + akumas[id].akuma_id + "'>" + akumas[id].akuma_id + "</a>");
+    </if>
+    $('#akumaImagen').attr('src', akumas[id].imagen);
+        
+    let frutaGradient = '';
+    if (akumas[id].categoria == 'Paramecia') {
+        frutaGradient = 'linear-gradient(90deg, #00748f00 0%, #51196a 20%, #23052e 50%, #51196a 80%, #00748f00 100%)';
+    } else if (akumas[id].categoria == 'Logia') {
+        frutaGradient = 'linear-gradient(90deg, #00748f00 0%, #de8b00 20%, #683600 50%, #de8b00 80%, #00748f00 100%)';
+    } else if (akumas[id].categoria == 'Zoan') {
+         frutaGradient = 'linear-gradient(90deg, #00748f00 0%, #108500 20%, #00360d 50%, #108500 80%, #00748f00 100%)';
+    }
+    $('#frutaTipoTier').css('background', frutaGradient);
+    $('#frutaDescripcionBackground').css('background', frutaGradient);
+    $('#frutaDominioBackground').css('background', frutaGradient);
+    $('#frutaPasivasBackground').css('background', frutaGradient);
+    
+    // Verificar si existen los campos antes de mostrarlos
+    var dominio1 = akumas[id].dominio1 || akumas[id].dominio_basico || 'No disponible';
+    var dominio2 = akumas[id].dominio2 || akumas[id].dominio_intermedio || 'No disponible';
+    var dominio3 = akumas[id].dominio3 || akumas[id].dominio_maestro || 'No disponible';
+    
+    var pasiva1 = akumas[id].pasiva1 || akumas[id].pasiva_1 || 'No disponible';
+    var pasiva2 = akumas[id].pasiva2 || akumas[id].pasiva_2 || 'No disponible';
+    var pasiva3 = akumas[id].pasiva3 || akumas[id].pasiva_3 || 'No disponible';
+    
+    // Llenar contenido de dominios con escape de caracteres para HTML
+    $('#frutaDominioContent').html(
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Básico</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(dominio1).html() + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Intermedio</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(dominio2).html() + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Dominio Maestro</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(dominio3).html() + '</div>' +
+        '</div>'
+    );
+    
+    // Llenar contenido de pasivas con escape de caracteres para HTML
+    $('#frutaPasivasContent').html(
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 1</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(pasiva1).html() + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 2</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(pasiva2).html() + '</div>' +
+        '</div>' +
+        '<div style="margin-bottom: 15px;">' +
+            '<div style="font-family: moonGetHeavy;color: black;font-size: 18px;">Pasiva 3</div>' +
+            '<div style="font-family: InterRegular;color: black;font-size: 14px;text-shadow: 1px 0px 0px #0000004d;">' + 
+            $('<div>').text(pasiva3).html() + '</div>' +
+        '</div>'
+    );
+    
+    // Mostrar el contenido de Dominio por defecto y ocultar Pasivas
+    $('#frutaPasivasContent').hide();
+    $('#frutaDominioContent').show();
+    
+	
+	if (akumas[id].ocupada == '1') {
+		
+		let nombre_npc = '';
+		let avatar_npc = '';
+		let id_npc = '';
+		
+		if (akumas[id].es_npc == '1' || akumas[id].uid == '1') {
+			$.post("/op/akumas.php", { get_npc: 'true', uid_post: akumas[id].uid }, function( data ) { 
+				console.log(data);
+				nombre_npc = data[0].nombre;
+				avatar_npc = data[0].avatar;
+				id_npc = akumas[id].uid;
+				let botonRegistro = '';
+				
+				if (akumas[id].es_oculta == '1' || akumas[id].uid == '1') {
+					nombre_npc = '???';
+					avatar_npc = '/images/op/misc/WantePerfilOculto_One_Piece_Gaiden_Foro_Rol.png';
+					id_npc = 'oculto';
+				}
+				
+				console.log(nombre_npc);
+				console.log(avatar_npc);
+				console.log(id_npc);
+				
+				if (id_npc != 'oculto') {
+					botonRegistro = `
+						<div style="display: flex;margin-top: 8px;">
+							<div style=""><a href="/op/npcs.php?npc_id=` + id_npc + `"><button style="width: 120px;height: 43px;font-size: 18px;margin-right:7px;" class="button-op-custom">Registro</button></a></div>
+						</div>
+					`;
+				}
+
+				$('#npc_info').html(`
+					<div style=" margin-top: -77px; display: flex; ">
+						<div>
+							<img class="avatar_inventario" src="` + avatar_npc + `" style="width: 150px;height: 150px;border: 7px solid white;border-bottom: 9px solid white;box-shadow: 0px 0px 10px black;margin-left: 34px;transform: rotate(352deg);position: relative; top: 45px;">
+						</div>
+						<div style="display: flex;flex-direction: column;margin-top: 90px;margin-left: 27px;">
+							<div style=" font-size: 22px; color: black; text-shadow: 1px 1px 5px white; font-family: moonGetHeavy;text-align: center;margin-top: 15px; ">
+								` + nombre_npc + `
+							</div>
+							` + botonRegistro + `
+						</div>
+					</div>
+				`);
+			}); 			
+		} else {
+			$.post("/op/akumas.php", { get_ficha: 'true', uid_post: akumas[id].uid }, function( data ) { 
+				console.log(data);
+				nombre_npc = data[0].nombre;
+				avatar_npc = data[0].avatar;
+
+				$('#npc_info').html(`
+					<div style=" margin-top: -77px; display: flex; ">
+						<div>
+							<img class="avatar_inventario" src="` + avatar_npc + `" style="width: 150px;height: 150px;border: 7px solid white;border-bottom: 9px solid white;box-shadow: 0px 0px 10px black;margin-left: 34px;transform: rotate(352deg);position: relative; top: 45px;">
+						</div>
+						<div style="display: flex;flex-direction: column;margin-top: 90px;margin-left: 27px;">
+							<div style=" font-size: 22px; color: black; text-shadow: 1px 1px 5px white; font-family: moonGetHeavy;text-align: center;margin-top: 15px; ">
+								` + nombre_npc + `
+							</div>
+							<div style="display: flex;margin-top: 8px;">
+								<div style=""><a href="/member.php?action=profile&uid=` + akumas[id].uid + `"><button style="width: 120px;height: 43px;font-size: 18px;margin-right:7px;" class="button-op-custom">Perfil</button></a></div>
+								<div style=""><a href="/op/ficha.php?uid=` + akumas[id].uid + `"><button style="width: 120px;height: 43px;font-size: 18px;" class="button-op-custom">Ficha</button></a></div>
+							</div>
+						</div>
+					</div>
+				`);
+			}); 
+		
+		}
+		
+
+
+	} else {
+		$('#npc_info').html(``);
+	}
+
+	// alert(akumas[id].nombre + ` [` + akumas[id].categoria + ` - Tier ` + akumas[id].tier + `]\n\n` + akumas[id].descripcion);
+}
+
+// Funciones para mostrar/ocultar contenidos de Dominio y Pasivas
+function toggleDominio() {
+    $('#frutaPasivasContent').hide(); // Oculta el contenido de Pasivas
+    $('#frutaDominioContent').slideToggle(); // Muestra u oculta el contenido de Dominio
+}
+
+function togglePasivas() {
+    $('#frutaDominioContent').hide(); // Oculta el contenido de Dominio
+    $('#frutaPasivasContent').slideToggle(); // Muestra u oculta el contenido de Pasivas
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+	
+</script>
+	
+{$footer}
+</body>
+</html>

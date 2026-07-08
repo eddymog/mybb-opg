@@ -1,0 +1,148 @@
+<html>
+
+<head>
+  <title>Nakama no Mi</title>
+  {$headerinclude}
+</head>
+<body>
+  {$header}
+  <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+    <tr>
+      <td class="thead" colspan="1"><strong>Ficha</strong></td>
+    </tr>
+    <tr>
+      <td class="trow1" valign="top">
+        <div class="div_ficha" style="text-align: center;">
+		  <p style="font-size: 18px;margin: 7px auto 20px auto;padding: 4px;">Información de ficha</p>
+          <form method="post" action="/op/ficha_descripcion.php?accion=editado&uid={$ficha['fid']}" name="ficha_descripcion" id="ficha_descripcion">
+			  
+			<if $g_is_staff == true || !$aprobada then>
+				Nombre del Personaje:<br><input style=" width: 200px; " class="textbox" type="text" name="nombre" required="" value="{$ficha['nombre']}"><br>
+				<br>
+				Edad:<br><input style=" width: 200px; " type="number" class="textbox" name="edad" min="12" max="90" required="" value="{$ficha['edad']}"><br>
+				<br>
+				Altura (en centímetros):<br><input style=" width: 200px; " type="number" class="textbox" name="altura" min="1" max="1500" required="" value="{$ficha['altura']}"><br>
+				<br>
+				Peso (en kilos):<br><input style=" width: 200px; " type="number" class="textbox" name="peso" min="0" max="5000" required="" value="{$ficha['peso']}"><br>
+				<br>
+				<label for="sexo">Sexo:</label><br>
+				<select style=" width: 200px; " name="sexo" id="sexo" value="{$ficha['sexo']}">
+					<option value="hombre" <if $ficha['sexo'] == 'hombre' then>selected</if> >Hombre</option> 
+					<option value="mujer" <if $ficha['sexo'] == 'mujer' then>selected</if> >Mujer</option>
+					<option value="otro" <if $ficha['sexo'] == 'otro' then>selected</if> >Otro</option>
+				</select><br><br>
+				<label for="faccion">Facción:</label><br>
+				<select style=" width: 200px; " name="faccion" id="faccion" value="{$ficha['faccion']}">
+				  <option value="pirata" <if $ficha['faccion'] == 'pirata' then>selected</if> >Pirata</option>
+				  <option value="marine" <if $ficha['faccion'] == 'marine' then>selected</if> >Marine</option>
+				  <option value="cipher_pol" <if $ficha['faccion'] == 'cipher_pol' then>selected</if> >Cipher Pol</option>	
+				  <option value="cazarrecompensas" <if $ficha['faccion'] == 'cazarrecompensas' then>selected</if> >Cazarrecompensas</option>
+				  <option value="revolucionario" <if $ficha['faccion'] == 'revolucionario' then>selected</if> >Revolucionarios</option>	
+				  <option value="civil" <if $ficha['faccion'] == 'civil' then>selected</if> >Civil</option>
+				</select><br><br>
+				<label for="raza">Raza:</label><br>
+				<select style=" width: 200px; " name="raza" id="raza" value="{$ficha['raza']}">
+					<option disabled>Razas:</option>
+					<option value="humano" <if $ficha['raza'] == 'humano' then>selected</if> >Humano</option>
+					<option value="gyojin" <if $ficha['raza'] == 'gyojin' then>selected</if> >Gyojin</option>
+					<option value="gigante" <if $ficha['raza'] == 'gigante' then>selected</if> >Gigante</option>
+					<option value="ningyo" <if $ficha['raza'] == 'ningyo' then>selected</if> >Sirena/Tritón (Ningyo)</option>		
+					<option value="skypiean" <if $ficha['raza'] == 'skypiean' then>selected</if> >Skypiean</option>		
+					<option value="mink" <if $ficha['raza'] == 'mink' then>selected</if> >Mink</option>		
+					<option value="tontatta" <if $ficha['raza'] == 'tontatta' then>selected</if> >Tontatta (Kobito)</option>		
+					<option value="lunarian" <if $ficha['raza'] == 'lunarian' then>selected</if> >Lunarian</option>		
+					<option value="oni" <if $ficha['raza'] == 'oni' then>selected</if> >Oni</option>
+					<option disabled>Razas Híbridas:</option>
+					<option value="birkaniano" <if $ficha['raza'] == 'birkaniano' then>selected</if> >Birkaniano</option>
+					<option value="gran mink" <if $ficha['raza'] == 'gran mink' then>selected</if> >Gran Mink</option>
+					<option value="gran oni" <if $ficha['raza'] == 'gran oni' then>selected</if> >Gran Oni</option>
+					<option value="gran triton" <if $ficha['raza'] == 'gran triton' then>selected</if> >Gran Tritón</option>
+					<option value="gyontatta" <if $ficha['raza'] == 'gyontatta' then>selected</if> >Gyontatta</option>
+					<option value="humink" <if $ficha['raza'] == 'humink' then>selected</if> >Humink</option>
+					<option value="mestizo" <if $ficha['raza'] == 'mestizo' then>selected</if> >Mestizo</option>
+					<option value="semigigante" <if $ficha['raza'] == 'semigigante' then>selected</if> >Semigigante</option>
+					<option value="semioni" <if $ficha['raza'] == 'semioni' then>selected</if> >Semioni</option>
+					<option value="tontatton" <if $ficha['raza'] == 'tontatton' then>selected</if> >Tontatton</option>
+					<option value="wotan" <if $ficha['raza'] == 'wotan' then>selected</if> >Wotan</option>
+				</select><br>
+			</if>
+			<br>
+            Apodo:<br><input  class="textbox" type="text" name="apodo" value="{$ficha['apodo']}"><br>
+            <br>
+            Apariencia:<br><textarea style="width: 500px;height: 100px;" name="apariencia" minlength="1" required="">{$ficha['apariencia']}</textarea><br>
+            <br>
+            Personalidad:<br><textarea style="width: 500px;height: 100px;" name="personalidad" minlength="1" required="">{$ficha['personalidad']}</textarea><br>
+            <br>
+            Historia:<br><textarea style="width: 500px;height: 100px;" name="biografia" minlength="1" required="">{$ficha['biografia']}</textarea><br>
+            <br>
+            Información Extra:<br><textarea style="width: 500px;height: 100px;" name="extra">{$ficha['extra']}</textarea><br>
+            <br>
+            Frase que representa al personaje:<br><textarea style="width: 500px;height: 100px;" name="frase">{$ficha['frase']}</textarea><br>
+            <br>
+			Origen del físico del personaje:<br><textarea style="width: 500px;height: 38px;" name="fisico_de_pj" required="">{$ficha['fisico_de_pj']}</textarea><br>
+            <br>
+			Banner de la ficha (100x700):<br><textarea style="width: 500px;height: 38px;" name="banner">{$ficha['banner']}</textarea><br>
+            <br>
+			  
+			<if $g_is_staff == true || !$aprobada then>
+				Orientación sexual del personaje (obligatorio):<br><textarea style="width: 500px;height: 38px;" name="orientacion" required="">{$ficha['orientacion']}</textarea><br>
+				<br>
+				Notas (solo lo puede cambiar el Staff):<br><textarea style="width: 500px;height: 38px;" name="notas">{$ficha['notas']}</textarea><br>
+			</if>
+			<if $g_is_staff == false && $aprobada then>
+				Notas (solo lo puede cambiar el Staff):<br><textarea style="width: 500px;height: 38px;" name="notas" disabled>{$ficha['notas']}</textarea><br>
+			</if>
+			  
+			<if $g_is_staff == true || !$aprobada then>
+				<br>
+				Rasgos positivos:<br><textarea style="width: 500px;height: 38px;" name="rasgos_positivos">{$ficha['rasgos_positivos']}</textarea><br>
+				<br>
+				Rasgos negativos:<br><textarea style="width: 500px;height: 38px;" name="rasgos_negativos">{$ficha['rasgos_negativos']}</textarea><br>
+			</if>
+			<if $g_is_staff == true then><br>
+				<label for="belica1">Maestría Bélica 1: </label><input class="textbox" type="text" value="{$ficha['belica1']}" name="belica1" id="belica1"><br>
+				<label for="belica2">Maestría Bélica 2: </label><input class="textbox" type="text" value="{$ficha['belica2']}" name="belica2" id="belica2"><br><br>
+				<label for="oficio1">Oficio 1: </label><input class="textbox" type="text" value="{$ficha['oficio1']}" name="oficio1" id="oficio1"><br>
+				<label for="oficio2">Oficio 2: </label><input class="textbox" type="text" value="{$ficha['oficio2']}" name="oficio2" id="oficio2"><br>
+				
+				<h2>Estadísticas:</h2>
+				Fuerza: <input class="textbox" type="text" value="{$ficha['fuerza']}" name="fuerza" id="fuerza"><br>
+				Resistencia: <input class="textbox" type="text" value="{$ficha['resistencia']}" name="resistencia" id="resistencia"><br>
+				Destreza: <input class="textbox" type="text" value="{$ficha['destreza']}" name="destreza" id="destreza"><br>
+				Precisión: <input class="textbox" type="text" value="{$ficha['precision']}" name="precision" id="precision"><br>
+				Agilidad: <input class="textbox" type="text" value="{$ficha['agilidad']}" name="agilidad" id="agilidad"><br>
+				Reflejos: <input class="textbox" type="text" value="{$ficha['reflejos']}" name="reflejos" id="reflejos"><br>
+				Inteligencia: <input class="textbox" type="text" value="{$ficha['inteligencia']}" name="inteligencia" id="inteligencia"><br>
+				Voluntad: <input class="textbox" type="text" value="{$ficha['voluntad']}" name="voluntad" id="voluntad"><br>
+				Control de Haki: <input class="textbox" type="text" value="{$ficha['control_haki']}" name="control_haki" id="control_haki"><br>
+				Control de Akuma: <input class="textbox" type="text" value="{$ficha['control_akuma']}" name="control_akuma" id="control_akuma"><br><br>
+				
+				Fuerza Pasiva: <input class="textbox" type="text" value="{$ficha['fuerza_pasiva']}" name="fuerza_pasiva" id="fuerza_pasiva"><br>
+				Resistencia Pasiva: <input class="textbox" type="text" value="{$ficha['resistencia_pasiva']}" name="resistencia_pasiva" id="resistencia_pasiva"><br>
+				Destreza Pasiva: <input class="textbox" type="text" value="{$ficha['destreza_pasiva']}" name="destreza_pasiva" id="destreza_pasiva"><br>
+				Precision Pasiva: <input class="textbox" type="text" value="{$ficha['precision_pasiva']}" name="precision_pasiva" id="precision_pasiva"><br> 
+				Agilidad Pasiva: <input class="textbox" type="text" value="{$ficha['agilidad_pasiva']}" name="agilidad_pasiva" id="agilidad_pasiva"><br>
+				Reflejos Pasiva: <input class="textbox" type="text" value="{$ficha['reflejos_pasiva']}" name="reflejos_pasiva" id="reflejos_pasiva"><br>
+				Inteligencia Pasiva: <input class="textbox" type="text" value="{$ficha['inteligencia_pasiva']}" name="inteligencia_pasiva" id="inteligencia_pasiva"><br>
+				Voluntad Pasiva: <input class="textbox" type="text" value="{$ficha['voluntad_pasiva']}" name="voluntad_pasiva" id="voluntad_pasiva"><br>
+				Haki Pasiva: <input class="textbox" type="text" value="{$ficha['control_haki_pasiva']}" name="control_haki_pasiva" id="control_haki_pasiva"><br>
+				Akuma Pasiva: <input class="textbox" type="text" value="{$ficha['control_akuma_pasiva']}" name="control_akuma_pasiva" id="control_akuma_pasiva"><br>
+				
+				<br>
+				<div>Opciones para maestrías bélicas:<br>cac, esc, adf, ada, aco, afu, aad, afl. <br>Para decidir grado: _(numerodegrado), ej: cac_1 = cuerpo a cuerpo grado 1</div><br>
+				<div>Opciones para oficios:<br> navegante, cocinero, carpintero, manitas, medico, erudito, explorador, artesano, artista, comerciante. <br>Para decidir nivel: _(numerodenivel), ej: navegante_1 = Navegate de Nivel 1 </div>
+			</if>
+			  
+            <br>
+            <input class="button" id="guardar_ficha" type="submit" value="Guardar cambios"><br>
+            <br>
+          </form>
+        </div>
+        <br />
+      </td>
+    </tr>
+  </table>
+  {$footer}
+</body>
+
+</html>

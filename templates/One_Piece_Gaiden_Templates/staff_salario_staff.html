@@ -1,0 +1,64 @@
+<html>
+
+<head>
+  <title>Salario Staff</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+      <form method="post" action="/op/staff/salario_staff.php" name="salario_staff" id="salario_staff">
+		<h1>Salario por Roles:</h1>
+		<table border="0" cellspacing="1" cellpadding="4" class="tborder" style="margin-bottom:16px;min-width:320px">
+			<tr><td class="thead" colspan="2"><strong>Tabla de salarios</strong></td></tr>
+			<tr><td class="trow1">Administradores (grupo 4)</td><td class="trow1"><strong>+500 kuros</strong></td></tr>
+			<tr><td class="trow2">Staff / Mods (grupos 3, 6, 14, 16)</td><td class="trow2"><strong>+400 kuros</strong></td></tr>
+			<tr><td class="trow1">Narradores (grupo 15)</td><td class="trow1"><strong>+200 kuros</strong></td></tr>
+		</table>
+		<input type="hidden" name="accion_post" id="accion_post_roles" value="pagar_salario_roles">
+
+		<div style="margin-bottom:8px;">
+			<label><input type="checkbox" id="chk_seleccionar_todos"> Seleccionar todos</label>
+		</div>
+		<div style="max-height:320px;overflow-y:auto;border:1px solid #ccc;padding:8px;min-width:320px;margin-bottom:12px;">
+			{$checkboxes_staff}
+		</div>
+
+		<input class="button" type="submit" value="Pagar salario a los seleccionados" onclick="return confirm('¿Pagar salario a los miembros del staff seleccionados?');" />
+		<br><br>
+		<hr>
+		<h3>Pagar a una UID específica:</h3>
+		<span>UID del usuario:</span><br>
+		<input type="number" name="uid_pagar" id="uid_pagar" placeholder="UID" style="width:120px"><br><br>
+		<span>Recompensa personalizada (vacío = recompensa por rango):</span><br>
+		<input type="number" name="custom_kuros" id="custom_kuros" placeholder="dejar vacío para usar la del rango" style="width:320px" min="0"><br><br>
+		<input class="button" type="button" value="Pagar UID" onclick="pagarUIDRol()" />
+		<br><br>
+
+		<div>
+			{$salarios_kuros}
+		</div>
+      </form>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+function pagarUIDRol() {
+  const uid = document.getElementById('uid_pagar').value;
+  if (!uid) { alert('Introduce una UID'); return; }
+  if (!confirm('¿Pagar salario por rol a UID ' + uid + '?')) return;
+  document.getElementById('accion_post_roles').value = 'pagar_salario_uid_rol';
+  document.getElementById('salario_staff').submit();
+}
+
+document.getElementById('chk_seleccionar_todos').addEventListener('change', function() {
+  document.querySelectorAll('.chk-staff-rol').forEach(function(chk) {
+    chk.checked = this.checked;
+  }, this);
+});
+</script>
+
+</html>

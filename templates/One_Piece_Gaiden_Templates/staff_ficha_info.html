@@ -1,0 +1,456 @@
+<style>
+    .form-table, .stat-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; table-layout: auto; }
+    .form-table td { width: 33%; padding: 6px;  vertical-align: top;  border: none; }
+    .stat-table td { width: 14.4%; padding: 6px;  vertical-align: top;  border: none; }
+.textbox, select, button {  width: 100% !important;  box-sizing: border-box;  max-height: 600px;}
+    .fondo-blanco { width: 100%; display: block; }  
+    .section-title { text-align: center; font-weight: bold; font-size: 16px; color: #000; margin: 10px 0 0px 0; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    
+</style>
+<div class="section-title">Información de Personaje</div>
+<table class="form-table">
+    <tr>
+        <td>
+            Facción: <br>
+            <select name="faccion" id="faccion">
+                <option value="Pirata" <if $ficha['faccion'] == 'Pirata' then>selected</if>>Pirata</option>
+                <option value="Marina" <if $ficha['faccion'] == 'Marina' then>selected</if>>Marina</option>
+                <option value="CipherPol" <if $ficha['faccion'] == 'CipherPol' then>selected</if>>CipherPol</option>
+                <option value="Revolucionario" <if $ficha['faccion'] == 'Revolucionario' then>selected</if>>Revolucionario</option>
+                <option value="Cazadores" <if $ficha['faccion'] == 'Cazadores' then>selected</if>>Cazadores</option>
+                <option value="Civil" <if $ficha['faccion'] == 'Civil' then>selected</if>>Civil</option>
+                <option value="Staff" <if $ficha['faccion'] == 'Staff' then>selected</if>>Staff</option>
+            </select>
+        </td>
+        <td>
+            Rango: <br>
+            <select name="rango" id="rango">
+                <if $ficha['faccion'] == 'Marina' then>
+                    <option value="ReclutaM" <if $ficha['rango'] == 'ReclutaM' then>selected</if>>Recluta</option>
+                    <option value="SoldadoM" <if $ficha['rango'] == 'SoldadoM' then>selected</if>>Soldado Raso</option>
+                    <option value="SargentoM" <if $ficha['rango'] == 'SargentoM' then>selected</if>>Sargento</option>
+                    <option value="Suboficial" <if $ficha['rango'] == 'Suboficial' then>selected</if>>Suboficial</option>                            
+                    <option value="Alferez" <if $ficha['rango'] == 'Alferez' then>selected</if>>Alférez</option>
+                    <option value="Teniente" <if $ficha['rango'] == 'Teniente' then>selected</if>>Teniente</option>
+                    <option value="ComandanteM" <if $ficha['rango'] == 'ComandanteM' then>selected</if>>Comandante</option>
+                    <option value="Capitan" <if $ficha['rango'] == 'Capitan' then>selected</if>>Capitán</option>
+                    <option value="Comodoro" <if $ficha['rango'] == 'Comodoro' then>selected</if>>Comodoro</option>
+                    <option value="ContraAlmirante" <if $ficha['rango'] == 'ContraAlmirante' then>selected</if>>Contraalmirante</option>
+                    <option value="Vicealmirante" <if $ficha['rango'] == 'Vicealmirante' then>selected</if>>Vicealmirante</option>
+                    <option value="Almirante" <if $ficha['rango'] == 'Almirante' then>selected</if>>Almirante</option>
+                    <option value="AlmiranteFlota" <if $ficha['rango'] == 'AlmiranteFlota' then>selected</if>>Almirante de Flota</option>
+                    <option value="Inspector" <if $ficha['rango'] == 'Inspector' then>selected</if>>Inspector</option>
+                    <option value="Instructor" <if $ficha['rango'] == 'Instructor' then>selected</if>>Instructor</option>
+                    <option value="HeroeDeLaMarina" <if $ficha['rango'] == 'HeroeDeLaMarina' then>selected</if>>Heroe de la marina</option>
+                </if>
+                <if $ficha['faccion'] == 'CipherPol' then>
+                    <option value="CP1" <if $ficha['rango'] == 'CP1' then>selected</if>>CP1</option>
+                    <option value="CP2" <if $ficha['rango'] == 'CP2' then>selected</if>>CP2</option>
+                    <option value="CP3" <if $ficha['rango'] == 'CP3' then>selected</if>>CP3</option>
+                    <option value="CP4" <if $ficha['rango'] == 'CP4' then>selected</if>>CP4</option>
+                    <option value="CP5" <if $ficha['rango'] == 'CP5' then>selected</if>>CP5</option>
+                    <option value="CP6" <if $ficha['rango'] == 'CP6' then>selected</if>>CP6</option>
+                    <option value="CP7" <if $ficha['rango'] == 'CP7' then>selected</if>>CP7</option>
+                    <option value="CP8" <if $ficha['rango'] == 'CP8' then>selected</if>>CP8</option>
+                    <option value="CP9" <if $ficha['rango'] == 'CP9' then>selected</if>>CP9</option>
+                    <option value="CPAegis0" <if $ficha['rango'] == 'CPAegis0' then>selected</if>>CP0</option>
+                    <option value="CPComisario" <if $ficha['rango'] == 'CPComisario' then>selected</if>>Comisario de Cipher Pol</option>
+                    <option value="CPMasquerade" <if $ficha['rango'] == 'CPMasquerade' then>selected</if>>CP0 Masquerade</option>
+                    <option value="CPComandanteEjecutivo" <if $ficha['rango'] == 'CPComandanteEjecutivo' then>selected</if>>Comandante Ejecutivo</option>
+                    <option value="CPCaballeroDivino" <if $ficha['rango'] == 'CPCaballeroDivino' then>selected</if>>Caballero Divino</option>
+                    <option value="CPComandanteSupremo" <if $ficha['rango'] == 'CPComandanteSupremo' then>selected</if>>Comandante Supremo</option>
+                </if>
+                <if $ficha['faccion'] == 'Revolucionario' then>
+                    <option value="ReclutaR" <if $ficha['rango'] == 'ReclutaR' then>selected</if>>Recluta</option>
+                    <option value="SoldadoR" <if $ficha['rango'] == 'SoldadoR' then>selected</if>>Soldado</option>
+                    <option value="SargentoR" <if $ficha['rango'] == 'SargentoR' then>selected</if>>Sargento</option>
+                    <option value="AgenteR" <if $ficha['rango'] == 'AgenteR' then>selected</if>>Agente</option>
+                    <option value="Oficial" <if $ficha['rango'] == 'Oficial' then>selected</if>>Oficial</option>
+                    <option value="Mariscal" <if $ficha['rango'] == 'Mariscal' then>selected</if>>Mariscal</option>
+                    <option value="General" <if $ficha['rango'] == 'General' then>selected</if>>General</option>
+                    <option value="ComandanteAdjunto" <if $ficha['rango'] == 'ComandanteAdjunto' then>selected</if>>Comandante Adjunto</option>
+                    <option value="ComandanteR" <if $ficha['rango'] == 'ComandanteR' then>selected</if>>Comandante</option>
+                    <option value="JefePersonal" <if $ficha['rango'] == 'JefePersonal' then>selected</if>>Jefe de Personal</option>
+                    <option value="ComandanteSupremo" <if $ficha['rango'] == 'ComandanteSupremo' then>selected</if>>Comandante Supremo</option>
+                </if>
+                <if $ficha['faccion'] == 'Pirata' then>
+                    <option value="Pirata" <if $ficha['rango'] == 'Pirata' then>selected</if>>Pirata</option>
+                    <option value="CapitanPirata" <if $ficha['rango'] == 'CapitanPirata' then>selected</if>>Capitán</option>
+                    <option value="Corsario" <if $ficha['rango'] == 'Corsario' then>selected</if>>Corsario</option>
+                    <option value="Bucanero" <if $ficha['rango'] == 'Bucanero' then>selected</if>>Bucanero</option>
+                    <option value="LoboDeMar" <if $ficha['rango'] == 'LoboDeMar' then>selected</if>>Lobo de Mar</option>
+                    <option value="Supernova" <if $ficha['rango'] == 'Supernova' then>selected</if>>Supernova</option>
+                    <option value="PirataAfamado" <if $ficha['rango'] == 'PirataAfamado' then>selected</if>>Pirata Famoso</option>
+                    <option value="CapitanFamoso" <if $ficha['rango'] == 'CapitanFamoso' then>selected</if>>Capitán Famoso</option>
+                    <option value="ViceCapitanFamoso" <if $ficha['rango'] == 'ViceCapitanFamoso' then>selected</if>>Vicecapitán Famoso</option>
+                    <option value="GranPirata" <if $ficha['rango'] == 'GranPirata' then>selected</if>>Gran Pirata</option>
+                    <option value="GranCapitan" <if $ficha['rango'] == 'GranCapitan' then>selected</if>>Gran Capitán</option>
+                    <option value="GranViceCapitan" <if $ficha['rango'] == 'GranViceCapitan' then>selected</if>>Gran Vicecapitán</option>
+                    <option value="ComandanteP" <if $ficha['rango'] == 'ComandanteP' then>selected</if>>Comandante</option>
+                    <option value="PrimerComandante" <if $ficha['rango'] == 'PrimerComandante' then>selected</if>>Primer Comandante</option>
+                    <option value="Yonkou" <if $ficha['rango'] == 'Yonkou' then>selected</if>>Yonkou</option>
+                    <option value="LeyendaDelMar" <if $ficha['rango'] == 'LeyendaDelMar' then>selected</if>>Leyenda del Mar</option>
+                    <option value="Shichibukai" <if $ficha['rango'] == 'Shichibukai' then>selected</if>>Shichibukai</option>
+                    <option value="AlaDelRey" <if $ficha['rango'] == 'AlaDelRey' then>selected</if>>Ala del Rey</option>
+                    <option value="ReyPirata" <if $ficha['rango'] == 'ReyPirata' then>selected</if>>Rey de los Piratas</option>
+                </if>
+                <if $ficha['faccion'] == 'Cazadores' then>
+                    <option value="Cazador" <if $ficha['rango'] == 'Cazador' then>selected</if>>Cazador</option>
+                    <option value="CazadorZeta" <if $ficha['rango'] == 'CazadorZeta' then>selected</if>>Cazador Zeta</option>
+                    <option value="CazadorEpsilon" <if $ficha['rango'] == 'CazadorEpsilon' then>selected</if>>Cazador Épsilon</option>
+                    <option value="CazadorDelta" <if $ficha['rango'] == 'CazadorDelta' then>selected</if>>Cazador Delta</option>
+                    <option value="CazadorGamma" <if $ficha['rango'] == 'CazadorGamma' then>selected</if>>Cazador Gamma</option>
+                    <option value="CazadorBeta" <if $ficha['rango'] == 'CazadorBeta' then>selected</if>>Cazador Beta</option>
+                    <option value="CazadorAlpha" <if $ficha['rango'] == 'CazadorAlpha' then>selected</if>>Cazador Alfa</option>
+                    <option value="CazadorOmega" <if $ficha['rango'] == 'CazadorOmega' then>selected</if>>Cazador Omega</option>
+                    <option value="CazadorRenegado" <if $ficha['rango'] == 'CazadorRenegado' then>selected</if>>Cazador Renegado</option>
+                    <option value="ReyCazador" <if $ficha['rango'] == 'ReyCazador' then>selected</if>>Rey de los Cazadores</option>
+                </if>
+                <if $ficha['faccion'] == 'Civil' then>
+                    <option value="Ciudadano" <if $ficha['rango'] == 'Ciudadano' then>selected</if>>Civil</option>
+                    <option value="Operativo" <if $ficha['rango'] == 'Operativo' then>selected</if>>Operativo</option>
+                    <option value="EmperadorDelInframundo" <if $ficha['rango'] == 'EmperadorDelInframundo' then>selected</if>>Emperador Del Inframundo</option>
+                    <option value="Broker" <if $ficha['rango'] == 'Broker' then>selected</if>>Broker</option>
+                    <option value="BrokerEstrella" <if $ficha['rango'] == 'BrokerEstrella' then>selected</if>>Broker Estrella</option>
+                </if>
+                <if $ficha['faccion'] == 'Staff' then>
+                    <option value="Administrador" <if $ficha['rango'] == 'Administrador' then>selected</if>>Administrador</option>
+                    <option value="ConsejeroReal" <if $ficha['rango'] == 'ConsejeroReal' then>selected</if>>ConsejeroReal</option>
+                    <option value="Moderador" <if $ficha['rango'] == 'Moderador' then>selected</if>>Moderador</option>
+                    <option value="Narrador" <if $ficha['rango'] == 'Narrador' then>selected</if>>Narrador</option>
+                    <option value="WebMaster" <if $ficha['rango'] == 'WebMaster' then>selected</if>>Web Master</option>
+                </if>
+            </select>
+        </td>
+        <td>
+            Fama: <br>
+            <select name="fama" id="fama">
+                <option value="Desconocido" <if $ficha['fama'] == 'Desconocido' then>selected</if>>Desconocido</option>
+                <option value="Iniciado" <if $ficha['fama'] == 'Iniciado' then>selected</if>>Iniciado</option>
+                <option value="Novato" <if $ficha['fama'] == 'Novato' then>selected</if>>Novato</option>
+                <option value="Rumor" <if $ficha['fama'] == 'Rumor' then>selected</if>>Rumor</option>
+                <option value="Aspirante" <if $ficha['fama'] == 'Aspirante' then>selected</if>>Aspirante</option>
+                <option value="Popular" <if $ficha['fama'] == 'Popular' then>selected</if>>Popular</option>
+                <option value="Famoso" <if $ficha['fama'] == 'Famoso' then>selected</if>>Famoso</option>
+                <option value="Icono" <if $ficha['fama'] == 'Icono' then>selected</if>>Ícono</option>
+                <option value="Leyenda" <if $ficha['fama'] == 'Leyenda' then>selected</if>>Leyenda</option>
+                <option value="Escudero" <if $ficha['fama'] == 'Escudero' then>selected</if>>Escudero</option>
+                <option value="Cortes" <if $ficha['fama'] == 'Cortes' then>selected</if>>Cortés</option>
+                <option value="Caballero" <if $ficha['fama'] == 'Caballero' then>selected</if>>Caballero</option>
+                <option value="Campeon" <if $ficha['fama'] == 'Campeon' then>selected</if>>Campeón</option>
+                <option value="Alimaña" <if $ficha['fama'] == 'Alimaña' then>selected</if>>Alimaña</option>
+                <option value="Sabandija" <if $ficha['fama'] == 'Sabandija' then>selected</if>>Sabandija</option>
+                <option value="Ratero" <if $ficha['fama'] == 'Ratero' then>selected</if>>Ratero</option>
+                <option value="Truhan" <if $ficha['fama'] == 'Truhan' then>selected</if>>Truhán</option>
+                <option value="Celebre" <if $ficha['fama'] == 'Celebre' then>selected</if>>Célebre</option>
+                <option value="Honorable" <if $ficha['fama'] == 'Honorable' then>selected</if>>Honorable</option>
+                <option value="Galante" <if $ficha['fama'] == 'Galante' then>selected</if>>Galante</option>
+                <option value="Incorruptible" <if $ficha['fama'] == 'Incorruptible' then>selected</if>>Incorruptible</option>
+                <option value="Noble" <if $ficha['fama'] == 'Noble' then>selected</if>>Noble</option>
+                <option value="Protector" <if $ficha['fama'] == 'Protector' then>selected</if>>Protector</option>
+                <option value="Virtuoso" <if $ficha['fama'] == 'Virtuoso' then>selected</if>>Virtuoso</option>
+                <option value="Baluarte" <if $ficha['fama'] == 'Baluarte' then>selected</if>>Baluarte</option>
+                <option value="Justiciero" <if $ficha['fama'] == 'Justiciero' then>selected</if>>Justiciero</option>
+                <option value="Solemne" <if $ficha['fama'] == 'Solemne' then>selected</if>>Solemne</option>
+                <option value="Santo" <if $ficha['fama'] == 'Santo' then>selected</if>>Santo</option>
+                <option value="Paladin" <if $ficha['fama'] == 'Paladin' then>selected</if>>Paladín</option>
+                <option value="Alma Pura" <if $ficha['fama'] == 'Alma Pura' then>selected</if>>Alma Pura</option>
+                <option value="Heroe" <if $ficha['fama'] == 'Heroe' then>selected</if>>Héroe</option>
+                <option value="Adalid" <if $ficha['fama'] == 'Adalid' then>selected</if>>Adalid</option>
+                <option value="Canalla" <if $ficha['fama'] == 'Canalla' then>selected</if>>Canalla</option>
+                <option value="Granuja" <if $ficha['fama'] == 'Granuja' then>selected</if>>Granuja</option>
+                <option value="Delincuente" <if $ficha['fama'] == 'Delincuente' then>selected</if>>Delincuente</option>
+                <option value="Forajido" <if $ficha['fama'] == 'Forajido' then>selected</if>>Forajido</option>
+                <option value="Bandido" <if $ficha['fama'] == 'Bandido' then>selected</if>>Bandido</option>
+                <option value="Infame" <if $ficha['fama'] == 'Infame' then>selected</if>>Infame</option>
+                <option value="Tirano" <if $ficha['fama'] == 'Tirano' then>selected</if>>Tirano</option>
+                <option value="Terror" <if $ficha['fama'] == 'Terror' then>selected</if>>Terror</option>
+                <option value="Sanguinario" <if $ficha['fama'] == 'Sanguinario' then>selected</if>>Sanguinario</option>
+                <option value="Pesadilla" <if $ficha['fama'] == 'Pesadilla' then>selected</if>>Pesadilla</option>
+                <option value="Desalmado" <if $ficha['fama'] == 'Desalmado' then>selected</if>>Desalmado</option>
+                <option value="Leviatan" <if $ficha['fama'] == 'Leviatan' then>selected</if>>Leviatán</option>
+                <option value="Calamidad" <if $ficha['fama'] == 'Calamidad' then>selected</if>>Calamidad</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+        	Identidad Secreta: <br>
+            <select name="secret1" id="secret1" value="{$ficha['secret1']}">
+                <option value="0" <if $ficha['secret1'] == '0' then>selected</if>>No</option>
+                <option value="1" <if $ficha['secret1'] == '1' then>selected</if>>Si</option>
+            </select>
+        </td>
+        <td>
+            Rango de Inframundo: <br>
+            <select name="rango_inframundo" id="rango_inframundo">
+                <option value="" <if $ficha['rango_inframundo'] == '' then>selected</if>>Sin Rango</option>
+                <option value="Alimaña" <if $ficha['rango_inframundo'] == 'Alimaña' then>selected</if>>Alimaña</option>
+                <option value="Operativo" <if $ficha['rango_inframundo'] == 'Operativo' then>selected</if>>Operativo</option>
+                <option value="Capo" <if $ficha['rango_inframundo'] == 'Capo' then>selected</if>>Capo</option>
+                <option value="Broker" <if $ficha['rango_inframundo'] == 'Broker' then>selected</if>>Broker</option>
+                <option value="Broker Estrella" <if $ficha['rango_inframundo'] == 'Broker Estrella' then>selected</if>>Broker Estrella</option>
+                <option value="Emperador" <if $ficha['rango_inframundo'] == 'Emperador' then>selected</if>>Emperador</option>
+            </select>
+        </td>
+        <td>
+            Camino: <br>
+		    <select name="camino" id="camino">
+			    <option value="Voz" <if $ficha['camino'] == 'Voz' then>selected</if>>Latido del mundo</option>
+			    <option value="Haki" <if $ficha['camino'] == 'Haki' then>selected</if>>Sendero de la Voluntad</option>
+			    <option value="Akuma" <if $ficha['camino'] == 'Akuma' then>selected</if>>Herencia del Arbol Prohibido</option>
+	        </select>
+        </td>
+    </tr>
+        <tr>
+        <td>
+            Kenbunshoku Haki: <br>
+            <select name="kenbun" id="kenbun" value="{$ficha['kenbun']}">
+                    <option value="0" <if $ficha['kenbun'] == '0' then>selected</if>>Desbloqueable</option>
+                    <option value="1" <if $ficha['kenbun'] == '1' then>selected</if>>Desbloqueado</option>
+                    <option value="2" <if $ficha['kenbun'] == '2' then>selected</if>>Tier 3</option>
+                    <option value="3" <if $ficha['kenbun'] == '3' then>selected</if>>Tier 4</option>
+                    <option value="4" <if $ficha['kenbun'] == '4' then>selected</if>>Tier 5</option>
+                    <option value="5" <if $ficha['kenbun'] == '5' then>selected</if>>Tier 6</option>
+                    <option value="6" <if $ficha['kenbun'] == '6' then>selected</if>>Tier 7</option>
+                    <option value="7" <if $ficha['kenbun'] == '7' then>selected</if>>Tier 8</option>
+                    <option value="8" <if $ficha['kenbun'] == '8' then>selected</if>>Tier 9</option>
+            </select>
+        </td>
+        <td>
+            Busoushoku Haki: <br>
+            <select name="buso" id="buso" value="{$ficha['buso']}">
+                    <option value="0" <if $ficha['buso'] == '0' then>selected</if>>Desbloqueable</option>
+                    <option value="1" <if $ficha['buso'] == '1' then>selected</if>>Desbloqueado</option>
+                    <option value="2" <if $ficha['buso'] == '2' then>selected</if>>Tier 3</option>
+                    <option value="3" <if $ficha['buso'] == '3' then>selected</if>>Tier 4</option>
+                    <option value="4" <if $ficha['buso'] == '4' then>selected</if>>Tier 5</option>
+                    <option value="5" <if $ficha['buso'] == '5' then>selected</if>>Tier 6</option>
+                    <option value="6" <if $ficha['buso'] == '6' then>selected</if>>Tier 7</option>
+                    <option value="7" <if $ficha['buso'] == '7' then>selected</if>>Tier 8</option>
+                    <option value="8" <if $ficha['buso'] == '8' then>selected</if>>Tier 9</option>
+            </select>
+        </td>
+        <td>
+            Haoshoku Haki: <br>
+            <select name="hao" id="hao" value="{$ficha['hao']}">
+                    <option value="0" <if $ficha['hao'] == '0' then>selected</if>>Desbloqueable</option>
+                    <option value="1" <if $ficha['hao'] == '1' then>selected</if>>Desbloqueado</option>
+                    <option value="2" <if $ficha['hao'] == '2' then>selected</if>>Tier 3</option>
+                    <option value="3" <if $ficha['hao'] == '3' then>selected</if>>Tier 4</option>
+                    <option value="4" <if $ficha['hao'] == '4' then>selected</if>>Tier 5</option>
+                    <option value="5" <if $ficha['hao'] == '5' then>selected</if>>Tier 6</option>
+                    <option value="6" <if $ficha['hao'] == '6' then>selected</if>>Tier 7</option>
+                    <option value="7" <if $ficha['hao'] == '7' then>selected</if>>Tier 8</option>
+                    <option value="8" <if $ficha['hao'] == '8' then>selected</if>>Tier 9</option>
+            </select>       
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Tirada Haoshoku Haki: <br>
+            <select name="hao_chance" id="hao_chance" value="{$ficha['hao_chance']}">
+                <option value="0" <if $ficha['hao_chance'] == '0' then>selected</if>>Sin Tirada</option>
+                <option value="1" <if $ficha['hao_chance'] == '1' then>selected</if>>Tirada Disponible</option>
+            </select>
+        </td>
+        <td>
+            Akuma: <br>
+            <input class="textbox" type="text" name="akuma" value="{$ficha['akuma']}">
+        </td>
+        <td>
+            Akuma Subnombre: <br>
+            <input class="textbox" type="text" name="akuma_subnombre" value="{$ficha['akuma_subnombre']}">
+        </td>
+    </tr>
+</table>
+<table class="form-table">
+    <tr>
+        <td>
+            Oficio 1: <br>
+            <select name="oficio1" id="oficio1">
+                <option value="" <if $ficha['oficio1'] == '' then>selected</if>>Sin Oficio</option>
+                <option value="Navegante" <if $ficha['oficio1'] == 'Navegante' then>selected</if>>Navegante</option>
+                <option value="Cocinero" <if $ficha['oficio1'] == 'Cocinero' then>selected</if>>Cocinero</option>
+                <option value="Médico" <if $ficha['oficio1'] == 'Médico' then>selected</if>>Médico</option>
+                <option value="Recolector" <if $ficha['oficio1'] == 'Recolector' then>selected</if>>Recolector</option>
+                <option value="Artesano" <if $ficha['oficio1'] == 'Artesano' then>selected</if>>Artesano</option>
+                <option value="Inventor" <if $ficha['oficio1'] == 'Inventor' then>selected</if>>Inventor</option>
+                <option value="Investigador" <if $ficha['oficio1'] == 'Investigador' then>selected</if>>Investigador</option>
+                <option value="Carpintero" <if $ficha['oficio1'] == 'Carpintero' then>selected</if>>Carpintero</option>
+                <option value="Mercader" <if $ficha['oficio1'] == 'Mercader' then>selected</if>>Mercader</option>
+                <option value="Aventurero" <if $ficha['oficio1'] == 'Aventurero' then>selected</if>>Aventurero</option>
+            </select>
+            </td>     
+            <td>
+            Oficio 2: <br>
+            <select name="oficio2" id="oficio2">
+                <option value="" <if $ficha['oficio2'] == '' then>selected</if>>Sin Oficio</option>
+                <option value="Navegante" <if $ficha['oficio2'] == 'Navegante' then>selected</if>>Navegante</option>
+                <option value="Cocinero" <if $ficha['oficio2'] == 'Cocinero' then>selected</if>>Cocinero</option>
+                <option value="Médico" <if $ficha['oficio2'] == 'Médico' then>selected</if>>Médico</option>
+                <option value="Recolector" <if $ficha['oficio2'] == 'Recolector' then>selected</if>>Recolector</option>
+                <option value="Artesano" <if $ficha['oficio2'] == 'Artesano' then>selected</if>>Artesano</option>
+                <option value="Inventor" <if $ficha['oficio2'] == 'Inventor' then>selected</if>>Inventor</option>
+                <option value="Investigador" <if $ficha['oficio2'] == 'Investigador' then>selected</if>>Investigador</option>
+                <option value="Carpintero" <if $ficha['oficio2'] == 'Carpintero' then>selected</if>>Carpintero</option>
+                <option value="Mercader" <if $ficha['oficio2'] == 'Mercader' then>selected</if>>Mercader</option>
+                <option value="Aventurero" <if $ficha['oficio2'] == 'Aventurero' then>selected</if>>Aventurero</option>
+            </select><br>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Codigo de Oficios:<br>
+            <textarea class="textbox" id="oficios" name="oficios">{$ficha['oficios']}</textarea>
+        </td>
+        <td>
+            NPCS: <br>
+            <input class="textbox" type="text" name="npcs" max="100000" value="{$ficha['npcs']}">
+        </td>
+    </tr>
+</table>
+<div class="section-title">Reputación de Personaje</div>
+<table class="form-table">
+    <tr>
+        <td>    
+            Reputación Positiva: <br>
+            <input class="textbox" type="number" name="reputacion_positiva" max="5000" value="{$ficha['reputacion_positiva']}">
+        </td>
+        <td>
+            Reputación Negativa: <br><input class="textbox" type="number" name="reputacion_negativa" max="5000" value="{$ficha['reputacion_negativa']}">
+        </td>
+        <td>
+            Reputación Total: <br>
+            <input class="textbox" type="number" name="reputacion" max="5000" value="{$ficha['reputacion']}">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Positiva Doble vida: <br>
+            <input class="textbox" type="number" name="reputacion_positiva2" max="5000" value="{$ficha['reputacion_positiva2']}">
+        </td>
+        <td>
+            Negativa Doble vida: <br>
+            <input class="textbox" type="number" name="reputacion_negativa2" max="5000" value="{$ficha['reputacion_negativa2']}">
+        </td>
+        <td>
+            Total Doble Vida: <br>
+            <input class="textbox" type="number" name="reputacion2" max="5000" value="{$ficha['reputacion2']}">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Wanted (0 = No tiene): <br>
+            <select name="wanted" id="wanted" value="{$ficha['wanted']}">
+                <option value="0" <if $ficha['wanted'] == '0' then>selected</if>>No</option>
+                <option value="1" <if $ficha['wanted'] == '1' then>selected</if>>Si</option>                
+            </select>
+        </td>
+        <td>
+            Wanted Reputación: <br>
+            <input class="textbox" type="number" name="wanted_repu" max="5000" value="{$ficha['wanted_repu']}">
+        </td>
+        <td>
+            Wanted Custom: <br>
+            <input class="textbox" type="number" name="wantedGuardado" min="0" value="{$ficha['wantedGuardado']}">
+        </td>
+    </tr>
+</table>
+<div class="section-title">Estadísticas de Personaje</div>
+<table class="form-table">
+    <tr>
+        <td>
+            Nivel del Personaje: <br>
+            <input class="textbox" type="text" name="nivel" value="{$ficha['nivel']}">
+        </td>
+        <td>
+            Puntos de Experiencia: <br>
+            <input class="textbox" type="number" name="puntos_experiencia" min="0" max="50000" value="{$puntos_experiencia}" step="0.01">
+        </td>
+        <td>
+            Stats por repartir: <br>
+            <input class="textbox" type="text" name="puntos_estadistica" value="{$ficha['puntos_estadistica']}">
+        </td>
+    </tr>
+</table>
+<table class="form-table">
+    <tr>
+        <td>
+            Vitalidad: <br>
+            <input class="textbox" type="text" name="vitalidad" value="{$ficha['vitalidad']}">
+        </td>
+        <td>
+            Energía: <br>
+            <input class="textbox" type="text" name="energia" value="{$ficha['energia']}">
+        </td>
+        <td>
+            Haki: <br>
+            <input class="textbox" type="text" name="haki" value="{$ficha['haki']}">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Vitalidad Pasiva: <br>
+            <input class="textbox" type="text" name="vitalidad_pasiva" value="{$ficha['vitalidad_pasiva']}">
+        </td>
+        <td>
+            Energía Pasiva: <br>
+            <input class="textbox" type="text" name="energia_pasiva" value="{$ficha['energia_pasiva']}">
+        </td>
+        <td>
+            Haki Pasiva: <br>
+            <input class="textbox" type="text" name="haki_pasiva" value="{$ficha['haki_pasiva']}">
+        </td>
+    </tr>
+</table>
+<table class="stat-table">
+    <tr>
+        <td>
+            Fuerza: <br><input class="textbox" type="text" name="fuerza" value="{$ficha['fuerza']}">
+        </td>
+        <td>
+            Destreza: <br><input class="textbox" type="text" name="destreza" value="{$ficha['destreza']}">
+        </td>
+        <td>
+            Agilidad: <br><input class="textbox" type="text" name="agilidad" value="{$ficha['agilidad']}">
+        </td>
+        <td>
+            Puntería: <br><input class="textbox" type="text" name="punteria" value="{$ficha['punteria']}">
+        </td>
+        <td>
+            Resistencia: <br><input class="textbox" type="text" name="resistencia" value="{$ficha['resistencia']}">
+        </td>
+        <td>
+            Reflejos: <br><input class="textbox" type="text" name="reflejos" value="{$ficha['reflejos']}">
+        </td>
+        <td>
+            Voluntad: <br><input class="textbox" type="text" name="voluntad" value="{$ficha['voluntad']}">
+        </td>
+    </tr>
+</table>
+<table class="stat-table">
+    <tr>
+        <td>
+            Fuerza Pasiva: <br><input class="textbox" type="text" name="fuerza_pasiva" value="{$ficha['fuerza_pasiva']}">
+        </td>
+        <td>
+            Destreza Pasiva: <br><input class="textbox" type="text" name="destreza_pasiva" value="{$ficha['destreza_pasiva']}">
+        </td>
+        <td>
+            Agilidad Pasiva: <br><input class="textbox" type="text" name="agilidad_pasiva" value="{$ficha['agilidad_pasiva']}">
+        </td>
+        <td>
+           Puntería Pasiva: <br><input class="textbox" type="text" name="punteria_pasiva" value="{$ficha['punteria_pasiva']}">
+        </td>
+        <td>
+            Resistencia Pasiva: <br><input class="textbox" type="text" name="resistencia_pasiva" value="{$ficha['resistencia_pasiva']}">
+        </td>
+        <td>
+            Reflejos Pasiva: <br><input class="textbox" type="text" name="reflejos_pasiva" value="{$ficha['reflejos_pasiva']}">
+        </td>
+        <td>
+            Voluntad Pasiva: <br><input class="textbox" type="text" name="voluntad_pasiva" value="{$ficha['voluntad_pasiva']}">
+        </td>
+    </tr>
+</table>

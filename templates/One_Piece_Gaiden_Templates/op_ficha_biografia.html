@@ -1,0 +1,72 @@
+<div id="biografia" style="display:none;">
+	<!-- Modificando el cuadro de HISTORIA -->
+	<div style="margin-top: 20px;">
+		<div style="margin: 0px 50px;">
+			<div class="historia barra-op bbox" onclick="openHistoriaModal()" style="width: 100%; height: 40px; text-align: center; background-color: {$borderColor}; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+				<span class="barra-texto-op" style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 25px;">HISTORIA</span>
+			</div>    
+			<div class="historiaCaja bbox" style="height: 210px; background-color: white; border-left: 2px solid black; border-right: 2px solid black; border-bottom: 2px solid black; box-sizing: border-box; overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+				<div style="font-family: InterRegular; margin: 3px; font-size: 14px; text-align: justify; padding: 0px 7px;">{$historia}</div>
+			</div>    
+		</div>
+	</div>
+	<!-- Modificando los cuadros de APARIENCIA, PERSONALIDAD y EXTRA -->
+	<div style="flex-direction: row; display: flex; margin: 20px 50px;">
+		<div>
+			<div class="apariencia barra-op bbox" onclick="openAparienciaModal()" style="width: 290px; height: 40px; text-align: center; background-color: {$borderColor}; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+				<span class="barra-texto-op" style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 25px;">APARIENCIA</span>
+			</div>    
+			<div class="aparienciaCaja bbox" style="width: 290px; height: 220px; background-color: white; border-left: 2px solid black; border-right: 2px solid black; border-bottom: 2px solid black; box-sizing: border-box; overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+				<div style="font-family: InterRegular; margin: 3px; font-size: 14px; text-align: justify; padding: 0px 7px;">{$apariencia}</div>
+			</div>    
+		</div>
+		<div style="margin-left: 15px;">
+			<div class="personalidad barra-op bbox" onclick="openPersonalidadModal()" style="width: 290px; height: 40px; text-align: center; background-color: {$borderColor}; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+				<span class="barra-texto-op" style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 25px;">PERSONALIDAD</span>
+			</div>    
+			<div class="personalidadCaja bbox" style="width: 290px; height: 220px; background-color: white; border-left: 2px solid black; border-right: 2px solid black; border-bottom: 2px solid black; box-sizing: border-box; overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+				<div style="font-family: InterRegular; margin: 3px; font-size: 14px; text-align: justify; padding: 0px 7px;">{$personalidad}</div>
+			</div>    
+		</div>
+		<div style="margin-left: 15px;">
+			<div class="extras barra-op bbox" onclick="openExtrasModal()" style="width: 290px; height: 40px; text-align: center; background-color: {$borderColor}; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+				<span class="barra-texto-op" style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 25px;">EXTRA</span>
+			</div>    
+			<div class="personalidadCaja bbox" style="width: 290px; height: 220px; background-color: white; border-left: 2px solid black; border-right: 2px solid black; border-bottom: 2px solid black; box-sizing: border-box; overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+				<div style="font-family: InterRegular; margin: 3px; font-size: 14px; text-align: justify; padding: 0px 7px;">{$extra}</div>
+			</div>    
+		</div>
+	</div>
+	
+	<div style=" flex-direction: row; display: flex; margin: 20px 50px;">
+		<div>
+			<img onclick="openAvatar3Modal()" class="avatar_repu_2" src="{$ficha['avatar2']}" style="width: 560px;height: 250px;border: 17px solid white;border-bottom: 15px solid white;box-shadow: 0px 0px 10px black;cursor:pointer;">
+		</div>	
+		<div id="oficios" style="margin-left: 24px; ">
+			
+	
+			
+			
+		</div>
+	</div>
+	
+	
+	<div style=" flex-direction: row; display: flex; margin: 20px 50px;">
+		<div>
+			<div style="width: 900px;height: 40px;background-color: {$borderColor};" class="barra-op bbox"><span style="top: 8px;font-size: 16px;" class="barra-texto-op">MASCOTAS Y ACOMPAÑANTES</span></div>
+			<div id="npcs_acompanantes" style="border-left: 2px solid black;border-right: 2px solid black;width: 900px;height: 235px;background-color: #ffedd2;border-bottom: 2px solid black;border-bottom-left-radius: 6px;border-bottom-right-radius: 6px;padding: 10px;overflow-x: auto;overflow-y: hidden;white-space: nowrap;scrollbar-width: none;-ms-overflow-style: none;" class="bbox">
+				<!-- El contenido se generará dinámicamente con JavaScript -->
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal para NPCs (Se crea dinámicamente desde el script) -->
+	<div id="npcModalBio" class="modal" style="display: none;">
+		<!-- El contenido del modal se generará dinámicamente -->
+	</div>
+
+	<!-- Modal para estilos de combate -->
+	<div id="estilosModal" class="modal" style="display: none;">
+		<!-- El contenido del modal se generará dinámicamente -->
+	</div>
+</div>

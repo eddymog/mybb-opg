@@ -1,0 +1,714 @@
+<html>
+
+<head>
+  <title>Registro de Usuarios</title>
+  {$headerinclude}
+  <style>
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('/images/op/uploads/TituloRegistroUsuarios_One_Piece_Gaiden_Foro_Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+      
+      .tierRow {
+          display: flex;
+          flex-direction: row;
+      }
+      
+      .akumaTypeRow  {
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 20px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .npcBoxPage span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .categoriaBox, .tierBox {
+/* 		flex: 1;  */
+          border-right: 2px solid black; /* Solo para visualización */
+        text-align: center;
+        background-color: #ff7b00;
+      }
+      
+      .npcBoxTab, .tierBox{
+          border-bottom: 2px solid black;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 10px 12px 0; 
+      }
+      
+      .categoriaBox:first-child {
+            border-radius: 10px 0 0 10px; 
+      }
+      
+      .categoriaBox:hover, .tierBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      .npcBoxTab, .tierBox:last-child {
+          border-right: 2px solid black;
+      }
+
+        .npcBoxTab, .tierBox:first-child {
+          border-left: 2px solid black;
+      }
+      
+      .npcList {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: center;
+        gap: 7px;
+      }
+      
+      .akumaItem {
+          display: flex;
+          cursor: pointer;
+          transition: all 0.2s ease-out;
+      }
+      
+      .akumaItem:hover {
+          filter: drop-shadow(0px 0px 4px black) brightness(1.1);
+      }
+      
+      .nameSection {
+        background-color: #ffeed2;
+        padding-left: 10px;
+        width: 280px;
+        border: 2px solid black;
+        border-left: 0px;
+        color: black;
+        overflow: hidden;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+      
+      .fruitImage {
+        height: 46px;
+        display: inline-block;
+        top: -23px;
+        left: -60px;
+        position: absolute;
+      }
+      
+      .statusSection {
+          background-color: red;
+          display: flex;
+          align-items: center;
+          color: white;
+          padding-left: 10px;
+          padding-right: 10px;
+          border-radius: 0px 25px 25px 0px;
+          border: 2px solid black;
+          border-left: none;
+          background: rgb(214,0,0);	  
+          width: 109px;
+      }
+      
+      .statusOcupada {
+          background: linear-gradient(0deg, rgb(132 0 0) 0%, rgba(255,0,0,1) 50%, rgb(169 3 3) 100%);
+      }
+      
+      .statusActivo {
+          background: linear-gradient(0deg, rgb(0 132 49) 0%, rgb(0 255 20) 50%, rgb(0 132 49) 100%);
+      }
+      
+      .statusNuevo {
+          background: linear-gradient(0deg, rgb(79 1 104) 0%, rgb(184 0 255) 50%, rgb(79 1 104) 100%);
+      }
+      
+      .statusMuerto {
+          background: linear-gradient(0deg, rgb(75 75 75) 0%, rgb(130 130 130) 50%, rgb(75 75 75) 100%);
+      }
+      
+      .statusInactivo {
+          background: linear-gradient(0deg, rgb(148 0 0) 0%, rgb(241 0 0) 50%, rgb(148 0 0) 100%);
+      }
+
+      .akumaName, .akumaDscpt, .statusSection{
+          font-family: 'moonGetHeavy'
+      }
+      
+      .statusSection {
+          font-size: 20px;
+          width: 100px;
+      }
+
+      .akumaName {
+          font-size: 15px;
+      }
+      
+      .akumaDscpt {
+          font-size: 8px;
+      }
+      
+  </style>
+    
+    <style>
+    /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 75px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        position: relative;
+        background-image: url(/images/op/uploads/Wanted_One_Piece_Gaiden_Foro_Rol.png);
+        margin: auto;
+        padding: 0;
+        width: 500px;
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s;
+        height: 735px;
+        background-repeat: no-repeat;
+    }
+
+    /* Add Animation */
+    @-webkit-keyframes animatetop {
+      from {top:-300px; opacity:0} 
+      to {top:0; opacity:1}
+    }
+
+    @keyframes animatetop {
+      from {top:-300px; opacity:0}
+      to {top:0; opacity:1}
+    }
+
+    /* The Close Button */
+    .close {
+      color: white;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .modal-header {
+      padding: 2px 16px;
+      background-color: #5cb85c;
+      color: white;
+    }
+
+    .modal-body {padding: 2px 16px;}
+
+    .npcBox {
+        height: 220px;width: 150px; box-sizing: border-box; cursor: pointer;
+        transition: all 0.2s ease-out;
+    }
+        
+    .npcBox:hover {
+        filter: drop-shadow(0px 0px 6px black) saturate(1.3);
+    }
+
+    .clipBox {
+        width: 145px; height: 45px; box-sizing: border-box; margin-top: 170px; clip-path: polygon(0 65%, 100% 0%, 100% 100%, 0% 100%);
+    }
+
+    .npcName {
+        color: white; font-size: 16px; font-family: moonGetHeavy; text-shadow: 3px 3px 1px black; position: relative; text-align: center; top: -44px; left: 10px; line-height: 18px;
+    }
+        
+    </style>
+    
+    <style>
+/* 	  .pestana:hover {
+          background-color: #6843a0;
+      } */
+
+      .pestana-active {
+          background-color: #ffa600;
+      }
+      
+      .fondo-ficha {
+          background-color: #9664e0;
+          width: 1000px;
+          background-image: url(/images/op/ficha/FondoMultipleFicha{$faccion}_One_Piece_Gaiden_Foro_Rol.png);
+          height: 1400px;
+          box-shadow: 0px 5px 11px black;
+          background-size: cover;
+      }
+      
+      .tag-ficha {
+        width: 130px;
+        height: 30px;
+        background-color: black;
+        margin: 0px 0px 5px 2px;
+        border-end-end-radius: 50px;
+        border-start-end-radius: 50px;
+        border: 1px solid;
+        box-shadow: 0px 0px 8px black;
+        margin-bottom: 8px;
+      }
+      
+      .tag-ficha-texto {
+        font-family: 'moonGetHeavy';
+        letter-spacing: 1px;
+        color: white;
+        font-size: 14px;
+        top: 5px;
+        position: relative;
+        left: 6px;
+      }
+      
+      .tag-ficha-kanji {
+        height: 25px;
+        width: 25px;
+        background-color: white;
+        position: relative;
+        top: -18px;
+        left: 102px;
+        border-radius: 51px;
+      }
+      
+      .tag-ficha-kanji-texto {
+        color: black;
+        font-size: 17px;
+        position: relative;
+        left: 5px;
+        top: 0px;
+      }
+      
+      .stat-diamante-grande {
+            height: 110px;
+            width: 110px;
+            transform: rotate(45deg);
+            border: 4px solid black;
+            box-sizing: border-box;
+            box-shadow: 0px 0px 10px black;
+      }
+      
+      .stat-diamante-pequeno {
+            height: 50px;
+            width: 50px;
+            transform: rotate(45deg);
+            border: 4px solid white;
+            box-sizing: border-box;
+            box-shadow: 0px 0px 10px black;
+      }
+        
+    .disciplina-titulo {
+        border: 1px solid black;
+        text-align: center;
+        font-family: moonGetHeavy;
+        color: white;
+        text-shadow: 2px 1px 2px black;
+        background-color: #4d4d4d;
+        border-start-start-radius: 5px;
+        border-start-end-radius: 5px;
+    }
+        
+    .disciplina-tipo {
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        border-bottom: 1px solid black;
+        text-align: center;
+        font-family: moonGetHeavy;
+        color: white;
+        text-shadow: 2px 1px 2px black;
+        background-color: #bdbdbd;
+    }
+        
+    #avatarWanted {
+      transition: all 0.5s ease-out;
+    }	
+        
+    #avatarWanted:hover {
+      filter: sepia(0.7) drop-shadow(2px 4px 6px black);
+    }
+        
+    #nombreWanted {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 58px;
+        color: #3b1300;
+        font-family: fantasy;
+        transition: all 0.2s ease-out;
+        cursor: pointer;
+    }
+        
+    #nombreWanted:hover {
+      filter: sepia(0.7) drop-shadow(1px 1px 1px black);
+    }
+        
+    #berriesWanted {
+        margin-top: 5px;
+        text-align: center;
+        font-size: 58px;
+        color: #3b1300;
+        font-family: fantasy;
+    }
+        
+    .miniNombreWanted {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 15px;
+        color: #3b1300;
+        font-family: fantasy;
+    }
+            
+    .miniBerriesWanted {
+        margin-top: 3px;
+        text-align: center;
+        font-size: 15px;
+        color: #3b1300;
+        font-family: fantasy;
+    }
+    </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground">
+                
+                <div class="akumaBanner">
+                </div>
+                <div class="filterBox">
+                    <div class="akumaTypeRow" style="margin-top: 5px; justify-content: center; border-radius: 10px 10px 14px 11px;">
+                        <div style="width: 161px" id="Pirata" onclick="filterByFaccion('Pirata')" class="categoriaBox filterClass">
+                            <span>PIRATA</span>
+                        </div>
+                        <div style="width: 161px" id="Marina" onclick="filterByFaccion('Marina')" class="categoriaBox filterClass">
+                            <span>MARINA</span>
+                        </div>
+                        <div style="width: 156px" id="Revolucionario" onclick="filterByFaccion('Revolucionario')" class="categoriaBox filterClass">
+                            <span>REVOS</span>
+                        </div>
+                        <div style="width: 176px" id="Cazadores" onclick="filterByFaccion('Cazadores')" class="categoriaBox filterClass">
+                            <span>CAZADORES</span>
+                        </div>
+                        <div style="width: 161px" id="Gobierno" onclick="filterByFaccion('CipherPol')" class="categoriaBox filterClass">
+                            <span>GOBIERNO</span>
+                        </div>
+                        <div style="width: 161px" id="Civil" onclick="filterByFaccion('Civil')" class="categoriaBox filterClass">
+                            <span>CIVIL</span>
+                        </div>
+                    </div>
+                    <!-- Buscador centrado -->
+                    <div class="akumaTypeRow" style="margin-top: 5px; justify-content: center; border-radius: 10px 10px 14px 11px;">
+                        <div style="width: 100%; background-color: #853dee; display: flex; align-items: center; justify-content: center; padding: 10px; border-radius: 8px 6px 9px 9px;" class="categoriaBox">
+                            <input type="text" id="searchInput" placeholder="Buscar por nombre..." style="width: 300px; height: 30px; border-radius: 5px; border: 1px solid black; padding: 0 10px; font-size: 14px;">
+                            <button onclick="searchByName()" style="margin-left: 10px; height: 32px; background-color: #ff7b00; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy'; padding: 0 15px;">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="npcList">
+                
+                </div>
+
+        </div>
+     </div>
+  </div>
+<script>
+    
+let faccionFilterActive = false;
+let tierFilterActive = false;
+let currentFaccionFilter = '';
+let currentTierFilter = 0;
+
+let NPCs = {$npcs_json};
+let NPCActivos = {$npcs_activos_json};
+let NPCActivosMap = {}; 
+let backgroundColorBar = '#e3caff;'
+
+function compareActivity(a, b) {
+  return b.activo - a.activo;
+}
+
+for (let i = 0; i < NPCActivos.length; i++) {
+    let activo = NPCActivos[i]
+    NPCActivosMap[activo.fid] = activo;
+}
+    
+for (let i = 0; i < NPCs.length; i++) {
+        
+    if (NPCs[i] && NPCActivosMap[NPCs[i].fid]) {
+        NPCs[i].activo = 1;
+    } else {
+        NPCs[i].activo = 0;
+    }
+}
+    
+NPCs.sort(compareActivity);
+
+for (let i = 0; i < NPCs.length; i++) {
+    let faccion = NPCs[i].faccion;
+    
+    if (faccion == 'Pirata') {
+        backgroundColorBar = '#ffb9b9';
+    }
+    
+    if (faccion == 'Marina') {
+        backgroundColorBar = '#afd0ff';
+    }
+    
+    if (faccion == 'Revolucionario') {
+        backgroundColorBar = '#ffeed2';
+    }
+    
+    if (faccion == 'Cazadores') {
+        backgroundColorBar = '#afffc8;';
+    }
+    
+    if (faccion == 'CipherPol') {
+        backgroundColorBar = '#e3caff';
+    }
+    
+    if (faccion == 'Civil') {
+        backgroundColorBar = '#ffd5fd';
+    }
+    
+    if (faccion == 'Staff') {
+        continue;
+    }
+    
+    let avatar = NPCs[i].avatar;
+    
+    if (avatar == '') {
+        avatar = '/images/op/uploads/AvatarHabilidades_One_Piece_Gaiden_Foro_Rol.png';
+    }
+    
+    let fisico = NPCs[i].fisico_de_pj;
+    let origen = NPCs[i].origen_de_pj;
+    
+    if (fisico.length > 20) { fisico = fisico.slice(0, 25); }
+    if (origen.length > 20) { origen = origen.slice(0, 25); }
+    
+    $('.npcList').append(`
+         <div onclick="goFicha('` + NPCs[i].fid +`')" class="akumaItem" data-faccion="` + NPCs[i].faccion +`">
+            <div style="border: 2px solid black; box-sizing: border-box;width: 54px; height: 54px;background: url(` + avatar + `); background-size: cover;"></div>
+            <div class="nameSection" style="background-color: ` + backgroundColorBar + `;">
+                    <div class="nameText">
+                        <span class="akumaName">` + NPCs[i].nombre + `</span>
+                    <br>
+                    <span class="akumaDscpt">` + fisico +` | ` + origen +`</span>
+                </div>
+                <div style="position: relative;"><img src="/images/op/uploads/Icono` + NPCs[i].faccion + `_One_Piece_Gaiden_Foro_Rol.png" class="fruitImage"></div>
+            </div>
+            <div class="statusSection ` + getStatusStyle(i) +`">
+                <div style="margin: auto;">` + getStatus(i) +`</div>
+            </div>	
+        </div>
+    `);
+
+    
+}		
+    
+const npcItems = document.querySelectorAll('.akumaItem');	
+
+function getStatus(i) {
+    
+    console.log(NPCs);
+    
+    if (NPCs[i] && NPCs[i].muerto == "1") {
+        return 'Muerto';
+    } 
+    
+    if (NPCs[i] && NPCs[i].activo == 1) {
+        return 'Activo';
+    } 
+    
+    // if (NPCs[i] && NPCs[i].muerto == "3") {
+    // 	return 'Nuevo';
+    // } 
+    
+    return 'Inactivo';
+}	
+    
+function getStatusStyle(i) {
+    
+    if (NPCs[i] && NPCs[i].muerto == "1") {
+        return 'statusMuerto';
+    } 
+    
+    if (NPCs[i] && NPCs[i].activo == 1) {
+        return 'statusActivo';
+    } 
+    
+// 	if (NPCs[i] && NPCs[i].muerto == "3") {
+// 		return 'statusNuevo';
+// 	} 
+    
+    return 'statusInactivo';
+}	
+    
+function goFicha(uid) {
+    window.open('/op/ficha.php?uid=' + uid, '_blank');
+}	
+    
+function filterByFaccion(faccion) {
+
+  $('.categoriaBox').removeClass("box-active");
+  
+  if (currentFaccionFilter == faccion && faccionFilterActive == false) {
+     faccionFilterActive = true;  
+     $('#' + faccion).addClass("box-active");
+  } else {
+      faccionFilterActive = false;   
+  }
+    
+  if (currentFaccionFilter != faccion) {
+      $('#' + faccion).addClass("box-active");
+      faccionFilterActive = true;
+  }
+    
+  currentFaccionFilter = faccion;
+  applyFilters();
+}
+
+function searchByName() {
+  // Restablecer todos los filtros activos previamente
+  $('.categoriaBox').removeClass("box-active");
+  faccionFilterActive = false;
+  currentFaccionFilter = '';
+  
+  // Obtener el texto de búsqueda
+  const searchText = document.getElementById('searchInput').value.toLowerCase();
+  
+  // Si no hay texto de búsqueda, mostrar todos los elementos
+  if (!searchText) {
+    npcItems.forEach(item => {
+      item.style.display = 'flex';
+    });
+    return;
+  }
+  
+  npcItems.forEach(item => {
+    // Obtener el índice del usuario desde el onclick
+    const onclickAttr = item.getAttribute('onclick');
+    const fid = onclickAttr.match(/goFicha\('([^']+)'\)/)[1];
+    
+    // Buscar el usuario en el array NPCs por fid
+    const usuario = NPCs.find(npc => npc.fid == fid);
+    
+    if (usuario) {
+      const nombreUsuario = usuario.nombre.toLowerCase();
+      const fisicoUsuario = usuario.fisico_de_pj ? usuario.fisico_de_pj.toLowerCase() : '';
+      const origenUsuario = usuario.origen_de_pj ? usuario.origen_de_pj.toLowerCase() : '';
+      const faccionUsuario = usuario.faccion.toLowerCase();
+      
+      let showItem = false;
+      
+      // Buscar en nombre, físico, origen o facción
+      if (nombreUsuario.includes(searchText) || 
+          fisicoUsuario.includes(searchText) || 
+          origenUsuario.includes(searchText) || 
+          faccionUsuario.includes(searchText)) {
+        showItem = true;
+      }
+      
+      item.style.display = showItem ? 'flex' : 'none';
+    }
+  });
+}
+
+// Añadir la búsqueda al presionar Enter en el campo de texto
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        searchByName();
+      }
+    });
+  }
+});
+
+function filterByTier(tier) {
+  $('.tierBox').removeClass("box-active");
+
+  if (currentTierFilter == tier && tierFilterActive == false) {
+     tierFilterActive = true;  
+      $('#tier' + tier).addClass("box-active");
+  } else {
+      tierFilterActive = false;   
+  }
+
+  if (currentTierFilter != tier) {
+      $('#tier' + tier).addClass("box-active");
+      tierFilterActive = true;
+ }
+      
+  currentTierFilter = tier;
+  // applyFilters();
+}
+
+function applyFilters() {
+  npcItems.forEach(item => {
+    const itemFaccion = item.getAttribute('data-faccion') === currentFaccionFilter;
+    const itemTier = parseInt(item.getAttribute('data-tier')) === currentTierFilter;
+
+    if (faccionFilterActive && tierFilterActive) {
+      item.style.display = itemFaccion && itemTier ? 'flex' : 'none';
+    } else if (faccionFilterActive) {
+      item.style.display = itemFaccion ? 'flex' : 'none';
+    } else if (tierFilterActive) {
+      item.style.display = itemTier ? 'flex' : 'none';
+    } else {
+      item.style.display = 'flex'; // No hay filtros activos, mostrar todos los elementos
+    }
+  });
+}
+</script>
+    
+{$footer}
+</body>
+</html>

@@ -1,0 +1,172 @@
+<html>
+
+<head>
+    <style>
+		.entrenamiento p {
+			font-size: 21px;	
+		}
+		
+		.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.texto-top {
+			text-align: center;
+    font-family: InterRegular;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+    margin-top: 18px;
+    margin-bottom: 3px;
+    font-size: 15px;
+		}
+		
+		.entreno-button {
+			background-color: #d13b19 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button:hover {
+			background-color: #ee3d3d !important;
+		}
+		
+		.entreno-button2 {
+			background-color: #9b19d1 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button2:hover {
+			background-color: #b00ff3 !important;
+		}
+
+    </style>
+    <title>One Piece Gaiden</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+    <div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<div id="entreno-page" style="display: none;">
+						<div style="margin-bottom: 10px;">
+							<img src="/images/op/uploads/CrafteoItems_One_Piece_Gaiden_Foro_Rol.jpg" />
+						</div>
+
+						<div style="position: relative;margin-top: 80px;">
+
+							<div id="luffy-running" style="position: absolute;top: -69px;">
+								<img src="/images/op/uploads/BarraCargando_One_Piece_Gaiden_Foro_Rol.gif" />
+							</div>
+
+							<div style=" width: 996px; height: 35px; background-color: #5d5d5d; border: 2px solid black; border-radius: 3px; margin-bottom: 10px; ">
+
+							</div>
+
+							<div id="percBarLeft" style=" width: calc(996px); height: 35px; background-color: #fe861e; border-radius: 3px; margin-bottom: 10px;top: 2px; left: 2px;position: absolute; ">
+
+							</div>
+
+							<div style=" position: absolute; color: white; top: 4px; left: 289px; font-family: InterRegular; font-size: 22px; text-shadow: 1px 1px 4px black; " id="countdown"></div>
+						</div>
+						<div class="poneglyph">
+						<div style=" margin: 0 auto; ">
+							<div class="texto-top">¡Estás creando {$cantidad_crafteo}x {$nombre_objeto} ($objeto_id)!</div>
+							<div id="myGif"><img style="border: 2px solid black; " src="/images/op/uploads/CrafteoEnCurso_One_Piece_Gaiden_Foro_Rol.gif" /></div>
+							<div style=" text-align: center;margin-top: 6px; ">
+								<button class="button entreno-button" type="button" onclick="onCancelar();">Cancelar :(</button>
+							</div>
+							<div style=" text-align: center;margin-top: 8px; ">
+								<a href="/op/crafteo.php?modo_vista={$uid}"><button class="button entreno-button2" type="button">Ver Crafteos</button></a>
+							</div>
+						</div>
+						
+					</div>
+					</div>
+				</div>
+			</div>
+		 </div>
+	  </div>
+	<script>
+		function sleep (time) {
+		  return new Promise((resolve) => setTimeout(resolve, time));
+		}
+		
+		function onCancelar() {
+			$('#myGif').html('<img style="border: 2px solid black; " src="/images/op/uploads/CancelarCrafteo_One_Piece_Gaiden_Foro_Rol.gif" />');
+			sleep(200).then(() => {
+				var npcId = {$reclamar_npc_id_js};
+				if (confirm(`¿Estas seguro que quieres cancelar?`)) {
+					if (npcId && npcId !== "") {
+						$.post("/op/crafteo.php", { accion: 'cancelarNpc', npcId: npcId }, function( data ) { alert('¡Objeto cancelado :(!'); location.reload(); });
+					} else {
+						$.post("/op/crafteo.php", { accion: 'cancelar' }, function( data ) { alert('¡Objeto cancelado :(!'); location.reload(); });
+					}
+				} else {
+					$('#myGif').html('<img style="border: 2px solid black; " src="/images/op/uploads/CrafteoEnCurso_One_Piece_Gaiden_Foro_Rol.gif" />');
+				}
+			});
+			
+		}
+		
+		var end = new Date({$tiempo_left});
+
+		
+		var _second = 1000;
+		var _minute = _second * 60;
+		var _hour = _minute * 60;
+		var _day = _hour * 24;
+		var timer;
+		
+		let duracion = {$duracion};
+
+		function showRemaining() {
+			var now = new Date();
+			var distance = end - now;
+			let  end_now = (end - new Date()) / 1000; 
+			let percLeft = Math.floor(((duracion - end_now) / duracion) * 100);
+			
+			if (distance < 1000 && distance > 1) {
+				location.reload(true);
+				return;
+			}
+			if (distance < 0) {
+				clearInterval(timer);
+				document.getElementById('countdown').innerHTML = '0 dias, 0 horas, 0 minutos y 0 segundos';
+				return;
+			}
+			var days = Math.floor(distance / _day);
+			var hours = Math.floor((distance % _day) / _hour);
+			var minutes = Math.floor((distance % _hour) / _minute);
+			var seconds = Math.floor((distance % _minute) / _second);
+
+			document.getElementById('countdown').innerHTML = '';
+			document.getElementById('countdown').innerHTML += days + ' dias, ';
+			document.getElementById('countdown').innerHTML += hours + ' horas, ';
+			document.getElementById('countdown').innerHTML += minutes + ' minutos y ';
+			document.getElementById('countdown').innerHTML += seconds + ' segundos.';
+			
+			$('#percBarLeft').css('width', `calc(996px - ` + percLeft + `%)`);
+			$('#entreno-page').css('display', 'block');
+			
+			let luffyRunning = 945 - (945 * (percLeft / 100));
+			
+			$('#luffy-running').css('left', luffyRunning + `px`);
+			
+		}
+
+		timer = setInterval(showRemaining, 1000);
+		
+	</script>
+    {$reload_script}
+    {$footer}
+</body>
+
+</html>

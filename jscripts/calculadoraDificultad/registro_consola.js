@@ -8,6 +8,22 @@
   var registroNarradorTimers = {};
   var filtroEstadoRegistro = null;
   var filtroEstadoConsola  = null;
+  var filtroUidRegistro = null;
+  var filtroUidConsola  = null;
+
+  // Devuelve true si el uid dado coincide con el narrador o con algún jugador participante del item
+  function itemCoincideConUid(item, uid){
+    if (!uid) return true;
+    var narradorUid = (typeof item.narrador_uid==='number') ? item.narrador_uid : (parseInt(item.narrador_uid,10)||0);
+    if (narradorUid === uid) return true;
+    if (Array.isArray(item.jugadores)){
+      return item.jugadores.some(function(j){
+        var jugadorUid = (j && typeof j.uid !== 'undefined' && j.uid !== null) ? (parseInt(j.uid,10)||0) : 0;
+        return jugadorUid > 0 && jugadorUid === uid;
+      });
+    }
+    return false;
+  }
 
   // Catálogo de estados
   var STATUS_CATALOG = {
@@ -155,6 +171,23 @@
     var reg = document.getElementById('registroFilterBar'); if (reg && reg.dataset.filterReady!=='1'){ reg.dataset.filterReady='1'; reg.addEventListener('click', manejarClickFiltroEstados); }
     var con = document.getElementById('consolaFilterBar'); if (con && con.dataset.filterReady!=='1'){ con.dataset.filterReady='1'; con.addEventListener('click', manejarClickFiltroEstados); }
     actualizarBotonesFiltro('registro'); if (esStaffActual) actualizarBotonesFiltro('consola');
+
+    var regUidInput = document.getElementById('registroUidFiltro');
+    if (regUidInput && regUidInput.dataset.filterReady!=='1'){
+      regUidInput.dataset.filterReady='1';
+      regUidInput.addEventListener('input', function(){
+        filtroUidRegistro = parseInt(regUidInput.value,10) || null;
+        renderRegistroPeticiones(listadoPeticionesCache);
+      });
+    }
+    var conUidInput = document.getElementById('consolaUidFiltro');
+    if (conUidInput && conUidInput.dataset.filterReady!=='1'){
+      conUidInput.dataset.filterReady='1';
+      conUidInput.addEventListener('input', function(){
+        filtroUidConsola = parseInt(conUidInput.value,10) || null;
+        if (esStaffActual){ renderConsolaPeticiones(listadoPeticionesCache); }
+      });
+    }
   }
 
   // Acciones usuario (registro)
@@ -386,6 +419,7 @@
         else pasaFiltro = (clave===filtro);
       }
       if (!pasaFiltro) return;
+      if (!itemCoincideConUid(item, filtroUidRegistro)) return;
       if (OPG.shareId && item.id !== OPG.shareId) return;
 
       var cols = prepararColecciones(item);
@@ -480,6 +514,7 @@
       var info = obtenerInfoEstado((typeof item.status_code!=='undefined')?item.status_code:(item.status_key||item.status));
       var clave = info.key;
       if (filtro && clave!==filtro) return;
+      if (!itemCoincideConUid(item, filtroUidConsola)) return;
       var cols = prepararColecciones(item);
       var color = item.dificultad_color || '#ffffff';
       var ratio = (typeof item.ratio_poder==='number') ? item.ratio_poder.toFixed(2) : (parseFloat(item.ratio_poder)||0).toFixed(2);

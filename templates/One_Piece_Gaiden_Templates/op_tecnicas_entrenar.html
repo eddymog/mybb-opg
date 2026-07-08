@@ -1,0 +1,400 @@
+<html>
+	<head>
+		<style>	
+			.flex-container {
+				flex-wrap: wrap;
+				display: flex;
+				justify-content: center;
+			}	
+		</style>
+		<style>
+			.flex-container {
+				flex-wrap: wrap;
+				display: flex;
+				justify-content: center;
+			}
+
+			.bodycenter {
+				background-color: #292929;
+				margin: 0 auto;
+				min-height: 500px;
+			}
+
+			.bodydesc {
+				padding: 10px;
+				margin: 0 20px;
+				text-align: center;
+				color: white;
+			}
+
+ 			.tecnica_spoiler {
+				width: 95%;
+				margin: auto;
+				margin-bottom: 10px;
+				margin-top: 10px;
+			}
+
+	/*		.tecnica_spoiler_title {
+				padding: 10px;
+				cursor: pointer;
+				background-color: #125084;
+			}
+
+			.tecnica_spoiler_content {
+				padding: 20px;
+				text-align: left;
+				display: grid;
+				grid-template-columns: 3fr 2fr 3fr;
+				grid-template-rows: 20px 20px 20px 20px 1fr 20px 20px;
+				grid-row-gap: 5px;
+				background-color: #fff;
+				color: #0f1520;
+				border-radius: 0 0 3px 3px;
+				cursor: default;
+			} */
+		</style>		
+		<style>		
+.flex-container {
+    flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+}
+			
+			.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.texto-top {
+			text-align: center; font-family: InterRegular; color: white; text-shadow: 1px 1px 2px black; margin-top: 17px; margin-bottom: 3px; font-size: 20px;
+		}
+		
+		.entreno-button {
+			background-color: #d16f19 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button:hover {
+			background-color: #df7416 !important;
+		}
+	
+	
+</style>
+	    <style>
+
+    .flex-container {
+      flex-wrap: wrap;
+      display: flex;
+      justify-content: center;
+    }
+
+    .bodycenter {
+      margin: 0 auto;
+    }
+
+    .bodydesc {
+      margin: 0 20px;
+      text-align: center;
+      color: #060f82;
+    }
+
+  </style>	
+		<title>Entrenamientos</title>
+		{$headerinclude}
+	</head>
+
+	<body>
+		{$header}
+	  <div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<div style="margin-bottom: 10px;">
+						<img src="/images/op/uploads/AprendizajeDeTecnica_One_Piece_Gaiden_Foro_Rol.jpg" />
+					</div>
+					<div style="display: none"><form id="tecform" method="post" action="entrenamiento_tecnicas.php"><input type="text" id="tecid" name="tid" value="false"></form></div>
+					<div class="aviso_tecnicas" style=" text-align: center;font-size: 14px; "></div>
+					<div id="tecnicasEntrenar" style="width: 80%;margin: auto;margin-top: 10px;"></div>
+				</div>
+			</div>
+		 </div>
+	  </div>
+		
+		{$footer}
+	<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+	{$reload_script}
+	<script>		
+		
+		let tec_aprendidas_json = {$tec_aprendidas_json};
+		const pr = {$puntos_rol};
+		const tecs = {$tecs};
+		
+		// Spoilers HTML pregenerados desde PHP
+		const tecs_spoilers = {$tecs_spoilers_json_var};
+		
+		console.log(tecs);
+		console.log('Spoilers pregenerados:', tecs_spoilers);
+		if (!!tec_aprendidas_json['Combatiente']?.find(i => i.tid == 'DCO001') && tecs['Combatiente']) { tecs['Combatiente'] = tecs['Combatiente'].filter(i => i.tid != 'DCO002'); }
+		if (!!tec_aprendidas_json['Combatiente']?.find(i => i.tid == 'DCO002') && tecs['Combatiente']) { tecs['Combatiente'] = tecs['Combatiente'].filter(i => i.tid != 'DCO001'); }
+
+		if (!!tec_aprendidas_json['Espadachín']?.find(i => i.tid == 'DEP001') && tecs['Espadachín']) { tecs['Espadachín'] = tecs['Espadachín'].filter(i => i.tid != 'DEP002'); }
+		if (!!tec_aprendidas_json['Espadachín']?.find(i => i.tid == 'DEP002') && tecs['Espadachín']) { tecs['Espadachín'] = tecs['Espadachín'].filter(i => i.tid != 'DEP001'); }
+
+		if (!!tec_aprendidas_json['Guerrero']?.find(i => i.tid == 'DGU001') && tecs['Guerrero']) { tecs['Guerrero'] = tecs['Guerrero'].filter(i => i.tid != 'DGU002'); }
+		if (!!tec_aprendidas_json['Guerrero']?.find(i => i.tid == 'DGU002') && tecs['Guerrero']) { tecs['Guerrero'] = tecs['Guerrero'].filter(i => i.tid != 'DGU001'); }
+
+		if (!!tec_aprendidas_json['Tirador']?.find(i => i.tid == 'DTI001') && tecs['Tirador']) { tecs['Tirador'] = tecs['Tirador'].filter(i => i.tid != 'DTI002'); }
+		if (!!tec_aprendidas_json['Tirador']?.find(i => i.tid == 'DTI002') && tecs['Tirador']) { tecs['Tirador'] = tecs['Tirador'].filter(i => i.tid != 'DTI001'); }
+
+		if (!!tec_aprendidas_json['Arquero']?.find(i => i.tid == 'DAQ001') && tecs['Arquero']) { tecs['Arquero'] = tecs['Arquero'].filter(i => i.tid != 'DAQ002'); }
+		if (!!tec_aprendidas_json['Arquero']?.find(i => i.tid == 'DAQ002') && tecs['Arquero']) { tecs['Arquero'] = tecs['Arquero'].filter(i => i.tid != 'DAQ001'); }
+
+		if (!!tec_aprendidas_json['Artillero']?.find(i => i.tid == 'DAT001') && tecs['Artillero']) { tecs['Artillero'] = tecs['Artillero'].filter(i => i.tid != 'DAT002'); }
+		if (!!tec_aprendidas_json['Artillero']?.find(i => i.tid == 'DAT002') && tecs['Artillero']) { tecs['Artillero'] = tecs['Artillero'].filter(i => i.tid != 'DAT001'); }
+
+		if (!!tec_aprendidas_json['Tecnicista']?.find(i => i.tid == 'DTC001') && tecs['Tecnicista']) { tecs['Tecnicista'] = tecs['Tecnicista'].filter(i => i.tid != 'DTC002'); }
+		if (!!tec_aprendidas_json['Tecnicista']?.find(i => i.tid == 'DTC002') && tecs['Tecnicista']) { tecs['Tecnicista'] = tecs['Tecnicista'].filter(i => i.tid != 'DTC001'); }
+
+		if (!!tec_aprendidas_json['Pícaro']?.find(i => i.tid.trim() == 'DPI001') && tecs['Pícaro']) { tecs['Pícaro'] = tecs['Pícaro'].filter(i => i.tid.trim() != 'DPI002'); }
+		if (!!tec_aprendidas_json['Pícaro']?.find(i => i.tid.trim() == 'DPI002') && tecs['Pícaro']) { tecs['Pícaro'] = tecs['Pícaro'].filter(i => i.tid.trim() != 'DPI001'); }
+
+		if (!!tec_aprendidas_json['Artista']?.find(i => i.tid == 'DRT001') && tecs['Artista']) { tecs['Artista'] = tecs['Artista'].filter(i => i.tid != 'DRT002'); }
+		if (!!tec_aprendidas_json['Artista']?.find(i => i.tid == 'DRT002') && tecs['Artista']) { tecs['Artista'] = tecs['Artista'].filter(i => i.tid != 'DRT001'); }
+
+		if (!!tec_aprendidas_json['Escudero']?.find(i => i.tid == 'DEC001') && tecs['Escudero']) { tecs['Escudero'] = tecs['Escudero'].filter(i => i.tid != 'DEC002'); }
+		if (!!tec_aprendidas_json['Escudero']?.find(i => i.tid == 'DEC002') && tecs['Escudero']) { tecs['Escudero'] = tecs['Escudero'].filter(i => i.tid != 'DEC001'); }
+
+		if (!!tec_aprendidas_json['Asesino']?.find(i => i.tid == 'DAS001') && tecs['Asesino']) { tecs['Asesino'] = tecs['Asesino'].filter(i => i.tid != 'DAS002'); }
+		if (!!tec_aprendidas_json['Asesino']?.find(i => i.tid == 'DAS002') && tecs['Asesino']) { tecs['Asesino'] = tecs['Asesino'].filter(i => i.tid != 'DAS001'); }
+
+		if (!!tec_aprendidas_json['Artista Marcial']?.find(i => i.tid == 'DAM001') && tecs['Artista Marcial']) { tecs['Artista Marcial'] = tecs['Artista Marcial'].filter(i => i.tid != 'DAM002'); }
+		if (!!tec_aprendidas_json['Artista Marcial']?.find(i => i.tid == 'DAM002') && tecs['Artista Marcial']) { tecs['Artista Marcial'] = tecs['Artista Marcial'].filter(i => i.tid != 'DAM001'); }
+			
+		if (tecs['Combatiente']?.length == 0) { delete tecs['Combatiente']; }
+		if (tecs['Espadachín']?.length == 0) { delete tecs['Espadachín']; }
+		if (tecs['Guerrero']?.length == 0) { delete tecs['Guerrero']; }
+		if (tecs['Tirador']?.length == 0) { delete tecs['Tirador']; }
+		if (tecs['Arquero']?.length == 0) { delete tecs['Arquero']; }
+		if (tecs['Artillero']?.length == 0) { delete tecs['Artillero']; }
+		if (tecs['Tecnicista']?.length == 0) { delete tecs['Tecnicista']; }
+		if (tecs['Pícaro']?.length == 0) { delete tecs['Pícaro']; }
+		if (tecs['Artista']?.length == 0) { delete tecs['Artista']; }
+		if (tecs['Escudero']?.length == 0) { delete tecs['Escudero']; }
+		if (tecs['Asesino']?.length == 0) { delete tecs['Asesino']; }
+		if (tecs['Artista Marcial']?.length == 0) { delete tecs['Artista Marcial']; }
+			
+		let belicas = `{$belicas}`;
+		let espe1 = `{$espe1}`;
+		
+		function createSpoiler(spoilerId, title) {
+
+			const generalTecs = `
+				<div class="spoiler" style=" width: 100%; ">
+					<div class="spoiler_title">
+						<span class="spoiler_button" style="font-size: medium;" onclick="javascript: if(parentNode.parentNode.getElementsByTagName('div')[1].style.display == 'block'){ parentNode.parentNode.getElementsByTagName('div')[1].style.display = 'none'; this.innerHTML='` + title +`'; } else { parentNode.parentNode.getElementsByTagName('div')[1].style.display = 'block'; this.innerHTML='` + title +`'; }">` + title +`</span>
+					</div>
+					<div class="tecnica_spoiler_content" style="display: none;" align="center" id="` + spoilerId +`"></div>
+				</div>`;
+			
+			return generalTecs;
+		}
+		
+		function getRecursos(rango) {
+			const recursos = { 
+				coste: 0
+			};
+			
+			if (rango == '1') {
+				recursos.coste = '2';
+			} else if (rango == '2') {
+				recursos.coste = '6';
+			} else if (rango == '3') {
+				recursos.coste = '7'; 
+			} else if (rango == '4') {
+				recursos.coste = '8'; 
+			} else if (rango == '5') {
+				recursos.coste = '10';
+			} else if (rango == '6') {
+				recursos.coste = '15';
+			} else if (rango == '7') {
+				recursos.coste = '20';
+			} else if (rango == '8') {
+				recursos.coste = '30';
+			} else if (rango == '9') {
+				recursos.coste = '40';
+			} else if (rango == '10') {
+				recursos.coste = '50';
+			} 
+			return recursos;
+		}
+		
+		function getEntrenarButton(coste, tid) {
+			return `<input class="button" style="margin-bottom: 0px;" type="button" value="Aprender" class="trainButton" onclick="javascript: document.getElementById('tecid').value = '` + tid + `'; document.getElementById('tecform').submit();">`;
+		}
+		
+		function createTecnica(tecnica) {
+			const recursos = getRecursos(tecnica.rango);
+			const modoVista = '{$modo_vista}' == '1' ? true : false;		
+			
+			let requisitos = tecnica.requisitos ? (`<div class="tecnica_requisito">` + tecnica.requisitos + `</div>`) : ``;
+			
+		let tecnicaEnergia = '';
+		let tecnicaEnergiaTurno = '';
+		let tecnicaHaki = '';
+		let tecnicaHakiTurno = '';
+		let tecnicaEnfriamiento = '';
+	
+			if (tecnica.energia) {
+				tecnicaEnergia = `
+					<div style=" display: flex; flex-direction: row; " title="Costo de Energía">
+						<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.energia + `</div>
+						<img src="/images/op/uploads/Energia_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+					</div>`;
+			}
+
+			if (tecnica.energia_turno) {
+				tecnicaEnergiaTurno = `
+					<div style=" display: flex; flex-direction: row; " title="Costo de Energía por Turno">
+						<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.energia_turno + `</div>
+						<img src="/images/op/uploads/EnergiaPorTurno_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+					</div>`;
+			}
+
+			if (tecnica.haki) {
+				tecnicaHaki = `
+					<div style=" display: flex; flex-direction: row; " title="Costo de Haki">
+						<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #ffa100; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.haki + `</div>
+						<img src="/images/op/uploads/PuntosHaki_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía" /> 
+					</div>`;
+			}
+
+			if (tecnica.haki_turno) {
+				tecnicaHakiTurno = `
+					<div style=" display: flex; flex-direction: row; " title="Costo de Haki por Turno">
+						<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #21DEFF; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.haki_turno + `</div>
+						<img src="/images/op/uploads/PuntosHakiMantenido_One_Piece_Gaiden_Foro_Rol.png" style="height: 27px;margin-top: 5px;" alt="Costo de Energía por Turno" /> 
+					</div>`;
+			}
+
+		if (tecnica.enfriamiento) {
+			tecnicaEnfriamiento = `
+				<div style=" display: flex; flex-direction: row; " title="Enfriamiento">
+					<div style=" font-size: 26px; font-family: lemonMilkMedium; color: #D8EC13; -webkit-text-stroke-width: 1px; -webkit-text-stroke-color: black; text-shadow: 1px 1px 2px black; ">` + tecnica.enfriamiento + `</div>
+
+					<img src="/images/op/uploads/CD_One_Piece_Gaiden_Foro_Rol.png" style="height: 30px;margin-top: 4px;" alt="Enfriamiento" />
+				</div>`;
+		}			
+			
+			let generalTecs = `
+				<div class="tecnica_spoiler">
+					<div class="spoiler_title">
+						<span class="tecnica_spoiler_button" onclick="javascript: if(parentNode.parentNode.getElementsByTagName('div')[1].style.height == parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'){ parentNode.parentNode.getElementsByTagName('div')[1].style.height = '0px'; this.innerHTML='` + tecnica.nombre +`';parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden'; });} else { parentNode.parentNode.getElementsByTagName('div')[1].style.height = parentNode.parentNode.querySelector('.tecnica_spoiler_content2').offsetHeight + 'px'; this.innerHTML='` + tecnica.nombre +`'; parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'hidden';sleep(150).then(() => { parentNode.parentNode.querySelector('.tecnica_spoiler_content').style.overflow = 'visible'; });}">` + tecnica.nombre +`</span>
+					</div>
+
+				  <div class="tecnica_spoiler_content" style="height: 0px;">
+
+					<div class="tecnica_spoiler_content2" style='display: flex;flex-direction: row;'>
+
+						<div style="display: flex; flex-direction: column;width: 20%; margin-right: 26px;">
+							<div class="tecnica_field">` + tecnica.tid + `</div>
+							<div class="tecnica_field">` + tecnica.clase + `</div>
+							<div class="tecnica_field">` + tecnica.estilo + `</div>
+							<div class="tecnica_field">Tier ` + tecnica.tier + `</div>
+
+							<div style="display: flex;flex-direction: row;justify-content: space-around;margin-top: 7px;width: 160px;">
+								` + tecnicaEnergia + `
+								` + tecnicaEnergiaTurno + `
+								` + tecnicaHaki + `
+								` + tecnicaHakiTurno + `
+								` + tecnicaEnfriamiento + `
+							</div>
+
+						</div>
+
+						<div style="display: flex; flex-direction: column;width: 80%;">
+							` + requisitos + `
+							<div class="tecnica_descripcion">` + tecnica.descripcion + `</div>
+							<div class="tecnica_efecto">` + tecnica.efectos + `</div>
+							<br>
+							<div style="text-align: center;margin-left: -165px;">
+								` + (!modoVista ? getEntrenarButton(recursos.coste, tecnica.tid) : '') + `
+							<br></div>
+						</div>
+
+					</div>
+
+				  </div>
+				
+				</div>				
+			`;
+		
+			
+// 			<if $tecnica['requisitos'] != '' then><div class="tecnica_requisito">` + tecnica.requisitos + `</div></if>
+			return generalTecs;
+		}
+		
+		function createSpoilers(idName) {
+            /* $('#' + idName).append(createSpoiler(idName + 'E', 'Técnicas E')); */
+            /* $('#' + idName).append(createSpoiler(idName + 'D', 'Rango D'));
+            $('#' + idName).append(createSpoiler(idName + 'C', 'Rango C'));
+            $('#' + idName).append(createSpoiler(idName + 'B', 'Rango B'));
+            $('#' + idName).append(createSpoiler(idName + 'A', 'Rango A'));
+            $('#' + idName).append(createSpoiler(idName + 'APlus', 'Rango A+'));
+            $('#' + idName).append(createSpoiler(idName + 'S', 'Rango S'));
+            $('#' + idName).append(createSpoiler(idName + 'SPlus', 'Rango S+')); */
+        }
+
+        function removeSpoilers(idName) {
+            /* if ($('#' + idName + 'E')[0].children.length == 0) { $('#' + idName + 'E')[0].parentNode.remove(); }
+            if ($('#' + idName + 'D')[0].children.length == 0) { $('#' + idName + 'D')[0].parentNode.remove(); }
+            if ($('#' + idName + 'C')[0].children.length == 0) { $('#' + idName + 'C')[0].parentNode.remove(); }
+            if ($('#' + idName + 'B')[0].children.length == 0) { $('#' + idName + 'B')[0].parentNode.remove(); }
+            if ($('#' + idName + 'A')[0].children.length == 0) { $('#' + idName + 'A')[0].parentNode.remove(); }
+            if ($('#' + idName + 'APlus')[0].children.length == 0) { $('#' + idName + 'APlus')[0].parentNode.remove(); }
+            if ($('#' + idName + 'S')[0].children.length == 0) { $('#' + idName + 'S')[0].parentNode.remove(); }
+            if ($('#' + idName + 'SPlus')[0].children.length == 0) { $('#' + idName + 'SPlus')[0].parentNode.remove(); } */
+        }
+		
+		function appendTechniques(tecKey, idName) {
+            for (let i = 0; i < tecs[tecKey].length; i++) {
+                const tec = tecs[tecKey][i];
+                $('#' + idName).append(createTecnica(tec));
+            }
+			delete tecs[tecKey];
+        }
+		
+		function capitalizeOneWord(word) {
+			return word[0].toUpperCase() + word.slice(1);
+		}
+		
+		function capitalizeAllWords(words) {
+			return words.trim().split(" ").map((word) => { 
+				return word[0].toUpperCase() + word.substring(1); 
+			}).join(" ");
+		}
+		
+		if (tecs.length == 0) {
+			$('.aviso_tecnicas')[0].innerHTML = `
+				<div style=" font-family: moonGetHeavy; font-size: 27px; background-color: #ffedd2; padding: 23px; width: 358px; margin: auto; border-radius: 18px; color: black; border: 2px solid black; margin-bottom: 12px; ">Has aprendido todas las técnicas.</div>
+
+				<img style=" border: 3px solid black; " src="/images/op/uploads/TodoAprendido_One_Piece_Gaiden_Foro_Rol.gif" />
+			`;
+		} else {
+			let numeroDeTecs = 0;
+			for (const key in tecs) {
+			  numeroDeTecs += tecs[key].length;
+			}
+			$('.aviso_tecnicas')[0].innerHTML = `<div style="font-family: moonGetHeavy;font-size: 17px;background-color: #ffedd2;padding: 23px;width: 781px;margin: auto;border-radius: 18px;color: black;border: 2px solid black;margin-bottom: 12px;">{$nombrePersonaje}, tienes ` + numeroDeTecs + ` técnicas para entrenar en total. ¡Ánimo!</div>`;
+		}
+	
+		// Insertar los spoilers HTML pregenerados
+		for (const rama in tecs_spoilers) {
+			$('#tecnicasEntrenar').append(tecs_spoilers[rama]);
+		}
+		
+	</script>
+	</body>
+
+</html>

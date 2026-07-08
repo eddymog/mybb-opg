@@ -1,0 +1,1236 @@
+<html>
+
+<head>
+  <title>Tirada de Haki Rey</title>
+  {$headerinclude}
+  <style>
+      .akumaBanner {
+          width: 100%;
+          height: 75px;
+          background-image: url('/images/op/uploads/TituloHakiRey_One_Piece_Gaiden_Foro_Rol.png');
+          background-size: contain;
+          margin-bottom: 20px;
+      }
+      
+      .akumaTirBody {
+          display: flex;
+          flex-direction: row;
+          gap: 25px;
+      }
+
+      
+      .akumaTirIzquierda {
+          display: flex;
+          flex-direction: column;
+          width: 50%;
+            gap:25px;
+      }
+      
+      .akumaTirDerecha {
+          width: 50%;
+      }
+      
+      .testDraw {
+/* 		  background: linear-gradient(90deg, rgba(70,12,110,1) 0%, rgba(126,32,191,1) 50%, rgba(70,12,110,1) 100%);
+height: 5rem ; */
+          background: rgba(70,12,110,1);
+          margin-bottom: 25px;
+      }
+
+      .realDraw {
+/* 		  background: linear-gradient(90deg, rgba(57,56,56,1) 0%, rgba(101,102,102,1) 50%, rgba(57,56,56,1) 100%); */
+/* height: 5rem ; */
+/* 		  background: #71706f; */
+          background: #d26500;
+      }
+      
+      .blockedDraw {
+          background: #71706f;
+      }
+      
+      .realDraw:hover {
+          background: #ff9b00;
+      }
+      
+      .testDraw:hover {
+          background: rgba(126,32,191,1);	  
+      }
+      
+      .realDraw, .testDraw, .blockedDraw {
+          width: 450px;
+             height: 65px;
+          color: white;
+          font-size: 1.5rem;
+          text-align: center;
+          display: flex;
+          text-shadow: 2px 2px 0px black;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid black;
+          border-radius: 15px;
+          filter: drop-shadow(0px 0px 4px black);
+          transition: all 0.5s ease-out;
+          cursor: pointer;
+          font-family: 'moonGetHeavy';
+          letter-spacing: 2px;
+          margin-bottom: 15px;
+      }
+      
+      .imageBox {
+          height: 300px;
+          background-color: black;
+          border: 2px solid black;
+          width: 480px;
+          height: 270px;
+      }
+
+      .akumaTirTable {
+          height: 150px;
+          width: 490px;
+      }
+      
+      .tableHeader {
+          background-color: #8f59f7;
+          color: white;
+          text-align: center;
+          padding: 2px;
+          border: 2px solid black;
+          border-start-end-radius: 10px;
+            border-start-start-radius: 10px;
+          font-family: moonGetHeavy;
+          font-size: 16px;
+          letter-spacing: 2px;
+          text-shadow: 2px 2px 0px black;
+          position: relative;
+      }
+      
+      .tableContent {
+          display: flex;
+          gap:20px;
+          padding: 15px;
+          border-end-end-radius: 10px;
+          border-end-start-radius: 10px;
+          background-color: #d7b5ff;
+          border: 2px solid black;
+          border-top: 0px;
+      }
+      
+      .tableTotalTestDraw {
+            width: 175px;
+            height: 90px;
+            background-color: #8f59f7;
+            color: white;
+            border: 1px solid black;
+            box-sizing: border-box;
+         	padding: 6px;
+      }
+      
+      .tablerTierContent {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          width: 230px;
+      }
+      
+      .tierBox {
+          background-color:#8e59f7;
+          height: 40px;
+          width: 155px;
+          border: 1px solid black;
+          box-sizing: border-box;
+          padding: 2px;
+             color: white;
+      }
+      
+      .tierBoxText1 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .tierBoxText2 {
+          text-align: center;
+          font-family: moonGetHeavy;
+          letter-spacing: 1px;
+          text-shadow: 2px 2px 0px black;
+          font-size: 13px;
+      }
+      
+      .filterBox {
+          display:flex; 
+          flex-direction: column;
+      }
+      
+      .akumaTypeRow  {
+          display: flex;
+          flex-direction: row;
+          border: 2px solid black;
+          border-radius: 10px 10px 0px 0px;
+          cursor: pointer;
+          text-shadow: 2px 2px 0px black;
+      }
+      
+      .filterClass span {
+          font-weight: bolder;
+          color: white;
+          text-transform: uppercase;
+          display: inline-block;
+          padding: 5px 10px;
+          font-size: 14px;
+          font-family: 'moonGetHeavy';
+      }
+      
+      .categoriaBox {
+        flex: 1; /* Hace que cada caja ocupe el mismo espacio disponible */
+          border-right: 2px solid black; /* Solo para visualización */
+        text-align: center;
+        background-color: #ff7b00;
+      }
+      
+      .categoriaBox:last-child {
+          border: none;
+          border-radius: 0 10px 0 0; 
+      }
+      
+      .categoriaBox:first-child {
+            border-radius: 10px 0 0 0; 
+      }
+      
+      .categoriaBox:hover {
+          background-color: #dc822a;
+          cursor: pointer;
+      }
+      
+      .box-active {
+          background-color: #ffa600;
+      }
+      
+      .resultado-total {
+          color: red;
+      }
+      
+      .resultado-nombre {
+          width: 50%;
+          font-size: 12px;
+          font-family: 'moonGetHeavy';
+          color: black;
+          padding: 4px 7px;
+          box-sizing: border-box;
+      }
+      
+      .resultado-fruta {
+        width: 50%;
+        font-size: 12px;
+        font-family: 'moonGetHeavy';
+        color: #4b1aae;
+        padding: 4px 7px;
+        box-sizing: border-box;
+        text-shadow: 2px 2px 1px #f3ecff;
+        text-align: center;
+      }
+      
+      
+      .resultado-total:nth-child(odd) {
+        background: #ffe59b;
+      }
+
+      .resultado-total:nth-child(even) {
+        background: #ffeed2;
+      }
+      
+      .boton-estadistica {
+          display: inline;
+          position: absolute;
+          left: 464px;
+          top: 3px;
+          transition: all 0.2s ease-out;
+          cursor: pointer;
+      }
+      
+      .boton-estadistica:hover {
+          filter: saturate(1.5);
+          transform: 
+      }
+
+      /* ===== ESTILOS MODAL HAKI REY ===== */
+    #haki-rey-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .haki-rey-container {
+        text-align: center;
+        max-width: 90%;
+        max-height: 90%;
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    #haki-rey-animation-stage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    #haki-rey-effect-container {
+        width: 400px;
+        height: 400px;
+        margin: 0 auto;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .haki-rey-effect-image {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+        animation: hakiReyPulse 2s ease-in-out infinite;
+        /* Siempre mostrar el GIF de despertar inicialmente */
+        background-image: url('https://i.pinimg.com/originals/70/e3/0b/70e30b2a290d74a56dc08808cd2a3ebd.gif');
+    }
+
+    @keyframes hakiReyPulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+        }
+        50% { 
+            transform: scale(1.05);
+            box-shadow: 0 15px 60px rgba(207, 68, 255, 0.6);
+        }
+    }
+
+    #haki-rey-instruction {
+        color: #cf44ff;
+        margin-top: 30px;
+        font-size: 1.8em;
+        font-family: 'moonGetHeavy';
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        animation: pulseReyGlow 2s infinite;
+    }
+
+    @keyframes pulseReyGlow {
+        0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px #cf44ff; }
+        50% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px #cf44ff, 0 0 30px #cf44ff; }
+    }
+
+    .haki-rey-awakening {
+        animation: hakiReyAwakening 1s ease-in-out;
+    }
+
+    @keyframes hakiReyAwakening {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(-5deg); }
+        75% { transform: scale(1.1) rotate(5deg); }
+    }
+
+      #haki-rey-reward-display {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .haki-rey-reward-item {
+            background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 4px solid #cf44ff;
+            min-width: 500px;
+            animation: hakiReyRewardAppear 1.5s ease-out;
+            position: relative;
+        }
+
+        @keyframes hakiReyRewardAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.3) rotateY(180deg);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
+        }
+
+      .haki-rey-reward-image {
+          width: 200px;
+          height: 200px;
+          margin: 0 auto 20px;
+          border-radius: 50%;
+          border: 4px solid #cf44ff;
+          background-size: cover;
+          background-position: center;
+          box-shadow: 0 0 30px rgba(207, 68, 255, 0.5);
+          animation: hakiReyGlow 3s ease-in-out infinite;
+      }
+
+      @keyframes hakiReyGlow {
+          0%, 100% { 
+              box-shadow: 0 0 30px rgba(207, 68, 255, 0.5);
+              border-color: #cf44ff;
+          }
+          50% { 
+              box-shadow: 0 0 50px rgba(207, 68, 255, 0.8);
+              border-color: #ff44cf;
+          }
+      }
+
+      .haki-rey-reward-name {
+          font-size: 2.5em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 15px;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          letter-spacing: 2px;
+      }
+
+      .haki-rey-reward-subtitle {
+          font-size: 1.3em;
+          font-family: 'moonGetHeavy';
+          margin-bottom: 30px;
+          opacity: 0.9;
+      }
+
+      .haoshoku-success-theme {
+          background: linear-gradient(145deg, #2e1a2e, #4a1a4a);
+          color: #cf44ff;
+      }
+
+      .haoshoku-success-theme .haki-rey-reward-name {
+          color: #cf44ff;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(207, 68, 255, 0.5);
+      }
+
+      .haoshoku-failed-theme {
+          background: linear-gradient(145deg, #3a1a1a, #2d1a1a);
+          color: #888;
+      }
+
+      .haoshoku-failed-theme .haki-rey-reward-name {
+          color: #888;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .close-haki-rey-modal-btn {
+          background: linear-gradient(145deg, #cf44ff, #a035d1);
+          color: white;
+          border: none;
+          padding: 15px 30px;
+          border-radius: 10px;
+          font-size: 1.2em;
+          font-family: 'moonGetHeavy';
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          letter-spacing: 1px;
+      }
+
+      .close-haki-rey-modal-btn:hover {
+          background: linear-gradient(145deg, #a035d1, #7b298a);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Partículas de energía para Haki Rey */
+      .energy-rey-particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+      }
+
+      .energy-rey-particle {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: #cf44ff;
+          border-radius: 50%;
+          animation: energyReyFloat 4s linear infinite;
+      }
+
+      .energy-rey-particle:nth-child(2n) { background: #ff44cf; }
+      .energy-rey-particle:nth-child(3n) { background: #9f44ff; }
+      .energy-rey-particle:nth-child(4n) { background: #cf44aa; }
+
+      @keyframes energyReyFloat {
+          0% {
+              transform: translateY(100vh) scale(0) rotate(0deg);
+              opacity: 0;
+          }
+          10% {
+              opacity: 1;
+          }
+          90% {
+              opacity: 1;
+          }
+          100% {
+              transform: translateY(-10vh) scale(1) rotate(360deg);
+              opacity: 0;
+          }
+      }
+
+      /* Efecto de onda de choque para Haki Rey */
+      .shock-rey-wave {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 20px;
+          height: 20px;
+          border: 3px solid #cf44ff;
+          border-radius: 50%;
+          animation: shockReyWaveExpand 2s ease-out;
+          pointer-events: none;
+      }
+
+      @keyframes shockReyWaveExpand {
+          0% {
+              width: 20px;
+              height: 20px;
+              opacity: 1;
+              border-color: #cf44ff;
+          }
+          50% {
+              border-color: #ff44cf;
+          }
+          100% {
+              width: 800px;
+              height: 800px;
+              opacity: 0;
+              border-color: #9f44ff;
+          }
+      }
+
+      /* Efectos especiales para cuando se obtiene Haki Rey */
+      .haki-rey-explosion {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 0;
+          height: 0;
+          background: radial-gradient(circle, rgba(207,68,255,0.8) 0%, rgba(207,68,255,0) 70%);
+          border-radius: 50%;
+          animation: hakiReyExplosion 3s ease-out;
+      }
+
+      @keyframes hakiReyExplosion {
+          0% {
+              width: 0;
+              height: 0;
+              opacity: 1;
+          }
+          50% {
+              width: 600px;
+              height: 600px;
+              opacity: 0.8;
+          }
+          100% {
+              width: 1200px;
+              height: 1200px;
+              opacity: 0;
+          }
+      }
+
+      .lightning-effect {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+      }
+
+      .lightning-bolt {
+          position: absolute;
+          width: 3px;
+          background: linear-gradient(to bottom, #cf44ff, #ff44cf);
+          animation: lightningStrike 0.3s ease-out;
+          border-radius: 2px;
+          box-shadow: 0 0 10px #cf44ff;
+      }
+
+      @keyframes lightningStrike {
+          0% {
+              opacity: 0;
+              transform: scaleY(0);
+          }
+          50% {
+              opacity: 1;
+              transform: scaleY(1);
+          }
+          100% {
+              opacity: 0;
+              transform: scaleY(1);
+          }
+      }
+      
+    </style>
+</head>
+
+<body>
+  {$header}
+  
+  <!-- Modal de despertar de Haki Rey -->
+  <div id="haki-rey-modal">
+      <div class="haki-rey-container">
+          <div class="energy-rey-particles" id="energy-rey-particles"></div>
+          
+          <div id="haki-rey-animation-stage">
+              <div id="haki-rey-effect-container">
+                  <div class="haki-rey-effect-image" id="haki-rey-effect-image"></div>
+              </div>
+              <p id="haki-rey-instruction">¡Podrías ser el elegido!</p>
+          </div>
+          
+          <div id="haki-rey-reward-display">
+              <div class="haki-rey-reward-item" id="haki-rey-reward-item">
+                  <div class="haki-rey-reward-image" id="haki-rey-reward-image"></div>
+                  <div class="haki-rey-reward-name" id="haki-rey-reward-name">¡Haoshoku Haki!</div>
+                  <div class="haki-rey-reward-subtitle" id="haki-rey-reward-subtitle">¡Has despertado el poder de un Rey!</div>
+                  <button class="close-haki-rey-modal-btn" onclick="closeHakiReyModal()">¡Increíble!</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="indice">
+    <div class="mainBackground">
+        <div class="secondBackground">
+            <div class="thirdBackground">
+                <div class= "akumaBanner"></div>
+            <div class="akumaTirBody">
+                    
+                <div class ="akumaTirIzquierda">
+                    <div style=" margin: auto; ">
+                        <div onclick="tiradaAleatoria()" class="testDraw">
+                            <strong>TIRADA DE PRUEBA</strong>
+                        </div>
+                        
+                        <if $has_hao == false && $has_chance == true && $has_nivel == true then>
+                            <div onclick="tiradaReal()" class="realDraw">
+                                <strong>TIRADA DEFINITIVA</strong>
+                                <span style=" font-size: 13px; ">¡Una tirada, solo para valientes! ({$ficha['hao_chance']})</span>
+                            </div>
+                        </if>
+                        <if $has_hao == true then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA REALIZADA</strong>
+                                <span style=" font-size: 13px; ">Ya posees Haki del Rey</span>
+                            </div>
+                        </if>
+                        <if $has_hao == false && $has_chance == false then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA REALIZADA</strong>
+                                <span style=" font-size: 13px; ">No puedes despertar Haoshoku</span>
+                            </div>
+                        </if>
+                        
+                        <if $has_nivel == false && $has_chance == true then>
+                            <div class="blockedDraw">
+                                <strong>TIRADA BLOQUEADA</strong>
+                                <span style=" font-size: 13px; ">Debes ser nivel 8 para tirar</span>
+                            </div>
+                        </if>
+                    </div>
+                    <div style=" margin-top: -21px; ">
+                        <img class="imageBox" src="https://i.pinimg.com/originals/25/75/4a/25754aed084ab8dbaf8e82729c591c25.gif">
+                    </div>
+                </div>
+
+                <div class="akumaTirDerecha">
+                    <div class="akumaTirTable">
+                        <div class="tableHeader">
+                            <strong id="estadisticasTitulo">Estadísticas de Pruebas Globales</strong>
+                            <div onclick="cambiarEstadisticas()" class="boton-estadistica"><img src="/images/op/uploads/BotonEstadisticaGeneral_One_Piece_Gaiden_Foro_Rol.png"></div>
+                        </div>
+                        <div class="tableContent">
+                            <div class="tableTotalTestDraw" style=" width: 220px; ">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Tiradas de Prueba</div>
+                                <div id="tiradaTotal" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">157</div>
+                            </div>
+                            <div class="tableTotalTestDraw">
+                                <div style=" text-align: center; font-family: moonGetHeavy; letter-spacing: 1px; text-shadow: 2px 2px 0px black; font-size: 13px; ">Tiradas Definitivas</div>
+                                <div id="tiradaDefinitiva" style="text-align: center;font-family: moonGetHeavy;letter-spacing: 1px;text-shadow: 2px 2px 0px black;font-size: 30px;">155</div>
+                            </div>
+                            
+                            <div class="tablerTierContent">
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Éxito de Prueba</div>
+                                    <div id="tiradaFakeExito" class="tierBoxText2">157</div>
+                                </div>
+                                <div class="tierBox">
+                                    <div class="tierBoxText1">Éxito Definitiva</div>
+                                    <div id="tiradaRealExito" class="tierBoxText2">120</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <div class="filterBox" style=" margin-top: 20px; ">
+                        <div class="akumaTypeRow">
+                            <div id="resultado-real" onclick="toggleResultados('reales')" class="pestana-resultado categoriaBox filterClass">
+                                <span>Resultados Reales</span>
+                            </div>
+                            <div id="resultado-prueba" onclick="toggleResultados('prueba')" class="pestana-resultado categoriaBox filterClass box-active">
+                                <span>Resultados de Prueba</span>
+                            </div>
+                        </div>
+                        <div style=" border: 2px solid black; height: 241px; box-sizing: border-box; border-top: 0px;overflow: auto; ">
+                            <div id="reales" style="display: none; flex-direction: column;"></div>
+                            <div id="prueba" style="display: flex; flex-direction: column;"></div>
+                        </div>
+                    </div>
+                
+                </div>
+
+            </div>
+        </div>
+     </div>
+  </div>
+<script>
+    let has_full_haki = "{$has_full_haki}";
+    let has_clan_d = "{$has_clan_d}";
+    let my_chance = "{$my_chance}";
+    
+    let estadisticaGeneral = true;
+    
+    let tiradas_totales = '{$tiradas_totales}';
+    let tiradas_definitiva = '{$tiradas_definitiva}';
+    let tiradas_fake_exito = '{$tiradas_fake_exito}';
+    let tiradas_real_exito = '{$tiradas_real_exito}';
+    
+    let tiradas_totales_id = '{$tiradas_totales_id}';
+    let tiradas_definitiva_id = '{$tiradas_definitiva_id}';
+    let tiradas_fake_exito_id = '{$tiradas_fake_exito_id}';
+    let tiradas_real_exito_id = '{$tiradas_real_exito_id}';
+    
+    let tiradasAleatorias = {$tiradas_aleatorias_json};
+    let tiradasReales = {$tiradas_reales_json};
+
+    // Variables para el modal de Haki Rey
+    var currentHakiReyData = null;
+    var isHakiReyAwakening = false;
+    
+    for (let i = 0; i < tiradasAleatorias.length; i++) {
+        let nombre = tiradasAleatorias[i].nombre;
+        let haki = tiradasAleatorias[i].haki;
+        let timestamp = new Date(parseInt(tiradasAleatorias[i].timestamp) * 1000).toLocaleString('es-es');
+        
+        let hakiCompletoAleatorio = '';
+        if (haki == '1') { hakiCompletoAleatorio = '<span>¡OBTENIDO!</span>'; }
+        if (haki == '0') { hakiCompletoAleatorio = '<span>No Obtenido</span>'; }
+        
+        $('#prueba').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                <div class="resultado-fruta">Haoshoku Haki<br>` + hakiCompletoAleatorio + `</div>
+            </div>
+        `);
+    }
+    
+    for (let i = 0; i < tiradasReales.length; i++) {
+        let nombre = tiradasReales[i].nombre;
+        let haki = tiradasReales[i].haki;
+        let timestamp = new Date(parseInt(tiradasReales[i].timestamp) * 1000).toLocaleString('es-es');
+
+        let hakiCompletoReal = '';
+        if (haki == '1') { hakiCompletoReal = '<span>¡OBTENIDO!</span>'; }
+        if (haki == '0') { hakiCompletoReal = '<span>No Obtenido</span>'; }
+        
+        $('#reales').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre">` + nombre + ` <br>` + timestamp + `</div>
+                <div class="resultado-fruta">Haoshoku Haki<br>` + hakiCompletoReal + `</div>
+            </div>
+        `);
+    }
+    
+    $('#tiradaTotal').html(tiradas_totales);
+    $('#tiradaDefinitiva').html(tiradas_definitiva);
+    $('#tiradaFakeExito').html(tiradas_fake_exito);
+    $('#tiradaRealExito').html(tiradas_real_exito);
+
+    // ===== FUNCIONES DEL MODAL DE HAKI REY =====
+    
+    function getHakiReyGif(success) {
+        if (success) {
+            return 'https://i.pinimg.com/originals/20/c1/68/20c168b24e4712575740e66ea95a0603.gif';
+        } else {
+            return 'https://i.pinimg.com/originals/77/bc/23/77bc23639f69f148ab83aee024e6b5df.gif';
+        }
+    }
+
+    function getHakiReyTheme(success) {
+        return success ? 'haoshoku-success-theme' : 'haoshoku-failed-theme';
+    }
+
+    function openHakiReyModal(success, isReal = false) {
+        if (isHakiReyAwakening) return;
+        
+        currentHakiReyData = { success: success, isReal: isReal };
+        
+        // Configurar imagen inicial del despertar
+        var hakiReyImage = document.getElementById('haki-rey-effect-image');
+        if (hakiReyImage) {
+            hakiReyImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/70/e3/0b/70e30b2a290d74a56dc08808cd2a3ebd.gif)';
+        }
+        
+        // Mostrar modal
+        var modal = document.getElementById('haki-rey-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+        
+        // Crear partículas de energía para Haki Rey
+        createEnergyReyParticles();
+        
+        // Iniciar despertar del Haki Rey después de un breve delay
+        setTimeout(function() {
+            startHakiReyAwakening(success, isReal);
+        }, 2000);
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+
+    function startHakiReyAwakening(success, isReal) {
+        if (isHakiReyAwakening) return;
+        isHakiReyAwakening = true;
+        
+        var hakiReyContainer = document.getElementById('haki-rey-effect-container');
+        var instruction = document.getElementById('haki-rey-instruction');
+        
+        // Mantener el GIF de despertar durante la animación inicial
+        var hakiReyImage = document.getElementById('haki-rey-effect-image');
+        if (hakiReyImage) {
+            hakiReyImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/70/e3/0b/70e30b2a290d74a56dc08808cd2a3ebd.gif)';
+        }
+        
+        // Animación de despertar
+        if (hakiReyContainer) {
+            hakiReyContainer.classList.add('haki-rey-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡El destino ha decidido que...!';
+        }
+        
+        // Solo crear efectos especiales si se obtiene el Haki Rey
+        if (success) {
+            createShockReyWave();
+            createHakiReyExplosion();
+            createLightningEffects();
+        }
+        
+        setTimeout(function() {
+            // Cambiar al GIF específico del resultado
+            if (hakiReyImage) {
+                hakiReyImage.style.backgroundImage = 'url(' + getHakiReyGif(success) + ')';
+            }
+            
+            // Mostrar resultado
+            showHakiReyResult(success, isReal);
+        }, 2000);
+    }
+
+    function showHakiReyResult(success, isReal) {
+        var hakiReyStage = document.getElementById('haki-rey-animation-stage');
+        var rewardDisplay = document.getElementById('haki-rey-reward-display');
+        var rewardItem = document.getElementById('haki-rey-reward-item');
+        var rewardImage = document.getElementById('haki-rey-reward-image');
+        var rewardName = document.getElementById('haki-rey-reward-name');
+        var rewardSubtitle = document.getElementById('haki-rey-reward-subtitle');
+        
+        // Ocultar animación y mostrar resultado
+        if (hakiReyStage) {
+            hakiReyStage.style.display = 'none';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'block';
+        }
+        
+        // Configurar tema según el resultado
+        if (rewardItem) {
+            rewardItem.className = 'haki-rey-reward-item ' + getHakiReyTheme(success);
+        }
+        
+        // Configurar imagen del resultado
+        if (rewardImage) {
+            rewardImage.style.backgroundImage = 'url(' + getHakiReyGif(success) + ')';
+        }
+        
+        // Configurar textos según el resultado
+        if (rewardName && rewardSubtitle) {
+            if (success) {
+                rewardName.textContent = '¡Haoshoku Haki Obtenido!';
+                rewardSubtitle.textContent = isReal ? '¡Has despertado el poder de un Rey!' : '¡Eres 1 entre un millón!';
+                // Solo crear confeti si se obtiene el Haki Rey
+                createConfettiReyExplosion();
+            } else {
+                rewardName.textContent = 'No Obtenido';
+                rewardSubtitle.textContent = isReal ? 'El poder del Rey no despertó...' : 'Aun no es tu momento.';
+            }
+        }
+        
+        // Si es una tirada real, actualizar la lista de resultados
+        if (isReal) {
+            addToHakiReyResultsList(success);
+        }
+    }
+
+    function createEnergyReyParticles() {
+        var particlesContainer = document.getElementById('energy-rey-particles');
+        if (!particlesContainer) return;
+        
+        // Crear partículas constantemente mientras el modal esté abierto
+        var particleInterval = setInterval(function() {
+            var modal = document.getElementById('haki-rey-modal');
+            if (!modal || modal.style.display === 'none') {
+                clearInterval(particleInterval);
+                return;
+            }
+            
+            var particle = document.createElement('div');
+            particle.className = 'energy-rey-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            particle.style.animationDelay = Math.random() * 1 + 's';
+            
+            particlesContainer.appendChild(particle);
+            
+            // Remover partícula después de la animación
+            setTimeout(function() {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 6000);
+        }, 150);
+    }
+
+    function createShockReyWave() {
+        var container = document.getElementById('haki-rey-effect-container');
+        if (!container) return;
+        
+        var shockWave = document.createElement('div');
+        shockWave.className = 'shock-rey-wave';
+        container.appendChild(shockWave);
+        
+        // Remover la onda después de la animación
+        setTimeout(function() {
+            if (shockWave.parentNode) {
+                shockWave.parentNode.removeChild(shockWave);
+            }
+        }, 2000);
+    }
+
+    function createHakiReyExplosion() {
+        var container = document.getElementById('haki-rey-effect-container');
+        if (!container) return;
+        
+        var explosion = document.createElement('div');
+        explosion.className = 'haki-rey-explosion';
+        container.appendChild(explosion);
+        
+        // Remover la explosión después de la animación
+        setTimeout(function() {
+            if (explosion.parentNode) {
+                explosion.parentNode.removeChild(explosion);
+            }
+        }, 3000);
+    }
+
+    function createLightningEffects() {
+        var container = document.getElementById('haki-rey-effect-container');
+        if (!container) return;
+        
+        var lightningContainer = document.createElement('div');
+        lightningContainer.className = 'lightning-effect';
+        container.appendChild(lightningContainer);
+        
+        // Crear múltiples rayos
+        for (var i = 0; i < 8; i++) {
+            setTimeout(function() {
+                var lightning = document.createElement('div');
+                lightning.className = 'lightning-bolt';
+                lightning.style.left = Math.random() * 100 + '%';
+                lightning.style.height = Math.random() * 200 + 100 + 'px';
+                lightning.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                lightningContainer.appendChild(lightning);
+                
+                // Remover el rayo después de la animación
+                setTimeout(function() {
+                    if (lightning.parentNode) {
+                        lightning.parentNode.removeChild(lightning);
+                    }
+                }, 500);
+            }, i * 100);
+        }
+        
+        // Remover el contenedor de rayos
+        setTimeout(function() {
+            if (lightningContainer.parentNode) {
+                lightningContainer.parentNode.removeChild(lightningContainer);
+            }
+        }, 2000);
+    }
+
+    function createConfettiReyExplosion() {
+        var rewardDisplay = document.getElementById('haki-rey-reward-display');
+        if (!rewardDisplay) return;
+        
+        var colors = ['#cf44ff', '#ff44cf', '#9f44ff', '#cf44aa', '#ff66dd'];
+        
+        for (var i = 0; i < 40; i++) {
+            var confetti = document.createElement('div');
+            confetti.style.position = 'absolute';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = '50%';
+            confetti.style.left = Math.random() * 500 + 'px';
+            confetti.style.top = Math.random() * 300 + 'px';
+            confetti.style.animation = 'energyReyFloat 4s ease-out forwards';
+            confetti.style.boxShadow = '0 0 10px ' + colors[Math.floor(Math.random() * colors.length)];
+            
+            rewardDisplay.appendChild(confetti);
+            
+            // Limpiar confeti después de la animación
+            setTimeout(function() {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 4000);
+        }
+    }
+
+    function addToHakiReyResultsList(success) {
+        var timestamp = new Date().toLocaleString('es-es');
+        var resultado = success ? '<span>¡OBTENIDO!</span>' : '<span>No Obtenido</span>';
+        
+        var newResult = '<div class="resultado-total" style="display: flex; flex-direction: row;"><div class="resultado-nombre">Usuario <br>' + timestamp + '</div><div class="resultado-fruta">Haoshoku Haki<br>' + resultado + '</div></div>';
+        
+        var realesDiv = document.getElementById('reales');
+        if (realesDiv) {
+            realesDiv.innerHTML = newResult + realesDiv.innerHTML;
+            
+            // Mantener solo los últimos 20 resultados
+            var results = realesDiv.querySelectorAll('.resultado-total');
+            if (results.length > 20) {
+                realesDiv.removeChild(results[results.length - 1]);
+            }
+        }
+    }
+
+    function closeHakiReyModal() {
+        var modal = document.getElementById('haki-rey-modal');
+        var hakiReyStage = document.getElementById('haki-rey-animation-stage');
+        var rewardDisplay = document.getElementById('haki-rey-reward-display');
+        var hakiReyContainer = document.getElementById('haki-rey-effect-container');
+        var instruction = document.getElementById('haki-rey-instruction');
+        var particlesContainer = document.getElementById('energy-rey-particles');
+        var hakiReyImage = document.getElementById('haki-rey-effect-image');
+        
+        // Ocultar modal
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Resetear estado del modal
+        if (hakiReyStage) {
+            hakiReyStage.style.display = 'block';
+        }
+        if (rewardDisplay) {
+            rewardDisplay.style.display = 'none';
+        }
+        if (hakiReyContainer) {
+            hakiReyContainer.classList.remove('haki-rey-awakening');
+        }
+        if (instruction) {
+            instruction.textContent = '¡Tu Haki del Rey está despertando!';
+        }
+        // Resetear al GIF de despertar por defecto
+        if (hakiReyImage) {
+            hakiReyImage.style.backgroundImage = 'url(https://i.pinimg.com/originals/70/e3/0b/70e30b2a290d74a56dc08808cd2a3ebd.gif)';
+        }
+        
+        // Limpiar partículas
+        if (particlesContainer) {
+            particlesContainer.innerHTML = '';
+        }
+        
+        // Resetear variables
+        currentHakiReyData = null;
+        isHakiReyAwakening = false;
+        
+        // Restaurar scroll del body
+        document.body.style.overflow = '';
+        
+		window.location.reload();
+//         // Si fue una tirada real, recargar la página
+//         if (currentHakiReyData && currentHakiReyData.isReal) {
+            
+//         }
+    }
+    
+    function cambiarEstadisticas() {
+    
+        if (estadisticaGeneral) {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Personales');
+            $('#tiradaTotal').html(tiradas_totales_id);
+            $('#tiradaDefinitiva').html(tiradas_definitiva_id);
+            $('#tiradaFakeExito').html(tiradas_fake_exito_id);
+            $('#tiradaRealExito').html(tiradas_real_exito_id);
+            estadisticaGeneral = false;
+        } else {
+            $('#estadisticasTitulo').text('Estadísticas de Pruebas Globales');
+            $('#tiradaTotal').html(tiradas_totales);
+            $('#tiradaDefinitiva').html(tiradas_definitiva);
+            $('#tiradaFakeExito').html(tiradas_fake_exito);
+            $('#tiradaRealExito').html(tiradas_real_exito);
+            estadisticaGeneral = true;
+        }
+        
+    }
+    
+    function toggleResultados(resultado) {
+        $('.pestana-resultado').removeClass('box-active');
+        
+        if (resultado == 'reales') {
+            $('#reales').css('display', 'flex');
+            $('#prueba').css('display', 'none');
+            $('#resultado-real').addClass('box-active');
+        }
+        
+        if (resultado == 'prueba') {
+            $('#reales').css('display', 'none');
+            $('#prueba').css('display', 'flex');
+            $('#resultado-prueba').addClass('box-active');
+        }
+    }
+
+    <if $has_hao == false && $has_chance == true then>
+    function tiradaReal() {
+        if (confirm(`¡Has lanzado una tirada de despertar de Haki del Rey para tu personaje! Esta tirada es real y definitiva, y se actualizará tu ficha una vez se lance el resultado final. ¿Aceptas esta tirada?`)) {
+            if (confirm(`¿De verdad? ¿Sin arrepentimientos? Recuerda que esta tirada es irrevocable.`)) {
+                $.post("/opg/tirada_rey.php", { tirada_real: 'true' }, function( data ) {
+                    let success = data[0].haki == '1';
+                    
+                    // Mostrar modal con el resultado
+                    openHakiReyModal(success, true);
+                    
+                    // Actualizar estadísticas locales
+                    tiradas_totales = parseInt(tiradas_totales) + 1;
+                    tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+                    tiradas_definitiva = parseInt(tiradas_definitiva) + 1;
+                    tiradas_definitiva_id = parseInt(tiradas_definitiva_id) + 1;
+                    
+                    if (success) {
+                        tiradas_real_exito = parseInt(tiradas_real_exito) + 1;
+                        tiradas_real_exito_id = parseInt(tiradas_real_exito_id) + 1;
+                    }
+                    
+                    // Actualizar display si está en modo general
+                    if (estadisticaGeneral) {
+                        $('#tiradaTotal').text(tiradas_totales);
+                        $('#tiradaDefinitiva').text(tiradas_definitiva);
+                        if (success) $('#tiradaRealExito').text(tiradas_real_exito);
+                    }
+					
+                }); 
+				
+				
+            }
+        }
+    }	  
+    </if>
+    
+    function tiradaAleatoria() {
+        $.post("/opg/tirada_rey.php", { tirada_aleatoria: 'true' }, function( data ) { 
+            console.log(data);
+            let success = data[0].haki == '1';
+            
+            // Mostrar modal con el resultado de prueba
+            openHakiReyModal(success, false);
+            
+            tiradas_totales = parseInt(tiradas_totales) + 1;
+            tiradas_totales_id = parseInt(tiradas_totales_id) + 1;
+            
+            if (success) { 
+                tiradas_fake_exito = parseInt(tiradas_fake_exito) + 1; 
+                tiradas_fake_exito_id = parseInt(tiradas_fake_exito_id) + 1; 
+            }
+            
+            $('#tiradaTotal').text(
+                parseInt($('#tiradaTotal').text()) + 1
+            );
+            
+            if (success) {
+                $('#tiradaFakeExito').text(
+                    parseInt($('#tiradaFakeExito').text()) + 1
+                );
+            }
+
+            let timestamp = new Date(parseInt(data[0].timestamp) * 1000).toLocaleString('es-es');
+            let resultado = success ? '<span>¡OBTENIDO!</span>' : '<span>No Obtenido</span>';
+            
+            $('#prueba').prepend(`
+                <div class="resultado-total" style="display: flex; flex-direction: row;">
+                    <div class="resultado-nombre">` + data[0].nombre + ` <br>` + timestamp + `</div>
+                    <div class="resultado-fruta">Haoshoku Haki<br>` + resultado + `</div>
+                </div>
+            `);
+            $('#prueba').children().last().remove();
+      }); 
+    }
+
+    // Cerrar modal con la tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var hakiReyModal = document.getElementById('haki-rey-modal');
+            if (hakiReyModal && hakiReyModal.style.display === 'flex') {
+                closeHakiReyModal();
+            }
+        }
+    });
+
+    // Cerrar modal al hacer click fuera
+    document.getElementById('haki-rey-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeHakiReyModal();
+        }
+    });
+</script>
+{$footer}
+</body>
+</html>

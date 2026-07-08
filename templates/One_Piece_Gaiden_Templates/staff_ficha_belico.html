@@ -1,0 +1,483 @@
+		 
+<style>
+.form-table, .res-table { 
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  table-layout: auto;
+}
+
+.form-table td {
+  width: 33%;
+  padding: 6px;
+  vertical-align: top;
+  border: none;
+}
+
+.res-table td {
+  width: 24.75%;
+  padding: 6px;
+  vertical-align: top;
+  border: none;
+}
+
+.textbox, select, button {
+  width: 100% !important;
+  box-sizing: border-box;
+  max-height: 600px;
+}
+
+.fondo-blanco {
+  width: 100%;
+  display: block;
+}  
+
+.section-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: #000;
+    margin: 10px 0 0px 0;        
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
+<div class="section-title">Disciplinas Bélicas</div>
+<table class="form-table">
+	<tr>
+		<td>
+			Disciplina 1: <br>
+			<select name="belica1" id="belica1">
+				<option value="Escudero" <if $ficha['belica1'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica1'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica1'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica1'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica1'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica1'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica1'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica1'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica1'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica1'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica1'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica1'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 2: <br>
+			<select name="belica2" id="belica2">
+				<option value="" <if $ficha['belica2'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica2'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica2'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica2'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica2'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica2'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica2'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica2'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica2'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica2'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica2'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica2'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica2'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 3: <br>
+			<select name="belica3" id="belica3">
+				<option value="" <if $ficha['belica3'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica3'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica3'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica3'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica3'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica3'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica3'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica3'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica3'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica3'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica3'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica3'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica3'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Disciplina 4: <br>
+		    <select name="belica4" id="belica4">
+			  	<option value="" <if $ficha['belica4'] == '' then>selected</if>>Sin Disciplina</option>
+			  	<option value="Escudero" <if $ficha['belica4'] == 'Escudero' then>selected</if>>Escudero</option>
+			  	<option value="Artista Marcial" <if $ficha['belica4'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+			  	<option value="Combatiente" <if $ficha['belica4'] == 'Combatiente' then>selected</if>>Combatiente</option>
+			  	<option value="Artista" <if $ficha['belica4'] == 'Artista' then>selected</if>>Artista</option>
+			  	<option value="Asesino" <if $ficha['belica4'] == 'Asesino' then>selected</if>>Asesino</option>
+			  	<option value="Guerrero" <if $ficha['belica4'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica4'] == 'Espadachín' then>selected</if>>Espadachín</option>
+			  	<option value="Tecnicista" <if $ficha['belica4'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+			  	<option value="Artillero" <if $ficha['belica4'] == 'Artillero' then>selected</if>>Artillero</option>
+			  	<option value="Arquero" <if $ficha['belica4'] == 'Arquero' then>selected</if>>Arquero</option>
+			  	<option value="Tirador" <if $ficha['belica4'] == 'Tirador' then>selected</if>>Tirador</option>
+			  	<option value="Pícaro" <if $ficha['belica4'] == 'Pícaro' then>selected</if>>Pícaro</option>
+		  </select>
+		</td>
+		<td>
+			Disciplina 5: <br>
+		    <select name="belica5" id="belica5">
+			  	<option value="" <if $ficha['belica5'] == '' then>selected</if>>Sin Disciplina</option>
+			  	<option value="Escudero" <if $ficha['belica5'] == 'Escudero' then>selected</if>>Escudero</option>
+			  	<option value="Artista Marcial" <if $ficha['belica5'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+			  	<option value="Combatiente" <if $ficha['belica5'] == 'Combatiente' then>selected</if>>Combatiente</option>
+			  	<option value="Artista" <if $ficha['belica5'] == 'Artista' then>selected</if>>Artista</option>
+			  	<option value="Asesino" <if $ficha['belica5'] == 'Asesino' then>selected</if>>Asesino</option>
+			  	<option value="Guerrero" <if $ficha['belica5'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica5'] == 'Espadachín' then>selected</if>>Espadachín</option>
+			  	<option value="Tecnicista" <if $ficha['belica5'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+			  	<option value="Artillero" <if $ficha['belica5'] == 'Artillero' then>selected</if>>Artillero</option>
+			  	<option value="Arquero" <if $ficha['belica5'] == 'Arquero' then>selected</if>>Arquero</option>
+			  	<option value="Tirador" <if $ficha['belica5'] == 'Tirador' then>selected</if>>Tirador</option>
+			  	<option value="Pícaro" <if $ficha['belica5'] == 'Pícaro' then>selected</if>>Pícaro</option>
+		  </select>
+		</td>
+		<td>
+			Disciplina 6: <br>
+		    <select name="belica6" id="belica6">
+			  	<option value="" <if $ficha['belica6'] == '' then>selected</if>>Sin Disciplina</option>
+			  	<option value="Escudero" <if $ficha['belica6'] == 'Escudero' then>selected</if>>Escudero</option>
+			  	<option value="Artista Marcial" <if $ficha['belica6'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+			  	<option value="Combatiente" <if $ficha['belica6'] == 'Combatiente' then>selected</if>>Combatiente</option>
+			  	<option value="Artista" <if $ficha['belica6'] == 'Artista' then>selected</if>>Artista</option>
+			  	<option value="Asesino" <if $ficha['belica6'] == 'Asesino' then>selected</if>>Asesino</option>
+			  	<option value="Guerrero" <if $ficha['belica6'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica6'] == 'Espadachín' then>selected</if>>Espadachín</option>
+			  	<option value="Tecnicista" <if $ficha['belica6'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+			  	<option value="Artillero" <if $ficha['belica6'] == 'Artillero' then>selected</if>>Artillero</option>
+			  	<option value="Arquero" <if $ficha['belica6'] == 'Arquero' then>selected</if>>Arquero</option>
+			  	<option value="Tirador" <if $ficha['belica6'] == 'Tirador' then>selected</if>>Tirador</option>
+			  	<option value="Pícaro" <if $ficha['belica6'] == 'Pícaro' then>selected</if>>Pícaro</option>
+		  </select>
+		</td>
+	</tr>	
+	<tr>	
+		<td>
+			Disciplina 7: <br>
+			<select name="belica7" id="belica7">
+				<option value="" <if $ficha['belica7'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica7'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica7'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica7'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica7'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica7'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica7'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica7'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica7'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica7'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica7'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica7'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica7'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 8: <br>
+			<select name="belica8" id="belica8">
+				<option value="" <if $ficha['belica8'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica8'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica8'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica8'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica8'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica8'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica8'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica8'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica8'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica8'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica8'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica8'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica8'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 9: <br>
+			<select name="belica9" id="belica9">
+				<option value="" <if $ficha['belica9'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica9'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica9'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica9'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica9'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica9'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica9'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica9'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica9'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica9'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica9'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica9'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica9'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>				
+	</tr>
+	<tr>	
+		<td>
+			Disciplina 10: <br>
+			<select name="belica10" id="belica10">
+				<option value="" <if $ficha['belica10'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica10'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica10'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica10'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica10'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica10'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica10'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica10'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica10'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica10'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica10'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica10'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica10'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 11: <br>
+			<select name="belica11" id="belica11">
+				<option value="" <if $ficha['belica11'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica11'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica11'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica11'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica11'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica11'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica11'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica11'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica11'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica11'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica11'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica11'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica11'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>
+		<td>
+			Disciplina 12: <br>
+			<select name="belica12" id="belica12">
+				<option value="" <if $ficha['belica12'] == '' then>selected</if>>Sin Disciplina</option>
+				<option value="Escudero" <if $ficha['belica12'] == 'Escudero' then>selected</if>>Escudero</option>
+				<option value="Artista Marcial" <if $ficha['belica12'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
+				<option value="Combatiente" <if $ficha['belica12'] == 'Combatiente' then>selected</if>>Combatiente</option>
+				<option value="Artista" <if $ficha['belica12'] == 'Artista' then>selected</if>>Artista</option>
+				<option value="Asesino" <if $ficha['belica12'] == 'Asesino' then>selected</if>>Asesino</option>
+				<option value="Guerrero" <if $ficha['belica12'] == 'Guerrero' then>selected</if>>Guerrero</option>
+				<option value="Espadachín" <if $ficha['belica12'] == 'Espadachín' then>selected</if>>Espadachín</option>
+				<option value="Tecnicista" <if $ficha['belica12'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
+				<option value="Artillero" <if $ficha['belica12'] == 'Artillero' then>selected</if>>Artillero</option>
+				<option value="Arquero" <if $ficha['belica12'] == 'Arquero' then>selected</if>>Arquero</option>
+				<option value="Tirador" <if $ficha['belica12'] == 'Tirador' then>selected</if>>Tirador</option>
+				<option value="Pícaro" <if $ficha['belica12'] == 'Pícaro' then>selected</if>>Pícaro</option>
+			</select>
+		</td>				
+	</tr>	
+</table>
+<div class="section-title">Estilos</div>
+<table class="form-table">
+	<tr>
+		<td>
+			Estilo 1: <br>
+		  	<select name="estilo1" id="estilo1">
+			  	<option value="bloqueado" <if $ficha['estilo1'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+			  	<option value="no_bloqueado" <if $ficha['estilo1'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+			  	<option value="Gunkata" <if $ficha['estilo1'] == 'Gunkata' then>selected</if>>Gunkata</option>
+			  	<option value="Hasshoken" <if $ficha['estilo1'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+			  	<option value="Santoryu" <if $ficha['estilo1'] == 'Santoryu' then>selected</if>>Santoryu</option>
+			  	<option value="Kuroashi" <if $ficha['estilo1'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+			  	<option value="Gyojin Karate" <if $ficha['estilo1'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+			  	<option value="Gyojin Jujutsu" <if $ficha['estilo1'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+			  	<option value="Okama Kempo" <if $ficha['estilo1'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+			  	<option value="Sora Yokujin" <if $ficha['estilo1'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+			  	<option value="Rokushiki" <if $ficha['estilo1'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+			  	<option value="Ninjutsu" <if $ficha['estilo1'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+			  	<option value="Ryusoken" <if $ficha['estilo1'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+			  	<option value="Jiyuumura Kempo" <if $ficha['estilo1'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+			  	<option value="Clima Tact" <if $ficha['estilo1'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+			  	<option value="Pop Green" <if $ficha['estilo1'] == 'Pop Green' then>selected</if>>Pop Green</option>
+			  	<option value="Hakai Shin" <if $ficha['estilo1'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+			  	<option value="Funekiri" <if $ficha['estilo1'] == 'Funekiri' then>selected</if>>Funekiri</option>
+			  	<option value="Railgun Style" <if $ficha['estilo1'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+			  	<option value="Gyojin Bukijutsu" <if $ficha['estilo1'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+			  	<option value="Shuron Hakke" <if $ficha['estilo1'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+			  	<option value="Raqisat Alsahra" <if $ficha['estilo1'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+		      	<option value="Breeskjold" <if $ficha['estilo1'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+			  	<option value="Impacto Explosivo" <if $ficha['estilo1'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+			  	<option value="Royal Guard" <if $ficha['estilo1'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+			  	<option value="Shikaku Teikoku" <if $ficha['estilo1'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+			  	<option value="Duelliste de Givre" <if $ficha['estilo1'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+			  	<option value="Filo Della Vita" <if $ficha['estilo1'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+			  	<option value="Havets Symfoni" <if $ficha['estilo1'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+			  	<option value="Bakudai Karin" <if $ficha['estilo1'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+			  	<option value="Yama Kurai" <if $ficha['estilo1'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+			  	<option value="Shiseiju" <if $ficha['estilo1'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+			  	<option value="Sea Corsair" <if $ficha['estilo1'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+			  	<option value="Wano Nitoryu" <if $ficha['estilo1'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+			  	<option value="Mano de Tahur" <if $ficha['estilo1'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+			  	<option value="Kokudan" <if $ficha['estilo1'] == 'Kokudan' then>selected</if>>Kokudan</option>
+			  	<option value="Kodai no Bushido" <if $ficha['estilo1'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+		      	<option value="Ittoryu Sekai" <if $ficha['estilo1'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+			  	<option value="Global Performer" <if $ficha['estilo1'] == 'Global Performer' then>selected</if>>Global Performer</option>
+			  	<option value="Ashigara Dokoi" <if $ficha['estilo1'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+			 	<option value="Cavalry Warrior" <if $ficha['estilo1'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+			  	<option value="Kanpo Kenpo" <if $ficha['estilo1'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+			  	<option value="Estilo Único" <if $ficha['estilo1'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+			  	<option value="Akuma5" <if $ficha['estilo1'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+			  	<option value="Akuma6" <if $ficha['estilo1'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+		  	</select>			
+		</td>
+		<td>
+			Estilo 2: <br>
+		  	<select name="estilo2" id="estilo2">
+			  	<option value="bloqueado" <if $ficha['estilo2'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+			  	<option value="no_bloqueado" <if $ficha['estilo2'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+			  	<option value="Gunkata" <if $ficha['estilo2'] == 'Gunkata' then>selected</if>>Gunkata</option>
+			  	<option value="Hasshoken" <if $ficha['estilo2'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+			  	<option value="Santoryu" <if $ficha['estilo2'] == 'Santoryu' then>selected</if>>Santoryu</option>
+			  	<option value="Kuroashi" <if $ficha['estilo2'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+			  	<option value="Gyojin Karate" <if $ficha['estilo2'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+			  	<option value="Gyojin Jujutsu" <if $ficha['estilo2'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+			  	<option value="Okama Kempo" <if $ficha['estilo2'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+			  	<option value="Sora Yokujin" <if $ficha['estilo2'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+			  	<option value="Rokushiki" <if $ficha['estilo2'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+			  	<option value="Ninjutsu" <if $ficha['estilo2'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+			  	<option value="Ryusoken" <if $ficha['estilo2'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+			  	<option value="Jiyuumura Kempo" <if $ficha['estilo2'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+			  	<option value="Clima Tact" <if $ficha['estilo2'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+			  	<option value="Pop Green" <if $ficha['estilo2'] == 'Pop Green' then>selected</if>>Pop Green</option>
+			  	<option value="Hakai Shin" <if $ficha['estilo2'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+			  	<option value="Funekiri" <if $ficha['estilo2'] == 'Funekiri' then>selected</if>>Funekiri</option>
+			  	<option value="Railgun Style" <if $ficha['estilo2'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+			  	<option value="Gyojin Bukijutsu" <if $ficha['estilo2'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+			  	<option value="Shuron Hakke" <if $ficha['estilo2'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+			  	<option value="Raqisat Alsahra" <if $ficha['estilo2'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+		      	<option value="Breeskjold" <if $ficha['estilo2'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+			  	<option value="Impacto Explosivo" <if $ficha['estilo2'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+			  	<option value="Royal Guard" <if $ficha['estilo2'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+			  	<option value="Shikaku Teikoku" <if $ficha['estilo2'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+			  	<option value="Duelliste de Givre" <if $ficha['estilo2'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+			  	<option value="Filo Della Vita" <if $ficha['estilo2'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+			  	<option value="Havets Symfoni" <if $ficha['estilo2'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+			  	<option value="Bakudai Karin" <if $ficha['estilo2'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+			  	<option value="Yama Kurai" <if $ficha['estilo2'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+			  	<option value="Shiseiju" <if $ficha['estilo2'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+			  	<option value="Sea Corsair" <if $ficha['estilo2'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+			  	<option value="Wano Nitoryu" <if $ficha['estilo2'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+			  	<option value="Mano de Tahur" <if $ficha['estilo2'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+			  	<option value="Kokudan" <if $ficha['estilo2'] == 'Kokudan' then>selected</if>>Kokudan</option>
+			  	<option value="Kodai no Bushido" <if $ficha['estilo2'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+		      	<option value="Ittoryu Sekai" <if $ficha['estilo2'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+			  	<option value="Global Performer" <if $ficha['estilo2'] == 'Global Performer' then>selected</if>>Global Performer</option>
+			  	<option value="Ashigara Dokoi" <if $ficha['estilo2'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+			 	<option value="Cavalry Warrior" <if $ficha['estilo2'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+			  	<option value="Kanpo Kenpo" <if $ficha['estilo2'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+			  	<option value="Estilo Único" <if $ficha['estilo2'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+			  	<option value="Akuma5" <if $ficha['estilo2'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+			  	<option value="Akuma6" <if $ficha['estilo2'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+		  	</select>			
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Estilo 3: <br>
+		  	<select name="estilo3" id="estilo3">
+			  	<option value="bloqueado" <if $ficha['estilo3'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+			  	<option value="no_bloqueado" <if $ficha['estilo3'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+			  	<option value="Gunkata" <if $ficha['estilo3'] == 'Gunkata' then>selected</if>>Gunkata</option>
+			  	<option value="Hasshoken" <if $ficha['estilo3'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+			  	<option value="Santoryu" <if $ficha['estilo3'] == 'Santoryu' then>selected</if>>Santoryu</option>
+			  	<option value="Kuroashi" <if $ficha['estilo3'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+			  	<option value="Gyojin Karate" <if $ficha['estilo3'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+			  	<option value="Gyojin Jujutsu" <if $ficha['estilo3'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+			  	<option value="Okama Kempo" <if $ficha['estilo3'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+			  	<option value="Sora Yokujin" <if $ficha['estilo3'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+			  	<option value="Rokushiki" <if $ficha['estilo3'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+			  	<option value="Ninjutsu" <if $ficha['estilo3'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+			  	<option value="Ryusoken" <if $ficha['estilo3'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+			  	<option value="Jiyuumura Kempo" <if $ficha['estilo3'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+			  	<option value="Clima Tact" <if $ficha['estilo3'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+			  	<option value="Pop Green" <if $ficha['estilo3'] == 'Pop Green' then>selected</if>>Pop Green</option>
+			  	<option value="Hakai Shin" <if $ficha['estilo3'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+			  	<option value="Funekiri" <if $ficha['estilo3'] == 'Funekiri' then>selected</if>>Funekiri</option>
+			  	<option value="Railgun Style" <if $ficha['estilo3'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+			  	<option value="Gyojin Bukijutsu" <if $ficha['estilo3'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+			  	<option value="Shuron Hakke" <if $ficha['estilo3'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+			  	<option value="Raqisat Alsahra" <if $ficha['estilo3'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+		      	<option value="Breeskjold" <if $ficha['estilo3'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+			  	<option value="Impacto Explosivo" <if $ficha['estilo3'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+			  	<option value="Royal Guard" <if $ficha['estilo3'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+			  	<option value="Shikaku Teikoku" <if $ficha['estilo3'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+			  	<option value="Duelliste de Givre" <if $ficha['estilo3'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+			  	<option value="Filo Della Vita" <if $ficha['estilo3'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+			  	<option value="Havets Symfoni" <if $ficha['estilo3'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+			  	<option value="Bakudai Karin" <if $ficha['estilo3'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+			  	<option value="Yama Kurai" <if $ficha['estilo3'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+			  	<option value="Shiseiju" <if $ficha['estilo3'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+			  	<option value="Sea Corsair" <if $ficha['estilo3'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+			  	<option value="Wano Nitoryu" <if $ficha['estilo3'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+			  	<option value="Mano de Tahur" <if $ficha['estilo3'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+			  	<option value="Kokudan" <if $ficha['estilo3'] == 'Kokudan' then>selected</if>>Kokudan</option>
+			  	<option value="Kodai no Bushido" <if $ficha['estilo3'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+		      	<option value="Ittoryu Sekai" <if $ficha['estilo3'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+			  	<option value="Global Performer" <if $ficha['estilo3'] == 'Global Performer' then>selected</if>>Global Performer</option>
+			  	<option value="Ashigara Dokoi" <if $ficha['estilo3'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+			 	<option value="Cavalry Warrior" <if $ficha['estilo3'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+			  	<option value="Kanpo Kenpo" <if $ficha['estilo3'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+			  	<option value="Estilo Único" <if $ficha['estilo3'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+			  	<option value="Akuma5" <if $ficha['estilo3'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+			  	<option value="Akuma6" <if $ficha['estilo3'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+		  	</select>			
+		</td>
+		<td>
+			Estilo 4: <br>
+		  	<select name="estilo4" id="estilo4">
+			  	<option value="bloqueado" <if $ficha['estilo4'] == 'bloqueado' then>selected</if>>Bloqueado</option>
+			  	<option value="no_bloqueado" <if $ficha['estilo4'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
+			  	<option value="Gunkata" <if $ficha['estilo4'] == 'Gunkata' then>selected</if>>Gunkata</option>
+			  	<option value="Hasshoken" <if $ficha['estilo4'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
+			  	<option value="Santoryu" <if $ficha['estilo4'] == 'Santoryu' then>selected</if>>Santoryu</option>
+			  	<option value="Kuroashi" <if $ficha['estilo4'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
+			  	<option value="Gyojin Karate" <if $ficha['estilo4'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
+			  	<option value="Gyojin Jujutsu" <if $ficha['estilo4'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
+			  	<option value="Okama Kempo" <if $ficha['estilo4'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
+			  	<option value="Sora Yokujin" <if $ficha['estilo4'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
+			  	<option value="Rokushiki" <if $ficha['estilo4'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
+			  	<option value="Ninjutsu" <if $ficha['estilo4'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
+			  	<option value="Ryusoken" <if $ficha['estilo4'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
+			  	<option value="Jiyuumura Kempo" <if $ficha['estilo4'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
+			  	<option value="Clima Tact" <if $ficha['estilo4'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
+			  	<option value="Pop Green" <if $ficha['estilo4'] == 'Pop Green' then>selected</if>>Pop Green</option>
+			  	<option value="Hakai Shin" <if $ficha['estilo4'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
+			  	<option value="Funekiri" <if $ficha['estilo4'] == 'Funekiri' then>selected</if>>Funekiri</option>
+			  	<option value="Railgun Style" <if $ficha['estilo4'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
+			  	<option value="Gyojin Bukijutsu" <if $ficha['estilo4'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
+			  	<option value="Shuron Hakke" <if $ficha['estilo4'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
+			  	<option value="Raqisat Alsahra" <if $ficha['estilo4'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
+		      	<option value="Breeskjold" <if $ficha['estilo4'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
+			  	<option value="Impacto Explosivo" <if $ficha['estilo4'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
+			  	<option value="Royal Guard" <if $ficha['estilo4'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
+			  	<option value="Shikaku Teikoku" <if $ficha['estilo4'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
+			  	<option value="Duelliste de Givre" <if $ficha['estilo4'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
+			  	<option value="Filo Della Vita" <if $ficha['estilo4'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
+			  	<option value="Havets Symfoni" <if $ficha['estilo4'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
+			  	<option value="Bakudai Karin" <if $ficha['estilo4'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
+			  	<option value="Yama Kurai" <if $ficha['estilo4'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
+			  	<option value="Shiseiju" <if $ficha['estilo4'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
+			  	<option value="Sea Corsair" <if $ficha['estilo4'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
+			  	<option value="Wano Nitoryu" <if $ficha['estilo4'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
+			  	<option value="Mano de Tahur" <if $ficha['estilo4'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
+			  	<option value="Kokudan" <if $ficha['estilo4'] == 'Kokudan' then>selected</if>>Kokudan</option>
+			  	<option value="Kodai no Bushido" <if $ficha['estilo4'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
+		      	<option value="Ittoryu Sekai" <if $ficha['estilo4'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
+			  	<option value="Global Performer" <if $ficha['estilo4'] == 'Global Performer' then>selected</if>>Global Performer</option>
+			  	<option value="Ashigara Dokoi" <if $ficha['estilo4'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
+			 	<option value="Cavalry Warrior" <if $ficha['estilo4'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
+			  	<option value="Kanpo Kenpo" <if $ficha['estilo4'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
+			  	<option value="Estilo Único" <if $ficha['estilo4'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
+			  	<option value="Akuma5" <if $ficha['estilo4'] == 'Akuma5' then>selected</if>>Akuma T5</option>
+			  	<option value="Akuma6" <if $ficha['estilo4'] == 'Akuma6' then>selected</if>>Akuma T6</option>
+		  	</select>			
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Elementos:<br>
+			<textarea class="textbox" id="elementos" name="elementos">{$ficha['elementos']}</textarea>
+		</td>
+	</tr>
+</table>

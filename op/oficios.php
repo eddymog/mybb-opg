@@ -88,6 +88,7 @@ $duracion = $duracion_horas * 3600; // en segundos
 
 if ($g_entrenamiento_en_curso || $g_entrenamiento_completo) {
     echo "<script>alert('¡Vaya! Parece que ya tienes un entrenamiento activo, así que tendrás que esperar a terminarlo antes de ejercer un oficio. ¡GANBARE!'); window.location.href = './../index.php';</script>";
+    exit;
 }
 
 if ($cancelar) {
@@ -98,10 +99,17 @@ if ($cancelar) {
 }
 
 if ($entrenar) {
-
-    $timestamp_end = time() + floatval($duracion);
-
-    $db->query(" 
+    $now = time();
+    $chk_entreno = $db->fetch_array($db->query("SELECT COUNT(*) AS n FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid' AND timestamp_end > $now"));
+    $chk_oficio  = $db->fetch_array($db->query("SELECT COUNT(*) AS n FROM mybb_op_oficios_usuarios WHERE uid='$uid' AND timestamp_end > $now"));
+    if ($chk_entreno['n'] > 0 || $chk_oficio['n'] > 0) {
+        $mensaje_redireccion = "Ya tienes un entrenamiento o lección de oficio activo. Espera a que termine antes de iniciar otro.";
+        eval("\$page = \"".$templates->get("op_redireccion")."\";");
+        output_page($page);
+        exit;
+    }
+    $timestamp_end = $now + floatval($duracion);
+    $db->query("
         INSERT INTO `mybb_op_oficios_usuarios` (`uid`,`nombre`,`oficio`,`timestamp_end`, `duracion`, `experiencia`) VALUES ('$uid','oficio','1','$timestamp_end', '$duracion', '$puntos_oficio_recompensa');
     ");
     eval('$reload_script = $reload_js;');

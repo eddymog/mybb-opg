@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>One Piece Gaiden - Jerarquía del Mundo de One Piece</title>
+    {$headerinclude}
+    <style>
+        :root {
+            --bg: #05060b;
+            --card: #101321;
+            --card-soft: rgba(255, 255, 255, 0.04);
+            --text: #f4f6ff;
+            --muted: #a0a5c0;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #ff6b35;
+            --shadow: 0 25px 60px rgba(5, 8, 23, 0.45);
+            font-family: 'Inter', 'Arial', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(25, 118, 210, 0.2), transparent 40%),
+                                    radial-gradient(circle at 80% 0%, rgba(244, 81, 30, 0.26), transparent 45%),
+                                    var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .fondo-blanco {
+            background: transparent;
+        }
+
+        .hierarchy-app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+
+        .hero {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+            padding: 32px;
+            border-radius: 28px;
+            background: rgba(5, 6, 12, 0.85);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-text {
+            flex: 1;
+        }
+
+        .hero-text h1 {
+            margin: 10px 0 16px;
+            font-size: 42px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-text p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .hero-cta .primary,
+        .hero-cta .secondary {
+            padding: 12px 20px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+
+        .hero-cta .primary {
+            background: linear-gradient(120deg, #ff6b35, #ffa726);
+            border: none;
+        }
+
+        .hero-cta button:hover,
+        .hero-cta a:hover {
+            transform: translateY(-2px);
+        }
+
+        .hero-media img {
+            width: 320px;
+            border-radius: 24px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .faction-grid {
+            margin-top: 18px;
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+        .faction-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: border 0.2s ease, transform 0.2s ease;
+        }
+
+        .faction-card span {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .faction-card h3 {
+            margin: 6px 0;
+            font-size: 24px;
+        }
+
+        .faction-card p {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .faction-card .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .faction-card.active,
+        .faction-card:focus-visible {
+            outline: none;
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .faction-detail {
+            margin-top: 40px;
+            padding: 32px;
+            border-radius: 24px;
+            background: rgba(5, 6, 12, 0.85);
+            border: 1px solid var(--border);
+            min-height: 260px;
+        }
+
+        .detail-hero {
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.35));
+        }
+
+        .detail-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 560px;
+        }
+
+        .detail-hero-content h2 {
+            margin: 0 0 12px;
+            font-size: 40px;
+        }
+
+        .detail-hero-content p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+        }
+
+        .tag-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .tag {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+        }
+
+        .tier {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tier-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tier-pill {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .tier h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .tier p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .tier ul {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+        }
+
+        .featured-npcs {
+            margin-top: 36px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .featured-npcs h3 {
+            margin: 0 0 18px;
+            font-size: 18px;
+        }
+
+        .npc-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .npcBox {
+            width: 150px;
+            height: 210px;
+            border-radius: 18px;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: white;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.55);
+            transition: all 0.3s ease;
+        }
+
+        .npcBox:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            border-width: 3px;
+        }
+
+        .clipBox {
+            position: absolute;
+            inset: 0;
+            mix-blend-mode: multiply;
+            opacity: 0.3;
+        }
+
+        .npcName {
+            position: absolute;
+            bottom: 12px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-family: 'moonGetHeavy', 'Inter', sans-serif;
+            text-shadow: 3px 3px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 0.5px;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 60px 20px;
+            font-size: 18px;
+        }
+
+        /* Estilos para animación de facciones */
+        .factions-animation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            min-height: 320px;
+        }
+
+        .faction-bubble {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: visible;
+            border: 3px solid transparent;
+            background: var(--card);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .faction-bubble::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-color), transparent);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .faction-bubble:hover::before {
+            opacity: 1;
+        }
+
+        .faction-bubble:hover {
+            transform: scale(1.15) translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        .faction-bubble.active {
+            transform: scale(1.2) translateY(-10px);
+            border-color: var(--accent-color);
+        }
+
+        .faction-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .faction-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text);
+            letter-spacing: 0.5px;
+        }
+
+        /* Pirámide de poder */
+        .power-pyramid {
+            margin-top: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pyramid-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pyramid-levels {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pyramid-level {
+            display: flex;
+            align-items: center;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            border-left: 4px solid var(--accent-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            animation: slideInRight 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .pyramid-level:nth-child(1) { animation-delay: 0.1s; width: 100%; }
+        .pyramid-level:nth-child(2) { animation-delay: 0.2s; width: 95%; margin-left: auto; margin-right: auto; }
+        .pyramid-level:nth-child(3) { animation-delay: 0.3s; width: 85%; margin-left: auto; margin-right: auto; }
+        .pyramid-level:nth-child(4) { animation-delay: 0.4s; width: 70%; margin-left: auto; margin-right: auto; }
+        .pyramid-level:nth-child(5) { animation-delay: 0.5s; width: 50%; margin-left: auto; margin-right: auto; }
+
+        .pyramid-level:hover {
+            transform: translateX(8px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .pyramid-level-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-right: 16px;
+            min-width: 35px;
+        }
+
+        .pyramid-level-content {
+            flex: 1;
+        }
+
+        .pyramid-level-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .pyramid-level-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        @media (max-width: 960px) {
+            .hero {
+                flex-direction: column;
+            }
+
+            .hero-cta {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hierarchy-app {
+                padding: 24px 16px 60px;
+            }
+
+            .hero {
+                padding: 22px;
+            }
+
+            .faction-detail {
+                padding: 22px;
+            }
+
+            .timeline {
+                grid-template-columns: 1fr;
+            }
+
+            .npcBox {
+                width: 130px;
+                height: 190px;
+            }
+
+            .faction-bubble {
+                width: 110px;
+                height: 110px;
+            }
+
+            .faction-icon {
+                font-size: 36px;
+            }
+
+            .faction-label {
+                font-size: 11px;
+            }
+
+            .pyramid-level {
+                padding: 14px 18px;
+            }
+
+            .pyramid-level-number {
+                font-size: 20px;
+                min-width: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="fondo-blanco">
+        <div class="hierarchy-app">
+            <section class="hero">
+                <div class="hero-text">
+                    <p class="section-title">Atlas Jerárquico</p>
+                    <h1>Mapa visual de poder en One Piece Gaiden</h1>
+                    <p>Explora cada facción con una narrativa dinámica, líneas de mando claras y vínculos rápidos hacia los NPCs destacados que gobiernan los mares.</p>
+                    <div class="hero-cta">
+                        <button class="primary" onclick="toggleFactionsAnimation()">Ver Pirámides de Poder</button>
+                        <a class="secondary" href="#factions">Explorar facciones</a>
+                    </div>
+                </div>
+                <div class="hero-media">
+                    <div class="factions-animation" id="factionsAnimation" style="display: none;">
+                        <!-- Las burbujas de facciones se generarán dinámicamente -->
+                    </div>
+                    <div id="pyramidContainer"></div>
+                </div>
+            </section>
+
+            <section id="factions">
+                <p class="section-title">Selecciona una facción</p>
+                <div class="faction-grid" id="factionGrid"></div>
+            </section>
+
+            <section class="faction-detail" id="factionDetail" aria-live="polite">
+                <div class="empty-state" id="factionEmptyState">Selecciona una facción para desplegar su jerarquía.</div>
+                <div id="factionDetailContent"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Mapeo de NPCs por facción y jerarquía
+        const npcsByFaction = {
+            'gobierno-mundial': {
+                'gorosei': [],
+                'comandante-supremo': ['NPC022'], // Tasha (Kong)
+                'tenryuubito': [],
+                'cp-aigis-masquerade': [],
+                'cp-aigis-zero': []
+            },
+            'marina': {
+                'almirante-flota': [],
+                'almirante': [],
+                'vicealmirante': [],
+                'contralmirante': [],
+                'comodoro': [],
+                'capitan': [],
+                'comandante': []
+            },
+            'cipher-pol': {
+                'comandante-ejecutivo': [],
+                'cp-aigis-masquerade': [],
+                'cp-aigis-zero': [],
+                'cp9': [],
+                'comisario': []
+            },
+            'piratas': {
+                'rey-piratas': [],
+                'ala-rey': [],
+                'leyenda-mar': [],
+                'yonko': ['NPC017'], // Ginger Khan
+                'primer-comandante': [],
+                'comandante': [],
+                'shichibukai': ['NPC004'], // Barbanieves
+                'gran-capitan': [],
+                'gran-pirata': [],
+                'capitan-famoso': [],
+                'supernova': [],
+                'pirata-afamado': [],
+                'lobo-mar': []
+            },
+            'revolucionarios': {
+                'comandante-supremo': [],
+                'jefe-personal': [],
+                'comandante': [],
+                'comandante-adjunto': [],
+                'general': [],
+                'mariscal': []
+            },
+            'cazarrecompensas': {
+                'rey-cazador': [],
+                'cazador-omega': [],
+                'cazador-alfa': [],
+                'cazador-beta': [],
+                'cazador-gamma': []
+            }
+        };
+
+        // Cache para datos de NPCs cargados
+        let npcsCache = {};
+
+        // Función para cargar datos de un NPC desde el servidor
+        const loadNpcData = async function(npcId) {
+            if (npcsCache[npcId]) {
+                return npcsCache[npcId];
+            }
+
+            try {
+                const response = await fetch('/op/compas.php?action=get_npc&npc_id=' + npcId);
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                const data = await response.json();
+                
+                // Validar que no haya error en la respuesta
+                if (data.error) {
+                    console.error('Error del servidor:', data.error);
+                    return null;
+                }
+                
+                npcsCache[npcId] = data;
+                return data;
+            } catch (error) {
+                console.error('Error cargando NPC ' + npcId + ':', error);
+                return null;
+            }
+        };
+
+        // Función para abrir modal de NPC (similar a biografía)
+        const openNpcModal = function(npcId, event) {
+            if (event) {
+                event.preventDefault();
+            }
+            // Redirigir a la página de compañeros con el NPC específico
+            window.open('/op/compas.php?npc_id=' + npcId, '_blank');
+        };
+
+        const factions = [
+            {
+                id: 'gobierno-mundial',
+                name: 'Gobierno Mundial',
+                subtitle: 'Dominio político absoluto',
+                summary: 'La institución que dicta el orden global, protege su secreto más oscuro y comanda los tres grandes poderes.',
+                accent: '#3F51B5',
+                cover: 'https://i.pinimg.com/736x/02/ca/98/02ca98cd39ff040833c6049f21b58084.jpg',
+                tags: ['Gorosei', 'Tenryuubito', 'Impel Down'],
+                tiers: [
+                    {
+                        label: '01',
+                        title: 'Imu (Cima Absoluta Secreta)',
+                        body: 'Reina en las sombras desde el Trono Vacío. Solo el Gorosei conoce su existencia. La verdadera autoridad del mundo.'
+                    },
+                    {
+                        label: '02',
+                        title: 'Gorosei (Máxima Autoridad Pública)',
+                        body: 'Los Cinco Ancianos dictan política y movimientos estratégicos, respondiendo únicamente ante Imu. Son la cara pública del poder absoluto.'
+                    },
+                    {
+                        label: '03',
+                        title: 'Comandante Supremo',
+                        body: 'Kong supervisa Marina y Cipher Pol, por encima incluso de los almirantes de flota. Ejecuta las órdenes del Gorosei.'
+                    },
+                    {
+                        label: '04',
+                        title: 'Tenryuubito (Nobleza Mundial)',
+                        body: 'Los Dragones Celestiales ejercen poder extralegal y reciben protección directa de CP0 y Almirantes. Descendientes de los creadores del Gobierno Mundial.'
+                    },
+                    {
+                        label: '05',
+                        title: 'Brazos Ejecutores',
+                        body: 'Marina, Cipher Pol, Impel Down y Enies Lobby son los instrumentos oficiales del Gobierno Mundial.',
+                        items: ['Marina - Brazo militar', 'Cipher Pol - Inteligencia y asesinato', 'Impel Down - Prisión de máxima seguridad', 'Enies Lobby - Tribunal de justicia']
+                    }
+                ]
+            },
+            {
+                id: 'marina',
+                name: 'Marina',
+                subtitle: 'Orden y justicia',
+                summary: 'El brazo militar que patrulla los mares, aplica Buster Calls y sostiene el equilibrio de los tres poderes.',
+                accent: '#0D47A1',
+                cover: 'https://i.pinimg.com/1200x/57/9b/34/579b34b1578514b2ebd68843e1316366.jpg',
+                tags: ['Fleet Admiral', 'Buster Call', 'SWORD'],
+                tiers: [
+                    { label: '01', title: 'Almirante de Flota (Nivel 50)', body: 'Máximo líder de la Marina. Define políticas y estrategias globales. Puede convocar Buster Calls. Solo 1 puesto disponible.' },
+                    { label: '02', title: 'Almirantes (Nivel 45)', body: 'Fuerza disuasoria máxima. Pueden convocar Buster Calls. Expertos en combate y estrategia. Solo 3 puestos disponibles.' },
+                    { label: '03', title: 'Vicealmirantes (Nivel 40)', body: 'Lideran operaciones globales y Buster Calls. Dominan el Rokushiki. Comandan grandes flotas y bases estratégicas.' },
+                    { label: '04', title: 'Oficiales de Alto Rango', body: 'Contraalmirantes (Nivel 35), Comodoros (Nivel 30) y Capitanes (Nivel 25). Gestionan sectores y comandan múltiples naves.' },
+                    { label: '05', title: 'Oficiales y Soldados', body: 'Comandantes, Tenientes, Alférez, Suboficiales, Sargentos, Soldados Rasos y Reclutas. La columna vertebral de la Marina.', items: ['SWORD - Unidad secreta', 'Instructores - Entrenan nuevos reclutas', 'Inspector General - Investiga corrupción', 'Héroe de la Marina - Honor especial'] }
+                ]
+            },
+            {
+                id: 'cipher-pol',
+                name: 'Cipher Pol',
+                subtitle: 'Inteligencia y sigilo',
+                summary: 'La red de agencias encubiertas que elimina amenazas antes de que sean públicas. Operan en las sombras del Gobierno Mundial.',
+                accent: '#263238',
+                cover: 'https://i.pinimg.com/1200x/c5/4d/e6/c54de66c6e175031ffdf7f0d1e656924.jpg',
+                tags: ['CP-0', 'Rokushiki', 'Licencia para matar'],
+                tiers: [
+                    { label: '01', title: 'Comandante Ejecutivo (Nivel 45+)', body: 'Líder supremo de Cipher Pol. Solo responde ante el Gorosei. Juez y verdugo absoluto. Solo 1 puesto.' },
+                    { label: '02', title: 'CP Aigis Zero Masquerade (Nivel 42)', body: 'Elite del CP-0. Portan máscaras distintivas. Las mejores armas del Gobierno Mundial. Habilidades excepcionales.' },
+                    { label: '03', title: 'CP Aigis Zero / CP-0 (Nivel 38)', body: 'División secreta que opera bajo órdenes directas de los Nobles Mundiales y el Gorosei. Más secretos que CP9.' },
+                    { label: '04', title: 'CP9 (Nivel 30)', body: 'Licencia para matar. Organización supersecreta. Maestros del Rokushiki. Pueden crear múltiples identidades alternativas.' },
+                    { label: '05', title: 'CP1-8 y Comisarios', body: 'Agencias de espionaje graduales (CP1 a CP8). Comisarios lideran cada unidad. Misiones de infiltración, recopilación de información y seguimiento.', items: ['Comisario CP - Líderes (Nivel 30)', 'CP8 - CP5 - Operativos de campo', 'CP4 - CP1 - Agentes en formación'] }
+                ]
+            },
+            {
+                id: 'piratas',
+                name: 'Piratas',
+                subtitle: 'Libertad y ambición',
+                summary: 'Los señores de los mares que desafían al Gobierno Mundial, liderados por los legendarios Yonko.',
+                accent: '#D32F2F',
+                cover: 'https://i.pinimg.com/1200x/23/38/57/233857d7fa17532fcbafaf8e1381cd93.jpg',
+                tags: ['Yonko', 'Supernovas', 'Rey Pirata'],
+                tiers: [
+                    { label: '01', title: 'Rey de los Piratas (Nivel 50)', body: 'Poseedor del One Piece. Wanted superior a 4 Billones. Mínimo 3 islas del Nuevo Mundo. Solo 1 puesto.', items: ['Alas del Rey - 2 manos derechas del Rey', 'Leyendas del Mar - Tripulación élite'] },
+                    { label: '02', title: 'Yonko (Nivel 40)', body: 'Los 4 emperadores del Nuevo Mundo. Wanted superior a 3 Billones. Mínimo 1 isla reclamada. Equilibrio de poder marítimo.', items: ['Primer Comandante - Mano derecha', 'Comandantes - Amenazas mundiales (Nivel 35)'] },
+                    { label: '03', title: 'Shichibukai (7 puestos)', body: 'Corsarios del Gobierno Mundial. Wanteds congelados. Colaboran con la Marina. Sistema de equilibrio de los tres grandes poderes.' },
+                    { label: '04', title: 'Grandes Piratas', body: 'Gran Capitán (Nivel 30) y Gran Pirata (Nivel 30). Navegan el Nuevo Mundo. Wanteds de 600M-700M+. Tripulaciones temibles.', items: ['Gran Vicecapitán - Mano derecha', 'Capitán Famoso (500M+)', 'Vicecapitán Famoso'] },
+                    { label: '05', title: 'Piratas Emergentes', body: 'Supernovas (100M+), Piratas Afamados (300M+), Lobos de Mar, Bucaneros, Corsarios y Piratas novatos.', items: ['Supernova - Peor Generación', 'Pirata Afamado - Veterano (300M+)', 'Lobo de Mar - Reputación regional', 'Bucanero - Conocido localmente', 'Corsario - Adentrándose', 'Capitán - Tripulación novata', 'Pirata - Recién empezando'] }
+                ]
+            },
+            {
+                id: 'revolucionarios',
+                name: 'Ejército Revolucionario',
+                subtitle: 'Libertad y cambio',
+                summary: 'La fuerza militar que lucha contra el Gobierno Mundial, buscando derrocar a los Tenryuubito y cambiar el orden mundial.',
+                accent: '#7B1FA2',
+                cover: 'https://i.pinimg.com/1200x/a7/01/d7/a701d7ef0e161f1012ac560b5a041e52.jpg',
+                tags: ['Dragon', 'Libertad', 'Revolución'],
+                tiers: [
+                    { label: '01', title: 'Comandante Supremo (Nivel 45+)', body: 'Líder absoluto del Ejército Revolucionario. Dirige todas las estrategias globales. Prioriza la seguridad del grupo. Solo 1 puesto.' },
+                    { label: '02', title: 'Jefe de Personal (Nivel 40)', body: 'Segundo al mando. Puede asumir el liderazgo si es necesario. Responsable de misiones críticas. Solo 2 puestos.' },
+                    { label: '03', title: 'Comandantes (Nivel 35)', body: 'Coordinan regiones específicas. Uno por cada Blue y uno para Grand Line. Solo 5 puestos totales.', items: ['Comandantes Adjuntos (Nivel 30) - Auxiliares por región, 5 puestos'] },
+                    { label: '04', title: 'Oficiales Superiores', body: 'Generales (Nivel 25) dirigen múltiples naves. Mariscales (Nivel 20) son subaltenos de los Generales. Lideran operaciones importantes.' },
+                    { label: '05', title: 'Miembros Base', body: 'Oficiales, Agentes, Sargentos, Soldados y Reclutas. La columna vertebral del movimiento revolucionario.', items: ['Oficial (Nivel 15) - Comando de bases', 'Agente (Nivel 10) - Operaciones tácticas', 'Sargento (Nivel 7) - Supervisión', 'Soldado (Nivel 4) - Línea de combate', 'Recluta - Novatos del movimiento'] }
+                ]
+            },
+            {
+                id: 'cazarrecompensas',
+                name: 'Cazarrecompensas',
+                subtitle: 'Caza y recompensa',
+                summary: 'Mercenarios independientes que cazan criminales por dinero. Los mejores forman una élite respetada y temida en todos los mares.',
+                accent: '#FF6F00',
+                cover: 'https://i.pinimg.com/1200x/6a/37/01/6a37017cb6b4872923cf3d1a9032da92.jpg',
+                tags: ['Gremio', 'Mercenarios', 'Élite'],
+                tiers: [
+                    { label: '01', title: 'Rey Cazador (Nivel 40+)', body: 'Máximo representante del Gremio. El mejor cazarrecompensas del mundo. Solo 1 puesto. Leyenda viviente.' },
+                    { label: '02', title: 'Cazador Omega (Nivel 35)', body: 'La cima entre cazadores. Wanted cobrado: 800M+. Nombre perdura en la historia. Solo 4 puestos disponibles.' },
+                    { label: '03', title: 'Cazador Alfa (Nivel 30)', body: 'Club del Billón. Élite entre cazadores. Wanted cobrado: 700M+. Eminencias en la caza. Solo 7 puestos disponibles.' },
+                    { label: '04', title: 'Cazadores Veteranos', body: 'Cazador Beta (Nivel 25, 500M+ cobrado) y Cazador Gamma (Nivel 20, 300M+ cobrado). Respetados mundialmente. Los gremios los buscan activamente.' },
+                    { label: '05', title: 'Cazadores en Ascenso', body: 'Cazador Delta (Nivel 15, 100M+), Cazador Épsilon (Nivel 10, 20M+), Cazador Zeta (Nivel 5, 5M+) y Cazador novato.', items: ['Delta - Amenaza de los Blues', 'Épsilon - Conocido en Blues', 'Zeta - Primera presa cobrada', 'Cazador - Empezando la andadura'] }
+                ]
+            }
+        ];
+
+        const factionGrid = document.getElementById('factionGrid');
+        const factionDetailContent = document.getElementById('factionDetailContent');
+        const emptyState = document.getElementById('factionEmptyState');
+        let activeFaction = null;
+
+        const createFactionCard = function (faction) {
+            const button = document.createElement('button');
+            button.className = 'faction-card';
+            button.type = 'button';
+            button.setAttribute('aria-pressed', 'false');
+
+            const span = document.createElement('span');
+            span.textContent = faction.subtitle;
+            const title = document.createElement('h3');
+            title.textContent = faction.name;
+            const summary = document.createElement('p');
+            summary.textContent = faction.summary;
+            const pill = document.createElement('div');
+            pill.className = 'pill';
+            pill.style.border = '1px solid ' + faction.accent;
+            pill.style.color = faction.accent;
+            const pillDot = document.createElement('div');
+            pillDot.style.width = '8px';
+            pillDot.style.height = '8px';
+            pillDot.style.borderRadius = '50%';
+            pillDot.style.background = faction.accent;
+            pillDot.style.marginRight = '8px';
+            const pillText = document.createTextNode('Jerarquía activa');
+            pill.appendChild(pillDot);
+            pill.appendChild(pillText);
+
+            button.appendChild(span);
+            button.appendChild(title);
+            button.appendChild(summary);
+            button.appendChild(pill);
+
+            button.addEventListener('click', function () {
+                selectFaction(faction.id);
+            });
+            button.dataset.factionId = faction.id;
+            factionGrid.appendChild(button);
+        };
+
+        const renderTier = function (tier) {
+            const article = document.createElement('article');
+            article.className = 'tier';
+
+            const header = document.createElement('div');
+            header.className = 'tier-header';
+            const pill = document.createElement('div');
+            pill.className = 'tier-pill';
+            pill.textContent = tier.label;
+            const title = document.createElement('h3');
+            title.textContent = tier.title;
+            header.appendChild(pill);
+            header.appendChild(title);
+
+            const body = document.createElement('p');
+            body.textContent = tier.body;
+
+            article.appendChild(header);
+            article.appendChild(body);
+
+            if (tier.items && tier.items.length) {
+                const list = document.createElement('ul');
+                tier.items.forEach(function (item) {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+                article.appendChild(list);
+            }
+
+            return article;
+        };
+
+        const renderNpcs = async function (npcIds, categoryTitle) {
+            if (!npcIds || npcIds.length === 0) {
+                return null;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'featured-npcs';
+            const title = document.createElement('h3');
+            title.textContent = categoryTitle || 'NPCs Destacados';
+            const list = document.createElement('div');
+            list.className = 'npc-list';
+
+            // Cargar datos de todos los NPCs
+            for (let i = 0; i < npcIds.length; i++) {
+                const npcId = npcIds[i];
+                const npcData = await loadNpcData(npcId);
+                
+                if (npcData) {
+                    const link = document.createElement('div');
+                    link.className = 'npcBox';
+                    link.style.cursor = 'pointer';
+                    link.style.borderColor = npcData.color || '#ff6b35';
+                    link.style.backgroundImage = 'url("' + (npcData.avatar || '') + '")';
+                    link.onclick = function(e) {
+                        openNpcModal(npcId, e);
+                    };
+
+                    const clip = document.createElement('div');
+                    clip.className = 'clipBox';
+                    clip.style.backgroundColor = npcData.color || '#ff6b35';
+                    
+                    const name = document.createElement('span');
+                    name.className = 'npcName';
+                    name.textContent = npcData.nombre || npcId;
+
+                    link.appendChild(clip);
+                    link.appendChild(name);
+                    list.appendChild(link);
+                }
+            }
+
+            wrapper.appendChild(title);
+            wrapper.appendChild(list);
+            return wrapper;
+        };
+
+        // Función para renderizar todos los NPCs de una facción
+        const renderFactionNpcs = async function(factionId) {
+            const factionNpcs = npcsByFaction[factionId];
+            if (!factionNpcs) {
+                return null;
+            }
+
+            const container = document.createElement('div');
+            container.style.marginTop = '24px';
+            
+            // Mostrar indicador de carga
+            const loadingDiv = document.createElement('div');
+            loadingDiv.style.textAlign = 'center';
+            loadingDiv.style.color = 'var(--muted)';
+            loadingDiv.style.padding = '20px';
+            loadingDiv.textContent = 'Cargando NPCs...';
+            container.appendChild(loadingDiv);
+
+            // Mapeo de categorías a títulos legibles
+            const categoryTitles = {
+                // Gobierno Mundial
+                'gorosei': 'Gorosei',
+                'comandante-supremo': 'Comandante Supremo',
+                'tenryuubito': 'Tenryuubito (Dragones Celestiales)',
+                // Marina
+                'almirante-flota': 'Almirante de Flota',
+                'almirante': 'Almirantes',
+                'vicealmirante': 'Vicealmirantes',
+                'contralmirante': 'Contralmirantes',
+                'comodoro': 'Comodoros',
+                'capitan': 'Capitanes',
+                'comandante': 'Comandantes',
+                // Cipher Pol
+                'comandante-ejecutivo': 'Comandante Ejecutivo',
+                'cp-aigis-masquerade': 'CP Aigis Zero Masquerade',
+                'cp-aigis-zero': 'CP Aigis Zero (CP-0)',
+                'cp9': 'CP9',
+                'comisario': 'Comisarios de Cipher Pol',
+                // Piratas
+                'rey-piratas': 'Rey de los Piratas',
+                'ala-rey': 'Alas del Rey',
+                'leyenda-mar': 'Leyendas del Mar',
+                'yonko': 'Yonko',
+                'primer-comandante': 'Primeros Comandantes',
+                'shichibukai': 'Shichibukai',
+                'gran-capitan': 'Grandes Capitanes',
+                'gran-pirata': 'Grandes Piratas',
+                'capitan-famoso': 'Capitanes Famosos',
+                'supernova': 'Supernovas',
+                'pirata-afamado': 'Piratas Afamados',
+                'lobo-mar': 'Lobos de Mar',
+                // Revolucionarios
+                'jefe-personal': 'Jefes de Personal',
+                'comandante-adjunto': 'Comandantes Adjuntos',
+                'general': 'Generales',
+                'mariscal': 'Mariscales',
+                // Cazarrecompensas
+                'rey-cazador': 'Rey Cazador',
+                'cazador-omega': 'Cazadores Omega',
+                'cazador-alfa': 'Cazadores Alfa',
+                'cazador-beta': 'Cazadores Beta',
+                'cazador-gamma': 'Cazadores Gamma'
+            };
+
+            // Renderizar cada categoría que tenga NPCs
+            let hasNpcs = false;
+            for (const category in factionNpcs) {
+                const npcIds = factionNpcs[category];
+                if (npcIds && npcIds.length > 0) {
+                    const categorySection = await renderNpcs(npcIds, categoryTitles[category] || category);
+                    if (categorySection) {
+                        hasNpcs = true;
+                        container.appendChild(categorySection);
+                    }
+                }
+            }
+            
+            // Remover indicador de carga
+            if (loadingDiv && loadingDiv.parentNode) {
+                loadingDiv.parentNode.removeChild(loadingDiv);
+            }
+            
+            // Si no hay NPCs, devolver null
+            if (!hasNpcs) {
+                return null;
+            }
+
+            return container;
+        };
+
+        const selectFaction = async function (id) {
+            if (activeFaction === id) {
+                return;
+            }
+            activeFaction = id;
+
+            document.querySelectorAll('.faction-card').forEach(function (card) {
+                const isActive = card.dataset.factionId === id;
+                card.classList.toggle('active', isActive);
+                card.setAttribute('aria-pressed', String(isActive));
+            });
+
+            const faction = factions.find(function (f) { return f.id === id; });
+            if (!faction) {
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            factionDetailContent.innerHTML = '';
+
+            const detailHero = document.createElement('div');
+            detailHero.className = 'detail-hero';
+            detailHero.style.backgroundImage = 'url("' + faction.cover + '")';
+            detailHero.style.border = '1px solid ' + faction.accent + '33';
+
+            const heroContent = document.createElement('div');
+            heroContent.className = 'detail-hero-content';
+            const tag = document.createElement('p');
+            tag.className = 'tag';
+            tag.style.borderColor = faction.accent;
+            tag.style.color = faction.accent;
+            tag.textContent = faction.subtitle;
+            const heroTitle = document.createElement('h2');
+            heroTitle.textContent = faction.name;
+            const heroSummary = document.createElement('p');
+            heroSummary.textContent = faction.summary;
+            const tagWrapper = document.createElement('div');
+            tagWrapper.className = 'tag-wrapper';
+            faction.tags.forEach(function (tagText) {
+                const span = document.createElement('span');
+                span.className = 'tag';
+                span.textContent = tagText;
+                tagWrapper.appendChild(span);
+            });
+
+            heroContent.appendChild(tag);
+            heroContent.appendChild(heroTitle);
+            heroContent.appendChild(heroSummary);
+            heroContent.appendChild(tagWrapper);
+            detailHero.appendChild(heroContent);
+
+            const timeline = document.createElement('div');
+            timeline.className = 'timeline';
+            faction.tiers.forEach(function (tier) {
+                timeline.appendChild(renderTier(tier));
+            });
+
+            factionDetailContent.appendChild(detailHero);
+            factionDetailContent.appendChild(timeline);
+
+            // Renderizar NPCs de la facción actual
+            const npcsContainer = await renderFactionNpcs(id);
+            if (npcsContainer && npcsContainer.children.length > 0) {
+                factionDetailContent.appendChild(npcsContainer);
+            }
+        };
+
+        // Función para toggle de animación de facciones
+        const toggleFactionsAnimation = function() {
+            const animContainer = document.getElementById('factionsAnimation');
+            const pyramidContainer = document.getElementById('pyramidContainer');
+            
+            if (animContainer.style.display === 'none') {
+                animContainer.style.display = 'flex';
+                pyramidContainer.innerHTML = '';
+                createFactionBubbles();
+            } else {
+                animContainer.style.display = 'none';
+                pyramidContainer.innerHTML = '';
+            }
+        };
+
+        // Iconos para cada facción
+        const factionIcons = {
+            'gobierno-mundial': '⚖️',
+            'marina': '⚓',
+            'cipher-pol': '⚠️​​​',
+            'piratas': '☠️',
+            'revolucionarios': '✊',
+            'cazarrecompensas': '⚔️​​​'
+        };
+
+        // Crear burbujas de facciones
+        const createFactionBubbles = function() {
+            const container = document.getElementById('factionsAnimation');
+            container.innerHTML = '';
+
+            factions.forEach(function(faction) {
+                const bubble = document.createElement('div');
+                bubble.className = 'faction-bubble';
+                bubble.style.setProperty('--accent-color', faction.accent);
+                
+                const icon = document.createElement('div');
+                icon.className = 'faction-icon';
+                icon.textContent = factionIcons[faction.id] || '⭐';
+                
+                const label = document.createElement('div');
+                label.className = 'faction-label';
+                label.textContent = faction.name;
+                
+                bubble.appendChild(icon);
+                bubble.appendChild(label);
+                
+                bubble.addEventListener('click', function() {
+                    document.querySelectorAll('.faction-bubble').forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    bubble.classList.add('active');
+                    showPowerPyramid(faction);
+                });
+                
+                container.appendChild(bubble);
+            });
+        };
+
+        // Mostrar pirámide de poder
+        const showPowerPyramid = function(faction) {
+            const container = document.getElementById('pyramidContainer');
+            container.innerHTML = '';
+
+            const pyramid = document.createElement('div');
+            pyramid.className = 'power-pyramid';
+
+            const title = document.createElement('h2');
+            title.className = 'pyramid-title';
+            title.textContent = 'Jerarquía: ' + faction.name;
+            title.style.color = faction.accent;
+            pyramid.appendChild(title);
+
+            const levels = document.createElement('div');
+            levels.className = 'pyramid-levels';
+
+            faction.tiers.forEach(function(tier) {
+                const level = document.createElement('div');
+                level.className = 'pyramid-level';
+                level.style.setProperty('--accent-color', faction.accent);
+
+                const number = document.createElement('div');
+                number.className = 'pyramid-level-number';
+                number.textContent = tier.label;
+                number.style.color = faction.accent;
+
+                const content = document.createElement('div');
+                content.className = 'pyramid-level-content';
+
+                const levelTitle = document.createElement('div');
+                levelTitle.className = 'pyramid-level-title';
+                levelTitle.textContent = tier.title;
+
+                const levelDesc = document.createElement('div');
+                levelDesc.className = 'pyramid-level-desc';
+                levelDesc.textContent = tier.body;
+
+                content.appendChild(levelTitle);
+                content.appendChild(levelDesc);
+
+                level.appendChild(number);
+                level.appendChild(content);
+
+                levels.appendChild(level);
+            });
+
+            pyramid.appendChild(levels);
+            container.appendChild(pyramid);
+
+            // Scroll suave a la pirámide
+            setTimeout(function() {
+                pyramid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        };
+
+        factions.forEach(createFactionCard);
+        selectFaction('gobierno-mundial');
+    </script>
+
+</body>
+</html>

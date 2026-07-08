@@ -1,0 +1,7 @@
+<li class="float_left" id="{$type}_{$user['uid']}" style="width: 33%; list-style: none; margin-bottom: 4px;">
+	<a href="usercp.php?action=do_editlists&amp;my_post_key={$mybb->post_code}&amp;manage={$type}&amp;delete={$user['uid']}" onclick="return UserCP.removeBuddy('{$type}', {$user['uid']});" title="{$lang->remove_from_list}">
+		<i class="fa fa-user-times fa_xtra" style="font-size: 16px;" title="{$lang->delete}"  alt="{$lang->remove_from_list}"></i>
+	</a>
+		<img src="{$theme['imgdir']}/buddy_{$status}.png" title="{$lang->$status}" alt="" style="vertical-align: middle;" />
+	{$profile_link}
+</li>

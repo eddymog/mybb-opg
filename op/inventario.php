@@ -130,7 +130,7 @@ if ($edit_nombre != '' && $edit_imagen != '' && $edit_objeto_id != '') {
         if ($inventarioCantidad > 0) {
             $db->query(" INSERT INTO `mybb_op_objetos`(`objeto_id`, `categoria`, `subcategoria`, `nombre`, `tier`, `imagen_id`, `imagen_avatar`, `berries`, `cantidadMaxima`, `dano`, `efecto`, `exclusivo`, `espacios`, `imagen`, `desbloquear`, `oficio`, `nivel`, `requisitos`, `escalado`, `editable`, `custom`, `descripcion`) VALUES 
             ('$new_nombre','$categoria','$subcategoria','$nombre','$tier','$imagen_id','$imagen_avatar','$berries','$cantidadMaxima','$dano','$efecto','$exclusivo','$espacios','$imagen','$desbloquear','$oficio','$nivel','$requisitos','$escalado','$editable','$custom','$descripcion'); ");  
-            $db->query(" INSERT INTO mybb_op_inventario(`objeto_id`, `uid`, `cantidad`, `imagen`, `apodo`, `especial`, `editado`) VALUES ('$new_nombre','$uid','1','$edit_imagen','$edit_nombre','1','1'); ");
+            $db->query(" INSERT INTO mybb_op_inventario(`objeto_id`, `uid`, `cantidad`, `imagen`, `apodo`, `especial`, `editado`, `bautizado`) VALUES ('$new_nombre','$uid','1','$edit_imagen','$edit_nombre','1','1','0'); ");
     
             if ($inventarioCantidad > 1) {
                 $nueva_cantidad = intval($inventario_custom['cantidad']) - 1;

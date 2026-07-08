@@ -47,6 +47,7 @@ if ($submit == 'Upload Image') {
 
     if ($uploadOk == 1) {
         upload_file($_FILES["fileToUpload"], $uploadspath_abs);
+        file_put_contents(MYBB_ROOT . "images/op/uploads/_ver", time());
         $mensaje_redireccion .= "<br><br>El archivo se subió en esta dirección: <a target='_blank' href='https://onepiecegaiden.com" . $target_file . "'>" . $target_file . "</a><br><br><br>";
         
         

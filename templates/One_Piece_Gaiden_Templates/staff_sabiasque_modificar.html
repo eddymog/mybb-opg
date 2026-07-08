@@ -1,0 +1,78 @@
+<html>
+
+<head>
+  <title>Modificar Sabias Qué</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+	Último ID: {$sabiasque_count}<br>
+    <if $sabiasque_id == '' then>
+      Sabias Qué ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='sabiasque_id'><button
+        onclick=onClickTid()>Buscar</button><br><br>
+    </if>
+	<if $sabiasque_id !='' then>
+
+        <form method="post" action="/op/staff/sabiasque_modificar.php" name="modificar_sabiasque" id="modificar_sabiasque">
+		Sabías qué ID:<br><input  class="textbox" type="text" name="sabiasque_id" value='{$sabiasque_id}'><br>
+		Tipo:<br>	
+		<select class="" name="tipo" id="tipo">
+		  <option value="1" <if $sabiasque['tipo'] == '1' then>selected</if>>Sabias qué</option>
+		  <option value="2" <if $sabiasque['tipo'] == '2' then>selected</if>>Hay rumores sobre</option>
+		  <option value="3" <if $sabiasque['tipo'] == '3' then>selected</if>>Alguien dijo una vez</option>
+		  <option value="4" <if $sabiasque['tipo'] == '4' then>selected</if>>En este foro</option>
+		</select>
+        <br>
+		Autor (opcional):<br>	
+		<input  class="textbox" type="text" name="autor" value="{$sabiasque['autor']}"><br>
+        Texto*:<br>
+        <textarea style="width: 400px;height: 125px;" name="texto" minlength="1" required>{$sabiasque['texto']}</textarea><br><br>
+        <input class="button" type="submit" value="Modificar">
+      </form>
+    </if>
+	 
+	<br>
+	  
+	<button id="sabiasques_boton" onclick="mostrarSabiasQue()">Mostrar Sabias Qués</button>
+	<div id="sabiasques" style="display: none;font-family: InterRegular;border: 2px dashed black;padding: 5px 10px;text-align: justify;margin: 0px 30px;">
+		
+    </div>
+
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  const sabiasques = {$sabiasques_json};
+	
+  for (let i = 0; i < sabiasques.length; i++) {
+	  let sabiasque = sabiasques[i];
+	  let autor = '';
+	  
+	  if (sabiasque['autor']) {
+		 autor = ` - Autor: ` + sabiasque['autor'];  
+	  }
+	  
+	  $('#sabiasques').append(`
+	  	  <div><a href="/op/staff/sabiasque_modificar.php?sabiasque_id=` + sabiasque['id'] + `">ID: ` + sabiasque['id'] + `</a> - Tipo: ` + sabiasque['tipo'] + autor + `</div>
+		  <div>` + sabiasque['texto'] + `</div><br>
+	  `);
+  }
+
+  function mostrarSabiasQue() {
+	  $('#sabiasques').css('display', 'block');
+   	  $('#sabiasques_boton').css('display', 'none');
+  }	
+	
+  function onClickTid() {
+    const sabiasqueId = document.getElementById('sabiasque_id').value;
+    if (sabiasqueId) {
+		    window.location.href = window.location.pathname + '?sabiasque_id=' + sabiasqueId;		
+	}
+  }
+</script>
+
+</html>

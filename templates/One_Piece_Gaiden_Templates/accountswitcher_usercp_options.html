@@ -1,0 +1,53 @@
+<form method="post" action="usercp.php" id="accountswitcher">
+                        <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                        <input type="hidden" name="manage" value="accountswitcher" />
+                            {$as_usercp_input}
+                        </table>
+                        </form>
+                        <script type="text/javascript">
+                        <!--
+                            if(use_xmlhttprequest == "1")
+                            {
+                                MyBB.select2();
+                                $("#accountswitcherusername").select2({
+                                    placeholder: "{$lang->search_user}",
+                                    minimumInputLength: 2,
+                                    multiple: false,
+                                    ajax: { // instead of writing the function to execute the request we use Select2's convenient helper
+                                        url: "xmlhttp.php?action=get_users",
+                                        dataType: "json",
+                                        data: function (term, page) {
+                                            return {
+                                                query: term, // search term
+                                            };
+                                        },
+                                        results: function (data, page) { // parse the results into the format expected by Select2.
+                                            // since we are using custom formatting functions we do not need to alter remote JSON data
+                                            return {results: data};
+                                        }
+                                    },
+                                    initSelection: function(element, callback) {
+                                        var query = $(element).val();
+                                        if (query !== "") {
+                                            $.ajax("xmlhttp.php?action=get_users", {
+                                                data: {
+                                                    query: query
+                                                },
+                                                dataType: "json"
+                                            }).done(function(data) { callback(data); });
+                                        }
+                                    },
+                                   // Allow the user entered text to be selected as well
+                                   createSearchChoice:function(term, data) {
+                                        if ( $(data).filter( function() {
+                                            return this.text.localeCompare(term)===0;
+                                        }).length===0) {
+                                            return {id:term, text:term};
+                                        }
+                                    },
+                                });
+                            }
+                            // -->
+                        </script>
+                        {$as_sec_account}
+                        {$as_usercp_buddyshare}

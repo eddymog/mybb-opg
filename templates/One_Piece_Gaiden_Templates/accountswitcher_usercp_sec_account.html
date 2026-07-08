@@ -1,0 +1,14 @@
+<form method="post" action="usercp.php">
+                <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+                <table border="0" style="margin-top: 50px; padding: 5px;" width="430px;">
+                    <tr>
+                        <td valign="top" width="1"><input type="checkbox" class="checkbox" style="{$checkbox}" name="secacc" id="secacc" value="1" {$sec_check} /></td>
+                        <td class="trow1"><div><span class="smalltext"><label for="secacc">{$lang->as_usercp_secaccount_desc}</label></span></div>
+                          <div style="padding-top: 10px;"><span class="smalltext"><label for="secacc_reason">{$lang->as_usercp_secaccount_reason}</label></span>
+                            <input type="text" name="secacc_reason" id="secacc_reason" value="{$user_sec_reason}" size="30" />
+                            <input type="hidden" name="action" value="do_secaccount" /></div></td>
+                            <td class="trow1"><input type="submit" value="{$lang->as_usercp_secaccount}" name="{$lang->as_usercp_secaccount}" class="button float_right" /></td>
+                    </tr>
+                </table>
+                </form>
+                

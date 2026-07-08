@@ -1,0 +1,93 @@
+<html>
+<head>
+  <title>Crear Banda</title>
+  {$headerinclude}
+  <style>
+    .banda-crear-fondo {
+      border: 2px solid #000;
+      background-color: {$faccionColor};
+      filter: brightness(0.9);
+      width: 1000px;
+      position: relative;
+      min-height: 400px;
+    }
+  </style>
+</head>
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+
+          <div class="banda-crear-fondo">
+
+            <div style="text-align:center; margin-top:40px; position:relative;">
+              <img src="/images/op/ficha/MarcoNombre_One_Piece_Gaiden_Foro_Rol.png" />
+              <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-55%);">
+                <span style="font-family:'moonGetHeavy'; letter-spacing:1px; text-shadow:2px 2px 0px black; color:#ff7e00; font-size:40px; white-space:nowrap;">CREAR BANDA</span>
+              </div>
+            </div>
+
+            <div style="max-width:620px; margin:30px auto 40px;">
+              <table cellpadding="4" cellspacing="0" border="0" style="width:100%;">
+                <tr>
+                  <td class="thead" colspan="2"><strong>Nueva Banda</strong></td>
+                </tr>
+                <tr>
+                  <td class="trow1" style="width:180px;"><strong>Nombre</strong></td>
+                  <td class="trow1"><input type="text" id="bc_nombre" maxlength="100" style="width:100%;" /></td>
+                </tr>
+                <tr>
+                  <td class="trow2"><strong>Descripción</strong></td>
+                  <td class="trow2"><textarea id="bc_descripcion" rows="4" style="width:100%;"></textarea></td>
+                </tr>
+                <tr>
+                  <td class="trow1"><strong>Bandera (URL imagen/GIF)</strong></td>
+                  <td class="trow1"><input type="text" id="bc_bandera" style="width:100%;" placeholder="https://..." /></td>
+                </tr>
+                <tr>
+                  <td class="trow2" colspan="2" style="text-align:center; padding:12px;">
+                    <input type="button" class="button" value="Crear Banda" onclick="crearBanda();" />
+                    <div id="bc_msg" style="margin-top:8px; color:#ffdddd; font-weight:bold;"></div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  {$footer}
+
+  <script>
+  function crearBanda() {
+    var nombre = document.getElementById('bc_nombre').value.trim();
+    if (!nombre) { document.getElementById('bc_msg').textContent = 'El nombre es obligatorio.'; return; }
+
+    var data = new FormData();
+    data.append('action',      'crear');
+    data.append('nombre',      nombre);
+    data.append('descripcion', document.getElementById('bc_descripcion').value.trim());
+    data.append('bandera',     document.getElementById('bc_bandera').value.trim());
+    data.append('post_code',   '{$post_code}');
+
+    fetch('/op/banda_miembros.php', { method: 'POST', body: data })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.ok) {
+          window.location.href = '/op/banda.php?id=' + res.banda_id;
+        } else {
+          document.getElementById('bc_msg').textContent = res.error || 'Error desconocido.';
+        }
+      })
+      .catch(function() {
+        document.getElementById('bc_msg').textContent = 'Error de conexión.';
+      });
+  }
+  </script>
+</body>
+</html>

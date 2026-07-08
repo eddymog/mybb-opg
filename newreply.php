@@ -142,33 +142,18 @@ if($mybb->get_input('method') == "quickreply" && !isset($mybb->input['previewpos
 // Check if this forum is password protected and we have a valid password
 check_forum_password($forum['fid']);
 
-if($mybb->settings['bbcodeinserter'] != 0 && $forum['allowmycode'] != 0 && (!$mybb->user['uid'] || $mybb->user['showcodebuttons'] != 0))
+if($mybb->settings['bbcodeinserter'] != 0 && $forum['allowmycode'] != 0 && $mybb->user['showcodebuttons'] != 0)
 {
-	$codebuttons = build_mycode_inserter("message", $forum['allowsmilies']);
-	if($forum['allowsmilies'] != 0)
+	$codebuttons = build_mycode_inserter("message", $mybb->settings['smilieinserter']);
+	if($mybb->settings['smilieinserter'] != 0)
 	{
 		$smilieinserter = build_clickable_smilies();
 	}
 }
 
-// Display a login box or change user box?
-if($mybb->user['uid'] != 0)
-{
-	$mybb->user['username'] = htmlspecialchars_uni($mybb->user['username']);
-	eval("\$loginbox = \"".$templates->get("changeuserbox")."\";");
-}
-else
-{
-	if(empty($mybb->input['previewpost']) && $mybb->input['action'] != "do_newreply")
-	{
-		$username = '';
-	}
-	else
-	{
-		$username = htmlspecialchars_uni($mybb->get_input('username'));
-	}
-	eval("\$loginbox = \"".$templates->get("loginbox")."\";");
-}
+// Display change user box for logged-in users
+$mybb->user['username'] = htmlspecialchars_uni($mybb->user['username']);
+eval("\$loginbox = \"".$templates->get("changeuserbox")."\";");
 
 // Check to see if the thread is closed, and if the user is a mod.
 if(!is_moderator($fid, "canpostclosedthreads"))
@@ -441,6 +426,12 @@ if($mybb->input['action'] == "do_newreply" && $mybb->request_method == "post")
 
 	// Apply moderation options if we have them
 	$post['modoptions'] = $mybb->get_input('modoptions', MyBB::INPUT_ARRAY);
+
+	// Preserve sticky: if thread is important and mod didn't explicitly uncheck, keep it
+	if(!empty($thread['sticky']) && !isset($mybb->input['modoptions']['stickthread']))
+	{
+		$post['modoptions']['stickthread'] = 1;
+	}
 
 	$posthandler->set_data($post);
 
@@ -747,23 +738,10 @@ if($mybb->input['action'] == "do_newreply" && $mybb->request_method == "post")
 // Show the newreply form.
 if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft")
 {
-	// --- OPG Avatar Script for MapaInteractivo ---
-	$avatar = '';
-	if ($mybb->user['uid']) {
-		$query = $db->simple_select("users", "avatar", "uid='" . (int)$mybb->user['uid'] . "'");
-		$user = $db->fetch_array($query);
-		$avatar = $user['avatar'];
-		if ($avatar == '' || !$avatar) {
-			$avatar = '/images/default_avatar.png';
-		}
-		// Fix relative path if needed
-		if (substr($avatar, 0, 18) == './uploads/avatars/') {
-			$avatar = substr($avatar, 1);
-		}
-	} else {
-		$avatar = '/images/default_avatar.png';
-	}
-	$opg_avatar_script = '<script>window.OPG = window.OPG || {}; window.OPG.user = window.OPG.user || {}; window.OPG.user.avatar = ' . json_encode($avatar) . ';</script>';
+	// --- OPG Avatar Script for MapaInteractivo (HIDDEN) ---
+	$opg_avatar_script = '<style>#interactive-map-container,[id*="map-toggle"],[data-mapa]{display:none!important}</style><script>window.OPG_MAPA_DISABLED=true;</script>';
+	$opg_positions_script = '';
+	$opg_pos_script = '';
 	$plugins->run_hooks("newreply_start");
 
 	$quote_ids = $multiquote_external = '';

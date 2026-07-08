@@ -134,7 +134,7 @@ function getOficioJson($oficio) {
     } else if ($oficio == "Cocinero") {
         $oficios = '{ "sub": { "Chef": 0, "Aprovisionador": 0 }, "nivel": 1 }';
     } else if ($oficio == "Mercader") {
-        $oficios = '{ "sub": { "Comerciante": 0, "Recolector": 0 }, "nivel": 1 }';
+        $oficios = '{ "sub": { "Comerciante": 0, "Contrabandista": 0 }, "nivel": 1 }';
     } else if ($oficio == "Investigador") {
         $oficios = '{ "sub": { "Periodista": 0, "Arqueólogo": 0 }, "nivel": 1 }';
     } else if ($oficio == "Aventurero") {
@@ -164,7 +164,7 @@ if ($accion == 'limite_nivel') {
         $db->query(" UPDATE `mybb_op_fichas` SET `limite_nivel`='$limiteNivelNuevo' WHERE `fid`='$user_uid'; ");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Límite Nivel]', 'nikas', $nikasNuevo);
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Nivel]', "Limite de Nivel: $limiteNivelNuevo: $nikas->$nikasNuevo (Gasto: $nikasCosto).");
-        echo("<script>alert('¡Has aumentado tu límite de nivel a $limiteNivelNuevo!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Has aumentado tu límite de nivel a $limiteNivelNuevo!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 
 }
@@ -190,7 +190,7 @@ if ($accion == 'kenbun') {
         $db->query(" UPDATE `mybb_op_fichas` SET `kenbun`='$kenbunNuevo' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Haki]', "Kenbun: $kenbunNuevo: $nikas->$nikasNuevo (Gasto: $nikasCosto).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Kenbun Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Has aumentado tu nivel a Kenbunshoku Haki! $nikasNuevo $nikas $nikasCosto');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Has aumentado tu nivel a Kenbunshoku Haki! $nikasNuevo $nikas $nikasCosto');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -213,7 +213,7 @@ if ($accion == 'buso') {
         $db->query(" UPDATE `mybb_op_fichas` SET `buso`='$busoNuevo' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Haki]', "Buso: $busoNuevo: $nikas->$nikasNuevo (Gasto: $nikasCosto).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Buso Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Has aumentado tu nivel a Busoshoku Haki!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Has aumentado tu nivel a Busoshoku Haki!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -238,7 +238,7 @@ if ($accion == 'hao') {
         $db->query(" UPDATE `mybb_op_fichas` SET `hao`='$haoNuevo' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Haki]', "Hao: $haoNuevo: $nikas->$nikasNuevo (Gasto: $nikasCosto).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Hao Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Has aumentado tu nivel a Haoshoku Haki!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Has aumentado tu nivel a Haoshoku Haki!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -274,7 +274,7 @@ if ($accion == 'control_akuma') {
 
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Dominio Akuma Mejora]', 'nikas', $nikasNuevo);
 
-        echo("<script>alert('¡Has aumentado tu nivel a Dominio de Akuma!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Has aumentado tu nivel a Dominio de Akuma!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -288,19 +288,19 @@ if ($accion == 'estilo') {
 
     if ($slot == 'estilo1' && $estilo1 == 'no_bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo1`='$estilo' WHERE `fid`='$user_uid'; ");
-        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
         return;
     } else if ($slot == 'estilo2' && $estilo2 == 'no_bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo2`='$estilo' WHERE `fid`='$user_uid'; ");
-        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
         return;
     } else if ($slot == 'estilo3' && $estilo3 == 'no_bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo3`='$estilo' WHERE `fid`='$user_uid'; ");
-        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
         return;
     } else if ($slot == 'estilo4' && $estilo4 == 'no_bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo4`='$estilo' WHERE `fid`='$user_uid'; ");
-        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('Estilo $estilo - Asignado');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
         return;
     }
     return;
@@ -309,9 +309,9 @@ if ($accion == 'estilo') {
 if ($accion == 'estilo1_desbloquear') {
     if ($nivel >= 8 && $ficha['estilo1'] == 'bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo1`='no_bloqueado' WHERE `fid`='$user_uid'; ");
-        echo("<script>alert('¡Desbloqueaste el acceso al primer estilo!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Desbloqueaste el acceso al primer estilo!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     } else {
-        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -321,9 +321,9 @@ if ($accion == 'estilo2_desbloquear') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo2`='no_bloqueado' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Estilo 2]', "$nikas->$nikasNuevo (Gasto: 25).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Estilo 2 Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Desbloqueaste el acceso al segundo estilo!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Desbloqueaste el acceso al segundo estilo!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     } else {
-        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -333,9 +333,9 @@ if ($accion == 'estilo3_desbloquear') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo3`='no_bloqueado' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Estilo 3]', "$nikas->$nikasNuevo (Gasto: 50).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Estilo 3 Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Desbloqueaste el acceso al tercer estilo!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Desbloqueaste el acceso al tercer estilo!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     } else {
-        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -345,9 +345,9 @@ if ($accion == 'estilo4_desbloquear') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo4`='no_bloqueado' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Estilo 4]', "$nikas->$nikasNuevo (Gasto: 75).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Estilo 4 Mejora]', 'nikas', $nikasNuevo);
-        echo("<script>alert('¡Desbloqueaste el acceso al cuarto estilo!');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('¡Desbloqueaste el acceso al cuarto estilo!');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     } else {
-        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+        echo("<script>alert('No desbloqueaste. Error.');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
     }
 }
 
@@ -373,9 +373,12 @@ if ($accion == 'oficio') {
     $oficios = json_decode($ficha['oficios']);
     $textoSubir = "";
     
-    if (isset($oficios->{$oficio})) { 
+    if (isset($oficios->{$oficio})) {
         $puntosOficioNuevo = $puntosOficio - 1000;
-        $oficios->{$oficio}->{'nivel'} = 2; 
+        $oficios->{$oficio}->{'nivel'} = 2;
+        if (isset($oficios->{$oficio}->{'sub'}) && is_array($oficios->{$oficio}->{'sub'})) {
+            $oficios->{$oficio}->{'sub'} = (object)$oficios->{$oficio}->{'sub'};
+        }
         $textoSubir = "¡Has subido {$oficio} a nivel 2, crack!";
     } else {
         $oficios->{$oficio} = getOficioJson($oficio); 
@@ -389,7 +392,7 @@ if ($accion == 'oficio') {
 
     log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Oficio Mejora]', 'puntos_oficio', $puntosOficioNuevo);
     
-    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
 }
 
 // if ($accion == 'belica') { 
@@ -426,7 +429,7 @@ if ($accion == 'oficio') {
 //     $db->query(" UPDATE `mybb_op_fichas` SET `belicas`='$belicas', `$belicaNumber`='$belica', `nika`='$nikasNuevo' WHERE `fid`='$user_uid'; ");
 //     log_audit($user_uid, $username, $user_uid, '[Mejoras][Disciplina]', "$textoSubir; $nikas->$nikasNuevo (Gasto: $gasto).");
 //     log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Belica Mejora]', 'nikas', $nikasNuevo);
-//     echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+//     echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
 // }
 
 if ($accion == 'belica') { 
@@ -458,7 +461,7 @@ if ($accion == 'belica') {
     $db->query(" UPDATE `mybb_op_fichas` SET `belicas`='$belicas', `$belicaNumber`='$belica' WHERE `fid`='$user_uid'; ");
     log_audit($user_uid, $username, $user_uid, '[Mejoras][Disciplina]', "$textoSubir; $nikas->$nikasNuevo (Gasto: $gasto).");
     log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Belica Mejora]', 'nikas', $nikasNuevo);
-    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
 }
 
 /* oficio_espe */
@@ -504,7 +507,7 @@ if ($accion == 'oficio_espe') {
     $db->query(" UPDATE `mybb_op_fichas` SET `oficios`='$oficios', `$oficioNumber`='$oficio', `puntos_oficio`='$puntosOficioNuevo' WHERE `fid`='$user_uid'; ");
     log_audit($user_uid, $username, $user_uid, '[Mejoras][Oficio Espe]', "$textoSubir; $nikas->$nikasNuevo (Gasto: $gasto); $puntosOficio->$puntosOficioNuevo; ");
     log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Oficio Espe Mejora]', 'puntos_oficio', $puntosOficioNuevo);
-    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
 
 }  
 
@@ -595,7 +598,7 @@ if ($accion == 'belica_espe') {
     $db->query(" UPDATE `mybb_op_fichas` SET `belicas`='$belicas', `$belicaNumber`='$belica' WHERE `fid`='$user_uid'; ");
     log_audit($user_uid, $username, $user_uid, '[Mejoras][Camino]', "$textoSubir; $nikas->$nikasNuevo (Gasto: $gasto); ");
     log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Belica Espe Mejora]', 'nikas', $nikasNuevo);
-    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/ficha.php?uid=$user_uid';</script>");
+    echo("<script>alert('$textoSubir');window.location.href = 'https://onepiecegaiden.com/op/personaje.php?uid=$user_uid';</script>");
 }
 
 if ($ficha != null) {

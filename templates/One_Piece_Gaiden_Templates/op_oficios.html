@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <style>
+		.entrenamiento p {
+			font-size: 21px;	
+		}
+		
+		.poneglyph {
+			display: flex;flex-direction: row;background: url(/images/op/uploads/PoneglyphEntrenamientoAprendizaje_One_Piece_Gaiden_Foro_Rol.png);height: 380px;background-size: contain;
+		}
+		
+		.texto-top {
+			text-align: center; font-family: InterRegular; color: white; text-shadow: 1px 1px 2px black; margin-top: 8px; margin-bottom: 3px; font-size: 16px;
+		}
+		
+		.entreno-button {
+			background-color: #d16f19 !important;
+			transition: all 0.5s ease-out;
+			font-size: 18px !important;
+			border: 1px solid black !important;
+			font-family: InterRegular !important;
+		}
+		
+		.entreno-button:hover {
+			background-color: #df7416 !important;
+		}
+
+    </style>
+    <title>Oficio</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+	  <div class="indice">
+		<div class="mainBackground">
+			<div class="secondBackground">
+				<div class="thirdBackground">
+					<div style="margin-bottom: 10px;">
+						<img src="/images/op/uploads/LecciónProfesional_One_Piece_Gaiden_Foro_Rol.jpg" />
+					</div>
+					<div style="display: none">
+						<form id="form1" method="post" action="oficios.php">
+							<div style="display: none">
+								<input type="text" name="entrenar" id="entrenar" value="1">
+								<input type="text" name="oficio" id="oficio" value="1">
+							</div>
+						</form>
+					</div>
+					<div class="poneglyph">
+						<div style=" margin: 0 auto; ">
+							<div class="texto-top">Esta lección durará <span id="duracion_horas">24</span> horas. <br>Obtendrás <span id="puntos_oficio">100</span> puntos de oficio.<br>Tienes {$puntos_oficio} puntos de oficio.</div>
+							<div><img style="border: 2px solid black; " src="/images/op/uploads/AprendizajeInicio_One_Piece_Gaiden_Foro_Rol.gif" /></div>
+<!-- 							<div style=" text-align: center;margin-top: 10px; "><button class="entreno-button">Comenzar Entrenamiento</button></div> -->
+							<div style=" text-align: center;margin-top: 12px; ">
+								<input class="button entreno-button" type="button" onclick="javascript: document.getElementById('form1').submit();" value="¡Comienza la lección!">
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		 </div>
+	  </div>
+	<script>
+		let puntos_oficio_recompensa = {$puntos_oficio_recompensa};
+		let duracion_horas = {$duracion_horas}
+		$("#puntos_oficio").html(puntos_oficio_recompensa);
+		$("#duracion_horas").html(duracion_horas);
+		
+	</script>
+	<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+    {$reload_script}
+    {$footer}
+</body>
+
+</html>

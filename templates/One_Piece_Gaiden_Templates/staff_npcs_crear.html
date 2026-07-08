@@ -1,0 +1,126 @@
+<html>
+
+<head>
+  <title>Crear NPCs</title>
+  {$headerinclude}
+</head>
+
+<body>
+{$header}
+<div class="fondo-blanco">
+<if $accion=='' then>
+     Acción:<br>
+      <select id="accion" onchange="onClickAccion()">
+		<option value=""></option>
+        <option value="Agregar">Agregar</option>
+<!--         <option value="Remover">Remover</option> -->
+      </select><br><br>
+      <br><br>
+    </if>
+    <if $accion == 'Agregar' then><br>
+      <form method="post" action="/op/staff/npcs_crear.php" name="crear_npcs" id="crear_npcs">
+        <div style="display: none">
+           <input type="text" id="fid" name="accion" value="{$accion}">
+        </div>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		ID de NPC*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="npc_id" id="npc_id" /><br>
+        Etiqueta*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="control_akuma" id="control_akuma" /><br>  
+        Nombre*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="nombre" id="nombre" /><br>
+		Apodo*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="apodo" id="apodo" /><br>
+		Facción*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="faccion" id="faccion" /><br>  
+		Raza*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="raza" id="raza" /><br>  
+		Edad*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="edad" id="edad" /><br>    
+	    Altura*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="altura" id="altura" /><br>  
+		Peso*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="peso" id="peso" /><br>    
+		Sexo*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="sexo" id="sexo" /><br>    
+	    Temporada*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="temporada" id="temporada" /><br>  
+		Nivel*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="nivel" id="nivel" /><br><br>    
+		  
+		Fuerza*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="fuerza" id="fuerza" /><br>  
+		Resistencia*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="resistencia" id="resistencia" /><br>  
+		Destreza*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="destreza" id="destreza" /><br>  
+		Voluntad*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="voluntad" id="voluntad" /><br>  
+		Puntería*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="punteria" id="punteria" /><br>  
+		Agilidad*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="agilidad" id="agilidad" /><br>  
+		Reflejos*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="reflejos" id="reflejos" /><br>  
+		  
+	    Vitalidad*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="vitalidad" id="vitalidad" /><br>  
+	    Energía*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="energia" id="energia" /><br>  
+	    Haki*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="haki" id="haki" /><br>  
+		  
+		Extra*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="extra" id="extra" /><br>  
+		Rango*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="rango" id="rango" /><br>  
+		Sangre*: <br><input style="width: 300px;" class="textbox" value="" type="text" name="sangre" id="sangre" /><br>  
+		Akuma: <br><input style="width: 300px;" class="textbox" value="" type="text" name="akuma" id="akuma" /><br>  
+		Avatar (200x300px)*: <br><input style="width: 500px;" class="textbox" value="" type="text" name="avatar1" id="avatar1" /><br>  
+	    Avatar2 (420x420px)*: <br><input style="width: 500px;" class="textbox" value="" type="text" name="avatar2" id="avatar2" /><br>  
+		
+        Apariencia*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="apariencia" minlength="1" placeholder=""></textarea><br>
+		Personalidad*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="personalidad" minlength="1" placeholder=""></textarea><br>
+		Historia 1*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia1" minlength="1" placeholder=""></textarea><br>
+		Historia 2*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia2" minlength="1" placeholder=""></textarea><br>
+		Historia 3*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia3" minlength="1" placeholder=""></textarea><br>
+		Extras*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="extra" minlength="1" placeholder=""></textarea><br>
+		Notas*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="notas" minlength="1" placeholder=""></textarea><br>
+		 <br>
+        <input class="button" type="submit" value="Crear NPC">
+      </form>	
+    </if>
+    <if $accion == 'Remover' && $npc_id == '' then>
+        Acción: {$npc_id}<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		NPC ID:<br><input class="textbox" type="text" name="npc_id" required id='npc_id'><br><br>
+		<button onclick=onClickAccion()>Buscar</button><br><br>
+    </if>
+	<if $accion == 'Remover' && $npc_id != '' then>
+<!--         Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		NPC ID:<br><input style="width: 300px;" class="textbox" type="text" name="npc_id" required id='npc_id' value='{$npc_id}' disabled><br><br>
+		<span>Nombre: {$npc['nombre']}</span><br>
+		<span>Subnombre: {$npc['sunbnombre']}</span><br>
+		<span>Categoria: {$npc['categoria']}</span><br>
+		<span>Tier: {$npc['tier']}</span><br>
+		<span>Descripción: {$npc['descripcion']}</span><br>
+		<span>Imagen: {$npc['imagen']}</span><br>
+		<span>Ocupada: {$npc['ocupada']}</span><br>
+		<form method="post" action="/op/staff/npcs_crear.php" name="crear_npcs" id="crear_npcs">
+			<div style="display: none">
+           		<input type="text" name="npc_id" value="{$npc_id}">
+				<input type="text" name="accion" value="{$accion}">
+				<input type="text" name="nombre" value="{$npc['nombre']}">
+        	</div><br>
+			<input class="button" type="submit" value="Remover"><br><br>
+		</form> -->
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const accion = document.getElementById('accion').value;
+	const npc_id = document.getElementById('npc_id')?.value;
+	if (accion && npc_id) {
+      window.location.href = window.location.pathname + '?accion=' + accion + '&npc_id=' + npc_id;
+    } else if (accion) {
+      window.location.href = window.location.pathname + '?accion=' + accion;
+    }
+  }
+</script>
+
+</html>

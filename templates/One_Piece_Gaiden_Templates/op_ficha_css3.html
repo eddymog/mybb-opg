@@ -1,0 +1,1422 @@
+<style>
+	  .pestana {
+		color: rgb(255, 255, 255);
+		width: 197px;
+		text-align: center;
+/* 		clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); */
+	    border-start-start-radius: 50px;
+    	border-start-end-radius: 50px;
+		height: 30px;
+		background-color: {$faccionColor};
+		filter: brightness(0.3);
+		font-family: moonGetHeavy;
+	    transition: all 0.2s ease-out;
+		cursor: pointer;
+		border: 2px solid {$faccionColor};
+	    border-bottom: 0px;
+	  }
+	  
+	  .pestana:hover {
+		  border: 2px solid rgb(0, 0, 0);
+		  border-bottom: 0px;
+		  background-color: {$faccionColor};
+		  filter: brightness(0.9);
+	  }
+	  
+	  .pestana-texto {
+		color: white;
+		top: 5px;
+		position: relative;
+	    text-shadow: 1px 1px 0px black;
+	  }
+	  
+	  .pestana-active {
+		  border: 2px solid rgb(0, 0, 0);
+		  border-bottom: 0px;
+		  background-color: {$faccionColor};
+		  filter: brightness(0.9);
+	  }
+	  
+	  .fondo-ficha {
+		  border: 2px solid rgb(0, 0, 0);
+		  background-color: {$faccionColor};
+		  filter: brightness(0.9);
+		  width: 1000px;
+		  background-image: url(/images/op/uploads/Fondo{$faccion}1_One_Piece_Gaiden_Foro_Rol.webp);
+		  height: 1370px;
+		  box-shadow: 0px 5px 11px black;
+		  background-size: cover;
+	  }
+	  
+	  .tag-ficha {
+		  width: 290px;
+		  height: 50px;
+		  background-color: white;
+		  margin: 5px 0px 5px 27px;
+		  border-end-end-radius: 50px;
+		  border-start-end-radius: 50px;
+		  border: 1px solid {$borderTagColor};
+		  box-shadow: 0px 0px 8px black;
+	      margin-bottom: 20px;
+	  }
+	  
+	  .tag-ficha-reverse {
+		width: 230px;
+		height: 50px;
+		background-color: white;
+		margin: 5px 0px 5px 28px;
+		border-end-start-radius: 50px;
+		border-start-start-radius: 50px;
+		border: 1px solid {$borderTagColor};
+		box-shadow: 0px 0px 8px black;
+		margin-bottom: 20px;
+	  }
+	  
+	  .tag-ficha-texto {
+		 font-family: 'moonGetHeavy';
+		 letter-spacing: 1px;
+		 color: black;
+		 font-size: 25px;
+		 top: 2px;
+		 position: relative;
+		 left: 11px;
+	  }
+	  
+	  .tag-ficha-texto-reverse {
+		font-family: 'moonGetHeavy';
+		letter-spacing: 1px;
+		color: black;
+		font-size: 25px;
+		top: 8px;
+		position: relative;
+		left: 66px;
+	  }
+	  
+	  .tag-ficha-kanji {
+		 height: 45px;
+		 width: 45px;
+		 background-color: black;
+		 position: relative;
+		 top: -34px;
+		 left: 242px;
+		 border-radius: 51px;
+	  }
+	  
+	  .tag-ficha-kanji-reverse {
+		height: 45px;
+		width: 45px;
+		background-color: black;
+		position: relative;
+		top: -34px;
+		left: 5px;
+		border-radius: 51px;
+	  }
+	  
+	  .tag-ficha-kanji-texto {
+		 color: white;
+		 font-size: 31px;
+		 position: relative;
+		 left: 8px;
+		 top: 0px;
+	  }
+	  
+	  .tag-ficha-kanji-texto-reverse {
+		 color: white;
+		 font-size: 31px;
+		 position: relative;
+		 left: 7px;
+		 top: 0px;
+	  }
+	  
+	  .stat-diamante-grande {
+			height: 110px;
+			width: 110px;
+			transform: rotate(45deg);
+			border: 4px solid black;
+			box-sizing: border-box;
+			box-shadow: 0px 0px 10px black;
+	  }
+	  
+	  .stat-diamante-pequeno {
+			height: 80px;
+			width: 80px;
+			transform: rotate(45deg);
+			border: 4px solid white;
+			box-sizing: border-box;
+			box-shadow: 0px 0px 10px black;
+	  }
+	  
+	  .oficio-titulo {
+		letter-spacing: 1px;
+		font-family: moonGetHeavy;
+		color: white;
+		font-size: 16px;
+		margin-left: 28px;
+		margin: auto;
+	 }
+
+	.oficio-titulo-pill-1 {
+		letter-spacing: 1px;
+		font-family: moonGetHeavy;
+		color: black;
+		font-size: 11px;
+/* 		background-color: #9664e0; */
+		background-color: #fff; 
+		border: 1px solid black;
+		border-start-start-radius: 10px;
+		border-end-start-radius: 10px;
+		text-align: center;
+		height: 15px;
+		width: 65px;
+	}
+
+	.oficio-titulo-pill-2 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-end-radius: 10px; 
+		border-end-end-radius: 10px; 
+		text-align: center; 
+		width: 55px; 
+		height: 15px;
+	}
+
+	.oficio-titulo2 {
+		letter-spacing: -1px;
+		font-family: moonGetHeavy;
+		color: black;
+		font-size: 12px;
+		margin-left: 10px;
+		width: 100px;
+		height: 23px;
+		position: relative;
+		top: 3px;
+	}
+
+	.oficio-pill-1 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+		margin-left: 28px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-start-radius: 10px; 
+		border-end-start-radius: 10px; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px
+	}
+
+	.oficio-pill-2 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px;
+	}
+
+	.oficio-pill-3 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-end-radius: 10px; 
+		border-end-end-radius: 10px; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px;
+	}
+	  
+	  
+.oficio-pill-color {
+    display: flex;
+    margin-top: 3px;
+    flex-direction: row;
+/*     background-color: #ff7e00; */
+	background-color: #838383;
+    margin-left: 10px;
+    margin-right: 10px;
+    border: 1px solid black;
+    border-radius: 7px;
+}
+
+.oficio-caja {
+    height: 90px;
+    width: 290px;
+/*     background-color: {$borderPillColor}; */
+	background-color: #5d5d5d; 
+    border-radius: 7px;
+    box-shadow: 0px 0px 10px black;
+    border: 1px solid black;
+}
+
+.oficio-pill-caja {
+    display: flex; 
+    flex-direction: row; 
+    position: relative; 
+    top: 3px; 
+    left: -6px;
+}
+
+.oficio-titulo-caja {
+    display: flex; 
+    flex-direction: row; 
+    position: relative; 
+    top: 3px; 
+    left: -3px;
+}
+
+/* Estilos para el modal de oficios */
+.oficios-modal-content {
+    background-color: #ffedd2;
+    border: 4px solid #ffe59b;
+    border-radius: 8px;
+    max-width: 1500px;
+    width: 95%;
+    max-height: 90vh;
+    margin: 2% auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.oficios-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 280px);
+    grid-template-rows: repeat(2, auto);
+    gap: 20px;
+    padding: 30px;
+    justify-content: center;
+    align-content: center;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.oficio-card {
+    background-color: white;
+    border: 3px solid #ddd;
+    border-radius: 10px;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 280px;
+    height: auto;
+}
+
+.oficio-card:hover:not(.oficio-disabled) {
+    border-color: #ff7e00;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.oficio-imagen-container {
+    position: relative;
+    width: 280px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.oficio-imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: all 0.3s ease;
+}
+
+.oficio-card:hover:not(.oficio-disabled) .oficio-imagen {
+    transform: scale(1.05);
+}
+
+.oficio-nombre {
+    font-family: 'moonGetHeavy';
+    font-size: 18px;
+    color: #333;
+    margin-top: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.oficio-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.oficio-disabled:hover {
+    transform: none;
+    border-color: #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.oficio-ya-aprendido {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 25px;
+    font-family: 'moonGetHeavy';
+    font-size: 14px;
+    text-shadow: 1px 1px 2px black;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+/* Responsive para pantallas más pequeñas */
+@media (max-width: 1600px) {
+    .oficios-modal-content {
+        max-width: 1200px;
+    }
+    
+    .oficios-grid {
+        grid-template-columns: repeat(4, 260px);
+        grid-template-rows: repeat(3, auto);
+        gap: 15px;
+    }
+    
+    .oficio-card {
+        width: 260px;
+    }
+    
+    .oficio-imagen-container {
+        width: 260px;
+        height: 90px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .oficios-modal-content {
+        width: 98%;
+        max-width: 900px;
+    }
+    
+    .oficios-grid {
+        grid-template-columns: repeat(3, 240px);
+        grid-template-rows: repeat(4, auto);
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .oficio-card {
+        width: 240px;
+    }
+    
+    .oficio-imagen-container {
+        width: 240px;
+        height: 80px;
+    }
+    
+    .oficio-nombre {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .oficios-modal-content {
+        width: 95%;
+        margin: 1% auto;
+    }
+    
+    .oficios-grid {
+        grid-template-columns: repeat(2, 200px);
+        grid-template-rows: repeat(5, auto);
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .oficio-card {
+        width: 200px;
+        padding: 10px;
+    }
+    
+    .oficio-imagen-container {
+        width: 200px;
+        height: 70px;
+        margin-bottom: 10px;
+    }
+    
+    .oficio-nombre {
+        font-size: 14px;
+    }
+}
+
+/* Scrollbar personalizada para el modal */
+.oficios-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.oficios-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.oficios-grid::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.oficios-grid::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+  .puas-corona {
+	width: 46px;
+	box-sizing: border-box;
+	border: 2px solid black;
+	height: 100px;
+	background-color: white;
+	margin-right: 5px;
+  }
+	  
+ .puas-corona-corta {
+	width: 46px;
+	box-sizing: border-box;
+	border: 2px solid black;
+	height: 50px;
+	background-color: white;
+	margin-right: 5px;
+  }
+	  
+  .nombre, .nombre:visited {
+	color: #ff7e00;
+  }
+ 
+  .nombre:hover, .nombre:active {
+	color: #00aced;
+  }
+
+  .apariencia, .personalidad, .historia, .extras {
+	  transition: all 0.2s ease-out;
+	  cursor: pointer;	  
+    }	 
+	  
+  .apariencia:hover, .personalidad:hover, .historia:hover {
+/* 	  background-color: #ffa400 !important; */
+	  filter: brightness(1.3) !important;
+   }
+	  
+  .extras:hover {
+	 color: #ff7e00 !important;
+  }
+	  
+  .rasgos-active {
+	filter: brightness(1.1);
+  }
+	  
+  .rasgos_box {
+	  transition: all 0.1s ease-out;
+	  cursor: pointer;
+  }
+	
+  .rasgos_box:hover {
+    background-color: red;  
+	filter: brightness(0.7);
+  }
+  
+  .pestana-tecnica {
+	  height: 35px; 
+	  width: 193px; 
+	  background-color: #4856ff; 
+	  margin-top: 5px; 
+	  border-start-start-radius: 10px; 
+	  border-end-start-radius: 10px; 
+	  font-family: 'moonGetHeavy'; 
+	  letter-spacing: 1px;
+	  cursor: pointer;
+	  transition: all 0.2s ease-out;
+  }
+	  
+  .pestana-tecnica:hover {
+	filter: saturate(2) drop-shadow(2px 2px 2px black);
+  }
+
+  .objeto_categoria {
+  font-family: moonGetHeavy;
+  font-size: 18px;
+  color: #333;
+  padding: 5px;
+  text-align: center;
+}
+
+/* Estilos para el modal de estilos de combate */
+.estilos-modal-content {
+    background-color: #ffedd2;
+    border: 4px solid #ffe59b;
+    border-radius: 8px;
+    max-width: 1400px;
+    width: 95%;
+    max-height: 90vh;
+    margin: 2% auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.estilos-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 260px);
+    grid-template-rows: repeat(3, auto);
+    gap: 20px;
+    padding: 30px;
+    justify-content: center;
+    align-content: space-around;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.estilo-card {
+    background-color: white;
+    border: 3px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 260px;
+    height: auto;
+}
+
+.estilo-card:hover:not(.estilo-disabled) {
+    border-color: #ff7e00;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.estilo-imagen-container {
+    position: relative;
+    width: 260px;
+    height: 125px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.estilo-imagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: all 0.3s ease;
+}
+
+.estilo-card:hover:not(.estilo-disabled) .estilo-imagen {
+    transform: scale(1.05);
+}
+
+.estilo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.estilo-nombre {
+    font-family: 'moonGetHeavy';
+    font-size: 16px;
+    color: #333;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.estilo-tipo {
+    font-family: 'moonGetHeavy';
+    font-size: 12px;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 15px;
+    text-shadow: 1px 1px 2px black;
+    align-self: center;
+    min-width: 80px;
+}
+
+.estilo-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+}
+
+.estilo-disabled:hover {
+    transform: none;
+    border-color: #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.estilo-ya-aprendido {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 25px;
+    font-family: 'moonGetHeavy';
+    font-size: 14px;
+    text-shadow: 1px 1px 2px black;
+    z-index: 10;
+    white-space: nowrap;
+}
+
+/* Efectos hover para slots libres */
+.estilo-slot-libre:hover {
+    filter: brightness(1.2) saturate(1.3);
+    transform: scale(1.02);
+}
+
+/* Responsive para estilos */
+@media (max-width: 1500px) {
+    .estilos-modal-content {
+        max-width: 1200px;
+    }
+    
+    .estilos-grid {
+        grid-template-columns: repeat(4, 240px);
+        grid-template-rows: repeat(4, auto);
+        gap: 15px;
+    }
+    
+    .estilo-card {
+        width: 240px;
+    }
+    
+    .estilo-imagen-container {
+        width: 240px;
+        height: 115px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .estilos-modal-content {
+        width: 98%;
+        max-width: 900px;
+    }
+    
+    .estilos-grid {
+        grid-template-columns: repeat(3, 220px);
+        grid-template-rows: repeat(5, auto);
+        gap: 15px;
+        padding: 20px;
+    }
+    
+    .estilo-card {
+        width: 220px;
+    }
+    
+    .estilo-imagen-container {
+        width: 220px;
+        height: 105px;
+    }
+    
+    .estilo-nombre {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 768px) {
+    .estilos-modal-content {
+        width: 95%;
+        margin: 1% auto;
+    }
+    
+    .estilos-grid {
+        grid-template-columns: repeat(2, 180px);
+        grid-template-rows: repeat(8, auto);
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .estilo-card {
+        width: 180px;
+        padding: 8px;
+    }
+    
+    .estilo-imagen-container {
+        width: 180px;
+        height: 85px;
+        margin-bottom: 8px;
+    }
+    
+    .estilo-nombre {
+        font-size: 12px;
+    }
+    
+    .estilo-tipo {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+
+.barra_categoria {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #666, transparent);
+  margin-bottom: 10px;
+}
+
+.objetos_lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 5px;
+  justify-content: flex-start;
+}
+
+/* .item-outer {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease-out;
+}
+
+.item-outer:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+} */
+/* 
+.item-nombre {
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  position: absolute;
+  bottom: -20px;
+  width: 100%;
+  font-family: InterRegular;
+}
+
+.item-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.item-image img {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+} */
+
+/* Estilos para los tooltips */
+/* .tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  min-width: 400px;
+  background-color: #ffedd2;
+  color: black;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  border: 2px solid #ffe59b;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+} */
+
+.tec-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tec-tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -100px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tec-tooltip:hover .tec-tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.stat-tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tec-tooltip:hover .stat-tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.mydescripcion {
+  font-family: InterRegular;
+  padding: 5px;
+  text-align: justify;
+}
+
+/* Estilos para los contenedores de objetos equipados */
+.equipamiento-container, .implantes-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: flex-start;
+    height: 100%;
+    padding: 5px;
+    gap: 5px;
+    overflow-y: auto;
+}
+
+/* Estilos para los objetos equipados */
+.equipped-item {
+    width: 70px;
+    height: 70px;
+    margin: 5px;
+}
+
+.equipped-item .item-nombre {
+    font-size: 10px;
+}
+
+/* Indicador visual para objetos equipados en el inventario */
+.equipped {
+    border: 2px solid gold;
+    position: relative;
+}
+
+.equipped::after {
+    content: "✓";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #0055bb;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+/* Estilos para los botones de equipar/desequipar */
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+/* Estilo para imagen personalizable */
+.imagen-custom {
+  width: 20px; 
+  height: 20px; 
+  position: absolute; 
+  top: 4px; 
+  left: 6px;
+  transition: all 0.2s ease-out;
+}
+
+.imagen-custom:hover {
+  filter: drop-shadow(0px 0px 3px black);
+}
+
+  <if $is_owner then>
+	  .avatar_biografia, .avatar_repu_1, .avatar_repu_2, .avatar_habilidades, .avatar_inventario_ficha, .apodo, .apariencia, .personalidad, .historia, .extras {
+		transition: all 0.2s ease-out;
+		cursor: pointer;	  
+	  }	  
+
+	  .avatar_biografia:hover, .avatar_repu_1:hover, .avatar_repu_2:hover, .avatar_habilidades:hover, .avatar_inventario_ficha:hover {
+		filter: sepia(0.5);
+	  }
+	  
+	  .apodo:hover {
+		  color: #000000b3 !important;
+	  }
+	  
+
+	  
+/* 	  .personalidadCaja:hover, .aparienciaCaja:hover, .historiaCaja:hover {
+		  border: 5px solid #ffa400 !important;
+	  } */
+  </if>
+	  
+  </style>
+
+  <style>	  
+  .virtudesList, .defectosList {
+	margin-top: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	justify-content: space-between;
+	gap: 5px;
+  }
+
+  #npcs_acompanantes::-webkit-scrollbar {
+    display: none;
+	}
+
+	.npcItemBio {
+		cursor: pointer;
+		transition: all 0.3s ease;
+		display: inline-block;
+		vertical-align: top;
+	}
+
+	.npcItemBio:hover {
+		transform: translateY(-5px);
+		box-shadow: 0px 5px 15px rgba(0,0,0,0.5);
+	}
+
+	/* Modal para NPCs */
+	.modal {
+		display: none;
+		position: fixed;
+		z-index: 1000;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0,0,0,0.7);
+	}
+
+	/* Ajustes adicionales para el scroll horizontal */
+	#npcs_acompanantes {
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+		display: flex;
+		flex-wrap: nowrap;
+	}
+
+	/* Ajustes para la visualización en móviles */
+	@media (max-width: 768px) {
+		#npcs_acompanantes {
+			width: 100%;
+			padding: 5px;
+		}
+		
+		.npcBox {
+			height: 190px;
+			width: 130px;
+		}
+	}
+
+  .virtudCaja {
+	margin: auto;
+	position: relative;
+/* 	margin-top: 15px; */
+	margin-bottom: 30px;
+	margin-left: 10px;
+  }
+
+  .virtudPuntos {
+	  font-family: monospace; 
+	  letter-spacing: 0px; 
+	  font-size: 48px; 
+	  margin-left: 15px; 
+	  margin-top: 6px; 
+	  position: absolute; 
+	  top: -45px; 
+	  left: -9px; 
+	  text-shadow: 3px 3px 3px black;
+  }
+
+  .virtudNombre {
+	  font-family: moonGetHeavy; 
+	  letter-spacing: 0px; 
+	  font-size: 17px; 
+	  margin-left: 15px; 
+	  margin-top: 6px; 
+	  position: absolute; 
+	  top: -30px; 
+	  left: 23px; 
+	  text-shadow: 1px 1px 0px #134c18;
+  }
+
+  .virtudCajaTexto {
+	  width: 265px; border-radius: 10px; padding-bottom: 7px;transition: all 0.2s ease-out;
+	  max-height: 65px;
+	  min-height: 65px;
+	  overflow: hidden;
+  }
+
+  .virtudCajaTexto:hover {
+	  max-height: 200px;
+  }
+
+  .virtudColor { 
+	color: #00a514;
+  }
+
+  .defectoColor {
+	color: #db0101;
+  }
+
+  .virtudBackground {
+	  background: linear-gradient(180deg, rgba(56,200,66,1) 0%, rgba(17,68,21,1) 100%);
+  }
+
+  .defectoBackground {
+	  background: linear-gradient(180deg, rgba(200,56,56,1) 0%, rgba(68,17,17,1) 100%);
+  }
+
+  .stats-sign {
+	text-align: center;
+    width: 60px;
+    height: 60px;
+    position: absolute;
+    font-family: moonGetHeavy;
+    font-size: 41px;
+    background-color: red;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    border: 5px solid white;
+    transition: all 0.2s ease-out;
+	left: 50px;
+  }
+	  
+  .stats-sign:hover {
+	background-color: #c23737;
+  }
+	  
+  #solColor {
+	  position: absolute;width: 110px;height: 110px;left: 893px;top: -21px;filter: invert(20%) sepia(91%) saturate(6821%) hue-rotate(16deg) brightness(93%) contrast(107%) opacity(0.7) drop-shadow(2px 2px 2px black);z-index: 2;cursor: pointer;transition: all 0.4s ease-out;
+  }
+	  
+  #solColor:hover {
+	filter: invert(20%) sepia(91%) saturate(6821%) hue-rotate(16deg) brightness(105%) contrast(108%) opacity(0.8) drop-shadow(2px 2px 2px black);
+  }
+
+  .tag-pincelada {
+  	 position: relative;
+  }
+
+  .tag-pincelada-texto {
+    font-family: 'moonGetHeavy';
+    color: white;
+    font-size: 12px;
+    text-shadow: 1px 1px 2px black;
+    letter-spacing: 0.5px;
+    position: absolute; left: 35px; top: -28px;
+  }
+	  
+  .npcBox {
+	height: 220px;
+	width: 150px;
+	box-sizing: border-box;
+	cursor: pointer;
+	transition: all 0.2s ease-out;
+}
+
+.npcBox:hover {
+	filter: drop-shadow(0px 0px 6px black) saturate(1.3);
+}
+
+.clipBox {
+	width: 145px;
+	height: 45px;
+	box-sizing: border-box;
+	margin-top: 170px;
+	clip-path: polygon(0 65%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+.npcName {
+	color: white;
+	font-size: 16px;
+	font-family: moonGetHeavy;
+	text-shadow: 3px 3px 1px black;
+	position: relative;
+	text-align: center;
+	top: -44px;
+	left: 10px;
+	line-height: 18px;
+}
+	  
+  .avatar_repu_2, .avatar_biografia, .avatar_repu_1 {
+		transition: all 0.2s ease-out;
+	  cursor: pointer;
+  }	  
+	  
+  .avatar_repu_2:hover, .avatar_biografia:hover, .avatar_repu_1:hover  {
+	filter: sepia(0.6);
+  }
+	  
+	.imagen-custom {
+		width: 20px; height: 20px; position: absolute; top: 4px; left: 6px;transition: all 0.2s ease-out;
+
+	}
+
+	.imagen-custom:hover {
+		filter: drop-shadow(0px 0px 3px black);
+	}
+
+/* Estilos para el modal de historial */
+.historial-modal-content {
+    background-color: #ffedd2;
+    border: 4px solid #ffe59b;
+    border-radius: 8px;
+    max-width: 1500px; /* Aumentar de 1200px a 1500px */
+    width: 95%; /* Aumentar de 90% a 95% */
+    max-height: 80vh;
+    margin: 5% auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.historial-header {
+    padding: 15px;
+    background: linear-gradient(90deg, #ff7e00 0%, #ffa500 50%, #ff7e00 100%);
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.historial-header h2 {
+    color: white;
+    font-family: 'moonGetHeavy';
+    margin: 0;
+    text-shadow: 2px 2px 4px black;
+    font-size: 28px;
+    letter-spacing: 2px;
+}
+
+.historial-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    padding: 20px;
+    height: calc(80vh - 120px);
+    overflow-y: auto;
+}
+
+.experiencia-header {
+    background: linear-gradient(135deg, #ff7e00, #e56b00);
+}
+
+.experiencia-item {
+    background-color: #fff8e1;
+    border-left-color: #ff7e00;
+}
+
+.historial-column {
+    background-color: white;
+    border: 3px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.historial-column-header {
+    padding: 15px;
+    text-align: center;
+    font-family: 'moonGetHeavy';
+    font-size: 18px;
+    color: white;
+    text-shadow: 1px 1px 2px black;
+}
+
+.historial-column-content {
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.historial-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border-left: 4px solid;
+    font-family: InterRegular;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.historial-item-fecha {
+    font-weight: bold;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.historial-item-descripcion {
+    color: #333;
+}
+
+.historial-item-cantidad {
+    font-family: 'moonGetHeavy';
+    font-size: 16px;
+    margin-top: 5px;
+}
+
+/* Colores específicos para cada columna */
+.nikas-header {
+    background: linear-gradient(135deg, #ff7e00, #ffa500);
+}
+
+.kuros-header {
+    background: linear-gradient(135deg, #8b4513, #a0522d);
+}
+
+.puntos-oficio-header {
+    background: linear-gradient(135deg, #4169e1, #6495ed);
+}
+
+.berries-header {
+    background: linear-gradient(135deg, #228b22, #32cd32);
+}
+
+.nikas-item {
+    background-color: #fff8e1;
+    border-left-color: #ff7e00;
+}
+
+.kuros-item {
+    background-color: #f5f5dc;
+    border-left-color: #8b4513;
+}
+
+.puntos-oficio-item {
+    background-color: #e6f3ff;
+    border-left-color: #4169e1;
+}
+
+.berries-item {
+    background-color: #f0fff0;
+    border-left-color: #228b22;
+}
+
+.cantidad-positiva {
+    color: #228b22;
+}
+
+.cantidad-negativa {
+    color: #dc143c;
+}
+
+/* Scrollbar personalizada para las columnas */
+.historial-column-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.historial-column-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.historial-column-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.historial-column-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive para el modal de historial */
+@media (max-width: 1024px) {
+    .historial-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .historial-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(5, 1fr);
+    }
+    
+    .historial-modal-content {
+        width: 95%;
+        margin: 2% auto;
+    }
+}
+
+/* Estilos para el control de Akuma en el modal */
+.akuma-control-container {
+    font-family: 'InterRegular';
+}
+
+.control-actual,
+.control-siguiente,
+.control-maximo {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.control-siguiente button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.control-siguiente button:disabled {
+    opacity: 0.6;
+}
+
+.akuma-control-container .control-actual {
+    border-left: 4px solid #2E7D32;
+}
+
+.akuma-control-container .control-siguiente {
+    border-left: 4px solid #1565C0;
+}
+
+.akuma-control-container .control-maximo {
+    border-left: 4px solid #6A1B9A;
+}
+
+</style>

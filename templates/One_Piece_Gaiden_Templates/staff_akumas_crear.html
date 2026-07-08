@@ -1,0 +1,98 @@
+<html>
+
+<head>
+  <title>Crear Akuma</title>
+  {$headerinclude}
+</head>
+
+<body>
+{$header}
+<div class="fondo-blanco">
+<if $accion=='' then>
+     Acción:<br>
+      <select id="accion" onchange="onClickAccion()">
+		<option value=""></option>
+        <option value="Agregar">Agregar</option>
+        <option value="Remover">Remover</option>
+      </select><br><br>
+      <br><br>
+    </if>
+    <if $accion == 'Agregar' then><br>
+      <form method="post" action="/op/staff/akumas_crear.php" name="crear_akumas" id="crear_akumas">
+        <div style="display: none">
+           <input type="text" id="fid" name="accion" value="{$accion}">
+        </div>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		ID de Akuma*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="akuma_id" id="akuma_id" required /><br>
+        Nombre de Akuma*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="nombre" id="nombre" required /><br>
+		Subnombre de Akuma*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="subnombre" id="subnombre" required /><br>
+		Categoría*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="categoria" id="categoria" required /><br>
+        Tier*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="tier" id="tier" required /><br>
+	    Ocupada* (0 = No, 1 = Sí): <br><input style="width: 300px;" class="number" placeholder="" type="text" name="ocupada" id="ocupada" required /><br>
+		Imagen (500x500px)*: <br><input style="width: 600px;" class="textbox" placeholder="" type="text" name="imagen" id="imagen" required /><br>
+		  
+		Dominio Básico: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="dominio1" id="dominio1" required /><br>
+		Dominio Intermedio: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="dominio2" id="dominio2" required /><br>
+		Dominio Maestro: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="dominio3" id="dominio3" required /><br>
+		  
+		Pasiva 1: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="pasiva1" id="pasiva1" required /><br>
+		Pasiva 2: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="pasiva2" id="pasiva2" required /><br>
+		Pasiva 3: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="pasiva3" id="pasiva3" required /><br>
+		  
+        Descripcion*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="descripcion" minlength="1" required placeholder=""></textarea><br><br>
+        <input class="button" type="submit" value="Crear akuma">
+      </form>	
+    </if>
+    <if $accion == 'Remover' && $akuma_id == '' then>
+        Acción: {$akuma_id}<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		Akuma ID:<br><input class="textbox" type="text" name="akuma_id" required id='akuma_id'><br><br>
+		<button onclick=onClickAccion()>Buscar</button><br><br>
+    </if>
+	<if $accion == 'Remover' && $akuma_id != '' then>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		Akuma ID:<br><input style="width: 300px;" class="textbox" type="text" name="akuma_id" required id='akuma_id' value='{$akuma_id}' disabled><br><br>
+		<span>Nombre: {$akuma['nombre']}</span><br>
+		<span>Subnombre: {$akuma['subnombre']}</span><br>
+		<span>Categoria: {$akuma['categoria']}</span><br>
+		<span>Tier: {$akuma['tier']}</span><br>
+		<span>Descripción: {$akuma['descripcion']}</span><br>
+		<span>Imagen: {$akuma['imagen']}</span><br>
+		<span>Ocupada: {$akuma['ocupada']}</span><br>
+		<form method="post" action="/op/staff/akumas_crear.php" name="crear_akumas" id="crear_akumas">
+			<div style="display: none">
+           		<input type="text" name="akuma_id" value="{$akuma_id}">
+				<input type="text" name="accion" value="{$accion}">
+				<input type="text" name="nombre" value="{$akuma['nombre']}">
+        	</div><br>
+        	<!-- Razón: <br><input style="width: 300px;" class="textbox" type="text" name="razon" required><br><br> -->
+			<input class="button" type="submit" value="Remover"><br><br>
+		</form>
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const accion = document.getElementById('accion').value;
+	const akuma_id = document.getElementById('akuma_id')?.value;
+	if (accion && akuma_id) {
+      window.location.href = window.location.pathname + '?accion=' + accion + '&akuma_id=' + akuma_id;
+    } else if (accion) {
+      window.location.href = window.location.pathname + '?accion=' + accion;
+    }
+  }
+</script>
+
+</html>

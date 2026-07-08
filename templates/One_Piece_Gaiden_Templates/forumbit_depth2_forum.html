@@ -1,0 +1,21 @@
+<!-- <tr>
+<td class="{bgcolor}" align="center" width="1"><div class="forum_status forum_{lightbulb['folder']} ajax_mark_read" title="{lightbulb['altonoff']}" id="mark_read_{forum['fid']}"><i class="fa fa-comments"></i></div></td>
+<td class="{$bgcolor}">
+<a href="{forum_url}" class="ttip">{forum['name']}<br />
+<span class="ttbg">{$lang->forumbit_threads}: {threads}{unapproved['unapproved_threads']} &nbsp;//&nbsp; {lang->forumbit_posts}: {posts}{unapproved['unapproved_posts']}</span>
+</a>
+<span class="smalltext" style="font-weight: 400;">{forum['description']}</span>{forum_viewers_text}{modlist}{subforums}
+</td>
+<td class="{bgcolor} fb-pt" align="center" style="white-space: nowrap">{threads}{$unapproved['unapproved_threads']}</td>
+<td class="{bgcolor} fb-pt" align="center" style="white-space: nowrap">{posts}{$unapproved['unapproved_posts']}</td>
+<td class="{bgcolor}" align="right" style="white-space: nowrap;">{lastpost}</td>
+</tr> -->
+<!-- <div style=" background-image: url(/images/op/uploads/IslaGrande{$fid}_One_Piece_Gaiden_Foro_Rol.png); width: 1000px; height: 300px; "> -->
+	
+<a class="subforoAnchor" href="/forumdisplay.php?fid={$forum['fid']}" >
+<!-- 	<div class="subforoOP" style="background-image: url(/images/op/subforos/SubForo_One_Piece_Gaiden_Foro_Rol.png);width: 495px;height: 250px;border: 1px solid #a062e0;box-sizing: border-box;"> -->
+	<div class="subforoOP">
+		<img class="subforoImagenOP" src="/images/op/uploads/Isla{$forum['fid']}_One_Piece_Gaiden_Foro_Rol.jpg?v={$GLOBALS['op_img_ver']}" />
+		<div class="subforoTexto subforoVerticalTexto" style="text-align: center;color: black;font-size: 44px;font-family: 'moonGetHeavy';-webkit-text-stroke-width: 1px; -webkit-text-stroke-color: white;margin-top: 5px;">{$forum['name']}</div>
+	</div>
+</a>

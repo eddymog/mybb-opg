@@ -1,0 +1,304 @@
+<html>
+  <head>
+    <title>Consola Súper Secreta</title> {$headerinclude}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <style>
+      .form-table,
+      .res-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        table-layout: auto;
+      }
+
+      .form-table td {
+        width: 33%;
+        padding: 6px;
+        vertical-align: top;
+        border: none;
+      }
+
+      .res-table td {
+        width: 24.75%;
+        padding: 6px;
+        vertical-align: top;
+        border: none;
+      }
+
+      .textbox, select, button {
+        width: 100% !important;
+        box-sizing: border-box;
+        max-height: 600px;
+      }
+
+      .fondo-blanco {
+        width: 100%;
+        display: block;
+      }
+
+      .section-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 16px;
+        color: #000;
+        margin: 10px 0 0px 0;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body> {$header} <div class="fondo-blanco">
+      <table class="form-table">
+        <tr>
+          <td>
+            <if $fid=='' then>ID del usuario: <br>
+              <input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'>
+          </td>
+          <td>
+            <br>
+            <button class="button" style="margin-left: 5px;" onclick=onClickUid()>Seleccionar</button>
+            </if>
+          </td>
+        </tr>
+      </table>
+      <if $fid!='' then>
+        <form method="post" action="/op/staff/ficha_atributos.php" name="ficha_atributos" id="ficha_atributos">
+          <div style="display: none">
+            <input type="text" id="fid" name="ficha_id" value="{$fid}">
+          </div>
+      </if>
+      <div class="section-title">Información de Usuario</div>
+      <table class="form-table">
+        <tr>
+          <td> User ID <br>
+            <input class="textbox" type="number" value='{$fid}' disabled>
+          </td>
+          <td> Nombre de Cuenta: <br>
+            <input class="textbox" type="text" value="{$ficha['nombre']}" onclick="window.open('/op/ficha.php?uid={$fid}','_blank')" readonly style="cursor:pointer;">
+          </td>
+          <td> Estado: <br>
+            <select name="muerto" id="muerto" value="{$ficha['muerto']}">
+              <option value="0" <if $ficha['muerto']=='0' then>selected</if>>Vivo </option>
+              <option value="1" <if $ficha['muerto']=='1' then>selected</if>>Muerto </option>
+            </select>
+          </td>
+        </tr>
+      </table>
+      <div class="section-title">Información Básica</div>
+      <table class="form-table">
+        <tr>
+          <td> Nombre de Personaje: <br>
+            <input class="textbox" type="text" name="nombre" value="{$ficha['nombre']}">
+          </td>
+          <td> Raza: <br>
+            <select name="raza" id="raza">
+              <option value="Humano" <if $ficha['raza']=='Humano' then>selected</if>>Humano </option>
+              <option value="Gyojin" <if $ficha['raza']=='Gyojin' then>selected</if>>Gyojin </option>
+              <option value="Ningyo" <if $ficha['raza']=='Ningyo' then>selected</if>>Ningyo </option>
+              <option value="Gigante" <if $ficha['raza']=='Gigante' then>selected</if>>Gigante </option>
+              <option value="Tontatta" <if $ficha['raza']=='Tontatta' then>selected</if>>Tontatta </option>
+              <option value="Mink" <if $ficha['raza']=='Mink' then>selected</if>>Mink </option>
+              <option value="Skypian" <if $ficha['raza']=='Skypian' then>selected</if>>Skypian </option>
+              <option value="Oni" <if $ficha['raza']=='Oni' then>selected</if>>Oni </option>
+              <option value="Lunarian" <if $ficha['raza']=='Lunarian' then>selected</if>>Lunarian </option>
+              <option value="Oceanian" <if $ficha['raza']=='Oceanian' then>selected</if>>Oceanian </option>
+              <option value="Hafugyo" <if $ficha['raza']=='Hafugyo' then>selected</if>>Hafugyo </option>
+              <option value="Buccaneers" <if $ficha['raza']=='Buccaneers' then>selected</if>>Buccaneers </option>
+              <option value="Kobito" <if $ficha['raza']=='Kobito' then>selected</if>>Kobito </option>
+              <option value="Jujin" <if $ficha['raza']=='Jujin' then>selected</if>>Jujin </option>
+              <option value="Wotan" <if $ficha['raza']=='Wotan' then>selected</if>>Wotan </option>
+              <option value="Woko" <if $ficha['raza']=='Woko' then>selected</if>>Woko </option>
+              <option value="Daimink" <if $ficha['raza']=='Daimink' then>selected</if>>Daimink </option>
+              <option value="Komink" <if $ficha['raza']=='Komink' then>selected</if>>Komink </option>
+              <option value="Solarian" <if $ficha['raza']=='Solarian' then>selected</if>>Solarian </option>
+              <option value="Dosundada" <if $ficha['raza']=='Dosundada' then>selected</if>>Dosundada </option>
+              <option value="Diablos" <if $ficha['raza']=='Diablos' then>selected</if>>Diablos </option>
+              <option value="Ravnos" <if $ficha['raza']=='Ravnos' then>selected</if>>Ravnos </option>
+            </select>
+          </td>
+          <td> Sexo: <br>
+            <select name="sexo" id="sexo">
+              <option value="Hombre" <if $ficha['sexo']=='Hombre' then>selected</if>>Masculino </option>
+              <option value="Mujer" <if $ficha['sexo']=='Mujer' then>selected</if>>Femenino </option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td> Edad: <br>
+            <input class="textbox" type="number" name="edad" max="2000" value="{$ficha['edad']}">
+          </td>
+          <td> Día de cumpleaños: <br>
+            <input class="textbox" style=" width: 100px; " type="number" name="dia" min="1" max="90" value="{$ficha['dia']}" placeholder="1-90">
+          </td>
+          <td> Temporada: <br>
+            <select name="temporada" id="temporada">
+              <option value="Invierno" <if $ficha['temporada']=='Invierno' then>selected</if>>Invierno </option>
+              <option value="Primavera" <if $ficha['temporada']=='Primavera' then>selected</if>>Primavera </option>
+              <option value="Verano" <if $ficha['temporada']=='Verano' then>selected</if>>Verano </option>
+              <option value="Otono" <if $ficha['temporada']=='Otono' then>selected</if>>Otoño </option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td> Altura (CM): <br>
+            <input class="textbox" type="number" name="altura" max="100000" value="{$ficha['altura']}">
+          </td>
+          <td> Peso (KG): <br>
+            <input class="textbox" type="number" name="peso" max="100000" value="{$ficha['peso']}">
+          </td>
+          <td> Espacios: <br>
+            <input class="textbox" type="number" name="espacios" max="100000" value="{$ficha['espacios']}">
+          </td>
+        </tr>
+      </table> {$staff_ficha_info} <div class="section-title">Recursos del Personaje</div>
+      <table class="res-table">
+        <tr>
+          <td> Berries: <br>
+            <input class="textbox" type="number" name="berries" max="90000000000" value="{$ficha['berries']}">
+          </td>
+          <td> Nika: <br>
+            <input class="textbox" type="number" name="nika" max="100000" value="{$ficha['nika']}">
+          </td>
+          <td> Kuro: <br>
+            <input class="textbox" type="number" name="kuro" max="100000" value="{$ficha['kuro']}">
+          </td>
+          <td> Puntos Oficio: <br>
+            <input class="textbox" type="number" name="puntos_oficio" max="1000000" value="{$ficha['puntos_oficio']}">
+          </td>
+        </tr>
+      </table>
+      <div class="section-title">Inventario del Personaje</div>
+      <table class="form-table">
+        <tr>
+          <td> Espacios de Equipamiento <input class="textbox" style=" width: 100px; " type="number" name="equipamiento_espacio" min="0" max="100" value="{$ficha['equipamiento_espacio']}" readonly>
+          </td>
+          <td> Ranuras de Implante: <br>
+            <input class="textbox" style=" width: 100px; " type="text" name="ranuras" value="{$ficha['ranuras']}" placeholder="0 / 6">
+          </td>
+        </tr>
+        <tr>
+          <td> Implantes Instalados: <br>
+            <textarea class="textbox" id="implantes" name="implantes" placeholder="Agregar separados por coma sin espacios: ABC001,ABC002">{$ficha['implantes']}</textarea>
+          </td>
+          <td> Objetos Equipados: <br>
+            <textarea class="textbox" id="equipamiento" name="equipamiento" style="flex: 1;">{$ficha['equipamiento']}</textarea>
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            <button type="button" class="button" onclick="desbugearEquipamiento()" style="height: fit-content;">Desbugear</button>
+          </td>
+        </tr>
+      </table> {$staff_ficha_belico} <div class="section-title">Miscelaneos del Personaje</div>
+      <table class="form-table">
+        <tr>
+          <td> Físico de PJ: <br>
+            <input class="textbox" type="text" name="fisico_de_pj" value="{$ficha['fisico_de_pj']}">
+          </td>
+          <td> Origen de PJ: <br>
+            <input class="textbox" type="text" name="origen_de_pj" value="{$ficha['origen_de_pj']}">
+          </td>
+          <td> FX: <br>
+            <input class="textbox" type="text" name="fx" max="fx" value="{$ficha['fx']}">
+          </td>
+        </tr>
+        <tr>
+          <td> Cómo nos conociste: <br>
+            <input class="textbox" type="text" name="como_nos_conociste" disabled value="{$ficha['como_nos_conociste']}">
+          </td>
+          <td> ID Cronología: <br>
+            <input class="textbox" type="text" name="cronologia" max="cronologia" value="{$ficha['cronologia']}">
+          </td>
+        </tr>
+      </table>
+      <table class="form-table">
+        <tr>
+          <td> Razón: <br>
+            <input class="textbox" type="text" name="razon" required>
+          </td>
+          <td>
+            <br>
+            <input class="button" id="guardar_ficha" type="submit" value="Guardar cambios">
+          </td>
+        </tr>
+      </table>
+      <if $fid !='' then>
+        <form method="post" action="/op/staff/ficha_atributos.php" name="ficha_atributos" id="ficha_atributos">
+          <div style="display: none">
+            <input type="text" id="fid" name="ficha_id" value="{$fid}">
+          </div>
+        </form>
+      </if>
+Hecho por Kurosame
+    </div>
+    <if $log_var !='' then>
+      <script>
+        alert(`{$log_var}`);
+      </script>
+    </if> {$footer}
+    <!-- Agregar Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+  </body> {$reload_script} <script>
+    function onClickUid() {
+      const fid = document.getElementById('fid').value;
+      window.location.href = window.location.pathname + '?fid=' + document.getElementById('fid').value;
+    }
+
+    function desbugearEquipamiento() {
+      const equipamientoTextarea = document.getElementById('equipamiento');
+      equipamientoTextarea.value = '{"ropa": null, "bolsa": null, "espacios": {}}';
+    }
+    // Inicializar Select2 para el campo de referido
+    $(document).ready(function() {
+      $('#referido_select').select2({
+        placeholder: 'Buscar miembro que te invitó...',
+        allowClear: true,
+        minimumInputLength: 2,
+        ajax: {
+          url: '/ajax/buscar_usuarios.php', // Endpoint para buscar usuarios
+          dataType: 'json',
+          delay: 250,
+          data: function(params) {
+            return {
+              q: params.term, // término de búsqueda
+              page: params.page || 1
+            };
+          },
+          processResults: function(data, params) {
+            params.page = params.page || 1;
+            return {
+              results: data.items.map(function(item) {
+                return {
+                  id: item.user_id,
+                  text: item.nombre,
+                  nombre: item.nombre
+                };
+              }),
+              pagination: {
+                more: (params.page * 10) < data.total_count
+              }
+            };
+          },
+          cache: true
+        },
+        escapeMarkup: function(markup) {
+          return markup;
+        },
+        templateResult: function(user) {
+          if (user.loading) {
+            return user.text;
+          }
+          return ' < div class = "select2-result-user" > ' +
+          ' < div class = "select2-result-user__meta" > ' +
+          ' < div class = "select2-result-user__title" > ' + user.text + ' < /div>' +
+          ' < /div>' +
+          ' < /div>';
+        },
+        templateSelection: function(user) {
+          return user.nombre || user.text;
+        }
+      });
+    });
+  </script>
+</html>

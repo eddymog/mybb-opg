@@ -1,0 +1,22 @@
+<div id="recentthreads">
+<table border="0" cellspacing="1" cellpadding="6" class="tborder" style="clear: both;max-height:300px">
+<thead>
+    <tr>
+    <td class="thead{$expthead}" colspan="{$colspan}" style="text-align:left; font-size: 10pt;">
+   
+<div><b>~ <a href="{$mybb->settings['bburl']}/misc.php?action=recent_threads" title="Show More Threads">{$lang->recentthreads_recentthreads}</a> ~</b></div>
+</td>
+    </tr>
+</thead>
+<tbody style="{$expdisplay}" id="cat_9999_e">
+    <tr>
+    <td class="tcat" colspan="3"><strong>{$lang->recentthreads_thread} / {$lang->recentthreads_author}</strong></td>
+    <td class="tcat"><strong>{$lang->recentthreads_forum}</strong></td>
+    <td class="tcat"><strong>{$lang->recentthreads_posts}</strong></td>
+    <td class="tcat"><strong>{$lang->recentthreads_last_post}</strong></td>
+{$modheader}
+    </tr>
+    {$recentthreads}
+</tbody>
+    </table>
+</div>

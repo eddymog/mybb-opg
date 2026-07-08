@@ -1,0 +1,586 @@
+
+<script>
+function clickRasgos(tipo) {
+	$('.rasgos_box').removeClass('rasgos-active');
+
+	if (tipo == 'virtudes') {
+		$('#rasgos_virtudes').css('display', 'block');
+		$('#rasgos_defectos').css('display', 'none');
+		$('#virtudes_box').addClass('rasgos-active');
+	}
+
+	if (tipo == 'defectos') {
+		$('#rasgos_virtudes').css('display', 'none');
+		$('#rasgos_defectos').css('display', 'block');
+		$('#defectos_box').addClass('rasgos-active');
+	}
+}		
+	
+function openAvatar1Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">Esta imagen también cambiará la de los post. (O indicar que no afectará a la de los posts o perfil, según cuál sea). La imagen tiene unas dimensiones de 250x450.</div>
+
+				<input id="avatar1URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar1();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+
+function openAvatar2Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 250x350.</div>
+
+				<input id="avatar2URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar2();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar3Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 580x280.</div>
+
+				<input id="avatar3URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar3();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar4Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 300x300.</div>
+
+				<input id="avatar4URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar4();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function openAvatar5Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 250x330.</div>
+
+				<input id="avatar5URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar5();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+function openAvatar5Modal() {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Editar Imagen</div>
+				<div style="margin-top: 10px;font-size: 18px;text-align: justify;">La imagen tiene unas dimensiones de 250x330.</div>
+
+				<input id="avatar5URL" type="text" class="textbox" style="width: 540px;margin: auto;margin-top: 20px;" placeholder="URL de la imagen">
+				<button onclick="cambiarAvatar5();" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+
+function openAparienciaModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$apariencia}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="aparienciaText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['apariencia']}</textarea>
+			<button onclick="cambiarApariencia();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Apariencia</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openPersonalidadModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$personalidad}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="personalidadText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['personalidad']}</textarea>
+			<button onclick="cambiarPersonalidad();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Personalidad</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openHistoriaModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 540px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$historia}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="historiaText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 488px;">{$ficha['historia']}</textarea>
+			<button onclick="cambiarHistoria();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 600px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Historia</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+
+function openBandaSonoraModal() {
+    <if $is_owner || $g_is_staff then>
+    $('#myModal').html(`
+        <div class="modal-content" style="background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 300px; width: 620px;">
+            <div class="modal-body" style="display: flex; flex-direction: column;">
+                <div style="font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px;">Editar Banda Sonora</div>
+                <div style="margin-top: 10px; font-size: 18px; text-align: justify;">
+                    Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.
+                </div>
+                <input id="bandaSonoraURL" type="text" class="textbox" style="width: 540px; margin: auto; margin-top: 20px;" 
+                       placeholder="https://www.youtube.com/watch?v=..." 
+                       value="{$ficha['banda_sonora']}">
+                <div style="margin: auto; margin-top: 15px; display: flex; gap: 10px;">
+                    <button onclick="cambiarBandaSonora();" style="width: 100px;">Guardar</button>
+                    <button onclick="probarSonido();" style="width: 100px;">Probar</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 14px; text-align: center; font-style: italic;">
+                    Formatos aceptados: enlaces de YouTube (youtube.com/watch?v=ID o youtu.be/ID)
+                </div>
+            </div>
+        </div>
+    `);
+    modal.style.display = "block";
+    </if>
+}
+
+function openExtrasModal() {
+	
+	<if !$is_owner && !$g_is_staff then>
+	let textBoxModal = `<div style=" width: 787px;height: 340px; background-color: white; border: 5px solid #ff7e00; box-sizing: border-box; overflow: auto;">
+			<div style=" font-family: InterRegular; margin: 3px; font-size: 14px; ">{$extras}</div>
+		</div>`;
+	</if>
+	
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="extrasText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 288px;">{$ficha['extra']}</textarea>
+			<button onclick="cambiarExtras();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+	</if>
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 400px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Extras</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	
+	modal.style.display = "block";
+}
+	
+function openApodoModal() {
+
+	<if $is_owner || $g_is_staff then>
+	let textBoxModal = `
+		<div style=" text-align: center; ">
+			<textarea id="apodoText" style="font-family: InterRegular;margin: 3px;font-size: 14px;width: 765px;height: 19px;">{$ficha['apodo']}</textarea>
+			<button onclick="cambiarApodo();" style=" width: 100px; margin: auto; margin-top: 8px; ">Guardar</button>
+		</div>`;
+
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 128px; width: 820px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<div style="font-size: 20px;text-align: center;font-family: interRegular;margin-top: 10px;">Apodo</div>
+				` + textBoxModal + `
+			</div>
+		</div>
+	`);
+	
+	modal.style.display = "block";
+	</if>
+}
+
+function cambiarBandaSonora() {
+    let bandaSonoraUrl = $('#bandaSonoraURL').val();
+    $.post("/op/ficha.php?uid={$query_uid}", { cambiar_banda_sonora: bandaSonoraUrl }, function(data) { 
+        location.reload(); 
+    });
+}
+
+function probarSonido() {
+    let bandaSonoraUrl = $('#bandaSonoraURL').val();
+    if (bandaSonoraUrl) {
+        // Extraer ID de YouTube
+        let videoId = '';
+        const youtubeRegex = [
+            /youtube\.com\/watch\?v=([^&]+)/,
+            /youtu\.be\/([^?]+)/,
+            /youtube\.com\/embed\/([^?]+)/,
+            /youtube\.com\/v\/([^?]+)/
+        ];
+        
+        for (const regex of youtubeRegex) {
+            const match = bandaSonoraUrl.match(regex);
+            if (match && match[1]) {
+                videoId = match[1];
+                break;
+            }
+        }
+        
+        if (videoId && typeof player !== 'undefined') {
+            // Guardar el ID actual para restaurarlo después
+            const currentVideoId = player.getVideoData().video_id;
+            
+            // Reproducir el nuevo video para probar
+            player.loadVideoById({
+                videoId: videoId,
+                startSeconds: 0
+            });
+            
+            // Mostrar mensaje
+            alert("Reproduciendo música de prueba. El video actual se restaurará al cerrar el modal.");
+            
+            // Restaurar el video anterior cuando se cierre el modal
+            $(window).one('click', function(e) {
+                if (e.target == modal) {
+                    player.loadVideoById({
+                        videoId: currentVideoId,
+                        startSeconds: 0
+                    });
+                }
+            });
+        } else {
+            alert("No se pudo extraer un ID de YouTube válido del enlace proporcionado.");
+        }
+    } else {
+        alert("Por favor, introduce un enlace de YouTube.");
+    }
+}
+
+function cambiarAvatar1() { 
+	let avatarUrl = $('#avatar1URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarBiografia_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar1: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+	
+function cambiarAvatar2() { 
+	let avatarUrl = $('#avatar2URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarReputacion1_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar2: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar3() { 
+	let avatarUrl = $('#avatar3URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarReputacion2_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar3: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar4() { 
+	let avatarUrl = $('#avatar4URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarHabilidades_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar4: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarAvatar5() { 
+	let avatarUrl = $('#avatar5URL').val();
+	if (avatarUrl == '') { avatarUrl = '/images/op/uploads/AvatarInventario_One_Piece_Gaiden_Foro_Rol.png'; }
+	$.post("/op/ficha.php?uid={$query_uid}", { cambiar_avatar5: avatarUrl }, function( data ) { location.reload(); }); 
+}	
+function cambiarApariencia() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_apariencia: $('#aparienciaText').val() }, function( data ) { location.reload(); }); }	
+function cambiarPersonalidad() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_personalidad: $('#personalidadText').val() }, function( data ) { location.reload(); }); }	
+function cambiarHistoria() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_historia: $('#historiaText').val() }, function( data ) { location.reload(); }); }	
+function cambiarExtras() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_extras: $('#extrasText').val() }, function( data ) { location.reload(); }); }	
+function cambiarApodo() { $.post("/op/ficha.php?uid={$query_uid}", { cambiar_apodo: $('#apodoText').val() }, function( data ) { location.reload(); }); }	
+		
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+	
+function clickAkuma(id) {
+	modal.style.display = "block";
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+</script>
+
+<script>
+	// /\[(RES|FUE)x(\d+|\d+,\d+)]/g
+	
+	// let efectosRegex = /\[(RES|FUE)x(\d+|\d+,\d+)]/g;
+	
+	function getStatCodigo(codigo) {
+		console.log(codigo);
+		return statCodigo[codigo];
+	}
+	
+	let tecnica_descripciones = $('.tecnica_descripcion');
+	let tecnica_efectos = $('.tecnica_efecto');
+	
+	// let statCodigo = {
+	// 	RES: 'Resistencia',
+	// 	FUE: 'Fuerza',
+	// 	DES: 'Destreza',
+	// 	PUN: 'Puntería',
+	// 	AGI: 'Agilidad',
+	// 	REF: 'Reflejos',
+	// 	CAK: 'Control de Akuma',
+	// 	VOL: 'Voluntad'
+	// }
+	
+	// let efectosArray = Object.keys(efectosCodigo);
+
+	function addEfectos(descripcion) {
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			descripcion = descripcion.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		return descripcion;
+	}
+	
+	function addEfectoStats(efectos) {
+		let efectosRegex = /\[(RES|FUE|DES|PUN|AGI|REF|CAK|VOL)x(\d+|\d+,\d+)]/g;
+		const efectosMatch = [...efectos.matchAll(efectosRegex)];
+		
+		for (let i = 0; i < efectosMatch.length; i++) {
+			let codigo = efectosMatch[i][0];
+			let stat = efectosMatch[i][1]
+			let multi = parseFloat(efectosMatch[i][2].replace(',', '.'));
+			
+			let statNum = statNums[efectosMatch[i][1]];
+			
+			let htmlTag = `
+				<span class="tec-tooltip"><strong>` + (statNum * multi) + `</strong><span class="stat-tooltiptext">` + codigo + `</span></span>
+			`
+			efectos = efectos.replace(codigo, htmlTag);
+		}
+		
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			efectos = efectos.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		
+		return efectos;
+	}
+	
+	for (let i = 0; i < tecnica_descripciones.length; i++) {
+		let descripcion = $($('.tecnica_descripcion')[i]);
+		let descripcionHtml = descripcion.html();
+		descripcion.html(addEfectos(descripcionHtml));
+	}
+	
+	for (let i = 0; i < tecnica_efectos.length; i++) {
+		let efecto = $($('.tecnica_efecto')[i]);
+		let efectoHtml = efecto.html();
+		
+		efecto.html(addEfectoStats(efectoHtml));
+	}
+	
+	$(".avatar_biografia").mouseover(function() {
+		const time = Math.round(Date.now() / 500) % 360;
+		$(this).css("transition","all 10s ease-out");
+		$(this).css("filter","hue-rotate(" + time + "deg)");
+	}).mouseout(function() {
+		$(this).css("transition","all 5s ease-out");
+		$(this).css("filter","none");
+	});
+	
+	let puntos_virtud = 0;
+	for (let i = 0; i < virtudes_array_json.length; i++) {
+
+		let key = virtudes_array_json[i];
+		puntos_virtud += parseInt(virtudes_json[key][0].puntos);
+	}
+	
+	let puntos_defecto = 0;
+	for (let i = 0; i < defectos_array_json.length; i++) {
+
+		let key = defectos_array_json[i];
+		puntos_defecto += parseInt(defectos_json[key][0].puntos);
+	}
+	
+	$('#virtudes_puntos').html(puntos_virtud);
+	$('#defectos_puntos').html(puntos_defecto);
+	
+	let hasAkuma = !!"{$ficha['akuma']}";
+	let hasFullHaki = !!"{$has_full_haki}"; 
+	// hasAkuma = !!hasAkuma;
+	
+	if (hasAkuma) {
+		$('#akuma_espacio').html(`
+			<div style="width: 100%; background: url(/images/op/uploads/Libro%20Akuma%20_One_Piece_Gaiden_Foro_Rol.webp); background-repeat: no-repeat; background-size: cover; border: 2px solid black; padding: 10px 0; height: 280px; border-radius: 8px;" class="bbox">
+				<div style="text-align: center; font-size: 20px; color: Black; font-family: moonGetHeavy; margin-top: 0px; margin-bottom: 5px; text-shadow: 2px 2px 1px white;">{$ficha['akuma']}</div>
+				<div style="text-align: center; font-size: 13px; color: white; font-family: moonGetHeavy; font-style: italic; margin-bottom: 5px; text-shadow: 1px 1px 1px black;">{$ficha['akuma_subnombre']}</div>
+				<div id="frutaTipoTier" style="text-align: center;background: linear-gradient(90deg, rgba(0, 116, 143, 0) 0%, rgb(81, 25, 106) 20%, rgb(35, 5, 46) 50%, rgb(81, 25, 106) 80%, rgba(0, 116, 143, 0) 100%);margin-top: 8px;">
+					<div style="font-family: moonGetHeavy;color: white;font-size: 12px;margin: auto;text-shadow: 2px 2px 1px black;letter-spacing: 2px;">
+						<span id="frutaTipo">{$akuma['categoria']}</span> | Tier <span id="frutaTier">{$akuma['tier']}</span>
+					</div>
+				</div>
+				<div style="text-align: center; margin-top: -8px;">
+					<img src="{$akuma_imagen}" style="width: 200px; height: 200px; box-shadow: 0px 0px 0px rgba(0, 0, 0, 0); border-radius: 0px;">
+				</div>
+			</div>
+		`);
+	} else if (hasFullHaki) {
+		$('#akuma_espacio').html(`
+			<div style="width: 100%; background: url(/images/op/uploads/FullHaki_One_Piece_Gaiden_Foro_Rol.webp); background-repeat: no-repeat; background-size: cover; border: 2px solid black; padding: 10px 0; height: 280px; display: flex; justify-content: center; align-items: center; border-radius: 5px;" class="bbox">
+				<span style="font-family: 'moonGetHeavy'; font-size: 24px; color: white; text-align: center; text-shadow: 2px 2px 1px black;"></span>
+			</div>
+		`);		
+	} else {
+		$('#akuma_espacio').html(`
+			<div style="width: 100%; background: url(/images/op/uploads/BuscandoAkuma%20_One_Piece_Gaiden_Foro_Rol.webp); background-repeat: no-repeat; background-size: cover; border: 2px solid black; padding: 10px 0; height: 280px; display: flex; justify-content: center; align-items: center; border-radius: 5px;" class="bbox">
+				<span style="font-family: 'moonGetHeavy'; font-size: 24px; color: white; text-align: center; text-shadow: 2px 2px 1px black;"></span>
+			</div>
+		`);
+	}
+	
+	let limite_nivel = {$ficha['limite_nivel']};
+	
+	/* LIMITE NIVEL */
+	$('#limite_nivel').on('click', function() {
+		let nikasCosto = 50;
+		
+		if (limite_nivel >= 20) { nikasCosto = 5; }
+		if (limite_nivel >= 25) { nikasCosto = 10; }
+		if (limite_nivel >= 30) { nikasCosto = 15; }
+		if (limite_nivel >= 35) { nikasCosto = 20; }
+		if (limite_nivel >= 40) { nikasCosto = 25; }
+		
+		if (confirm('Aumentar tu límite de nivel tendrá un costo de ' + nikasCosto + ' nikas. ¿Estás de acuerdo?')) {
+			window.location.href = '/op/mejoras.php?accion=limite_nivel';
+		}
+	});
+	
+	let bloqueadoHtml = `<img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;cursor:pointer;" src="/images/op/uploads/FichaSlotBloqueado_One_Piece_Gaiden_Foro_Rol.webp" />`;
+	let noBloqueadoHtml = `<img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;cursor:pointer;" src="/images/op/uploads/FichaSlotLibre_One_Piece_Gaiden_Foro_Rol.webp" />`;
+	function getEstiloHtml(estilo) {
+		return `<img style="width: 260px; height: 125px; border-radius: 8px; position: relative; overflow: hidden;" src="/images/op/uploads/Ficha` + estilo + `_One_Piece_Gaiden_Foro_Rol.webp" />`
+	}
+	
+	if (estilo1 == 'bloqueado') {
+		$('#estilo1').html(bloqueadoHtml);
+	} else if (estilo1 == 'no_bloqueado') {
+		$('#estilo1').html(noBloqueadoHtml);
+	} else {
+		$('#estilo1').html(getEstiloHtml(estilo1));
+	}
+	
+	if (estilo2 == 'bloqueado') {
+		$('#estilo2').html(bloqueadoHtml);
+	} else if (estilo2 == 'no_bloqueado') {
+		$('#estilo2').html(noBloqueadoHtml);
+	} else {
+		$('#estilo2').html(getEstiloHtml(estilo2));
+	}
+	
+	if (estilo3 == 'bloqueado') {
+		$('#estilo3').html(bloqueadoHtml);
+	} else if (estilo3 == 'no_bloqueado') {
+		$('#estilo3').html(noBloqueadoHtml);
+	} else {
+		$('#estilo3').html(getEstiloHtml(estilo3));
+	}
+	
+	if (estilo4 == 'bloqueado') {
+		$('#estilo4').html(bloqueadoHtml);
+	} else if (estilo4 == 'no_bloqueado') {
+		$('#estilo4').html(noBloqueadoHtml);
+	} else {
+		$('#estilo4').html(getEstiloHtml(estilo4));
+	}
+	
+</script>

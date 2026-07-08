@@ -430,7 +430,7 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                 // Calcular recompensas finales
                 $exp_final = round($recompensas_base['experiencia'] * (($porcentaje_aplicado * $arqueologoExtraXP) / 100));
                 $nikas_final = round(($recompensas_base['nikas'] + $arqueologoExtraNikas) * (($porcentaje_aplicado) / 100));
-                $reputacion_final = round($recompensas_base['reputacion'] * ($porcentaje_aplicado / 100));
+                $reputacion_final = ($tipo_reputacion === 'ninguna') ? 0 : round($recompensas_base['reputacion'] * ($porcentaje_aplicado / 100));
                 
                 // Calcular berries con desglose de bono inframundo y contrabandista
                 $berries_base = $recompensas_base['berries'];
@@ -444,15 +444,26 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                 // Aplicar recompensas en la base de datos
                 $db->write_query("UPDATE mybb_users SET newpoints = newpoints + {$exp_final} WHERE uid = {$uid}");
 
+                $inframundo_sql = $inframundo ? ", movidoInframundo = COALESCE(movidoInframundo, 0) + {$berries_final}" : "";
+
                 // Actualizar reputación según el tipo seleccionado
                 if ($tipo_reputacion === 'positiva') {
-                    $db->write_query("UPDATE mybb_op_fichas SET nika = nika + {$nikas_final}, reputacion = reputacion + {$reputacion_final}, reputacion_positiva = reputacion_positiva + {$reputacion_final}, berries = berries + {$berries_final} WHERE fid = {$uid}");
+                    $db->write_query("UPDATE mybb_op_fichas SET nika = nika + {$nikas_final}, reputacion = reputacion + {$reputacion_final}, reputacion_positiva = reputacion_positiva + {$reputacion_final}, berries = berries + {$berries_final}{$inframundo_sql} WHERE fid = {$uid}");
+                } elseif ($tipo_reputacion === 'negativa') {
+                    $db->write_query("UPDATE mybb_op_fichas SET nika = nika + {$nikas_final}, reputacion = reputacion + {$reputacion_final}, reputacion_negativa = reputacion_negativa + {$reputacion_final}, berries = berries + {$berries_final}{$inframundo_sql} WHERE fid = {$uid}");
                 } else {
-                    $db->write_query("UPDATE mybb_op_fichas SET nika = nika + {$nikas_final}, reputacion = reputacion + {$reputacion_final}, reputacion_negativa = reputacion_negativa + {$reputacion_final}, berries = berries + {$berries_final} WHERE fid = {$uid}");
+                    // 'ninguna': no se toca la reputación en absoluto
+                    $db->write_query("UPDATE mybb_op_fichas SET nika = nika + {$nikas_final}, berries = berries + {$berries_final}{$inframundo_sql} WHERE fid = {$uid}");
                 }
                 
                 // Registro en audit_general
-                $tipo_rep_texto = ($tipo_reputacion === 'positiva') ? 'Positiva' : 'Negativa';
+                if ($tipo_reputacion === 'positiva') {
+                    $tipo_rep_texto = 'Positiva';
+                } elseif ($tipo_reputacion === 'negativa') {
+                    $tipo_rep_texto = 'Negativa';
+                } else {
+                    $tipo_rep_texto = 'Ninguna';
+                }
                 $contrabandistaTxt = "<strong><i><u>Contrabandista</i></u></strong>: Nivel {$nivelContrabandista}. Multiplicador = {$contrabandistaMult}.";
                 $arqueologoTxt = "<strong><i><u>Arqueologo</i></u></strong>: Nivel {$nivelArqueologo}. Multiplicador XP = {$arqueologoExtraXP}. Nikas Extra = {$arqueologoExtraNikas}.";
                 $textoLog = "
@@ -470,8 +481,16 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                 ";
                 log_audit($mybb->user['uid'], $mybb->user['username'], '[Entregas][Aventura Usuario]', "$textoLog");
                 
-                $tipo_rep_emoji = ($tipo_reputacion === 'positiva') ? '✨' : '💀';
-                $tipo_rep_texto = ($tipo_reputacion === 'positiva') ? 'Positiva' : 'Negativa';
+                if ($tipo_reputacion === 'positiva') {
+                    $tipo_rep_emoji = '✨';
+                    $tipo_rep_texto = 'Positiva';
+                } elseif ($tipo_reputacion === 'negativa') {
+                    $tipo_rep_emoji = '💀';
+                    $tipo_rep_texto = 'Negativa';
+                } else {
+                    $tipo_rep_emoji = '🚫';
+                    $tipo_rep_texto = 'Ninguna';
+                }
                 
                 $mensaje .= "[quote]";
                 $mensaje .= "[b]ID:{$uid} - {$user_data['username']}[/b]\n\n";
@@ -1233,6 +1252,7 @@ if (!is_staff($mybb->user['uid']) && !is_narra($mybb->user['uid'])) {
             $contenido_aventura .= '<select id="tipo_reputacion_' . $jugador['uid'] . '" class="configInputSmall" style="width: 100px; margin-right: 15px;">';
             $contenido_aventura .= '<option value="positiva" selected>✨ Positiva</option>';
             $contenido_aventura .= '<option value="negativa">💀 Negativa</option>';
+            $contenido_aventura .= '<option value="ninguna">🚫 Ninguna</option>';
             $contenido_aventura .= '</select>';
             $contenido_aventura .= '<span style="font-size: 12px; color: rgba(255,255,255,0.7); margin-right: 5px;">% Base:</span>';
             $contenido_aventura .= '<span class="jugador-porcentaje" data-uid="' . $jugador['uid'] . '" data-posts-validos="' . $jugador['posts_validos'] . '" data-base-porcentaje="' . $jugador['porcentaje_base'] . '" style="font-size: 13px; color: #3498db; font-weight: bold;">' . $jugador['porcentaje_base'] . '%</span>';

@@ -1,0 +1,147 @@
+<html>
+  <head>
+    <title>Modificar Técnicas</title>
+    {$headerinclude}
+    <style>
+      .form-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+      .form-table td { padding: 0px 8px; vertical-align: middle; border: none; }
+      .textbox, textarea { width: 100%; box-sizing: border-box; }
+      textarea { resize: vertical; }
+      .section-title { text-align: center; font-weight: bold; font-size: 16px; color: #000; margin: 10px 0 0px 0; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+      .section-block { margin-bottom: 2px; }
+    </style>
+  </head>
+  <body>
+    {$header}
+    <div class="fondo-blanco">
+      <if $tecnica_id == '' then>
+        Técnica ID*<br>
+        <input style="width: 300px;" class="textbox" type="text" placeholder="HOS602" required id="tecnica_id">
+        <button id="btn_buscar" onclick="onClickTid()">Buscar</button><br><br>
+      </if>
+
+      <if $tecnica_id != '' then>
+        <form method="post" action="/op/staff/tecnicas_modificar.php" name="crear_tecnicas" id="crear_tecnicas">
+          <input type="hidden" name="tecnica_id" value="{$tecnica_id}">
+
+          <!-- Identificación -->
+          <table class="form-table">
+            <tr>
+              <td>Técnica ID: <br>
+                <input class="textbox" type="text" name="tid" id="tid" value="{$tecnica['tid']}" required>
+              </td>
+              <td>Nombre de Técnica: <br>
+                <input class="textbox" type="text" name="nombre" id="nombre" value="{$tecnica['nombre']}" required>
+              </td>
+              <td>Razón: <br>
+                <input class="textbox" type="text" name="razon" required>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Información Básica -->
+          <div class="section-block">
+            <div class="section-title">Información Básica</div>
+            <table class="form-table">
+              <tr>
+                <td>Estilo: <br>
+                  <input class="textbox" value="{$tecnica['estilo']}" type="text" name="estilo" id="estilo" required>
+                </td>
+                <td>Tier: <br>
+                  <input class="textbox" value="{$tecnica['tier']}" type="text" name="tier" id="tier" required>
+                </td>
+                <td>Clase: <br>
+                  <input class="textbox" value="{$tecnica['clase']}" type="text" name="clase" id="clase" required>
+                </td>
+              </tr>
+              <tr>
+                <td>Tipo: <br>
+                  <input class="textbox" value="{$tecnica['tipo']}" type="text" name="tipo" id="tipo" required>
+                </td>
+                <td>Rama: <br>
+                  <input class="textbox" value="{$tecnica['rama']}" type="text" name="rama" id="rama" required>
+                </td>
+                <td>Estilo: <br>
+                  <input class="textbox" value="{$tecnica['estilo']}" type="text" name="estilo" id="estilo" required>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Información Bélica -->
+          <div class="section-block">
+            <div class="section-title">Información Bélica</div>
+            <table class="form-table">
+              <tr>
+                <td>Energía: <br>
+                  <input class="textbox" value="{$tecnica['energia']}" type="text" name="energia" id="energia">
+                </td>
+                <td>Mantenimiento Energía: <br>
+                  <input class="textbox" value="{$tecnica['energia_turno']}" type="text" name="energia_turno" id="energia_turno">
+                </td>
+                <td>Haki: <br>
+                  <input class="textbox" value="{$tecnica['haki']}" type="text" name="haki" id="haki">
+                </td>
+                <td>Mantenimiento Haki: <br>
+                  <input class="textbox" value="{$tecnica['haki_turno']}" type="text" name="haki_turno" id="haki_turno">
+                </td>
+              </tr>
+              <tr>
+                <td>Efectos: <br>
+                  <input class="textbox" value="{$tecnica['efectos']}" type="text" name="efectos" id="efectos">
+                </td>
+                <td>Requisitos: <br>
+                  <input class="textbox" value="{$tecnica['requisitos']}" type="text" name="requisitos" id="requisitos">
+                </td>
+                <td>Enfriamiento: <br>
+                  <input class="textbox" value="{$tecnica['enfriamiento']}" type="text" name="enfriamiento" id="enfriamiento">
+                </td>
+              </tr>
+            </table>
+            <table class="form-table" style="width:100%;">
+              <tr>
+                <td colspan="4">Descripción: <br>
+                  <textarea class="textbox" name="descripcion" style="width:100%; height:120px; resize: vertical;" required>{$tecnica['descripcion']}</textarea>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <br>
+          <input class="button" type="submit" value="Modificar">
+        </form>
+      </if>
+    </div>
+
+    {$footer}
+
+    <if $log_var != '' then>
+      <script>
+        alert("{$log_var}");
+      </script>
+    </if>
+
+    <script>
+      function onClickTid() {
+        const input = document.getElementById('tecnica_id');
+        if (!input) {
+          alert('No se encontró el campo Técnica ID');
+          return;
+        }
+        const tecnicaId = input.value.trim();
+        if (!tecnicaId) {
+          alert('Introduce un Técnica ID');
+          return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set('tecnica_id', tecnicaId);
+        window.location.href = url.toString();
+      }
+
+      (function attachHandler(){
+        var btn = document.getElementById('btn_buscar');
+        if (btn) btn.addEventListener('click', function(e){ e.preventDefault(); onClickTid(); });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1024 @@
+<html>
+
+<head>
+  <title>Crafteo de Items</title>
+  {$headerinclude}
+  <style>	  
+	  .oficio-titulo {
+		letter-spacing: 1px;
+		font-family: moonGetHeavy;
+		color: white;
+		font-size: 16px;
+		margin-left: 28px;
+		margin: auto;
+        text-shadow: 2px 2px 1px black;
+	 }
+
+	.oficio-titulo-pill-1 {
+		letter-spacing: 1px;
+		font-family: moonGetHeavy;
+		color: black;
+		font-size: 11px;
+/* 		background-color: #9664e0; */
+		background-color: #fff; 
+		border: 1px solid black;
+		border-start-start-radius: 10px;
+		border-end-start-radius: 10px;
+		text-align: center;
+		height: 15px;
+		width: 65px;
+	}
+
+	.oficio-titulo-pill-2 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-end-radius: 10px; 
+		border-end-end-radius: 10px; 
+		text-align: center; 
+		width: 55px; 
+		height: 15px;
+	}
+
+	.oficio-titulo2 {
+		letter-spacing: -1px;
+		font-family: moonGetHeavy;
+		color: black;
+		font-size: 12px;
+		margin-left: 10px;
+		width: 100px;
+		height: 23px;
+		position: relative;
+		top: 3px;
+	}
+
+	.oficio-pill-1 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+		margin-left: 28px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-start-radius: 10px; 
+		border-end-start-radius: 10px; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px
+	}
+
+	.oficio-pill-2 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px;
+	}
+
+	.oficio-pill-3 {
+		letter-spacing: 1px; 
+		font-family: moonGetHeavy; 
+		color: black; 
+		font-size: 11px; 
+/* 		background-color: #9664e0;  */
+		background-color: #fff; 
+		border: 1px solid black; 
+		border-start-end-radius: 10px; 
+		border-end-end-radius: 10px; 
+		width: 42px; 
+		text-align: center; 
+		height: 15px;
+	}
+	  
+
+	.oficio-pill-color {
+		display: flex;
+		margin-top: 3px;
+		flex-direction: row;
+	/*     background-color: #ff7e00; */
+		background-color: #838383;
+		margin-left: 10px;
+		margin-right: 10px;
+		border: 1px solid black;
+		border-radius: 7px;
+	}
+
+	.oficio-caja {
+		height: 90px;
+		width: 290px;
+	/*     background-color: ; */
+		background-color: #5d5d5d; 
+		border-radius: 7px;
+		box-shadow: 0px 0px 3px black;
+		border: 1px solid black;
+	}
+
+	.oficio-pill-caja {
+		display: flex; 
+		flex-direction: row; 
+		position: relative; 
+		top: 3px; 
+		left: -6px;
+	}
+
+	.oficio-titulo-caja {
+		display: flex; 
+		flex-direction: row; 
+		position: relative; 
+		top: 3px; 
+		left: -3px;
+	}
+	  
+	  .saldoBoxFirst {
+      	font-size: 16px;
+	  }
+	  
+	  .saldoBoxSecond {
+		font-size: 17px;  
+	    padding: 12px 10px;
+	  }
+	  
+	.crear-button {
+		font-size: 19px; background-color: #e86200; font-family: InterRegular; border: 2px solid black; color: white; border-radius: 8px; margin: 5px 0px; text-shadow: 0px 0px 3px black; cursor: pointer;transition: all 0.2s ease-out;
+	}
+	  
+  .bloquear-button {
+		font-size: 19px; background-color: #e86200; font-family: InterRegular; border: 2px solid black; color: white; border-radius: 8px; margin: 5px 0px; text-shadow: 0px 0px 3px black; cursor: pointer;transition: all 0.2s ease-out;width: 99%;
+	}
+	  
+  .crear-button:hover {
+		background-color: #9151b5;
+	}
+	  
+  .bloquear-button:hover {
+		background-color: #9151b5;
+	}
+		
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				
+				<div style="margin-bottom: 10px;">
+					<img src="/images/op/uploads/CrafteoItems_One_Piece_Gaiden_Foro_Rol.jpg" />
+				</div>
+
+				<div style="display: flex;justify-content: space-between;">
+					<div id="oficio1" class="oficio-caja">
+						<div style=" display: flex; margin-top: 5px; flex-direction: row; ">
+							<div class="oficio-titulo">Comerciante</div>
+							<div class="oficio-titulo-caja">
+								<div class="oficio-titulo-pill-1">I</div>
+								<div class="oficio-titulo-pill-2">II</div>
+							</div>
+						</div>
+
+						<div class="oficio-pill-color">
+							<div class="oficio-titulo2">Mercader</div>
+							<div class="oficio-pill-caja">
+								<div class="oficio-pill-1">I</div>
+								<div class="oficio-pill-2">II</div>
+								<div class="oficio-pill-3">III</div>
+							</div>
+						</div>
+
+						<div class="oficio-pill-color">
+							<div class="oficio-titulo2">Traficante</div>
+								<div class="oficio-pill-caja">
+									<div class="oficio-pill-1">I</div>
+									<div class="oficio-pill-2">II</div>
+									<div class="oficio-pill-3">III</div>
+							</div>
+						</div>
+
+					</div>
+					
+					<div style="text-align: center;width: 180px;">
+						<div class="saldoBoxFirst">Berries</div>
+						<div class="saldoBoxSecond"><span id="berries">0</span></div>
+					</div>
+					<div style="text-align: center;width: 180px;">
+						<div class="saldoBoxFirst" style=" background-color: #a60000; ">Puntos Oficio</div>
+						<div class="saldoBoxSecond" style="background-color: #ff7474;"><span id="puntosOficio">0</span></div>
+					</div>			
+					
+					
+					<div id="oficio2" class="oficio-caja">
+						<div style=" display: flex; margin-top: 5px; flex-direction: row; ">
+							<div class="oficio-titulo">Comerciante</div>
+							<div class="oficio-titulo-caja">
+								<div class="oficio-titulo-pill-1">I</div>
+								<div class="oficio-titulo-pill-2">II</div>
+							</div>
+						</div>
+
+						<div class="oficio-pill-color">
+							<div class="oficio-titulo2">Mercader</div>
+							<div class="oficio-pill-caja">
+								<div class="oficio-pill-1">I</div>
+								<div class="oficio-pill-2">II</div>
+								<div class="oficio-pill-3">III</div>
+							</div>
+						</div>
+
+						<div class="oficio-pill-color">
+							<div class="oficio-titulo2">Traficante</div>
+								<div class="oficio-pill-caja">
+									<div class="oficio-pill-1">I</div>
+									<div class="oficio-pill-2">II</div>
+									<div class="oficio-pill-3">III</div>
+							</div>
+						</div>
+
+					</div>
+					
+				</div>
+				<br>
+				
+				<div style=" flex: column; ">
+					
+					<div>
+						<div style=" text-align: center; color: white; font-family: moonGetHeavy; background-color: #7a4ff2; font-size: 25px; padding: 5px; border: 1px solid black; text-shadow: 2px 2px 1px black; border-bottom: 0px; ">Tier 1</div>
+						<div id="tier-1" style="padding: 5px 0px 10px 17px;border: 1px solid black;background-color: #ffedd2;display: flex;flex-wrap: wrap;">
+							
+						</div>
+					</div>
+					
+					<div>
+						<div style=" text-align: center; color: white; font-family: moonGetHeavy; background-color: #7a4ff2; font-size: 25px; padding: 5px; border: 1px solid black; text-shadow: 2px 2px 1px black; border-bottom: 0px; ">Tier 2</div>
+						<div id="tier-2" style="padding: 5px 0px 10px 17px;border: 1px solid black;background-color: #ffedd2;display: flex;flex-wrap: wrap;">
+							
+						</div>
+					</div>
+					
+					<div>
+						<div style=" text-align: center; color: white; font-family: moonGetHeavy; background-color: #7a4ff2; font-size: 25px; padding: 5px; border: 1px solid black; text-shadow: 2px 2px 1px black; border-bottom: 0px; ">Tier 3</div>
+						<div id="tier-3" style="padding: 5px 0px 10px 17px;border: 1px solid black;background-color: #ffedd2;display: flex;flex-wrap: wrap;">
+							
+						</div>
+					</div>
+					
+					<div>
+						<div style=" text-align: center; color: white; font-family: moonGetHeavy; background-color: #7a4ff2; font-size: 25px; padding: 5px; border: 1px solid black; text-shadow: 2px 2px 1px black; border-bottom: 0px; ">Tier 4</div>
+						<div id="tier-4" style="padding: 5px 0px 10px 17px;border: 1px solid black;background-color: #ffedd2;display: flex;flex-wrap: wrap;">
+							
+						</div>
+					</div>
+					
+					<div>
+						<div style=" text-align: center; color: white; font-family: moonGetHeavy; background-color: #7a4ff2; font-size: 25px; padding: 5px; border: 1px solid black; text-shadow: 2px 2px 1px black; border-bottom: 0px; ">Tier 5</div>
+						<div id="tier-5" style="padding: 5px 0px 10px 17px;border: 1px solid black;background-color: #ffedd2;display: flex;flex-wrap: wrap;">
+							
+						</div>
+					</div>
+					
+				</div>
+				
+				
+				
+				
+			</div>
+			
+		</div>
+		
+	 </div>
+	    <br><br><br><br><br><br><br>	    <br><br><br><br><br><br><br>	    
+  </div>
+
+<script>
+let oficios = {$ficha['oficios']};
+let oficio1 = "{$ficha['oficio1']}";
+let oficio2 = "{$ficha['oficio2']}";
+let has_estudioso = "{$has_estudioso}";
+let has_erudito = "{$has_erudito}";
+const modoVista = '{$modo_vista}' == '1' ? true : false;	
+	
+let objetos_json = {$objetos_json};
+let objetos_array_json = {$objetos_array_json};
+let materiales_json = {$materiales_json};
+let materiales_array_json = {$materiales_array_json};
+let inventario_json = {$inventario_json};
+let inventario_array_json = {$inventario_array_json};
+let objetos_recetas_json = {$objetos_recetas_json};
+let objetos_recetas_array_json = {$objetos_recetas_array_json};
+	
+let nivel = {$ficha['nivel']};
+const puntos_oficio = {$ficha['puntos_oficio']};
+const berries = {$ficha['berries']};
+
+$('#berries').html(parseInt(berries).toLocaleString('es-es'));
+$('#puntosOficio').html(parseInt(puntos_oficio).toLocaleString('es-es'));
+
+// NPCs del usuario (si existen)
+let npcs_json = {$npcs_json};
+let npcs_array_json = {$npcs_array_json};
+
+// DEBUG: Mostrar datos de materiales y kits en consola
+console.log('=== DEBUG CRAFTEO ===');
+console.log('Materiales Array:', materiales_array_json);
+console.log('Materiales JSON:', materiales_json);
+console.log('Objetos Array:', objetos_array_json);
+console.log('Inventario Array:', inventario_array_json);
+console.log('Inventario JSON:', inventario_json);
+console.log('====================');
+
+// Estado de crafteos activos (desde backend)
+let playerCrafteo = {$player_crafteo_json};
+let npcsCrafteando = {$npcs_crafteando_json};
+
+// Keep originals to be able to restore when switching back to player
+const original_objetos_json = JSON.parse(JSON.stringify(objetos_json));
+const original_objetos_array_json = JSON.parse(JSON.stringify(objetos_array_json));
+
+// UI: selector de actor (personaje / NPCs)
+let selectedActor = { type: 'player', npcId: '' };
+function renderActorSelector() {
+    // Mostrar el selector SOLO si existe al menos un NPC con oficios definidos
+    let hasNpcWithOficio = false;
+    for (let i = 0; i < npcs_array_json.length; i++) {
+        let npcKey = npcs_array_json[i];
+        let npc = npcs_json[npcKey] ? npcs_json[npcKey][0] : null;
+        if (!npc) continue;
+        if (npc.oficios && npc.oficios.trim() != '') { hasNpcWithOficio = true; break; }
+    }
+
+    // Si no hay NPCs con oficio, eliminar contenedor si existe y no renderizar nada
+    if (!hasNpcWithOficio) {
+        $('.selector-actores-container').remove();
+        return;
+    }
+
+    let html = `<div class="selector-actores-container" style="margin-top: 8px; display:flex; gap:6px; align-items:center;">
+        <div style="font-family: InterRegular; font-size: 14px;">Craftear como:</div>`;
+
+    // Añadir botón Personaje sólo si no tiene crafteo activo
+    if (!playerCrafteo) {
+        html += `<button id="actor_player" class="crear-button">Personaje</button>`;
+    } else {
+        html += `<div class="crear-button" style="opacity:0.5;pointer-events:none;">Personaje (creando...)</div>`;
+    }
+
+    for (let i = 0; i < npcs_array_json.length; i++) {
+        let npcKey = npcs_array_json[i];
+        let npc = npcs_json[npcKey] ? npcs_json[npcKey][0] : null;
+        if (!npc) continue;
+        // Sólo mostrar NPC si tiene oficios definidos
+        let hasOficios = npc.oficios && npc.oficios.trim() != '';
+        if (!hasOficios) continue;
+        // Si este NPC está ya crafteando, ocultar su pestaña
+        if (npcsCrafteando && Array.isArray(npcsCrafteando) && npcsCrafteando.includes(npcKey)) {
+            continue; // omitimos el botón
+        }
+        html += `<button data-npcid="${npcKey}" class="crear-button actor-npc" style="padding:6px 10px;">${npc.nombre}</button>`;
+    }
+
+    html += `</div>`;
+
+    // Mostrar botón "Ver crafteos en curso" si hay crafteos activos
+    if (playerCrafteo || (npcsCrafteando && Array.isArray(npcsCrafteando) && npcsCrafteando.length > 0)) {
+        html += `<div style="margin-top:8px;"><button id="ver_crafteos" class="crear-button" style="background:#9b19d1; padding:6px 10px;">Ver crafteos en curso</button></div>`;
+    }
+
+    // Evitar duplicados: remover contenedor previo y añadir el nuevo
+    $('.selector-actores-container').remove();
+    $('.secondBackground .thirdBackground').first().prepend(html);
+
+    // Handlers (delegated to support dynamic elements)
+    $(document).on('click', '#actor_player', function(){ 
+        selectedActor = { type: 'player', npcId: '' }; 
+        $('.actor-npc').removeClass('selected'); 
+        $(this).addClass('selected'); 
+        // restore original objetos and re-render
+        objetos_json = original_objetos_json;
+        objetos_array_json = original_objetos_array_json;
+        setActiveOficiosFromActor();
+        renderItems();
+    });
+
+    // Handler para ver crafteos en curso
+    $(document).on('click', '#ver_crafteos', function() {
+        window.location.href = '/op/crafteo.php';
+    });
+
+    $(document).on('click', '.actor-npc', function(){ 
+        let npcId = $(this).data('npcid'); 
+        selectedActor = { type: 'npc', npcId: npcId }; 
+        $('.actor-npc').removeClass('selected'); 
+        $('#actor_player').removeClass('selected'); 
+        $(this).addClass('selected'); 
+        // Request objetos filtered by NPC from backend
+        $.post('/op/crafteo.php', { accion: 'get_objects_for_actor', actor: 'npc', npcId: npcId }, function(data) {
+            if (data && data.objetos) {
+                objetos_json = data.objetos;
+                objetos_array_json = data.objetos_array;
+                setActiveOficiosFromActor();
+                renderItems();
+            }
+        }, 'json');
+    });
+
+    // Default selection: si el player no está crafteando, seleccionarlo, si no seleccionar el primer NPC disponible
+    if (!playerCrafteo) {
+        $('#actor_player').addClass('selected');
+    } else {
+        let firstNpcBtn = $('.actor-npc').first();
+        if (firstNpcBtn.length) {
+            firstNpcBtn.addClass('selected');
+            firstNpcBtn.click();
+        }
+    }
+}
+
+renderActorSelector();
+// Active oficios used to filter which items are shown according to selected actor
+let activeOficios = oficios;
+// Oficios currently mostrados en la UI (puede ser de jugador o de NPC)
+let displayedOficios = oficios;
+
+function applyActorFilter() {
+	if (!activeOficios) {
+		$('.item-outer').closest('div').show();
+		return;
+	}
+	$('.item-outer').each(function() {
+		let itemOficio = $(this).data('oficio');
+		let itemOficioNivel = parseInt($(this).data('oficio-nivel')) || 0;
+		if (!itemOficio) { $(this).closest('div').show(); return; }
+
+		let show = false;
+		// Verifica si el oficio principal está habilitado
+		if (activeOficios[itemOficio] && (parseInt(activeOficios[itemOficio].nivel || 0) >= itemOficioNivel)) {
+			show = true;
+		} else {
+			// Verifica si alguna especialización (suboficio) coincide y tiene nivel suficiente
+			for (const key in activeOficios) {
+				if (activeOficios[key] && activeOficios[key].sub) {
+					for (const subKey in activeOficios[key].sub) {
+						// Para suboficios, sumar +1 al nivel para la comprobación
+						let subNivel = parseInt(activeOficios[key].sub[subKey] || 0) + 1;
+						if (subKey === itemOficio && subNivel >= itemOficioNivel) {
+							show = true;
+							break;
+						}
+					}
+				}
+				if (show) break;
+			}
+		}
+		if (show) {
+			$(this).closest('div').show();
+		} else {
+			$(this).closest('div').hide();
+		}
+	});
+}
+
+// Render items using current objetos_json/objetos_array_json
+function renderItems() {
+	// Clear tiers
+	for (let t = 1; t <= 5; t++) { $('#tier-' + t).empty(); }
+
+	for (let i = 0; i < objetos_array_json.length; i++) {
+		let objetoId = objetos_array_json[i];
+		let objeto = objetos_json[objetoId][0];
+
+		// Filtrar por oficios activos: no renderizar items de oficios que el actor no tenga
+		if (activeOficios && objeto.oficio) {
+			const itemNivel = parseInt(objeto.nivel || 0);
+			let permitido = false;
+			if (activeOficios[objeto.oficio] !== undefined && parseInt(activeOficios[objeto.oficio].nivel || 0) >= itemNivel) {
+				permitido = true;
+			} else {
+				for (const key in activeOficios) {
+					if (activeOficios[key] && activeOficios[key].sub) {
+						for (const subKey in activeOficios[key].sub) {
+							if (subKey === objeto.oficio) {
+								const subNivel = parseInt(activeOficios[key].sub[subKey] || 0) + 1;
+								if (subNivel >= itemNivel) { permitido = true; break; }
+							}
+						}
+					}
+					if (permitido) break;
+				}
+			}
+			if (!permitido) continue;
+		}
+
+		objeto.categoria = objeto.categoria.toLowerCase();
+		const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+		const tier = objeto.tier;
+		const imagen_id = objeto.imagen_id;
+		let oficio = objeto.oficio;
+		const imagen_avatar = objeto.imagen_avatar;
+		let imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+		let objetoNombre = objeto.nombre;
+		let requisitos = '';
+		let escalado = '';
+		let dano = '';
+		let efecto = '';
+		let bloqueo = '';
+		let alcance = '';
+		if (objeto.requisitos) { requisitos = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.requisitos + `</div>`; }
+		if (objeto.escalado) { escalado = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.escalado + `</div>`; }
+		if (objeto.dano) { dano = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.dano + ` de daño</div>`; }
+		if (objeto.efecto) { efecto = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.efecto + `</div>`; }
+		if (objeto.bloqueo) { bloqueo = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.bloqueo + `</div>`; }
+		if (objeto.alcance) { alcance = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.alcance + `</div>`; }
+		let colorTier = '#faa500';
+		if (tier == '1') { colorTier = '#808080'; }
+		if (tier == '2') { colorTier = '#4dfe45'; }
+		if (tier == '3') { colorTier = '#457bfe'; }
+		if (tier == '4') { colorTier = '#cf44ff'; }
+		if (tier == '5') { colorTier = '#febb46'; }
+		if (imagen_avatar != '') { imagen = imagen_avatar; }
+		let crafteo = ``;
+		let imagenGris = '';
+		let fondoGris = '';
+		let berriesCostoNum = Math.round(parseInt(objeto.berriesCrafteo) * berriesDescontado(objeto.oficio));
+		let berriesCostoDescontado = berriesCostoNum.toLocaleString('es-es');
+		
+		// Mapeo de especializaciones a oficios base para buscar kits
+		function getOficioBaseParaKit(oficio) {
+			const mapeo = {
+				'Chef': 'Cocinero',
+				'Aprovisionador': 'Cocinero',
+				'Herrero': 'Artesano',
+				'Modista': 'Artesano',
+				'Doctor': 'Médico',
+				'Farmacólogo': 'Médico',
+				'Astillero': 'Carpintero',
+				'Constructor': 'Carpintero',
+				'Ingeniero': 'Inventor',
+				'Biólogo': 'Inventor',
+				'Mayorista': 'Recolector',
+				'Agreste': 'Recolector',
+				'Periodista': 'Investigador',
+				'Arqueólogo': 'Investigador',
+				'Comerciante': 'Mercader',
+				'Contrabandista': 'Mercader'
+			};
+			return mapeo[oficio] || oficio;
+		}
+		
+		// Buscar kits disponibles para este oficio (incluyendo oficio base si es especialización)
+		let kitsDisponibles = [];
+		let oficioParaBuscar = getOficioBaseParaKit(objeto.oficio);
+		
+		for (let j = 0; j < materiales_array_json.length; j++) {
+			let materialId = materiales_array_json[j];
+			let material = materiales_json[materialId] ? materiales_json[materialId][0] : null;
+			if (material && (material.subcategoria.toLowerCase() === objeto.oficio.toLowerCase() || material.subcategoria.toLowerCase() === oficioParaBuscar.toLowerCase())) {
+				kitsDisponibles.push({
+					id: materialId,
+					nombre: material.nombre,
+					tier: material.tier,
+					descuento: parseInt(material.tier) * 10 // 10%, 20%, 30%, etc.
+				});
+			}
+		}
+		
+		if (objeto.desbloqueado == 0 || inventario_json[objetoId] && (berries - berriesCostoNum >= 0)) {
+			// Botón de crafteo normal
+			crafteo = `
+				<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;">
+					<div class="crear-button" onclick="craftearItem('` + objetoId + `')">
+						¡Craftear este objeto!<br>Coste ` + berriesCostoDescontado + ` B | Duración ` + ((objeto.tiempo_creacion * getTiempoCreacion(objeto.oficio) * getTiempoCreacionVirtud())).toFixed(2) + ` horas
+					</div>
+			`;
+			
+			// Botones para craftear con kits (si hay disponibles)
+			for (let k = 0; k < kitsDisponibles.length; k++) {
+				let kit = kitsDisponibles[k];
+				let costoConKit = ((parseInt(objeto.berriesCrafteo) * berriesDescontado(objeto.oficio) * (1 - kit.descuento / 100))).toLocaleString('es-es');
+				let tiempoConKit = (objeto.tiempo_creacion * getTiempoCreacion(objeto.oficio) * getTiempoCreacionVirtud() * (1 - kit.descuento / 100)).toFixed(2);
+				
+				crafteo += `
+					<div class="crear-button" onclick="craftearItem2('` + objetoId + `', '` + kit.id + `', '` + kit.nombre + `', '` + kit.tier + `')" style="background-color: #2a9d3f; margin-top: 5px;">
+						Craftear con ` + kit.nombre + `<br>Coste ` + costoConKit + ` B | Duración ` + tiempoConKit + ` horas (-` + kit.descuento + `%)
+					</div>
+				`;
+			}
+			
+			crafteo += `</div>`;
+		} else if (objeto.desbloqueado == 0 || inventario_json[objetoId]) {
+			crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="crear-button" style="background: gray"> ¡No tienes berries para este objeto!<br>Coste ` + berriesCostoDescontado + ` B | Duración ` + ((objeto.tiempo_creacion * getTiempoCreacion(objeto.oficio) * getTiempoCreacionVirtud())) + ` horas </div> </div>`;
+		} else {
+			imagenGris = 'filter: grayscale(0.7);';
+			fondoGris = 'background-color: #817f7f; ';
+			if (puntos_oficio >= objeto.desbloquear) {
+				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" onclick="desbloquearItem('` + objetoId + `')"> Desbloquear por ` + objeto.desbloquear + ` puntos de oficio. </div> </div>`;
+			} else {
+				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" style="` + fondoGris + `pointer: auto;"> Necesitas ` + objeto.desbloquear + ` puntos de oficio para desbloquear. </div> </div>`;
+			}
+		}
+		if (modoVista == true) { crafteo = ''; }
+
+		$('#tier-' + tier).append(`<div>
+			<div class="item-outer" id="` + objeto.objeto_id + `" data-oficio="` + objeto.oficio + `" data-oficio-nivel="` + objeto.nivel + `" style="` + fondoGris + `">
+				<div class="item-nombre">` + objeto.nombre + `</div>
+				<div class="item-image">
+					<div class="tooltip">
+						<img id=imagen-item src="` + imagen + `" style="` + imagenGris + `" />
+						<div class="tooltiptext item-tooltip">
+							<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objetoNombre + `</div>
+							` + requisitos + `
+							` + escalado + `
+							<div class="mydescripcion" style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+							` + dano + `
+							` + efecto + `
+							` + bloqueo + `
+							` + alcance + `
+							` + crafteo + `
+							<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+								<div>` + objeto.espacios + ` Espacios</div>
+								<div>ID: <span>` + objeto.objeto_id + `</span></div>
+								<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span>B</div>
+								<div><span>` + objeto.oficio + ` (` + objeto.nivel + `)</span></div>
+							</div>
+							<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		<div></div></div>`);
+	}
+
+	// Apply current actor filter after rendering
+	applyActorFilter();
+}
+
+function setActiveOficiosFromActor() {
+	if (selectedActor.type === 'player') {
+		activeOficios = oficios; // Solo mostrar objetos de los oficios del personaje
+		displayedOficios = oficios;
+	} else {
+		const npc = npcs_json[selectedActor.npcId] ? npcs_json[selectedActor.npcId][0] : null;
+		if (npc) {
+			try {
+				activeOficios = (typeof npc.oficios === 'string') ? JSON.parse(npc.oficios) : npc.oficios;
+				// Si el NPC tiene más de un oficio, aseguramos que displayedOficios tenga ambos
+				if (activeOficios && typeof activeOficios === 'object') {
+					displayedOficios = {};
+					const keys = Object.keys(activeOficios);
+					if (keys.length > 0) displayedOficios[keys[0]] = activeOficios[keys[0]];
+					if (keys.length > 1) displayedOficios[keys[1]] = activeOficios[keys[1]];
+					// Si solo tiene uno, igual funciona
+				} else {
+					displayedOficios = activeOficios;
+				}
+			} catch (e) {
+				activeOficios = null; // Fallback: mostrar todos si error
+				displayedOficios = oficios;
+			}
+		} else {
+			activeOficios = null;
+			displayedOficios = oficios;
+		}
+	}
+	applyActorFilter();
+	renderOficioBoxes();
+}
+
+// Inicializar filtro y UI de oficios según actor por defecto (personaje)
+setActiveOficiosFromActor();
+// Render initial items
+renderItems();
+
+function renderOficioBoxes() {
+	// Siempre tomar los dos primeros oficios de displayedOficios, aunque el jugador tenga uno y el NPC dos
+	const keys = Object.keys(displayedOficios || {});
+	const dOficio1 = keys.length > 0 ? keys[0] : null;
+	const dOficio2 = keys.length > 1 ? keys[1] : null;
+
+	// Render caja 1
+	if (dOficio1) {
+		let oficioObj = displayedOficios[dOficio1];
+		$('#oficio1 .oficio-titulo').text(dOficio1);
+		$('#oficio1.oficio-caja').css('background-color', '#704fcb');
+
+		for (let i = 0; i < $('#oficio1 .oficio-titulo2').length; i++) {
+			let subOficio = Object.keys(oficioObj.sub)[i];
+			let subOficioObj = oficioObj.sub[subOficio];
+
+			$($('#oficio1 .oficio-titulo2')[i]).text(subOficio);
+
+			if (subOficioObj >= 1) { $($('#oficio1 .oficio-pill-color')[i]).css('background-color', '#ff7e00'); $($('#oficio1 .oficio-pill-1')[i]).css('background-color', '#9664e0'); }
+			if (subOficioObj >= 2) { $($('#oficio1 .oficio-pill-2')[i]).css('background-color', '#9664e0'); }
+			if (subOficioObj >= 3) { $($('#oficio1 .oficio-pill-3')[i]).css('background-color', '#9664e0'); }
+		}
+
+		if (oficioObj.nivel >= 1) { $('#oficio1 .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+		if (oficioObj.nivel >= 2) { $('#oficio1 .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+	} else {
+		$('#oficio1').html('');
+	}
+
+	// Render caja 2
+	if (dOficio2) {
+		let oficioObj = displayedOficios[dOficio2];
+		// Reconstruir el HTML de la caja oficio2 para asegurar que siempre se muestre correctamente
+		let subOficios = Object.keys(oficioObj.sub || {});
+		let pillsHtml = '';
+		for (let i = 0; i < subOficios.length; i++) {
+			let subOficio = subOficios[i];
+			let subOficioObj = oficioObj.sub[subOficio];
+			pillsHtml += `
+				<div class="oficio-pill-color">
+					<div class="oficio-titulo2">${subOficio}</div>
+					<div class="oficio-pill-caja">
+						<div class="oficio-pill-1" style="${subOficioObj>=1?'background-color:#9664e0;':''}">I</div>
+						<div class="oficio-pill-2" style="${subOficioObj>=2?'background-color:#9664e0;':''}">II</div>
+						<div class="oficio-pill-3" style="${subOficioObj>=3?'background-color:#9664e0;':''}">III</div>
+					</div>
+				</div>
+			`;
+		}
+		let tituloPills = `
+			<div style="display: flex; margin-top: 5px; flex-direction: row;">
+				<div class="oficio-titulo">${dOficio2}</div>
+				<div class="oficio-titulo-caja">
+					<div class="oficio-titulo-pill-1" style="${oficioObj.nivel>=1?'background-color:#9664e0;':''}">I</div>
+					<div class="oficio-titulo-pill-2" style="${oficioObj.nivel>=2?'background-color:#9664e0;':''}">II</div>
+				</div>
+			</div>
+		`;
+		$('#oficio2').html(tituloPills + pillsHtml);
+		$('#oficio2.oficio-caja').css('background-color', '#704fcb');
+	} else {
+		$('#oficio2').html('');
+	}
+}
+	
+if (oficio1) {	
+	let oficioObj = oficios[oficio1];
+	$('#oficio1 .oficio-titulo').text(oficio1);
+	$('#oficio1.oficio-caja').css('background-color', '#704fcb');
+	
+	for (let i = 0; i < $('#oficio1 .oficio-titulo2').length; i++) {
+		let subOficio = Object.keys(oficioObj.sub)[i];
+		let subOficioObj = oficios[oficio1].sub[subOficio];
+		
+		$($('#oficio1 .oficio-titulo2')[i]).text(subOficio);
+		
+		if (subOficioObj >= 1) {
+			$($('#oficio1 .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#oficio1 .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 2) {
+			$($('#oficio1 .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 3) {
+			$($('#oficio1 .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+	
+	if (oficioObj.nivel >= 1) { $('#oficio1 .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (oficioObj.nivel >= 2) { $('#oficio1 .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+} else {
+	$('#oficio1').html('');
+}
+	
+if (oficio2) {
+	$('#oficio2 .oficio-titulo').html(oficio2);
+	$('#oficio2.oficio-caja').css('background-color', '#704fcb');
+	
+	let oficioObj = oficios[oficio2];
+	$('#oficio2 .oficio-titulo').text(oficio2);
+	$('#oficio2.oficio-caja').css('background-color', '#704fcb');
+	
+	for (let i = 0; i < $('#oficio1 .oficio-titulo2').length; i++) {
+		let subOficio = Object.keys(oficioObj.sub)[i];
+		let subOficioObj = oficios[oficio2].sub[subOficio];
+		
+		$($('#oficio2 .oficio-titulo2')[i]).text(subOficio);
+		
+		if (subOficioObj >= 1) {
+			$($('#oficio2 .oficio-pill-color')[i]).css('background-color', '#ff7e00');
+			$($('#oficio2 .oficio-pill-1')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 2) {
+			$($('#oficio2 .oficio-pill-2')[i]).css('background-color', '#9664e0');
+		}
+		
+		if (subOficioObj >= 3) {
+			$($('#oficio2 .oficio-pill-3')[i]).css('background-color', '#9664e0');
+		}
+	}
+	
+	if (oficioObj.nivel >= 1) { $('#oficio2 .oficio-titulo-pill-1').css('background-color', '#9664e0'); }
+	if (oficioObj.nivel >= 2) { $('#oficio2 .oficio-titulo-pill-2').css('background-color', '#9664e0'); }
+} else {
+	$('#oficio2').html('');
+}
+
+	
+function berriesDescontado(oficio) {
+	const ofics = activeOficios || oficios;
+	const n = getOficiosNivelesJS(ofics);
+	const map = {
+		'Cocinero': 'Aprovisionador', 'Chef': 'Aprovisionador', 'Aprovisionador': 'Aprovisionador',
+		'Artesano': 'Modista',        'Herrero': 'Modista',      'Modista': 'Modista',
+		'Médico':   'Doctor',         'Doctor': 'Doctor',        'Farmacólogo': 'Doctor',
+		'Carpintero':'Astillero',      'Astillero': 'Astillero',  'Constructor': 'Astillero',
+		'Inventor': 'Biólogo',         'Ingeniero': 'Biólogo',    'Biólogo': 'Biólogo',
+	};
+	const espe = map[oficio] || null;
+	const nivelEspe = espe ? (n[espe] || 0) : 0;
+	return getDescuento(nivelEspe) * getRecolectorDescuentoJS(ofics);
+}
+	
+function getTiempoCreacion(oficio) {
+	const ofics = activeOficios || oficios;
+	const n = getOficiosNivelesJS(ofics);
+	const map = {
+		'Cocinero': 'Chef',         'Chef': 'Chef',          'Aprovisionador': 'Chef',
+		'Artesano': 'Herrero',      'Herrero': 'Herrero',    'Modista': 'Herrero',
+		'Médico':   'Farmacólogo',  'Doctor': 'Farmacólogo', 'Farmacólogo': 'Farmacólogo',
+		'Carpintero':'Constructor', 'Astillero':'Constructor','Constructor': 'Constructor',
+		'Inventor': 'Ingeniero',    'Ingeniero': 'Ingeniero','Biólogo': 'Ingeniero',
+	};
+	const espe = map[oficio] || null;
+	const nivelEspe = espe ? (n[espe] || 0) : 0;
+	return getDescuento(nivelEspe) * getMayoristaReduccionTiempoJS(ofics);
+}
+	
+function getOficiosNivelesJS(ofics) {
+	const result = {};
+	if (!ofics || typeof ofics !== 'object') return result;
+	for (const [nombre, data] of Object.entries(ofics)) {
+		result[nombre] = parseInt(data.nivel || 0);
+		if (data.sub && typeof data.sub === 'object') {
+			for (const [subNombre, subNivel] of Object.entries(data.sub)) {
+				result[subNombre] = parseInt(subNivel || 0);
+			}
+		}
+	}
+	return result;
+}
+
+function getMayoristaDescuentoBerries(ofics) {
+	const nivel = getOficiosNivelesJS(ofics)['Mayorista'] || 0;
+	if (nivel >= 3) return 0.80;
+	if (nivel >= 2) return 0.85;
+	if (nivel >= 1) return 0.90;
+	return 1.0;
+}
+
+function getRecolectorDescuentoJS(ofics) {
+	const n = getOficiosNivelesJS(ofics);
+	const recolector = (n['Recolector'] || 0) >= 1 ? 0.9 : 1.0;
+	return recolector * getMayoristaDescuentoBerries(ofics);
+}
+
+function getMayoristaReduccionTiempoJS(ofics) {
+	const nivel = getOficiosNivelesJS(ofics)['Mayorista'] || 0;
+	if (nivel >= 3) return 0.80;
+	if (nivel >= 2) return 0.85;
+	if (nivel >= 1) return 0.90;
+	return 1.0;
+}
+
+function getDescuento(nivel) {
+    if (nivel == 1) {
+        return 0.95;
+    } else if (nivel == 2) {
+        return 0.90;
+    } else if (nivel == 3) {
+        return 0.80;
+    } else {
+        return 1;
+    }
+}
+			
+function getTiempoCreacionVirtud() {
+  
+    if (has_estudioso) {
+        return 0.8;
+    } else if (has_erudito) {
+        return 0.9; 
+    } else {
+        return 1;
+    }
+
+}
+	
+let oficiosCount = Object.keys(oficios).length;
+	
+function getCantidadMaximaCrafteo() {
+	let recolectorNivel = 0;
+	let agresteNivel = 0;
+	
+	if (oficios['Recolector']) {
+		recolectorNivel = oficios['Recolector'].nivel || 0;
+		
+		if (oficios['Recolector'].sub && oficios['Recolector'].sub['Agreste']) {
+			agresteNivel = oficios['Recolector'].sub['Agreste'];
+		}
+	}
+	
+	// Base: 1 item, Recolector nivel 2+: 2 items
+	let cantidadMax = (recolectorNivel >= 2) ? 2 : 1;
+	
+	// Agreste aumenta la cantidad: nivel 1 = 3, nivel 2 = 5, nivel 3 = 10
+	if (agresteNivel == 3) {
+		cantidadMax = 10;
+	} else if (agresteNivel == 2) {
+		cantidadMax = 5;
+	} else if (agresteNivel == 1) {
+		cantidadMax = 3;
+	}
+	
+	return cantidadMax;
+}
+
+function craftearItem(objetoId) {
+	let cantidadMax = getCantidadMaximaCrafteo();
+	
+	if (cantidadMax > 1) {
+		let cantidad = prompt('¿Cuántas unidades quieres craftear? (Máximo: ' + cantidadMax + ')', cantidadMax);
+		
+		if (cantidad === null) return; // Cancelado
+		
+		cantidad = parseInt(cantidad);
+		
+		if (isNaN(cantidad) || cantidad < 1 || cantidad > cantidadMax) {
+			alert('Por favor ingresa un número válido entre 1 y ' + cantidadMax);
+			return;
+		}
+		
+		let actorPayload = {}; if (selectedActor.type === 'npc') { actorPayload = { actor: 'npc', npcId: selectedActor.npcId }; }
+			if (confirm('¿Estás seguro que quieres craftear ' + cantidad + ' unidad(es) de este item?' + (selectedActor.type==='npc' ? '\n(Realizado por tu NPC)' : ''))) {
+				$.post("/op/crafteo.php", Object.assign({ accion: 'craftear', objetoId: objetoId, cantidadCraftear: cantidad }, actorPayload), function( data ) { alert('¡Objeto en proceso de crafteo!'); location.reload(); });
+			}
+	} else {
+		let actorPayload = {}; if (selectedActor.type === 'npc') { actorPayload = { actor: 'npc', npcId: selectedActor.npcId }; }
+		if (confirm('¿Estás seguro que quieres craftear este item?' + (selectedActor.type==='npc' ? '\n(Realizado por tu NPC)' : ''))) {
+			$.post("/op/crafteo.php", Object.assign({ accion: 'craftear', objetoId: objetoId, cantidadCraftear: 1 }, actorPayload), function( data ) { alert('¡Objeto en proceso de crafteo!'); location.reload(); });
+		}
+	}
+}
+	
+function craftearItem2(objetoId, materialId, materialNombre, materialTier) {
+	let cantidadMax = getCantidadMaximaCrafteo();
+	
+	if (cantidadMax > 1) {
+		let cantidad = prompt('¿Cuántas unidades quieres craftear? (Máximo: ' + cantidadMax + ')\nGastarías el material ' + materialNombre + '.', cantidadMax);
+		
+		if (cantidad === null) return; // Cancelado
+		
+		cantidad = parseInt(cantidad);
+		
+		if (isNaN(cantidad) || cantidad < 1 || cantidad > cantidadMax) {
+			alert('Por favor ingresa un número válido entre 1 y ' + cantidadMax);
+			return;
+		}
+		
+		let actorPayload = {}; if (selectedActor.type === 'npc') { actorPayload = { actor: 'npc', npcId: selectedActor.npcId }; }
+			if (confirm('¿Estás seguro que quieres craftear ' + cantidad + ' unidad(es) de este item?\nGastarías el material ' + materialNombre + '.' + (selectedActor.type==='npc' ? '\n(Realizado por tu NPC)' : ''))) {
+				$.post("/op/crafteo.php", Object.assign({ accion: 'craftear', objetoId: objetoId, materialNombre: materialNombre, materialId: materialId, materialTier: materialTier, cantidadCraftear: cantidad }, actorPayload), function( data ) { alert('¡Objeto en proceso de crafteo!'); location.reload(); });
+			}
+	} else {
+		let actorPayload = {}; if (selectedActor.type === 'npc') { actorPayload = { actor: 'npc', npcId: selectedActor.npcId }; }
+		if (confirm('¿Estás seguro que quieres craftear este item?\nGastarías el material ' + materialNombre + '.' + (selectedActor.type==='npc' ? '\n(Realizado por tu NPC)' : ''))) {
+			$.post("/op/crafteo.php", Object.assign({ accion: 'craftear', objetoId: objetoId, materialNombre: materialNombre, materialId: materialId, materialTier: materialTier, cantidadCraftear: 1 }, actorPayload), function( data ) { alert('¡Objeto en proceso de crafteo!'); location.reload(); });
+		}
+	}
+}
+	
+function desbloquearItem(objetoId) {
+	if (confirm('¿Estás seguro que quieres desbloquear este item?')) {
+		$.post("/op/crafteo.php", { accion: 'desbloquear', objetoId: objetoId }, function( data ) { alert('¡Objeto desbloqueado!'); location.reload(); });
+	} 
+}
+	
+function desbloquearRecetaItem(objetoId, recetaId) {
+	if (confirm('¿Estás seguro que quieres desbloquear este item con una receta?')) {
+		
+		let foundRecetaId = objetos_recetas_array_json.find(item => item.includes(recetaId));
+		console.log(foundRecetaId);
+		$.post("/op/crafteo.php", { accion: 'desbloquearReceta', objetoId: objetoId, recetaId: foundRecetaId }, function( data ) { alert('¡Objeto desbloqueado!'); location.reload(); });
+	} 
+}
+
+</script>
+{$footer}
+</body>
+</html>

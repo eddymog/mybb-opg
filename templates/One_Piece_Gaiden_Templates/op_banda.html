@@ -1,0 +1,91 @@
+<html>
+<head>
+  <title>{$banda['nombre']} &mdash; Banda</title>
+  {$headerinclude}
+  <style>
+    .banda-pestana {
+      color: #fff;
+      width: 197px;
+      text-align: center;
+      height: 35px;
+      cursor: pointer;
+      border: 2px solid {$faccionColor};
+      border-bottom: 0;
+      font-family: moonGetHeavy;
+      letter-spacing: 1px;
+    }
+    .banda-pestana:hover {
+      background-color: {$faccionColor};
+      filter: brightness(0.9);
+    }
+    .banda-pestana-active {
+      background-color: {$faccionColor};
+      filter: brightness(0.9);
+    }
+    .banda-pestana-texto {
+      color: white;
+      position: relative;
+      top: 5px;
+      text-shadow: 1px 1px 0px black;
+    }
+    .banda-fondo {
+      border: 2px solid #000;
+      background-color: {$faccionColor};
+      filter: brightness(0.9);
+      width: 1000px;
+      position: relative;
+      min-height: 600px;
+    }
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+
+          <div style="display:flex; flex-direction:row;">
+            <div class="banda-pestana banda-pestana-active" id="bpestana_portada" onclick="clickPestanaBanda('portada');">
+              <span class="banda-pestana-texto">PORTADA</span>
+            </div>
+            <div class="banda-pestana" id="bpestana_miembros" onclick="clickPestanaBanda('miembros');">
+              <span class="banda-pestana-texto">MIEMBROS</span>
+            </div>
+          </div>
+
+          <div class="banda-fondo">
+
+            <!-- Nombre de la banda, siempre visible -->
+            <div style="text-align:center; margin-top:40px; position:relative;">
+              <img src="/images/op/ficha/MarcoNombre_One_Piece_Gaiden_Foro_Rol.png" />
+              <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-55%);">
+                <span style="font-family:'moonGetHeavy'; letter-spacing:1px; text-shadow:2px 2px 0px black; color:#ff7e00; font-size:48px; white-space:nowrap;">{$banda['nombre']}</span>
+              </div>
+            </div>
+
+            {$op_banda_portada}
+            <div id="banda-miembros" style="display:none;"></div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  {$footer}
+
+  <script>
+  function clickPestanaBanda(seccion) {
+    var sections = ['portada', 'miembros'];
+    for (var i = 0; i < sections.length; i++) {
+      var el  = document.getElementById('banda-' + sections[i]);
+      var btn = document.getElementById('bpestana_' + sections[i]);
+      if (el)  el.style.display = (sections[i] === seccion) ? 'block' : 'none';
+      if (btn) btn.classList.toggle('banda-pestana-active', sections[i] === seccion);
+    }
+  }
+  </script>
+</body>
+</html>

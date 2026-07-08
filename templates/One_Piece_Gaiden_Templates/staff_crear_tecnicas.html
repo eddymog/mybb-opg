@@ -1,0 +1,107 @@
+<html>
+
+<head>
+  <title>Crear Técnica</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="fondo-blanco">
+<if $accion=='' then>
+     Acción:<br>
+      <select id="accion" onchange="onClickAccion()">
+		<option value=""></option>
+        <option value="Agregar">Agregar</option>
+        <option value="Remover">Remover</option>
+      </select><br><br>
+      <br><br>
+    </if>
+    <if $accion == 'Agregar' then><br>
+      <form method="post" action="/op/staff/tecnicas_crear.php" name="crear_tecnicas" id="crear_tecnicas">
+        <div style="display: none">
+           <input type="text" id="fid" name="accion" value="{$accion}">
+        </div>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+        Nombre de técnica*: <br><input style="width: 300px;" class="textbox" placeholder="Gomu Gomu no Pistoru" type="text" name="nombre" id="nombre" required /><br>
+        Técnica ID*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="tid" id="tid" required /><br>
+        Clase*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="clase" id="clase" required /><br>		  
+        Estilo*: <br><input style="width: 300px;" class="textbox" placeholder="" type="text" name="estilo" id="estilo" required /><br>
+        Rango*: <br><input style="width: 300px;" class="textbox" placeholder="1" type="text" name="rango" id="rango" required /><br>
+        Requisitos: <br><textarea placeholder="" style="width: 400px;height: 40px;" name="requisitos"></textarea><br>
+		Daño/Defensa:<br>
+		<textarea placeholder="" style="width: 400px;height: 40px;" name="dano"></textarea><br>
+		Coste:<br>
+		<textarea placeholder="" style="width: 400px;height: 40px;" name="coste"></textarea><br>
+<!--         Efectos:<br>
+		<textarea placeholder="" style="width: 400px;height: 40px;" name="efectos"></textarea><br>   -->
+		Enfriamiento:<br>
+		<textarea placeholder="" style="width: 400px;height: 40px;" name="enfriamiento"></textarea><br>  
+        Descripcion*:<br>
+        <textarea placeholder="" style="width: 400px;height: 125px;" name="descripcion" minlength="1" required placeholder=""></textarea><br><br>
+        Miembro de Staff*: <br><input style="width: 300px;" class="textbox" type="text" name="staff" required><br>
+        Razón*: <br><input style="width: 300px;" class="textbox" type="text" name="razon" required><br><br>
+        <input class="button" type="submit" value="Crear técnica">
+      </form>
+<!-- 		<p>Nota: A la hora de crear una técnica, para que aparezca en el apartado de <a href="/op/tecnicas.php">Técnicas</a> debe tener dos cosas: estilo y rango.</p> -->
+<!-- 		<p>Ej. CUE101 debe tener estilo: Cuerpo a Cuerpo, rango: 1. Mayúsculas no importan. Para revisar qué estilo se necesita para una técnica, puedes revisar el URL en el apartado de técnicas</p> -->
+<!-- 		<p><a href="/op/tecnicas_show.php?estilo=cuerpo_cuerpo">tecnicas_show.php?estilo=cuerpo_cuerpo</p> -->
+	    <!-- <p>Para que una técnica vaya al apartado de Personaje en la ficha privada, al crearla debe tener como mínimo estilo: personaje</p> -->
+		
+	
+    </if>
+    <if $accion == 'Remover' && $tecnica_id == '' then>
+        Acción: {$tid}<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br><br>
+		Técnica ID:<br><input class="textbox" type="text" name="tid" required id='tid'><br><br>
+		<button onclick=onClickAccion()>Buscar</button><br><br>
+    </if>
+	<if $accion == 'Remover' && $tecnica_id != '' then>
+        Acción:<br>
+        <select id="accion" disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+		Técnica ID:<br><input style="width: 300px;" class="textbox" type="text" name="tid" required id='tid' value='{$tid}' disabled><br><br>
+		<span>Tecnica ID: {$tecnica['tid']} | Nombre: {$tecnica['nombre']} | Estilo: {$tecnica['estilo']}</span><br>
+		<span>Clase: {$tecnica['clase']}</span><br>
+		<span>Rango: {$tecnica['rango']}</span><br>
+		<span>Daño: {$tecnica['dano']}</span><br>
+		<span>Coste: {$tecnica['coste']}</span><br>
+<!-- 		<span>Efectos: {$tecnica['efectos']}</span><br> -->
+		<span>Enfriamiento: {$tecnica['enfriamiento']}</span><br>
+		<span>Requisitos: {$tecnica['requisitos']}</span><br>
+		<span>Descripcion: {$tecnica['descripcion']}</span><br>
+		<form method="post" action="/op/staff/tecnicas_crear.php" name="crear_tecnicas" id="crear_tecnicas">
+			<div style="display: none">
+           		<input type="text" name="tecnica_id" value="{$tecnica_id}">
+				<input type="text" name="accion" value="{$accion}">
+				<input type="text" name="nombre" value="{$tecnica['nombre']}">
+        	</div><br>
+			<!--Miembro de Staff: <br><input style="width: 300px;" class="textbox" type="text" name="staff" required><br>-->
+        	Razón: <br><input style="width: 300px;" class="textbox" type="text" name="razon" required><br><br>
+			<input type="submit" value="Remover"><br><br>
+		</form>
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const accion = document.getElementById('accion').value;
+	const tid = document.getElementById('tid')?.value;
+	if (accion && tid) {
+      window.location.href = window.location.pathname + '?accion=' + accion + '&tecnica_id=' + tid;
+    } else if (accion) {
+      window.location.href = window.location.pathname + '?accion=' + accion;
+    }
+  }
+</script>
+
+</html>

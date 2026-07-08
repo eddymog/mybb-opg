@@ -1,0 +1,1846 @@
+<style>
+/**
+ * One Piece Gaiden - Estilos del Sistema de Cartas
+ * Compatible con MyBB
+ */
+
+/* Reset y base */
+.card-game-container * {
+    box-sizing: border-box;
+}
+
+/* Variables CSS para facilitar la personalización */
+:root {
+    --card-game-primary: #2c3e50;
+    --card-game-secondary: #3498db;
+    --card-game-success: #27ae60;
+    --card-game-warning: #f39c12;
+    --card-game-error: #e74c3c;
+    --card-game-background: #ecf0f1;
+    --card-game-text: #2c3e50;
+    --card-game-border: #bdc3c7;
+    --card-game-shadow: rgba(0, 0, 0, 0.1);
+    --card-game-legendary: linear-gradient(45deg, #ff6b6b, #ffa500, #ffff00, #00ff00, #00bfff, #8a2be2);
+}
+
+/* Header del juego */
+.game-header {
+    background: linear-gradient(135deg, var(--card-game-primary) 0%, var(--card-game-secondary) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.game-header h1 {
+    margin: 0 0 1rem 0;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.money-display, .collection-stats {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+}
+
+.money-icon::before {
+    content: '';
+    margin-right: 0.5rem;
+}
+
+/* Navegación principal */
+.game-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    background: white;
+    border: 2px solid var(--card-game-border);
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--card-game-text);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.nav-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px var(--card-game-shadow);
+    border-color: var(--card-game-secondary);
+}
+
+.nav-btn:hover::before {
+    left: 100%;
+}
+
+.nav-btn.active {
+    background: var(--card-game-secondary);
+    color: white;
+    border-color: var(--card-game-secondary);
+}
+
+/* Secciones del juego */
+.game-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.game-section.active {
+    display: block;
+}
+
+.game-section h2 {
+    text-align: center;
+    color: var(--card-game-text);
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Contenedor de packs */
+.packs-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.pack-item {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 5px 20px var(--card-game-shadow);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.pack-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-color: var(--card-game-secondary);
+}
+
+.pack-image-container {
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.pack-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.pack-item:hover .pack-image {
+    transform: scale(1.05);
+}
+
+.pack-name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--card-game-text);
+    margin-bottom: 1rem;
+}
+
+.pack-price {
+    font-size: 1.2rem;
+    color: var(--card-game-success);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.pack-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    line-height: 1.4;
+}
+
+.buy-pack-btn {
+    background: linear-gradient(135deg, var(--card-game-success) 0%, #2ecc71 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.buy-pack-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+}
+
+/* Filtros de colección */
+.collection-filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.collection-filters select {
+    background: white;
+    border: 2px solid var(--card-game-border);
+    padding: 0rem 1rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.collection-filters select:focus {
+    outline: none;
+    border-color: var(--card-game-secondary);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.collection-filters select:hover {
+    border-color: var(--card-game-secondary);
+}
+
+/* Grid de colección */
+.collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 200px));
+    gap: 1.5rem;
+    padding: 1rem;
+    justify-content: center;
+}
+
+.card-item {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    padding: 0;
+    text-align: center;
+    box-shadow: 0 3px 15px var(--card-game-shadow);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    border: 2px solid transparent;
+    width: 200px;
+    overflow: hidden;
+}
+
+.card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--card-game-secondary);
+}
+
+.card-image {
+    width: 200px;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 13px;
+    display: block;
+}
+
+/* Imagen superpuesta solo para cartas poseídas */
+.card-item:not(.not-owned)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 85%;
+    background-image: url('https://i.imgur.com/iNOdyaU.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 13px;
+}
+
+/* Para cartas de 4 estrellas, mantener el marco normal pero agregar efecto dorado separado */
+.card-item.rare-4-star:not(.not-owned) .card-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 215, 0, 0.25) 30%,
+        rgba(255, 165, 0, 0.0) 50%,
+        rgba(255, 215, 0, 0.3) 70%,
+        transparent
+    );
+    background-size: 300% 300%;
+    animation: epicGlow 12s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: screen;
+    border-radius: 13px;
+}
+
+.card-name {
+    position: absolute;
+    bottom: -6px;
+    background: #00000078;
+    left: 0;
+    right: 0;
+    color: white;
+    padding: 0.3rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin: 0;
+    z-index: 20;
+}
+
+.card-rarity {
+    position: absolute;
+    top: 11px;
+    right: 11px;
+    background: rgba(255, 215, 0, 0.95);
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 11;
+    border: 2px solid #fff;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+}
+
+/* Efectos de rareza para cartas de 4 estrellas */
+.card-item.rare-4-star:not(.not-owned) .card-rarity {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    animation: shimmer 5s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.4);
+    border: 3px solid #fff;
+}
+
+/* Efectos de rareza para cartas de 5 estrellas */
+.card-item.legendary-5-star:not(.not-owned) .card-rarity {
+    background: linear-gradient(135deg, #ff0080 0%, #ffd700 25%, #00ff80 50%, #ffd700 75%, #ff0080 100%);
+    background-size: 300% 300%;
+    animation: rainbowBorder 3s linear infinite, colorPulse 8s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 100, 255, 0.6);
+    border: 3px solid #fff;
+}
+
+.card-count {
+    position: absolute;
+    top: 94%;
+    right: -1%;
+    background: var(--card-game-secondary);
+    color: white;
+    padding: 0.2rem 0.3rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 20;
+}
+
+/* Cartas no poseídas */
+.card-item.not-owned {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.card-item.not-owned:hover {
+    transform: none;
+    border-color: transparent;
+}
+
+.card-item.not-owned .card-name {
+    color: #999;
+}
+
+/* Efectos especiales para cartas de 4 estrellas - Dorado */
+.card-item.rare-4-star:not(.not-owned) {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid transparent;
+}
+
+/* Borde arcoíris animado */
+.card-item.rare-4-star:not(.not-owned)::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background-size: 400% 400%;
+    animation: rainbowBorder 4s linear infinite;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+.card-item.rare-4-star:not(.not-owned) .card-image {
+    position: relative;
+    filter: brightness(1.1) contrast(1.05);
+    animation: shimmer 5s ease-in-out infinite;
+}
+
+/* Estilos eliminados para que coincidan con cartas normales */
+
+@keyframes iridescentShine {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 200%;
+    }
+}
+
+.card-item.rare-4-star:not(.not-owned):hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 15px 50px rgba(255, 215, 0, 0.7), 0 0 30px rgba(255, 165, 0, 0.5);
+}
+
+.card-item.rare-4-star:not(.not-owned):hover::after {
+    opacity: 1;
+    background-size: 100% 100%, 200% 200%;
+}
+
+.card-item.rare-4-star:not(.not-owned):hover .card-image {
+    filter: brightness(1.3) contrast(1.15) saturate(1.3);
+}
+
+.card-item.rare-4-star:not(.not-owned):hover::before {
+    animation-duration: 2s;
+}
+
+/* Efectos especiales para cartas de 5 estrellas */
+.card-item.legendary-5-star:not(.not-owned) {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #ffd700;
+}
+
+/* Imagen adicional superpuesta para cartas de 5 estrellas */
+.card-item.legendary-5-star:not(.not-owned)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 85%;
+    background-image: url('https://i.imgur.com/niWFl0k.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 11;
+    border-radius: 13px;
+}
+
+.card-item.legendary-5-star:not(.not-owned) .card-image {
+    position: relative;
+    z-index: 0;
+    filter: brightness(1.15) contrast(1.15) saturate(1.3);
+    animation: colorPulse 8s ease-in-out infinite;
+}
+
+/* Animación para intensificar colores con transición gradual entre colores primarios */
+@keyframes colorPulse {
+    0% {
+        filter: brightness(1.15) contrast(1.15) saturate(1.3) hue-rotate(0deg);
+    }
+    16.66% {
+        filter: brightness(1.2) contrast(1.18) saturate(1.35) hue-rotate(60deg);
+    }
+    33.33% {
+        filter: brightness(1.25) contrast(1.2) saturate(1.4) hue-rotate(120deg);
+    }
+    50% {
+        filter: brightness(1.2) contrast(1.18) saturate(1.35) hue-rotate(180deg);
+    }
+    66.66% {
+        filter: brightness(1.25) contrast(1.2) saturate(1.4) hue-rotate(240deg);
+    }
+    83.33% {
+        filter: brightness(1.2) contrast(1.18) saturate(1.35) hue-rotate(300deg);
+    }
+    100% {
+        filter: brightness(1.15) contrast(1.15) saturate(1.3) hue-rotate(360deg);
+    }
+}
+
+/* Animación de purpurina/sparkles */
+@keyframes sparkle {
+    0%, 100% {
+        background-position: 0% 0%, 100% 100%, 30% 70%, 70% 30%, 90% 50%, 10% 80%, 50% 90%, 40% 10%;
+        opacity: 0.6;
+    }
+    25% {
+        background-position: 10% 20%, 90% 80%, 40% 60%, 60% 40%, 80% 60%, 20% 70%, 60% 80%, 30% 20%;
+        opacity: 1;
+    }
+    50% {
+        background-position: 20% 40%, 80% 60%, 50% 50%, 50% 50%, 70% 70%, 30% 60%, 70% 70%, 20% 30%;
+        opacity: 0.6;
+    }
+    75% {
+        background-position: 30% 60%, 70% 40%, 60% 40%, 40% 60%, 60% 80%, 40% 50%, 80% 60%, 10% 40%;
+        opacity: 1;
+    }
+}
+
+/* Estilos eliminados para que coincidan con cartas normales */
+
+@keyframes rainbowBorder {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+@keyframes shimmer {
+    0% { 
+        filter: brightness(1.1) contrast(1.05) saturate(1.0); 
+    }
+    50% { 
+        filter: brightness(1.15) contrast(1.075) saturate(1.1); 
+    }
+    100% { 
+        filter: brightness(1.1) contrast(1.05) saturate(1.0); 
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+@keyframes epicGlow {
+    0% {
+        background-position: 200% center;
+    }
+    50% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+.card-item.legendary-5-star:not(.not-owned):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6), 0 0 50px rgba(255, 255, 255, 0.4);
+    border-color: #fff;
+}
+
+.card-item.legendary-5-star:not(.not-owned):hover .card-image {
+    animation: colorPulse 3s ease-in-out infinite;
+}
+
+@keyframes legendaryHover {
+    0%, 100% { transform: translateY(-3px) scale(1); }
+    50% { transform: translateY(-5px) scale(1.02); }
+}
+
+/* Grid de inventario */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.inventory-pack {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 3px 15px var(--card-game-shadow);
+    transition: all 0.3s ease;
+}
+
+.inventory-pack:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+.inventory-pack-image-container {
+    margin-bottom: 1rem;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.inventory-pack-image {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.inventory-pack-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--card-game-text);
+    margin-bottom: 0.5rem;
+}
+
+.inventory-pack-count {
+    color: #666;
+    margin: 1rem 0;
+}
+
+.open-pack-btn {
+    background: linear-gradient(135deg, var(--card-game-error) 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.open-pack-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+.empty-inventory {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Modales */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 0% !important;
+}
+
+.modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    height: 90%;
+    width: 120%;
+    background: white;
+    padding: 1rem;
+    border-radius: 15px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    margin: 0% !important;
+}
+
+.modal.show .modal-content {
+    transform: scale(1);
+}
+
+.close-modal {
+    position: absolute;
+    top: 0rem;
+    right: 0.0rem;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #666;
+    z-index: 1;
+    background: white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px var(--card-game-shadow);
+}
+
+.close-modal:hover {
+    color: var(--card-game-error);
+    transform: scale(1.1);
+}
+
+/* Modal de apertura de sobres */
+.pack-opening-container {
+    text-align: center;
+    min-width: 300px;
+    margin-top: 9%;
+
+}
+
+.pack-results h3 {
+    color: var(--card-game-text);
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.cards-revealed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 200px));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    perspective: 1000px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    justify-content: center;
+}
+
+/* Contenedor de carta revelada con flip */
+.revealed-card-container {
+    cursor: pointer;
+    animation: cardAppear 0.4s ease;
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.card-flip-wrapper {
+    position: relative;
+    width: 200px;
+    height: 350px;
+    perspective: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-flip-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transform-style: preserve-3d;
+    transform-origin: center center;
+}
+
+.card-flip-wrapper.flipped .card-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.card-back-side,
+.card-front-side {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 3px 15px var(--card-game-shadow);
+    transform-style: preserve-3d;
+}
+
+.card-back-side {
+    background: linear-gradient(135deg, #2c3e50 0%, #4a6fa5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-back-side img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-front-side {
+    background: white;
+    transform: rotateY(180deg);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.card-front-side img {
+    width: 200px;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 15px;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* Imagen superpuesta para cartas reveladas */
+.card-front-side::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/iNOdyaU.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 15px;
+}
+
+/* Para cartas reveladas de 4 estrellas, combinar el overlay con efectos dorados */
+.revealed-card-container.rare-4-star .card-front-side::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        url('https://i.imgur.com/iNOdyaU.png') center/100% 100% no-repeat,
+        radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.3), transparent 70%);
+    background-size: 100% 100%, 100%;
+    pointer-events: none;
+    z-index: 11;
+    animation: epicPulse 4s ease-in-out infinite;
+    border-radius: 15px;
+}
+
+.card-front-side .revealed-card-name,
+.card-front-side .revealed-card-rarity {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.3rem;
+    margin: 0;
+    z-index: 20;
+}
+
+.card-front-side .revealed-card-name {
+    bottom: 0;
+    border-radius: 0 0 15px 15px;
+}
+
+.card-front-side .revealed-card-rarity {
+    top: 13px;
+    right: 10px;
+    left: auto;
+    bottom: auto;
+    background: rgba(255, 215, 0, 0.95);
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border: 2px solid #fff;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+    padding: 0;
+    z-index: 10;
+    border-radius: 1 1 15px 15px;
+}
+
+.revealed-card-container:hover .card-flip-wrapper {
+    transform: translateY(-5px);
+}
+
+/* Estilos antiguos para compatibilidad */
+.revealed-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1rem;
+    box-shadow: 0 3px 15px var(--card-game-shadow);
+    transition: all 0.3s ease;
+    animation: cardReveal 0.6s ease;
+}
+
+@keyframes cardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(20px) rotateY(90deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateY(0deg);
+    }
+}
+
+.revealed-card:hover {
+    transform: translateY(-3px);
+}
+
+.revealed-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.revealed-card-name {
+    font-weight: bold;
+    color: var(--card-game-text);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.revealed-card-rarity {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 215, 0, 0.95);
+    color: #000;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border: 2px solid #fff;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+    z-index: 10;
+}
+
+/* Efectos especiales para cartas reveladas de 4 estrellas - Dorado */
+.revealed-card-container.rare-4-star .card-front-side {
+    position: relative;
+    background: linear-gradient(45deg, #fff5e6 0%, #ffe6cc 100%);
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    overflow: hidden;
+}
+
+.revealed-card-container.rare-4-star .card-front-side img {
+    position: relative;
+    filter: brightness(1.1) contrast(1.05);
+}
+
+.revealed-card-container.rare-4-star .card-front-side::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 215, 0, 0.34) 30%,
+        rgba(255, 165, 0, 0.0) 50%,
+        rgba(255, 215, 0, 0.25) 70%,
+        transparent
+    );
+    background-size: 300% 300%;
+    animation: epicSweep 5s linear infinite;
+    pointer-events: none;
+    z-index: 10;
+    mix-blend-mode: screen;
+}
+
+.revealed-card-container.rare-4-star .revealed-card-name,
+.revealed-card-container.rare-4-star .revealed-card-rarity {
+    z-index: 12;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.revealed-card-container.rare-4-star .revealed-card-rarity {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    animation: shimmer 5s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.4);
+    border: 3px solid #fff;
+}
+
+.revealed-card-container.rare-4-star .card-flip-wrapper.flipped {
+    box-shadow: 0 10px 40px rgba(168, 85, 247, 0.6);
+    animation: rareReveal 1s ease forwards;
+}
+
+@keyframes rareReveal {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Efectos especiales para cartas reveladas legendarias de 5 estrellas */
+.revealed-card-container.legendary-5-star .card-front-side {
+    position: relative;
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    overflow: hidden;
+}
+
+/* Imagen adicional superpuesta para cartas reveladas de 5 estrellas */
+.revealed-card-container.legendary-5-star .card-front-side::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/niWFl0k.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 11;
+    border-radius: 15px;
+}
+
+.revealed-card-container.legendary-5-star .card-front-side img {
+    position: relative;
+    z-index: 0;
+    filter: brightness(1.15) contrast(1.15) saturate(1.3);
+    animation: colorPulse 8s ease-in-out infinite;
+}
+
+.revealed-card-container.legendary-5-star .revealed-card-name,
+.revealed-card-container.legendary-5-star .revealed-card-rarity {
+    z-index: 12;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.revealed-card-container.legendary-5-star .revealed-card-rarity {
+    background: linear-gradient(135deg, #ff0080 0%, #ffd700 25%, #00ff80 50%, #ffd700 75%, #ff0080 100%);
+    background-size: 300% 300%;
+    animation: rainbowBorder 3s linear infinite, colorPulse 8s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 100, 255, 0.6);
+    border: 3px solid #fff;
+    top: 12px;
+    right: 9px;
+}
+
+@keyframes epicSweep {
+    0% {
+        background-position: 0% 0%;
+        opacity: 0.6;
+    }
+    100% {
+        background-position: 300% 300%;
+        opacity: 0.6;
+    }
+}
+
+.revealed-card-container.legendary-5-star .card-flip-wrapper.flipped {
+    box-shadow: 0 15px 60px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 255, 255, 0.6);
+    animation: legendaryReveal 1s ease forwards;
+}
+
+@keyframes legendaryReveal {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    30% {
+        transform: scale(1.2) rotate(-5deg);
+    }
+    50% {
+        transform: scale(1.15) rotate(5deg);
+        filter: brightness(1.3);
+    }
+    60% {
+        transform: scale(1.15) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+    }
+}
+
+.revealed-card.legendary-5-star {
+    background: linear-gradient(45deg, #fff 30%, #f0f0f0 50%, #fff 70%);
+    background-size: 200% 200%;
+    animation: cardReveal 0.6s ease, shimmer 3s ease-in-out infinite 0.6s;
+    border: 2px solid #ffd700;
+}
+
+.close-modal-button {
+    background: var(--card-game-secondary);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.close-modal-button:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Modal de detalle de carta */
+.card-detail-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 600px;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.card-display {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 620px;
+    position: relative;
+}
+
+.card-flip-container {
+    width: 400px;
+    height: 700px;
+    perspective: 2000px;
+    position: relative;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Efectos para cartas de 4 estrellas en el modal - Dorado */
+.card-flip-container.rare-4-star-card {
+    position: relative;
+    overflow: visible;
+}
+
+.card-flip-container.rare-4-star-card .card-front {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid rgba(255, 215, 0, 0.5);
+}
+
+.card-flip-container.rare-4-star-card .card-front img {
+    filter: brightness(1.1) contrast(1.05);
+}
+
+.card-flip-container.rare-4-star-card .card-front::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 215, 0, 0.25) 30%,
+        rgba(255, 165, 0, 0.0) 50%,
+        rgba(255, 215, 0, 0.3) 70%,
+        transparent
+    );
+    background-size: 300% 300%;
+    animation: epicGlow 12s linear infinite;
+    pointer-events: none;
+    z-index: 5;
+    mix-blend-mode: screen;
+}
+
+.card-flip-container.rare-4-star-card:hover .card-front img {
+    filter: brightness(1.3) contrast(1.15) saturate(1.3);
+}
+
+.card-flip-container.rare-4-star-card:hover .card-front::before {
+    animation-duration: 1s;
+}
+
+.card-flip-container.rare-4-star-card:hover::before {
+    animation-duration: 2s;
+}
+
+/* Efectos para cartas legendarias de 5 estrellas en el modal */
+.card-flip-container.legendary-card {
+    position: relative;
+    overflow: visible;
+}
+
+/* Imagen adicional superpuesta para cartas legendarias de 5 estrellas en el modal de detalle */
+.card-flip-container.legendary-card .card-front::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/niWFl0k.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 11;
+    border-radius: 15px;
+}
+
+.card-flip-container.legendary-card .card-front {
+    position: relative;
+    overflow: hidden;
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.7);
+}
+
+.card-flip-container.legendary-card .card-front img {
+    position: relative;
+    z-index: 0;
+    filter: brightness(1.15) contrast(1.15) saturate(1.3);
+    animation: colorPulse 8s ease-in-out infinite;
+}
+
+.card-flip-container.legendary-card:hover .card-front img {
+    transform: scale(1.05);
+    animation: colorPulse 3s ease-in-out infinite;
+}
+
+@keyframes legendaryGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 15px #ffd700) drop-shadow(0 0 30px #ffa500);
+    }
+    50% {
+        filter: drop-shadow(0 0 25px #ffd700) drop-shadow(0 0 45px #ffa500);
+    }
+}
+
+.card-flip-container.legendary-card .card-front {
+    background: linear-gradient(45deg, #ff6b6b, #ffa500, #ffff00, #00ff00, #00bfff, #8a2be2);
+    background-size: 400% 400%;
+    animation: rainbow 3s ease infinite;
+    border: 3px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.card-flip-inner {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    transform-origin: center center;
+}
+
+.card-flip-container:hover .card-flip-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 15px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+/* Imagen superpuesta para modal de detalle de carta */
+.card-front::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/iNOdyaU.png');
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 15px;
+}
+
+/* Rareza visual sobre el marco en el modal */
+.card-rarity-visual {
+    position: absolute;
+    top: 26px;
+    right: 20px;
+    background: rgba(255, 215, 0, 0.95);
+    color: #000;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+    border: 3px solid #fff;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+    z-index: 11;
+    pointer-events: none;
+}
+
+/* Efectos especiales para rareza visual en cartas de 4 estrellas */
+.card-flip-container.rare-4-star-card .card-rarity-visual {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    animation: shimmer 5s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.4);
+    border: 3px solid #fff;
+}
+
+/* Efectos especiales para rareza visual en cartas legendarias de 5 estrellas */
+.card-flip-container.legendary-card .card-rarity-visual {
+    background: linear-gradient(135deg, #ff0080 0%, #ffd700 25%, #00ff80 50%, #ffd700 75%, #ff0080 100%);
+    background-size: 300% 300%;
+    animation: rainbowBorder 3s linear infinite, colorPulse 8s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 1), 0 0 40px rgba(255, 100, 255, 0.6);
+    border: 3px solid #fff;
+}
+
+/* Para cartas de 4 estrellas en el modal, combinar el overlay con efectos dorados */
+.card-flip-container.rare-4-star-card .card-front::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        url('https://i.imgur.com/iNOdyaU.png') center/100% 100% no-repeat,
+        radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.3), transparent 70%);
+    background-size: 100% 100%, 100%;
+    pointer-events: none;
+    z-index: 6;
+    animation: epicPulse 4s ease-in-out infinite;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+}
+
+.card-front img, .card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-info {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.card-info h3 {
+    color: var(--card-game-text);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.card-pack, .card-rarity, .card-type {
+    margin-bottom: 25px;
+    font-size: 1rem;
+    color: #666;
+}
+
+/* Ocultar la rareza en la info del modal ya que está visual en el card-front */
+.card-info .card-rarity {
+    display: none;
+}
+
+/* Rareza en el modal de detalle */
+.card-info .card-rarity span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    color: #000;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 1.3rem;
+    box-shadow: 0 3px 10px rgba(255, 215, 0, 0.5);
+    border: 3px solid #fff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.9);
+    position: relative;
+}
+
+.card-pack span, .card-rarity span, .card-type span {
+    font-weight: bold;
+    color: var(--card-game-text);
+}
+
+.card-description {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #555;
+    line-height: 1.4;
+}
+
+.card-stats {
+    margin-top: 1.5rem;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem 0;
+    padding: 0rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-label {
+    font-weight: bold;
+    color: var(--card-game-text);
+}
+
+/* Notificaciones */
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    pointer-events: none;
+}
+
+.notification {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 5px 15px var(--card-game-shadow);
+    border-left: 4px solid var(--card-game-secondary);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    max-width: 300px;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification.success {
+    border-left-color: var(--card-game-success);
+    color: var(--card-game-success);
+}
+
+.notification.error {
+    border-left-color: var(--card-game-error);
+    color: var(--card-game-error);
+}
+
+.notification.warning {
+    border-left-color: var(--card-game-warning);
+    color: var(--card-game-warning);
+}
+
+/* Mensajes de error */
+.error-message {
+    text-align: center;
+    padding: 3rem;
+    color: var(--card-game-error);
+    font-size: 1.2rem;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px var(--card-game-shadow);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-header {
+        padding: 1.5rem;
+    }
+    
+    .game-header h1 {
+        font-size: 2rem;
+    }
+    
+    .player-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .game-navigation {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .nav-btn {
+        padding: 0rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .packs-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .collection-filters {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .collection-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .inventory-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-detail-container {
+        flex-direction: column;
+        min-width: auto;
+        align-items: center;
+    }
+    
+    .card-flip-container {
+        width: 200px;
+        height: 280px;
+    }
+    
+    .card-info {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .cards-revealed {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    
+    .revealed-card img {
+        height: 120px;
+    }
+    
+    .notification-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+    }
+    
+    .notification {
+        max-width: none;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Utilidades */
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Mejoras de accesibilidad */
+.nav-btn:focus,
+.buy-pack-btn:focus,
+.open-pack-btn:focus,
+.close-modal-button:focus {
+    outline: 2px solid var(--card-game-secondary);
+    outline-offset: 2px;
+}
+
+/* Smooth scrolling para modal */
+.modal-content {
+    scroll-behavior: smooth;
+}
+
+/* Estilos adicionales para compatibilidad */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.card-game-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+/* Efectos especiales para cartas legendarias */
+.legendary-effect {
+    background: linear-gradient(45deg, #ff6b6b, #ffa500, #ffff00, #00ff00, #00bfff, #8a2be2);
+    background-size: 300% 300%;
+    animation: rainbow 2s ease infinite;
+}
+
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* === EFECTOS ADICIONALES DE CARTAS.CSS PARA COMPATIBILIDAD === */
+
+/* Efecto shimmer simple para cartas legendarias de 5 estrellas */
+.card-item.legendary-shimmer:not(.not-owned) {
+    background: linear-gradient(45deg, #fff 30%, #f0f0f0 50%, #fff 70%);
+    border: 2px solid transparent;
+    background-size: 200% 200%;
+    animation: shimmerBasic 6s linear infinite;
+}
+
+@keyframes shimmerBasic {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* Hover simple para cartas legendarias */
+.card-item.legendary-shimmer:not(.not-owned):hover {
+    animation: legendaryHoverBasic 0.5s ease;
+    border-color: #ffd700;
+}
+
+@keyframes legendaryHoverBasic {
+    0%, 100% { transform: translateY(-3px) scale(1); }
+    50% { transform: translateY(-5px) scale(1.02); }
+}
+
+/* Efecto simple para cartas reveladas legendarias */
+.revealed-card.legendary-shimmer {
+    background: linear-gradient(45deg, #fff 30%, #f0f0f0 50%, #fff 70%);
+    background-size: 200% 200%;
+    animation: cardReveal 0.6s ease, shimmerBasic 6s linear infinite 0.6s;
+    border: 2px solid #ffd700;
+}
+
+/* Efecto alternativo básico para modal de carta legendaria */
+.card-flip-container.legendary-shimmer-card .card-front {
+    background: linear-gradient(45deg, #fff 30%, #f0f0f0 50%, #fff 70%);
+    background-size: 200% 200%;
+    animation: shimmerBasic 6s linear infinite;
+    border: 2px solid #ffd700;
+}
+
+.card-flip-container.legendary-shimmer-card:hover .card-flip-inner {
+    animation: legendaryHoverBasic 0.5s ease;
+}
+
+/* === ANIMACIÓN DE APERTURA DE SOBRE === */
+
+/* Tapa del sobre que se abre */
+.pack-top-flap {
+    transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.7s ease;
+    will-change: transform, opacity;
+}
+
+/* Animación de cartas saliendo del sobre */
+@keyframes cardFlyOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-100px) scale(0.3) rotateY(180deg);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translateY(-50px) scale(0.7) rotateY(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotateY(0deg);
+    }
+}
+
+/* Estilo para instrucciones parpadeantes */
+.pack-instructions {
+    animation: instructionsPulse 2s ease-in-out infinite !important;
+}
+
+@keyframes instructionsPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+/* Mejorar el cursor sobre cartas no volteadas */
+.card-flip-wrapper[data-flipped="false"] {
+    cursor: pointer !important;
+    transition: transform 0.2s ease;
+}
+
+.card-flip-wrapper[data-flipped="false"]:hover {
+    transform: translateY(-8px) scale(1.05);
+}
+
+.card-flip-wrapper[data-flipped="false"]:hover .card-flip-inner {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    border-radius: 18px;
+}
+
+/* Efecto de brillo al voltear carta */
+.card-flip-wrapper.flipped .card-front-side {
+    animation: cardRevealFlash 0.6s ease;
+}
+
+@keyframes cardRevealFlash {
+    0% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.5) saturate(1.3);
+    }
+    100% {
+        filter: brightness(1) saturate(1);
+    }
+}
+
+/* Efecto especial para cartas épicas al descubrirse */
+.revealed-card-container.rare-4-star .card-flip-wrapper.flipped .card-front-side {
+    animation: cardRevealFlash 0.6s ease, epicGoldenReveal 1s ease;
+}
+
+@keyframes epicGoldenReveal {
+    0% {
+        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+}
+
+/* Efecto especial para cartas legendarias al descubrirse */
+.revealed-card-container.legendary-5-star .card-flip-wrapper.flipped .card-front-side {
+    animation: cardRevealFlash 0.6s ease, legendaryRainbowReveal 1.2s ease;
+}
+
+@keyframes legendaryRainbowReveal {
+    0% {
+        box-shadow: 0 0 0 rgba(255, 0, 255, 0);
+        filter: brightness(1);
+    }
+    25% {
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        filter: brightness(1.3) hue-rotate(45deg);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(0, 255, 255, 0.8);
+        filter: brightness(1.4) hue-rotate(90deg);
+    }
+    75% {
+        box-shadow: 0 0 30px rgba(255, 255, 0, 0.8);
+        filter: brightness(1.3) hue-rotate(180deg);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+        filter: brightness(1) hue-rotate(0deg);
+    }
+}
+
+</style>

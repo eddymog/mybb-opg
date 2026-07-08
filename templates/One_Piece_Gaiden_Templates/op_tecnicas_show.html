@@ -1,0 +1,232 @@
+<html>
+
+<head>
+  <style>
+    .flex-container {
+      flex-wrap: wrap;
+      display: flex;
+      justify-content: center;
+    }
+
+    .bodycenter {
+      margin: 0 auto;
+    }
+
+    .bodydesc {
+      margin: 0 20px;
+      text-align: center;
+      color: #060f82;
+    }
+
+  </style>
+  <title>Tecnicas</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+		
+		  <div style=" text-align: center;position: relative; ">
+			<!-- <img src="/images/op/uploads/Banner{$estilo_banner}_One_Piece_Gaiden_Foro_Rol.webp" /> -->
+			<img id="banner-img"
+			     data-base="/images/op/uploads/Banner"
+			     data-suffix="_One_Piece_Gaiden_Foro_Rol.webp"
+			     data-estilo="{$estilo_banner}"
+			     alt="Banner" />
+			<div style=" position: relative; top: -92px; width: 533px; left: 388px; height: 288px; margin-top: -288px; font-size: 18px; color: #fefdff; text-align: justify; font-family: 'InterMedium'; text-shadow: 0px 1px 1px black; ">{$clase_descripcion}</div>
+		  </div>
+		  <br>
+			
+          <if $tecnicas_templ then>
+            {$tecnicas_templ}
+          </if>
+			
+		  <if $tecnicas_templ2 then>
+            {$tecnicas_templ2}
+          </if>
+			
+		  <if $tecnicas_templ3 then>
+            {$tecnicas_templ3}
+          </if>
+			
+		  <if $tecnicas_templ4 then>
+            {$tecnicas_templ4}
+          </if>
+			
+        </div>
+      </div>
+    </div>
+  </div>
+
+	
+	
+	
+	
+  {$footer}
+</body>
+	
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var img = document.getElementById('banner-img');
+  if (!img) { return; } // Evita el TypeError si no existe
+
+  // Si quieres manejar casos concretos:
+  if (estilo === 'GYOJIN KARATE') {
+    img.src = '/images/op/uploads/BannerKARATE%20GYOJIN_One_Piece_Gaiden_Foro_Rol.webp';
+  } else if (estilo === 'GYOJIN JUJUTSU') {
+    img.src = '/images/op/uploads/BannerJUJUTSU%20GYOJIN_One_Piece_Gaiden_Foro_Rol.webp';
+  } else if (estilo === 'GYOJIN BUKIJUTSU') {
+    img.src = '/images/op/uploads/BannerBUKIJUTSU%20GYOJIN_One_Piece_Gaiden_Foro_Rol.webp';
+  } else {
+    img.src="/images/op/uploads/Banner{$estilo_banner}_One_Piece_Gaiden_Foro_Rol.webp";
+  }
+});
+</script>	
+	
+<script>
+	// /\[(RES|FUE)x(\d+|\d+,\d+)]/g
+	
+	let estilo = '{$estilo}';
+	
+	let efectosRegex = /\[(RES|FUE)x(\d+|\d+,\d+)]/g;
+	
+	let statNums = {
+		RES: 10,
+		FUE: 10,
+		DES: 10,
+		PUN: 10,
+		AGI: 10,
+		REF: 10,
+		CAK: 10,
+		VOL: 10
+	}
+	
+	function getStatCodigo(codigo) {
+		console.log(codigo);
+		return statCodigo[codigo];
+	}
+	
+	let tecnica_descripciones = $('.tecnica_descripcion');
+	let tecnica_efectos = $('.tecnica_efecto');
+	
+	let efectosCodigo = {
+		'[Daño contundente]': { nombre: 'Daño contundente', texto: 'Provoca golpes que pueden causar entumecimiento, fracturas, mareos y suelen tener buena destructividad.' },
+		'[Daño cortante]': { nombre: 'Daño cortante', texto: 'Provoca cortes que pueden causar hemorragias o amputaciones.' },
+		'[Daño perforante]': { nombre: 'Daño perforante', texto: 'Pueden causar hemorragias. Tienen poca destructividad pero ignoran 40 puntos de defensa pasiva del enemigo.' },
+		'[Daño elemental]': { nombre: 'Daño elemental', texto: 'Inflige daño basado en elementos naturales como fuego o agua.' },
+		'[Daño espiritual]': { nombre: 'Daño espiritual', texto: 'Afecta la energía o espíritu del objetivo.' },
+		'[Defensa pasiva física]': { nombre: 'Defensa pasiva física', texto: 'A partir de nivel 5 reduce el daño físico recibido en un valor igual a tu Resistencia.' },
+		'[Defensa pasiva mental]': { nombre: 'Defensa pasiva mental', texto: 'A partir de nivel 5 reduce el daño espiritual recibido en un valor igual a tu Voluntad.' },
+		'[Umbral del dolor]': { nombre: 'Umbral del dolor', texto: '' },
+		'[Agarre]': { nombre: 'Agarre', texto: 'Inmoviliza al objetivo mediante un agarre fuerte.' },
+		'[Asfixia]': { nombre: 'Asfixia', texto: 'Impide la respiración, causando daño progresivo.' },		
+		'[Parálisis parcial]': { nombre: 'Parálisis parcial', texto: 'Inmoviliza parcialmente, limitando movimientos.' },
+		'[Parálisis completa]': { nombre: 'Parálisis completa', texto: 'Inmoviliza totalmente, impidiendo cualquier movimiento.' },
+		'[Canalizar]': { nombre: 'Canalizar', texto: 'Requiere permanecer concentrado en una tarea pero no limita el movimiento.' },
+		'[Concentrar]': { nombre: 'Concentrar', texto: 'Requiere concentración absoluta, el usuario ha de mantenerse inmovil sin realizar técnica alguna.' },
+		'[Ceguera]': { nombre: 'Ceguera', texto: 'Dificulta la visión temporalmente causando -12 Reflejos.' },
+		'[Derribo]': { nombre: 'Derribo', texto: 'Lanza al objetivo haciéndole perder el equilibrio.' },
+		'[Desarme]': { nombre: 'Desarme', texto: 'Fuerza al objetivo a soltar su arma o equipamiento.' },
+		'[Desorientación]': { nombre: 'Desorientación', texto: 'Causa confusión y pérdida de dirección, -10 Reflejos.' },
+		'[Confusión]': { nombre: 'Confusión', texto: 'Provoca alteración mental, dificultando la toma de decisiones, -10 Reflejos.' },
+		'[Mareo]': { nombre: 'Mareo', texto: 'Desestabiliza al objetivo, dificultando su equilibrio, -15 Reflejos.' },
+		'[Empuje]': { nombre: 'Empuje', texto: 'Mueve al objetivo hacia atrás con fuerza.' },
+		'[Entumecimiento]': { nombre: 'Entumecimiento', texto: 'Reduce la movilidad debido a la rigidez corporal en la zona afectada, -15 Agilidad en dicha zona.' },
+		'[Veneno leve]': { nombre: 'Veneno leve', texto: 'Inflige daño directo de 20 Puntos por turno durante 3 turnos.' },
+		'[Veneno medio]': { nombre: 'Veneno medio', texto: 'Inflige daño directo de 30 Puntos por turno durante 4 turnos.' },
+		'[Veneno grave]': { nombre: 'Veneno grave', texto: 'Inflige daño directo de 40 Puntos por turno, las curaciones serán un 50% menos efectivas mientras dure.' },
+		'[Fractura]': { nombre: 'Fractura', texto: 'Rompe huesos, causando dolor y limitación de movimiento. -30 Agi en la zona.' },
+		'[Frío]': { nombre: 'Frío', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Calor]': { nombre: 'Calor', texto: 'En función de la diferencia entre el atributo que genera el efecto y el atributo resistencia del objetivo los efectos causados varían, revisar guía.' },
+		'[Hemorragia leve]': { nombre: 'Hemorragia leve', texto: 'Causa pérdida de sangre continua menor. Quita 10 puntos de energía cada turno durante 2 turnos.' },
+		'[Hemorragia media]': { nombre: 'Hemorragia media', texto: 'Provoca pérdida de sangre continua moderada. Quita 20 puntos de energía cada turno durante 4 turnos.' },
+
+		'[Hemorragia grave]': { nombre: 'Hemorragia grave', texto: 'Genera pérdida de sangre continua severa. Quita 40 puntos de energía cada turno de manera indefinida.' },
+		'[Quemadura leve]': { nombre: 'Quemadura leve', texto: 'Produce daño superficial por calor. Hace 20 puntos de daño directo por turno durante 2 turnos.' },
+		'[Quemadura media]': { nombre: 'Quemadura media', texto: 'Provoca daño significativo por calor. Hace 40 puntos de daño directo por turno durante 3 turnos.' },
+		'[Quemadura grave]': { nombre: 'Quemadura grave', texto: 'Causa daño severo por calor. Hace 80 puntos de daño directo por turno.' },
+		'[Miedo]': { nombre: 'Miedo', texto: 'Infunde temor, reduciendo la eficacia en combate, -10 Voluntad.' },
+		'[Sordera]': { nombre: 'Sordera', texto: 'Dificulta la audición temporalmente, -8 Reflejos.' },
+		'[Sueño]': { nombre: 'Sueño', texto: 'Induce un estado de sueño, el objetivo pierde 5 puntos en Fuerza, Agilidad, Destreza, Puntería, Control de Akuma y Reflejos.' },
+		'[Terror]': { nombre: 'Terror', texto: 'Provoca un estado de pánico extremo, -15 Vol.' }
+	};
+	
+	let statCodigo = {
+		RES: 'Resistencia',
+		FUE: 'Fuerza',
+		DES: 'Destreza',
+		PUN: 'Puntería',
+		AGI: 'Agilidad',
+		REF: 'Reflejos',
+		CAK: 'Control de Akuma',
+		VOL: 'Voluntad'
+	}
+	
+	let efectosArray = Object.keys(efectosCodigo);
+
+	function addEfectos(descripcion) {
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			descripcion = descripcion.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		return descripcion;
+	}
+	
+	function addEfectoStats(efectos) {
+		let efectosRegex = /\[(RES|FUE|DES|PUN|AGI|REF|CAK|VOL)x(\d+|\d+,\d+)]/g;
+		const efectosMatch = [...efectos.matchAll(efectosRegex)];
+		
+// 		for (let i = 0; i < efectosMatch.length; i++) {
+// 			let codigo = efectosMatch[i][0];
+// 			let stat = efectosMatch[i][1]
+// 			let multi = parseFloat(efectosMatch[i][2].replace(',', '.'));
+			
+// 			let statNum = statNums[efectosMatch[i][1]];
+			
+// 			let htmlTag = `
+// 				<span class="tec-tooltip"><strong>` + (statNum * multi) + `</strong><span class="stat-tooltiptext">` + codigo + `</span></span>
+// 			`
+// 			efectos = efectos.replace(codigo, htmlTag);
+// 		}
+		
+		for (let i = 0; i < efectosArray.length; i++) {
+		
+			let efecto = efectosArray[i];
+			efectos = efectos.replace(efecto, `
+				<span class="tec-tooltip"><strong>` + efectosCodigo[efecto].nombre + `</strong><span class="tec-tooltiptext">` + efectosCodigo[efecto].texto + `</span></span>
+			`);
+		
+		}
+		
+		return efectos;
+	}
+	
+	for (let i = 0; i < tecnica_descripciones.length; i++) {
+		let descripcion = $($('.tecnica_descripcion')[i]);
+		let descripcionHtml = descripcion.html();
+		descripcion.html(addEfectos(descripcionHtml));
+	}
+	
+	for (let i = 0; i < tecnica_efectos.length; i++) {
+		let efecto = $($('.tecnica_efecto')[i]);
+		let efectoHtml = efecto.html();
+		
+		efecto.html(addEfectoStats(efectoHtml));
+	}
+	
+	function sleep (time) {
+	  return new Promise((resolve) => setTimeout(resolve, time));
+	}
+	
+</script>
+</html>
+
+<style></style>

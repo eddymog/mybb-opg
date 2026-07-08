@@ -1,0 +1,602 @@
+<div id="inventario" style="display:none;">
+
+    <div style="margin-top: 0px;flex-direction: row;display: flex;">
+        <div style=" flex-direction: column; display: flex; margin-left: 25px;">
+            <div style="background-color: transparent;margin-left: 25px;margin-top: 20px;flex-direction: column;display: flex;">
+                <!-- Contenedor principal de reputación con nuevo diseño -->
+                <div style="box-shadow: 0px 0px 0px black;">
+                    <!-- Título de reputación con fondo rojo -->
+					<!--
+                    <div style="width: 590px;height: 40px;text-align: center;background-color: #0055bb;" class="barra-op bbox">
+                        <span style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 19px;line-height: 38px;text-shadow: 1px 1px 1px black;">EQUIPAMIENTO</span>
+                    </div>
+					-->
+					
+					<div style="width: 590px;height: 40px;display: flex;justify-content: space-between;align-items: center;padding: 0 10px;background-color: #0055bb;" class="barra-op bbox">
+    					<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 19px;text-shadow: 1px 1px 1px black;">
+        EQUIPAMIENTO
+    					</span>
+
+						<!-- Botón nuevo -->
+						<button onclick="desequiparTodo()" 
+            style="background-color: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 13px;">
+        DESEQUIPAR TODO
+    					</button>
+					</div>
+					
+                    <div id="equipamiento-container" style="width: 590px;height: 240px;background-color: #ffe8b3a8;text-align: center;border-left: 2px solid black;border-right: 2px solid black;display: flex;" class="bbox">
+    
+                        <div style="flex-direction: column; display: flex;">
+                            <!-- Slot de Bolsa -->
+                            <div id="slot-bolsa" onclick="abrirSelectorEquipamiento('equipajes')" style="width: 120px;height: 120px;background-color: gray;box-sizing: border-box;border-right: 2px solid black;border-bottom: 1px solid black;position: relative;display: flex;flex-direction: column;align-items: center;justify-content: center;cursor: pointer;transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#555555'" onmouseout="this.style.backgroundColor='gray'">
+                                <img id="imagen-bolsa-equipada" src="/images/op/uploads/SinMochila_One_Piece_Gaiden_Foro_Rol.jpg" style="width: 80px;height: 80px;object-fit: cover;">
+                                <span style="font-family: 'moonGetHeavy';color: white;font-size: 12px;text-shadow: 1px 1px 1px black;margin-top: 5px;">BOLSA</span>
+                            </div>
+                            <!-- Slot de Ropa -->
+                            <div id="slot-ropa" onclick="abrirSelectorEquipamiento('ropa y armaduras')" style="width: 120px;height: 120px;background-color: gray;border-right: 2px solid black;border-top: 1px solid black;box-sizing: border-box;position: relative;display: flex;flex-direction: column;align-items: center;justify-content: center;cursor: pointer;transition: background-color 0.3s;" onmouseover="this.style.backgroundColor='#555555'" onmouseout="this.style.backgroundColor='gray'">
+                                <img id="imagen-ropa-equipada" src="/images/op/uploads/SinRopa_One_Piece_Gaiden_Foro_Rol.jpg" style="width: 80px;height: 80px;object-fit: cover;">
+                                <span style="font-family: 'moonGetHeavy';color: white;font-size: 12px;text-shadow: 1px 1px 1px black;margin-top: 5px;">ROPA</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Área para mostrar objetos equipados adicionales -->
+                        <div id="espacios-equipamiento-visual" style="flex: 1; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: flex-start; overflow: hidden; max-height: 220px; overflow-y: auto;padding-left: 38px;scrollbar-width: none; ">
+							<!-- Aquí se mostrarán los espacios de objetos equipados -->
+						</div>
+                        
+                    </div>
+                    <div style="width: 590px;height: 40px;text-align: center;background-color: #0055bb;border-top-left-radius: 0px;border-top-right-radius: 0px;border-bottom-left-radius: 10px;border-bottom-right-radius: 10px;" class="barra-op bbox">
+                        <span id="espacios-equipamiento" style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 19px;line-height: 38px;text-shadow: 1px 1px 1px black;">ESPACIOS: 0 / 0</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <div style=" flex-direction: column; display: flex; margin-left: 10px;">
+            <div style="background-color: transparent;margin-left: 0px;margin-top: 20px;flex-direction: column;display: flex;">
+                <!-- Contenedor principal de reputación con nuevo diseño -->
+                <div style="box-shadow: 0px 0px 0px black;">
+                    <!-- Título de reputación con fondo rojo -->
+                    <div style="width: 300px;height: 40px;text-align: center;background-color: #0055bb;" class="barra-op bbox">
+                        <span style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 19px;line-height: 38px;text-shadow: 1px 1px 1px black;">IMPLANTES</span>
+                    </div>
+                    <div style="position: relative;"><img style="position: absolute;top: 22px;left: 26px;z-index: -1;" src="/images/op/uploads/FondoImplantes_One_Piece_Gaiden_Foro_Rol.webp" /></div>
+                    <div id="implantes-container" style="width: 300px;height: 240px;background-color: #ffe8b3a8;text-align: center;border-left: 2px solid black;border-right: 2px solid black;" class="bbox">
+                        <!-- Aquí se mostrarán los implantes equipados -->
+<!-- 						<div style="display: flex;flex-direction: row;border-bottom: 2px solid black;">
+							<div><img style="width: 50px;" id="imagen-item" src="https://onepiecegaiden.com/images/op/uploads/DocumentosFalsos_3_One_Piece_Gaiden_Foro_Rol.jpg"></div>
+							<div style="background-color: #8062d6;width: 100%;border-left: 2px solid black;font-size: 19px;color: white;font-family: moonGetHeavy;align-content: center;">Alas Ciberneticas</div>
+						</div> -->
+                    </div>
+                    <div style="width: 300px;height: 40px;text-align: center;background-color: #0055bb;border-top-left-radius: 0px;border-top-right-radius: 0px;border-bottom-left-radius: 10px;border-bottom-right-radius: 10px;" class="barra-op bbox">
+                        <span id="espacios-implantes" style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 17px;line-height: 38px;text-shadow: 1px 1px 1px black;">RANURAS: {$ficha['ranuras']}</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    
+    <div style="margin-top: -9px;flex-direction: row;display: flex;">
+    
+        <div style="flex-direction: column;display: flex;margin-left: 49px;">
+            <div style="background-color: transparent;margin-top: 20px;flex-direction: column;display: flex;">
+                <!-- Contenedor principal de reputación con nuevo diseño -->
+                <div style="box-shadow: 0px 0px 0px black;">
+                    <!-- Título de reputación con fondo rojo -->
+                    <div style="width: 900px;height: 40px;text-align: center;background-color: #0055bb;" class="barra-op bbox">
+						<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: white;font-size: 19px;line-height: 38px;text-shadow: 1px 1px 1px black;">INVENTARIO</span>
+					</div>
+
+					<!-- Cuadrícula de Filtros -->
+					<div style="width: 896px; background-color: #000000; border-left: 2px solid black; border-right: 2px solid black; padding: 0; display: flex; flex-direction: column; margin-top: -2px;">
+						<!-- Primera fila: Categorías -->
+						<div style="display: flex; height: 30px; margin: 0; border-bottom: 1px solid black;">
+							<button id="btn-consumibles" onclick="filtrarCategoria('consumibles')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								CONSUMIBLES
+							</button>
+							<button id="btn-armas" onclick="filtrarCategoria('armas')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								ARMAS
+							</button>
+							<button id="btn-utensilios" onclick="filtrarCategoria('utensilios')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								UTENSILIOS
+							</button>
+							<button id="btn-estructuras" onclick="filtrarCategoria('estructuras')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								ESTRUCTURAS
+							</button>
+							<button id="btn-materiales" onclick="filtrarCategoria('materiales')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								MATERIALES
+							</button>
+							<button id="btn-especiales" onclick="filtrarCategoria('especiales')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								ESPECIALES
+							</button>
+						</div>
+						
+						<!-- Segunda fila: Buscador y Tiers -->
+						<div style="display: flex; height: 30px; margin: 0;">
+							<input id="buscador-inventario" type="text" placeholder="Buscar por nombre..." style="width: 285px; height: 30px; padding: 0 10px; border: none; background-color: #ffffff; color: black; font-family: 'moonGetHeavy'; font-size: 11px; border-right: 1px solid black;">
+							
+							<button id="btn-tier1" onclick="filtrarTier(1)" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T1
+							</button>
+							<button id="btn-tier2" onclick="filtrarTier(2)" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T2
+							</button>
+							<button id="btn-tier3" onclick="filtrarTier(3)" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T3
+							</button>
+							<button id="btn-tier4" onclick="filtrarTier(4)" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T4
+							</button>
+							<button id="btn-tier5" onclick="filtrarTier(5)" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; border-right: 1px solid black; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T5
+							</button>
+							<button id="btn-tier-esp" onclick="filtrarTier('ESP')" style="flex: 1; height: 30px; background-color: #666666; color: white; border: none; cursor: pointer; font-family: 'moonGetHeavy'; font-size: 10px;">
+								T ESP
+							</button>
+						</div>
+					</div>
+
+                    <div style="background-color: #ffe8b3a8;text-align: center;border-left: 2px solid black;border-right: 2px solid black;border-bottom: 2px solid black;margin-top: 0px;height: 720px;width: 900px;overflow: auto;" class="bbox">
+                        <div id="objetos_especiales" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">ESPECIALES</div></div></div>
+                        </div><br>
+                        <div id="objetos_consumibles" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">CONSUMIBLES</div></div></div>
+                        </div><br>
+                        <div id="objetos_armas" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">ARMAS</div></div></div>
+                        </div><br>
+                        <div id="objetos_utensilios" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">UTENSILIOS</div></div></div>
+                        </div><br>
+                            <div id="objetos_materiales" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">MATERIALES</div></div></div>
+                        </div><br>
+                        <div id="objetos_estructuras" style="display: block;">
+                            <div><div><div class="objeto_categoria" style="text-align: center;">ESTRUCTURAS</div></div></div>
+                        </div><br>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+
+<!-- Modal para selector de equipamiento -->
+<div id="modalSelectorEquipamiento" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #ffedd2; margin: 5% auto; padding: 20px; border: 4px solid #ffe59b; border-radius: 8px; width: 80%; max-width: 800px; max-height: 80%; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="tituloSelectorEquipamiento" style="font-family: 'moonGetHeavy'; color: #0055bb; margin: 0;">SELECCIONAR EQUIPAMIENTO</h2>
+            <span onclick="cerrarSelectorEquipamiento()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        </div>
+        
+        <div id="listaEquipamientoDisponible" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start;">
+            <!-- Aquí se cargarán los objetos disponibles -->
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="desequiparItem()" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy'; margin-right: 10px;">
+                DESEQUIPAR
+            </button>
+            <button onclick="cerrarSelectorEquipamiento()" style="background-color: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-family: 'moonGetHeavy';">
+                CANCELAR
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let objetos_array_json = {$objetos_array_json};
+let objetos_json = {$objetos_json};
+const subcategorias = { 
+	// armas_de_filo: true
+};
+	
+function calculateBerries(berries) {
+	
+	if (berries.length > 6) {
+		return berries.slice(0, -6) + ' M';
+	} else if (berries.length > 3) {
+		return berries.slice(0, -3) + ' K';
+	} else {
+		return 'Infinito';
+	}
+}	
+	
+function venderItem(objetoId) {
+	let objeto = objetos_json[objetoId][0];
+	let precioBerries = parseInt((parseInt(objeto.berries) / {$precioVentaPct}) + 1).toLocaleString('es-es');
+	if (confirm(`¿Estás seguro que quieres vender ` + objeto.nombre + ` por ` + precioBerries + ` berries?`)) {
+		window.location.href = '/op/ficha.php?accion=vender&objeto=' + objetoId + '&uid={$query_uid}';
+	}
+}
+	
+for (let i = 0; i < objetos_array_json.length; i++) {
+
+	let objetoId = objetos_array_json[i];
+	console.log(objetoId);
+	if (objetoId == 'LLST001') { continue; }
+	let objeto = objetos_json[objetoId][0];
+	objeto.categoria = objeto.categoria.toLowerCase();
+	const subcategoria = objeto.subcategoria.toLowerCase().split(' ').join('_');
+	const tier = objeto.tier;
+	const imagen_id = objeto.imagen_id;
+	const imagen_avatar = objeto.imagen_avatar;
+	let imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+	if (subcategoria == 'cofres' || subcategoria == 'akuma_no_mi' || objetoId == 'EANM001' || objetoId == 'LLST001' || objetoId == 'THR001' || subcategoria == 'materiales' || subcategoria == 'tecnicas' || objetoId == 'EPA001' || objetoId ==  'KMP001' || objetoId == 'VCD001' || objetoId == 'VCZ001' || subcategoria == 'documentos' || subcategoria == 'recetas') {
+		imagen_nombre = subcategoria + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+	}
+	if (subcategoria == 'Plato') {
+		imagen_nombre = 'Alimentos_' + imagen_id + '_One_Piece_Gaiden_Foro_Rol.gif';
+	}
+	
+	if (!subcategorias[subcategoria]) {
+		subcategorias[subcategoria] = true;
+		if (objeto.categoria === 'consumible' || objeto.categoria === 'Consumible'){
+			objeto.categoria = 'consumibles';
+		}
+		$('#objetos_' + objeto.categoria).append(`
+			<div id="` + subcategoria + `_area">
+				<div id="` + subcategoria + `_categoria">
+					<div class="objeto_categoria">` + objeto.subcategoria.toUpperCase() + `</div>
+					<div class="barra_categoria"></div>
+				</div>
+
+				<div id="` + subcategoria + `_objetos" class="objetos_lista">
+					
+				</div>
+			</div>
+		`);
+	}
+	
+	let requisitos = '';
+	let escalado = '';
+	let dano = '';
+	let efecto = '';
+	let autor = '';
+	let bloqueo = '';
+	let alcance = '';
+	
+	// <div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+	
+	if (objeto.requisitos) {
+		requisitos = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.requisitos + `</div>`;
+	}
+	
+	if (objeto.escalado) {
+		escalado = `<div style="font-family: InterRegular;padding: 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;">` + objeto.escalado + `</div>`;
+	}
+	
+	if (objeto.dano) {
+		dano = `<div class="dano-objeto" style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.dano + `</div>`;
+	}
+	
+	if (objeto.efecto) {
+		efecto = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.efecto + `</div>`;
+	}
+	
+	if (objeto.bloqueo) {
+		bloqueo = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.bloqueo + `</div>`;
+	}
+	
+	if (objeto.alcance) {
+		alcance = `<div style="font-family: InterRegular;padding: 5px;text-align: center;border-top: 1px solid #5e5e5e;">` + objeto.alcance + `</div>`;
+	}
+	
+	
+	let colorTier = '#faa500';
+	
+	if (imagen_id == '1') { colorTier = '#808080'; }
+	if (imagen_id == '2') { colorTier = '#4dfe45'; }	
+	if (imagen_id == '3') { colorTier = '#457bfe'; }
+	if (imagen_id == '4') { colorTier = '#cf44ff'; }
+	if (imagen_id == '5') { colorTier = '#febb46'; }
+	if (parseInt(imagen_id) >= 6) { colorTier = 'linear-gradient(315deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);'; }
+	
+	if (objeto.autor && objeto.oficios != "null") {
+		console.log(objeto);
+		
+		
+		let objetoOficio = objeto.oficio;
+		
+		let main = 'ERROR';
+		if (objeto.oficio == 'Artesano' || objeto.oficio == 'Herrero' || objeto.oficio == 'Modista') { objetoMainOficio = 'Artesano'; }
+		if (objeto.oficio == 'Navegante' || objeto.oficio == 'Timonel' || objeto.oficio == 'Cartógrafo') { objetoMainOficio = 'Navegante'; }
+		
+		let autorOficios = JSON.parse(objeto.oficios);
+		console.log(autorOficios);
+		let objetoOficios = autorOficios[objetoOficio];
+		
+		let mainOficio = Object.keys(autorOficios)[0]; // Medico
+		if (objeto.oficio == 'Artesano' || objeto.oficio == 'Herrero' || objeto.oficio == 'Modista') { mainOficio = 'Artesano'; }
+		if (objeto.oficio == 'Médico' || objeto.oficio == 'Farmacólogo' || objeto.oficio == 'Doctor') { mainOficio = 'Médico'; }
+		if (objeto.oficio == 'Navegante' || objeto.oficio == 'Timonel' || objeto.oficio == 'Cartógrafo') { mainOficio = 'Navegante'; }
+		if (objeto.oficio == 'Inventor' || objeto.oficio == 'Biólogo' || objeto.oficio == 'Ingeniero') { mainOficio = 'Inventor'; }
+		if (objeto.oficio == 'Carpintero' || objeto.oficio == 'Astillero' || objeto.oficio == 'Constructor') { mainOficio = 'Carpintero'; }
+		if (objeto.oficio == 'Cocinero' || objeto.oficio == 'Chef' || objeto.oficio == 'Aprovisionador') { mainOficio = 'Cocinero'; }
+		if (objeto.oficio == 'Mercader' || objeto.oficio == 'Contrabandista' || objeto.oficio == 'Comerciante') { mainOficio = 'Mercader'; }
+		if (objeto.oficio == 'Investigador' || objeto.oficio == 'Arqueólogo' || objeto.oficio == 'Periodista') { mainOficio = 'Investigador'; }
+		if (objeto.oficio == 'Recolector' || objeto.oficio == 'Mayorista' || objeto.oficio == 'Agreste') { mainOficio = 'Recolector'; }
+		
+		let oficiosInfo = autorOficios[mainOficio]; // { sub }
+
+		let oficiosTexto = mainOficio + ` (` + oficiosInfo.nivel + `): `;
+		
+		let espes = Object.keys(oficiosInfo.sub);
+		
+		oficiosTexto += espes[0] + ` (` + oficiosInfo['sub'][espes[0]] + `) <br> & `;
+		oficiosTexto += espes[1] + ` (` + oficiosInfo['sub'][espes[1]] + `)`;
+		
+		// Object.keys(abc['Médico']['sub'])
+// 		`Médico (1): Farmácologo (2) & Doctor (2)`
+		
+		autor = `<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+					<div>` + objeto.autor + ` (<a href="/op/ficha.php?uid=` + objeto.autor_uid + `" target="_blank">` + objeto.autor_uid + `</a>)</div>
+					<div>` + oficiosTexto + `</div>
+				</div>`;
+	}
+	
+	let ventaHtml = '';
+	
+	<if $is_owner then>
+		ventaHtml = `<button onclick="venderItem('` + objetoId + `');" class="button">Vender Item por ` + parseInt((parseInt(objeto.berries) / {$precioVentaPct}) + 1).toLocaleString('es-es') + `B</button>`;
+	</if>
+	
+	let editarImagenHtml = '';
+	let objetoImagen = '';
+	let objetoNombreBase = '';
+	let objetoNombre = '';
+	
+	<if $g_is_staff then>
+		if (objeto.editado == '1') {
+			objetoNombre = `<a href="/op/staff/objetos_modificar.php?objeto_id=` + objeto.objeto_id + `">` + objeto.apodo + `</a>`;
+		} else {
+			objetoNombre = `<a href="/op/staff/objetos_modificar.php?objeto_id=` + objeto.objeto_id + `">` + objeto.nombre + `</a>`;
+		}
+	</if>
+	
+	<if !$g_is_staff then>
+		if (objeto.editado == '1') {
+			objetoNombre = objeto.apodo;
+		} else {
+			objetoNombre = objeto.nombre;
+		}
+		
+	</if>
+	
+	if (objeto.editable == '1' && objeto.editado == '0') {
+		editarImagenHtml = `<img src="/images/op/uploads/custom-editar.png" class="imagen-custom" onclick="openInventarioModal('` + objeto.objeto_id + `');">`;
+	}
+	
+	if (objeto.editado == '1') {
+		objetoNombre = '<strong><em>' + objetoNombre + '</em></strong>';
+		objetoImagen = `<img src="` + objeto.imagen + `" style=" width: 400px; height: 150px; ">`;
+		objetoNombreBase = `<div style="font-family: InterRegular;padding: 0px 5px;text-align: justify;border-bottom: 1px solid #5e5e5e;text-align: center;">` + objeto.nombre + `</div>`;
+	} 
+	
+	let imagen = `/images/op/iconos/` + imagen_nombre;
+	
+	if (imagen_avatar != '') {
+		imagen = imagen_avatar;
+	}
+	
+	$('#' + subcategoria + "_objetos").append(`<div>
+		<div class="item-outer" id="` + objeto.objeto_id + `">
+			<div class="item-nombre">` + (objeto.apodo != '' ? objeto.apodo.slice(0, 30) : objeto.nombre) + `</div>
+			<div class="item-image">
+				
+				<div class="tooltip">
+					<img id=imagen-item src="` + imagen_avatar + `" />
+					<div class="tooltiptext item-tooltip">
+						<div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objetoNombre + `</div>
+						` + editarImagenHtml + `
+						` + objetoImagen + `
+						` + objetoNombreBase + `
+						` + requisitos + `
+						` + escalado + `
+						<div class="mydescripcion" style="font-family: InterRegular;padding: 5px;text-align: justify;">` + objeto.descripcion + `</div>
+						` + dano + `
+						` + efecto + `
+						` + bloqueo + `
+						` + alcance + `
+						` + ventaHtml + `
+						<div style="font-family: moonGetHeavy;padding: 2px 5px;display: flex;flex-direction: row;justify-content: space-between;background: ` + colorTier + `;border-top: 1px solid black;border-bottom: 1px solid black;font-size: 9px;text-shadow: 1px 1px 2px black;filter: saturate(0.7);">
+							<div>Cantidad: ` + objeto.cantidad + `</div>
+							<div>` + objeto.espacios + ` Espacios</div>
+							<div>ID: <span>` + objeto.objeto_id + `</span></div>
+							<div><span class="itemBerries">` + parseInt(objeto.berries).toLocaleString('es-es') + `</span>B</div>
+						</div>
+						` + autor + `
+
+						<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background: ` + colorTier + `;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">` + objeto.subcategoria + ` - Tier ` + objeto.tier + `</div>
+					</div>
+				</div>
+
+				
+			</div>
+			
+		</div>
+		
+	</div>
+	`);
+	
+}
+	
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+	modal.style.display = "none";
+}
+
+$(window).click(function(e) {
+	if (event.target == modal) {
+		modal.style.display = "none";
+	}
+});
+	
+function openInventarioModal(edit_objeto_id) {
+	<if $is_owner || $g_is_staff then>
+	$('#myModal').html(`
+	    <div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: 250px; width: 620px; ">
+			<div class="modal-body" style=" display: flex; flex-direction: column; ">
+				<br>
+				<div style=" font-size: 20px; text-align: center; font-family: moonGetHeavy; color: black; margin-top: 10px; ">Personalizar Objeto</div>
+				<div><strong>Nombrar objeto:</strong></div>
+				<input id="customInventario1" type="text" class="textbox" style="" placeholder="">
+				<div><strong>URL de la imagen (400x150):</strong></div>
+				<input id="customInventario2" type="text" class="textbox" style="" placeholder="https://soyunaimagen.com">
+				<button onclick="cambiarObjeto('` + edit_objeto_id + `');" style=" width: 100px; margin: auto; margin-top: 20px; ">Guardar</button><br>
+				<span>Nota: Solo puedes editar el objeto una vez. Asegúrate que la imagen sea la correcta.</span>
+			</div>
+		</div>
+	`);
+	modal.style.display = "block";
+	</if>
+}	
+	
+function cambiarObjeto(edit_objeto_id) { 
+	let customInventario1 = $('#customInventario1').val();
+	let customInventario2 = $('#customInventario2').val();
+	
+	if (customInventario1 && customInventario2) {
+		if (confirm('Estás a punto de editar este objeto para agregarle un nombre y una imagen. Esto solo puedes hacerlo una vez por objeto. ¿Quieres seguir adelante?')) {
+			 $.post("/op/inventario.php", { edit_objeto_id: edit_objeto_id, edit_nombre: customInventario1, edit_imagen: customInventario2 }, function( data ) { location.reload(); });
+		}
+	}
+}	
+
+</script>
+<script>
+	// /\[(RES|FUE)x(\d+|\d+,\d+)]/g
+	
+	let efectosRegex = /\[(RES|FUE)x(\d+|\d+,\d+)]/g;
+
+	
+	let statNums = {
+		RES: {$resistencia_completa},
+		FUE: {$fuerza_completa},
+		DES: {$destreza_completa},
+		PUN: {$punteria_completa},
+		AGI: {$agilidad_completa},
+		REF: {$reflejos_completa},
+		CAK: 0,
+		VOL: {$voluntad_completa},
+		Nivel: {$nivel}
+	}
+
+// También necesitamos modificar la función abrirSelectorEquipamiento para bolsas y ropa:
+function abrirSelectorEquipamiento(tipo) {
+    tipoEquipamientoSeleccionado = tipo;
+    var modal = document.getElementById('modalSelectorEquipamiento');
+    var titulo = document.getElementById('tituloSelectorEquipamiento');
+    var lista = document.getElementById('listaEquipamientoDisponible');
+    
+    titulo.textContent = 'SELECCIONAR ' + tipo.toUpperCase();
+    lista.innerHTML = '';
+    
+    // Obtener IDs de objetos ya equipados
+    var objetosEquipadosIds = [];
+    Object.values(objetosEquipados.espacios).forEach(function(equipado) {
+        objetosEquipadosIds.push(equipado.objetoId);
+    });
+    
+    // También incluir objetos equipados en bolsa y ropa (excepto el tipo actual)
+    if (objetosEquipados.bolsa && tipo !== 'equipajes') {
+        objetosEquipadosIds.push(objetosEquipados.bolsa);
+    }
+    if (objetosEquipados.ropa && tipo !== 'ropa y armaduras') {
+        objetosEquipadosIds.push(objetosEquipados.ropa);
+    }
+    
+    objetos_array_json.forEach(function(objetoId) {
+        var objeto = objetos_json[objetoId][0];
+        var subcategoria = objeto.subcategoria.toLowerCase();
+        
+        // Permitir ESPECIAL MT en el slot de ropa además de ropa y armaduras
+        var puedeEquipar = false;
+        if (tipo === 'ropa y armaduras') {
+            puedeEquipar = (subcategoria === tipo || subcategoria === 'especial mt');
+        } else {
+            puedeEquipar = (subcategoria === tipo);
+        }
+        
+        if (puedeEquipar) {
+            var subcategoria_formatted = subcategoria.split(' ').join('_');
+            var imagen_id = objeto.imagen_id;
+            
+            var imagen_nombre = subcategoria_formatted + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.jpg";
+            if (subcategoria_formatted === 'cofres' || subcategoria_formatted === 'akuma_no_mi' || objetoId === 'EANM001' || 
+                objetoId === 'LLST001' || objetoId === 'THR001' || subcategoria_formatted === 'materiales' || 
+                subcategoria_formatted === 'tecnicas' || objetoId === 'EPA001' || objetoId === 'KMP001' || 
+                objetoId === 'VCD001' || objetoId === 'VCZ001' || subcategoria_formatted === 'documentos' || 
+                subcategoria_formatted === 'recetas') {
+                imagen_nombre = subcategoria_formatted + "_" + imagen_id + "_One_Piece_Gaiden_Foro_Rol.gif";
+            }
+            
+            var imagen = '/images/op/iconos/' + imagen_nombre;
+            if (objeto.imagen_avatar !== '') {
+                imagen = objeto.imagen_avatar;
+            }
+            
+            // Verificar si el objeto ya está equipado
+            var yaEquipado = objetosEquipadosIds.includes(objetoId);
+            
+            // Estilos base para el objeto
+            var estilosBase = 'width: 120px; height: 150px; border: 2px solid; border-radius: 8px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.3s;';
+            
+            // Aplicar estilos según si está equipado o no
+            var estilos, onclickAction;
+            
+            if (yaEquipado) {
+                // Objeto ya equipado - estilo rojo y no clickeable
+                estilos = estilosBase + 'border-color: #dc3545; background-color: rgba(220, 53, 69, 0.1); opacity: 0.6; cursor: not-allowed;';
+                onclickAction = 'mostrarMensajeEquipamiento(\'Este objeto ya está equipado en otro lugar.\');';
+            } else {
+                // Objeto disponible - estilo normal
+                estilos = estilosBase + 'border-color: #0055bb; background-color: rgba(0, 85, 187, 0.05);';
+                onclickAction = 'equiparItem(\'' + objetoId + '\');';
+            }
+            
+            var objetoDiv = document.createElement('div');
+            objetoDiv.style.cssText = estilos;
+            objetoDiv.setAttribute('onclick', onclickAction);
+            
+            if (!yaEquipado) {
+                objetoDiv.setAttribute('onmouseover', 'this.style.borderColor=\'#003d82\'; this.style.backgroundColor=\'rgba(0, 85, 187, 0.1)\';');
+                objetoDiv.setAttribute('onmouseout', 'this.style.borderColor=\'#0055bb\'; this.style.backgroundColor=\'rgba(0, 85, 187, 0.05)\';');
+            }
+            
+            // Indicador visual si está equipado
+            var indicadorEquipado = yaEquipado ? '<div style="position: absolute; top: 5px; right: 5px; background-color: #dc3545; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✕</div>' : '';
+            
+            objetoDiv.innerHTML = 
+                '<div style="position: relative; width: 100%;">' +
+                    indicadorEquipado +
+                    '<img src="' + imagen + '" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">' +
+                '</div>' +
+                '<div style="font-family: \'moonGetHeavy\'; font-size: 10px; margin-top: 8px; color: ' + (yaEquipado ? '#dc3545' : '#0055bb') + '; line-height: 12px;">' +
+                    (objeto.apodo !== '' ? objeto.apodo.substring(0, 15) : objeto.nombre.substring(0, 15)) +
+                '</div>' +
+                '<div style="font-family: \'moonGetHeavy\'; font-size: 8px; color: ' + (yaEquipado ? '#dc3545' : '#666') + '; margin-top: 2px;">' +
+                    '+' + extraerEspaciosDelEfecto(objeto.efecto, objeto.dano) + ' Espacios' +
+                '</div>' +
+                (yaEquipado ? '<div style="font-family: \'moonGetHeavy\'; font-size: 7px; color: #dc3545; margin-top: 2px;">YA EQUIPADO</div>' : '');
+            
+            lista.appendChild(objetoDiv);
+        }
+    });
+    
+    modal.style.display = 'block';
+}
+
+</script>

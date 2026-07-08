@@ -1,0 +1,285 @@
+<html>
+
+<head>
+  <title>Modificar slots</title>
+  {$headerinclude}
+</head>
+
+<body>
+  {$header}
+  <div>
+    <if $fid=='' then>
+      User ID:<br><input type="number" name="fid" required id='fid'><br><br>
+      Accion:<br>
+      <select id="accion">
+		<option value="Agregar especialización">Agregar especialización</option>
+        <option value="Agregar maestría primaria">Agregar maestría primaria</option>
+		<option value="Agregar maestría secundaria">Agregar maestría secundaria</option>
+		<option value="Agregar primer elemento">Agregar primer elemento</option>
+		<option value="Agregar segundo elemento">Agregar segundo elemento</option>
+		<option value="Agregar tercer elemento">Agregar tercer elemento </option>
+		<option value="Agregar cuarto elemento">Agregar cuarto elemento</option>
+		<option value="Agregar quinto elemento">Agregar quinto elemento</option>
+		<option value="Renunciar elemento">Renunciar elemento extra</option>
+		<option value="Agregar invocación primaria">Agregar invocación primaria</option>
+		<option value="Agregar invocación secundaria">Agregar invocación secundaria</option>
+		<option value="Modificar rango">Modificar rango</option>
+		<option value="Modificar edad">Modificar edad</option>
+		<option value="Modificar límite de nivel">Modificar límite de nivel</option>
+		<option value="Modificar villa">Modificar villa</option>
+		<option value="Modificar slots">Modificar número de slots</option>
+		<option value="Modificar notas">Modificar notas de ficha</option>
+      </select><br><br>
+      <button onclick=onClickAccion()>Apachúrrame papi</button>
+      <br><br>
+    </if>
+	<if $fid !='' && $accion != '' then>
+      <form method="post" action="/sg/admin/modificar_slots.php" name="modificar_slots" id="modificar_slots">
+        <div style="display: none">
+           <input type="text" id="fid" name="ficha_id" value="{$fid}">
+		   <input type="text" id="nombre" name="nombre" value="{$ficha['nombre']}">
+        </div>
+        User ID:<br><input type="number" required id='fid' value={$fid} disabled><br><br>
+        Accion:<br>
+        <select disabled>
+          <option value="{$accion}">{$accion}</option>
+        </select><br>
+        <p>Nombre de cuenta: <a href="/sg/ficha.php?action=profile&uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
+        
+		<if $accion == 'Agregar especialización' then>
+			Especialización:<br>
+			<select name="especializacion" id="espe">
+			  <option value="NIN">Ninjutsu</option>
+			  <option value="TAI">Taijutsu</option>
+			  <option value="GEN">Genjutsu</option>
+			</select><br>
+			Estilo:<br>
+			<select name="estilo" id="estilo">
+			  <option value="FOR">Ninjutsu - Manipulación de Forma</option>
+			  <option value="NAT">Ninjutsu - Manipulación de Naturaleza</option>
+			  <option value="FLI">Taijutsu - Estilo Fluído</option>
+			  <option value="FUE">Taijutsu - Estilo Fuerte</option>
+			  <option value="EST">Taijutsu - Estilo Estoico</option>
+			  <option value="VER">Genjutsu - Ilusiones Verdaderas</option>
+			  <option value="FAN">Genjutsu - Ilusiones Fantásticas</option>
+			</select><br><br>	
+		</if>
+		  
+		<if $accion == 'Agregar maestría primaria' then>
+			Maestría primaria:<br>
+			<select name="maestria_primaria" id="maestria_primaria">
+				<option value="SEN">Senjutsu</option>
+				<option value="FUI">Fūinjutsu</option>
+				<option value="KEK">Kekkaijutsu</option>
+				<option value="IRY">Iryō Ninjutsu</option>
+				<option value="ANK">Ankoku Ijutsu</option>
+				<option value="YIN">Yin</option>
+				<option value="SHO">Shoten</option>
+				<option value="KEN">Kenjutsu</option>
+				<option value="BOU">Bōjutsu</option>
+				<option value="SHU">Shurikenjutsu</option>
+				<option value="GOT">Gotai</option>
+				<option value="HAC">Hachimon</option>
+				<option value="TAN">Tansakujutsu</option>
+				<option value="NIN">Ninshu</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar maestría secundaria' then>
+			Maestría secundaria:<br>
+			<select name="maestria_secundaria" id="maestria_secundaria">
+				<option value="SEN">Senjutsu</option>
+				<option value="FUI">Fūinjutsu</option>
+				<option value="KEK">Kekkaijutsu</option>
+				<option value="IRY">Iryō Ninjutsu</option>
+				<option value="ANK">Ankoku Ijutsu</option>
+				<option value="YIN">Yin</option>
+				<option value="SHO">Shoten</option>
+				<option value="KEN">Kenjutsu</option>
+				<option value="BOU">Bōjutsu</option>
+				<option value="SHU">Shurikenjutsu</option>
+				<option value="GOT">Gotai</option>
+				<option value="HAC">Hachimon</option>
+				<option value="TAN">Tansakujutsu</option>
+				<option value="NIN">Ninshu</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar primer elemento' then>
+			Primer elemento:<br>
+			<select name="primer_elemento" id="primer_elemento">
+			  <option value="katon">Katon</option>
+			  <option value="fuuton">Fuuton</option>
+			  <option value="raiton">Raiton</option>
+			  <option value="doton">Doton</option>
+			  <option value="suiton">Suiton</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar segundo elemento' then>
+			Segundo elemento (Se obtiene en clase B para todos):<br>
+			<select name="segundo_elemento" id="segundo_elemento">
+			  <option value="katon">Katon</option>
+			  <option value="fuuton">Fuuton</option>
+			  <option value="raiton">Raiton</option>
+			  <option value="doton">Doton</option>
+			  <option value="suiton">Suiton</option>
+			</select><br><br>
+		</if>
+		  
+		 <if $accion == 'Agregar tercer elemento' then>
+			Tercer elemento (Para Ninshu se elige, clase A+ para no Ninshu):<br>
+			<select name="tercer_elemento" id="tercer_elemento">
+			  <option value="katon">Katon</option>
+			  <option value="fuuton">Fuuton</option>
+			  <option value="raiton">Raiton</option>
+			  <option value="doton">Doton</option>
+			  <option value="suiton">Suiton</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar cuarto elemento' then>
+			Cuarto elemento (Clase A+ para Ninshu, o Pasiva para No Ninshu):<br>
+			<select name="cuarto_elemento" id="cuarto_elemento">
+			  <option value="katon">Katon</option>
+			  <option value="fuuton">Fuuton</option>
+			  <option value="raiton">Raiton</option>
+			  <option value="doton">Doton</option>
+			  <option value="suiton">Suiton</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar quinto elemento' then>
+			Quinto elemento (Pasiva para Ninshu):<br>
+			<select name="quinto_elemento" id="quinto_elemento">
+			  <option value="katon">Katon</option>
+			  <option value="fuuton">Fuuton</option>
+			  <option value="raiton">Raiton</option>
+			  <option value="doton">Doton</option>
+			  <option value="suiton">Suiton</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Renunciar elemento' then>
+			Renunciar elemento extra:<br>
+			<select name="renunciar_elemento" id="renunciar_elemento">
+			  <option value="1">Sí</option>
+			  <option value="0">No</option>
+			</select><br><br>
+		</if>  
+		  
+		<if $accion == 'Agregar invocación primaria' then>
+			Invocación primaria:<br>
+			<select name="invo_primaria" id="invo_primaria">
+			  <option value="GAM">Gama (Sapos)</option>
+			  <option value="HEB">Hebi (Serpientes)</option>
+			  <option value="NAM">Namekuji (Babosas)</option>
+			  <option value="NEK">Neko (Gatos)</option>
+			  <option value="KUM">Kumo (Arañas)</option>
+			  <option value="KOM">Kōmori (Murciélagos)</option>
+			  <option value="OKA">Ōkami (Lobos)</option>
+			  <option value="TORI">Tori (Aves)</option>
+			  <option value="KMA">Kuma (Osos)</option>
+			  <option value="SAN">Sanshōuo (Salamandras)</option>
+			  <option value="KAM">Kame (Tortugas)</option>
+			  <option value="SAR">Saru (Monos)</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Agregar invocación secundaria' then>
+			Invocación secundaria:<br>
+			<select name="invo_secundaria" id="invo_secundaria">
+			  <option value="GAM">Gama (Sapos)</option>
+			  <option value="HEB">Hebi (Serpientes)</option>
+			  <option value="NAM">Namekuji (Babosas)</option>
+			  <option value="NEK">Neko (Gatos)</option>
+			  <option value="KUM">Kumo (Arañas)</option>
+			  <option value="KOM">Kōmori (Murciélagos)</option>
+			  <option value="OKA">Ōkami (Lobos)</option>
+			  <option value="TORI">Tori (Aves)</option>
+			  <option value="KMA">Kuma (Osos)</option>
+			  <option value="SAN">Sanshōuo (Salamandras)</option>
+			  <option value="KAM">Kame (Tortugas)</option>
+			  <option value="SAR">Saru (Monos)</option>
+			</select><br><br>
+		</if>
+		  
+		<if $accion == 'Modificar rango' then>
+			Rango: (Actual = {$ficha['rango']})<br>
+			<select name="rango" id="rango">
+			  <option value="Genin">Genin</option>
+			  <option value="Chuunin">Chuunin</option>
+			  <option value="Jounin">Jounin</option>
+			  <option value="ANBU">ANBU</option>
+			  <option value="Sannin">Sannin</option>
+			</select><br><br>
+		</if>
+		  
+	    <if $accion == 'Modificar edad' then>
+			Edad: (Actual = {$ficha['edad']})<br>
+			<input type="text" name="edad" required><br><br>
+		</if>
+		  
+		<if $accion == 'Modificar límite de nivel' then>
+			Límite de nivel: (Actual = {$ficha['limite_nivel']})<br>
+			<select name="limite_nivel" id="limite_nivel">
+			  <option value="10">A</option>
+			  <option value="12">A+</option>
+			  <option value="14">S</option>
+			  <option value="16">S+</option>
+			</select><br><br>
+		</if>  
+		  
+		<if $accion == 'Modificar villa' then>
+			Villa:<br>
+			<select name="villa" id="villa">
+			  <option value="1">Konoha</option>
+			  <option value="3">Kiri</option>
+			  <option value="4">Iwa</option>
+			  <option value="5">Kumo</option>
+			  <option value="6">Renegado</option>
+			  <option value="7">Sin Aldea</option>
+			</select><br><br>
+		</if>    
+		  
+		<if $accion == 'Modificar slots' then>
+			Número de slots:<br>
+			<select name="slots" id="slots">
+			  <option value="0">0</option>
+			  <option value="1">1</option>
+			  <option value="2">2</option>
+			  <option value="3">3</option>
+			  <option value="4">4</option>
+			  <option value="5">5</option>
+			  <option value="6">6</option>
+			  <option value="7">7</option>
+			  <option value="8">8</option>
+			</select><br><br>
+		</if>   
+		  
+		<if $accion == 'Modificar notas' then>
+			Número de slots:<br>
+			<textarea name="notas" required="" style="text-align: left; border-radius: 3px; background-color: rgb(230, 219, 253); width: 400px; height: 140px;">{$ficha['notas']}</textarea><br><br>
+		</if>   
+		  
+        Miembro de Staff: <input type="text" name="staff" required><br>
+        Razon: <input type="text" name="razon" required><br><br>
+        <input type="submit" value="Guardar">
+      </form>
+    </if>
+  </div>
+  {$footer}
+</body>
+<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
+{$reload_script}
+<script>
+  function onClickAccion() {
+    const fid = document.getElementById('fid').value;
+    const accion = document.getElementById('accion').value;
+    if (fid && accion) {
+      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+    }
+  }
+</script>
+
+</html>

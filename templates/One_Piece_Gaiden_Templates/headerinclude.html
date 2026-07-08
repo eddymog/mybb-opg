@@ -1,0 +1,166 @@
+<meta name="description" content="One Piece Gaiden es el foro de rol de One Piece más automatizado que existe. Disfruta de un sistema RPG completo con combate, crafteo, viajes, entrenamiento, frutas del diablo, haki y mucho más. ¡Únete y escribe tu propia historia en el universo de One Piece!" />
+<meta name="keywords" content="foro de rol, One Piece, foro One Piece, rol online, RPG español, foro RPG, One Piece Gaiden, piratas, marines, nakama, frutas del diablo, haki, Grand Line" />
+<meta name="robots" content="index, follow" />
+<meta name="language" content="es" />
+<meta name="author" content="One Piece Gaiden" />
+<meta property="og:site_name" content="One Piece Gaiden — Foro de Rol" />
+<meta property="og:title" content="One Piece Gaiden — El foro de rol de One Piece más automatizado" />
+<meta property="og:description" content="El foro de rol de One Piece más automatizado que existe. Sistema RPG completo con combate, crafteo, viajes, entrenamiento y mucho más. ¡Únete!" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{$mybb->settings['bburl']}/" />
+<meta property="og:locale" content="es_ES" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="One Piece Gaiden — El foro de rol de One Piece más automatizado" />
+<meta name="twitter:description" content="El foro de rol de One Piece más automatizado que existe. Sistema RPG completo con combate, crafteo, viajes y mucho más." />
+<link rel="icon" type="image/png" href="{$mybb->settings['bburl']}/images/op/favicon.png" />
+<style>
+.item-outer .tooltip{position:static!important}
+.opg-tip-toggle{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:1px solid #666;color:#ddd;font-size:10px;padding:2px 6px;cursor:pointer;border-radius:3px;line-height:1.4;white-space:nowrap;z-index:1}
+.opg-tip-toggle:hover{background:rgba(255,255,255,.15)}
+</style>
+<script>
+(function(){
+  var KEY='opg_tip_side';
+  function isIzq(){return localStorage.getItem(KEY)==='izq';}
+
+  function positionTip(tip,outer){
+    var r=outer.getBoundingClientRect();
+    var sx=window.scrollX!==undefined?window.scrollX:window.pageXOffset;
+    var sy=window.scrollY!==undefined?window.scrollY:window.pageYOffset;
+    tip.style.setProperty('top',   (r.bottom+sy)+'px','important');
+    tip.style.setProperty('bottom','auto',             'important');
+    if(isIzq()){
+      tip.style.setProperty('left',     (r.left+sx)+'px','important');
+      tip.style.setProperty('right',    'auto',           'important');
+      tip.style.setProperty('transform','none',           'important');
+    }else{
+      tip.style.setProperty('left',     (r.right+sx)+'px',  'important');
+      tip.style.setProperty('right',    'auto',              'important');
+      tip.style.setProperty('transform','translateX(-100%)','important');
+    }
+  }
+
+  function updateBtns(){
+    var izq=isIzq();
+    document.querySelectorAll('.opg-tip-toggle').forEach(function(b){
+      b.textContent=izq?'▶':'◀';
+      b.title=izq?'Mover a la derecha':'Mover a la izquierda';
+    });
+  }
+
+  function portalTip(tip,outer){
+    if(tip._opgP)return;
+    tip._opgP=true; tip._opgOuter=outer;
+    document.body.appendChild(tip);
+    tip.style.setProperty('position','absolute','important');
+    tip.style.setProperty('z-index', '9999',    'important');
+    tip.style.setProperty('display', 'none',    'important');
+    if(!tip.querySelector('.opg-tip-toggle')){
+      var btn=document.createElement('button');
+      btn.type='button'; btn.className='opg-tip-toggle';
+      btn.onclick=function(e){
+        e.stopPropagation();
+        localStorage.setItem(KEY,isIzq()?'der':'izq');
+        updateBtns();
+        positionTip(tip,outer);
+      };
+      tip.appendChild(btn);
+    }
+    updateBtns();
+  }
+
+  document.addEventListener('mouseover',function(e){
+    var outer=e.target.closest&&e.target.closest('.item-outer');
+    if(!outer)return;
+    var tip=outer._opgTip||(outer._opgTip=outer.querySelector('.tooltiptext.item-tooltip'));
+    if(!tip)return;
+    portalTip(tip,outer);
+    positionTip(tip,outer);
+    tip.style.setProperty('display','block','important');
+  });
+
+  document.addEventListener('mouseout',function(e){
+    var outer=e.target.closest&&e.target.closest('.item-outer');
+    if(!outer||!outer._opgTip)return;
+    var to=e.relatedTarget;
+    if(to&&(outer.contains(to)||outer._opgTip.contains(to)))return;
+    outer._opgTip.style.setProperty('display','none','important');
+  });
+
+  document.addEventListener('mouseout',function(e){
+    var tip=e.target.closest&&e.target.closest('.tooltiptext.item-tooltip');
+    if(!tip||!tip._opgOuter)return;
+    var to=e.relatedTarget;
+    if(to&&(tip.contains(to)||tip._opgOuter.contains(to)))return;
+    tip.style.setProperty('display','none','important');
+  });
+
+  document.addEventListener('DOMContentLoaded',updateBtns);
+}());
+</script>
+<link rel="shortcut icon" href="{$mybb->settings['bburl']}/images/op/favicon.png" />
+<link rel="alternate" type="application/rss+xml" title="{$lang->latest_threads} (RSS 2.0)" href="{$mybb->settings['bburl']}/syndication.php" />
+<link rel="alternate" type="application/atom+xml" title="{$lang->latest_threads} (Atom 1.0)" href="{$mybb->settings['bburl']}/syndication.php?type=atom1.0" />
+<meta http-equiv="Content-Type" content="text/html; charset={$charset}" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/jquery.js?ver=1823"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/jquery.plugins.min.js?ver=1821"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/general.js?ver=1827"></script>
+
+{$stylesheets}
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/copyphpcode/copyphpcode.js"></script>
+<script type="text/javascript">
+<!--
+	lang.unknown_error = "{$lang->unknown_error}";
+	lang.confirm_title = "{$lang->confirm_title}";
+	lang.expcol_collapse = "{$lang->expcol_collapse}";
+	lang.expcol_expand = "{$lang->expcol_expand}";
+	lang.select2_match = "{$lang->select2_match}";
+	lang.select2_matches = "{$lang->select2_matches}";
+	lang.select2_nomatches = "{$lang->select2_nomatches}";
+	lang.select2_inputtooshort_single = "{$lang->select2_inputtooshort_single}";
+	lang.select2_inputtooshort_plural = "{$lang->select2_inputtooshort_plural}";
+	lang.select2_inputtoolong_single = "{$lang->select2_inputtoolong_single}";
+	lang.select2_inputtoolong_plural = "{$lang->select2_inputtoolong_plural}";
+	lang.select2_selectiontoobig_single = "{$lang->select2_selectiontoobig_single}";
+	lang.select2_selectiontoobig_plural = "{$lang->select2_selectiontoobig_plural}";
+	lang.select2_loadmore = "{$lang->select2_loadmore}";
+	lang.select2_searching = "{$lang->select2_searching}";
+
+	var templates = {
+		modal: '{$jsTemplates['modal']}',
+		modal_button: '{$jsTemplates['modal_button']}'
+	};
+
+	var cookieDomain = "{$mybb->settings['cookiedomain']}";
+	var cookiePath = "{$mybb->settings['cookiepath']}";
+	var cookiePrefix = "{$mybb->settings['cookieprefix']}";
+	var cookieSecureFlag = "{$mybb->settings['cookiesecureflag']}";
+	var deleteevent_confirm = "{$lang->deleteevent_confirm}";
+	var removeattach_confirm = "{$lang->removeattach_confirm}";
+	var loading_text = '{$lang->ajax_loading}';
+	var saving_changes = '{$lang->saving_changes}';
+	var use_xmlhttprequest = "{$mybb->settings['use_xmlhttprequest']}";
+	var my_post_key = "{$mybb->post_code}";
+	var rootpath = "{$mybb->settings['bburl']}";
+	var imagepath = "{$theme['imgdir']}";
+  	var yes_confirm = "{$lang->yes}";
+	var no_confirm = "{$lang->no}";
+	var MyBBEditor = null;
+	var spinner_image = "{$theme['imgdir']}/spinner.gif";
+	var spinner = "<img src='" + spinner_image +"' alt='' />";
+	var modal_zindex = 9995;
+// -->
+</script>
+<script type="text/javascript">
+function maskCofreId(id) {
+    var map = {
+        'CFF010':'CFR001','CFF010-2':'CFR002','CFF010-3':'CFR003','CFF010-4':'CFR004',
+        'CFF010-5':'CFR005','CFF010-6':'CFR006','CFF010-7':'CFR007','CFF010-8':'CFR008',
+        'CFF010-9':'CFR009','CFF010-10':'CFR010','CFF010-9D':'CFR009','CFF010-8D':'CFR008',
+        'CFF010-7D':'CFR007','CFF010-6D':'CFR006','CFF010-5D':'CFR005','CFF010-4D':'CFR004',
+        'CFF010-3D':'CFR003','CFF010-2D':'CFR002','CFF010-1D':'CFR001'
+    };
+    return map[id] || id;
+}
+</script>

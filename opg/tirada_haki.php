@@ -144,21 +144,14 @@ if ($select_hao) { array_push($hakis_arr, "hao"); }
 
 $hakis_arr_count = count($hakis_arr);
 
-echo($chances_tiradas);
-echo("!");
-echo($hakis_arr_count);
-echo("!");
 if ($select_hao || $has_hao) {
     $chances_tiradas = $chances_tiradas - (3 - $hakis_arr_count);
 } else {
     $chances_tiradas = $chances_tiradas - (2 - $hakis_arr_count);
-
-    // if ($ficha['hao'] == -1 && $hao_chance == 0) {
-    //     $chances_tiradas = $chances_tiradas - 1;
-    // }
 }
 
-echo($chances_tiradas);
+if ($chances_tiradas > $hakis_arr_count) { $chances_tiradas = $hakis_arr_count; }
+if ($chances_tiradas < 0) { $chances_tiradas = 0; }
 
 if ($tirada_aleatoria == 'true') {
     header('Content-type: application/json');
@@ -189,6 +182,11 @@ if ($choose_haki != '' && $has_full_haki) {
     header('Content-type: application/json');
     $response = array();
     $timestamp = time();
+
+    if (!in_array($choose_haki, $hakis_arr)) {
+        echo json_encode(['success' => false, 'mensaje' => 'Ese haki no está disponible.']);
+        return;
+    }
 
     $response[0] = array(
         'nombre' => $username,
@@ -221,6 +219,11 @@ if ($tirada_real == 'true') {
     header('Content-type: application/json');
     $response = array();
     $timestamp = time();
+
+    if ($hakis_arr_count <= 0 || $chances_tiradas <= 0) {
+        echo json_encode(['success' => false, 'mensaje' => 'No cumples los requisitos para esta tirada.']);
+        return;
+    }
 
     $tipo_haki = '';
     $tirada_random = rand(0, $hakis_arr_count - 1);

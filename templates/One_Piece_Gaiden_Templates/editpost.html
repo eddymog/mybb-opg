@@ -1,0 +1,357 @@
+<html>
+<head>
+<title>{$mybb->settings['bbname']} - {$lang->edit_post}</title>
+{$headerinclude}
+{$post_javascript}
+<style>
+.post.classic{overflow:visible!important;margin-bottom:1px!important;margin-top:0!important;border-bottom:1px solid black!important;}
+.post.classic::after{content:"";display:table;clear:both;}
+.post.classic .post_author{overflow:visible!important;background:transparent!important;float:left!important;width:250px!important;height:450px!important;margin-right:13px!important;margin-left:10px!important;margin-top:10px!important;position:relative!important;}
+.post.classic .post_content{float:none!important;width:auto!important;overflow:visible!important;}
+.post.classic .post_content blockquote.mycode_quote{overflow:hidden;}
+.post.classic .post_content ul,.post.classic .post_content ol{display:flow-root;}
+.post span.edited_post,.post span.edited_post a{color:rgb(51,32,134)!important;font-style:italic!important;font-size:8px!important;text-shadow:none!important;}
+#posts_container,#posts,#content{overflow:visible!important;}
+#content::after{content:"";display:table;clear:both;}
+.post.classic .post_head{height:40px!important;position:relative!important;}
+.post.classic .post_controls{padding:1px 0!important;min-height:40px!important;box-sizing:border-box!important;position:relative!important;}
+.post.classic .post_controls .post_management_buttons a{background-color:#ff6100!important;color:white!important;font-weight:bold!important;margin-top:2px!important;top:2px!important;}
+.post.classic .post_controls .post_management_buttons a span{color:white!important;font-weight:bold!important;}
+.post.classic .post_date{margin-left:20px!important;}
+.post.classic .post_meta{margin-left:5px!important;}
+a.ficha-nombre-link:hover{color:rgba(255,255,255,0.65)!important;}
+#modoLectura.activo{background:rgba(255,200,50,0.85)!important;color:black!important;border-color:rgba(0,0,0,0.3)!important;}
+a.new_reply_button span{text-transform:uppercase;font-weight:900;}
+</style>
+</head>
+<body>
+{$header}
+<div style="display:flex;align-items:center;gap:8px;" class="float_right">
+	<div id="modoNoche" style="cursor:pointer;line-height:0;"></div>
+	<a id="modoLectura" onclick="toggleModoLectura();return false;" href="#" class="button new_reply_button bradius"><span>LECTURA</span></a>
+</div>
+{$preview}
+{$post_errors}
+{$attacherror}
+{$moderation_notice}
+<!-- {deletebox} -->
+<form id="editpost" action="editpost.php?pid={$pid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
+<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+<tr>
+<td class="thead" colspan="2"><strong>{$lang->edit_post}</strong></td>
+</tr>
+<!-- {loginbox} -->
+<tr>
+<!-- <td class="trow2"><strong>{lang->subject}</strong></td> -->
+<td class="trow2" colspan="2">
+	<if $prefixselect then><strong style=" margin-right: 114px; ">Prefijo:</strong></if><strong>Título:</strong><br> {$prefixselect}<input type="text" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" />
+	<div style="display: inline; float: right; margin-top: 8px;">
+		<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
+			<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
+		</div>
+		<strong>Palabras</strong>: <span id="palabras">0</span>
+	</div>
+</td>
+</tr>
+<!-- {posticons} -->
+<tr>
+<!-- <td class="trow2" valign="top"><strong>{$lang->your_message}</strong><br /><div style="text-align: center;">{$smilieinserter}</div></td> -->
+<td class="trow2" colspan="2"><strong>Mensaje:</strong><br>
+<textarea name="message" id="message" rows="20" cols="70" tabindex="3">{$message}</textarea>
+{$codebuttons}
+</td>
+</tr>
+{$editreason}
+<!-- {postoptions}
+{subscriptionmethod}
+{pollbox} -->
+</table>
+<!-- {attachbox} -->
+<br />
+<div align="center"><input type="submit" class="button" name="submitbutton" value="{$lang->update_post}" tabindex="3" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="4" /></div>
+<input type="hidden" name="action" value="do_editpost" />
+<input type="hidden" name="attachmentaid" value="" />
+<input type="hidden" name="attachmentact" value="" />
+</form>
+{$footer}
+<script>
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function contarPalabras() {
+	await sleep(100);
+	$($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
+		before = $(this).html();
+	}).on('keyup', function() {
+		if (before != $(this).html()) { $(this).trigger('change'); }
+	});
+	$($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
+		const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
+		$('#palabras')[0].innerText = palabras;
+	});
+}
+contarPalabras();
+
+// ── Avatar tab switching ──────────────────────────────────────────────────────
+$(document).on('click', '.pestanas_avatar', function() {
+	var pestana = $(this);
+	var pid  = pestana.data('pid');
+	var tipo = pestana.data('tipo');
+
+	$('#pestana_avatar' + pid).removeClass('pestana_active');
+	$('#pestana_info'   + pid).removeClass('pestana_active');
+	$('#pestana_stats'  + pid).removeClass('pestana_active');
+	$('#pestana_akuma'  + pid).removeClass('pestana_active');
+
+	const hideAll = () => {
+		$('#avatar_info'  + pid).css({'opacity':'0','pointer-events':'none'});
+		$('#avatar_stats' + pid).css({'opacity':'0','pointer-events':'none'});
+		$('#avatar_akuma' + pid).css({'opacity':'0','pointer-events':'none'});
+	};
+	hideAll();
+
+	if (tipo === 'stats') {
+		$('#avatar_stats' + pid).css({'opacity':'1','pointer-events':'auto'});
+	} else if (tipo === 'info') {
+		$('#avatar_info' + pid).css({'opacity':'1','pointer-events':'auto'});
+	} else if (tipo === 'akuma') {
+		$('#avatar_akuma' + pid).css({'opacity':'1','pointer-events':'auto'});
+	}
+	$('#avatar_avatar' + pid).find('.postbit-resource-bars').css('display', tipo === 'avatar' ? '' : 'none');
+	pestana.addClass('pestana_active');
+});
+
+// ── Akuma modal ───────────────────────────────────────────────────────────────
+$(document).on('click', '.postbit-akuma-preview', function() {
+	openAkumaModalPostbit(this);
+});
+
+function openAkumaModalPostbit(el) {
+	var nombre      = el.dataset.nombre      || '';
+	var subnombre   = el.dataset.subnombre   || '';
+	var categoria   = el.dataset.categoria   || '';
+	var tier        = el.dataset.tier        || '';
+	var imagen      = el.dataset.imagen      || '';
+	var descripcion = el.dataset.descripcion || '';
+	var dominios    = el.dataset.dominios    || '';
+	var pasivas     = el.dataset.pasivas     || '';
+	var control     = parseInt(el.dataset.control) || 0;
+	var camino      = el.dataset.camino      || '';
+
+	var gradients = {
+		'Paramecia': 'linear-gradient(90deg,rgba(0,116,143,0) 0%,#ef3c3c 20%,#810b0b 50%,#ef3c3c 80%,rgba(0,116,143,0) 100%)',
+		'Logia':     'linear-gradient(90deg,rgba(0,116,143,0) 0%,#4CAF50 20%,#2E7D32 50%,#4CAF50 80%,rgba(0,116,143,0) 100%)',
+		'Zoan':      'linear-gradient(90deg,rgba(0,116,143,0) 0%,#FF9800 20%,#E65100 50%,#FF9800 80%,rgba(0,116,143,0) 100%)'
+	};
+	var frutaGradient = gradients[categoria]
+		|| 'linear-gradient(90deg,rgba(0,116,143,0) 0%,rgb(81,25,106) 20%,rgb(35,5,46) 50%,rgb(81,25,106) 80%,rgba(0,116,143,0) 100%)';
+
+	var rangos = (camino === 'Akuma')
+		? [
+			{nombre:'Dominio Básico',costo:0},{nombre:'Pasiva 1',costo:0},
+			{nombre:'Dominio Intermedio',costo:5},{nombre:'Pasiva 2',costo:15},
+			{nombre:'Dominio Maestro',costo:20},{nombre:'Pasiva 3',costo:30},
+			{nombre:'Despertado',costo:80}
+		]
+		: [
+			{nombre:'Dominio Básico',costo:0},{nombre:'Pasiva 1',costo:5},
+			{nombre:'Dominio Intermedio',costo:10},{nombre:'Pasiva 2',costo:20},
+			{nombre:'Dominio Maestro',costo:25},{nombre:'Pasiva 3',costo:40}
+		];
+
+	var nivelesDesbloqueados = '';
+	for (var i = 0; i <= control && i < rangos.length; i++) {
+		var r = rangos[i];
+		var esActual = (i === control);
+		var bg2    = esActual ? 'linear-gradient(90deg,#4CAF50 0%,#45a049 100%)' : 'linear-gradient(90deg,#81C784 0%,#66BB6A 100%)';
+		var bdr2   = esActual ? '#2E7D32' : '#4CAF50';
+		var fs2    = esActual ? '16px' : '14px';
+		var badge2 = esActual ? '<span style="background:rgba(255,255,255,0.3);padding:2px 8px;border-radius:12px;font-family:InterRegular,sans-serif;font-size:10px;font-weight:bold;">ACTUAL</span>' : '';
+		nivelesDesbloqueados +=
+			'<div style="display:flex;align-items:center;margin-bottom:8px;padding:6px 10px;background:' + bg2 + ';border-radius:5px;color:white;border-left:4px solid ' + bdr2 + ';">'
+			+ '<span style="font-family:moonGetHeavy,sans-serif;font-size:' + fs2 + ';margin-right:10px;text-shadow:1px 1px 2px black;">' + r.nombre + '</span>'
+			+ badge2
+			+ '</div>';
+	}
+
+	var tabStyle       = 'font-family:moonGetHeavy,sans-serif;font-size:10px;color:white;border:none;padding:8px 6px;cursor:pointer;letter-spacing:1px;border-right:2px solid transparent;background:#ff7b00;writing-mode:vertical-rl;';
+	var tabStyleActive = 'font-family:moonGetHeavy,sans-serif;font-size:10px;color:white;border:none;padding:8px 6px;cursor:pointer;letter-spacing:1px;border-right:2px solid white;background:#ffa600;writing-mode:vertical-rl;';
+
+	var tabsHtml =
+		'<div style="position:absolute;right:5px;top:52px;display:flex;flex-direction:column;gap:3px;z-index:1001;">'
+		+ '<button id="aktab_desc"    onclick="switchAkumaSection(\'desc\')"    style="' + tabStyleActive + '">Descripción</button>'
+		+ '<button id="aktab_control" onclick="switchAkumaSection(\'control\')" style="' + tabStyle + '">Control</button>'
+		+ (dominios ? '<button id="aktab_dominios" onclick="switchAkumaSection(\'dominios\')" style="' + tabStyle + '">Dominios</button>' : '')
+		+ (pasivas  ? '<button id="aktab_pasivas"  onclick="switchAkumaSection(\'pasivas\')"  style="' + tabStyle + '">Pasivas</button>'  : '')
+		+ '</div>';
+
+	var secDesc =
+		'<div id="aksec_desc" style="display:block;">'
+		+ '<div class="akuma-descripcion-background-libro" style="background:' + frutaGradient + ';margin-top:8px;">'
+		+ '<div class="akuma-descripcion-titulo-libro">Descripción</div></div>'
+		+ '<div class="akuma-descripcion-libro" style="max-height:520px;">' + (descripcion || 'Sin descripción disponible') + '</div>'
+		+ '</div>';
+
+	var secControl =
+		'<div id="aksec_control" style="display:none;">'
+		+ '<div class="akuma-descripcion-background-libro" style="background:' + frutaGradient + ';margin-top:8px;">'
+		+ '<div class="akuma-descripcion-titulo-libro">Control de Akuma</div></div>'
+		+ '<div style="padding:8px 20px;overflow-y:auto;max-height:520px;">' + nivelesDesbloqueados + '</div>'
+		+ '</div>';
+
+	var dominiosHtml = dominios.replace(/\n/g, '<br><br>');
+	var pasivasHtml  = pasivas.replace(/\n/g, '<br><br>');
+
+	var secDominios = dominios
+		? '<div id="aksec_dominios" style="display:none;">'
+		  + '<div class="akuma-descripcion-background-libro" style="background:' + frutaGradient + ';margin-top:8px;">'
+		  + '<div class="akuma-descripcion-titulo-libro">Dominios</div></div>'
+		  + '<div class="akuma-descripcion-libro" style="max-height:520px;">' + dominiosHtml + '</div>'
+		  + '</div>'
+		: '';
+
+	var secPasivas = pasivas
+		? '<div id="aksec_pasivas" style="display:none;">'
+		  + '<div class="akuma-descripcion-background-libro" style="background:' + frutaGradient + ';margin-top:8px;">'
+		  + '<div class="akuma-descripcion-titulo-libro">Pasivas</div></div>'
+		  + '<div class="akuma-descripcion-libro" style="max-height:520px;">' + pasivasHtml + '</div>'
+		  + '</div>'
+		: '';
+
+	var modalContent =
+		'<div class="modal-content akuma-libro-modal">'
+		+ '<span style="color:white;float:right;font-size:28px;font-weight:bold;position:absolute;right:20px;top:10px;z-index:1001;cursor:pointer;" onclick="closeAkumaModalPostbit()">&times;</span>'
+		+ '<div class="modal-body akuma-libro-body">'
+		+ '<div class="akuma-libro-left">'
+		+ '<div style="position:absolute;top:260px;transform:rotate(15deg);font-size:11px;font-family:moonGetHeavy,sans-serif;color:black;left:-110px;width:88px;text-align:center;z-index:5;">ID: ' + nombre.substring(0,3).toUpperCase() + '</div>'
+		+ '<div class="akuma-nombre-libro">' + nombre + '</div>'
+		+ '<div class="akuma-subnombre-libro">' + subnombre + '</div>'
+		+ '<div class="akuma-tipo-tier-libro" style="background:' + frutaGradient + ';">'
+		+ '<div class="akuma-tipo-tier-text">' + categoria + ' | Tier ' + tier + '</div></div>'
+		+ '<div class="akuma-imagen-libro-container"><img class="akuma-imagen-libro" src="' + imagen + '" alt="' + nombre + '"></div>'
+		+ '</div>'
+		+ tabsHtml
+		+ '<div class="akuma-libro-right">'
+		+ '<div style="display:flex;flex-direction:row;margin-top:-90px;min-height:120px;"></div>'
+		+ secDesc + secControl + secDominios + secPasivas
+		+ '</div></div></div>';
+
+	var modal = document.getElementById('akumaModal');
+	if (!modal) {
+		$('body').append('<div id="akumaModal"></div>');
+		modal = document.getElementById('akumaModal');
+	}
+	modal.innerHTML = modalContent;
+	modal.style.display = 'block';
+	modal.onclick = function(e) { if (e.target === modal) closeAkumaModalPostbit(); };
+}
+
+function switchAkumaSection(id) {
+	var secs = ['desc','control','dominios','pasivas'];
+	var tabStyleActive = 'font-family:moonGetHeavy,sans-serif;font-size:10px;color:white;border:none;padding:8px 6px;cursor:pointer;letter-spacing:1px;border-right:2px solid white;background:#ffa600;writing-mode:vertical-rl;';
+	var tabStyle       = 'font-family:moonGetHeavy,sans-serif;font-size:10px;color:white;border:none;padding:8px 6px;cursor:pointer;letter-spacing:1px;border-right:2px solid transparent;background:#ff7b00;writing-mode:vertical-rl;';
+	for (var j = 0; j < secs.length; j++) {
+		var sec = document.getElementById('aksec_' + secs[j]);
+		var tab = document.getElementById('aktab_' + secs[j]);
+		if (sec) sec.style.display = (secs[j] === id) ? 'block' : 'none';
+		if (tab) tab.cssText  = (secs[j] === id) ? tabStyleActive : tabStyle;
+	}
+}
+
+function closeAkumaModalPostbit() {
+	var modal = document.getElementById('akumaModal');
+	if (modal) modal.style.display = 'none';
+}
+
+// ── Circular progress bars ────────────────────────────────────────────────────
+document.querySelectorAll('.circular-progress').forEach(function(bar) {
+	const pv    = bar.querySelector('.percentage');
+	const ic    = bar.querySelector('.inner-circle');
+	let start   = 0;
+	const end   = Number(bar.getAttribute('data-percentage'));
+	const speed = 25;
+	const color = bar.getAttribute('data-progress-color');
+	const nivel = bar.getAttribute('data-nivel');
+	const timer = setInterval(function() {
+		start++;
+		if (pv) { pv.textContent = nivel; pv.style.color = color; }
+		if (ic) ic.style.backgroundColor = bar.getAttribute('data-inner-circle-color');
+		bar.style.background = 'conic-gradient(' + color + ' ' + (start * 3.6) + 'deg,' + bar.getAttribute('data-bg-color') + ' 0deg)';
+		if (start >= end) clearInterval(timer);
+	}, speed);
+});
+
+// ── Post author fixed height ──────────────────────────────────────────────────
+function syncPostAuthorHeight() {
+	$('.post_author').css('height', '450px');
+}
+syncPostAuthorHeight();
+
+// ── Modo noche / modo lectura ─────────────────────────────────────────────────
+let modoLectura = localStorage.getItem('modoLectura');
+let modoNoche   = localStorage.getItem('modoNoche');
+
+function applyModoNoche(on) {
+	if (on) {
+		$('.post_body').css('color', '#d9d6d6');
+		$('.post_content,.post,.tfoot').css('background-color', '#1a1423');
+		$('.spoiler_content').css('background-color', '#2a203a');
+		$('.tecnica_spoiler_content').css('background-color', '#2a203a');
+		$('.tecnicaDes span').css('color', 'white');
+		$('.tecnicaId span').css({'color':'white','background':'#571caf','border':'#6e23dd'});
+		$('.tecnicaCost span').css('color', 'white');
+		$('blockquote.mycode_quote').css({'background-color':'#ffe0f0','color':'#4a1060','border-color':'#c870a0'});
+		$('blockquote.mycode_quote cite').css({'color':'#4a1060','border-bottom-color':'#c870a0'});
+		$('blockquote.mycode_quote cite > span').css('color', '#7a2080');
+		$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_dia" src="/images/op/misc/ModoDia_One_Piece_Gaiden_Foro_Rol.png">');
+	} else {
+		$('.post_body').css('color', 'black');
+		$('.post_content,.post,.tfoot').css('background-color', '#ffeed2');
+		$('.spoiler_content').css('background-color', '#ffe6bd');
+		$('.tecnica_spoiler_content').css('background-color', 'rgb(255 230 189)');
+		$('.tecnicaDes span').css('color', 'black');
+		$('.tecnicaId span').css({'color':'white','background':'#ff6d1d','border':'#843105'});
+		$('.tecnicaCost span').css('color', 'black');
+		$('blockquote.mycode_quote').css({'background-color':'#fff','color':'','border-color':'#ccc'});
+		$('blockquote.mycode_quote cite').css({'color':'','border-bottom-color':'#ccc'});
+		$('blockquote.mycode_quote cite > span').css('color', '#666');
+		$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_noche" src="/images/op/misc/ModoNoche_One_Piece_Gaiden_Foro_Rol.png">');
+	}
+}
+
+function applyModoLectura(on) {
+	if (on) {
+		$('.post_author').css('display', 'none');
+		$('.usuario-derecha').css('display', 'block');
+		$('.post_content').css('width', '1100px');
+		$('.post_body').css('font-size', '19px');
+		$('#modoLectura').addClass('activo');
+	} else {
+		$('.post_author').css('display', 'block');
+		$('.usuario-derecha').css('display', 'none');
+		$('.post_content').css('width', '');
+		$('.post_body').css('font-size', '15px');
+		$('#modoLectura').removeClass('activo');
+	}
+}
+
+applyModoNoche(modoNoche === 'true');
+applyModoLectura(modoLectura === 'true');
+
+window.toggleModoNoche = function() {
+	modoNoche = (modoNoche === 'true') ? 'false' : 'true';
+	localStorage.setItem('modoNoche', modoNoche);
+	applyModoNoche(modoNoche === 'true');
+};
+
+window.toggleModoLectura = function() {
+	modoLectura = (modoLectura === 'true') ? 'false' : 'true';
+	localStorage.setItem('modoLectura', modoLectura);
+	applyModoLectura(modoLectura === 'true');
+	syncPostAuthorHeight();
+};
+</script>
+</body>
+</html>

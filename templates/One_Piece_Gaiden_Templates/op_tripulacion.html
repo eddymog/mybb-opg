@@ -1,0 +1,343 @@
+<html>
+<head>
+  <title>Tripulación de {$ficha['nombre']} - One Piece Gaiden</title>
+  {$headerinclude}
+  {$op_ficha_css}
+  <link rel="stylesheet" href="tripulacion.css">
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+    <div class="mainBackground">
+      <div class="secondBackground">
+        <div class="thirdBackground">
+          
+          <!-- Mensaje de estado si no es propietario -->
+          <if !$is_owner && $g_is_staff then>
+            <div style="border-radius: 3px; color: white; font-family: InterRegular; text-align: center; background-color: #e74c3c; padding: 10px; font-size: 16px; border: 4px dotted black; margin-bottom: 20px;">
+              Estás viendo la tripulación como miembro del staff.
+            </div>
+          </if>
+          
+          <div class="tripulacion-container">
+            <!-- Header de la Tripulación -->
+            <div class="tripulacion-header">
+              <div class="tripulacion-info">
+                <h1 class="tripulacion-name">Tripulación {$ficha['nombre']}</h1>
+                <div class="tripulacion-capitan">
+                  Capitán: <a href="/member.php?action=profile&uid={$uid}" style="color: #fff; text-decoration: none;">
+                    <span id="captain-name">{$ficha['nombre']}</span>
+                  </a>
+                </div>
+                <div class="tripulacion-faccion" style="color: {$faccionColor}; margin-top: 5px;">
+                  Facción: {$ficha['faccion']}
+                </div>
+              </div>
+              <div class="captain-avatar">
+                <img src="{$tripulacion_data['avatar_capitan']}" alt="Avatar del Capitán" id="captain-avatar">
+              </div>
+            </div>
+            
+            <!-- Estadísticas de la Tripulación -->
+            <div class="tripulacion-stats">
+              <div class="stat-item">
+                <div class="stat-value" id="miembros-count">{$tripulacion_data['miembros_count']}</div>
+                <div class="stat-label">Miembros</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="reputacion-value">{$tripulacion_data['reputacion']}</div>
+                <div class="stat-label">Reputación</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="barco-nivel">{$tripulacion_data['nivel_barco']}</div>
+                <div class="stat-label">Nivel del Barco</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="territorios-count">{$tripulacion_data['territorios_controlados']}</div>
+                <div class="stat-label">Territorios</div>
+              </div>
+            </div>
+            
+            <!-- Pestañas de Navegación -->
+            <div class="tripulacion-tabs">
+              <button class="tab-button active" data-tab="miembros">Miembros</button>
+              <button class="tab-button" data-tab="barco">Barco</button>
+              <button class="tab-button" data-tab="bandera">Bandera</button>
+              <button class="tab-button" data-tab="recursos">Recursos</button>
+              <button class="tab-button" data-tab="reputacion">Reputación</button>
+              <button class="tab-button" data-tab="territorio">Territorio</button>
+            </div>
+            
+            <!-- Contenido de las Pestañas -->
+            
+            <!-- Sección de Miembros -->
+            <div class="tab-content active" id="miembros-tab">
+              <if $is_owner then>
+                <div class="miembros-actions">
+                  <button class="action-btn" id="reclutar-btn">Reclutar Miembro</button>
+                  <button class="action-btn" id="despedir-btn">Despedir Miembro</button>
+                </div>
+              </if>
+              <div class="miembros-grid" id="miembros-grid">
+                <!-- Los miembros se cargarán dinámicamente con JavaScript -->
+              </div>
+            </div>
+
+            <!-- Sección de Barco -->
+            <div class="tab-content" id="barco-tab">
+              <div class="barco-container">
+                <div class="barco-preview">
+                  <div class="barco-image" id="barco-image"></div>
+                  <div class="barco-info-basic">
+                    <h3 id="barco-nombre">Going Merry</h3>
+                    <p>Nivel <span id="barco-nivel-display">{$tripulacion_data['nivel_barco']}</span></p>
+                  </div>
+                </div>
+                <div class="barco-info">
+                  <h3>Estado del Barco</h3>
+                  <div class="barco-stats">
+                    <div class="barco-stat-item">
+                      <div class="barco-stat-name">Velocidad</div>
+                      <div class="barco-stat-value" id="barco-velocidad">3</div>
+                    </div>
+                    <div class="barco-stat-item">
+                      <div class="barco-stat-name">Resistencia</div>
+                      <div class="barco-stat-value" id="barco-resistencia">4</div>
+                    </div>
+                    <div class="barco-stat-item">
+                      <div class="barco-stat-name">Capacidad</div>
+                      <div class="barco-stat-value" id="barco-capacidad">10</div>
+                    </div>
+                    <div class="barco-stat-item">
+                      <div class="barco-stat-name">Artillería</div>
+                      <div class="barco-stat-value" id="barco-artilleria">2</div>
+                    </div>
+                  </div>
+                  
+                  <h3>Mejoras Disponibles</h3>
+                  <div class="barco-upgrades" id="barco-upgrades">
+                    <!-- Las mejoras se cargarán dinámicamente -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de Bandera -->
+            <div class="tab-content" id="bandera-tab">
+              <div class="bandera-editor">
+                <div class="bandera-canvas">
+                  <div class="bandera-preview" id="bandera-preview">
+                    <span id="bandera-placeholder">?‍☠️</span>
+                  </div>
+                  <div class="bandera-current-info">
+                    <h4>Bandera Actual</h4>
+                    <p id="bandera-descripcion-actual">Bandera pirata tradicional</p>
+                  </div>
+                </div>
+                <div class="bandera-tools">
+                  <if $is_owner then>
+                    <div class="tool-section">
+                      <h3 class="tool-title">URL de la Imagen</h3>
+                      <div class="input-group">
+                        <input type="text" id="bandera-imagen-url" class="bandera-input" placeholder="Ingresa la URL de la imagen de la bandera">
+                        <button class="bandera-btn" id="cargar-imagen-btn">Cargar Imagen</button>
+                      </div>
+                    </div>
+                    <div class="tool-section">
+                      <h3 class="tool-title">Descripción de la Bandera</h3>
+                      <div class="input-group">
+                        <label for="fondo-descripcion">Color de Fondo:</label>
+                        <input type="text" id="fondo-descripcion" class="bandera-input" placeholder="Describe el color de fondo">
+                      </div>
+                      <div class="input-group">
+                        <label for="secundario-descripcion">Color Secundario:</label>
+                        <input type="text" id="secundario-descripcion" class="bandera-input" placeholder="Describe el color secundario">
+                      </div>
+                      <div class="input-group">
+                        <label for="simbolo-descripcion">Símbolos:</label>
+                        <textarea id="simbolo-descripcion" class="bandera-textarea" placeholder="Describe los símbolos o emblemas de tu bandera"></textarea>
+                      </div>
+                    </div>
+                    <div class="bandera-actions">
+                      <button class="bandera-btn" id="save-bandera">Guardar Bandera</button>
+                      <button class="bandera-btn" id="reset-bandera">Reiniciar</button>
+                    </div>
+                  </if>
+                  <if !$is_owner then>
+                    <div class="tool-section">
+                      <p style="text-align: center; color: #666; font-style: italic;">
+                        Solo el capitán puede modificar la bandera de la tripulación.
+                      </p>
+                    </div>
+                  </if>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de Recursos -->
+            <div class="tab-content" id="recursos-tab">
+              <div class="recursos-container">
+                <div class="recursos-treasures">
+                  <div class="recursos-card">
+                    <h3 class="recursos-card-title">Tesoro de la Tripulación</h3>
+                    <div class="treasure-display">
+                      <div class="treasure-icon">?</div>
+                      <div>
+                        <div class="treasure-amount" id="tesoro-amount">{$tripulacion_data['tesoro']}</div>
+                        <div class="treasure-berries">Berries</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="recursos-card">
+                    <h3 class="recursos-card-title">Recursos del Barco</h3>
+                    <div class="resource-progress">
+                      <div class="progress-label">
+                        <span class="progress-title">Comida</span>
+                        <span class="progress-value" id="comida-value">75/100</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="comida-fill" style="width: 75%"></div>
+                      </div>
+                    </div>
+                    <div class="resource-progress">
+                      <div class="progress-label">
+                        <span class="progress-title">Agua</span>
+                        <span class="progress-value" id="agua-value">60/100</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="agua-fill" style="width: 60%"></div>
+                      </div>
+                    </div>
+                    <div class="resource-progress">
+                      <div class="progress-label">
+                        <span class="progress-title">Madera</span>
+                        <span class="progress-value" id="madera-value">45/100</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="madera-fill" style="width: 45%"></div>
+                      </div>
+                    </div>
+                    <div class="resource-progress">
+                      <div class="progress-label">
+                        <span class="progress-title">Hierro</span>
+                        <span class="progress-value" id="hierro-value">30/100</span>
+                      </div>
+                      <div class="progress-bar">
+                        <div class="progress-fill" id="hierro-fill" style="width: 30%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="recursos-inventory">
+                  <div class="recursos-card">
+                    <h3 class="recursos-card-title">Inventario de la Tripulación</h3>
+                    <div class="inventory-grid" id="inventory-grid">
+                      <!-- Items cargados dinámicamente -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de Reputación -->
+            <div class="tab-content" id="reputacion-tab">
+              <div class="reputacion-container">
+                <div class="reputacion-card">
+                  <div class="reputacion-header">Reputación con la Marina</div>
+                  <div class="reputacion-body">
+                    <div class="reputacion-meter">
+                      <div class="reputacion-track"></div>
+                      <div class="reputacion-marker" id="marina-marker"></div>
+                    </div>
+                    <div class="reputacion-labels">
+                      <span>Enemigo</span>
+                      <span>Neutral</span>
+                      <span>Aliado</span>
+                    </div>
+                    <div class="bounty-display" id="bounty-display">
+                      Recompensa del Capitán: {$ficha['recompensa']} ฿
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="reputacion-card">
+                  <div class="reputacion-header">Historial de Eventos</div>
+                  <div class="reputacion-body">
+                    <ul class="reputation-history" id="reputation-history">
+                      <!-- Historial cargado dinámicamente -->
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección de Territorio -->
+            <div class="tab-content" id="territorio-tab">
+              <div class="territorio-container">
+                <div class="territorio-map">
+                  <div class="map-image">
+                    <img src="/imagenes/one piece azul (1).jpg" alt="Mapa del Mundo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                  </div>
+                </div>
+                <div class="territorio-grid" id="territorio-grid">
+                  <!-- Territorios cargados dinámicamente -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal para detalles -->
+          <div class="modal-backdrop" id="modal-backdrop">
+            <div class="modal-container">
+              <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Detalles</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+              </div>
+              <div class="modal-body" id="modal-body">
+                <!-- Contenido dinámico -->
+              </div>
+              <div class="modal-footer">
+                <button class="btn" id="modal-ok-btn">Aceptar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>  </div>  </div>
+  <!-- Scripts y datos para JavaScript -->
+  <script>
+    // Datos del usuario y tripulación (con validación de errores)
+    try {
+      // Intentar cargar datos del servidor, con respaldo a datos por defecto
+      window.TRIPULACION_DATA = {
+        "miembros_count": 3,
+        "reputacion": 150,
+        "nivel_barco": 2,
+        "territorios_controlados": 1,
+        "tesoro": 50000,
+        "avatar_capitan": "/imagenes/WWWPirata1.jpg"
+      };
+      
+      window.FICHA_DATA = {
+        "nombre": "Capitán de Prueba",
+        "faccion": "Pirata",
+        "recompensa": "30,000,000"
+      };
+      
+      window.IS_OWNER = true;
+      window.G_IS_STAFF = false;
+      window.QUERY_UID = 268;
+      window.FACCION_COLOR = '#ffad33';
+      window.MYBB_URL = '';
+        console.log('Variables globales definidas correctamente');
+    } catch (error) {
+      console.error('Error al definir variables globales:', error);
+    }
+  </script>
+  <script src="tripulacion.js"></script>
+  {$footer}
+</body>
+</html>

@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>{$mybb->settings['bbname']} - {$lang->profile}</title>
+{$headerinclude}
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/report.js?ver=1820"></script>
+<style>
+.profile-ctbox {
+    border-bottom: 2px solid {$faccion_color};
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+.profile-avatar-fixed { display: inline-block; width: 200px; height: 200px; margin: 10px; }
+.profile-avatar-fixed img { width: 200px !important; height: 200px !important; object-fit: cover; display: block; max-width: unset !important; }
+</style>
+</head>
+<body>
+{$header}
+<fieldset style="background-color: #ffe2b1;">
+	<table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffe2b1;">
+		<tr>
+			<td width="75%">
+				<span class="largetext"><strong>{$formattedname}</strong></span><br />
+				<span class="smalltext">
+					{$groupimage}
+					<br />
+					<strong>{$lang->local_time}</strong> {$localtime}<br />
+					<strong>{$lang->postbit_status}</strong> {$online_status}
+				</span>
+			</td>
+			<td width="25%" align="right" valign="middle"><div class="profile-avatar-fixed">{$avatar}</div></td>
+		</tr>
+	</table>
+</fieldset>
+<br />
+{$awaybit}{$bannedbit}
+<table width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+	<tr>
+		<td width="50%" valign="top">
+			<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder" style="background-color: {$faccion_color};">
+				<tr>
+					<td colspan="2" class="thead" style="background-color: {$faccion_color};"><strong>{$lang->users_forum_info}</strong></td>
+				</tr>
+				<tr>
+					<td class="trow2"><strong>{$lang->lastvisit}</strong></td>
+					<td class="trow2">{$memlastvisitdate}</td>
+				</tr>
+				<tr>
+					<td class="trow1"><strong>{$lang->total_posts}</strong></td>
+					<td class="trow1">{$memprofile['postnum']} ({$lang->ppd_percent_total}){$findposts}</td>
+				</tr>
+				<tr>
+					<td class="trow2"><strong>{$lang->total_threads}</strong></td>
+					<td class="trow2">{$memprofile['threadnum']} ({$lang->tpd_percent_total}){$findthreads}</td>
+				</tr>
+				<tr>
+					<td class="trow1"><strong>{$lang->timeonline}</strong></td>
+					<td class="trow1">{$timeonline}</td>
+				</tr>
+				<tr>
+					<td class="trow2" colspan="2" style="text-align:center;padding:8px;">
+						<a href="/op/ficha.php?action=profile&uid={$memprofile['uid']}" style="display:inline-block;padding:6px 18px;background:#ff7e00;color:#fff;font-weight:bold;border-radius:4px;text-decoration:none;font-size:13px;">Ver página de personaje</a>
+					</td>
+				</tr>
+			</table>
+			{$contact_details}
+		</td>
+		<td>&nbsp;&nbsp;</td>
+		<td width="50%" valign="top">
+			{$profilefields}{$profile_attached}
+			{$signature}
+			{$adminoptions}
+			<div style="text-align: center">{$report_options}</div>
+		</td>
+	</tr>
+</table>
+{$footer}
+</body>
+</html>

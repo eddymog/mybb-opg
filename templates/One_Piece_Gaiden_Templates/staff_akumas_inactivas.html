@@ -1,0 +1,76 @@
+<html>
+
+<head>
+    <style>
+
+
+    </style>
+    <title>Consola Mod</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+    <div class="fondo-blanco">
+    <h4><strong>Akumas inactivas en los últimos 2 meses:</strong></h4>
+    <div id="akumas">
+		
+	</div><br>
+
+    <h4><strong>Akumas que expirarán en 15 días:</strong></h4>
+    <div id="akumas15">
+
+    </div><br>
+
+    <h4><strong>Akumas que expirarán en 30 días:</strong></h4>
+    <div id="akumas30">
+
+    </div><br>
+
+	<h4><strong>Akumas asignadas en página de Akuma, pero no en ficha de usuario:</strong></h4>
+	<div id="akumas2">
+		
+	</div>
+    </div>
+    {$footer}
+</body>
+<script>
+	let akumas = {$akumas_json};
+	let akumas_expire_15 = {$akumas_expire_15_json};
+	let akumas_expire_30 = {$akumas_expire_30_json};
+	let akumas2 = {$akumas_asignar_json};
+	let timestamp = {$last_two_months};
+	
+	function fmtDate(ts) {
+		if (!ts || ts == 0) return 'Sin actividad registrada';
+		return new Date(ts * 1000).toLocaleString();
+	}
+	
+	for (let i = 0; i < akumas.length; i++) {
+		let a = akumas[i];
+		let lastStr = fmtDate(a.last_post);
+		$('#akumas').append((i + 1) + `. ` + a.nombre_usuario + ` (` + a.uid + `) tiene la Akuma ` + a.nombre + ` (` + a.subnombre + ` - ` + a.akuma_id + `). Última actividad: ` + lastStr + `.<br>`);
+	}
+	
+	for (let i = 0; i < akumas_expire_15.length; i++) {
+		let a = akumas_expire_15[i];
+		let lastStr = fmtDate(a.last_post);
+		let daysLeft = Math.ceil(((timestamp + (15 * 24 * 3600)) - a.last_post) / 86400);
+		if (daysLeft < 0) daysLeft = 0;
+		$('#akumas15').append((i + 1) + `. ` + a.nombre_usuario + ` (` + a.uid + `) - ` + a.nombre + ` (` + a.subnombre + ` - ` + a.akuma_id + `). Última actividad: ` + lastStr + ` - En aprox. ` + daysLeft + ` días.<br>`);
+	}
+	
+	for (let i = 0; i < akumas_expire_30.length; i++) {
+		let a = akumas_expire_30[i];
+		let lastStr = fmtDate(a.last_post);
+		let daysLeft = Math.ceil(((timestamp + (30 * 24 * 3600)) - a.last_post) / 86400);
+		if (daysLeft < 0) daysLeft = 0;
+		$('#akumas30').append((i + 1) + `. ` + a.nombre_usuario + ` (` + a.uid + `) - ` + a.nombre + ` (` + a.subnombre + ` - ` + a.akuma_id + `). Última actividad: ` + lastStr + ` - En aprox. ` + daysLeft + ` días.<br>`);
+	}
+	
+	for (let i = 0; i < akumas2.length; i++) {
+		$('#akumas2').append((i + 1) + `. ` + akumas2[i].nombre_usuario + ` (` + akumas2[i].fid + `) tiene la Akuma ` + akumas2[i].nombre + ` (` + akumas2[i].subnombre + ` - ` + akumas2[i].akuma_id + `).<br>`);
+	}
+	
+</script>
+</html>

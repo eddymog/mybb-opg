@@ -1,0 +1,149 @@
+<html>
+<head>
+	{$headerinclude}
+    {$csrf_script}
+    <style>
+        h3 {
+            background-color: red;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .fondo-blanco ul li {
+            background-color: white;
+            font-size: 1.1em;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+    <title>Consola Mod</title>
+    {$headerinclude}
+</head>
+
+<body>
+    {$header}
+    <div class="fondo-blanco">
+    <h4>Peticiones administrativas</h4>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <a href="/op/staff/reset_peticiones.php" style="background:#ea580c;color:#fff;padding:6px 14px;border-radius:5px;text-decoration:none;font-size:13px;font-family:moonGetHeavy,Arial;">Resets de Build</a>
+        <a href="https://onepiecegaiden.com/op/staff/peticiones_admin.php?resuelto=1">Peticiones resueltas</a>
+    </div>
+    <ul>
+        {$peticiones_li}
+    </ul>
+
+<script>
+(function(){
+  document.addEventListener('click', function(e){
+    // --- Guardar asignación de moderador ---
+    const btnMod = e.target.closest('.save-mod');
+    if (btnMod) {
+      const pid = btnMod.dataset.pid;
+      const targetId = btnMod.dataset.targetId;
+      const sel = document.getElementById(targetId);
+
+      if (!pid) { alert('No se pudo determinar el ID de la petición'); return; }
+      if (!sel) { console.error('No se encontró el select con id:', targetId); alert('No se encontró el selector'); return; }
+
+      const nombre = sel.value;
+
+      btnMod.disabled = true;
+      const prevText = btnMod.textContent;
+      btnMod.textContent = 'Guardando...';
+
+      const params = new URLSearchParams();
+      params.set('accion', 'asignar_mod');
+      params.set('peti_id', pid);
+      params.set('nombre_mod', nombre);
+      if (window.MYBB_POST_KEY) params.set('my_post_key', window.MYBB_POST_KEY);
+
+      fetch('/op/staff/peticiones_admin.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+        body: params.toString()
+      })
+      .then(r => r.json())
+      .then(res => {
+        console.log('[asignar_mod] respuesta:', res);
+        if (res && res.success) {
+          const li = btnMod.closest('li');
+          const span = li && li.querySelector('.atendido-por');
+          if (span) span.textContent = res.atendidoPor || 'Sin asignar';
+        } else {
+          alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Fallo de red/servidor');
+      })
+      .finally(() => {
+        btnMod.disabled = false;
+        btnMod.textContent = prevText || 'Guardar';
+      });
+
+      return; // Evita que siga y dispare el bloque de notas
+    }
+
+    // --- Guardar notas de moderación ---
+    const btnNotas = e.target.closest('.save-notas');
+    if (btnNotas) {
+      const pid = btnNotas.dataset.pid;
+      const targetId = btnNotas.dataset.targetId;
+      const ta = document.getElementById(targetId);
+
+      if (!pid) { alert('No se pudo determinar el ID de la petición'); return; }
+      if (!ta)  { console.error('No se encontró el textarea con id:', targetId); alert('No se encontró el campo de notas'); return; }
+
+      const notas = ta.value;
+
+      btnNotas.disabled = true;
+      const prevText = btnNotas.textContent;
+      btnNotas.textContent = 'Guardando...';
+
+      const params = new URLSearchParams();
+      params.set('accion', 'guardar_notas_mod');
+      params.set('peti_id', pid);
+      params.set('notas', notas);
+      if (window.MYBB_POST_KEY) params.set('my_post_key', window.MYBB_POST_KEY);
+
+      fetch('/op/staff/peticiones_admin.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+        body: params.toString()
+      })
+      .then(r => r.json())
+      .then(res => {
+        console.log('[guardar_notas_mod] respuesta:', res);
+        if (res && res.success) {
+          // feedback visual suave
+          ta.style.outline = '2px solid #4caf50';
+          setTimeout(() => { ta.style.outline = ''; }, 800);
+        } else {
+          alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Fallo de red/servidor');
+      })
+      .finally(() => {
+        btnNotas.disabled = false;
+        btnNotas.textContent = prevText || 'Guardar notas';
+      });
+    }
+  });
+})();
+</script>
+
+
+    </div>
+	
+    {$reload_script}
+    {$footer}
+</body>
+</html>

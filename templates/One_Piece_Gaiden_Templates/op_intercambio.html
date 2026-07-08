@@ -1,0 +1,791 @@
+<html>
+
+<head>
+  <title>Intercambio</title>
+  {$headerinclude}
+  <style>
+	  .akumaBanner {
+		  width: 100%;
+		  height: 75px;
+		  background-image: url('/images/op/uploads/TituloIntercambio_One_Piece_Gaiden_Foro_Rol.png');
+		  background-size: cover;
+		  margin-bottom: 20px;
+	  }
+	  
+	  .akumaTirBody {
+		  display: flex;
+		  flex-direction: row;
+		  gap: 25px;
+	  }
+
+	  .akumaTirIzquierda {
+		  display: flex;
+		  flex-direction: column;
+		  width: 50%;
+			gap:25px;
+	  }
+	  
+	  .akumaTirDerecha {
+		  width: 50%;
+	  }
+	  
+	  .testDraw {
+/* 		  background: linear-gradient(90deg, rgba(70,12,110,1) 0%, rgba(126,32,191,1) 50%, rgba(70,12,110,1) 100%);
+height: 5rem ; */
+		  background: rgba(70,12,110,1);
+		  margin-bottom: 25px;
+	  }
+
+	  .realDraw {
+/* 		  background: linear-gradient(90deg, rgba(57,56,56,1) 0%, rgba(101,102,102,1) 50%, rgba(57,56,56,1) 100%); */
+/* height: 5rem ; */
+/* 		  background: #71706f; */
+		  background: #d26500;
+	  }
+	  
+	  .blockedDraw {
+		  background: #71706f;
+	  }
+	  
+	  .realDraw:hover {
+		  background: #ff9b00;
+	  }
+	  
+	  .testDraw:hover {
+		  background: rgba(126,32,191,1);	  
+	  }
+	  
+	  .realDraw, .testDraw, .blockedDraw {
+		  width: 450px;
+   		  height: 65px;
+		  color: white;
+		  font-size: 1.5rem;
+		  text-align: center;
+		  display: flex;
+		  flex-direction: column;
+		  align-items: center;
+		  justify-content: center;
+		  border: 2px solid black;
+		  border-radius: 15px;
+		  filter: drop-shadow(0px 0px 4px black);
+		  transition: all 0.5s ease-out;
+		  cursor: pointer;
+		  font-family: 'moonGetHeavy';
+		  letter-spacing: 2px;
+		  margin-bottom: 15px;
+	  }
+	  
+	  .imageBox {
+		  height: 300px;
+		  background-color: black;
+		  border: 2px solid black;
+		  width: 480px;
+		  height: 270px;
+	  }
+
+	  .akumaTirTable {
+		  height: 150px;
+    	  width: 490px;
+	  }
+	  
+	  .tableHeader {
+		  background-color: #8f59f7;
+		  color: white;
+		  text-align: center;
+		  padding: 2px;
+		  border: 2px solid black;
+		  border-start-end-radius: 10px;
+  		  border-start-start-radius: 10px;
+		  font-family: moonGetHeavy;
+		  font-size: 16px;
+		  letter-spacing: 2px;
+		  text-shadow: 2px 2px 0px black;
+		  position: relative;
+	  }
+	  
+	  .tableContent {
+		  display: flex;
+		  gap:20px;
+		  padding: 15px;
+		  border-end-end-radius: 10px;
+		  border-end-start-radius: 10px;
+		  background-color: #d7b5ff;
+		  border: 2px solid black;
+    	  border-top: 0px;
+	  }
+	  
+	  .tableTotalTestDraw {
+			width: 175px;
+			height: 90px;
+			background-color: #8f59f7;
+			color: white;
+			border: 1px solid black;
+			box-sizing: border-box;
+		 	padding: 6px;
+	  }
+	  
+	  .tablerTierContent {
+		  display: flex;
+		  flex-wrap: wrap;
+		  gap: 10px;
+		  width: 230px;
+	  }
+	  
+	  .tierBox {
+		  background-color:#8e59f7;
+		  height: 40px;
+		  width: 155px;
+		  border: 1px solid black;
+		  box-sizing: border-box;
+		  padding: 2px;
+   		  color: white;
+	  }
+	  
+	  .tierBoxText1 {
+		  text-align: center;
+		  font-family: moonGetHeavy;
+		  letter-spacing: 1px;
+		  text-shadow: 1px 1px 0px black;
+		  font-size: 13px;
+	  }
+	  
+	  .tierBoxText2 {
+		  text-align: center;
+		  font-family: moonGetHeavy;
+		  letter-spacing: 1px;
+		  text-shadow: 1px 1px 0px black;
+		  font-size: 13px;
+	  }
+	  
+	  .filterBox {
+		  display:flex; 
+		  flex-direction: column;
+	  }
+	  
+	  .akumaTypeRow  {
+		  display: flex;
+		  flex-direction: row;
+		  border: 2px solid black;
+		  border-radius: 10px 10px 0px 0px;
+	  }
+	  
+	  .filterClass span {
+		  font-weight: bolder;
+		  color: white;
+		  text-transform: uppercase;
+		  display: inline-block;
+		  padding: 5px 10px;
+		  font-size: 14px;
+		  font-family: 'moonGetHeavy';
+	  }
+	  
+	  .categoriaBox {
+		flex: 1; /* Hace que cada caja ocupe el mismo espacio disponible */
+  		border-right: 2px solid black; /* Solo para visualización */
+		text-align: center;
+		background-color: #ff7b00;
+	  }
+	  
+	  .categoriaBox:last-child {
+		  border: none;
+		  border-radius: 0 10px 0 0; 
+	  }
+	  
+	  .categoriaBox:first-child {
+			border-radius: 10px 0 0 0; 
+	  }
+	  
+	  .box-active {
+		  background-color: #ffa600;
+	  }
+	  
+	  .resultado-total {
+		  color: red;
+	  }
+	  
+	  .resultado-nombre {
+		  width: 17%;
+		  font-size: 12px;
+		  font-family: 'moonGetHeavy';
+		  color: black;
+		  padding: 4px 7px;
+		  box-sizing: border-box;
+	  }
+	  
+	  .resultado-justificacion {
+        width: 25%;
+        font-size: 12px;
+        font-family: 'moonGetHeavy';
+        color: black;
+        padding: 4px 7px;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        position: relative;
+        max-height: 60px;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .resultado-justificacion.expanded {
+        max-height: none;
+        background: linear-gradient(135deg, #f8f4ff 0%, #e8d9ff 100%);
+        border-radius: 8px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        padding: 8px 12px;
+    }
+
+    .justificacion-toggle {
+        position: absolute;
+        bottom: 2px;
+        right: 5px;
+        background: linear-gradient(135deg, #8f59f7 0%, #6c10ab 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        width: 24px;
+        height: 18px;
+        cursor: pointer;
+        font-size: 10px;
+        font-family: 'moonGetHeavy';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease-out;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+
+    .justificacion-toggle:hover {
+        background: linear-gradient(135deg, #a673ff 0%, #8f59f7 100%);
+        transform: scale(1.1);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+
+    .justificacion-toggle:active {
+        transform: scale(0.95);
+    }
+
+    .justificacion-toggle::before {
+        content: "▼";
+        transition: transform 0.3s ease;
+        font-size: 8px;
+    }
+
+    .justificacion-toggle.expanded::before {
+        transform: rotate(180deg);
+        content: "▲";
+    }
+
+    .justificacion-content {
+        transition: all 0.3s ease-in-out;
+        opacity: 1;
+    }
+
+    .resultado-justificacion:not(.expanded) .justificacion-content {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .justificacion-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 25px;
+        height: 20px;
+        background: linear-gradient(transparent, rgba(255,255,255,0.9));
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .resultado-justificacion.expanded .justificacion-gradient {
+        opacity: 0;
+    }
+
+    /* Animación de pulso para botones importantes */
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(143, 89, 247, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(143, 89, 247, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(143, 89, 247, 0); }
+    }
+
+    .justificacion-toggle:focus {
+        animation: pulse 1.5s infinite;
+        outline: none;
+    }
+
+    /* Mejora visual para el contenedor padre */
+    .resultado-total:hover {
+        background: linear-gradient(90deg, #fff2e6 0%, #ffe6cc 50%, #fff2e6 100%);
+        transform: translateX(3px);
+        transition: all 0.3s ease-out;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .resultado-total {
+        transition: all 0.3s ease-out;
+        border-left: 3px solid transparent;
+    }
+
+    .resultado-total:hover {
+        border-left: 3px solid #8f59f7;
+    }
+	  
+	  .resultado-accion {
+		  width: 5%;
+		  font-size: 12px;
+		  font-family: 'moonGetHeavy';
+		  color: black;
+		  padding: 4px 7px;
+		  box-sizing: border-box;
+		  margin-top: 9px;
+	  }
+	  
+	  .resultado-receptor {
+			width: 23%;
+			font-size: 15px;
+			font-family: 'moonGetHeavy';
+			color: #6c10ab;
+			padding: 4px 7px;
+			box-sizing: border-box;
+			text-align: center;
+			margin-top: 7px;
+			text-shadow: 2px 2px 2px #99999938;
+	  }
+	  
+	  .resultado-items {
+        width: 35%;
+        font-size: 12px;
+        font-family: 'moonGetHeavy';
+        color: #4b1aae;
+        padding: 4px 7px;
+        box-sizing: border-box;
+        text-shadow: 2px 2px 1px #f3ecff;
+        text-align: center;
+        border-left: 1px dashed black;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        position: relative;
+        max-height: 60px;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .resultado-items.expanded {
+        max-height: none;
+        background: linear-gradient(135deg, #f3ecff 0%, #e6d9ff 100%);
+        border-radius: 8px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        padding: 8px 12px;
+        border-left: 3px solid #8f59f7;
+    }
+
+    .items-toggle {
+        position: absolute;
+        bottom: 2px;
+        right: 5px;
+        background: linear-gradient(135deg, #4b1aae 0%, #6c10ab 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        width: 24px;
+        height: 18px;
+        cursor: pointer;
+        font-size: 10px;
+        font-family: 'moonGetHeavy';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease-out;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+
+    .items-toggle:hover {
+        background: linear-gradient(135deg, #6c10ab 0%, #8f59f7 100%);
+        transform: scale(1.1);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+
+    .items-toggle:active {
+        transform: scale(0.95);
+    }
+
+    .items-toggle::before {
+        content: "▼";
+        transition: transform 0.3s ease;
+        font-size: 8px;
+    }
+
+    .items-toggle.expanded::before {
+        transform: rotate(180deg);
+        content: "▲";
+    }
+
+    .items-content {
+        transition: all 0.3s ease-in-out;
+        opacity: 1;
+    }
+
+    .resultado-items:not(.expanded) .items-content {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .items-gradient {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 25px;
+        height: 20px;
+        background: linear-gradient(transparent, rgba(243,236,255,0.9));
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .resultado-items.expanded .items-gradient {
+        opacity: 0;
+    }
+
+    .items-toggle:focus {
+        animation: pulse 1.5s infinite;
+        outline: none;
+    }
+	  
+	  
+	  .resultado-total:nth-child(odd) {
+		background: #ffe59b;
+	  }
+
+	  .resultado-total:nth-child(even) {
+		background: #ffeed2;
+	  }
+	  
+	  .boton-estadistica {
+		  display: inline;
+		  position: absolute;
+		  left: 464px;
+		  top: 3px;
+	      transition: all 0.2s ease-out;
+	      cursor: pointer;
+	  }
+	  
+	  .boton-estadistica:hover {
+		  filter: saturate(1.5);
+		  transform: 
+	  }
+	  
+	  textarea {
+		  resize: none;
+		}
+	  
+	</style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice">
+	<div class="mainBackground">
+		<div class="secondBackground">
+			<div class="thirdBackground">
+				<div class= "akumaBanner"></div>
+			<div class="akumaTirBody">
+					
+				<div class ="akumaTirIzquierda">
+					
+					<div>
+						<div style="height: 40px;" class="barra-op bbox">
+							<span class="barra-texto-op" style=" font-size: 15px; ">Selección de Items</span>
+							<br>
+							<span class="barra-texto-op" style=" font-size: 9px; ">(Colocar ID de los objetos separados por "," sin espacios)</span>
+						</div>
+						<textarea id="items" name="items" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 100%;height: 51px;font-family: 'InterRegular';"></textarea>
+					</div>
+					
+					<div style=" margin-top: -20px; ">
+						<div style="height: 40px;" class="barra-op bbox">
+							<span class="barra-texto-op" style=" font-size: 15px; ">Justificación*</span>
+							<br>
+							<span class="barra-texto-op" style=" font-size: 9px; ">(Escribe razón del intercambio)</span>
+						</div>
+						<textarea id="razon" name="razon" class="barra-espacio-op texto-regular-op bbox" style="text-align: left;width: 100%;height: 75px;font-family: 'InterRegular';" placeholder="Más de 30 carácteres." minlength="30"></textarea>
+					</div>
+					
+					<div style="position: relative; display: flex; flex-direction: row;margin-top: -21px;">
+						<div>
+							<div style="height: 30px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 15px; top: 4px; ">Berries</span></div>
+							<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="berries" name="berries">
+						</div>
+
+						<div style=" margin-left: 10px; ">
+							<div style="height: 30px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 15px; top: 4px; ">ID del Tema*</span></div>
+							<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="idTema" name="idTema">
+						</div>
+						
+						<div style=" margin-left: 10px; ">
+							<div style="height: 30px; width: 160px;" class="barra-op bbox"><span class="barra-texto-op" style=" font-size: 15px; top: 4px; ">ID de Receptor</span></div>
+							<input style=" height: 30px; width: 160px;line-height: 67px;border-top: 0;" class="barra-espacio-op texto-regular-op bbox" type="text" id="receptor" name="receptor">
+						</div>
+					</div>
+				</div>
+
+				<div class="akumaTirDerecha">
+					<div>
+						<img class="imageBox" src="/images/op/uploads/GifIntercambios_One_Piece_Foro_Rol.gif">
+					</div>		
+				</div>
+			</div>
+			<span style="font-family: moonGetHeavy;color: white;text-shadow: 1px 1px 1px black;top: 4px;position: relative;font-size: 17px;">Berries actuales: {$ficha['berries']}</span>
+
+			<div style=" margin: 15px auto -15px; ">
+				<div onclick="hacerIntercambio()" class="testDraw">
+					<strong>ENTREGAR</strong>
+				</div>
+			</div>
+			<div class="filterBox" style=" margin-top: 20px; ">
+				<div class="akumaTypeRow">
+					<div id="resultado-real" class="categoriaBox filterClass">
+						<span>Historial de Intercambios</span>
+					</div>
+				</div>
+				<div style=" border: 2px solid black; height: 700px; box-sizing: border-box; border-top: 0px;overflow-y: auto;overflow-x: hidden; ">
+					<div id="historial" style="display: flex; flex-direction: column;">
+<!-- 						<div class="resultado-total" style="display: flex; flex-direction: row;">
+							<div class="resultado-nombre">Kurosame<br>12/02/2024, 12:00PM</div>
+							<div class="resultado-accion">entrega a...</div>
+							<div class="resultado-receptor">Hitsu</div>
+							<div class="resultado-items">Triple Log Pose, Eternal Pose Dru, y Dial Impacto</div>
+						</div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+	 </div>
+  </div>
+<script>
+	
+	let intercambios_json = {$intercambios_json};
+	let faccionOwn = "{$ficha['faccion']}";
+	
+	for (let i = 0; i < intercambios_json.length; i++) {
+        let intercambioUserId = intercambios_json[i].uid;
+        let nombre = intercambios_json[i].nombre;
+        let timestamp = new Date(parseInt(intercambios_json[i].timestamp) * 1000).toLocaleString('es-es');
+        let rNombre = intercambios_json[i].r_nombre;
+        let dinero = intercambios_json[i].dinero;
+        let justificacion = intercambios_json[i].razon;
+        let objetosNombre = intercambios_json[i].objetos_nombre;
+        
+        let faccion = intercambios_json[i].faccion;
+        let rFaccion = intercambios_json[i].r_faccion;
+        
+        if (dinero == '0' || dinero == '') {
+            dinero = '';
+        } else {
+            dinero = parseInt(dinero).toLocaleString('es-es') + ' Berries, ';
+        }
+        
+        let objetosLista = (dinero + objetosNombre).replace(/, $/, '');;
+        
+        let faccionColor = 'black';
+        let rFaccionColor = 'black';
+        
+        if (faccion == 'Marina') { faccionColor = '#00A9FF'; }
+        if (faccion == 'Pirata') { faccionColor = '#e9042a'; }
+        if (faccion == 'CipherPol') { faccionColor = '#9b389d'; }
+        if (faccion == 'Civil') { faccionColor = '#E5097F'; }
+        if (faccion == 'Cazadores') { faccionColor = '#2D572C'; }
+        if (faccion == 'Revolucionario') { faccionColor = '#B9935A'; }
+        
+        if (rFaccion == 'Marina') { rFaccionColor = '#00A9FF'; }
+        if (rFaccion == 'Pirata') { rFaccionColor = '#e9042a'; }
+        if (rFaccion == 'CipherPol') { rFaccionColor = '#9b389d'; }
+        if (rFaccion == 'Civil') { rFaccionColor = '#E5097F'; }
+        if (rFaccion == 'Cazadores') { rFaccionColor = '#2D572C'; }
+        if (rFaccion == 'Revolucionario') { rFaccionColor = '#B9935A'; }
+        
+        // Detectar si la justificación necesita botón de expansión
+        let needsToggle = justificacion.length > 120; // Aproximadamente 3 líneas
+        let toggleButton = needsToggle ? '<button class="justificacion-toggle" onclick="toggleJustificacion(this)"></button>' : '';
+        let gradientOverlay = needsToggle ? '<div class="justificacion-gradient"></div>' : '';
+
+        // Detectar si los items necesitan botón de expansión
+        let needsItemsToggle = objetosLista.length > 80; // Aproximadamente 3 líneas para items
+        let itemsToggleButton = needsItemsToggle ? '<button class="items-toggle" onclick="toggleItems(this)"></button>' : '';
+        let itemsGradientOverlay = needsItemsToggle ? '<div class="items-gradient"></div>' : '';
+
+        $('#historial').append(`
+            <div class="resultado-total" style="display: flex; flex-direction: row;">
+                <div class="resultado-nombre"><a href='/op/ficha.php?uid=` + intercambioUserId + `' style="color: ` + faccionColor + `;" class="username_bright">` + nombre + `</a> entrega a... <br>` + timestamp + `</div>
+                <div class="resultado-receptor"> <a href="/op/ficha.php?uid=` + intercambios_json[i].r_uid + `" style="color: ` + rFaccionColor + `;" class="username_bright">` + rNombre + `</a></div>
+                <div class="resultado-items">
+                    <div class="items-content">ID del Tema: <a href="/showthread.php?tid=` + intercambios_json[i].tid + `">` + intercambios_json[i].tid + `</a><br>` + objetosLista + `</div>
+                    ` + itemsGradientOverlay + `
+                    ` + itemsToggleButton + `
+                </div>
+                <div class="resultado-justificacion">
+                    <div class="justificacion-content">` + justificacion + `</div>
+                    ` + gradientOverlay + `
+                    ` + toggleButton + `
+                </div>
+            </div>
+        `);
+    }
+	let userId = '{$uid}';
+	
+    // Función para toggle de justificación
+    function toggleJustificacion(button) {
+        const justificacionDiv = button.parentElement;
+        const isExpanded = justificacionDiv.classList.contains('expanded');
+        
+        if (isExpanded) {
+            justificacionDiv.classList.remove('expanded');
+            button.classList.remove('expanded');
+        } else {
+            justificacionDiv.classList.add('expanded');
+            button.classList.add('expanded');
+        }
+        
+        // Añadir efecto de pulso al expandir
+        if (!isExpanded) {
+            button.style.animation = 'pulse 0.6s ease-out';
+            setTimeout(() => {
+                button.style.animation = '';
+            }, 600);
+        }
+    }
+
+    // Función para toggle de items
+    function toggleItems(button) {
+        const itemsDiv = button.parentElement;
+        const isExpanded = itemsDiv.classList.contains('expanded');
+        
+        if (isExpanded) {
+            itemsDiv.classList.remove('expanded');
+            button.classList.remove('expanded');
+        } else {
+            itemsDiv.classList.add('expanded');
+            button.classList.add('expanded');
+        }
+        
+        // Añadir efecto de pulso al expandir
+        if (!isExpanded) {
+            button.style.animation = 'pulse 0.6s ease-out';
+            setTimeout(() => {
+                button.style.animation = '';
+            }, 600);
+        }
+    }
+
+    // Función para toggle de justificación
+    function toggleJustificacion(button) {
+        const justificacionDiv = button.parentElement;
+        const isExpanded = justificacionDiv.classList.contains('expanded');
+        
+        if (isExpanded) {
+            justificacionDiv.classList.remove('expanded');
+            button.classList.remove('expanded');
+        } else {
+            justificacionDiv.classList.add('expanded');
+            button.classList.add('expanded');
+        }
+        
+        // Añadir efecto de pulso al expandir
+        if (!isExpanded) {
+            button.style.animation = 'pulse 0.6s ease-out';
+            setTimeout(() => {
+                button.style.animation = '';
+            }, 600);
+        }
+    }
+
+	function hacerIntercambio() {
+		
+		if (!$('#razon').val()) {
+			alert('Debes agregar la justificación del tema.');			
+		} else if (!$('#idTema').val()) {
+			alert('Debes agregar el ID del tema.');	   
+		} else if ($('#berries').val() != '' && parseInt($('#berries').val()) < 0) {
+			alert('¡No puedes enviar berries negativos, cuidao, eh!');	   	   
+		} else if ($('#idTema').val() == '0') {
+			alert('Ese ID de tema no existe. ¿Estás seguro de lo que haces?');	   
+		} else if (userId == $('#receptor').val()) {
+			alert('Te estás enviando a ti mismo, ¿Acaso estamos esquizofrénicos?');	   
+		} else if ($('#razon').val().length < 30) {
+			alert('La justificación debe ser mínimo 30 carácteres.');	   
+		} else {
+			
+			
+		
+			if (confirm(`Estas a punto de intercambiar objetos/berries con otro personaje. ¿Estás de acuerdo?`)) {
+
+				$.post("/op/intercambio.php", { tid: $('#idTema').val(), accion: 'chequear_tid', r_id: $('#receptor').val() }, function( data ) {
+					console.log(data);
+					let rFaccion = data[0].r_faccion;
+					
+					let faccionValida = true;
+					let cancelarIntercambio = false;
+					
+					if (
+						 (faccionOwn == 'Pirata' && (rFaccion == 'Marina' || rFaccion == 'CipherPol' || rFaccion == 'Cazadores')) ||
+						 (faccionOwn == 'Marina' && (rFaccion == 'Pirata' || rFaccion == 'Revolucionario')) ||
+						 (faccionOwn == 'CipherPol' && (rFaccion == 'Pirata' || rFaccion == 'Revolucionario')) ||
+						 (faccionOwn == 'Revolucionario' && (rFaccion == 'Marina' || rFaccion == 'CipherPol' || rFaccion == 'Cazadores')) ||
+						 (faccionOwn == 'Cazadores' && (rFaccion == 'Pirata' || rFaccion == 'Revolucionario'))
+						) {
+						faccionValida = false;
+					}
+					
+					if (faccionValida == false) {
+						if (confirm(`Estás intercambiando con una facción rival. \n¿Estás seguro que quieres hacer este intercambio? \n\nSi esta transacción es válida, recuerda describir con detalles tu justificación. Puedes cancelar y agregar más detalles, o confirmar. \n\nEsta transacción será revisada por un miembro del Staff.`)) {
+							
+						} else {
+							cancelarIntercambio = true;
+						}
+					}
+					
+					if (data[0].tema_existe != '1') {
+						cancelarIntercambio = true;
+						alert("El ID del tema no existe, o no es un tema de rol, o no es el ID de tu tema de la tripulación.\n\nPara conseguir el ID de un tema, ve al URL de cualquier tema del foro, y el numero que sale después de '?tid=', ese es el el ID del tema.");
+					}
+					
+					if (data[0].personajesPostearon != '1') {
+						cancelarIntercambio = true;
+						alert('El ID del tema mencionado no involucra a los personajes que están haciendo el intercambio.');
+					}
+					
+					if (cancelarIntercambio == false) {
+						const intercambioObj = { intercambio: 'true', razon: $('#razon').val(), items: $('#items').val(), berries: $('#berries').val(), id: userId, r_id: $('#receptor').val(), tid: $('#idTema').val()};
+						$.post("/op/intercambio.php", intercambioObj, function( data ) {
+							console.log(data);
+							alert(data[0].mensaje_log);
+
+							window.location = "/op/intercambio.php";
+						}); 
+					}
+													
+					
+					
+
+					
+					// window.location = "/op/intercambio.php";
+				}); 
+				
+
+			}		   
+		}
+		
+	}	  
+	
+</script>
+{$footer}
+</body>
+</html>

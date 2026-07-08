@@ -1,0 +1,32 @@
+<script type="text/javascript">
+  <!--
+	{$refresher}
+    var stopper = window.setTimeout(function() { stop_recent_threads()}, 900000);
+    $(document).ready(function() { refresh_recent_threads(); });
+    function refresh_recent_threads()
+    {
+      	var xmlhttp;
+		if(window.XMLHttpRequest)
+  		{// code for IE7+, Firefox, Chrome, Opera, Safari
+ 			 xmlhttp=new XMLHttpRequest();
+  		}
+		else
+ 		 {// code for IE6, IE5
+     		 xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  		}
+      xmlhttp.onreadystatechange=function()
+      {
+        if(xmlhttp.readyState==4 && xmlhttp.status==200)
+    		{
+   				 document.getElementById("recentthreads").innerHTML=xmlhttp.responseText;
+    		}
+      }
+      	xmlhttp.open("GET","xmlhttp.php?action=recent_threads",true);
+		xmlhttp.send();
+    }
+    function stop_recent_threads()
+    {
+      		clearInterval(refresher);
+    }
+  // -->
+  </script>

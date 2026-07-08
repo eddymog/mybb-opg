@@ -1,0 +1,25 @@
+<html>
+<head>
+<title>{$mybb->settings['bbname']}</title>
+{$headerinclude}
+</head>
+<body>
+{$header}
+<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+	<thead>
+	<tr>
+		<td class="thead{$collapsedthead['boardstats']}">
+			<div class="expcolimage"><img src="{$theme['imgdir']}/collapse{$collapsedimg['boardstats']}.png" id="onlinetoday_img" class="expander" alt="[-]" title="[-]" /></div>
+			<div><strong>{$lang->online_title}</strong></div>
+		</td>
+	</tr>
+	</thead>
+	<tbody style="{$collapsed['boardstats_e']}" id="onlinetoday_e">
+		{$online_today}
+	</tbody>
+</table>
+<br />	
+{$multipage}	
+{$footer}
+</body>
+</html>

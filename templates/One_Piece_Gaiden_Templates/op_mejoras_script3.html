@@ -1,0 +1,848 @@
+<script>
+	/* OFICIOS */
+	
+	
+	/* OFICIOS SECUNDARIOS */
+	
+	if (oficios['Cocinero']?.nivel == 2 && ((oficios['Cocinero']?.sub['Chef'] >= 0 && !(oficios['Cocinero']?.sub['Modista'] >= 1)) || (oficios['Cocinero']?.sub['Chef'] >= 0 && (has_estudioso || has_erudito)))) { 		
+	// if ((oficios['Cocinero']?.sub['Chef'] >= 0 && !(oficios['Cocinero']?.sub['Aprovisionador'] >= 1)) || (oficios['Cocinero']?.sub['Chef'] >= 0 && (has_estudioso || has_erudito))) { 
+		$('#chef-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Cocinero']?.sub['Chef'] + `</div>`); 
+		$('#chef').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Cocinero']?.sub['Chef'] < 3) { $('#chef-div').css('cursor', 'pointer'); $('#chef-div').on('click', function() { chooseEspeOficio('Cocinero', 'Chef'); }); } 
+		else { $('#chef').removeClass('img-expand'); $('#chef-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#chef').removeClass('img-expand');
+		$('#chef').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Cocinero']?.nivel == 2 && ((oficios['Cocinero']?.sub['Aprovisionador'] >= 0 && !(oficios['Cocinero']?.sub['Chef'] >= 1)) || (oficios['Cocinero']?.sub['Aprovisionador'] >= 0 && (has_estudioso || has_erudito)))) { 		
+	// if (oficios['Cocinero']?.sub['Aprovisionador'] >= 0) { 
+		$('#aprovisionador-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Cocinero']?.sub['Aprovisionador'] + `</div>`); 
+		$('#aprovisionador').css('filter', 'saturate(1.7)');  
+		
+		if (oficios['Cocinero']?.sub['Aprovisionador'] < 3) { $('#aprovisionador-div').css('cursor', 'pointer'); $('#aprovisionador-div').on('click', function() { chooseEspeOficio('Cocinero', 'Aprovisionador'); }); } 
+		else { $('#aprovisionador').removeClass('img-expand'); $('#aprovisionador-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#aprovisionador').removeClass('img-expand');
+		$('#aprovisionador').css('filter', 'grayscale(0.9)'); 
+	}	
+		 
+	if (oficios['Artesano']?.nivel == 2 && ((oficios['Artesano']?.sub['Herrero'] >= 0 && !(oficios['Artesano']?.sub['Modista'] >= 1)) || (oficios['Artesano']?.sub['Herrero'] >= 0 && (has_estudioso || has_erudito)))) { 			
+	// if (oficios['Artesano']?.sub['Herrero'] >= 0) { 
+		$('#herrero-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Artesano']?.sub['Herrero'] + `</div>`); 
+		$('#herrero').css('filter', 'saturate(1.7)');  
+		
+		if (oficios['Artesano']?.sub['Herrero'] < 3) { $('#herrero-div').css('cursor', 'pointer'); $('#herrero-div').on('click', function() { chooseEspeOficio('Artesano', 'Herrero'); }); } 
+		else { $('#herrero').removeClass('img-expand'); $('#herrero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#herrero').removeClass('img-expand');
+		$('#herrero').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Artesano']?.nivel == 2 && ((oficios['Artesano']?.sub['Modista'] >= 0 && !(oficios['Artesano']?.sub['Doctor'] >= 1)) || (oficios['Artesano']?.sub['Modista'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Artesano']?.sub['Modista'] >= 0) { 
+		$('#modista-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Artesano']?.sub['Modista'] + `</div>`); 
+		$('#modista').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Artesano']?.sub['Modista'] < 3) { $('#modista-div').css('cursor', 'pointer'); $('#modista-div').on('click', function() { chooseEspeOficio('Artesano', 'Modista'); }); } 
+		else { $('#modista').removeClass('img-expand'); $('#modista-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#modista').removeClass('img-expand');
+		$('#modista').css('filter', 'grayscale(0.9)'); 
+	}	
+
+		 
+	if (oficios['Médico']?.nivel == 2 && ((oficios['Médico']?.sub['Farmacólogo'] >= 0 && !(oficios['Médico']?.sub['Doctor'] >= 1)) || (oficios['Médico']?.sub['Farmacólogo'] >= 0 && (has_estudioso || has_erudito)))) { 			 
+	// if (oficios['Médico']?.sub['Farmacólogo'] >= 0) { 
+		$('#farmacologo-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Médico']?.sub['Farmacólogo'] + `</div>`); 
+		$('#farmacologo').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Médico']?.sub['Farmacólogo'] < 3) { $('#farmacologo-div').css('cursor', 'pointer'); $('#farmacologo-div').on('click', function() { chooseEspeOficio('Médico', 'Farmacólogo'); }); } 
+		else { $('#farmacologo').removeClass('img-expand'); $('#farmacologo-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#farmacologo').removeClass('img-expand');
+		$('#farmacologo').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Médico']?.nivel == 2 && ((oficios['Médico']?.sub['Doctor'] >= 0 && !(oficios['Médico']?.sub['Farmacólogo'] >= 1)) || (oficios['Médico']?.sub['Doctor'] >= 0 && (has_estudioso || has_erudito)))) { 	 
+		$('#doctor-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Médico']?.sub['Doctor'] + `</div>`); 
+		$('#doctor').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Médico']?.sub['Doctor'] < 3) { $('#doctor-div').css('cursor', 'pointer'); $('#doctor-div').on('click', function() { chooseEspeOficio('Médico', 'Doctor'); }); } 
+		else { $('#doctor').removeClass('img-expand'); $('#doctor-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#doctor').removeClass('img-expand');
+		$('#doctor').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Navegante']?.nivel == 2 && ((oficios['Navegante']?.sub['Timonel'] >= 0 && !(oficios['Navegante']?.sub['Cartógrafo'] >= 1)) || (oficios['Navegante']?.sub['Timonel'] >= 0 && (has_estudioso || has_erudito)))) { 
+	// if (oficios['Navegante']?.sub['Timonel'] >= 0 && oficios['Navegante']?.nivel == 2) { 
+		$('#timonel-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Navegante']?.sub['Timonel'] + `</div>`); 
+		$('#timonel').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Navegante']?.sub['Timonel'] < 3) { $('#timonel-div').css('cursor', 'pointer'); $('#timonel-div').on('click', function() { chooseEspeOficio('Navegante', 'Timonel'); }); } 
+		else { $('#timonel').removeClass('img-expand'); $('#timonel-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#timonel').removeClass('img-expand');
+		$('#timonel').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Navegante']?.nivel == 2 && ((oficios['Navegante']?.sub['Cartógrafo'] >= 0 && !(oficios['Navegante']?.sub['Timonel'] >= 1)) || (oficios['Navegante']?.sub['Cartógrafo'] >= 0 && (has_estudioso || has_erudito)))) { 
+	// if (oficios['Navegante']?.sub['Cartógrafo'] >= 0 && oficios['Navegante']?.nivel == 2) { 
+		$('#cartografo-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Navegante']?.sub['Cartógrafo'] + `</div>`); 
+		$('#cartografo').css('filter', 'saturate(1.7)'); 
+			
+		if (oficios['Navegante']?.sub['Cartógrafo'] < 3) { $('#cartografo-div').css('cursor', 'pointer'); $('#cartografo-div').on('click', function() { chooseEspeOficio('Navegante', 'Cartógrafo'); }); } 
+		else { $('#cartografo').removeClass('img-expand'); $('#cartografo-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#cartografo').removeClass('img-expand');
+		$('#cartografo').css('filter', 'grayscale(0.9)'); 
+	}	
+
+	if (oficios['Inventor']?.nivel == 2 && ((oficios['Inventor']?.sub['Biólogo'] >= 0 && !(oficios['Inventor']?.sub['Ingeniero'] >= 1)) || (oficios['Inventor']?.sub['Biólogo'] >= 0 && (has_estudioso || has_erudito)))) { 					
+	// if (oficios['Inventor']?.sub['Biólogo'] >= 0) { 
+		$('#biologo-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Inventor']?.sub['Biólogo'] + `</div>`); 
+		$('#biologo').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Inventor']?.sub['Biólogo'] < 3) { $('#biologo-div').css('cursor', 'pointer'); $('#biologo-div').on('click', function() { chooseEspeOficio('Inventor', 'Biólogo'); }); } 
+		else { $('#biologo').removeClass('img-expand'); $('#biologo-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#biologo').removeClass('img-expand');
+		$('#biologo').css('filter', 'grayscale(0.9)'); 
+	}	
+
+	if (oficios['Inventor']?.nivel == 2 && ((oficios['Inventor']?.sub['Ingeniero'] >= 0 && !(oficios['Inventor']?.sub['Biólogo'] >= 1)) || (oficios['Inventor']?.sub['Ingeniero'] >= 0 && (has_estudioso || has_erudito)))) { 					
+	// if (oficios['Inventor']?.sub['Ingeniero'] >= 0) { 
+		$('#ingeniero-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Inventor']?.sub['Ingeniero'] + `</div>`); 
+		$('#ingeniero').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Inventor']?.sub['Ingeniero'] < 3) { $('#ingeniero-div').css('cursor', 'pointer'); $('#ingeniero-div').on('click', function() { chooseEspeOficio('Inventor', 'Ingeniero'); }); } 
+		else { $('#ingeniero').removeClass('img-expand'); $('#ingeniero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#ingeniero').removeClass('img-expand');
+		$('#ingeniero').css('filter', 'grayscale(0.9)'); 
+	}	
+
+	if (oficios['Carpintero']?.nivel == 2 && ((oficios['Carpintero']?.sub['Astillero'] >= 0 && !(oficios['Carpintero']?.sub['Constructor'] >= 1)) || (oficios['Carpintero']?.sub['Astillero'] >= 0 && (has_estudioso || has_erudito)))) { 					
+	// if (oficios['Carpintero']?.sub['Astillero'] >= 0) { 
+		$('#astillero-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Carpintero']?.sub['Astillero'] + `</div>`); 
+		$('#astillero').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Carpintero']?.sub['Astillero'] < 3) { $('#astillero-div').css('cursor', 'pointer'); $('#astillero-div').on('click', function() { chooseEspeOficio('Carpintero', 'Astillero'); }); } 
+		else { $('#astillero').removeClass('img-expand'); $('#astillero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#astillero').removeClass('img-expand');
+		$('#astillero').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Carpintero']?.nivel == 2 && ((oficios['Constructor']?.sub['Farmacólogo'] >= 0 && !(oficios['Carpintero']?.sub['Astillero'] >= 1)) || (oficios['Carpintero']?.sub['Constructor'] >= 0 && (has_estudioso || has_erudito)))) { 				
+	// if (oficios['Carpintero']?.sub['Constructor'] >= 0) { 
+		$('#constructor-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Carpintero']?.sub['Constructor'] + `</div>`); 
+		$('#constructor').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Carpintero']?.sub['Constructor'] < 3) { $('#constructor-div').css('cursor', 'pointer'); $('#constructor-div').on('click', function() { chooseEspeOficio('Carpintero', 'Constructor'); }); } 
+		else { $('#constructor').removeClass('img-expand'); $('#constructor-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#constructor').removeClass('img-expand');
+		$('#constructor').css('filter', 'grayscale(0.9)'); 
+	}	
+
+	if (oficios['Mercader']?.nivel == 2 && ((oficios['Mercader']?.sub['Comerciante'] >= 0 && !(oficios['Mercader']?.sub['Recolector'] >= 1)) || (oficios['Mercader']?.sub['Comerciante'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Mercader']?.sub['Comerciante'] >= 0) { 
+		$('#comerciante-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Mercader']?.sub['Comerciante'] + `</div>`); 
+		$('#comerciante').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Mercader']?.sub['Comerciante'] < 3) { $('#comerciante-div').css('cursor', 'pointer'); $('#comerciante-div').on('click', function() { chooseEspeOficio('Mercader', 'Comerciante'); }); } 
+		else { $('#comerciante').removeClass('img-expand'); $('#comerciante-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#comerciante').removeClass('img-expand');
+		$('#comerciante').css('filter', 'grayscale(0.9)'); 
+	}	
+
+	if (oficios['Mercader']?.nivel == 2 && ((oficios['Mercader']?.sub['Recolector'] >= 0 && !(oficios['Mercader']?.sub['Comerciante'] >= 1)) || (oficios['Mercader']?.sub['Recolector'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Mercader']?.sub['Recolector'] >= 0) { 
+		$('#recolector-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Mercader']?.sub['Recolector'] + `</div>`); 
+		$('#recolector').css('filter', 'saturate(1.7)'); 
+		
+	if (oficios['Mercader']?.sub['Contrabandista'] < 3) { $('#contrabandista-div').css('cursor', 'pointer'); $('#contrabandista-div').on('click', function() { chooseEspeOficio('Mercader', 'Contrabandista'); }); } 
+		else { $('#contrabandista').removeClass('img-expand'); $('#contrabandista-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#contrabandista').removeClass('img-expand');
+		$('#contrabandista').css('filter', 'grayscale(0.9)'); 
+	}
+
+	if (oficios['Investigador']?.nivel == 2 && ((oficios['Investigador']?.sub['Periodista'] >= 0 && !(oficios['Investigador']?.sub['Arqueólogo'] >= 1)) || (oficios['Investigador']?.sub['Periodista'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Investigador']?.sub['Periodista'] >= 0) { 
+		$('#periodista-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Investigador']?.sub['Periodista'] + `</div>`); 
+		$('#periodista').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Investigador']?.sub['Periodista'] < 3) { $('#periodista-div').css('cursor', 'pointer'); $('#periodista-div').on('click', function() { chooseEspeOficio('Investigador', 'Periodista'); }); } 
+		else { $('#periodista').removeClass('img-expand'); $('#periodista-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#periodista').removeClass('img-expand');
+		$('#periodista').css('filter', 'grayscale(0.9)'); 
+	}
+
+	if (oficios['Investigador']?.nivel == 2 && ((oficios['Investigador']?.sub['Arqueólogo'] >= 0 && !(oficios['Investigador']?.sub['Periodista'] >= 1)) || (oficios['Investigador']?.sub['Arqueólogo'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Investigador']?.sub['Arqueólogo'] >= 0) { 
+		$('#arqueologo-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Investigador']?.sub['Arqueólogo'] + `</div>`); 
+		$('#arqueologo').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Investigador']?.sub['Arqueólogo'] < 3) { $('#arqueologo-div').css('cursor', 'pointer'); $('#arqueologo-div').on('click', function() { chooseEspeOficio('Investigador', 'Arqueólogo'); }); } 
+		else { $('#arqueologo').removeClass('img-expand'); $('#arqueologo-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#arqueologo').removeClass('img-expand');
+		$('#arqueologo').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+	if (oficios['Aventurero']?.nivel == 2 && ((oficios['Aventurero']?.sub['Cazador'] >= 0 && !(oficios['Aventurero']?.sub['Domador'] >= 1)) || (oficios['Aventurero']?.sub['Cazador'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Aventurero']?.sub['Cazador'] >= 0) { 
+		$('#cazador-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Aventurero']?.sub['Cazador'] + `</div>`); 
+		$('#cazador').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Aventurero']?.sub['Cazador'] < 3) { $('#cazador-div').css('cursor', 'pointer'); $('#cazador-div').on('click', function() { chooseEspeOficio('Aventurero', 'Cazador'); }); } 
+		else { $('#cazador').removeClass('img-expand'); $('#cazador-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#cazador').removeClass('img-expand');
+		$('#cazador').css('filter', 'grayscale(0.9)'); 
+	}
+
+	if (oficios['Aventurero']?.nivel == 2 && ((oficios['Aventurero']?.sub['Domador'] >= 0 && !(oficios['Aventurero']?.sub['Cazador'] >= 1)) || (oficios['Aventurero']?.sub['Domador'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Aventurero']?.sub['Domador'] >= 0) { 
+		$('#domador-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Aventurero']?.sub['Domador'] + `</div>`); 
+		$('#domador').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Aventurero']?.sub['Domador'] < 3) { $('#domador-div').css('cursor', 'pointer'); $('#domador-div').on('click', function() { chooseEspeOficio('Aventurero', 'Domador'); }); } 
+		else { $('#domador').removeClass('img-expand'); $('#domador-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#domador').removeClass('img-expand');
+		$('#domador').css('filter', 'grayscale(0.9)'); 
+	}	
+		
+		if (oficios['Recolector']?.nivel == 2 && ((oficios['Recolector']?.sub['Agreste'] >= 0 && !(oficios['Recolector']?.sub['Mayorista'] >= 1)) || (oficios['Recolector']?.sub['Agreste'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Recolector']?.sub['Agreste'] >= 0) { 
+		$('#agreste-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Recolector']?.sub['Agreste'] + `</div>`); 
+		$('#agreste').css('filter', 'saturate(1.7)'); 
+		
+	if (oficios['Recolector']?.sub['Agreste'] < 3) { $('#agreste-div').css('cursor', 'pointer'); $('#agreste-div').on('click', function() { chooseEspeOficio('Recolector', 'Agreste'); }); } 
+		else { $('#agreste').removeClass('img-expand'); $('#agreste-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#agreste').removeClass('img-expand');
+		$('#agreste').css('filter', 'grayscale(0.9)'); 
+	}
+
+	if (oficios['Recolector']?.nivel == 2 && ((oficios['Recolector']?.sub['Mayorista'] >= 0 && !(oficios['Recolector']?.sub['Agreste'] >= 1)) || (oficios['Recolector']?.sub['Mayorista'] >= 0 && (has_estudioso || has_erudito)))) { 	
+	// if (oficios['Recolector']?.sub['Mayorista'] >= 0) { 
+		$('#mayorista-div').append(`<div class="img-texto" style="font-size: 21px;top: 0px;margin-top: -30px;text-align: right;left: -3px;">Nivel ` + oficios['Recolector']?.sub['Mayorista'] + `</div>`); 
+		$('#mayorista').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Recolector']?.sub['Mayorista'] < 3) { $('#mayorista-div').css('cursor', 'pointer'); $('#mayorista-div').on('click', function() { chooseEspeOficio('Recolector', 'Mayorista'); }); } 
+		else { $('#mayorista').removeClass('img-expand'); $('#mayorista-div').append(`<div class="img-estrella" style="position: relative;margin-top: -21px;text-align: right;left: -2px;top: -96px;"><img src="/images/op/uploads/EstrellaPequeñaLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#mayorista').removeClass('img-expand');
+		$('#mayorista').css('filter', 'grayscale(0.9)'); 
+	}	
+	
+	/* OFICIOS PRINCIPALES*/
+	if (oficios['Carpintero']) { 
+		$('#carpintero-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Carpintero'].nivel + `</div>`);
+		$('#carpintero').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Carpintero'].nivel < 2) { $('#carpintero-div').css('cursor', 'pointer'); $('#carpintero-div').on('click', function() { chooseOficio('Carpintero', true); }); }
+		else { $('#carpintero').removeClass('img-expand'); $('#carpintero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#carpintero').css('filter', 'grayscale(0.9)'); 
+		$('#carpintero').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#carpintero').addClass('img-expand');
+			$('#carpintero-div').css('cursor', 'pointer'); 
+			$('#carpintero').css('filter', 'grayscale(0.7)'); 
+			$('#carpintero-div').on('click', function() { chooseOficio('Carpintero', false); });
+		}
+	}
+	
+	if (oficios['Mercader']) { 
+		$('#mercader-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Mercader'].nivel + `</div>`);
+		$('#mercader').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Mercader'].nivel < 2) { $('#mercader-div').css('cursor', 'pointer'); $('#mercader-div').on('click', function() { chooseOficio('Mercader', true); }); }
+		else { $('#mercader').removeClass('img-expand'); $('#mercader-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#mercader').css('filter', 'grayscale(0.9)'); 
+		$('#mercader').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#mercader').addClass('img-expand');
+			$('#mercader-div').css('cursor', 'pointer'); 
+			$('#mercader').css('filter', 'grayscale(0.7)'); 
+			$('#mercader-div').on('click', function() { chooseOficio('Mercader', false); });
+		}
+	}
+	
+	if (oficios['Inventor']) { 
+		$('#inventor-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Inventor'].nivel + `</div>`);
+		$('#inventor').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Inventor'].nivel < 2) { $('#inventor-div').css('cursor', 'pointer'); $('#inventor-div').on('click', function() { chooseOficio('Inventor', true); }); }
+		else { $('#inventor').removeClass('img-expand'); $('#inventor-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#inventor').css('filter', 'grayscale(0.9)'); 
+		$('#inventor').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#inventor').addClass('img-expand');
+			$('#inventor-div').css('cursor', 'pointer'); 
+			$('#inventor').css('filter', 'grayscale(0.7)'); 
+			$('#inventor-div').on('click', function() { chooseOficio('Inventor', false); });
+		}
+	}
+	
+	if (oficios['Investigador']) { 
+		$('#investigador-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Investigador'].nivel + `</div>`);
+		$('#investigador').css('filter', 'saturate(1.7)'); 
+
+		if (oficios['Investigador'].nivel < 2) { $('#investigador-div').css('cursor', 'pointer'); $('#investigador-div').on('click', function() { chooseOficio('Investigador', true); }); }
+		else { $('#investigador').removeClass('img-expand'); $('#investigador-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#investigador').css('filter', 'grayscale(0.9)'); 
+		$('#investigador').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#investigador').addClass('img-expand');
+			$('#investigador-div').css('cursor', 'pointer'); 
+			$('#investigador').css('filter', 'grayscale(0.7)'); 
+			$('#investigador-div').on('click', function() { chooseOficio('Investigador', false); });
+		}
+	}
+		
+	if (oficios['Aventurero']) { 
+		$('#aventurero-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Aventurero'].nivel + `</div>`);
+		$('#aventurero').css('filter', 'saturate(1.7)'); 
+
+		if (oficios['Aventurero'].nivel < 2) { $('#aventurero-div').css('cursor', 'pointer'); $('#aventurero-div').on('click', function() { chooseOficio('Aventurero', true); }); }
+		else { $('#aventurero').removeClass('img-expand'); $('#aventurero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#aventurero').css('filter', 'grayscale(0.9)'); 
+		$('#aventurero').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#aventurero').addClass('img-expand');
+			$('#aventurero-div').css('cursor', 'pointer'); 
+			$('#aventurero').css('filter', 'grayscale(0.7)'); 
+			$('#aventurero-div').on('click', function() { chooseOficio('Aventurero', false); });
+		}
+	}
+		
+	if (oficios['Recolector']) { 
+		$('#recolector-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Recolector'].nivel + `</div>`);
+		$('#recolector').css('filter', 'saturate(1.7)'); 
+
+		if (oficios['Recolector'].nivel < 2) { $('#recolector-div').css('cursor', 'pointer'); $('#recolector-div').on('click', function() { chooseOficio('Recolector', true); }); }
+		else { $('#recolector').removeClass('img-expand'); $('#recolector-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#recolector').css('filter', 'grayscale(0.9)'); 
+		$('#recolector').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#recolector').addClass('img-expand');
+			$('#recolector-div').css('cursor', 'pointer'); 
+			$('#recolector').css('filter', 'grayscale(0.7)'); 
+			$('#recolector-div').on('click', function() { chooseOficio('Recolector', false); });
+		}
+	}
+	
+	if (oficios['Artesano']) { 
+		$('#artesano-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Artesano'].nivel + `</div>`);
+		$('#artesano').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Artesano'].nivel < 2) { $('#artesano-div').css('cursor', 'pointer'); $('#artesano-div').on('click', function() { chooseOficio('Artesano', true); }); }
+		else { $('#artesano').removeClass('img-expand'); $('#artesano-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#artesano').css('filter', 'grayscale(0.9)'); 
+		$('#artesano').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#artesano').addClass('img-expand');
+			$('#artesano-div').css('cursor', 'pointer'); 
+			$('#artesano').css('filter', 'grayscale(0.7)'); 
+			$('#artesano-div').on('click', function() { chooseOficio('Artesano', false); });
+		}
+	}
+	
+	if (oficios['Médico']) { 
+		$('#medico-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Médico'].nivel + `</div>`);
+		$('#medico').css('filter', 'saturate(1.7)'); 
+		
+		
+		if (oficios['Médico'].nivel < 2) { $('#medico-div').css('cursor', 'pointer'); $('#medico-div').on('click', function() { chooseOficio('Médico', true); }); }
+		else { $('#medico').removeClass('img-expand'); $('#medico-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#medico').css('filter', 'grayscale(0.9)');
+		$('#medico').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#medico').addClass('img-expand');
+			$('#medico-div').css('cursor', 'pointer');
+			$('#medico').css('filter', 'grayscale(0.7)'); 
+			$('#medico-div').on('click', function() { chooseOficio('Médico', false); });
+		}
+	}
+	
+	if (oficios['Cocinero']) { 
+		$('#cocinero-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Cocinero'].nivel + `</div>`);
+		$('#cocinero').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Cocinero'].nivel < 2) { $('#cocinero-div').css('cursor', 'pointer'); $('#cocinero-div').on('click', function() { chooseOficio('Cocinero', true); }); }
+		else { $('#cocinero').removeClass('img-expand'); $('#cocinero-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+	} else { 
+		$('#cocinero').css('filter', 'grayscale(0.9)'); 
+		$('#cocinero').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#cocinero').addClass('img-expand');
+			$('#cocinero-div').css('cursor', 'pointer'); 
+			$('#cocinero').css('filter', 'grayscale(0.7)'); 
+			$('#cocinero-div').on('click', function() { chooseOficio('Cocinero', false); });
+		}
+	}
+	
+	if (oficios['Navegante']) { 
+		$('#navegante-div').append(`<div class="img-texto" style="font-size: 30px;top: 0px;margin-top: -43px;text-align: right;left: -5px;">Nivel ` + oficios['Navegante'].nivel + `</div>`);
+		$('#navegante').css('filter', 'saturate(1.7)'); 
+		
+		if (oficios['Navegante'].nivel < 2) { $('#navegante-div').css('cursor', 'pointer'); $('#navegante-div').on('click', function() { chooseOficio('Navegante', true); }); }
+		else { $('#navegante').removeClass('img-expand'); $('#navegante-div').append(`<div class="img-estrella" style="position: relative;margin-top: -62px;text-align: right;left: -4px;top: -315px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`); }
+		
+	} else { 
+		$('#navegante').css('filter', 'grayscale(0.9)'); 
+		$('#navegante').removeClass('img-expand');
+		if (oficiosCount < 2 && (has_polivalente || has_erudito)) {
+			$('#navegante').addClass('img-expand');
+			$('#navegante-div').css('cursor', 'pointer'); 
+			$('#navegante').css('filter', 'grayscale(0.7)'); 
+			$('#navegante-div').on('click', function() { chooseOficio('Navegante', false); });
+		}
+	}
+		
+	function chooseEspeOficio(oficio, espe) {
+		console.log(oficio);
+		let isOficio1 = oficio1 == oficio;
+		let isOficio2 = oficio2 == oficio;
+		
+		let espesCount = 0;
+		
+		let isEspe1 = oficios[oficio].espe1 == espe;
+		let isEspe2 = oficios[oficio].espe2 == espe;
+		
+		if (oficios[oficio].espe1) { espesCount = espesCount + 1; }
+		if (oficios[oficio].espe2) { espesCount = espesCount + 1; }
+		
+		let espeNivel = oficios[oficio].sub[espe];
+		
+		if (espeNivel == 2) {
+		
+			if (nivel < 40) {
+				alert(`No cumples el requisito mínimo de nivel 40 para aprender la especialización ` + espe + `.`);
+				return;
+			} 
+		
+			if (isOficio1 && isEspe1 && nikas >= 50 && puntos_oficio >= 5000) { if (confirm(`Subir a nivel 3 la especialización ` + espe + ` tiene un costo de 50 nikas y 5000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio1", espe); } } 
+			else if (isOficio2 && isEspe1 && nikas >= 50 && puntos_oficio >= 5000) { if (confirm(`Subir a nivel 3 la especialización ` + espe + ` tiene un costo de 50 nikas y 5000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio2", espe); } } 
+			else if (isOficio1 && isEspe2 && nikas >= 50 && puntos_oficio >= 5000) { if (confirm(`Subir a nivel 3 la especialización ` + espe + ` tiene un costo de 50 nikas y 5000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio1", espe); } } 
+			else if (isOficio2 && isEspe2 && nikas >= 50 && puntos_oficio >= 5000) { if (confirm(`Subir a nivel 3 la especialización ` + espe + ` tiene un costo de 50 nikas y 5000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio2", espe); } } 
+			else { alert(`No cumples los requisitos para mejorar la especialización ` + espe + `. Debes tener 50 nikas y 5000 puntos de oficio.`); }
+		
+		} else if (espeNivel == 1) {
+		
+			if (nivel < 30) {
+				alert(`No cumples el requisito mínimo de nivel 30 para aprender la especialización ` + espe + `.`);
+				return;
+			} 
+		
+			if (isOficio1 && isEspe1 && nikas >= 25 && puntos_oficio >= 3500) { if (confirm(`Subir a nivel 2 la especialización ` + espe + ` tiene un costo de 25 nikas y 3500 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio1", espe); } } 
+			else if (isOficio2 && isEspe1 && nikas >= 25 && puntos_oficio >= 3500) { if (confirm(`Subir a nivel 2 la especialización ` + espe + ` tiene un costo de 25 nikas y 3500 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio2", espe); } } 
+			else if (isOficio1 && isEspe2 && nikas >= 25 && puntos_oficio >= 3500) { if (confirm(`Subir a nivel 2 la especialización ` + espe + ` tiene un costo de 25 nikas y 3500 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio1", espe); } } 
+			else if (isOficio2 && isEspe2 && nikas >= 25 && puntos_oficio >= 3500) { if (confirm(`Subir a nivel 2 la especialización ` + espe + ` tiene un costo de 25 nikas y 3500 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio2", espe); } } 
+			else { alert(`No cumples los requisitos para mejorar la especialización ` + espe + `. Debes tener 25 nikas y 3500 puntos de oficio.`); }
+		
+		} else if (espeNivel == 0) {
+		
+			if (nivel < 20) {
+				alert(`No cumples el requisito mínimo de nivel 20 para aprender la especialización ` + espe + `.`);
+				return;
+			} 
+			
+			if (isOficio1 && espesCount == 0 && nikas >= 10 && puntos_oficio >= 2000) { if (confirm(`Para aprender la especialización ` + espe + ` tiene un costo de 10 nikas y 2000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio1", espe); } } 
+			else if (isOficio2 && espesCount == 0 && nikas >= 10 && puntos_oficio >= 2000) { if (confirm(`Para aprender la especialización ` + espe + ` tiene un costo de 10 nikas y 2000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe1", "oficio2", espe); } }
+			else if (isOficio1 && espesCount == 1 && nikas >= 10 && puntos_oficio >= 2000) { if (confirm(`Para aprender la especialización ` + espe + ` tiene un costo de 10 nikas y 2000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio1", espe); } } 
+			else if (isOficio2 && espesCount == 1 && nikas >= 10 && puntos_oficio >= 2000) { if (confirm(`Para aprender la especialización ` + espe + ` tiene un costo de 10 nikas y 2000 puntos de oficio. ¿Estás de acuerdo?`)) { subirEspeOficio("espe2", "oficio2", espe); } }
+			else { alert(`No cumples los requisitos para aprender la especialización ` + espe + `. Debes tener 10 nikas y 2000 puntos de oficio.`); }
+		
+		}
+		
+	}
+		
+	function chooseOficio(oficio, hasOficio) {
+		
+		let isOficio1 = oficio1 == oficio;
+		let isOficio2 = oficio2 == oficio;
+		
+		if (hasOficio) {
+		
+			if (isOficio1 && puntos_oficio >= 1000 && nivel >= 10) {
+				if (confirm(`Para subir el nivel al oficio de ` + oficio + ` tiene un costo de 1000 puntos de oficio. ¿Estás de acuerdo?`)) { subirOficio(oficio, 'oficio1'); }
+			} else if (isOficio2 && puntos_oficio >= 1000 && nivel >= 10) {
+				if (confirm(`Para subir el nivel al oficio de ` + oficio + ` tiene un costo de 1000 puntos de oficio. ¿Estás de acuerdo?`)) { subirOficio(oficio, 'oficio2'); }
+			} else {
+				alert(`No cumples los 1000 puntos de oficio o de nivel 10 para mejorar el oficio de ` + oficio + `.`);
+			}
+		
+		} else {
+		
+			if (has_polivalente || has_erudito) {
+				if (confirm(`Aprender el segundo oficio ` + oficio + ` es gratis para Eruditos y Polivalentes. ¿Estás de acuerdo con aprender este oficio?`)) { subirOficio(oficio, 'oficio2'); }
+			} else {
+				alert('No tienes acceso a subir el segundo oficio');
+			}
+		
+		}	
+	}
+	
+	function subirEspeOficio(espeNumber, oficioNumber, espe) {
+		window.location.href = `/op/mejoras.php?accion=oficio_espe&espeNumber=` + espeNumber + `&oficioNumber=` + oficioNumber + `&espe=` + espe;
+	}
+		
+	function subirOficio(oficio, oficioNumber) { 
+		window.location.href = `/op/mejoras.php?accion=oficio&oficio=` + oficio + `&oficioNumber=` + oficioNumber;
+	}	
+	
+	/* ESTILOS */
+	
+	let estilo1d = '';
+	let estilo2d = '';
+	let estilo3d = '';
+
+	let isEstiloAvailable = false;
+	
+	if (estilo1 == 'no_bloqueado' || estilo2 == 'no_bloqueado' || estilo3 == 'no_bloqueado') {
+		isEstiloAvailable = true;
+	}
+
+	if (estilo1 == 'no_bloqueado') { 
+		estilo1d = '<img src="/images/op/uploads/SlotTecnicaLibre_One_Piece_Gaiden_Foro_Rol.png">'; 
+	} else { 
+		estilo1d = `<img src="/images/op/uploads/Slot` + estilo1 + `_One_Piece_Gaiden_Foro_Rol.png">`;
+	}
+	
+	if (estilo2 == 'no_bloqueado') { 
+		estilo2d = '<img src="/images/op/uploads/SlotTecnicaLibre_One_Piece_Gaiden_Foro_Rol.png">'; 
+	} else if (estilo2 == 'bloqueado') { 
+		estilo2d = `<img style="cursor: pointer;" onclick="openModalDesbloquearEstilo2();" src="/images/op/uploads/SlotTecnicaBloqueado_One_Piece_Gaiden_Foro_Rol.png">`; 
+	} 
+	else { 
+		estilo2d = `<img src="/images/op/uploads/Slot` + estilo2 + `_One_Piece_Gaiden_Foro_Rol.png">`;
+	}
+
+	if (estilo3 == 'no_bloqueado') { estilo3d = '<img src="/images/op/uploads/SlotTecnicaLibre_One_Piece_Gaiden_Foro_Rol.png">'; } 
+	else if (estilo3 == 'bloqueado') { estilo3d = `<img style="cursor: pointer;" onclick="openModalDesbloquearEstilo3();" src="/images/op/uploads/SlotTecnicaBloqueado_One_Piece_Gaiden_Foro_Rol.png">`; } 
+	else { estilo3d = `<img src="/images/op/uploads/Slot` + estilo3 + `_One_Piece_Gaiden_Foro_Rol.png">`; }
+
+	$('#estilo1d').html(estilo1d);
+	$('#estilo2d').html(estilo2d);
+	$('#estilo3d').html(estilo3d);
+
+	let raza = "{$ficha['raza']}";
+	let faccion = "{$ficha['faccion']}";
+	
+	if (estilo1) { estilos[estilo1] = true; }
+	if (estilo2) { estilos[estilo2] = true; }
+	if (estilo3) { estilos[estilo3] = true; }	
+	
+	if (estilos['Gunkata']) { 
+		$('#gunkata').css('filter', 'saturate(1.7)'); 
+		$('#gunkata-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#gunkata').removeClass('img-expand');
+	} else { 
+		
+		if (isEstiloAvailable) {
+			$('#gunkata-div').css('cursor', 'pointer');
+			$('#gunkata-div').on('click', function() { chooseEstilo('Gunkata'); });
+		} else {
+			$('#gunkata').removeClass('img-expand');
+		}
+		
+		$('#gunkata-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#gunkata').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Hasshoken']) { 
+		$('#hasshoken-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#hasshoken').css('filter', 'saturate(1.7)'); 
+		$('#hasshoken').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#hasshoken-div').css('cursor', 'pointer'); $('#hasshoken-div').on('click', function() { chooseEstilo('Hasshoken'); }); } else { $('#hasshoken').removeClass('img-expand'); }
+		$('#hasshoken-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#hasshoken').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Santoryu']) { 
+		$('#santoryu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#santoryu').css('filter', 'saturate(1.7)');
+		$('#santoryu').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#santoryu-div').css('cursor', 'pointer'); $('#santoryu-div').on('click', function() { chooseEstilo('Santoryu'); }); } else { $('#santoryu').removeClass('img-expand'); }
+		$('#santoryu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#santoryu').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Kuroashi']) { 
+		$('#kuroashi-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#kuroashi').css('filter', 'saturate(1.7)');  
+		$('#kuroashi').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#kuroashi-div').css('cursor', 'pointer'); $('#kuroashi-div').on('click', function() { chooseEstilo('Kuroashi'); }); } else { $('#kuroashi').removeClass('img-expand'); }	 	
+		$('#kuroashi-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#kuroashi').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Gyojin Karate']) {
+		$('#karate').css('filter', 'saturate(1.7)');
+		$('#karate-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#karate').removeClass('img-expand');
+	} else if (raza == 'Gyojin' || raza == 'Hafugyo' || raza == 'Wotan' || raza == 'Woko' || raza == 'Ningyo') {
+		
+		if (isEstiloAvailable) { $('#karate-div').css('cursor', 'pointer'); $('#karate-div').on('click', function() { chooseEstilo('Gyojin Karate'); }); } else { $('#karate').removeClass('img-expand'); }	
+		$('#karate-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#karate').css('filter', 'grayscale(0.7)');
+    } else {
+		$('#karate-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#karate-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">RAZA GYOJIN REQUERIDA</div>`);
+		$('#karate').css('filter', 'grayscale(1)');
+		$('#karate').removeClass('img-expand');
+	}
+	
+	if (estilos['Gyojin Jujutsu']) {
+		$('#jujutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jujutsu').css('filter', 'saturate(1.7)');
+		$('#jujutsu').removeClass('img-expand');
+	} else if (raza == 'Gyojin' || raza == 'Hafugyo' || raza == 'Wotan' || raza == 'Woko' || raza == 'Ningyo') {
+		if (isEstiloAvailable) { $('#jujutsu-div').css('cursor', 'pointer'); $('#jujutsu-div').on('click', function() { chooseEstilo('Gyojin Jujutsu'); }); } else { $('#jujutsu').removeClass('img-expand'); }	
+		$('#jujutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jujutsu').css('filter', 'grayscale(0.7)');
+    } else {
+		$('#jujutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jujutsu-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">RAZA GYOJIN REQUERIDA</div>`);
+		$('#jujutsu').css('filter', 'grayscale(1)');
+		$('#jujutsu').removeClass('img-expand');
+	}
+	
+	if (estilos['Okama Kempo']) { 
+		$('#okama-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#okama').css('filter', 'saturate(1.7)'); 
+		$('#okama').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#okama-div').css('cursor', 'pointer'); $('#okama-div').on('click', function() { chooseEstilo('Okama Kempo'); }); } else { $('#okama').removeClass('img-expand'); }
+		$('#okama-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#okama').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Sora Yokujin']) { 
+		$('#sora-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#sora').css('filter', 'saturate(1.7)'); 
+		$('#sora').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#sora-div').css('cursor', 'pointer'); $('#sora-div').on('click', function() { chooseEstilo('Sora Yokujin'); }); } else { $('#sora').removeClass('img-expand'); }
+		$('#sora-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#sora').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Rokushiki']) {
+		$('#rokushiki-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#rokushiki').css('filter', 'saturate(1.7)');
+		$('#rokushiki').removeClass('img-expand');
+	} else if (faccion == 'CipherPol') {
+		if (isEstiloAvailable) { $('#rokushiki-div').css('cursor', 'pointer'); $('#rokushiki-div').on('click', function() { chooseEstilo('Rokushiki'); }); } else { $('#rokushiki').removeClass('img-expand'); }	
+		$('#rokushiki-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#rokushiki').css('filter', 'grayscale(0.7)');
+    } else {
+		$('#rokushiki-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#rokushiki-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">GOBIERNO MUNDIAL REQUERIDO</div>`);
+		$('#rokushiki').css('filter', 'grayscale(1)');
+		$('#rokushiki').removeClass('img-expand');
+	}
+	
+	if (estilos['Ninjutsu']) { 
+		$('#ninjutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#ninjutsu').css('filter', 'saturate(1.7)'); 
+		$('#ninjutsu').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#ninjutsu-div').css('cursor', 'pointer'); $('#ninjutsu-div').on('click', function() { chooseEstilo('Ninjutsu'); }); } else { $('#ninjutsu').removeClass('img-expand'); }
+		$('#ninjutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#ninjutsu').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Ryusoken']) { 
+		$('#ryusoken-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#ryusoken').css('filter', 'saturate(1.7)'); 
+		$('#ryusoken').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#ryusoken-div').css('cursor', 'pointer'); $('#ryusoken-div').on('click', function() { chooseEstilo('Ryusoken'); }); } else { $('#ryusoken').removeClass('img-expand'); }
+		$('#ryusoken-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#ryusoken').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Jiyuumura Kempo']) { 
+		$('#jiyuumura-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jiyuumura').css('filter', 'saturate(1.7)');
+		$('#jiyuumura').removeClass('img-expand');
+	} else if (faccion == 'Revolucionario') {
+		if (isEstiloAvailable) { $('#jiyuumura-div').css('cursor', 'pointer'); $('#jiyuumura-div').on('click', function() { chooseEstilo('Jiyuumura Kempo'); }); } else { $('#jiyuumura').removeClass('img-expand'); }
+		$('#jiyuumura-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jiyuumura').css('filter', 'grayscale(0.7)');
+    } else {
+		$('#jiyuumura-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#jiyuumura-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">REVOLUCINARIO REQUERIDO</div>`);
+		$('#jiyuumura').css('filter', 'grayscale(1)');
+		$('#jiyuumura').removeClass('img-expand');
+	}
+		
+	if (estilos['Pop Green']) { 
+		$('#pop-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#pop').css('filter', 'saturate(1.7)'); 
+		$('#pop').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#pop-div').css('cursor', 'pointer'); $('#pop-div').on('click', function() { chooseEstilo('Pop Green'); }); } else { $('#pop').removeClass('img-expand'); }
+		$('#pop-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#pop').css('filter', 'grayscale(0.7)'); 
+	}
+		
+	if (estilos['Clima Tact']) {
+		$('#clima-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#clima').css('filter', 'saturate(1.7)');
+		$('#clima').removeClass('img-expand');
+	} else if (oficios['Navegante']) {
+		if (isEstiloAvailable) { $('#clima-div').css('cursor', 'pointer'); $('#clima-div').on('click', function() { chooseEstilo('Clima Tact'); }); } else { $('#clima').removeClass('img-expand'); }	
+		$('#clima-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#clima').css('filter', 'grayscale(0.7)');
+	} else {
+		$('#clima-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#clima-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">NAVEGANTE REQUERIDO</div>`);
+		$('#clima').css('filter', 'grayscale(1)');
+		$('#clima').removeClass('img-expand');
+	}
+
+	if (estilos['Funekiri']) { 
+		$('#funekiri-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#funekiri').css('filter', 'saturate(1.7)'); 
+		$('#funekiri').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#funekiri-div').css('cursor', 'pointer'); $('#funekiri-div').on('click', function() { chooseEstilo('Funekiri'); }); } else { $('#funekiri').removeClass('img-expand'); }
+		$('#funekiri-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#funekiri').css('filter', 'grayscale(0.7)'); 
+	}
+
+	if (estilos['Hakai Shin']) { 
+		$('#hakai-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#hakai').css('filter', 'saturate(1.7)'); 
+		$('#hakai').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#hakai-div').css('cursor', 'pointer'); $('#hakai-div').on('click', function() { chooseEstilo('Hakai Shin'); }); } else { $('#hakai').removeClass('img-expand'); }
+		$('#hakai-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#hakai').css('filter', 'grayscale(0.7)'); 
+	}
+	
+	if (estilos['Estilo Único']) { 
+		$('#estilo_unico-div').append(`<div class="img-estrella" style="position: relative;margin-top: 0px;text-align: right;left: -7px;top: -271px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#estilo_unico').css('filter', 'saturate(1.7)'); 
+		$('#estilo_unico').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#estilo_unico-div').css('cursor', 'pointer'); $('#estilo_unico-div').on('click', function() { chooseEstilo('Estilo Único'); }); } else { $('#estilo_unico').removeClass('img-expand'); }
+		$('#estilo_unico-div').append(`<div class="img-estrella" style="position: relative;margin-top: 0px;text-align: right;left: -7px;top: -271px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#estilo_unico').css('filter', 'grayscale(0.7)'); 
+	}
+		
+	
+		
+	if (estilos['Gyojin Bukijutsu']) {
+		$('#bukijutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#bukijutsu').css('filter', 'saturate(1.7)');
+		$('#bukijutsu').removeClass('img-expand');
+	} else if (raza == 'Gyojin' || raza == 'Ningyo' || raza == 'Woko' || raza == 'Hafugyo' || raza == 'Wotan') {
+		if (isEstiloAvailable) { $('#bukijutsu-div').css('cursor', 'pointer'); $('#bukijutsu-div').on('click', function() { chooseEstilo('Gyojin Bukijutsu'); }); } else { $('#bukijutsu').removeClass('img-expand'); }	
+		$('#bukijutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#bukijutsu').css('filter', 'grayscale(0.7)');
+    } else {
+		$('#bukijutsu-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: 8px;top: -309px;"><img src="/images/op/uploads/CandadoGaiden_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#bukijutsu-div').append(`<div class="img-texto" style="font-size: 18px;top: 0px;margin-top: -57px;text-align: center;left: 0px;">RAZA GYOJIN REQUERIDA</div>`);
+		$('#bukijutsu').css('filter', 'grayscale(1)');
+		$('#bukijutsu').removeClass('img-expand');
+	}
+	
+	if (estilos['Railgun Style']) { 
+		$('#railgun-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#railgun').css('filter', 'saturate(1.7)'); 
+		$('#railgun').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#railgun-div').css('cursor', 'pointer'); $('#railgun-div').on('click', function() { chooseEstilo('Railgun Style'); }); } else { $('#railgun').removeClass('img-expand'); }
+		$('#railgun-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#railgun').css('filter', 'grayscale(0.7)'); 
+	}
+
+	if (estilos['Raqisat Alsahra']) { 
+		$('#raqisat-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeLlena_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#raqisat').css('filter', 'saturate(1.7)'); 
+		$('#raqisat').removeClass('img-expand');
+	} else { 
+		if (isEstiloAvailable) { $('#raqisat-div').css('cursor', 'pointer'); $('#raqisat-div').on('click', function() { chooseEstilo('Raqisat Alsahra'); }); } else { $('#raqisat').removeClass('img-expand'); }
+		$('#raqisat-div').append(`<div class="img-estrella" style="position: relative;margin-top: -99px;text-align: right;left: -4px;top: -295px;"><img src="/images/op/uploads/EstrellaMuyGrandeVacia_One_Piece_Gaiden_Foro_Rol.png"></div>`);
+		$('#raqisat').css('filter', 'grayscale(0.7)'); 
+	}
+
+	function openModalDesbloquearEstilo2() {
+		if (nivel >= 10 && nikas >= 25 && estilo2 == 'bloqueado') { 
+			if (confirm('Puedes desbloquear el segundo slot de estilo. Deberás invertir 25 nikas. ¿Estás de acuerdo?')) {
+				window.location.href = '/op/mejoras.php?accion=estilo2_desbloquear';
+			}
+		} else {
+			alert('Aún no puedes desbloquear el segundo estilo.\nDebes ser nivel 10 y tener más de 25 nikas.');
+		}
+	}
+	
+	function openModalDesbloquearEstilo3() {	
+		if (nivel >= 15 && nikas >= 50 && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
+			if (confirm('Puedes desbloquear el tercer slot de estilo. Deberás invertir 50 nikas. ¿Estás de acuerdo?')) {
+				window.location.href = '/op/mejoras.php?accion=estilo3_desbloquear';
+			}
+		} else {
+			alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel 15 y tener más de 50 nikas.');
+		}
+	}
+		
+	function openModalDesbloquearEstilo4() {	
+		if (nivel >= 20 && nikas >= 100 && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
+			if (confirm('Puedes desbloquear el tercer slot de estilo. Deberás invertir 50 nikas. ¿Estás de acuerdo?')) {
+				window.location.href = '/op/mejoras.php?accion=estilo3_desbloquear';
+			}
+		} else {
+			alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel 15 y tener más de 50 nikas.');
+		}
+	}
+	
+	function displayModalContent(body, height, width) {
+		return `
+			<div class="modal-content" style=" background-color: #ffedd2; border: 4px solid #ffe59b; border-radius: 8px; height: ` + height + `px; width: ` + width + `px; ">
+				<div class="modal-body" style=" display: flex; flex-direction: column; ">
+					` + body + `
+				</div>
+			</div>
+		`;
+	}
+	
+	function chooseEstilo(estilo) {
+		if (confirm('¿Estás seguro que quieres seleccionar el estilo ' + estilo + '?')) {
+			window.location.href = '/op/mejoras.php?accion=estilo&estilo=' + estilo;
+		}
+	}
+
+	// When the user clicks on <span> (x), close the modal
+	function closeModal() {
+		modal.style.display = "none";
+	}
+	
+	$('.titulo-tecnica').hover((img) => { $(img.currentTarget.parentElement).find('.img-expand').toggleClass('img-expand-hover'); });	
+	$('.img-texto').hover((img) => { $(img.currentTarget.parentElement).find('.img-expand').toggleClass('img-expand-hover'); });	
+	$('.img-estrella').hover((img) => { $(img.currentTarget.parentElement).find('.img-expand').toggleClass('img-expand-hover'); });	
+</script>

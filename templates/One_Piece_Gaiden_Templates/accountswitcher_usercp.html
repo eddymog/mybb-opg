@@ -1,0 +1,36 @@
+<html>
+                        <head>
+                            <title>{$mybb->settings['bbname']} - {$lang->as_name}</title>
+                            {$headerinclude}
+                            <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/select2/select2.css" />
+                            <script type="text/javascript" src="{$mybb->asset_url}/jscripts/select2/select2.min.js?ver={$mybb->version_code}"></script>
+                        </head>
+                        <body>
+                        {$header}
+                        <table width="100%" border="0" align="center">
+                            <tr>
+                            {$usercpnav}
+                                <td valign="top">
+                                    <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
+                                        <tr><td class="thead" colspan="2"><strong>{$lang->as_name}</strong></td></tr>
+                                        <tr>
+                                            <td class="trow1" valign="top" {$colspan}>
+                                                <fieldset class="trow2">
+                                                    <legend><strong>{$lang->as_usercp_options}</strong></legend>
+                                                    {$as_usercp_options}
+                                                </fieldset>
+                                            </td>
+                                            {$as_usercp_users}
+                                        </tr>
+                                        <tr>
+                                            <td class="trow2" valign="top" {$colspan}>
+                                                {$as_usercp_privacy}
+                                            </td>
+                                      </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        {$footer}
+                        </body>
+                        </html>
