@@ -1,123 +1,17 @@
-<html>    
-<head>    
-<title>{$mybb->settings['bbname']}</title>    
+<html>
+<head>
+<title>{$mybb->settings['bbname']}</title>
 {$headerinclude}
-{$recentthread_headerinclude}    
-   
-<style>
-    /* Estilo base para el botón de Discord */
-    .discord-button-container {
-        position: fixed;
-        margin: 0px;
-        cursor: pointer;
-        border-radius: 1000px;
-        color: #fff;
-        font-size: 18px;
-        z-index: 999; /* Mayor z-index para asegurar que esté por encima */
-        text-align: center;
-        left: 23px;
-        bottom: 17px;
-        transition: all 0.3s ease;
-    }
-    
-    .discord-button {
-        width: 66px;
-        height: auto;
-        transition: all 0.3s ease;
-    }
-    
-    /* Media query para dispositivos móviles */
-    @media only screen and (max-width: 768px) {
-        .discord-button {
-            width: 90px !important; /* Uso de !important para mayor precedencia */
-        }
-        
-        .discord-button-container {
-            left: 15px;
-            bottom: 15px;
-        }
-    }
-    
-    /* Para pantallas muy pequeñas */
-    @media only screen and (max-width: 480px) {
-        .discord-button {
-            width: 120px !important; /* Aún más grande y con !important */
-        }
-        
-        .discord-button-container {
-            left: 10px;
-            bottom: 10px;
-        }
-    }
-</style>
-    
-<script type="text/javascript">    
-<!--    
-    lang.no_new_posts = "{$lang->no_new_posts}";    
-    lang.click_mark_read = "{$lang->click_mark_read}";    
- -->    
+<script type="text/javascript">
+<!--
+	lang.no_new_posts = "{$lang->no_new_posts}";
+	lang.click_mark_read = "{$lang->click_mark_read}";
+// -->
 </script>
-
-<!-- Meta viewport para asegurar que los media queries funcionen correctamente en móviles -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>    
-<body>    
-{$header}    
-<div class="forums" style="float: left; width: 100%;">{$op_index}</div>    
-<div class="discord-button-container">
-    <a href="https://discord.gg/5Mgcvv3ysk">
-        <img class="discord-button" src="https://onepiecegaiden.com/images/op/uploads/DiscordNuevo_One_Piece_Gaiden_Foro_Rol.png" alt="Discord">
-    </a>
-</div>
-<div id="whosonline" style="display: flex; margin-top: 15px;">    
-    <!-- <table border="0" cellspacing="{theme['borderwidth']}" cellpadding="{theme['tablespace']}" class="tborder">    
-        <tr>    
-            <td class="thead side" style=" padding: 2px 20px; ">    
-                <strong><a href="online.php">{lang->whos_online}</a></strong>    
-                <div class="float_right" style="padding-top: 5px;"><i class="fa fa-child"></i></div>    
-            </td>    
-        </tr>    
-        <tr>    
-            <td class="trow1">    
-                {whosonline}    
-            </td>    
-        </tr>    
-    </table>  -->
-    
-<!-- <table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">    
-	<tr>    
-		<td class="thead side" style=" padding: 2px 20px; ">    
-			<strong><a href="stats.php">{lang->boardstats}</a></strong>    
-			<div class="float_right" style="padding-top: 5px;"><i class="fa fa-line-chart"></i></div>    
-		</td>    
-	</tr>    
-	<tr>    
-		<td class="trow1">    
-			forumstats}    
-		</td>    
-	</tr>    
-</table> -->    
-</div>    
-<!-- {boardstats}   -->
-<!--     
-<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">    
-	<tr>    
-		<td class="thead side">    
-			<strong>Custom Sidebox</strong>    
-			<div class="float_right" style="padding-top: 5px;"><i class="fa fa-newspaper-o"></i></div>    
-		</td>    
-	</tr>    
-	<tr>    
-		<td class="trow1">    
-			<span class="smalltext">    
-				Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam..    
-			</span>    
-		</td>    
-	</tr>    
-</table><br />    
--->    
-    
-<br class="clear" />    
-{$footer}    
-</body>    
+</head>
+<body>
+{$header}
+{$op_index}
+{$footer}
+</body>
 </html>

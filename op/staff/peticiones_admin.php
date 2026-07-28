@@ -69,9 +69,13 @@ if ($accion == 'resolver' && $peti_id) {
     header('Location: /op/staff/peticiones_admin.php');
     exit;
 } else if ($accion == 'borrar' && $peti_id) { // <- corrige $action -> $accion
+    // Borra por `id` (PK única), NO por `uid`: las solicitudes de afiliación
+    // entran con uid=0, así que borrar por uid arrasaría con todas de una.
+    $peti_id_int = (int) $peti_id;
     $db->query("
         DELETE FROM mybb_op_peticiones
-        WHERE uid='{$peti_id}'
+        WHERE id='{$peti_id_int}'
+        LIMIT 1
     ");
     header('Location: /op/staff/peticiones_admin.php');
     exit;
@@ -297,6 +301,7 @@ if (is_mod($uid) || is_staff($uid) || is_user($uid)) {
     $peticiones_li .= print_peticion('Moderación de Combate', 'combate', $uid, $resuelto);
     $peticiones_li .= print_peticion('Técnicas, Akumas y Estilos', 'tecnica', $uid, $resuelto);
     $peticiones_li .= print_peticion('Otras Moderaciones', 'otros', $uid, $resuelto);
+    $peticiones_li .= print_peticion('Solicitudes de Afiliación', 'afiliados', $uid, $resuelto);
     // $peticiones_li .= print_peticion('Errores de Programación', 'programacion', $uid);
 
     $csrf_script = "<script>window.MYBB_POST_KEY = '".htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8')."';</script>";

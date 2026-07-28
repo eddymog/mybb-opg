@@ -513,6 +513,13 @@ $forums = $forum_list['forum_list'];
 
 $plugins->run_hooks('index_end');
 eval("\$rtchat_chat = \"".$templates->get("rtchat_chat")."\";");
+
+// Sección de Afiliados (ver docs/afiliados_implementacion_opg.md).
+// Debe definirse ANTES del eval de op_index, que referencia {$index_afiliados}.
+// NOTA: edición consciente del core de MyBB — reaplicar tras un update de MyBB.
+require_once MYBB_ROOT.'op/functions/afiliados_functions.php';
+$index_afiliados = function_exists('op_afiliados_index_html') ? op_afiliados_index_html() : '';
+
 eval('$op_index = "'.$templates->get('op_index').'";');
 
 eval('$index = "'.$templates->get('index').'";');
