@@ -85,7 +85,7 @@ $aprobada_por = false;
 $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas as f INNER JOIN mybb_users as u ON f.fid = u.uid WHERE f.fid='$uid' ");
 $puntos_rol = null;
 while ($f = $db->fetch_array($query_ficha)) {
-    $aprobada_por = $f['aprobada_por'] != 'sin_aprobar'; $ficha_existe = true; $ficha = $f; $puntos_rol = $f['newpoints'];
+    $aprobada_por = !in_array($f['aprobada_por'], array('sin_aprobar', 'pendiente_reset'), true); $ficha_existe = true; $ficha = $f; $puntos_rol = $f['newpoints'];
 }
 
 $reload_js = "<script>window.location.href = window.location.href;</script>";
@@ -215,7 +215,19 @@ if ($tecnica_id) {
             $tiempo_de_tecnica = 72 * 3600;
         } else if ($tier == '10') {
             $tiempo_de_tecnica = 100 * 3600;
-        } 
+        } else if ($tier == '11') {
+            $tiempo_de_tecnica = 125 * 3600;
+        } else if ($tier == '12') {
+            $tiempo_de_tecnica = 150 * 3600;
+        } else if ($tier == '13') {
+            $tiempo_de_tecnica = 175 * 3600;
+        } else if ($tier == '14') {
+            $tiempo_de_tecnica = 200 * 3600;
+        } else if ($tier == '15') {
+            $tiempo_de_tecnica = 250 * 3600;
+        } else if ($tier == 'SSS') {
+            $tiempo_de_tecnica = 300 * 3600;
+        }
 
         $tiempo_iniciado = time();
         $tiempo_finaliza = $tiempo_iniciado + $tiempo_de_tecnica;
@@ -330,7 +342,13 @@ if ($ficha_existe == true && $aprobada_por == true) {
 
         $nivel_tier = 1;
 
-        if ($nivel >= 40) { $nivel_tier = 10; }
+        if ($nivel >= 100) { $nivel_tier = 16; } // 16 = tier "SSS"
+        else if ($nivel >= 90) { $nivel_tier = 15; }
+        else if ($nivel >= 80) { $nivel_tier = 14; }
+        else if ($nivel >= 70) { $nivel_tier = 13; }
+        else if ($nivel >= 60) { $nivel_tier = 12; }
+        else if ($nivel >= 50) { $nivel_tier = 11; }
+        else if ($nivel >= 40) { $nivel_tier = 10; }
         else if ($nivel >= 35) { $nivel_tier = 9; }
         else if ($nivel >= 30) { $nivel_tier = 8; }
         else if ($nivel >= 25) { $nivel_tier = 7; }

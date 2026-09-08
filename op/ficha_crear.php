@@ -151,12 +151,22 @@ if ($has_info && $ficha_existe == false) {
 
     $elementos = '{ "Electro": 0, "Piro": 0, "Cryo": 0, "Aqua": 0,  "Aero": 0 }';
 
-    if ($faccion == "Marina") { $rango = "ReclutaM"; }
-    if ($faccion == "CipherPol") { $rango = "CP1"; }
-    if ($faccion == "Revolucionario") { $rango = "ReclutaR"; }
-    if ($faccion == "Pirata") { $rango = "Pirata"; }
-    if ($faccion == "Cazadores") { $rango = "Cazador"; }
-    if ($faccion == "Civil") { $rango = "Ciudadano"; }
+    // El rango inicial de cada facción se gestiona ahora desde Admin CP →
+    // Configuración del foro → OPG Facciones (se toma el rango con menor
+    // "orden" de la facción elegida). Si la tabla no existiera por lo que
+    // sea, cae al mapeo fijo de siempre para no dejar de funcionar.
+    $rango = '';
+    if ($db->table_exists('op_facciones_rangos')) {
+        $rango = (string)$db->fetch_field($db->simple_select('op_facciones_rangos', 'valor', "faccion='".$db->escape_string($faccion)."'", array('order_by' => 'orden', 'limit' => 1)), 'valor');
+    }
+    if ($rango === '') {
+        if ($faccion == "Marina") { $rango = "ReclutaM"; }
+        if ($faccion == "CipherPol") { $rango = "CP1"; }
+        if ($faccion == "Revolucionario") { $rango = "ReclutaR"; }
+        if ($faccion == "Pirata") { $rango = "Pirata"; }
+        if ($faccion == "Cazadores") { $rango = "Cazador"; }
+        if ($faccion == "Civil") { $rango = "Ciudadano"; }
+    }
 
     $espacios = 500.0;
     $alturaF = floatval($altura);

@@ -370,6 +370,12 @@ function newpoints_add_setting($name, $plugin, $title, $description, $type, $val
  * Note: some pages (by other plugins) do not run queries on shutdown so adding this to shutdown may not be good if you're not sure if it will run.
  *
 */
+// ─── Evento temporal: XP x1.5 y límite semanal de newpoints a 200 ────────────
+// Del 04/09/2026 al 04/10/2026 (un mes). Pasado ese periodo vuelve solo al
+// límite normal de 100 y multiplicador x1, no requiere revertir nada a mano.
+define('NEWPOINTS_EVENTO_XP_INICIO', strtotime('2026-09-04 00:00:00'));
+define('NEWPOINTS_EVENTO_XP_FIN',    strtotime('2026-10-04 00:00:00'));
+
 function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $isstring = false, $immediate = false)
 {
 	global $db, $mybb, $userpoints, $post, $thread;
@@ -412,46 +418,34 @@ function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $iss
 		");
 	}
 	
-	if ($es_admin) {
-		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 2;
-	} else if ($es_otros) {
-		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 1.5;
-	} else {
-		$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * 1;
-	}
+	$grupo_mult = 1;
+	if ($es_admin) { $grupo_mult = 2; }
+	else if ($es_otros) { $grupo_mult = 1.5; }
 
-	// $experienciaSemanal = 100; // <--- temporary
+	$newpoints_evento_activo = (time() >= NEWPOINTS_EVENTO_XP_INICIO && time() < NEWPOINTS_EVENTO_XP_FIN);
+	$newpoints_evento_mult   = $newpoints_evento_activo ? 1.5 : 1;
+	$newpoints_limite_semana = $newpoints_evento_activo ? 200 : 100;
 
-	$nuevaExperienciaSemanal = 100;
-	// $nuevaExperienciaSemanal = 150;
+	$pointsAwarded = floatval(round($points*$forumrate*$grouprate, intval($mybb->settings['newpoints_main_decimal']))) * $grupo_mult * $newpoints_evento_mult;
+
+	$nuevaExperienciaSemanal = $newpoints_limite_semana;
 	$minusExperiencia = 0;
 	$kuroExperiencia = 0;
 
-	if ($experienciaSemanal + $pointsAwarded > 100) {
-	// if ($experienciaSemanal + $pointsAwarded > 150) {
-		// $nuevaExperienciaSemanal = 150;
-		// $minusExperiencia = ($experienciaSemanal + $pointsAwarded) - 150.0;
-		// $kuroExperiencia = ($experienciaSemanal + $pointsAwarded) - 150.0;
-		$nuevaExperienciaSemanal = 100;
-		$minusExperiencia = ($experienciaSemanal + $pointsAwarded) - 100.0;
-		$kuroExperiencia = ($experienciaSemanal + $pointsAwarded) - 100.0;
+	if ($experienciaSemanal + $pointsAwarded > $newpoints_limite_semana) {
+		$nuevaExperienciaSemanal = $newpoints_limite_semana;
+		$minusExperiencia = ($experienciaSemanal + $pointsAwarded) - $newpoints_limite_semana;
+		$kuroExperiencia = ($experienciaSemanal + $pointsAwarded) - $newpoints_limite_semana;
 
-		if ($es_admin) {
-			$kuroExperiencia = $kuroExperiencia / 2;
-		} else if ($es_otros) {
-			$kuroExperiencia = $kuroExperiencia / 1.5;
-		}
+		$kuroExperiencia = $kuroExperiencia / ($grupo_mult * $newpoints_evento_mult);
 
-		$kuroExperiencia = $kuroExperiencia;
-		
 		$kuros = 0;
-		$query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' "); 
+		$query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' ");
 		while ($f = $db->fetch_array($query_ficha)) { $kuros = intval($f['kuro']); }
 		$nuevosKuros = $kuros + $kuroExperiencia;
 		$db->query(" UPDATE `mybb_op_fichas` SET `kuro`='$nuevosKuros' WHERE fid='$uid' ");
-		
-	// } else if ($experienciaSemanal + $pointsAwarded <= 100) {
-	} else if ($experienciaSemanal + $pointsAwarded <= 100) {
+
+	} else if ($experienciaSemanal + $pointsAwarded <= $newpoints_limite_semana) {
 		$nuevaExperienciaSemanal = $experienciaSemanal + $pointsAwarded;
 	}
 

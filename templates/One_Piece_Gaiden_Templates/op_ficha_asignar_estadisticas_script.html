@@ -40,11 +40,25 @@
   
     function changeStat(statId, num) {
    		const statLimit = calculateMinMaxStat();
-		
+		// Modo de devolución de puntos: si el pool está en negativo (ficha bajada de
+		// nivel automáticamente por un reajuste de exp_tabla), se permite bajar
+		// cualquier estadística hasta el mínimo de su nivel actual, no solo deshacer
+		// los cambios hechos en esta misma sesión de edición.
+		const modoDevolverPuntos = num <= -1 && parseInt(puntos_estadistica.value) < 0;
+
 		if (num >= 1 && getSumOfAllStats() >= 550) {
 		  alert('Ya has asignado la máxima cantidad de estadísticas. ¡Felicidades!');
 		} else if (puntos_estadistica.value == 0 && num >= 1) {
 		  alert('No tienes más puntos de estadísticas.');
+		} else if (modoDevolverPuntos) {
+		  if (parseInt(statId.value) + parseInt(num) < statLimit.min) {
+		    alert('No puedes bajar esta estadística por debajo del mínimo de tu nivel (' + statLimit.min + ').');
+		  } else {
+			statId.value = parseInt(statId.value) + parseInt(num);
+			puntos_estadistica.value = parseInt(puntos_estadistica.value) - parseInt(num);
+			$('.total_puntos')[0].innerHTML = getSumOfAllStats();
+			modifyAttributes();
+		  }
 		} else if (statId.value >= statLimit.max) {
 		  alert('Ya has asignado el máximo de puntos para esta estadística.')
 		} else if (num <= -1 && checkStatGoLessThanAlreadySet(statId)) {

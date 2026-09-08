@@ -105,9 +105,12 @@
 				</select>
 			  </td>
 		    </tr>
+		    <tr>
+			  <td>Dominio Akuma (0-6): <br><input class="textbox" type="text" name="dominio_akuma" value="{$ficha['dominio_akuma']}"></td>
+		    </tr>
 		  </table>
-		</div> 
-		
+		</div>
+
 		<!-- Configuración del Personaje -->
 		<div class="section-block">
 		  <div class="section-title">Configuración del Personaje</div>
@@ -121,13 +124,7 @@
 			  </td>
 			  <td>Facción: <br>
 			    <select name="faccion" id="faccion" class="textbox">
-				  <option value="Pirata" <if $ficha['faccion'] == 'Pirata' then>selected</if>>Pirata</option>
-				  <option value="Marina" <if $ficha['faccion'] == 'Marina' then>selected</if>>Marina</option>
-				  <option value="CipherPol" <if $ficha['faccion'] == 'CipherPol' then>selected</if>>CipherPol</option>
-				  <option value="Revolucionario" <if $ficha['faccion'] == 'Revolucionario' then>selected</if>>Revolucionario</option>
-				  <option value="Cazadores" <if $ficha['faccion'] == 'Cazadores' then>selected</if>>Cazadores</option>
-				  <option value="Civil" <if $ficha['faccion'] == 'Civil' then>selected</if>>Civil</option>
-				  <option value="Staff" <if $ficha['faccion'] == 'Staff' then>selected</if>>Staff</option>
+				  {$faccion_select_options}
 			    </select>
 			  </td>
 			  <td>Temporada: <br>
@@ -242,6 +239,7 @@
 		    <tr>
 			  <td>Belica 1: <br>
 			    <select name="belica1" id="belica1" class="textbox">
+				  <option value="" <if $ficha['belica1'] == '' then>selected</if>>Sin Disciplina</option>
 				  <option value="Escudero" <if $ficha['belica1'] == 'Escudero' then>selected</if>>Escudero</option>
 				  <option value="Artista Marcial" <if $ficha['belica1'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
 				  <option value="Combatiente" <if $ficha['belica1'] == 'Combatiente' then>selected</if>>Combatiente</option>

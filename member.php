@@ -2078,15 +2078,7 @@ if($mybb->input['action'] == "profile")
 	$faccion_color = '#ac0359';
 	$q_fc = $db->simple_select('op_fichas', 'faccion', "fid='{$uid}'", ['limit' => 1]);
 	if($fc_row = $db->fetch_array($q_fc)) {
-		$_faccion_colors = [
-			'Pirata'         => '#8d0101',
-			'Marina'         => '#006d94',
-			'CipherPol'      => '#3e528f',
-			'Cazadores'      => '#007500',
-			'Revolucionario' => '#be9d6f',
-			'Civil'          => '#ac0359',
-		];
-		$faccion_color = $_faccion_colors[$fc_row['faccion']] ?? '#ac0359';
+		$faccion_color = op_faccion_color_texto($fc_row['faccion']);
 	}
 
 	$formattedname = '<span style="color: '.$faccion_color.';" class="username_bright"><strong>'.htmlspecialchars_uni($memprofile['username']).'</strong></span>';

@@ -215,7 +215,7 @@
 	  }
 
 	  if (!nombre){ alert('Por favor, ingresa el nombre del jugador'); return; }
-	  if (nivel<1 || nivel>50){ alert('El nivel debe estar entre 1 y 50'); return; }
+	  if (nivel<1 || nivel>100){ alert('El nivel debe estar entre 1 y 100'); return; }
 
 	  // Determinar uid final desde estado/atributos
 	  var jugadorUid = 0;
@@ -253,7 +253,7 @@
 
   // --- Enemigos ---
   function obtenerTierPorNivel(n){
-    if (n>=45) return 10; if (n>=40) return 9; if (n>=35) return 8; if (n>=30) return 7; if (n>=25) return 6; if (n>=20) return 5; if (n>=15) return 4; if (n>=10) return 3; if (n>=5) return 2; return 1;
+    if (n>=100) return 16; if (n>=90) return 15; if (n>=80) return 14; if (n>=70) return 13; if (n>=60) return 12; if (n>=50) return 11; if (n>=40) return 10; if (n>=35) return 9; if (n>=30) return 8; if (n>=25) return 7; if (n>=20) return 6; if (n>=16) return 5; if (n>=12) return 4; if (n>=8) return 3; if (n>=4) return 2; return 1;
   }
   function actualizarListaEnemigos(){
     var lista = document.getElementById('listaEnemigos');

@@ -1,0 +1,173 @@
+================================================================================
+ONE PIECE GAIDEN — ENGINEERING CASE STUDY
+================================================================================
+MyBB 1.8.36 · PHP · MySQL · jQuery · ES-language RPG forum · Solo-built
+
+A live Spanish-language roleplay community with a full custom RPG engine
+welded onto a forum core.
+
+Focus areas: Backend / PHP · Relational schema design · REST API ·
+Game systems · Live product
+
+
+--------------------------------------------------------------------------------
+BY THE NUMBERS
+--------------------------------------------------------------------------------
+  ~45K   Lines of custom PHP
+  160+   Game & staff modules
+  69     Custom database tables
+  15     Custom BBCode parsers
+  6      REST API endpoints
+
+
+--------------------------------------------------------------------------------
+COMMUNITY & SCALE
+--------------------------------------------------------------------------------
+  591    Registered users
+  39K    Messages posted
+  ~20M   Words written in roleplay
+  ~1K    Posts per month (sustained)
+
+Not a demo or a tutorial project: a system carrying a real, active community
+and the data volume that comes with it.
+
+
+--------------------------------------------------------------------------------
+00 — WHAT IT IS
+--------------------------------------------------------------------------------
+The forum core (MyBB 1.8.36) handles users, threads, and posts. Everything
+interesting sits on top of it: a from-scratch RPG game system — character
+sheets, turn-based combat, crafting, time-gated training, a player economy,
+world travel, and gacha mechanics — spanning roughly 45,000 lines of PHP
+across 100+ game modules and 60+ staff tools, backed by a hand-designed
+relational schema.
+
+It runs in production for a real player community — 591 users who have posted
+39,000 messages totalling roughly 20 million words of roleplay, at a sustained
+~1,000 posts a month. That scale means the system also carries the concerns a
+real product carries: auditing, moderation, anti-abuse, and data integrity.
+
+
+--------------------------------------------------------------------------------
+01 — THE GAME ENGINE, BY SYSTEM
+--------------------------------------------------------------------------------
+Character sheets
+  One character per account (fid = uid). Dozens of stats, passive bonuses,
+  resources, and JSON-encoded skill trees on a single authoritative table.
+
+Combat & techniques
+  Technique catalogue with typed IDs (defects, virtues, techniques), rendered
+  in-thread through custom BBCode tags.
+
+Crafting
+  Recipe-driven item creation with per-user item instances keyed as
+  base-uid-count.
+
+Time-gated training
+  Queued progression that resolves on Unix timestamp_end — asynchronous state
+  that advances without the player online.
+
+Player economy
+  Multi-currency wallet (berries, nika, kuro, craft & stat points) with a
+  black-market trading module.
+
+World & travel
+  Ships, voyages, and an in-game calendar (year / season / day) stamped onto
+  threads.
+
+Gacha / rolls
+  Probability-weighted draws for chests, Devil Fruits, and Haki, with reward
+  pipelines and admin controls.
+
+Adventures & missions
+  Narrator-run content with prefixed thread types driving different game flows.
+
+Audit & moderation
+  Dedicated audit tables and staff tooling — every sensitive action is logged
+  and reviewable.
+
+
+--------------------------------------------------------------------------------
+02 — HOW A REQUEST FLOWS
+--------------------------------------------------------------------------------
+Every game page bootstraps through the forum core, then runs its own logic
+against shared globals — a deliberate seam that lets custom systems reuse auth,
+sessions, and CSRF for free.
+
+  1. Bootstrap
+     Page defines IN_MYBB, pulls in global.php -> init.php: error handler,
+     core class, DB driver, templates, cache, plugins, language.
+
+  2. Session & auth
+     Session initializes, CSRF token is minted, and the current user resolves
+     to $mybb->user['uid'] (0 = guest).
+
+  3. Permission gates
+     Role checks — is_staff(), is_narra(), does_ficha_exist() — decide what the
+     request may touch.
+
+  4. Game logic
+     Module runs against $db, $mybb, $templates; custom BBCode parsers hydrate
+     game tags inside posts.
+
+  5. Render & audit
+     Templates render, response ships, and any write to a character fires a DB
+     trigger that snapshots the change to an audit table.
+
+
+--------------------------------------------------------------------------------
+03 — DATA & INTEGRATION HIGHLIGHTS
+--------------------------------------------------------------------------------
+Database craft
+  Triggers    Two AFTER-UPDATE triggers auto-snapshot character stats and
+              currency changes into audit tables — integrity enforced at the
+              data layer.
+  JSON cols   Skill trees and loadouts (oficios, estilos, equipamiento) stored
+              as native MySQL JSON.
+  Time-gates  Training/crafting queues resolve on stored Unix timestamps —
+              server-authoritative async progression.
+  Audit trail Family of op_audit_* tables logs stats, crafting, missions,
+              and rewards.
+
+Surfaces & services
+  REST API    6 JSON endpoints with JWT auth (bearer_uid()) for character,
+              thread, and reply data.
+  BBCode      15 custom parsers turn [ficha], [dado], [tecnica], [objeto] into
+              live game widgets inside posts.
+  Client JS   24 modules — interactive maps, tier calculators, and the
+              character-sheet builder.
+  Integrations Discord webhooks for events; multi-provider VPN/proxy detection
+              for anti-abuse.
+
+
+--------------------------------------------------------------------------------
+04 — SHIP'S LOG: WHAT I'D DO DIFFERENTLY
+--------------------------------------------------------------------------------
+The most useful thing this project taught me is how to read my own code
+critically. Presented honestly, the trade-offs are a feature of the story,
+not a flaw in it.
+
+[SECURITY DEBT] Development shortcuts that shipped
+  JWT secret hardcoded as 'test', wide-open CORS, and SQL built by string
+  interpolation rather than prepared statements.
+  -> fix: rotate secrets to env config, lock CORS to known origins, and
+     migrate queries to parameterized binds.
+
+[MAINTAINABILITY] Monolith modules
+  A handful of files grew past 60–360 KB as features accreted, mixing data
+  access, game rules, and rendering.
+  -> fix: extract a service/repository layer so game rules are testable in
+     isolation from the template output.
+
+[PLATFORM] Built on a legacy engine
+  MyBB 1.8 gave users, sessions, and moderation for free — a pragmatic call
+  that let me spend my time on the game, not on reinventing a forum.
+  -> fix: the seam between core and /op/ is clean enough that the game system
+     could be lifted onto a modern framework.
+
+
+--------------------------------------------------------------------------------
+Solo-designed, built, and maintained · backend, schema, API, and front-end.
+Case study prepared from the live production codebase, 2026.
+— set sail.
+================================================================================

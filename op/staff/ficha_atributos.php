@@ -97,6 +97,7 @@ $kenbun = $_POST["kenbun"];
 $buso = $_POST["buso"];
 $hao = $_POST["hao"];
 $hao_chance = $_POST["hao_chance"];
+$dominio_akuma = $_POST["dominio_akuma"];
 
 $reputacion = $_POST["reputacion"];
 $reputacion_positiva = $_POST["reputacion_positiva"];
@@ -270,23 +271,25 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
     if ($faccion != $f_var['faccion']) {
         $log .= "-- De ".$f_var['faccion']." a $faccion faccion.\n";
 
-        if ($faccion == 'Pirata') { 
-            $db->query(" UPDATE `mybb_users` SET usergroup='8' WHERE `uid`='$ficha_id'; ");
+        // El grupo de MyBB asociado a cada facción se gestiona ahora desde
+        // Admin CP → Configuración del foro → OPG Facciones (columna
+        // "usergroup" de mybb_op_facciones). Si la tabla no existiera por lo
+        // que sea, cae al mapeo fijo de siempre para no dejar de funcionar.
+        $faccion_usergroup = 0;
+        if ($db->table_exists('op_facciones')) {
+            $faccion_usergroup = (int)$db->fetch_field($db->simple_select('op_facciones', 'usergroup', "nombre='".$db->escape_string($faccion)."'"), 'usergroup');
+        } else {
+            $legacy_usergroups = array(
+                'Pirata' => 8, 'Marina' => 9, 'CipherPol' => 11,
+                'Revolucionario' => 12, 'Cazadores' => 10, 'Civil' => 13,
+            );
+            if (isset($legacy_usergroups[$faccion])) {
+                $faccion_usergroup = $legacy_usergroups[$faccion];
+            }
         }
-        if ($faccion == 'Marina') {
-            $db->query(" UPDATE `mybb_users` SET usergroup='9' WHERE `uid`='$ficha_id'; ");
-        }
-        if ($faccion == 'CipherPol') {
-            $db->query(" UPDATE `mybb_users` SET usergroup='11' WHERE `uid`='$ficha_id'; ");
-        }
-        if ($faccion == 'Revolucionario') {
-            $db->query(" UPDATE `mybb_users` SET usergroup='12' WHERE `uid`='$ficha_id'; ");
-        }
-        if ($faccion == 'Cazadores') {
-            $db->query(" UPDATE `mybb_users` SET usergroup='10' WHERE `uid`='$ficha_id'; ");
-        }
-        if ($faccion == 'Civil') { 
-            $db->query(" UPDATE `mybb_users` SET usergroup='13' WHERE `uid`='$ficha_id'; ");
+
+        if ($faccion_usergroup > 0) {
+            $db->query(" UPDATE `mybb_users` SET usergroup='{$faccion_usergroup}' WHERE `uid`='$ficha_id'; ");
         }
 
         $db->query(" UPDATE `mybb_op_fichas` SET faccion='$faccion' WHERE `fid`='$ficha_id'; ");
@@ -326,6 +329,11 @@ if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
     if ($hao != $f_var['hao']) {
         $log .= "-- De ".$f_var['hao']." a $hao hao.\n";
         $db->query(" UPDATE `mybb_op_fichas` SET hao='$hao' WHERE `fid`='$ficha_id'; ");
+    }
+
+    if ($dominio_akuma != $f_var['dominio_akuma']) {
+        $log .= "-- De ".$f_var['dominio_akuma']." a $dominio_akuma dominio_akuma.\n";
+        $db->query(" UPDATE `mybb_op_fichas` SET dominio_akuma='$dominio_akuma' WHERE `fid`='$ficha_id'; ");
     }
 
     if ($hao_chance != $f_var['hao_chance']) {
@@ -729,7 +737,30 @@ if (is_mod($uid) || is_staff($uid)) {
     }
 
     eval('$fid = $user_fid;');
-    
+
+    // Desplegables de facción y rango: antes eran listas fijas dentro de
+    // staff_ficha_atributos.html / staff_ficha_atributos1.html, ahora se
+    // generan desde mybb_op_facciones / mybb_op_facciones_rangos, gestionables
+    // desde Admin CP → Configuración del foro → OPG Facciones.
+    $faccion_select_options = '';
+    $rango_select_options = '';
+
+    if ($db->table_exists('op_facciones')) {
+        $query_facciones = $db->simple_select('op_facciones', '*', '', array('order_by' => 'orden'));
+        while ($f_row = $db->fetch_array($query_facciones)) {
+            $selected = (isset($ficha['faccion']) && $ficha['faccion'] == $f_row['nombre']) ? ' selected' : '';
+            $faccion_select_options .= '<option value="'.htmlspecialchars_uni($f_row['nombre']).'"'.$selected.'>'.htmlspecialchars_uni($f_row['nombre']).'</option>';
+        }
+
+        if (!empty($ficha['faccion']) && $db->table_exists('op_facciones_rangos')) {
+            $query_rangos = $db->simple_select('op_facciones_rangos', '*', "faccion='".$db->escape_string($ficha['faccion'])."'", array('order_by' => 'orden'));
+            while ($r_row = $db->fetch_array($query_rangos)) {
+                $selected = (isset($ficha['rango']) && $ficha['rango'] == $r_row['valor']) ? ' selected' : '';
+                $rango_select_options .= '<option value="'.htmlspecialchars_uni($r_row['valor']).'"'.$selected.'>'.htmlspecialchars_uni($r_row['nombre_visible']).'</option>';
+            }
+        }
+    }
+
     eval("\$staff_ficha_atributos1 = \"".$templates->get("staff_ficha_atributos1")."\";");
     // eval("\$staff_ficha_atributos2 = \"".$templates->get("staff_ficha_atributos2")."\";");
     eval("\$page = \"".$templates->get("staff_ficha_atributos")."\";");

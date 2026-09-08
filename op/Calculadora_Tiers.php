@@ -227,15 +227,21 @@ function get_status_info($value): array {
 
 // ---------- Reimplementación del cálculo en PHP (paridad con JS) ----------
 function obtenerTierPorNivelPHP(int $nivel): int {
-    if ($nivel >= 45) return 10;
-    if ($nivel >= 40) return 9;
-    if ($nivel >= 35) return 8;
-    if ($nivel >= 30) return 7;
-    if ($nivel >= 25) return 6;
-    if ($nivel >= 20) return 5;
-    if ($nivel >= 15) return 4;
-    if ($nivel >= 10) return 3;
-    if ($nivel >= 5)  return 2;
+    if ($nivel >= 100) return 16; // 16 = tier "SSS"
+    if ($nivel >= 90) return 15;
+    if ($nivel >= 80) return 14;
+    if ($nivel >= 70) return 13;
+    if ($nivel >= 60) return 12;
+    if ($nivel >= 50) return 11;
+    if ($nivel >= 40) return 10;
+    if ($nivel >= 35) return 9;
+    if ($nivel >= 30) return 8;
+    if ($nivel >= 25) return 7;
+    if ($nivel >= 20) return 6;
+    if ($nivel >= 16) return 5;
+    if ($nivel >= 12) return 4;
+    if ($nivel >= 8)  return 3;
+    if ($nivel >= 4)  return 2;
     return 1;
 }
 
@@ -393,7 +399,7 @@ if ($action === 'save') {
     // Sanitización mínima
     $jugadores = array_values(array_filter(array_map(function($j){
         $nombre = mb_substr(trim((string)($j['nombre'] ?? '')), 0, 80);
-        $nivel = max(1, min(50, (int)($j['nivel'] ?? 1)));
+        $nivel = max(1, min(100, (int)($j['nivel'] ?? 1)));
         $uidJugador = null;
         if (isset($j['uid'])) {
             $uidTemp = (int)$j['uid'];
@@ -423,7 +429,7 @@ if ($action === 'save') {
     $enemigos = array_values(array_filter(array_map(function($e){
         return [
             'nombre' => mb_substr(trim((string)($e['nombre'] ?? '')), 0, 60),
-            'nivel' => max(1, min(50, (int)($e['nivel'] ?? 1))),
+            'nivel' => max(1, min(100, (int)($e['nivel'] ?? 1))),
             'cantidad' => max(1, min(100, (int)($e['cantidad'] ?? 1)))
         ];
     }, $enemigos), function($e){ return $e['nombre'] !== ''; }));
@@ -1028,7 +1034,7 @@ if ($action === 'update_enemigos') {
     $enemigos = array_values(array_filter(array_map(function($e) {
         return [
             'nombre' => mb_substr(trim((string)($e['nombre'] ?? '')), 0, 60),
-            'nivel' => max(1, min(50, (int)($e['nivel'] ?? 1))),
+            'nivel' => max(1, min(100, (int)($e['nivel'] ?? 1))),
             'cantidad' => max(1, min(100, (int)($e['cantidad'] ?? 1)))
         ];
     }, $enemigosEntrada), function($e) {

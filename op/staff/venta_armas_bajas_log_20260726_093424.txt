@@ -1,0 +1,806 @@
+Migración: venta automática de armas tier 1-3 (excluye WAZ/MT)
+Ejecutado por: Programador O (uid 850) el 2026-07-26 09:34:24
+Usuarios afectados: 257 | Objetos vendidos: 545 | Berries totales generados: 1907500018
+----------------------------------------------------------------------
+UID 4 (Test): berries 9 -> 500009 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 7 (Lance Turner): berries 18056418 -> 38056418 (+20000000)
+    - Arma Corporal Fuerte T3 (ACCP003) x2 T3 -> +20000000 berries
+UID 10 (Dragonel D. Revan): berries 33494507 -> 38494507 (+5000000)
+    - Filo Ligero T2 (AFP002-9-6) x1 T2 -> +2500000 berries
+    - Filo Ligero T2 (AFP002-9-7) x1 T2 -> +2500000 berries
+UID 11 (Keiko D. Satou): berries 20257046 -> 30757046 (+10500000)
+    - Arma Tensión Grande T1 (AL001-10-5) x1 T1 -> +500000 berries
+    - Instrumento Preciso T3 (INSP003) x1 T3 -> +10000000 berries
+UID 14 (Test): berries 2750000 -> 3250000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 16 (Kin'emon): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 17 (Moderador Zoro): berries 10000000 -> 10500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 23 (Juuken): berries 123106535 -> 143106535 (+20000000)
+    - BAD Filo Balanceado T3 (AFM003) x2 T3 -> +20000000 berries
+UID 29 (Ragnheidr Grosdttir ): berries 196606387 -> 304606396 (+108000009)
+    - Arma Corporal Fuerte T3 (ACCP003) x1 T3 -> +16000001 berries
+    - Arma Tensión Diestra T3 (AC003) x1 T3 -> +16000001 berries
+    - BAD Impacto Balanceado T3 (ACM003) x1 T3 -> +16000001 berries
+    - Impacto Defensiva T3 (TBYS003-74-1) x1 T3 -> +16000001 berries
+    - Largo Alcance T3 (ALA003-29-1) x1 T3 -> +16000001 berries
+    - Clima Tact (BCL003-29-2) x1 T3 -> +16000001 berries
+    - Arma Tensión Media T2 (AC002-961-39) x1 T2 -> +4000001 berries
+    - Arma Tensión Media T2 (AC002-961-40) x1 T2 -> +4000001 berries
+    - Arma Tensión Media T2 (AC002-961-41) x1 T2 -> +4000001 berries
+UID 32 (Nakai): berries 6250000 -> 6750000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 33 (Yoshiro): berries 13016668 -> 19516668 (+6500000)
+    - Defensiva Fuerte T2 (GES002) x1 T2 -> +2500000 berries
+    - Rodillera de Placas Defensivas (33ART3003-33-1) x1 T3 -> +2000000 berries
+    - Rodillera de Placas Defensivas (33ART3003-33-2) x1 T3 -> +2000000 berries
+UID 34 (Jun Gunslinger): berries 200000 -> 700000 (+500000)
+    - Arma de Fuego Diestra T1 (AMD001) x1 T1 -> +500000 berries
+UID 36 (Lobo Jackson): berries 104038695 -> 104538695 (+500000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+UID 45 (Juri Han): berries 3436073 -> 23436073 (+20000000)
+    - Arma Corporal Diestra T3 (ACL003) x2 T3 -> +20000000 berries
+UID 48 (Hyun D. Yeon): berries 9551000 -> 10051000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 50 (Bizvan): berries 100000 -> 600000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 51 (Moderador Doflamingo): berries 7356800 -> 7856800 (+500000)
+    - Defensiva Fuerte T1 (GES001) x1 T1 -> +500000 berries
+UID 52 (Hato of peace): berries 116456002 -> 128956002 (+12500000)
+    - Impacto Ágil T2 (ACP002) x1 T2 -> +2500000 berries
+    - BAD Impacto Balanceado T3 (ACM003) x1 T3 -> +10000000 berries
+UID 61 (Rocket D. Castro): berries 205865001 -> 220365001 (+14500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+    - Impacto Defensiva T3 (TBYS003-33-1) x1 T3 -> +10000000 berries
+    - Velo del Relampago Negro (33ART302-33-1) x1 T3 -> +2000000 berries
+    - Velo del Relampago Negro (33ART302-33-2) x1 T3 -> +2000000 berries
+UID 62 (Gentaro G. Densetsu ): berries 825000 -> 1825000 (+1000000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 69 (Ubben Sangrenegra): berries 152005054 -> 187205057 (+35200003)
+    - BAD Arrojadiza Impacto T3 (ARI003) x1 T3 -> +16000001 berries
+    - BAD Arma corporal defensiva T3 (CDE003) x1 T3 -> +16000001 berries
+    - Corvus Fortis (69MERC301-69-1) x1 T3 -> +3200001 berries
+UID 71 (Qazan): berries 797382788 -> 825382788 (+28000000)
+    - Armas Flexibles T2 (LYF002-146-1) x1 T2 -> +2500000 berries
+    - Lanza Larga T2 (LL002-146-1) x1 T2 -> +2500000 berries
+    - Asta Fuerte T2 (LL002) x1 T2 -> +2500000 berries
+    - Flexible Fuerte T1 (LYF001) x1 T1 -> +500000 berries
+    - Filo Fuerte T3 (AFG003) x1 T3 -> +10000000 berries
+    - Lanza Larga T3 (LL003-9-1) x1 T3 -> +10000000 berries
+UID 74 (Airgid Vanaidiam): berries 80474601 -> 84474601 (+4000000)
+    - Faithbreaker (74ART301-74-1) x1 T3 -> +2000000 berries
+    - Faithbreaker (74ART301-74-2) x1 T3 -> +2000000 berries
+UID 77 (Cassius D. Tempest): berries 20976000 -> 21476000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 80 (Galhard): berries 140723485 -> 141223485 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 88 (Akari): berries 21500000 -> 22500000 (+1000000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+    - Arrojadiza Diestra T1 (ARP001) x1 T1 -> +500000 berries
+UID 90 (Ubben Sangrenegra): berries 0 -> 600000 (+600000)
+    - Arrojadiza Diestra T1 (ARP001) x1 T1 -> +600000 berries
+UID 92 (Moderador Tom): berries 1947483647 -> 1959983647 (+12500000)
+    - Defensiva Fuerte T3 (GES003) x1 T3 -> +10000000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - Velo del Relampago Negro (33ART302-92-1) x1 T3 -> +2000000 berries
+UID 99 (Vesper Chrome): berries 17655000 -> 20155000 (+2500000)
+    - Arma Corporal Diestra T2 (ACL002) x1 T2 -> +2500000 berries
+UID 115 (Gear D. Tsuru): berries 26930000 -> 41930000 (+15000000)
+    - Instrumento Diestro T2 (INSG002) x1 T2 -> +2500000 berries
+    - Impacto Fuerte T2 (ACG002) x1 T2 -> +2500000 berries
+    - Impacto Pesado T3 (ACG003-261-1) x1 T3 -> +10000000 berries
+UID 116 (Mod. Hattori): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 117 (Katacristo): berries 2673000 -> 3173000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 118 (Moderador Mihawk): berries 19275000 -> 19775000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 120 (Moderador Bartolome): berries 0 -> 500000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 121 (Shepherd): berries 20000 -> 520000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 123 (Gretta): berries 273626598 -> 275426598 (+1800000)
+    - Amuleto Fuerte (145MER301-145-3) x1 T3 -> +1800000 berries
+UID 125 (JAYFA RAKAN): berries 750000 -> 1250000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 146 (Teruyoshi): berries 1253404130 -> 1257404130 (+4000000)
+    - Agitador Felino (146ART303-146-1) x1 T3 -> +2000000 berries
+    - Agitador Felino (146ART303-146-2) x1 T3 -> +2000000 berries
+UID 147 (Kelsier): berries 136470001 -> 146470001 (+10000000)
+    - Impacto Pesado T3 (ACG003-147-3) x1 T3 -> +10000000 berries
+UID 150 (Mayura): berries 9473518 -> 11973518 (+2500000)
+    - Filo Balanceado T2 (AFM002-150-68) x1 T2 -> +2500000 berries
+UID 152 (Viny Testini): berries 10000000 -> 10500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 157 (Mod Lola): berries 1360000 -> 1860000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 158 (Moderador Yamato): berries 127293054 -> 130293054 (+3000000)
+    - Amuleto Preciso T2 (AMUM002) x1 T2 -> +2500000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 161 (Henry Godfreyne): berries 850000 -> 3850000 (+3000000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - Arma Corporal Diestra T2 (ACL002) x1 T2 -> +2500000 berries
+UID 180 (Iris Salvatore): berries 17001000 -> 17601000 (+600000)
+    - BAD Corto Alcance T1 (ACA001) x1 T1 -> +600000 berries
+UID 182 (Angelo): berries 23721000 -> 24221000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 190 (Silas Blackstain ): berries 0 -> 500000 (+500000)
+    - BAD Impacto Defensiva T1 (TBYS001) x1 T1 -> +500000 berries
+UID 201 (Reynard): berries 0 -> 500000 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 205 (Korintius D. Rabbit): berries 9092002 -> 9592002 (+500000)
+    - Asta Fuerte T1 (LL001) x1 T1 -> +500000 berries
+UID 206 (Moderador Silvers): berries 10000000 -> 10500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 213 (Sirius Ravenwood): berries 200000000 -> 200500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 223 (Vin): berries 1045000 -> 1545000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 224 (Moderador Ace): berries 15501000 -> 16001000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 241 (Nora Jet): berries 13515650 -> 14515650 (+1000000)
+    - Asalto Fuerte T1 (AAC001) x1 T1 -> +500000 berries
+    - Gran Escudo T1 (GES001-241-1) x1 T1 -> +500000 berries
+UID 244 (Tokage Rocks): berries 2500000 -> 3000000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 255 (Rensuke): berries 26616666 -> 29616666 (+3000000)
+    - Filo Ligero T2 (AFP002-255-2) x1 T2 -> +3000000 berries
+UID 261 (Joker): berries 282510094 -> 322510094 (+40000000)
+    - Arma Corporal Fuerte T3 (ACCP003) x1 T3 -> +10000000 berries
+    - Arrojadiza Diestra T3 (ARP003) x2 T3 -> +20000000 berries
+    - Arma de Fuego Ágil T3 (ALA003) x1 T3 -> +10000000 berries
+UID 263 (Nami): berries 9739540 -> 10239540 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 268 (Programador Shanks): berries 182515440 -> 194015440 (+11500000)
+    - Amuleto Diestro T1 (AMUD001) x1 T1 -> +500000 berries
+    - Asalto Diestra T1 (ACD001) x1 T1 -> +500000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - Arma de Fuego Ágil T3 (ALA003) x1 T3 -> +10000000 berries
+UID 273 (Obamars Trunoir): berries 92464137 -> 132464137 (+40000000)
+    - Asalto Fuerte T3 (AAC003) x1 T3 -> +10000000 berries
+    - Defensiva Resistente T3 (ESC003) x1 T3 -> +10000000 berries
+    - Arma de fuego defensiva T3 (AFD003-273-1) x1 T3 -> +10000000 berries
+    - Arma de fuego defensiva T3 (AFD003-273-2) x1 T3 -> +10000000 berries
+UID 274 (Sylvain de Seraphis): berries 195832813 -> 207832813 (+12000000)
+    - Filo Balanceado T3 (AFM003-274-49) x1 T3 -> +12000000 berries
+UID 276 (Sephiroth): berries 1160571002 -> 1173071002 (+12500000)
+    - Filo Fuerte T3 (AFG003) x1 T3 -> +10000000 berries
+    - Filo Fuerte T2 (AFG002) x1 T2 -> +2500000 berries
+UID 277 (Jewelry Bonney): berries 450000 -> 950000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 279 (Dark E. Satou): berries 282402047 -> 293402047 (+11000000)
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +10000000 berries
+    - Arma Corporal Diestra T1 (ACL001) x2 T1 -> +1000000 berries
+UID 282 (Decimo D´la Q´nta): berries 9830000 -> 10330000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 292 (Akira Raito): berries 37720500 -> 38220500 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 300 (Desmond Isaac): berries 97580001 -> 98080001 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 303 (Ospeb): berries 115000008 -> 190000008 (+75000000)
+    - Arma Corporal Ligera T2 (ACL002-309-1) x1 T2 -> +3000000 berries
+    - Lanza Larga T3 (LL003-303-21) x1 T3 -> +12000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-84) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-85) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-86) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-87) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-88) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-89) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-90) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-91) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-92) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-93) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-94) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-95) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-96) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-97) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-98) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-99) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-100) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-101) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-102) x1 T2 -> +3000000 berries
+    - Amuleto Preciso T2 (AMUM002-303-103) x1 T2 -> +3000000 berries
+UID 305 (Jean D´Orlanais): berries 107940001 -> 120440001 (+12500000)
+    - Filo Ágil T3 (AFP003) x1 T3 -> +10000000 berries
+    - Filo Ágil T2 (AFP002) x1 T2 -> +2500000 berries
+UID 306 (Topol Topacio): berries 0 -> 500000 (+500000)
+    - Impacto Fuerte T1 (ACG001) x1 T1 -> +500000 berries
+UID 308 (Hange D. Wolfwood): berries 29746267 -> 51746267 (+22000000)
+    - Arma Corporal Ligera T3 (ACL003-309-1) x1 T3 -> +10000000 berries
+    - Arma Corporal Ligera T3 (ACL003-309-2) x1 T3 -> +10000000 berries
+    - Bastón del Rey Mono (309ART303-309-1) x1 T3 -> +2000000 berries
+UID 309 (Íñigo Montoya): berries 54522030 -> 69522030 (+15000000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+    - Largo Alcance T3 (ALA003-309-33) x1 T3 -> +10000000 berries
+    - Arrojadiza Punzante T2 (ARP002-309-1) x1 T2 -> +2500000 berries
+    - Guiño del Diavro (310ING301-310-2) x1 T3 -> +2000000 berries
+UID 310 (Prald): berries 1094267924 -> 1096267924 (+2000000)
+    - Bastión de Almas (309ART301-309-1) x1 T3 -> +2000000 berries
+UID 311 (Ashley): berries 107434000 -> 119934000 (+12500000)
+    - Amuleto Diestro T3 (AMUD003) x1 T3 -> +10000000 berries
+    - Escudo T2 (ESC002-311-23) x1 T2 -> +2500000 berries
+UID 312 (Edith Aschfahl): berries 78702116 -> 106702116 (+28000000)
+    - Amuleto Preciso T3 (AMUM003-29-1) x1 T3 -> +10000000 berries
+    - Arma Corporal Fuerte T2 (ACCP002) x1 T2 -> +2500000 berries
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+    - Asalto Diestra T3 (ACD003) x1 T3 -> +10000000 berries
+    - Asalto Fuerte T2 (AAC002) x1 T2 -> +2500000 berries
+    - Arma Tensión Fuerte T2 (AL002) x1 T2 -> +2500000 berries
+UID 313 (Hakkai): berries 4061500 -> 7061500 (+3000000)
+    - Corto Alcance T1 (ACA001-33-1) x1 T1 -> +500000 berries
+    - Arma de Fuego Diestra T2 (AMD002) x1 T2 -> +2500000 berries
+UID 314 (Valentine Ravenwood): berries 3350000 -> 23350000 (+20000000)
+    - Instrumento Preciso T3 (INSP003) x1 T3 -> +10000000 berries
+    - Arma Tensión Diestra T3 (AC003) x1 T3 -> +10000000 berries
+UID 315 (Test): berries 5375004 -> 7775007 (+2400003)
+    - Amuleto Diestro T1 (AMUD001) x3 T1 -> +2400003 berries
+UID 316 (Fabri Hollowest ): berries 300000 -> 800000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 318 (Condotest): berries 920000000 -> 920500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 320 (Akami D. Rubystone): berries 26685000 -> 34685000 (+8000000)
+    - Flexible Fuerte T1 (LYF001) x1 T1 -> +500000 berries
+    - BAD Filo Balanceado T2 (AFM002) x2 T2 -> +5000000 berries
+    - Armas Flexibles T1 (LYF001-320-1) x1 T1 -> +500000 berries
+    - Escudo T1 (ESC001-320-1) x1 T1 -> +500000 berries
+    - Escudo T1 (ESC001-320-2) x1 T1 -> +500000 berries
+    - Escudo T1 (ESC001-320-3) x1 T1 -> +500000 berries
+    - Gran Escudo T1 (GES001-320-1) x1 T1 -> +500000 berries
+UID 321 (Rukasu Agnes): berries 8800001 -> 9300001 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 322 (Natsuki ): berries 28950000 -> 29950000 (+1000000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 323 (Aria Grimalkin): berries 2675200 -> 5175200 (+2500000)
+    - Arma de Fuego Ágil T2 (ALA002) x1 T2 -> +2500000 berries
+UID 324 (J_Pro100): berries 59101000 -> 59601000 (+500000)
+    - Medio Alcance T1 (AMD001-324-1) x1 T1 -> +500000 berries
+UID 327 (Gante): berries 10475700 -> 28475700 (+18000000)
+    - Arrojadiza Fuerte T2 (ARF002) x1 T2 -> +2500000 berries
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +10000000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - Arma Corporal Diestra T2 (ACL002) x1 T2 -> +2500000 berries
+    - Alto Calibre T2 (AAC002-327-2) x1 T2 -> +2500000 berries
+UID 329 (Darrow St. Shepherd): berries 45231997 -> 93731997 (+48500000)
+    - Escudo T2 (ESC002-146-1) x1 T2 -> +2500000 berries
+    - Amuleto Diestro T3 (AMUD003) x1 T3 -> +10000000 berries
+    - Instrumento Preciso T3 (INSP003) x1 T3 -> +10000000 berries
+    - Instrumento Preciso T2 (INSP002) x1 T2 -> +2500000 berries
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+    - Defensiva Resistente T3 (ESC003) x2 T3 -> +20000000 berries
+    - Defensiva Resistente T1 (ESC001) x1 T1 -> +500000 berries
+    - Escudo T2 (ESC002-146-2) x1 T2 -> +2500000 berries
+UID 330 (Kael Ravennor): berries 47900000 -> 48400000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 331 (Herold Grosdttir ): berries 27051000 -> 29551000 (+2500000)
+    - Arma Corporal Fuerte T2 (ACCP002) x1 T2 -> +2500000 berries
+UID 332 (Silas Blackstain): berries 68751750 -> 158751750 (+90000000)
+    - Kit del Artista T3 (KDA003) x2 T3 -> +20000000 berries
+    - Amuleto Diestro T3 (AMUD003) x1 T3 -> +10000000 berries
+    - Kit del Artista T3 (KDA003K60) x1 T3 -> +60000000 berries
+UID 333 (Pikkoro Daimao): berries 102135001 -> 122135001 (+20000000)
+    - Gran Escudo T3 (GES003-261-1) x1 T3 -> +10000000 berries
+    - Arma Corporal Pesada T3 (ACCP003-333-1) x1 T3 -> +10000000 berries
+UID 334 (Gar D. Voir): berries 75065505 -> 120065505 (+45000000)
+    - Arma Tensión Fuerte T3 (AL003) x1 T3 -> +10000000 berries
+    - Arma Tensión Grande T2 (AL002-334-39) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-40) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-41) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-42) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-43) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-44) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-45) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-46) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-47) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-48) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-49) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-50) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-51) x1 T2 -> +2500000 berries
+    - Arma Tensión Grande T2 (AL002-334-52) x1 T2 -> +2500000 berries
+UID 335 (Evelyn Montrose): berries 3630000 -> 6630000 (+3000000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+    - Filo Ágil T2 (AFP002) x1 T2 -> +2500000 berries
+UID 336 (Apricot): berries 7100000 -> 7600000 (+500000)
+    - Impacto Ágil T1 (ACP001) x1 T1 -> +500000 berries
+UID 337 (Shinzo Rei): berries 7750000 -> 17750000 (+10000000)
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +10000000 berries
+UID 338 (Hatsune D. Miku): berries 14039846 -> 37839846 (+23800000)
+    - Defensiva Resistente T3 (ESC003) x1 T3 -> +14000000 berries
+    - Defensiva Resistente T2 (ESC002) x1 T2 -> +3500000 berries
+    - Defensiva Resistente T1 (ESC001) x1 T1 -> +700000 berries
+    - Instrumento Defensivo Pequeño (338MER301-338-16) x1 T3 -> +2800000 berries
+    - Instrumento Defensivo Pequeño (338MER301-338-17) x1 T3 -> +2800000 berries
+UID 341 (Norman D.Gulf): berries 11650000 -> 12150000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 342 (Arkham D. Gallows): berries 30328001 -> 65728001 (+35400000)
+    - Asta Fuerte T3 (LL003) x1 T3 -> +10000000 berries
+    - Amuleto Fuerte (145MER301-145-1) x1 T3 -> +1800000 berries
+    - Amuleto Fuerte (145MER301-145-2) x1 T3 -> +1800000 berries
+    - Amuleto Fuerte (145MER301-145-4) x1 T3 -> +1800000 berries
+    - Lanza Larga T3 (LL003-261-1) x1 T3 -> +10000000 berries
+    - Lanza Larga T3 (LL003-261-2) x1 T3 -> +10000000 berries
+UID 343 (Mu): berries 36181427 -> 46181427 (+10000000)
+    - Filo Ágil T3 (AFP003) x1 T3 -> +10000000 berries
+UID 344 (Saglehs): berries 150000 -> 650000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 346 (Selene V. LeClaire): berries 4750000 -> 7750000 (+3000000)
+    - Filo Fuerte T2 (AFG002) x1 T2 -> +2500000 berries
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 347 (Aranagi V. Tadisai): berries 1020608765 -> 1060308765 (+39700000)
+    - Instrumento Pequeño T2 (INSP002-348-1) x1 T2 -> +2500000 berries
+    - Armamento de Contacto BioElemental AVT-201 (347ART202-347-1) x1 T2 -> +100000 berries
+    - Armamento de Contacto BioElemental AVT-201 (347ART202-347-2) x1 T2 -> +100000 berries
+    - Corto Alcance T3 (ACA003-347-1) x1 T3 -> +10000000 berries
+    - Subfusil AVT-Drago (347INV301-347-1) x1 T3 -> +2000000 berries
+    - Gafas de Francotirador (92ART001) x1 T3 -> +25000000 berries
+UID 348 (Avery Luh): berries 258213386 -> 306213389 (+48000003)
+    - Asta Precisa T3 (LC003) x1 T3 -> +16000001 berries
+    - Asta Fuerte T3 (LL003) x1 T3 -> +16000001 berries
+    - Flexible Precisa T3 (ABYV003) x1 T3 -> +16000001 berries
+UID 349 (Severo): berries 5730000 -> 19230000 (+13500000)
+    - Gran Escudo T2 (GES002-349-1) x1 T2 -> +2500000 berries
+    - Arma Corporal Pesada T1 (ACP001-349-1) x1 T1 -> +500000 berries
+    - Impacto Balanceado T1 (ACM001-349-1) x1 T1 -> +500000 berries
+    - Defensiva Fuerte T3 (GES003) x1 T3 -> +10000000 berries
+UID 351 (Roland Falcon): berries 48100001 -> 63100001 (+15000000)
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +12000000 berries
+    - Arma Corporal Diestra T2 (ACL002) x1 T2 -> +3000000 berries
+UID 352 (Hazel Byron): berries 25043227 -> 37043227 (+12000000)
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +10000000 berries
+    - Amuleto Ágil (145MER302-145-2) x1 T3 -> +2000000 berries
+UID 354 (Karma Falcon): berries 22950023 -> 23450023 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 355 (Friedrich Calligari): berries 42521886 -> 65021886 (+22500000)
+    - Defensiva Fuerte T3 (GES003) x2 T3 -> +20000000 berries
+    - Defensiva Fuerte T2 (GES002) x1 T2 -> +2500000 berries
+UID 356 (Alfred Saint Earth): berries 16500000 -> 17000000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 357 (kohaku katsuragi): berries 250000 -> 750000 (+500000)
+    - Arma de Fuego Ágil T1 (ALA001) x1 T1 -> +500000 berries
+UID 358 (Gach Obalachia): berries 875000 -> 1375000 (+500000)
+    - Defensiva Fuerte T1 (GES001) x1 T1 -> +500000 berries
+UID 360 (Sel Hardblaze): berries 1975000 -> 2475000 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 361 (Kon Freecss): berries 3575000 -> 83575000 (+80000000)
+    - Filo Fuerte T3 (AFG003) x1 T3 -> +10000000 berries
+    - BAD Filo Balanceado T3 (AFM003) x1 T3 -> +10000000 berries
+    - Filo Pesado kairo 60% T3 (AFG003K60) x1 T3 -> +60000000 berries
+UID 363 (Musume D. Neko): berries 850000 -> 1850000 (+1000000)
+    - Arma Tensión Media T1 (AC001-363-1) x1 T1 -> +500000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 799 (Motumba): berries 5271001 -> 56271001 (+51000000)
+    - Instrumento Grande T2 (INSG002-799-3) x1 T2 -> +3000000 berries
+    - Arrojadiza Impacto T2 (ARI002-136-1) x1 T2 -> +3000000 berries
+    - Arma Corporal Pesada T2 (ACP002-136-1) x1 T2 -> +3000000 berries
+    - Amuleto Hábil T2 (AMUD002-799-2) x1 T2 -> +3000000 berries
+    - Instrumento Grande T2 (INSG002-799-4) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-4) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-5) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-6) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-8) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-9) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-10) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-11) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-12) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-13) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-14) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-15) x1 T2 -> +3000000 berries
+    - Instrumento Pequeño T2 (INSP002-799-16) x1 T2 -> +3000000 berries
+UID 801 (Frans Gisli): berries 540001 -> 1040001 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 803 (Vincent): berries 0 -> 500000 (+500000)
+    - Arma Tensión Diestra T1 (AC001) x1 T1 -> +500000 berries
+UID 806 (Marcelo C. Arneró): berries 61220006 -> 71220006 (+10000000)
+    - Arma Corporal Diestra T3 (ACL003) x1 T3 -> +10000000 berries
+UID 807 (Gabriel Suzuhara): berries 0 -> 6000000 (+6000000)
+    - Asalto Diestra T2 (ACD002) x1 T2 -> +3000000 berries
+    - BAD Arrojadiza Impacto T2 (ARI002) x1 T2 -> +3000000 berries
+UID 809 (Quindecim Senki S.): berries 44586999 -> 47586999 (+3000000)
+    - Arma Tensión Grande T2 (AL002-334-12) x1 T2 -> +2500000 berries
+    - Arma Tensión Diestra T1 (AC001) x1 T1 -> +500000 berries
+UID 811 (Fleur de Lacour): berries 1093541000 -> 1099041000 (+5500000)
+    - Arrojadiza Diestra T2 (ARP002) x1 T2 -> +2500000 berries
+    - Arrojadiza Diestra T1 (ARP001) x1 T1 -> +500000 berries
+    - Flexible precisa T2 (ABYV002) x1 T2 -> +2500000 berries
+UID 812 (Dorian Lunel Nyx): berries 24002000 -> 36502000 (+12500000)
+    - Arrojadiza Fuerte T3 (ARF003) x1 T3 -> +10000000 berries
+    - Arrojadiza Fuerte T2 (ARF002) x1 T2 -> +2500000 berries
+UID 813 (Ryuu): berries 24415000 -> 27415000 (+3000000)
+    - Arma Corporal Fuerte T2 (ACCP002) x1 T2 -> +2500000 berries
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 814 (Jake): berries 1200000 -> 1700000 (+500000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+UID 816 (Kharyon Isagami): berries 101285000 -> 123285000 (+22000000)
+    - Arma Corporal Ligera T3 (ACL003-816-18) x1 T3 -> +10000000 berries
+    - Arma Corporal Ligera T3 (ACL003-816-19) x1 T3 -> +10000000 berries
+    - Baby Shark (279ART302-279-1) x1 T3 -> +2000000 berries
+UID 818 (Risu): berries 192971000 -> 203471000 (+10500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+    - Arma Corporal Ligera T3 (ACL003-818-120) x1 T3 -> +10000000 berries
+UID 820 (Jotaro D. Kujo): berries 510000 -> 1010000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 823 (Nia): berries 25900000 -> 28900000 (+3000000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+    - Instrumento Pequeño T2 (INSP002-145-54) x1 T2 -> +2500000 berries
+UID 824 (Tapu Nyalow de la tribu Tapu Tapu Tapu): berries 0 -> 500000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 825 (Praser): berries 490000 -> 990000 (+500000)
+    - BAD Impacto Balanceado T1 (ACM001) x1 T1 -> +500000 berries
+UID 829 (Rens): berries 490001 -> 990001 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 830 (Orión): berries 1500000 -> 2000000 (+500000)
+    - Arma de Fuego Diestra T1 (AMD001) x1 T1 -> +500000 berries
+UID 831 (Narumi D.Gen): berries 1000000 -> 4000000 (+3000000)
+    - Flexible Precisa T1 (ABYV001) x1 T1 -> +500000 berries
+    - Flexible precisa T2 (ABYV002) x1 T2 -> +2500000 berries
+UID 832 (Aiko Kaoru): berries 0 -> 500000 (+500000)
+    - BAD Corto Alcance T1 (ACA001) x1 T1 -> +500000 berries
+UID 833 (Theophania Berthelot): berries 182723341 -> 193223341 (+10500000)
+    - Instrumento Preciso T3 (INSP003) x1 T3 -> +10000000 berries
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+UID 834 (Aurelian): berries 19501000 -> 20001000 (+500000)
+    - Defensiva Fuerte T1 (GES001) x1 T1 -> +500000 berries
+UID 836 (Nyara D. Lys): berries 15248403 -> 45248403 (+30000000)
+    - Amuleto Preciso T3 (AMUM003) x1 T3 -> +10000000 berries
+    - Asalto Fuerte T3 (AAC003) x1 T3 -> +10000000 berries
+    - Arma Tensión Fuerte T3 (AL003) x1 T3 -> +10000000 berries
+UID 841 (Kailua): berries 6525543 -> 26525543 (+20000000)
+    - Impacto Ligero T3 (ACP003-841-41) x1 T3 -> +10000000 berries
+    - Exóticas Filosas T3 (ABYV003-841-45) x1 T3 -> +10000000 berries
+UID 843 (Black Star): berries 290000 -> 790000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 844 (Newt Davin Pulmaiquen): berries 0 -> 500000 (+500000)
+    - Arrojadiza Fuerte T1 (ARF001) x1 T1 -> +500000 berries
+UID 845 (Lucard Lenoir): berries 14750001 -> 15250001 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 847 (Hoshiko): berries 10000000 -> 10600000 (+600000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +600000 berries
+UID 848 (Renban Nordel): berries 0 -> 500000 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 850 (Programador O): berries 1460860035 -> 1473460035 (+12600000)
+    - Impacto Ágil T1 (ACP001) x2 T1 -> +1400000 berries
+    - Arma Corporal Diestra T1 (ACL001) x9 T1 -> +6300000 berries
+    - Alto Calibre T2 (AAC002-850-1) x1 T2 -> +3500000 berries
+    - Arma Corporal Ligera T1 (ACL001-850-2) x1 T1 -> +700000 berries
+    - Arma Corporal Ligera T1 (ACL001-850-3) x1 T1 -> +700000 berries
+UID 851 (Dahlia): berries 3200000 -> 3700000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 852 (Urahara): berries 335001 -> 835001 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 854 (Nyxara Vanaheim): berries 2530001 -> 3030001 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 857 (Ishtar Vanaheim): berries 3890001 -> 4390001 (+500000)
+    - Arma Corporal Ligera T1 (ACL001-857-1) x1 T1 -> +500000 berries
+UID 858 (Relincho): berries 0 -> 600000 (+600000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +600000 berries
+UID 859 (Karas Santai): berries 11100000 -> 11600000 (+500000)
+    - Flexible Fuerte T1 (LYF001) x1 T1 -> +500000 berries
+UID 860 (Kanae Senju): berries 460001 -> 960001 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 861 (Edward Bradley Hohenheim): berries 3740000 -> 4240000 (+500000)
+    - BAD Impacto Balanceado T1 (ACM001) x1 T1 -> +500000 berries
+UID 864 (Nemo // Omen): berries 4970000 -> 5470000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 865 (Narumi D.reikon): berries 5760001 -> 8260001 (+2500000)
+    - BAD Filo Balanceado T2 (AFM002) x1 T2 -> +2500000 berries
+UID 867 (Osten Ard): berries 76193001 -> 89193001 (+13000000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+    - Filo Ágil T3 (AFP003) x1 T3 -> +10000000 berries
+    - Filo Ágil T2 (AFP002) x1 T2 -> +2500000 berries
+UID 868 (Cymru D. Arashi): berries 1200000 -> 1700000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 869 (Johnny Rickson): berries 6059400 -> 11059400 (+5000000)
+    - Arma Corporal Pesada T2 (ACCP002-869-73) x1 T2 -> +2500000 berries
+    - Arma Corporal Pesada T2 (ACCP002-869-74) x1 T2 -> +2500000 berries
+UID 870 (Apolo Kyrelight): berries 464095590 -> 466095590 (+2000000)
+    - Amuleto Ágil (145MER302-145-1) x1 T3 -> +2000000 berries
+UID 871 (Giselle D. Wolfwood): berries 21142000 -> 31642000 (+10500000)
+    - Arma Tensión Fuerte T1 (AL001) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T3 (AL003-308-54) x1 T3 -> +10000000 berries
+UID 872 (Simon D. Igger Ysseus): berries 300000 -> 800000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 873 (Rhogar Vectis): berries 0 -> 500000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 876 (Leonard Lambert): berries 10285001 -> 15285001 (+5000000)
+    - Arma Corporal Diestra T2 (ACL002) x2 T2 -> +5000000 berries
+UID 877 (Bruce D. Eudas): berries 0 -> 500000 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 878 (Zero Ideale): berries 14306500 -> 38306500 (+24000000)
+    - Arma Corporal Diestra T3 (ACL003) x2 T3 -> +24000000 berries
+UID 879 (Biggy Heart King): berries 16350001 -> 16850001 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 880 (Avad Stede): berries 225895709 -> 238895709 (+13000000)
+    - Instrumento Preciso T2 (INSP002) x1 T2 -> +2500000 berries
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+    - Filo Ligero T3 (AFP003-880-1) x1 T3 -> +10000000 berries
+UID 881 (Evernight): berries 1006850020 -> 1026850020 (+20000000)
+    - Amuleto Diestro T3 (AMUD003) x1 T3 -> +10000000 berries
+    - Corto Alcance T2 (ACA002-881-1) x1 T2 -> +2500000 berries
+    - Medio Alcance T2 (AMD002-881-1) x1 T2 -> +2500000 berries
+    - Estela ígnea (881ART201-881-1) x1 T2 -> +500000 berries
+    - Largo Alcance T2 (ALA002-881-2) x1 T2 -> +2500000 berries
+    - Instrumento Defensivo Pequeño (338MER301-338-4) x1 T3 -> +2000000 berries
+UID 882 (Alice D. Von Ataraxia): berries 72173250 -> 83373250 (+11200000)
+    - Artema (882MER301-882-1) x1 T3 -> +2800000 berries
+    - Aegis (882MER302-882-1) x1 T3 -> +2800000 berries
+    - Aegis (882MER302-882-2) x1 T3 -> +2800000 berries
+    - Aegis (882MER302-882-3) x1 T3 -> +2800000 berries
+UID 883 (Indra Zarr): berries 12550001 -> 13050001 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 886 (Programador S): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 887 (Nephis D.Elenoir): berries 18100000 -> 18600000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 888 (Luxura): berries 1075000 -> 4675000 (+3600000)
+    - Arma Tensión Diestra T1 (AC001) x1 T1 -> +600000 berries
+    - Filo Ligero T1 (AFP001-888-1) x1 T1 -> +600000 berries
+    - Arrojadiza Punzante T1 (ARP001-888-3) x1 T1 -> +600000 berries
+    - Arma Corporal Ligera T1 (ACL001-888-1) x1 T1 -> +600000 berries
+    - Escudo T1 (ESC001-888-1) x1 T1 -> +600000 berries
+    - Amuleto Preciso T1 (AMUM001-888-1) x1 T1 -> +600000 berries
+UID 889 (Faye D. Lionhart): berries 13758955 -> 14258955 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 890 (Reven D. Shina): berries 303237002 -> 340737002 (+37500000)
+    - Arma Corporal Fuerte T3 (ACCP003) x2 T3 -> +20000000 berries
+    - Filo Fuerte T3 (AFG003) x1 T3 -> +10000000 berries
+    - Filo Pesado T2 (AFG002-33-1) x1 T2 -> +2500000 berries
+    - Filo Pesado T2 (AFG002-33-2) x1 T2 -> +2500000 berries
+    - Filo Pesado T2 (AFG002-33-3) x1 T2 -> +2500000 berries
+UID 895 (Rem): berries 23900000 -> 24400000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 896 (Lycoris Radiata): berries 1280000 -> 1780000 (+500000)
+    - Arrojadiza Fuerte T1 (ARF001) x1 T1 -> +500000 berries
+UID 897 (Noah D. Baskerville): berries 68250000 -> 70750000 (+2500000)
+    - Arma Corporal Ligera T2 (ACL002-903-1) x1 T2 -> +2500000 berries
+UID 899 (Daigoro): berries 0 -> 500000 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 900 (Mirella T. Readman): berries 2700000 -> 3200000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 901 (Brando Kane): berries 19251000 -> 19751000 (+500000)
+    - Impacto Fuerte T1 (ACG001) x1 T1 -> +500000 berries
+UID 904 (Marcos): berries 1000000 -> 1500000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 905 (Nayade): berries 15265000 -> 36865000 (+21600000)
+    - Arma Tensión Fuerte T1 (AL001) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-75) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-76) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-77) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-78) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-79) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-80) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-81) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-82) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-83) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-84) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-85) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-86) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-87) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-88) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-89) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-90) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-91) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-92) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-1) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-93) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-94) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-2) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-95) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-3) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-96) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-4) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-97) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-98) x1 T1 -> +600000 berries
+    - Instrumento Grande T1 (INSG001-905-99) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-5) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-6) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-7) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-8) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-9) x1 T1 -> +600000 berries
+    - Instrumento Pequeño T1 (INSP001-905-10) x1 T1 -> +600000 berries
+UID 906 (Lorenzo Luciano): berries 5495000 -> 9095000 (+3600000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +600000 berries
+    - Arma Corporal Diestra T2 (ACL002) x1 T2 -> +3000000 berries
+UID 907 (Moja): berries 4980971 -> 5480971 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 909 (Gravis Book): berries 1400000 -> 1900000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 910 (Rémy Martin): berries 17201000 -> 17701000 (+500000)
+    - BAD Corto Alcance T1 (ACA001) x1 T1 -> +500000 berries
+UID 911 (Kristoph Oldwood): berries 25330000 -> 25830000 (+500000)
+    - Filo Ligero T1 (AFP001-911-1) x1 T1 -> +500000 berries
+UID 913 (Giyuu Sheepard): berries 8451001 -> 9451001 (+1000000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 914 (Rex Dargan): berries 11300000 -> 11800000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 915 (Audax Milvus): berries 6305001 -> 6805001 (+500000)
+    - Filo Balanceado T1 (AFM001-915-2) x1 T1 -> +500000 berries
+UID 920 (Monkey D. Nico): berries 10000000 -> 10500000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 921 (Moderador Zeff): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 923 (Yzak Moonight): berries 0 -> 500000 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 924 (Raze): berries 1055001000 -> 1058001000 (+3000000)
+    - Arma Corporal Fuerte T2 (ACCP002) x1 T2 -> +2500000 berries
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 925 (Krono Von Drakken): berries 51943858 -> 71943858 (+20000000)
+    - Filo Fuerte T3 (AFG003) x2 T3 -> +20000000 berries
+UID 926 (Chihiro): berries 120875001 -> 121375001 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 927 (Lena Gold): berries 375000 -> 975000 (+600000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +600000 berries
+UID 928 (Ikki D. Taiyou): berries 20767000 -> 40767000 (+20000000)
+    - Arma Corporal Fuerte T3 (ACCP003) x2 T3 -> +20000000 berries
+UID 929 (Meren): berries 1740000 -> 2340000 (+600000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +600000 berries
+UID 930 (Vulkan Blackstorm): berries 31067001 -> 31567001 (+500000)
+    - Zanshin (930ART201-279-1) x1 T2 -> +500000 berries
+UID 932 (Vox vane): berries 51934795 -> 71734795 (+19800000)
+    - Instrumento Defensivo Pequeño (338MER301-338-1) x1 T3 -> +2400000 berries
+    - Instrumento Defensivo Pequeño (338MER301-338-7) x1 T3 -> +2400000 berries
+    - Instrumento Grande T2 (INSG002-932-2) x1 T2 -> +3000000 berries
+    - Instrumento Grande T2 (INSG002-932-4) x1 T2 -> +3000000 berries
+    - Instrumento Grande T2 (INSG002-932-5) x1 T2 -> +3000000 berries
+    - Instrumento Grande T2 (INSG002-932-8) x1 T2 -> +3000000 berries
+    - Instrumento Grande T2 (INSG002-932-9) x1 T2 -> +3000000 berries
+UID 933 (Ruby): berries 100000 -> 600000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 935 (Hunter D. Alpha): berries 2643000 -> 14143000 (+11500000)
+    - Impacto Pesado T1 (ACG001-935-1) x1 T1 -> +500000 berries
+    - Arma de tensión defensiva T1 (ATD001-935-1) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-1) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-2) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-3) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-4) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-5) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-6) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-7) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-8) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-9) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-10) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-11) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-12) x1 T1 -> +500000 berries
+    - Arma Tensión Media T1 (AC001-935-1) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-13) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-14) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-15) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-16) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-17) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-18) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-19) x1 T1 -> +500000 berries
+    - Arma Tensión Grande T1 (AL001-935-20) x1 T1 -> +500000 berries
+UID 936 (Kaelen D. Vayra): berries 12651000 -> 15151000 (+2500000)
+    - Flexible precisa T2 (ABYV002) x1 T2 -> +2500000 berries
+UID 937 (Miles Mercury): berries 139357146 -> 143357146 (+4000000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+    - Arma Corporal Pesada T1 (ACCP001-937-1) x1 T1 -> +500000 berries
+    - Gran Escudo T1 (GES001-937-1) x1 T1 -> +500000 berries
+    - Arma Corporal Pesada T2 (ACCP002-937-1) x1 T2 -> +2500000 berries
+UID 941 (Dante Sparda): berries 1006231008 -> 1018731008 (+12500000)
+    - Arma de Fuego Diestra T3 (AMD003) x1 T3 -> +10000000 berries
+    - Arma de Fuego Diestra T2 (AMD002) x1 T2 -> +2500000 berries
+UID 943 (askadora): berries 0 -> 500000 (+500000)
+    - Arrojadiza Fuerte T1 (ARF001) x1 T1 -> +500000 berries
+UID 947 (Ryan Cinderdown): berries 4950000 -> 7950000 (+3000000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+    - Arrojadiza Punzante T2 (ARP002-928-1) x1 T2 -> +2500000 berries
+UID 948 (Andrómeda Nightingale): berries 114941001 -> 115441001 (+500000)
+    - Instrumento Diestro T1 (INSG001) x1 T1 -> +500000 berries
+UID 950 (Quina Quen): berries 0 -> 500000 (+500000)
+    - BAD Impacto Defensiva T1 (TBYS001) x1 T1 -> +500000 berries
+UID 951 (Tenshi): berries 250000 -> 750000 (+500000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+UID 952 (Wakou): berries 5800000 -> 6300000 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 954 (Bondrewd el insólito): berries 19400000 -> 19900000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 955 (Delta Harrington): berries 3816054 -> 29316054 (+25500000)
+    - Instrumento Preciso T3 (INSP003) x1 T3 -> +10000000 berries
+    - BAD Instrumento defensivo T1 (IND001) x1 T1 -> +500000 berries
+    - BAD Gran Escudo T2 (GES002-955-1) x1 T2 -> +2500000 berries
+    - Botas Ligeras de Kairoseki T3 (ACLK03-955-1) x1 T3 -> +10000000 berries
+    - Martillo de asalto (95501ART201-955-1) x1 T2 -> +2500000 berries
+UID 961 (Abyzou): berries 46554318 -> 66554318 (+20000000)
+    - Instrumento Pequeño T3 (INSP003-29-3) x1 T3 -> +10000000 berries
+    - Instrumento Pequeño T3 (INSP003-29-4) x1 T3 -> +10000000 berries
+UID 966 (Miguel D. Cervantes): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 968 (Diarmuid Courteheuse): berries 200000 -> 700000 (+500000)
+    - Impacto Fuerte T1 (ACG001) x1 T1 -> +500000 berries
+UID 973 (Dolores Tusk): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 974 (Alexandra Ymir): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 975 (Show M. Millner): berries 35230738 -> 35730738 (+500000)
+    - BAD Impacto Balanceado T1 (ACM001) x1 T1 -> +500000 berries
+UID 978 (Kaizen D. Tempest): berries 45125000 -> 48125000 (+3000000)
+    - Filo Fuerte T2 (AFG002) x1 T2 -> +2500000 berries
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 979 (Cameron): berries 375000 -> 875000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 980 (Retheter D. Sharp): berries 180000 -> 680000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 983 (Mayene): berries 5088149 -> 5588149 (+500000)
+    - Asta Fuerte T1 (LL001) x1 T1 -> +500000 berries
+UID 985 (Yorudisu Barlovento): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 986 (Amatsuki D. Maya): berries 95951675 -> 122951675 (+27000000)
+    - Asta Fuerte T2 (LL002) x1 T2 -> +3000000 berries
+    - BAD Filo Balanceado T3 (AFM003) x2 T3 -> +24000000 berries
+UID 987 (Nepher): berries 322011593 -> 339511593 (+17500000)
+    - Filo Fuerte T3 (AFG003) x1 T3 -> +10000000 berries
+    - Filo Fuerte T2 (AFG002) x1 T2 -> +2500000 berries
+    - Filo Pesado T2 (AFG002-987-1) x1 T2 -> +2500000 berries
+    - Solaris (987ART201-987-1) x1 T2 -> +2500000 berries
+UID 992 (Inazuma Yuuta): berries 179354375 -> 179854375 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 993 (Lanita): berries 44851000 -> 45351000 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 995 (Olivia Manmeyer): berries 46198119 -> 48698119 (+2500000)
+    - Filo Pesado T2 (AFG002-995-1) x1 T2 -> +2500000 berries
+UID 996 (Hana): berries 7399660 -> 9899660 (+2500000)
+    - Arrojadiza Diestra T2 (ARP002) x1 T2 -> +2500000 berries
+UID 998 (Ace D Maverick ): berries 1073773352 -> 1076273352 (+2500000)
+    - Arrojadiza Filo T1 (ARF001-998-1) x1 T1 -> +500000 berries
+    - Gambit (998ART302-998-1) x1 T3 -> +2000000 berries
+UID 999 (Eitri D. Rübezahl): berries 21066568 -> 48566568 (+27500000)
+    - Asalto Diestra T3 (ACD003) x1 T3 -> +10000000 berries
+    - Asalto Diestra T2 (ACD002) x1 T2 -> +2500000 berries
+    - Asta Fuerte T2 (LL002) x1 T2 -> +2500000 berries
+    - BAD Impacto Balanceado T3 (ACM003) x1 T3 -> +10000000 berries
+    - BAD Punzante Defensiva T2 (DEP002) x1 T2 -> +2500000 berries
+UID 1000 (Nuwa Shuanghua): berries 3000000 -> 3500000 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+UID 1002 (Khan): berries 20146101 -> 23146101 (+3000000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+    - Impacto Fuerte T2 (ACG002) x1 T2 -> +2500000 berries
+UID 1003 (Endo Sanze): berries 750000 -> 1250000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 1004 (Sigrid D. Inazuma): berries 300000 -> 800000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 1005 (Dante D Aragosta): berries 4451000 -> 5051000 (+600000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +600000 berries
+UID 1006 (Rinji Airhart): berries 15500000 -> 16000000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 1009 (Nayla): berries 10250001 -> 10850001 (+600000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +600000 berries
+UID 1010 (Tsubaki Kojima): berries 10200000 -> 10700000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 1011 (Orpheus Noir): berries 41851001 -> 42851001 (+1000000)
+    - BAD Filo Balanceado T1 (AFM001) x2 T1 -> +1000000 berries
+UID 1012 (Kurono Aefukei): berries 240000 -> 740000 (+500000)
+    - Instrumento Preciso T1 (INSP001) x1 T1 -> +500000 berries
+UID 1013 (Mercedes Benz): berries 300000 -> 800000 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 1014 (Khaszmyr): berries 6045000 -> 6545000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 1016 (Nimue Vaelaris): berries 1088211749 -> 1088711749 (+500000)
+    - Arma Tensión Fuerte T1 (AL001) x1 T1 -> +500000 berries
+UID 1018 (Lady D. -Codified-): berries 650000 -> 1150000 (+500000)
+    - Arma Corporal Ligera T1 (ACL001-1018-1) x1 T1 -> +500000 berries
+UID 1019 (Big Ben): berries 5197752 -> 5697752 (+500000)
+    - Arma Corporal Fuerte T1 (ACCP001) x1 T1 -> +500000 berries
+UID 1020 (Jeff): berries 2966488 -> 3466488 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 1021 (Theodore Apricot): berries 122232369 -> 122732369 (+500000)
+    - Instrumento Diestro T1 (INSG001) x1 T1 -> +500000 berries
+UID 1022 (Samael Von Caelestis Empyrean Du Sanctus Marijoa): berries 700000 -> 1700000 (+1000000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries
+    - Filo Pesado T1 (AFG001-1022-1) x1 T1 -> +500000 berries
+UID 1024 (Yang Yuxin): berries 0 -> 500000 (+500000)
+    - Arma Corporal Diestra T1 (ACL001) x1 T1 -> +500000 berries
+UID 1025 (Yerenika Levobni): berries 9750000 -> 10250000 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 1026 (Maelys D. Karstark): berries 3362627 -> 15862627 (+12500000)
+    - BAD Filo Balanceado T3 (AFM003) x1 T3 -> +10000000 berries
+    - Filo Balanceado T2 (AFM002-1026-4) x1 T2 -> +2500000 berries
+UID 1027 (Amamiya Izumi): berries 1014980981 -> 1015480981 (+500000)
+    - BAD Filo Balanceado T1 (AFM001) x1 T1 -> +500000 berries
+UID 1028 (David): berries 76020174 -> 76520174 (+500000)
+    - Filo Ágil T1 (AFP001) x1 T1 -> +500000 berries
+UID 1030 (Lyrion): berries 1660000 -> 2160000 (+500000)
+    - Filo Fuerte T1 (AFG001) x1 T1 -> +500000 berries

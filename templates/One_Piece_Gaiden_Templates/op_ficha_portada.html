@@ -16,7 +16,7 @@
         <div>
             <img id="solColor" src="/images/op/ficha/SolNivel_One_Piece_Gaiden_Foro_Rol.png" style="left: 850px; top: 10px;">
             <!-- Añadir indicador de puntos de estadística disponibles con GIF de Chopper -->
-            <if $ficha['puntos_estadistica'] > 0 && $mybb->user['uid'] == $query_uid && $aprobada then>
+            <if $ficha['puntos_estadistica'] != 0 && $mybb->user['uid'] == $query_uid && $aprobada then>
                 <a href="/op/ficha_estadisticas.php?uid={$ficha['fid']}" style="text-decoration: none; outline: none;">
                     <div style="position: absolute; top: -20px; left: 847px; width: 120px; height: 120px; cursor: pointer; z-index: 10;">
                         <img src="https://custom-doodle.com/wp-content/uploads/doodle/one-piece-tony-tony-chopper-hat/one-piece-tony-tony-chopper-hat-doodle.gif" style="width: 100%; height: 70%; background: none; border: none; outline: none; box-shadow: none;">
@@ -26,7 +26,7 @@
             <div class="tooltiptext item-tooltip" style="position: absolute;top: 60px;left: 452px;z-index: 9999;box-shadow: 0 0 10px rgba(0, 0, 0, 0);">
                 <div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">Experiencia</div>
                 <div><img src=""></div>
-                <div style="font-family: InterRegular;padding: 5px;text-align: justify;">- Has acumulado un total de {$usuario['newpoints']} puntos de experiencia.<br>- Esta semana has acumulado {$experiencia_limite['experiencia_semanal']} de 100 puntos de experiencia.<br>- Necesitas {$expRem} puntos de experiencia para subir al siguiente nivel.</div>
+                <div style="font-family: InterRegular;padding: 5px;text-align: justify;">- Has acumulado un total de {$usuario['newpoints']} puntos de experiencia.<br>- Esta semana has acumulado {$experiencia_limite['experiencia_semanal']} de {$newpoints_limite_semanal_actual} puntos de experiencia.<br>- Necesitas {$expRem} puntos de experiencia para subir al siguiente nivel.</div>
 				 <if $is_owner then><div style="font-family: InterRegular;padding: 5px;text-align: justify;margin: auto;"><button id="limite_nivel">Nivel Máximo: {$ficha['limite_nivel']}. ¡SUBIR LÍMITE DE NIVEL!</button></div></if>
 				<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;"></div>
 			</div>

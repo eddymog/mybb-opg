@@ -24,23 +24,26 @@ $reload_js = "<script>window.location.href = window.location.pathname;</script>"
 $resulto_input = $mybb->get_input('resuelto'); 
 $resuelto = '0';
 
-$mods = [
-'Sin asignar',
-'Satou',
-'Teruyoshi',
-'Aranagi',
-'Juuken',
-'Oddy',
-'Joker',
-'Ubben',
-'Darrow',
-'Nefta',
-'Osten',
-'Hazel',
-'Gretta',
-'Sirius',
-'Cuando vea a alguien más le meto'
-];
+// Lista de moderadores/staff/admin para "Asignar a" — antes una lista de
+// nombres escrita a mano que había que recordar actualizar. Ahora sale de
+// los mismos criterios que ya usan is_staff()/is_mod()/is_user() en
+// op/functions/op_functions.php: grupo de usuario (4, 6, 14, 16 +
+// additionalgroups) UNIDO a la lista de UIDs sueltos que esas funciones
+// tratan como staff aunque su grupo de MyBB no lo refleje. Si algún día se
+// añade alguien nuevo a esas funciones, aparecerá aquí solo con tocar esta
+// misma lista de UIDs (que es una copia literal de la de is_staff()).
+$mods = ['Sin asignar'];
+$staff_uids_sueltos = '1,3,4,5,6,7,9,10,16,17,23,25,90,117,118,121,123,154,157,213,252,258,263,304,870';
+$mods_query = $db->query("
+    SELECT DISTINCT username FROM mybb_users
+    WHERE usergroup IN (4,6,14,16)
+       OR additionalgroups LIKE '%14%'
+       OR uid IN ({$staff_uids_sueltos})
+    ORDER BY username ASC
+");
+while ($m = $db->fetch_array($mods_query)) {
+    $mods[] = $m['username'];
+}
 
 if ($resulto_input == '1') {
     $resuelto = '1';
@@ -69,13 +72,9 @@ if ($accion == 'resolver' && $peti_id) {
     header('Location: /op/staff/peticiones_admin.php');
     exit;
 } else if ($accion == 'borrar' && $peti_id) { // <- corrige $action -> $accion
-    // Borra por `id` (PK única), NO por `uid`: las solicitudes de afiliación
-    // entran con uid=0, así que borrar por uid arrasaría con todas de una.
-    $peti_id_int = (int) $peti_id;
     $db->query("
         DELETE FROM mybb_op_peticiones
-        WHERE id='{$peti_id_int}'
-        LIMIT 1
+        WHERE uid='{$peti_id}'
     ");
     header('Location: /op/staff/peticiones_admin.php');
     exit;
@@ -229,7 +228,7 @@ if (is_mod($uid) || is_staff($uid) || is_user($uid)) {
             $atendidoPor = $q['atendidoPor'];
             
             $peticiones_li .= "<li>";
-            $peticiones_li .= "[<a target='_blank' href='/op/ficha.php?uid=$u_uid'>$nombre - $u_uid</a>] <br> <strong>Resumen</strong>: $resumen <br> <strong>Descripción</strong>: $descripcion <br> <strong>URL</strong>: <a target='_blank' href='$url'>$url</a><br> <strong>Fecha</strong>: $enviado - $fecha <br>";
+            $peticiones_li .= "[<a target='_blank' href='/op/personaje.php?uid=$u_uid'>$nombre - $u_uid</a>] <br> <strong>Resumen</strong>: $resumen <br> <strong>Descripción</strong>: $descripcion <br> <strong>URL</strong>: <a target='_blank' href='$url'>$url</a><br> <strong>Fecha</strong>: $enviado - $fecha <br>";
             
             // Desplegable de texto fijo (con normalización)
             $atendidoPor = isset($q['atendidoPor']) ? (string)$q['atendidoPor'] : '';
@@ -296,12 +295,18 @@ if (is_mod($uid) || is_staff($uid) || is_user($uid)) {
         }
     }
 
+    // Cuántos resets de build siguen pendientes, para el aviso junto al botón
+    // (sistema aparte de mybb_op_peticiones — vive en mybb_op_fichas_reset).
+    $resets_build_pendientes = (int)$db->fetch_field(
+        $db->query("SELECT COUNT(*) AS c FROM mybb_op_fichas_reset WHERE estado='pendiente'"),
+        'c'
+    );
+
     $peticiones_li .= print_peticion('Ajustes de Ficha y Recursos', 'ficha', $uid, $resuelto);
     $peticiones_li .= print_peticion('Petición de Narración', 'tema', $uid, $resuelto);
     $peticiones_li .= print_peticion('Moderación de Combate', 'combate', $uid, $resuelto);
     $peticiones_li .= print_peticion('Técnicas, Akumas y Estilos', 'tecnica', $uid, $resuelto);
     $peticiones_li .= print_peticion('Otras Moderaciones', 'otros', $uid, $resuelto);
-    $peticiones_li .= print_peticion('Solicitudes de Afiliación', 'afiliados', $uid, $resuelto);
     // $peticiones_li .= print_peticion('Errores de Programación', 'programacion', $uid);
 
     $csrf_script = "<script>window.MYBB_POST_KEY = '".htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8')."';</script>";

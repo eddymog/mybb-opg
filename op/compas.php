@@ -172,6 +172,13 @@ function compas_debug_log($templateName, $templateContent, $e, $debugFile) {
     @file_put_contents($debugFile, $log, FILE_APPEND);
 }
 
+// Catálogo de disciplinas (BD, ver OPG Catálogos) para que op_compas_script.html
+// genere su propia rejilla de disciplinas dinámicamente, igual que
+// op/personaje.php hace para op_ficha_belico.html.
+$op_disciplinas_catalogo_json = function_exists('op_ficha_disciplinas_catalogo')
+    ? json_encode(op_ficha_disciplinas_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+    : '[]';
+
 // Evaluar en el scope principal para que {$op_compas_css} y {$op_compas_script}
 // estén disponibles cuando se evalúe op_compas.
 try {

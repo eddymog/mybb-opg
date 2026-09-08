@@ -26,6 +26,14 @@
     console.log('Claves de tecnicas_html_json:', Object.keys(typeof tecnicas_html_json !== 'undefined' ? tecnicas_html_json : {}));
     console.groupEnd();
 
+    // 0. Rejilla de disciplinas: se genera desde el catálogo de BD (ver
+    // OPG Catálogos) antes que nada más de esta sección, porque los pasos
+    // siguientes (updateBelicaUI, handlers de clic) dependen de que sus
+    // elementos ya existan en el DOM.
+    if (typeof renderDisciplinasGrid === 'function') {
+      renderDisciplinasGrid(window.OPG_CATALOGO_DISCIPLINAS || []);
+    }
+
     // 1. Peso / FUE mínima para alzar
     $('#fuerza_alzar').html(alzarPeso(peso));
 
@@ -75,7 +83,7 @@
     if (buso == 0) {
       $('#buso_nivel').html('No Despertado');
       $('#buso_img').css('filter', 'grayscale(1)');
-    } else if (buso <= 6) {
+    } else if (buso <= 7) {
       $('#buso_nivel').html('Tier ' + (buso + 1) + ' de Poder');
       nikasCostoBuso = 10000; canGetBuso = false; nivelHakiBuso = 500;
       if (buso == 1) { if (nivel >= 15 || (hasFullHaki && nivel >= 10)) canGetBuso = true; nikasCostoBuso = hasFullHaki ? 0 : 10; nivelHakiBuso = 15; }
@@ -83,11 +91,12 @@
       if (buso == 3) { if (nivel >= 25 || (hasFullHaki && nivel >= 20)) canGetBuso = true; nivelHakiBuso = 25; nikasCostoBuso = 25; }
       if (buso == 4) { if (nivel >= 30 || (hasFullHaki && nivel >= 25)) canGetBuso = true; nivelHakiBuso = 30; nikasCostoBuso = 40; }
       if (buso == 5) { if (nivel >= 35 || (hasFullHaki && nivel >= 30)) canGetBuso = true; nivelHakiBuso = 35; nikasCostoBuso = 60; }
-      if (buso == 6) { if (nivel >= 40 || (hasFullHaki && nivel >= 35)) canGetBuso = true; nivelHakiBuso = 40; nikasCostoBuso = 150; }
+      if (buso == 6) { if (nivel >= 50 || (hasFullHaki && nivel >= 45)) canGetBuso = true; nivelHakiBuso = 50; nikasCostoBuso = 150; }
+      if (buso == 7) { if (nivel >= 666 || (hasFullHaki && nivel >= 60)) canGetBuso = true; nivelHakiBuso = 666; nikasCostoBuso = 8; }
       if (is_owner) $('#buso_img').css('cursor', 'pointer');
     } else {
       if (buso == 1) { $('#buso_nivel').html('Entrenable'); }
-      else if (buso == 7 && hasFullHaki) { $('#buso_nivel').html('Tier 9 de Poder'); }
+      else if (buso == 8 && hasFullHaki) { $('#buso_nivel').html('Tier 10 de Poder'); }
       else { $('#buso_nivel').html('Tier ' + (buso + 1) + ' de Poder'); }
     }
 
@@ -102,7 +111,7 @@
     } else if (hao == 0) {
       $('#hao_nivel').html('No Despertado');
       $('#hao_img').css('filter', 'grayscale(1)');
-    } else if (hao <= 6) {
+    } else if (hao <= 7) {
       $('#hao_nivel').html('Tier ' + (hao + 1) + ' de Poder');
       nikasCostoHao = 10000; canGetHao = false; nivelHakiHao = 500;
       if (hao == 1) { if (nivel >= 15 || (hasFullHaki && nivel >= 10)) canGetHao = true; nikasCostoHao = hasFullHaki ? 0 : 10; nivelHakiHao = 15; }
@@ -110,11 +119,12 @@
       if (hao == 3) { if (nivel >= 25 || (hasFullHaki && nivel >= 20)) canGetHao = true; nivelHakiHao = 25; nikasCostoHao = 25; }
       if (hao == 4) { if (nivel >= 30 || (hasFullHaki && nivel >= 25)) canGetHao = true; nivelHakiHao = 30; nikasCostoHao = 40; }
       if (hao == 5) { if (nivel >= 35 || (hasFullHaki && nivel >= 30)) canGetHao = true; nivelHakiHao = 35; nikasCostoHao = 60; }
-      if (hao == 6) { if (nivel >= 40 || (hasFullHaki && nivel >= 35)) canGetHao = true; nivelHakiHao = 40; nikasCostoHao = 150; }
+      if (hao == 6) { if (nivel >= 50 || (hasFullHaki && nivel >= 45)) canGetHao = true; nivelHakiHao = 50; nikasCostoHao = 150; }
+      if (hao == 7) { if (nivel >= 666 || (hasFullHaki && nivel >= 60)) canGetHao = true; nivelHakiHao = 666; nikasCostoHao = 8; }
       if (is_owner) $('#hao_img').css('cursor', 'pointer');
     } else {
       if (hao == 1) { $('#hao_nivel').html('Entrenable'); }
-      else if (hao == 7 && hasFullHaki) { $('#hao_nivel').html('Tier 9 de Poder'); }
+      else if (hao == 8 && hasFullHaki) { $('#hao_nivel').html('Tier 10 de Poder'); }
       else { $('#hao_nivel').html('Tier ' + (hao + 1) + ' de Poder'); }
     }
 
@@ -126,7 +136,7 @@
     if (kenbun == 0) {
       $('#kenbun_nivel').html('No Despertado');
       $('#kenbun_img').css('filter', 'grayscale(1)');
-    } else if (kenbun <= 6) {
+    } else if (kenbun <= 7) {
       $('#kenbun_nivel').html('Tier ' + (kenbun + 1) + ' de Poder');
       nikasCostoKenbun = 10000; canGetKenbun = false; nivelHakiKenbun = 500;
       if (kenbun == 1) { if (nivel >= 10 || (hasFullHaki && nivel >= 5)) canGetKenbun = true; nikasCostoKenbun = hasFullHaki ? 0 : 10; nivelHakiKenbun = 10; }
@@ -134,11 +144,12 @@
       if (kenbun == 3) { if (nivel >= 25 || (hasFullHaki && nivel >= 20)) canGetKenbun = true; nivelHakiKenbun = 25; nikasCostoKenbun = 25; }
       if (kenbun == 4) { if (nivel >= 30 || (hasFullHaki && nivel >= 25)) canGetKenbun = true; nivelHakiKenbun = 30; nikasCostoKenbun = 40; }
       if (kenbun == 5) { if (nivel >= 35 || (hasFullHaki && nivel >= 30)) canGetKenbun = true; nivelHakiKenbun = 35; nikasCostoKenbun = 60; }
-      if (kenbun == 6) { if (nivel >= 40 || (hasFullHaki && nivel >= 35)) canGetKenbun = true; nivelHakiKenbun = 40; nikasCostoKenbun = 150; }
+      if (kenbun == 6) { if (nivel >= 50 || (hasFullHaki && nivel >= 45)) canGetKenbun = true; nivelHakiKenbun = 50; nikasCostoKenbun = 150; }
+      if (kenbun == 7) { if (nivel >= 666 || (hasFullHaki && nivel >= 60)) canGetKenbun = true; nivelHakiKenbun = 666; nikasCostoKenbun = 8; }
       if (is_owner) $('#kenbun_img').css('cursor', 'pointer');
     } else {
       if (kenbun == 1) { $('#kenbun_nivel').html('Entrenable'); }
-      else if (kenbun == 7 && hasFullHaki) { $('#kenbun_nivel').html('Tier 9 de Poder'); }
+      else if (kenbun == 8 && hasFullHaki) { $('#kenbun_nivel').html('Tier 10 de Poder'); }
       else { $('#kenbun_nivel').html('Tier ' + (kenbun + 1) + ' de Poder'); }
     }
 
@@ -204,6 +215,7 @@
     var tecEstilo1 = (estilo1 && estilo1 !== 'bloqueado') ? getTecnicas(estilo1) : [];
     var tecEstilo2 = (estilo2 && estilo2 !== 'bloqueado') ? getTecnicas(estilo2) : [];
     var tecEstilo3 = (estilo3 && estilo3 !== 'bloqueado') ? getTecnicas(estilo3) : [];
+    // El 4º slot de estilo se retiró (ver reset de build TNP001); estilo4 ya no genera pestaña propia.
     var tecEstilo4 = (estilo4 && estilo4 !== 'bloqueado') ? getTecnicas(estilo4) : [];
     var especial   = getTecnicas('Especial');
     var raciales   = getTecnicas('Racial');
@@ -286,12 +298,11 @@
     var lastColor = sessionStorage.getItem('lastTecnicasColor') || '#ff6600';
     showBlock(lastTab, lastColor);
 
-    // 11. Estilos de combate (slots 1-4)
+    // 11. Estilos de combate (slots 1-3; el 4º slot se retiró, ver reset de build TNP001)
     var estiloSlots = [
       { id: '#estilo1', v: estilo1, n: '1' },
       { id: '#estilo2', v: estilo2, n: '2' },
-      { id: '#estilo3', v: estilo3, n: '3' },
-      { id: '#estilo4', v: estilo4, n: '4' }
+      { id: '#estilo3', v: estilo3, n: '3' }
     ];
     for (var si = 0; si < estiloSlots.length; si++) {
       var ss = estiloSlots[si];
@@ -604,6 +615,17 @@
       if (limite_nivel >= 30) nikasCosto = 15;
       if (limite_nivel >= 35) nikasCosto = 20;
       if (limite_nivel >= 40) nikasCosto = 25;
+      if (limite_nivel >= 45) nikasCosto = 30;
+      if (limite_nivel >= 50) nikasCosto = 35;
+      if (limite_nivel >= 55) nikasCosto = 40;
+      if (limite_nivel >= 60) nikasCosto = 45;
+      if (limite_nivel >= 65) nikasCosto = 50;
+      if (limite_nivel >= 70) nikasCosto = 55;
+      if (limite_nivel >= 75) nikasCosto = 60;
+      if (limite_nivel >= 80) nikasCosto = 65;
+      if (limite_nivel >= 85) nikasCosto = 70;
+      if (limite_nivel >= 90) nikasCosto = 75;
+      if (limite_nivel >= 95) nikasCosto = 80;
       if (FICHA.PendingQueue.availableNikas() < nikasCosto) { alert('No tienes suficientes nikas para aumentar el límite de nivel. Necesitas ' + nikasCosto + ' nikas.'); return; }
       if (confirm('Aumentar tu límite de nivel tendrá un costo de ' + nikasCosto + ' nikas. ¿Estás de acuerdo?')) {
         FICHA.PendingQueue.addPersonaje({ accion: 'limite_nivel' });
@@ -619,9 +641,9 @@
     function computeHakiVars(hakiName) {
       var val  = hakiName === 'buso' ? buso : hakiName === 'kenbun' ? kenbun : hao;
       var tbl  = hakiName === 'kenbun'
-        ? [[1,10,5],[2,20,15],[3,25,20],[4,30,25],[5,35,30],[6,40,35]]
-        : [[1,15,10],[2,20,15],[3,25,20],[4,30,25],[5,35,30],[6,40,35]];
-      var costs = [hasFullHaki ? 0 : 10, 15, 25, 40, 60, 150];
+        ? [[1,10,5],[2,20,15],[3,25,20],[4,30,25],[5,35,30],[6,50,45],[7,666,60]]
+        : [[1,15,10],[2,20,15],[3,25,20],[4,30,25],[5,35,30],[6,50,45],[7,666,60]];
+      var costs = [hasFullHaki ? 0 : 10, 15, 25, 40, 60, 150, 8];
       var canGet = false, nikasCosto = 10000, nivelHaki = 500;
       for (var i = 0; i < tbl.length; i++) {
         if (val == tbl[i][0]) {
@@ -661,9 +683,11 @@
       });
     }
 
-    // 32. Disciplinas: handlers para las no desbloqueadas
-    var disciplinas = ['Escudero','Artista Marcial','Combatiente','Artista','Asesino','Guerrero','Espadachín','Tecnicista','Artillero','Arquero','Tirador','Pícaro'];
-    disciplinas.forEach(function (disc) {
+    // 32. Disciplinas: handlers para las no desbloqueadas (catálogo de BD,
+    // ver OPG Catálogos — ya no una lista fija de 12 nombres).
+    var catalogoDisciplinas = window.OPG_CATALOGO_DISCIPLINAS || [];
+    catalogoDisciplinas.forEach(function (d) {
+      var disc = d.nombre;
       var discUnder = disc.replace(/ /g, '_');
       var isUnlocked = belicasArray.some(function (b) {
         return b === disc || b === discUnder || b === disc.replace(/ /g, '_') || b === disc.replace(/_/g, ' ');
@@ -673,31 +697,11 @@
       }
     });
 
-    // 33. insertarDisciplinaTecs (24 pares)
-    insertarDisciplinaTecs('Escudero',       'Vanguardia');
-    insertarDisciplinaTecs('Escudero',       'Bastión');
-    insertarDisciplinaTecs('Artista Marcial','Acróbata');
-    insertarDisciplinaTecs('Artista Marcial','Monje');
-    insertarDisciplinaTecs('Combatiente',    'Berserker');
-    insertarDisciplinaTecs('Combatiente',    'Campeón');
-    insertarDisciplinaTecs('Artista',        'Bardo');
-    insertarDisciplinaTecs('Artista',        'Trovador');
-    insertarDisciplinaTecs('Asesino',        'Sombra');
-    insertarDisciplinaTecs('Asesino',        'Verdugo');
-    insertarDisciplinaTecs('Guerrero',       'Castigador');
-    insertarDisciplinaTecs('Guerrero',       'Warhammer');
-    insertarDisciplinaTecs('Espadachín',     'Samurái');
-    insertarDisciplinaTecs('Espadachín',     'Mosquetero');
-    insertarDisciplinaTecs('Tecnicista',     'Diletante');
-    insertarDisciplinaTecs('Tecnicista',     'WeaponMaster');
-    insertarDisciplinaTecs('Artillero',      'Destructor');
-    insertarDisciplinaTecs('Artillero',      'Juggernaut');
-    insertarDisciplinaTecs('Arquero',        'Ballestero');
-    insertarDisciplinaTecs('Arquero',        'Cazador');
-    insertarDisciplinaTecs('Tirador',        'Duelista');
-    insertarDisciplinaTecs('Tirador',        'Francotirador');
-    insertarDisciplinaTecs('Pícaro',         'Gambito');
-    insertarDisciplinaTecs('Pícaro',         'Trickster');
+    // 33. insertarDisciplinaTecs (un par por disciplina del catálogo)
+    catalogoDisciplinas.forEach(function (d) {
+      insertarDisciplinaTecs(d.nombre, d.camino1);
+      insertarDisciplinaTecs(d.nombre, d.camino2);
+    });
 
     // 34. Merge Haki tecs
     if (tec_aprendidas_json['Haoshoku'] || tec_aprendidas_json['Kenbunshoku'] || tec_aprendidas_json['Busoshoku']) {

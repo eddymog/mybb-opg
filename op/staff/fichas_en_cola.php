@@ -23,16 +23,23 @@ $faccion = $mybb->get_input('faccion');
 $reload_js = "<script>window.location.href = window.location.pathname;</script>";
 
 if ($action == 'aprobar' && $fid && $faccion) {
-    $usergroup = '2';
+    // El grupo de MyBB asociado a cada facción se gestiona ahora desde
+    // Admin CP → Configuración del foro → OPG Facciones (columna
+    // "usergroup" de mybb_op_facciones). Si la tabla no existiera por lo
+    // que sea, cae al mapeo fijo de siempre para no dejar de funcionar.
+    $usergroup = 0;
+    if ($db->table_exists('op_facciones')) {
+        $usergroup = (int)$db->fetch_field($db->simple_select('op_facciones', 'usergroup', "nombre='".$db->escape_string($faccion)."'"), 'usergroup');
+    }
+    if ($usergroup <= 0) {
+        $legacy_usergroups = array(
+            'Pirata' => 8, 'Marina' => 9, 'CipherPol' => 11,
+            'Revolucionario' => 12, 'Cazadores' => 10, 'Civil' => 13,
+        );
+        $usergroup = isset($legacy_usergroups[$faccion]) ? $legacy_usergroups[$faccion] : 2;
+    }
 
-    if ($faccion == 'Pirata') { $usergroup = '8'; }
-    if ($faccion == 'Marina') { $usergroup = '9'; }
-    if ($faccion == 'CipherPol') { $usergroup = '11'; }
-    if ($faccion == 'Revolucionario') { $usergroup = '12'; }
-    if ($faccion == 'Cazadores') { $usergroup = '10'; }
-    if ($faccion == 'Civil') { $usergroup = '13'; }
-
-    $db->query(" 
+    $db->query("
         UPDATE `mybb_op_fichas` SET `aprobada_por`='$username' WHERE aprobada_por='sin_aprobar' AND fid='$fid'
     ");
     $db->query(" 

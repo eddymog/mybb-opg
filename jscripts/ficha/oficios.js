@@ -50,7 +50,7 @@
     var espeNivel = oficios[oficio].sub[espe];
 
     if (espeNivel == 2) {
-      if (nivel < 40) { alert(`No cumples el requisito mínimo de nivel 40 para aprender la especialización ` + espe + `.`); return; }
+      if (nivel < 50) { alert(`No cumples el requisito mínimo de nivel 50 para aprender la especialización ` + espe + `.`); return; }
       var _espeSlotA = isEspe1 ? 'espe1' : 'espe2';
       var _oficioSlotA = isOficio1 ? 'oficio1' : isOficio2 ? 'oficio2' : null;
       if (!_oficioSlotA) { alert(`No cumples los requisitos para mejorar la especialización ` + espe + `. Debes tener 50 nikas y 5000 puntos de oficio.`); return; }
@@ -100,18 +100,12 @@
   function chooseOficioTest() { openOficiosModal(); }
 
   function openOficiosModal() {
-    var oficiosDisponibles = [
-      { nombre: 'Cocinero',      imagen: '/images/op/uploads/OficioFichaCocinero_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Médico',        imagen: '/images/op/uploads/OficioFichaMédico_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Navegante',     imagen: '/images/op/uploads/OficioFichaNavegante_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Artesano',      imagen: '/images/op/uploads/OficioFichaArtesano_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Carpintero',    imagen: '/images/op/uploads/OficioFichaCarpintero_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Aventurero',    imagen: '/images/op/uploads/OficioFichaAventurero_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Inventor',      imagen: '/images/op/uploads/OficioFichaInventor_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Investigador',  imagen: '/images/op/uploads/OficioFichaInvestigador_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Mercader',      imagen: '/images/op/uploads/OficioFichaMercader_One_Piece_Gaiden_Foro_Rol.webp' },
-      { nombre: 'Recolector',    imagen: '/images/op/uploads/OficioFichaRecolector_One_Piece_Gaiden_Foro_Rol.webp' }
-    ];
+    // Catálogo de oficios inyectado por el servidor desde BD — ver
+    // OPG Catálogos en el admin. Copia de la misma construcción en
+    // jscripts/ficha_script2.js.
+    var oficiosDisponibles = (window.OPG_CATALOGO_OFICIOS || []).map(function(o) {
+      return { nombre: o.nombre, imagen: o.imagen };
+    });
 
     var modalId = 'oficiosModal';
     var modal = document.getElementById(modalId);

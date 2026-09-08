@@ -8,15 +8,6 @@ require_once "./functions/op_functions.php";
 $uid      = (int)$mybb->user['uid'];
 $banda_id = (int)$mybb->get_input('id');
 
-$faccion_colors = [
-    'Pirata'         => ['#ff0000','#ff0000','#ff0000','linear-gradient(42deg, #950000 20%, #ff0000 50%, #950000 80%)','#f63030','#fd0202'],
-    'Marina'         => ['#00bafc','#0039ed','#00bafc','linear-gradient(42deg, #002282 20%, #00b8fa 50%, #002282 80%)','#0055bb','#0038c7'],
-    'CipherPol'      => ['#08002c','#6534aa','#08002c','linear-gradient(42deg, #1b1424 20%, #9577ba 50%, #1b1424 80%)','#ac30d9','#861fac'],
-    'Cazadores'      => ['#00c200','#00ab00','#00c200','linear-gradient(42deg, #0f2313 20%, #46af70 50%, #0f2313 80%)','#00d506','#007400'],
-    'Revolucionario' => ['#be9d6f','#7d6452','#be9d6f','linear-gradient(42deg, #4e3e2c 20%, #e9c696 50%, #4e3e2c 80%)','#9d8771','#937e67'],
-    'Civil'          => ['#ff0283','#c6005c','#ff0283','linear-gradient(42deg, #950044 20%, #f40277 50%, #950044 80%)','#e0428d','#c30041'],
-];
-
 // ── No ID: show creator or redirect to existing band ─────────────────────────
 if (!$banda_id) {
     if (!$uid) {
@@ -42,7 +33,7 @@ if (!$banda_id) {
     $ficha_user   = $db->fetch_array($q_ficha_user);
     $faccion      = $ficha_user ? ($ficha_user['faccion'] ?: 'Civil') : 'Civil';
     [$faccionColor, $romboColor, $borderTagColor, $rangoColor, $borderColor, $borderPillColor]
-        = $faccion_colors[$faccion] ?? $faccion_colors['Civil'];
+        = op_faccion_colors($faccion);
 
     $post_code = generate_post_check();
     eval("\$page = \"".$templates->get("op_banda_crear")."\";");
@@ -68,7 +59,7 @@ $nombre_capitan = $ficha_capitan ? $ficha_capitan['nombre']  : '';
 $avatar_capitan = $ficha_capitan ? $ficha_capitan['avatar1'] : '';
 
 [$faccionColor, $romboColor, $borderTagColor, $rangoColor, $borderColor, $borderPillColor]
-    = $faccion_colors[$faccion] ?? $faccion_colors['Civil'];
+    = op_faccion_colors($faccion);
 
 eval("\$op_banda_portada = \"".$templates->get("op_banda_portada")."\";");
 eval("\$page             = \"".$templates->get("op_banda")."\";");

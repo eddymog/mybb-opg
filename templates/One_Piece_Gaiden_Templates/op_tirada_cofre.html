@@ -958,7 +958,7 @@
                     <div class="filterBox">
                         <div class="akumaTypeRow" style="background-color: #ff7e00;">
                             <div class="filterClass" style="background-color: #ff7e00; text-align: center; margin: auto;">
-                                <span>Cofres Disponibles</span>
+                                <span>Cofres Disponiblesss</span>
                             </div>
                         </div>
                         <div class="cofres-disponibles-container">
@@ -1425,36 +1425,10 @@
         document.body.style.overflow = 'hidden';
     }
 
-    var _ytPlayer = null;
-    var _ytReady = false;
-
-    (function() {
-        var tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-    })();
-
-    window.onYouTubeIframeAPIReady = function() {
-        var div = document.createElement('div');
-        div.id = 'yt-cofre-player';
-        div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;';
-        document.body.appendChild(div);
-        _ytPlayer = new YT.Player('yt-cofre-player', {
-            videoId: 'GWCldYPEsl4',
-            playerVars: { autoplay: 0, controls: 0 },
-            events: { onReady: function() { _ytReady = true; } }
-        });
-    };
-
     function startChestOpening() {
         if (isChestOpening) return;
         isChestOpening = true;
 
-        if (_ytReady && _ytPlayer) {
-            _ytPlayer.seekTo(0);
-            _ytPlayer.playVideo();
-        }
-        
         var chestContainer = document.getElementById('chest-container');
         var chestFront = document.getElementById('chest-front');
         var chestBack = document.getElementById('chest-back');
@@ -1679,10 +1653,6 @@
     }
 
     function closeChestModal() {
-        if (_ytPlayer && _ytReady) {
-            _ytPlayer.stopVideo();
-        }
-
         var modal = document.getElementById('chest-opening-modal');
         var chestStage = document.getElementById('chest-animation-stage');
         var rewardDisplay = document.getElementById('reward-display');

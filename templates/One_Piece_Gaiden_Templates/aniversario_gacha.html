@@ -1,0 +1,812 @@
+<html>
+<head>
+<title>Gacha de Aniversario — One Piece Gaiden</title>
+{$headerinclude}
+</head>
+<body>
+{$header}
+<style>
+#gacha-wrap {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 16px;
+    font-family: Georgia, serif;
+    color: #eee;
+}
+#gacha-titulo {
+    text-align: center;
+    margin-bottom: 28px;
+}
+#gacha-titulo h1 {
+    font-size: 32px;
+    color: #ffe080;
+    text-shadow: 0 0 18px #ff7e00, 0 0 40px #ff7e00aa;
+    margin: 0 0 10px 0;
+    letter-spacing: 2px;
+}
+#gacha-titulo .subtitulo {
+    font-size: 14px;
+    color: #ccc;
+    font-style: italic;
+}
+#gacha-balances {
+    display: inline-flex;
+    gap: 18px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid #4a2d6e;
+    border-radius: 30px;
+    padding: 8px 24px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+#gacha-balances span { color: #ffe080; font-weight: bold; }
+#gacha-balances .lbl { color: #aaa; font-size: 12px; font-weight: normal; margin-right: 4px; }
+
+#gacha-banners {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.g-banner-card {
+    flex: 1;
+    min-width: 280px;
+    max-width: 440px;
+    background: linear-gradient(160deg, #1a0f2e 0%, #0d0a1a 100%);
+    border: 1px solid #4a2d6e;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 30px #2a1060aa;
+    display: flex;
+    flex-direction: column;
+}
+.g-banner-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #2e1a4a;
+    text-align: center;
+}
+.g-banner-nombre {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.g-banner-berries .g-banner-nombre { color: #ffe080; text-shadow: 0 0 10px #ff7e00; }
+.g-banner-kuros   .g-banner-nombre { color: #b0b8ff; text-shadow: 0 0 10px #6060ff; }
+.g-banner-subtexto {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+    font-style: italic;
+}
+.g-banner-costos {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.g-costo-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #ccc;
+    border-bottom: 1px solid #1e1230;
+    padding-bottom: 6px;
+}
+.g-costo-fila:last-child { border-bottom: none; padding-bottom: 0; }
+.g-descuento {
+    background: #ff7e00;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+}
+.g-banner-btns {
+    padding: 14px 20px 20px;
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+.btn-gacha {
+    flex: 1;
+    padding: 11px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+    letter-spacing: 0.5px;
+}
+.btn-gacha:active { transform: scale(0.96); }
+.btn-gacha-x1 {
+    background: linear-gradient(135deg, #2e1a4a, #4a2d6e);
+    color: #ffe080;
+    border: 1px solid #6a3dae;
+}
+.btn-gacha-x1:hover { box-shadow: 0 0 12px #6a3dae; }
+.btn-gacha-x10 {
+    background: linear-gradient(135deg, #7e3a00, #ff7e00);
+    color: #fff;
+    border: 1px solid #ff9e40;
+}
+.btn-gacha-x10:hover { box-shadow: 0 0 12px #ff7e00; }
+.btn-gacha-gratis {
+    flex-basis: 100%;
+    background: linear-gradient(135deg, #0a5c2e, #1fb35a);
+    color: #fff;
+    border: 1px solid #3ef58a;
+}
+.btn-gacha-gratis:hover { box-shadow: 0 0 12px #3ef58a; }
+.btn-gacha-gratis:disabled {
+    background: #2a2a2a;
+    color: #777;
+    border: 1px solid #3a3a3a;
+    cursor: default;
+}
+.btn-gacha-gratis:disabled:active { transform: none; }
+
+#gacha-overlay {
+    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 9990;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+#gacha-overlay.activo { display: flex; }
+
+#gacha-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+}
+.g-orb {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffe080, #ff7e00, #7e1a00);
+    box-shadow: 0 0 40px #ff7e00, 0 0 80px #ff7e00aa;
+    animation: orb-spin 0.8s linear infinite, orb-pulse 1.6s ease-in-out infinite;
+}
+@keyframes orb-spin {
+    from { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.08); }
+    to   { transform: rotate(360deg) scale(1); }
+}
+@keyframes orb-pulse {
+    0%,100% { box-shadow: 0 0 40px #ff7e00, 0 0 80px #ff7e00aa; }
+    50%      { box-shadow: 0 0 60px #ffe080, 0 0 120px #ff7e00; }
+}
+
+#gacha-results {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+    padding: 0 16px;
+}
+#gacha-results-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.g-prize-card {
+    width: 140px;
+    background: linear-gradient(160deg, #1a0f2e, #0d0a1a);
+    border: 1px solid #4a2d6e;
+    border-radius: 12px;
+    padding: 16px 10px 14px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px) scale(0.85);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    cursor: default;
+}
+.g-prize-card.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.g-prize-card.type-berries { border-color: #ffe080; box-shadow: 0 0 12px #ff7e0066; }
+.g-prize-card.type-kuro    { border-color: #8080ff; box-shadow: 0 0 12px #4040ff44; }
+.g-prize-card.type-nika    { border-color: #80ffa0; box-shadow: 0 0 12px #00ff6044; }
+.g-prize-card.type-objeto  { border-color: #aa6600; box-shadow: 0 0 12px #aa660033; }
+.g-prize-icon { font-size: 28px; display: block; margin-bottom: 8px; line-height: 1; }
+.g-prize-nombre {
+    font-size: 12px;
+    color: #eee;
+    line-height: 1.3;
+    word-break: break-word;
+    font-family: Georgia, serif;
+}
+.g-prize-card.type-berries .g-prize-nombre { color: #ffe080; }
+.g-prize-card.type-kuro    .g-prize-nombre { color: #b0b8ff; }
+.g-prize-card.type-nika    .g-prize-nombre { color: #90ffb0; }
+
+#gacha-cerrar {
+    margin-top: 8px;
+    padding: 10px 36px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #7e3a00, #ff7e00);
+    color: #fff;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: box-shadow 0.2s;
+}
+#gacha-cerrar:hover { box-shadow: 0 0 16px #ff7e00; }
+
+#gacha-error-msg {
+    color: #ff6060;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    display: none;
+    padding: 16px;
+    background: rgba(80,0,0,0.6);
+    border: 1px solid #cc2222;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 400px;
+}
+
+.btn-info-premios {
+    position: absolute;
+    top: 0; right: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #4a2d6e;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    color: #aaa;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    padding: 0;
+    line-height: 1;
+}
+.btn-info-premios:hover { background: #4a2d6e; color: #ffe080; }
+
+#info-modal {
+    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 9995;
+    align-items: center;
+    justify-content: center;
+}
+#info-modal.activo { display: flex; }
+#info-panel {
+    background: linear-gradient(160deg, #1a0f2e 0%, #0d0a1a 100%);
+    border: 1px solid #4a2d6e;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 92%;
+    max-height: 82vh;
+    overflow-y: auto;
+    padding: 22px 18px 18px;
+    box-shadow: 0 0 40px #2a106088;
+}
+#info-panel::-webkit-scrollbar { width: 6px; }
+#info-panel::-webkit-scrollbar-track { background: #0d0a1a; }
+#info-panel::-webkit-scrollbar-thumb { background: #4a2d6e; border-radius: 3px; }
+#info-titulo {
+    text-align: center;
+    font-size: 17px;
+    font-weight: bold;
+    color: #ffe080;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2e1a4a;
+}
+#info-lista { display: flex; flex-direction: column; gap: 0; }
+.info-fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 2px;
+    border-bottom: 1px solid #1a0f2e;
+    font-size: 13px;
+    color: #ccc;
+}
+.info-fila:last-child { border-bottom: none; }
+.info-tipo-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.info-nombre { flex: 1; line-height: 1.3; }
+.info-pct-wrap { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; min-width: 56px; }
+.info-pct { font-weight: bold; font-size: 12px; }
+.info-bar { height: 3px; border-radius: 2px; margin-top: 3px; width: 100%; }
+#info-cerrar {
+    display: block;
+    margin: 18px auto 0;
+    padding: 8px 30px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #7e3a00, #ff7e00);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+}
+#info-cerrar:hover { box-shadow: 0 0 14px #ff7e00; }
+
+#gacha-historial {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 32px;
+}
+.hist-panel {
+    flex: 1;
+    min-width: 280px;
+    max-width: 440px;
+    background: linear-gradient(160deg, #1a0f2e 0%, #0d0a1a 100%);
+    border: 1px solid #4a2d6e;
+    border-radius: 16px;
+    overflow: hidden;
+}
+.hist-header {
+    padding: 12px 18px 0;
+    border-bottom: 1px solid #2e1a4a;
+}
+.hist-titulo {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ffe080;
+    display: block;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+.hist-tabs {
+    display: flex;
+}
+.hist-tab {
+    flex: 1;
+    padding: 7px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: Georgia, serif;
+}
+.hist-tab.activo { color: #ffe080; border-bottom-color: #ffe080; }
+.hist-tab:hover:not(.activo) { color: #bbb; }
+.hist-lista {
+    max-height: 260px;
+    overflow-y: auto;
+}
+.hist-lista::-webkit-scrollbar { width: 4px; }
+.hist-lista::-webkit-scrollbar-track { background: transparent; }
+.hist-lista::-webkit-scrollbar-thumb { background: #4a2d6e; border-radius: 2px; }
+.hist-fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-bottom: 1px solid #120a20;
+    font-size: 12px;
+    color: #ccc;
+}
+.hist-fila:last-child { border-bottom: none; }
+.hist-icon { font-size: 13px; flex-shrink: 0; width: 18px; text-align: center; }
+.hist-nombre { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-user { color: #ffe080; font-weight: bold; }
+.hist-tiempo { color: #555; font-size: 11px; flex-shrink: 0; white-space: nowrap; }
+.hist-vacio { text-align: center; color: #444; font-size: 12px; padding: 24px 16px; font-style: italic; }
+</style>
+
+<div id="gacha-wrap">
+    <div id="gacha-titulo">
+        <h1>&#127881; Gacha de Aniversario &#127881;</h1>
+        <div class="subtitulo">Celebrando el aniversario del foro!</div>
+        <div id="gacha-balances">
+            <span><span class="lbl">Berries</span><span id="bal-berries">{$g_berries}</span></span>
+            <span><span class="lbl">Kuros</span><span id="bal-kuros">{$g_kuros}</span></span>
+            <span><span class="lbl">Nikas</span><span id="bal-nikas">{$g_nikas}</span></span>
+        </div>
+    </div>
+
+    <div id="gacha-error-msg"></div>
+
+    <div id="gacha-banners">
+        <div class="g-banner-card g-banner-berries">
+            <div class="g-banner-header">
+                <div style="position:relative;">
+                    <div class="g-banner-nombre">&#128176; Banner Berries</div>
+                    <button class="btn-info-premios" onclick="abrirInfo('berries')" title="Ver premios y probabilidades">&#8505;</button>
+                </div>
+                <div class="g-banner-subtexto">Cofres, barcos, materiales e inventario</div>
+                {$g_descuento_b_aviso}
+            </div>
+            <div class="g-banner-costos">
+                <div class="g-costo-fila">
+                    <span>x1 Tirada{$g_descuento_b_badge}</span>
+                    <span>{$g_costo_b_x1} Berries</span>
+                </div>
+                <div class="g-costo-fila">
+                    <span>x10 Tiradas <span class="g-descuento g-descuento-x10-total">&#8722;{$g_descuento_x10_texto}%</span></span>
+                    <span>{$g_costo_b_x10} Berries</span>
+                </div>
+                <div class="g-costo-fila" style="font-size:11px;color:#888;border-bottom:none;padding-bottom:0;">
+                    <span>&#9650; +11,5% cada 10 tiradas</span>
+                    <span>sube en {$g_prox_b} tirada(s)</span>
+                </div>
+            </div>
+            <div class="g-banner-btns">
+                <button class="btn-gacha btn-gacha-x1" data-banner="berries" data-cantidad="1">x1 Tirada</button>
+                <button class="btn-gacha btn-gacha-x10" data-banner="berries" data-cantidad="10">x10 Tiradas</button>
+            </div>
+        </div>
+
+        <div class="g-banner-card g-banner-kuros">
+            <div class="g-banner-header">
+                <div style="position:relative;">
+                    <div class="g-banner-nombre">&#11036; Banner Kuros</div>
+                    <button class="btn-info-premios" onclick="abrirInfo('kuros')" title="Ver premios y probabilidades">&#8505;</button>
+                </div>
+                <div class="g-banner-subtexto">Barcos raros, armaduras y cofres legendarios</div>
+            </div>
+            <div class="g-banner-costos">
+                <div class="g-costo-fila">
+                    <span>x1 Tirada</span>
+                    <span>100 Kuros</span>
+                </div>
+                <div class="g-costo-fila">
+                    <span>x10 Tiradas <span class="g-descuento">&#8722;10%</span></span>
+                    <span>900 Kuros</span>
+                </div>
+            </div>
+            <div class="g-banner-btns">
+                <button class="btn-gacha btn-gacha-x1" data-banner="kuros" data-cantidad="1">x1 Tirada</button>
+                <button class="btn-gacha btn-gacha-x10" data-banner="kuros" data-cantidad="10">x10 Tiradas</button>
+                {$g_gratis_boton}
+            </div>
+        </div>
+    </div>
+
+    <div id="gacha-historial">
+        <div class="hist-panel">
+            <div class="hist-header">
+                <span class="hist-titulo">&#128176; Historial — Banner Berries</span>
+                <div class="hist-tabs">
+                    <button class="hist-tab activo" onclick="histTab(this,'berries','global')">&#127758; Global</button>
+                    <button class="hist-tab" onclick="histTab(this,'berries','personal')">&#11088; Mi historial</button>
+                </div>
+            </div>
+            <div class="hist-lista" id="hist-berries-global"></div>
+            <div class="hist-lista" id="hist-berries-personal" style="display:none"></div>
+        </div>
+        <div class="hist-panel">
+            <div class="hist-header">
+                <span class="hist-titulo">&#11036; Historial — Banner Kuros</span>
+                <div class="hist-tabs">
+                    <button class="hist-tab activo" onclick="histTab(this,'kuros','global')">&#127758; Global</button>
+                    <button class="hist-tab" onclick="histTab(this,'kuros','personal')">&#11088; Mi historial</button>
+                </div>
+            </div>
+            <div class="hist-lista" id="hist-kuros-global"></div>
+            <div class="hist-lista" id="hist-kuros-personal" style="display:none"></div>
+        </div>
+    </div>
+</div>
+
+<div id="info-modal">
+    <div id="info-panel">
+        <div id="info-titulo"></div>
+        <div id="info-lista"></div>
+        <button id="info-cerrar" onclick="cerrarInfo()">Cerrar</button>
+    </div>
+</div>
+
+<div id="gacha-overlay">
+    <div id="gacha-spinner">
+        <div class="g-orb"></div>
+    </div>
+    <div id="gacha-results">
+        <div id="gacha-results-grid"></div>
+        <button id="gacha-cerrar" onclick="gachaCerrar()">Continuar</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var INFO_DATA = {
+        berries: JSON.parse(atob('{$g_info_berries}')),
+        kuros:   JSON.parse(atob('{$g_info_kuros}'))
+    };
+    var infoModal = document.getElementById('info-modal');
+
+    function infoIconForType(type) {
+        if (type === 'berries') return '&#128176;';
+        if (type === 'kuro')    return '&#11036;';
+        if (type === 'nika')    return '&#11088;';
+        return '&#128230;';
+    }
+
+    function pctColor(pct) {
+        if (pct >= 15) return '#80ff80';
+        if (pct >= 3)  return '#ffe080';
+        if (pct >= 0.5) return '#80b0ff';
+        return '#ff80c0';
+    }
+
+    function fmtPct(pct) {
+        if (pct >= 10)  return pct.toFixed(2).replace(/\.00$/, '') + '%';
+        if (pct >= 0.1) return pct.toFixed(2) + '%';
+        return pct.toFixed(4).replace(/0+$/, '') + '%';
+    }
+
+    window.abrirInfo = function(banner) {
+        var data   = INFO_DATA[banner];
+        var titulo = banner === 'berries'
+            ? '&#128176; Banner Berries &mdash; Premios'
+            : '&#11036; Banner Kuros &mdash; Premios';
+        document.getElementById('info-titulo').innerHTML = titulo;
+
+        var maxPct  = data[0].pct;
+        var lista   = document.getElementById('info-lista');
+        lista.innerHTML = '';
+
+        data.forEach(function(item) {
+            var fila = document.createElement('div');
+            fila.className = 'info-fila';
+
+            var color  = pctColor(item.pct);
+            var barW   = Math.max(2, Math.round(item.pct / maxPct * 100));
+
+            fila.innerHTML =
+                '<span class="info-tipo-icon">' + infoIconForType(item.type) + '</span>' +
+                '<span class="info-nombre">' + item.nombre + '</span>' +
+                '<span class="info-pct-wrap">' +
+                    '<span class="info-pct" style="color:' + color + '">' + fmtPct(item.pct) + '</span>' +
+                    '<span class="info-bar" style="background:' + color + ';opacity:0.35;width:' + barW + '%"></span>' +
+                '</span>';
+
+            lista.appendChild(fila);
+        });
+
+        infoModal.classList.add('activo');
+    };
+
+    window.cerrarInfo = function() {
+        infoModal.classList.remove('activo');
+    };
+
+    infoModal.addEventListener('click', function(e) {
+        if (e.target === infoModal) cerrarInfo();
+    });
+})();
+
+(function() {
+    var HIST = {
+        berries: { global: JSON.parse(atob('{$g_hist_gb}')), personal: JSON.parse(atob('{$g_hist_pb}')) },
+        kuros:   { global: JSON.parse(atob('{$g_hist_gk}')), personal: JSON.parse(atob('{$g_hist_pk}')) }
+    };
+    var CUR_USERNAME = atob('{$g_cur_username}');
+
+    function histIcon(type) {
+        if (type === 'berries') return '&#128176;';
+        if (type === 'kuro')    return '&#11036;';
+        if (type === 'nika')    return '&#11088;';
+        return '&#128230;';
+    }
+
+    function timeAgo(ts) {
+        var s = Math.floor(Date.now() / 1000) - parseInt(ts, 10);
+        if (s < 60)    return 'ahora';
+        if (s < 3600)  return 'hace ' + Math.floor(s / 60) + ' min';
+        if (s < 86400) return 'hace ' + Math.floor(s / 3600) + ' h';
+        return 'hace ' + Math.floor(s / 86400) + ' d';
+    }
+
+    function renderLista(el, entries, showUser) {
+        if (!entries.length) {
+            el.innerHTML = '<div class="hist-vacio">Sin tiradas aún</div>';
+            return;
+        }
+        el.innerHTML = '';
+        entries.forEach(function(e) {
+            var fila = document.createElement('div');
+            fila.className = 'hist-fila';
+            var userHtml = showUser ? '<span class="hist-user">' + e.username + '</span>&nbsp;' : '';
+            fila.innerHTML =
+                '<span class="hist-icon">' + histIcon(e.premio_type) + '</span>' +
+                '<span class="hist-nombre">' + userHtml + e.premio_nombre + '</span>' +
+                '<span class="hist-tiempo">' + timeAgo(e.fecha) + '</span>';
+            el.appendChild(fila);
+        });
+    }
+
+    function renderAll() {
+        renderLista(document.getElementById('hist-berries-global'),   HIST.berries.global,   true);
+        renderLista(document.getElementById('hist-berries-personal'), HIST.berries.personal, false);
+        renderLista(document.getElementById('hist-kuros-global'),     HIST.kuros.global,     true);
+        renderLista(document.getElementById('hist-kuros-personal'),   HIST.kuros.personal,   false);
+    }
+
+    window.histTab = function(btn, banner, tab) {
+        var panel = btn.closest('.hist-panel');
+        panel.querySelectorAll('.hist-tab').forEach(function(b) { b.classList.remove('activo'); });
+        btn.classList.add('activo');
+        panel.querySelectorAll('.hist-lista').forEach(function(l) { l.style.display = 'none'; });
+        document.getElementById('hist-' + banner + '-' + tab).style.display = 'block';
+    };
+
+    window.histPrepend = function(banner, premio) {
+        var ts    = Math.floor(Date.now() / 1000);
+        var entry = { username: CUR_USERNAME, premio_type: premio.type, premio_nombre: premio.nombre, fecha: ts };
+        ['global', 'personal'].forEach(function(scope) {
+            HIST[banner][scope].unshift(entry);
+            if (HIST[banner][scope].length > 25) HIST[banner][scope].pop();
+            renderLista(document.getElementById('hist-' + banner + '-' + scope), HIST[banner][scope], scope === 'global');
+        });
+    };
+
+    renderAll();
+})();
+
+(function() {
+    var overlay     = document.getElementById('gacha-overlay');
+    var spinner     = document.getElementById('gacha-spinner');
+    var resultsDiv  = document.getElementById('gacha-results');
+    var resultsGrid = document.getElementById('gacha-results-grid');
+    var errMsg      = document.getElementById('gacha-error-msg');
+    var spinning    = false;
+
+    function fmt(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function iconForType(type) {
+        if (type === 'berries') return '&#128176;';
+        if (type === 'kuro')    return '&#11036;';
+        if (type === 'nika')    return '&#11088;';
+        return '&#128230;';
+    }
+
+    function showError(msg) {
+        errMsg.textContent = msg;
+        errMsg.style.display = 'block';
+        setTimeout(function() { errMsg.style.display = 'none'; }, 5000);
+    }
+
+    window.gachaTirar = function(banner, cantidad, gratis) {
+        if (spinning) return;
+        spinning = true;
+        errMsg.style.display = 'none';
+
+        overlay.classList.add('activo');
+        spinner.style.display   = 'flex';
+        resultsDiv.style.display = 'none';
+        resultsGrid.innerHTML   = '';
+
+        var body = 'banner=' + encodeURIComponent(banner) + '&cantidad=' + cantidad + (gratis ? '&gratis=1' : '');
+
+        fetch('/op/aniversario_gacha_spin.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            spinner.style.display = 'none';
+
+            if (data.error) {
+                overlay.classList.remove('activo');
+                spinning = false;
+                showError(data.error);
+                return;
+            }
+
+            document.getElementById('bal-berries').textContent = fmt(data.balances.berries);
+            document.getElementById('bal-kuros').textContent   = fmt(data.balances.kuro);
+            document.getElementById('bal-nikas').textContent   = fmt(data.balances.nika);
+
+            data.premios.forEach(function(p) {
+                var card = document.createElement('div');
+                card.className = 'g-prize-card type-' + p.type;
+
+                var icon = document.createElement('span');
+                icon.className = 'g-prize-icon';
+                icon.innerHTML = iconForType(p.type);
+
+                var nom = document.createElement('div');
+                nom.className = 'g-prize-nombre';
+                nom.textContent = p.nombre;
+
+                card.appendChild(icon);
+                card.appendChild(nom);
+                resultsGrid.appendChild(card);
+            });
+
+            data.premios.forEach(function(p) { window.histPrepend(banner, p); });
+
+            if (data.gratis) {
+                var btnGratis = document.querySelector('.btn-gacha-gratis');
+                if (btnGratis) {
+                    btnGratis.disabled = true;
+                    btnGratis.textContent = '✔ Tirada gratis ya reclamada';
+                }
+            }
+
+            if (banner === 'berries' && data.costo_berries) {
+                var cb = data.costo_berries;
+                var filas = document.querySelectorAll('.g-banner-berries .g-costo-fila');
+                if (filas[0]) filas[0].lastElementChild.textContent = fmt(cb.x1) + ' Berries';
+                if (filas[1]) filas[1].lastElementChild.textContent = fmt(cb.x10) + ' Berries';
+                if (filas[2]) filas[2].lastElementChild.textContent = 'sube en ' + cb.prox + ' tirada(s)';
+
+                // Solo actualiza el badge/aviso si ya existían al cargar la página (evita
+                // crear/eliminar nodos aquí, que es frágil); si el descuento desaparece a
+                // mitad de sesión el badge queda desactualizado, un caso raro y de bajo impacto.
+                if (cb.descuento > 0) {
+                    var badge    = document.querySelector('.g-banner-berries .g-descuento-ultimodia');
+                    var aviso    = document.querySelector('.g-banner-berries .g-descuento-aviso');
+                    var x10Badge = document.querySelector('.g-banner-berries .g-descuento-x10-total');
+                    if (badge) badge.textContent = '−' + cb.descuento + '%';
+                    if (aviso) aviso.textContent = '🎉 ¡Último día! Descuento de ' + cb.descuento + '% en tu tramo actual';
+                    if (x10Badge) {
+                        var totalPct = Math.round((100 - (100 - cb.descuento) * 0.9) * 10) / 10;
+                        x10Badge.textContent = '−' + (totalPct % 1 === 0 ? totalPct.toFixed(0) : totalPct.toFixed(1)) + '%';
+                    }
+                }
+            }
+
+            resultsDiv.style.display = 'flex';
+
+            var cards = resultsGrid.querySelectorAll('.g-prize-card');
+            cards.forEach(function(card, i) {
+                setTimeout(function() {
+                    card.classList.add('visible');
+                }, 80 + i * 120);
+            });
+        })
+        .catch(function() {
+            spinner.style.display = 'none';
+            overlay.classList.remove('activo');
+            spinning = false;
+            showError('Error de conexión. Si el error persiste, no vuelvas a tirar hasta comprobar tu inventario.');
+        });
+    };
+
+    window.gachaCerrar = function() {
+        overlay.classList.remove('activo');
+        spinning = false;
+    };
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay && resultsDiv.style.display !== 'none') gachaCerrar();
+    });
+
+    document.querySelectorAll('.btn-gacha').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (this.disabled) return;
+            gachaTirar(this.dataset.banner, parseInt(this.dataset.cantidad, 10), this.dataset.gratis === '1');
+        });
+    });
+})();
+</script>
+
+{$footer}
+</body>
+</html>
