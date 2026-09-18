@@ -932,16 +932,14 @@ function checkUnreadMessages() {
         </div>
 		<div id="logo" style="margin-top: 50px; position: relative;">
 			<a href="{$mybb->settings['bburl']}/" style="display: block; position: relative; width: 100%;">
-				<if ($g_uid == '7' || $g_uid == '25' || $g_uid == '279' || $g_uid == '23' || $g_uid == '9' || $g_uid == '11' || $g_uid == '799' || $g_uid == '2' || $g_uid == '347') then>
-					<img src="/images/op/banners/Banner60_One_Piece_Gaiden_Foro_Rol.jpg" alt="One Piece Gaiden">
-				<elseif ($g_uid == '871' || $g_uid == '158' || $g_uid == '121') then>
-					<img src="/images/op/banners/BannerKuro4_One_Piece_Gaiden_Foro_Rol.jpg" alt="One Piece Gaiden">
-				<elseif ($g_uid == '304' || $g_uid == '310' || $g_uid == '92') then>
+				<if ($g_uid == '304' || $g_uid == '310' || $g_uid == '92') then>
 					<img src="/images/op/banners/Besties.png" alt="One Piece Gaiden">
 				<elseif ($g_uid == '348' || $g_uid == '850') then>
 					<img src="/images/op/banners/BannerDearWendy.webp" alt="One Piece Gaiden">
-				<elseif ($g_uid == '10' || $g_uid == '944') then>
+				<elseif ($g_uid == '944') then>
 					<img src="/images/op/uploads/WhatsApp%20Image%202026-02-28%20at%2017.10.34.jpeg" alt="One Piece Gaiden">
+				<elseif $op_banner_rotativo then>
+					<img src="{$op_banner_rotativo}" alt="One Piece Gaiden">
 				<else>
 					<img src="/images/op/banners/Banner59_One_Piece_Gaiden_Foro_Rol.jpg" alt="One Piece Gaiden">
 				</if>

@@ -9,3 +9,5 @@ admin/backups/
 config.php
 inc/debug_log.txt
 *.gz
+.DS_Store
+.ftpquota

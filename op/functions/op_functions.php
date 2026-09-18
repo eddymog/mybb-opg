@@ -176,6 +176,12 @@ function is_staff($uid) {
     );    
 }
 
+// Administrador: grupo 4, como grupo principal o en additionalgroups.
+function is_admin($uid) {
+    $user = get_user($uid);
+    return !empty($user) && (bool)is_member(4, $user);
+}
+
 function is_peti_mod($uid) {
     return ($uid == '1');
 }

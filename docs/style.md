@@ -59,6 +59,7 @@ familias muy consistentes. Estos son los valores canónicos por rol:
 | `#ff7e00` / `#ff7b00` | Variantes de bordes y rellenos fuertes |
 | `#dc822a` | **Hover** del naranja (un paso más oscuro) |
 | `#faa500` / `#ffa600` / `#ff7019` | Gradientes y estados |
+| `#d26500` → `#ff9b00` (hover) | **Botón de acción naranja** sobre páginas con barras naranjas (`.realDraw`, 9 plantillas) |
 
 ### Secundario — Morado
 | Hex | Uso |
@@ -67,7 +68,9 @@ familias muy consistentes. Estos son los valores canónicos por rol:
 | `#8f59f7` | Bordes y realces morados |
 | `#6e67d1` | Morado apagado — bordes de paneles (ej. cajón lateral) |
 | `#cf44ff` | Morado brillante / neón para destacar |
-| `#e0d2fd` | Morado muy claro — fondos suaves |
+| `#e0d2fd` / `#e8d9ff` | Morado muy claro — fondos suaves, elemento seleccionado |
+| `rgba(70,12,110,1)` (`#460c6e`) → `rgba(126,32,191,1)` (hover) | **Morado de llamada a la acción** — botón principal grande (`.testDraw`, "ENTREGAR"; 8 plantillas) |
+| `#6c10ab` / `#4b1aae` | Morado oscuro para texto y enlaces sobre crema (receptor, ítems en Intercambios) |
 
 ### Fondos — Pergamino / crema
 | Hex | Uso |
@@ -94,6 +97,7 @@ familias muy consistentes. Estos son los valores canónicos por rol:
 | `#dc3545` / `#e74c3c` | **Rojo error** (validaciones, borrar) |
 | `#27ae60` / `#4dfe45` | **Verde éxito** |
 | `#5e5e5e` / `#666` / `#333` | Neutros de texto secundario |
+| `#71706f` | **Bloqueado / deshabilitado** — botones sin acción disponible (`.blockedDraw`, 8 plantillas) |
 
 ---
 
@@ -142,6 +146,70 @@ el template `op_peticiones`, reutilizado por `op/peticion_afiliados.php`): image
 de fondo + una capa `::before` blanca casi opaca (`rgba(255,255,255,.94)`) +
 contenido en `z-index: 2`. Bordes redondeados grandes (`20px`) y sombra profunda.
 
+### Página de juego: marco de tres fondos
+Es el layout estándar de las páginas de `/op/` (aparece en ~54 plantillas: Intercambios,
+Crafteo, Entrenamiento, Mercado Negro, Coliseo…). Las clases viven en el CSS del tema
+(`op_global.css`), así que solo funcionan si la página carga `{$headerinclude}`:
+
+```html
+{$header}
+<div class="indice">
+  <div class="mainBackground">        <!-- #ffe3a0, padding 10px -->
+    <div class="secondBackground">    <!-- #fcecd2, borde 3px negro -->
+      <div class="thirdBackground">   <!-- #ffe3a0, borde 2px negro, 1030px, columna -->
+        …contenido…
+      </div>
+    </div>
+  </div>
+</div>
+{$footer}
+```
+
+`.thirdBackground` tiene **ancho fijo de 1030px**. En páginas que deban verse en móvil,
+cambialo en la propia página por `width: 100%; max-width: 1030px;`.
+
+### Barra + cuerpo de formulario (`.barra-op` / `.barra-espacio-op`)
+El patrón de campo del juego: una **barra naranja** con el título y, pegado debajo, un
+**cuerpo crema** con el input. Ambos con borde negro de 2px; la barra redondeada arriba (10px).
+
+```html
+<div class="barra-op bbox">                        <!-- #ff8900, radio 10px arriba -->
+  <span class="barra-texto-op" style="font-size: 15px;">Justificación*</span><br>
+  <span class="barra-texto-op" style="font-size: 9px;">(Escribe razón del intercambio)</span>
+</div>
+<textarea class="barra-espacio-op texto-regular-op bbox"></textarea>   <!-- #fcecd2, sin borde arriba -->
+```
+
+- `.barra-texto-op` = `moonGetHeavy` blanco con `text-shadow: 1px 1px 1px black`.
+- Subtítulo opcional en 9px entre paréntesis para instrucciones.
+- Existe `.barra-op-abajo` (redondeada abajo) para cerrar un bloque.
+- Evitá darle `height` fija a la barra si lleva dos líneas: depende del `line-height` del tema y se corta.
+
+### Botón principal grande (`.testDraw` / `.realDraw` / `.blockedDraw`)
+El botón de "acción de la página" (ENTREGAR, TIRAR…): grande, centrado y con tipografía de titular.
+
+```css
+.testDraw, .realDraw, .blockedDraw {
+  width: 450px; height: 65px;
+  color: white; font-family: moonGetHeavy; font-size: 1.5rem; letter-spacing: 2px;
+  border: 2px solid black; border-radius: 15px;
+  filter: drop-shadow(0 0 4px black);
+  transition: all .5s ease-out; cursor: pointer;
+}
+.testDraw    { background: rgba(70,12,110,1); }  .testDraw:hover { background: rgba(126,32,191,1); }
+.realDraw    { background: #d26500; }            .realDraw:hover { background: #ff9b00; }
+.blockedDraw { background: #71706f; }            /* sin hover: no hay acción */
+```
+
+### Barra de sección / listado (`.akumaTypeRow` + `.categoriaBox`)
+Cabecera de una lista o historial ("HISTORIAL DE INTERCAMBIOS"): barra `#ff7b00` con borde
+negro de 2px y radio `10px 10px 0 0`, texto `moonGetHeavy` blanco en mayúsculas a 14px.
+Debajo, un contenedor con borde negro de 2px **sin borde superior**. Las filas del listado
+alternan `#ffe59b` y `#ffeed2`. Si hay varias pestañas, la activa usa `#ffa600` (`.box-active`).
+
+Ejemplo de referencia completo: `templates/One_Piece_Gaiden_Templates/op_intercambio.html`.
+Ejemplo de herramienta de staff que lo sigue: `op/staff/banners.php`.
+
 ---
 
 ## 4. Interacción y movimiento
@@ -169,11 +237,15 @@ Al crear una página/componente nuevo, revisá:
 - [ ] Titulares en `moonGetHeavy` **con `text-shadow` negro** (o `.text-moon`).
 - [ ] Cuerpo de texto en `InterRegular`.
 - [ ] Cajas con **borde negro** (`2px solid black` por defecto) y radio `8–10px`.
-- [ ] Naranja `#ff8900` como acción primaria; hover a `#dc822a`.
+- [ ] Naranja `#ff8900` como acción primaria; hover a `#dc822a`. **Excepción:** en páginas de
+      juego donde las barras ya son naranjas (`.barra-op`), el botón principal va en el morado
+      de llamada a la acción `rgba(70,12,110,1)` (`.testDraw`) para no perderse entre ellas.
 - [ ] Morado `#9664e0` / `#8f59f7` como secundario/realce.
 - [ ] Fondos de panel en crema (`#ffedd2` / `#ffe59b`), no blanco puro plano.
 - [ ] Hover con `scale(1.05)` + `transition: all .25s ease`.
-- [ ] Rojo `#dc3545` para errores, verde `#27ae60` para éxito.
+- [ ] Rojo `#dc3545` para errores, verde `#27ae60` para éxito, gris `#71706f` para bloqueado.
+- [ ] Páginas de `/op/`: dentro del marco `.mainBackground` → `.thirdBackground` y con
+      campos `.barra-op` + `.barra-espacio-op` (ver §3), cargando `{$headerinclude}`.
 
 ---
 
