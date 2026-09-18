@@ -875,7 +875,7 @@ if ($ficha_existe == true && $aprobada_por == true) {
             $tec_aprendidas_html[$key] .= create_technique_card($tec_aprendida, $is_staff);
         }
         $tec_aprendidas_json = json_encode($tec_aprendidas);
-        
+
         $query_tecs = $db->query("
             SELECT * FROM mybb_op_tecnicas as t1 
             WHERE 
@@ -900,30 +900,6 @@ if ($ficha_existe == true && $aprobada_por == true) {
             ORDER BY t1.tid ASC
         ");
 
-        // echo("
-        //     SELECT * FROM mybb_op_tecnicas as t1 
-        //     WHERE 
-        //     ($belica1_query $belica2_query $belica3_query $belica4_query $belica5_query $belica6_query $belica7_query $belica8_query $belica9_query $belica10_query $belica11_query $belica12_query
-        //      $belica1_espe1_query $belica1_espe2_query
-        //      $belica2_espe1_query $belica2_espe2_query 
-        //      $belica3_espe1_query $belica3_espe2_query
-        //      $belica4_espe1_query $belica4_espe2_query
-        //      $belica5_espe1_query $belica5_espe2_query
-        //      $belica6_espe1_query $belica6_espe2_query
-        //      $belica7_espe1_query $belica7_espe2_query
-        //      $belica8_espe1_query $belica8_espe2_query
-        //      $belica9_espe1_query $belica9_espe2_query
-        //      $belica10_espe1_query $belica10_espe2_query
-        //      $belica11_espe1_query $belica11_espe2_query
-        //      $belica12_espe1_query $belica12_espe2_query
-        //      $estilo1_query $estilo2_query $estilo3_query $estilo4_query 
-        //      $hao_query $kenbun_query $buso_query
-        //      OR t1.tid IN (SELECT DISTINCT t3.tid from mybb_op_tec_para_aprender as t3 WHERE t3.uid='$uid')
-        //     )
-        //     AND (t1.tid NOT IN (SELECT DISTINCT t2.tid from mybb_op_tec_aprendidas as t2 WHERE t2.uid='$uid'))
-        //     ORDER BY t1.tid ASC
-        // ");
-
         $tecs = array();
         $tecs_html = array();
         while ($tec = $db->fetch_array($query_tecs)) {
@@ -933,18 +909,18 @@ if ($ficha_existe == true && $aprobada_por == true) {
             }
             
             // Filtrar técnicas pasivas si ya se tiene una de esa disciplina
-            if (preg_match('/^D([A-Z]{2,3})00[12]$/', $tec['tid'], $matches)) {
-                $disciplina = $matches[1];
-                // Si ya tiene una pasiva de esta disciplina, omitir esta técnica
-                // EXCEPTO si el nombre contiene "iniciado" o "maestro" (esas siempre se muestran mientras no estén aprendidas)
-                if (isset($pasivas_aprendidas[$disciplina])) {
-                    $nombre_lower = mb_strtolower($tec['nombre']);
-                    if (strpos($nombre_lower, 'iniciado') === false && strpos($nombre_lower, 'iniciada') === false
-                        && strpos($nombre_lower, 'maestro') === false && strpos($nombre_lower, 'maestra') === false) {
-                        continue;
-                    }
-                }
-            }
+            // if (preg_match('/^D([A-Z]{2,3})00[12]$/', $tec['tid'], $matches)) {
+            //     $disciplina = $matches[1];
+            //     // Si ya tiene una pasiva de esta disciplina, omitir esta técnica
+            //     // EXCEPTO si el nombre contiene "iniciado" o "maestro" (esas siempre se muestran mientras no estén aprendidas)
+            //     if (isset($pasivas_aprendidas[$disciplina])) {
+            //         $nombre_lower = mb_strtolower($tec['nombre']);
+            //         if (strpos($nombre_lower, 'iniciado') === false && strpos($nombre_lower, 'iniciada') === false
+            //             && strpos($nombre_lower, 'maestro') === false && strpos($nombre_lower, 'maestra') === false) {
+            //             continue;
+            //         }
+            //     }
+            // }
 
             $key = $tec['rama'];
         

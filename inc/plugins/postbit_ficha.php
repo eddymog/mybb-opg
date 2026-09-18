@@ -500,7 +500,7 @@ function postbit_ficha_run(&$post)
             . '.post.classic .post_body > div{display:flow-root;}'
             . '.post.classic .post_content blockquote.mycode_quote{overflow:hidden;}'
             . '.post.classic .post_content ul,.post.classic .post_content ol{display:flow-root;}'
-            . '.post span.edited_post,.post span.edited_post a{color:rgb(51,32,134)!important;font-style:italic!important;font-size:8px!important;text-shadow:none!important;}'
+            . '.post span.edited_post,.post span.edited_post a{color:rgb(51,32,134)!important;font-style:italic!important;font-size:14px!important;text-shadow:none!important;}'
             . '#posts_container,#posts{overflow:visible!important;}'
             . '#content{overflow:visible!important;}'
             . '#content::after{content:"";display:table;clear:both;}'

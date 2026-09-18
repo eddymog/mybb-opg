@@ -88,7 +88,7 @@ if ($entrenar) {
     }
     $nombre = $ficha['nombre'];
     $duracion = $horas * 3600; // en segundos
-    // $duracion = '64000'; // en segundos
+    // $duracion = '86400'; // en segundos
     $timestamp_end = $now + intval($duracion);
     $db->query("
         INSERT INTO `mybb_op_entrenamientos_usuarios` (`uid`,`nombre`,`timestamp_end`, `duracion`, `costo_pr`, `recompensa`) VALUES ('$uid','$nombre','$timestamp_end', '$duracion', '0', '$experiencia');
@@ -96,38 +96,42 @@ if ($entrenar) {
     eval('$reload_script = $reload_js;');
 }
 
-// if ($culminar) { // temporary
+$entreno_revan = null;
+$timestamp_end_revan = $time_now + 86400;
+$experiencia_revan = (25 / 2) * 1.25;
+$query_entreno_usuario_revan = $db->query("
+    SELECT * FROM mybb_op_entrenamientos_usuarios WHERE uid='10'
+");
+while ($q = $db->fetch_array($query_entreno_usuario_revan)) {
+    $entreno_revan = $q;
+}
 
-//     $entreno = null;
+if ($entreno_revan) {
+    $tiempo_left_revan = (($entreno_revan['timestamp_end']) - $time_now) * 1000; // needed for template
+    if (time() > ($entreno_revan['timestamp_end'])) {
+        $ficha_revan = null;
 
-//     $query_entreno_usuario = $db->query("
-//         SELECT * FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid'
-//     ");
+        $query_usuario_revan = $db->query("SELECT * FROM mybb_users WHERE uid='10'");
+        while ($u = $db->fetch_array($query_usuario_revan)) { $exp_usuario_revan = $u['newpoints']; }
 
-//     while ($q = $db->fetch_array($query_entreno_usuario)) {
-//         $entreno = $q;
-//     }
 
-//     $nombre = $ficha['nombre'];
-//     $old_exp = $ficha['kuro'];
-//     $new_exp = floatval($old_exp) + (floatval($entreno['recompensa']));
-//     // $db->query(" 
-//     //     UPDATE `mybb_op_fichas` SET `puntos_estadistica`='$new_pe' WHERE `fid`='$uid';
-//     // ");
-//     $db->query(" 
-//         UPDATE `mybb_op_fichas` SET `kuro`='$new_exp' WHERE `fid`='$uid';
-//     ");
-    
-//     $db->query(" 
-//         INSERT INTO `mybb_op_audit_entrenamientos` (`fid`, `nombre`, `puntos_estadistica`, `pr`) VALUES 
-//         ('$uid', '$nombre', '2', '$old_exp->$new_exp');
-//     ");
+        $query_ficha_revan = $db->query("SELECT * FROM mybb_op_fichas WHERE fid='10'");
+        while ($f = $db->fetch_array($query_ficha_revan)) { 
+            $ficha_revan = $f;
+        }
 
-//     $log = "Entrenamiento finalizado. \nKuros nuevos: $old_exp->$new_exp\n";
-//     eval('$log_var = $log;');
-//     eval('$reload_script = $reload_js;');
-//     $db->query("DELETE FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid'");
-// }
+        $old_exp_revan = $exp_usuario_revan;
+        $new_exp_revan = floatval($old_exp_revan) + (floatval($entreno_revan['recompensa']));
+
+        log_audit_currency('10', 'Dragonel D. Revan', '10', '[Entrenamiento][Experiencia]', 'experiencia', $new_exp_revan);
+        $db->query("DELETE FROM mybb_op_entrenamientos_usuarios WHERE uid='10'");
+    }
+} else {
+    $db->query("
+        INSERT INTO `mybb_op_entrenamientos_usuarios` (`uid`,`nombre`,`timestamp_end`, `duracion`, `costo_pr`, `recompensa`) VALUES ('10','Dragonel D. Revan','$timestamp_end_revan', '86400', '0', '$experiencia_revan');
+    ");
+}
+
 
 if ($culminar) {
 
@@ -144,12 +148,6 @@ if ($culminar) {
     $nombre = $ficha['nombre'];
     $old_exp = $exp_usuario;
     $new_exp = floatval($old_exp) + (floatval($entreno['recompensa']));
-    // $db->query(" 
-    //     UPDATE `mybb_op_fichas` SET `puntos_estadistica`='$new_pe' WHERE `fid`='$uid';
-    // ");
-    // $db->query(" 
-    //     UPDATE `mybb_users` SET `newpoints`='$new_exp' WHERE `uid`='$uid';
-    // ");
 
     log_audit_currency($uid, $username, $uid, '[Entrenamiento][Experiencia]', 'experiencia', $new_exp);
     
