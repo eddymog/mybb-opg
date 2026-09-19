@@ -1,19 +1,86 @@
 <html>
 
 <head>
-  <title>Consola Súper Secreta</title>
-  {$headerinclude}
+    <title>Log de entregas</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .log-entregas .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .log-titulo { padding: var(--opg-espacio-2); }
+    .log-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .log-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .log-filtro { display: flex; gap: var(--opg-espacio-2); flex-wrap: wrap; align-items: center; margin: 0; }
+    .log-filtro input[type=search],
+    .log-filtro select {
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+    .log-filtro input[type=search] { flex: 1 1 240px; }
+
+    /* Listado de log (ver style.md §3 "Barra de sección / listado"): filas alternadas, sin la
+       grilla de tarjetas de .opg-card porque acá el contenido es secuencial, no un catálogo. */
+    .log-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .log-lista > .opg-vacio { padding: var(--opg-espacio-4); }
+    .log-fila { padding: var(--opg-espacio-2) var(--opg-espacio-3); }
+    .log-fila:nth-child(odd)  { background: var(--opg-crema); }
+    .log-fila:nth-child(even) { background: var(--opg-crema-dorada); }
+    .log-fila + .log-fila { border-top: 1px solid rgba(0, 0, 0, .15); }
+    .log-cabecera { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+    .log-id        { font-family: var(--opg-fuente-titular); font-size: 12px; color: var(--opg-gris-texto); }
+    .log-staff     { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-morado-texto); }
+    .log-categoria {
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: #fff; letter-spacing: .5px;
+        background: var(--opg-azul); border-radius: 999px; padding: 1px 8px;
+    }
+    .log-tiempo { margin-left: auto; font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+    .log-detalle { margin-top: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
+    .log-detalle strong { color: var(--opg-ciruela); }
+
+    .paginacion { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); margin-top: var(--opg-espacio-4); }
+    .paginacion-estado { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+
+    @media (max-width: 700px) {
+        .log-entregas .secondBackground, .log-entregas .thirdBackground { padding: 10px; }
+        .log-titulo .barra-texto-op { font-size: 20px; }
+        .log-tiempo { margin-left: 0; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-	  <ul>
-		 {$logs_li}
-	  </ul>
-  </div>
-  {$footer}
+    {$header}
+    <div class="indice log-entregas">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox log-titulo"><span class="barra-texto-op">Log de entregas</span></div>
+            <div class="barra-espacio-op bbox log-descripcion">
+                Recompensas entregadas desde autonarradas y aventuras. Hay {$log_total} en total.
+            </div>
+        </div>
+
+        <form method="get" class="log-filtro">
+            <select name="cat">{$log_categorias}</select>
+            <input type="search" name="q" value="{$log_q}" placeholder="Buscar por staff o detalle…">
+            <button class="btn-op btn-op--sm btn-op--primario">Buscar</button>
+            {$log_limpiar}
+        </form>
+
+        <div class="log-lista">{$logs_li}</div>
+        {$log_paginacion}
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
 </body>
-<script>
-</script>
+
 </html>

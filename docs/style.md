@@ -254,9 +254,8 @@ Al crear una página/componente nuevo, revisá:
 - [ ] Código nuevo: usá las variables de `jscripts/opg-tokens.css` (ya cargado por
       `{$headerinclude}`, no hace falta un `<link>` propio) y su botón único `.btn-op`
       en vez de copiar hex o inventar otra clase de botón (ver §7).
-- [ ] Herramienta de staff nueva: mirá `op_upload` o `staff_consola_mod` como referencia,
-      no `op/staff/banners.php` — ese es el que quedó atrás, con estilos propios en vez
-      de `opg-tokens.css` (ver §7 "Dónde se usa ya").
+- [ ] Herramienta de staff nueva: mirá `op_upload`, `staff_consola_mod` o `op/staff/banners.php`
+      como referencia — las tres usan `opg-tokens.css` (ver §7 "Dónde se usa ya").
 
 ---
 
@@ -289,8 +288,8 @@ para copiar a mano. `jscripts/opg-tokens.css` es el mismo contenido pero como
 variables CSS reales — un primer paso *prescriptivo*, sin migrar nada de lo que ya
 existe (ver §6). Ya lo carga `headerinclude.html`, así que sus variables y clases
 están disponibles en **todas las páginas del foro**, no solo en las que las usan hoy
-(`op_upload`, `staff_consola_mod`, y parcialmente `banners.php`) — nadie tiene que
-agregar un `<link>` propio.
+(`op_upload`, `staff_consola_mod`, `banners.php`) — nadie tiene que agregar un
+`<link>` propio.
 
 ```html
 <!-- En headerinclude.html, después de {$stylesheets}. El ?ver= es manual — ver
@@ -558,10 +557,14 @@ cargan (eso ya lo hacen todas):
   paginar, `.opg-vacio`, `.opg-volver`. Su galería (`.subida`) usa los tokens de
   sombra desplazada a mano porque se escribió antes de que existiera
   `.opg-card--media` — es candidata a migrar, no hace falta apurarlo.
-- `op/staff/banners.php`: solo `.opg-volver` y `.opg-vacio` — el resto de la página
-  sigue con estilos propios y `.barra-op` de §3, no `.opg-card`/`.opg-chip`. Es el
-  más viejo de los tres y el que **no** hay que copiar como referencia para una
-  herramienta nueva (ver checklist §5).
+- `op/staff/banners.php`: `.btn-op` (Subir, Fijar/Cambiar), `.opg-chip` para las
+  acciones por banner (Desactivar, Activar, Eliminar, Restaurar, Quitar fijo),
+  `.opg-vacio`, `.opg-volver` y títulos de sección con raya de acento como
+  `staff_consola_mod`. Las tarjetas de banner (`.banner-tile`) siguen la misma
+  receta que `.subida` de `op_upload` en vez de `.opg-card--media` literal —
+  igual que esa, es candidata a migrar sin apuro. Sigue con `.barra-op`/
+  `.barra-espacio-op` de §3 para los paneles de "Banner fijo" y "Nuevo banner",
+  que es el uso normal de esas clases, no algo pendiente de reemplazar.
 - `--opg-textura-trama`, `--opg-recorte-rasgado`, `.opg-grano` y `.opg-en-curso`
   están en `opg-tokens.css` pero **ninguna página los usa todavía** — son para la
   próxima vez que un panel destacado, una textura de fondo o un estado "en curso"

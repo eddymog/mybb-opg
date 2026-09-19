@@ -267,15 +267,21 @@ function banners_url($estado, $n)
 }
 
 
-function banners_boton($accion, $n, $texto, $clase, $confirmar = '')
+/**
+ * Botón secundario compacto (.opg-chip, ver docs/style.md §7): una tarjeta de
+ * banner puede tener varias acciones, así que ninguna es "la" acción de la
+ * página — eso es .btn-op, reservado para Subir y Fijar/Cambiar.
+ */
+function banners_chip($accion, $n, $texto, $confirmar = '', $peligro = false)
 {
     global $post_key;
     $onsubmit = $confirmar !== '' ? ' onsubmit="return confirm(\'' . htmlspecialchars($confirmar, ENT_QUOTES) . '\')"' : '';
+    $clase = 'opg-chip' . ($peligro ? ' chip-peligro' : '');
     return '<form method="post" class="inline"' . $onsubmit . '>'
         . '<input type="hidden" name="my_post_key" value="' . htmlspecialchars($post_key) . '">'
         . '<input type="hidden" name="accion" value="' . $accion . '">'
         . '<input type="hidden" name="n" value="' . (int)$n . '">'
-        . '<button class="btn-op ' . $clase . '">' . $texto . '</button></form>';
+        . '<button type="submit" class="' . $clase . '">' . $texto . '</button></form>';
 }
 
 function banners_tarjeta($estado, $n, $actual)
@@ -285,34 +291,52 @@ function banners_tarjeta($estado, $n, $actual)
     $es_fijo   = $es_actual && (int)$n === $fijo_n;
     $protegido = in_array((int)$n, $banners_protegidos, true);
 
-    $html  = '<div class="banner-card' . ($es_actual ? ' actual' : '') . '">';
-    $html .= '<div class="barra-op bbox banner-card-head"><span class="barra-texto-op">Banner ' . (int)$n . '</span>'
-        . ($es_actual ? '<span class="badge badge-actual">' . ($es_fijo ? 'Fijado' : 'En el header') . '</span>' : '')
-        . ($protegido ? '<span class="badge badge-protegido" title="header.html lo usa con ruta fija">Protegido</span>' : '')
-        . '</div>';
-    $html .= '<div class="barra-espacio-op bbox banner-card-body">';
-    $html .= '<a class="miniatura" href="' . banners_url($estado, $n) . '" target="_blank"><img src="' . banners_url($estado, $n) . '" loading="lazy" alt=""></a>';
-    $html .= '<div class="acciones">';
-
-    if ($estado === 'activo') {
-        if (!$protegido && !$es_fijo) {
-            $html .= banners_boton('desactivar', $n, 'Desactivar', 'btn-naranja');
-            $html .= banners_boton('eliminar', $n, 'Eliminar', 'btn-rojo', "¿Enviar el Banner $n a la papelera?");
-        }
+    // Acento por estado (ver docs/style.md §7): morado = en el header ahora mismo,
+    // gris = inactivo, rojo = papelera, naranja = activo normal.
+    if ($es_actual) {
+        $acento = 'var(--opg-morado)';
+    } elseif ($estado === 'papelera') {
+        $acento = 'var(--opg-rojo-error)';
     } elseif ($estado === 'inactivo') {
-        $html .= banners_boton('activar', $n, 'Activar', 'btn-verde');
-        $html .= banners_boton('eliminar', $n, 'Eliminar', 'btn-rojo', "¿Enviar el Banner $n a la papelera?");
+        $acento = 'var(--opg-gris-bloqueado)';
     } else {
-        $html .= banners_boton('activar', $n, 'Restaurar', 'btn-verde');
+        $acento = 'var(--opg-naranja)';
     }
 
-    $html .= '</div>';
-    $html .= '</div></div>';
+    $badges = '';
+    if ($es_actual) {
+        $badges .= '<span class="badge badge-actual">' . ($es_fijo ? 'Fijado' : 'En el header') . '</span>';
+    }
+    if ($protegido) {
+        $badges .= '<span class="badge badge-protegido" title="header.html lo usa con ruta fija">Protegido</span>';
+    }
 
-    return $html;
+    $acciones = '';
+    if ($estado === 'activo') {
+        if (!$protegido && !$es_fijo) {
+            $acciones .= banners_chip('desactivar', $n, 'Desactivar');
+            $acciones .= banners_chip('eliminar', $n, 'Eliminar', "¿Enviar el Banner $n a la papelera?", true);
+        }
+    } elseif ($estado === 'inactivo') {
+        $acciones .= banners_chip('activar', $n, 'Activar');
+        $acciones .= banners_chip('eliminar', $n, 'Eliminar', "¿Enviar el Banner $n a la papelera?", true);
+    } else {
+        $acciones .= banners_chip('activar', $n, 'Restaurar');
+    }
+
+    return '<div class="banner-tile" style="--tile-acento: ' . $acento . ';">'
+        . '<a class="banner-tile-miniatura" href="' . banners_url($estado, $n) . '" target="_blank"><img src="' . banners_url($estado, $n) . '" loading="lazy" alt=""></a>'
+        . '<div class="banner-tile-info">'
+        . '<div class="banner-tile-cabecera"><span class="banner-tile-nombre">Banner ' . (int)$n . '</span>' . $badges . '</div>'
+        . '<div class="banner-tile-acciones">' . $acciones . '</div>'
+        . '</div></div>';
 }
 
-function banners_seccion($titulo, $estado, $banners, $actual, $vacio, $plegable = false, $abierta = true)
+/**
+ * Título de sección con raya de acento (ver docs/style.md §7: "menos cajas
+ * anidadas") en vez de otra barra naranja repetida tres veces.
+ */
+function banners_seccion($titulo, $estado, $banners, $actual, $vacio, $acento, $plegable = false, $abierta = true)
 {
     $cuerpo = $banners
         ? '<div class="grid">' . implode('', array_map(function ($n) use ($estado, $actual) {
@@ -320,15 +344,15 @@ function banners_seccion($titulo, $estado, $banners, $actual, $vacio, $plegable 
         }, array_keys($banners))) . '</div>'
         : '<p class="opg-vacio">' . $vacio . '</p>';
 
-    $barra = '<span>' . $titulo . ' (' . count($banners) . ')</span>';
+    $texto_titulo = htmlspecialchars($titulo) . ' (' . count($banners) . ')';
+    $estilo = ' style="--opg-card-acento: ' . $acento . ';"';
 
     if ($plegable) {
         return '<details class="seccion"' . ($abierta ? ' open' : '') . '>'
-            . '<summary class="seccion-barra">' . $barra . '</summary>'
-            . '<div class="seccion-cuerpo">' . $cuerpo . '</div></details>';
+            . '<summary class="seccion-titulo"' . $estilo . '>' . $texto_titulo . '<span class="seccion-flecha">&#9660;</span></summary>'
+            . $cuerpo . '</details>';
     }
-    return '<div class="seccion"><div class="seccion-barra">' . $barra . '</div>'
-        . '<div class="seccion-cuerpo">' . $cuerpo . '</div></div>';
+    return '<section class="seccion"><h2 class="seccion-titulo"' . $estilo . '>' . $texto_titulo . '</h2>' . $cuerpo . '</section>';
 }
 
 // Se pinta dentro del layout del foro ($headerinclude/$header/$footer de
@@ -341,102 +365,90 @@ ob_start();
 <?= $headerinclude ?>
 <!-- opg-tokens.css ya lo carga $headerinclude (ver docs/style.md §7) -->
 <style>
-.banners-staff .thirdBackground { width: 100%; max-width: 1030px; gap: 20px; }
+/* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+.banners-staff .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
 
-.banners-titulo { padding: 8px; }
+.banners-titulo { padding: var(--opg-espacio-2); }
 .banners-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
-.banners-descripcion { font-family: InterRegular; font-size: 13px; color: #3b1300; text-align: left; padding: 10px 14px; line-height: 1.5; }
+.banners-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
 
 .aviso {
-    font-family: moonGetHeavy; color: #fff; letter-spacing: 1px; text-shadow: 1px 1px 1px black;
-    border: 2px solid black; border-radius: 10px; padding: 10px 14px; margin: 0;
+    font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
 }
-.aviso.ok  { background: #27ae60; }
-.aviso.err { background: #dc3545; }
+.aviso.ok  { background: var(--opg-verde-exito); }
+.aviso.err { background: var(--opg-rojo-error); }
 
 .subir-barra { padding: 3px 8px 4px; line-height: 1.25; }
-.panel-cuerpo { padding: 12px 14px; display: flex; gap: 10px 16px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: center; justify-content: center; flex-wrap: wrap; }
 
 /* El botón Subir solo aparece cuando hay un archivo elegido (input required → :valid). */
 .subir-boton { display: none; }
 .subir-form:has(input[type=file]:valid) .subir-boton { display: inline-block; }
 
-.fijo-estado { font-family: InterRegular; font-size: 13px; color: #3b1300; }
-.fijo-estado strong { font-family: moonGetHeavy; letter-spacing: 1px; color: #6c10ab; }
-.fijo-form { display: flex; gap: 8px; align-items: center; margin: 0; }
-.fijo-form label { font-family: moonGetHeavy; letter-spacing: 1px; font-size: 13px; color: #000; }
+.fijo-estado { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.fijo-estado strong { font-family: var(--opg-fuente-titular); letter-spacing: 1px; color: var(--opg-morado-texto); }
+.fijo-form { display: flex; gap: var(--opg-espacio-2); align-items: center; margin: 0; }
+.fijo-form label { font-family: var(--opg-fuente-cuerpo); font-weight: bold; font-size: 13px; color: var(--opg-marron); }
 .fijo-form input[type=number] {
-    width: 80px; font-family: InterMedium; font-size: 13px; color: #3b1300; background: #fff;
-    border: 2px solid black; border-radius: 6px; padding: 4px 6px;
+    width: 80px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 4px 6px;
 }
 
-/* Barra de sección: mismo patrón que "Historial de Intercambios" */
-.seccion-barra {
-    display: block; background: #ff7b00; border: 2px solid black; border-radius: 10px 10px 0 0;
-    text-align: center; padding: 5px 10px; list-style: none; cursor: default;
+/* Título de sección con raya de acento, sin caja propia (ver style.md §7: "menos cajas anidadas") */
+.seccion-titulo {
+    display: flex; align-items: center; gap: var(--opg-espacio-2); margin: 0 0 var(--opg-espacio-4);
+    font-family: var(--opg-fuente-titular); font-weight: normal; font-size: 18px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--opg-ciruela); padding-bottom: 4px; border-bottom: 5px solid var(--opg-card-acento, var(--opg-naranja));
 }
-.seccion-barra span {
-    font-family: moonGetHeavy; color: #fff; text-transform: uppercase; font-size: 14px;
-    letter-spacing: 1px; text-shadow: 1px 1px 1px black;
+summary.seccion-titulo { cursor: pointer; list-style: none; }
+summary.seccion-titulo::-webkit-details-marker { display: none; }
+.seccion-flecha { margin-left: auto; font-size: 11px; transition: transform var(--opg-rapido); }
+details[open] > summary.seccion-titulo .seccion-flecha { transform: rotate(180deg); }
+details.seccion { margin-bottom: 0; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: var(--opg-espacio-4); }
+
+/* Tarjeta viñeta para miniaturas (ver style.md §7 .opg-card--media, y op_upload ".subida") */
+.banner-tile {
+    display: flex; flex-direction: column; min-width: 0;
+    background:
+        linear-gradient(var(--tile-acento, var(--opg-naranja)), var(--tile-acento, var(--opg-naranja))) top / 100% 5px no-repeat,
+        var(--opg-crema-clara);
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden;
+    box-shadow: var(--opg-sombra-offset); transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
 }
-summary.seccion-barra { cursor: pointer; transition: background .3s ease; }
-summary.seccion-barra::-webkit-details-marker { display: none; }
-summary.seccion-barra:hover { background: #ffa600; }
-summary.seccion-barra span::after { content: " ▼"; font-size: 10px; }
-details[open] > summary.seccion-barra span::after { content: " ▲"; }
-.seccion-cuerpo { background: #ffeed2; border: 2px solid black; border-top: 0; padding: 15px; }
-details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
-
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-
-.banner-card { min-width: 0; filter: drop-shadow(0 0 3px rgba(0,0,0,.5)); transition: all .3s ease-out; }
-.banner-card:hover { transform: scale(1.02); }
-.banner-card-head { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 6px; }
-.banner-card-head .barra-texto-op { font-size: 15px; margin-right: auto; }
-.banner-card-body { padding: 10px; background: #fcecd2; }
-.banner-card.actual .banner-card-head { background: #8f59f7; }
-.banner-card.actual .banner-card-body { background: #e8d9ff; }
-
-.miniatura { display: block; overflow: hidden; border: 2px solid black; }
-.miniatura img {
-    width: 100%; aspect-ratio: 1100 / 620; object-fit: cover; display: block;
-    opacity: .9; filter: grayscale(.2); transition: all .25s ease;
+.banner-tile:hover { transform: translate(-2px, -2px); box-shadow: var(--opg-sombra-offset-hover); }
+.banner-tile-miniatura { display: block; aspect-ratio: 1100 / 620; margin-top: 5px; border-bottom: 2px solid var(--opg-tinta); overflow: hidden; }
+.banner-tile-miniatura img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    opacity: .9; filter: grayscale(.15); transition: all var(--opg-rapido);
 }
-.banner-card:hover .miniatura img { opacity: 1; filter: grayscale(0); transform: scale(1.05); }
-
-.badge {
-    font-family: moonGetHeavy; font-size: 10px; letter-spacing: 1px; color: #fff;
-    text-shadow: 1px 1px 0 black; border: 2px solid black; border-radius: 6px; padding: 1px 6px;
-}
-.badge-actual    { background: #6c10ab; }
-.badge-protegido { background: #71706f; }
-
-.acciones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 10px 0 0; }
+.banner-tile:hover .banner-tile-miniatura img { opacity: 1; filter: grayscale(0); transform: scale(1.05); }
+.banner-tile-info { display: flex; flex-direction: column; gap: 6px; padding: var(--opg-espacio-2); }
+.banner-tile-cabecera { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.banner-tile-nombre { font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: .5px; color: var(--opg-ciruela); margin-right: auto; }
+.banner-tile-acciones { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.banner-tile-acciones .opg-chip { font-size: 11px; padding: 2px 8px; }
+.opg-chip.chip-peligro:hover { background: var(--opg-rojo-error); color: #fff; }
 .inline { display: inline; margin: 0; }
 
-.btn-op {
-    font-family: moonGetHeavy; font-size: 13px; letter-spacing: 1px; color: #fff;
-    text-shadow: 1px 1px 1px black; border: 2px solid black; border-radius: 10px;
-    padding: 5px 10px; cursor: pointer; transition: all .3s ease-out;
+.badge {
+    font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; letter-spacing: .5px; color: #fff;
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 1px 6px;
 }
-.btn-op:hover { transform: scale(1.05); }
-.btn-morado  { background: rgba(70,12,110,1); } .btn-morado:hover  { background: rgba(126,32,191,1); }
-.btn-naranja { background: #d26500; }           .btn-naranja:hover { background: #ff9b00; }
-.btn-verde   { background: #27ae60; }           .btn-verde:hover   { background: #2ecc71; }
-.btn-rojo    { background: #dc3545; }           .btn-rojo:hover    { background: #e74c3c; }
+.badge-actual    { background: var(--opg-morado-texto); }
+.badge-protegido { background: var(--opg-gris-bloqueado); }
 
-.banners-staff input[type=file] { font-family: InterRegular; font-size: 12px; color: #3b1300; }
+.banners-staff input[type=file] { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
 .banners-staff input[type=file]::file-selector-button {
-    font-family: moonGetHeavy; letter-spacing: 1px; background: #ffe59b; color: #000;
-    border: 2px solid black; border-radius: 6px; padding: 3px 8px; margin-right: 8px; cursor: pointer;
+    font-family: var(--opg-fuente-titular); letter-spacing: 1px; background: var(--opg-crema-dorada); color: #000;
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 3px 8px; margin-right: 8px; cursor: pointer;
 }
-.banners-staff input[type=file]::file-selector-button:hover { background: #ffa600; }
-
 
 @media (max-width: 700px) {
     .banners-staff .secondBackground, .banners-staff .thirdBackground { padding: 10px; }
     .banners-titulo .barra-texto-op { font-size: 20px; }
-    .grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -471,7 +483,7 @@ details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
         <div class="barra-espacio-op bbox panel-cuerpo">
             <?php if ($fijo_n): ?>
                 <span class="fijo-estado">Fijado ahora: <strong>Banner <?= $fijo_n ?></strong></span>
-                <?= banners_boton('desfijar', 0, 'Quitar', 'btn-naranja') ?>
+                <?= banners_chip('desfijar', 0, 'Quitar') ?>
             <?php else: ?>
                 <span class="fijo-estado">Ninguno: el header rota cada <?= OP_BANNER_ROTATIVO_INTERVALO / 60 ?> minutos.</span>
             <?php endif; ?>
@@ -483,7 +495,7 @@ details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
                 <datalist id="banners-activos">
                     <?php foreach (array_keys($activos) as $n): ?><option value="<?= $n ?>"><?php endforeach; ?>
                 </datalist>
-                <button class="btn-op btn-morado"><?= $fijo_n ? 'Cambiar' : 'Fijar' ?></button>
+                <button class="btn-op btn-op--secundario"><?= $fijo_n ? 'Cambiar' : 'Fijar' ?></button>
             </form>
         </div>
     </div>
@@ -498,13 +510,13 @@ details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
         </div>
         <div class="barra-espacio-op bbox panel-cuerpo">
             <input type="file" name="imagen" accept="image/jpeg,image/png,image/webp" required>
-            <button class="btn-op btn-morado subir-boton">Subir</button>
+            <button class="btn-op btn-op--secundario subir-boton">Subir</button>
         </div>
     </form>
 
-    <?= banners_seccion('Activos', 'activo', $activos, $actual, 'No hay banners activos: el header muestra el banner de respaldo.') ?>
-    <?= banners_seccion('Inactivos', 'inactivo', $inactivos, $actual, 'Ninguno.', true, (bool)$inactivos) ?>
-    <?= banners_seccion('Papelera', 'papelera', $papelera, $actual, 'Vacía.', true, false) ?>
+    <?= banners_seccion('Activos', 'activo', $activos, $actual, 'No hay banners activos: el header muestra el banner de respaldo.', 'var(--opg-naranja)') ?>
+    <?= banners_seccion('Inactivos', 'inactivo', $inactivos, $actual, 'Ninguno.', 'var(--opg-gris-bloqueado)', true, (bool)$inactivos) ?>
+    <?= banners_seccion('Papelera', 'papelera', $papelera, $actual, 'Vacía.', 'var(--opg-rojo-error)', true, false) ?>
 
 </div>
 </div>
