@@ -1,57 +1,142 @@
 <html>
 
 <head>
-  <title>Consola Súper Secreta</title>
-  {$headerinclude}
+    <title>Referidos</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .referidos-staff .thirdBackground { width: 100%; max-width: 700px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .rf-titulo { padding: var(--opg-espacio-2); }
+    .rf-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .rf-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .rf-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); }
+    .rf-buscar { display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: flex-end; flex-wrap: wrap; }
+
+    .rf-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field select {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    /* templates/global.css tiene un "select { height: 32px; }" sitewide que gana por ser la
+       única regla que fija height — con nuestro padding vertical más grande, esos 32px fijos
+       dejan muy poco alto para el texto y lo recortan arriba (ver style.md). */
+    .af-field select {
+        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
+            linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+    .af-field input:hover, .af-field select:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field select:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+    .af-field--fijo { font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-marron); padding: 8px 0; }
+    .af-field--fijo a { color: var(--opg-morado-texto); }
+
+    .rf-lista-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .rf-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .rf-lista > .opg-vacio { padding: var(--opg-espacio-4); }
+    .rf-fila { padding: var(--opg-espacio-2) var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .rf-fila a { font-family: InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-morado-texto); text-decoration: none; margin-right: 6px; }
+    .rf-fila a:hover { color: var(--opg-morado-borde); }
+    .rf-fila:nth-child(odd)  { background: var(--opg-crema); }
+    .rf-fila:nth-child(even) { background: var(--opg-crema-dorada); }
+    .rf-fila + .rf-fila { border-top: 1px solid rgba(0, 0, 0, .15); }
+
+    @media (max-width: 700px) {
+        .referidos-staff .secondBackground, .referidos-staff .thirdBackground { padding: 10px; }
+        .rf-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-	<div style=" text-align: center; font-weight: bolder; font-size: 21px; ">Referidos</div>
-    <if $user_fid=='' then>
-      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
-      Accion:<br>
-      <select id="accion">
-        <option value="Añadir">Añadir</option>
-        <option value="Remover">Remover</option>
-      </select><br><br>
-      <button onclick=onClickAccion()>Buscar</button>
-      <br><br>
-    </if>
-    <if $user_fid !='' && $accion != '' then>
-      <form method="post" action="/op/staff/referidos.php" name="referidos" id="referidos">
-        <div style="display: none">
-           <input type="text" id="ficha_id" name="ficha_id" value="{$user_fid}">
-           <input type="text" id="accion" name="accion" value="{$accion}">
+    {$header}
+    <div class="indice referidos-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox rf-titulo"><span class="barra-texto-op">Referidos</span></div>
+            <div class="barra-espacio-op bbox rf-descripcion">
+                Registra quién trajo a un usuario nuevo (mybb_users.referrer). No hay ninguna recompensa automática
+                ligada a esto — es el registro que usa el staff para entregar premios de referidos a mano.
+            </div>
         </div>
-        User ID (<a href="/op/ficha.php?uid={$user_fid}">{$ficha['nombre']}</a>):<br><input class="textbox" type="number" name="ficha_id" required id='ficha_id' value={$user_fid} disabled><br>
-        Accion:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br><br>
-		Referido ID:<br><input class="textbox" type="number" name="ref_id" required id='ref_id' value={$ref_id} ><br><br>
-        <input  class="button" type="submit" value="Guardar">
-      </form><br>
-	  <div>
-      <strong>Referidos:</strong><br>
-	  {$referidos}
-	  </div>
-	  
-    </if>
-  </div>
-  {$footer}
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox rf-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar User ID</span></div>
+            <div class="barra-espacio-op bbox rf-panel-cuerpo">
+                <form method="get" class="rf-buscar">
+                    <div class="af-field"><label for="rf-fid">User ID</label><input type="number" id="rf-fid" name="fid" min="1" value="{$user_fid}" required></div>
+                    <div class="af-field">
+                        <label for="rf-accion">Acción</label>
+                        <select id="rf-accion" name="accion">
+                            <option value="Añadir"<if $accion_esc == 'Añadir' then> selected</if>>Añadir</option>
+                            <option value="Remover"<if $accion_esc == 'Remover' then> selected</if>>Remover</option>
+                        </select>
+                    </div>
+                    <button class="btn-op btn-op--sm">Buscar</button>
+                </form>
+            </div>
+        </div>
+
+        <if $user_fid > 0 && $accion_esc != '' then>
+        <div>
+            <div class="barra-op bbox rf-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">{$accion_esc} referido</span></div>
+            <div class="barra-espacio-op bbox rf-panel-cuerpo">
+                <form method="post">
+                    <input type="hidden" name="my_post_key" value="{$post_key}">
+                    <input type="hidden" name="ficha_id" value="{$user_fid}">
+                    <input type="hidden" name="accion" value="{$accion_esc}">
+                    <div class="rf-row">
+                        <div class="af-field af-field--fijo"><label>User ID</label><a href="/op/ficha.php?uid={$user_fid}">{$ficha_nombre_esc}</a></div>
+                        <div class="af-field"><label for="rf-ref-id">Referido ID</label><input type="number" id="rf-ref-id" name="ref_id" min="1" required></div>
+                    </div>
+                    <button class="btn-op btn-op--primario">Guardar</button>
+                </form>
+            </div>
+        </div>
+        </if>
+
+        <if $user_fid > 0 then>
+        <section>
+            <h2 class="rf-lista-titulo">Referidos de este User ID</h2>
+            <div class="rf-lista">{$referidos}</div>
+        </section>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
 </body>
-<if $log !='' then><script>alert(`{$log}`);</script></if>
-{$reload_js}
-<script>
-  function onClickAccion() {
-    const fid = document.getElementById('fid').value;
-    const accion = document.getElementById('accion').value;
-    if (fid && accion) {
-      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
-    }
-  }
-</script>
 
 </html>

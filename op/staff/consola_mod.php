@@ -3,7 +3,7 @@
  * Staff - Consola de herramientas
  *
  * Portada de /op/staff/. La lista de herramientas vive en $consola_grupos (más
- * abajo): para añadir una, añadí una línea ahí. Cada acción puede pedir un
+ * abajo): para añadir una, agregar una línea ahí. Cada acción puede pedir un
  * permiso más alto que el de la consola ('staff' o 'admin'); si el usuario no
  * lo tiene, no se le muestra. La plantilla staff_consola_mod solo pinta el marco.
  * Iconos: Font Awesome 6 (clases fa-solid fa-*), cargado por la propia plantilla.
@@ -48,7 +48,6 @@ $consola_grupos = array(
         array('fa-box-open', 'Inventario y habilidades', 'Lo que tiene asignado un personaje concreto.', array(
             array('Objetos', 'objetos_ficha.php'),
             array('Técnicas', 'tecnicas_ficha.php'),
-            array('Por aprender', 'tecnicas_aprender.php'),
             array('Virtudes', 'virtudes_ficha.php'),
         )),
         array('fa-skull', 'Reencarnaciones', 'Reencarnar un personaje muerto en una ficha nueva.', array(
@@ -66,13 +65,11 @@ $consola_grupos = array(
             array('Crear / modificar', 'tecnicas_modificar.php'),
         )),
         array('fa-apple-whole', 'Akumas', 'Frutas del diablo: alta, edición y caducidad.', array(
-            array('Crear', 'akumas_crear.php'),
-            array('Modificar', 'akumas_modificar.php'),
+            array('Crear / modificar', 'akumas_modificar.php'),
             array('Inactivas', 'akumas_inactivas.php'),
         )),
         array('fa-scale-balanced', 'Virtudes y defectos', 'Catálogo de virtudes y defectos.', array(
-            array('Crear', 'virtudes_crear.php'),
-            array('Modificar', 'virtudes_modificar.php'),
+            array('Crear / modificar', 'virtudes_modificar.php'),
         )),
         array('fa-users', 'NPCs', 'Personajes no jugadores del mundo.', array(
             array('Crear / modificar', 'npcs_modificar.php'),
@@ -94,7 +91,6 @@ $consola_grupos = array(
         )),
         array('fa-calendar-days', 'Temas', 'Fecha in-game de un tema y temas abiertos por usuario.', array(
             array('Editar fecha', 'editar_tema.php'),
-            array('Contar abiertos', 'contar_temas.php'),
         )),
         array('fa-handshake', 'Afiliados', 'Foros afiliados y sus peticiones.', array(
             array('Gestionar', 'gestionar_afiliados.php'),

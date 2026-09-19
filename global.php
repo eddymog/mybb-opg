@@ -649,6 +649,13 @@ $tiempo_creaciones = 0;
 
 $g_sabiasque_query = $db->query(" SELECT * FROM mybb_op_sabiasque WHERE tipo='$banner_sabias_que' ORDER BY RAND() LIMIT 1");
 while ($q = $db->fetch_array($g_sabiasque_query)) { $g_sabiasque = $q; }
+// header.html imprime $g_sabiasque['texto']/['autor'] crudo (sin htmlspecialchars) en
+// el header de TODA página del foro: escapar acá, en el único punto donde esto se
+// lee, cierra ese XSS sin depender de que cada plantilla que lo consuma lo escape.
+if ($g_sabiasque) {
+    $g_sabiasque['texto'] = htmlspecialchars($g_sabiasque['texto'], ENT_QUOTES, 'UTF-8');
+    $g_sabiasque['autor'] = htmlspecialchars($g_sabiasque['autor'], ENT_QUOTES, 'UTF-8');
+}
 
 if ($g_uid != 0) {
 	$query_hentai = $db->query("

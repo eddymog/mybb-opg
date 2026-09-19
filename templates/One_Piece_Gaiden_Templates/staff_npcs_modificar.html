@@ -1,579 +1,454 @@
 <html>
 
 <head>
-  <title>Modificar NPCs</title>
-  {$headerinclude}
+    <title>Crear / modificar NPCs</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .npcs-staff .thirdBackground { width: 100%; max-width: 960px; gap: var(--opg-espacio-5); text-align: left; }
+    /* El dropdown de abajo es position:absolute, así que no empuja el alto de la tarjeta.
+       Sin esto, en la página "recién buscando" (sin NPC todavía) se sale del marco. */
+    .npcs-staff .thirdBackground.nm-dropdown-abierto { padding-bottom: 280px; transition: padding-bottom var(--opg-rapido); }
+
+    .nm-titulo { padding: var(--opg-espacio-2); }
+    .nm-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .nm-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .nm-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: center; flex-wrap: wrap; }
+    .nm-panel-cuerpo input[type=text] {
+        width: 260px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+    .nm-panel-cuerpo small { display: block; width: 100%; font-family: var(--opg-fuente-cuerpo); color: var(--opg-gris-texto); }
+
+    /* Typeahead contra el servidor (ver docs/style.md) */
+    .nm-buscar-caja { position: relative; display: inline-block; }
+    .nm-resultados {
+        position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px;
+        min-width: 280px; max-height: 260px; overflow-y: auto;
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        box-shadow: var(--opg-sombra-offset);
+    }
+    .nm-resultado {
+        display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .nm-resultado + .nm-resultado { border-top: 1px solid rgba(0, 0, 0, .1); }
+    .nm-resultado:hover, .nm-resultado.nm-activo { background: var(--opg-naranja); color: #fff; }
+    .nm-resultado span { display: block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; opacity: .75; }
+    .nm-resultado-vacio { padding: 8px 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); font-style: italic; }
+
+    .nm-seccion { margin-bottom: var(--opg-espacio-5); }
+    .nm-seccion-titulo {
+        font-family: InterBold, var(--opg-fuente-cuerpo); font-size: 13px; text-transform: uppercase; letter-spacing: .5px;
+        color: var(--opg-morado-texto); border-bottom: 2px solid var(--opg-borde-suave); padding-bottom: 6px; margin-bottom: var(--opg-espacio-3);
+    }
+    .nm-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field small { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+    .af-field input, .af-field textarea, .af-field select {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    .af-field textarea { min-height: 90px; resize: vertical; }
+    .af-field textarea.nm-textarea-grande { min-height: 130px; }
+    .af-field textarea.nm-textarea-codigo { min-height: 90px; font-family: monospace; font-size: 12px; }
+    .af-field input:hover, .af-field textarea:hover, .af-field select:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field textarea:focus, .af-field select:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+    .af-field input:disabled { background: var(--opg-gris-bloqueado); color: var(--opg-gris-texto); }
+    .af-field.nm-ancho-completo { flex-basis: 100%; }
+
+    /* Selects: el select global.css sitewide clipea el texto — mismo arreglo que en el resto de style.md */
+    .af-field select {
+        appearance: none; -webkit-appearance: none; height: auto; padding-right: 32px; cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+
+    .nm-grid-belicas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: var(--opg-espacio-3) var(--opg-espacio-4); }
+
+    .nm-codigo-nota { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); margin-bottom: var(--opg-espacio-2); }
+
+    .nm-guardar { display: flex; gap: var(--opg-espacio-3); align-items: center; margin-top: var(--opg-espacio-5); flex-wrap: wrap; }
+    .opg-chip.chip-peligro:hover { background: var(--opg-rojo-error); color: #fff; }
+
+    /* Guía de campos: acordeón informativo, cerrado por defecto para no ocupar
+       lugar cuando ya se sabe qué va en cada campo. */
+    .nm-guia-barra {
+        display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+        background: var(--opg-morado); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-2) var(--opg-espacio-4); color: #fff;
+        font-family: var(--opg-fuente-titular); letter-spacing: .5px; text-shadow: var(--opg-sombra-titular);
+    }
+    .nm-guia-barra::-webkit-details-marker { display: none; }
+    .nm-guia-barra::after { content: "▾"; margin-left: auto; transition: transform var(--opg-rapido); }
+    details[open] > .nm-guia-barra::after { transform: rotate(180deg); }
+    .nm-guia-cuerpo {
+        margin: 0; border: 2px solid var(--opg-tinta); border-top: 0; border-radius: 0 0 var(--opg-radio-md) var(--opg-radio-md);
+        background: var(--opg-crema-clara); padding: var(--opg-espacio-4);
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: var(--opg-espacio-4);
+    }
+    .nm-guia-item dt {
+        font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: .5px; color: var(--opg-morado-texto); margin-bottom: 2px;
+    }
+    .nm-guia-item dd {
+        margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; line-height: 1.5; color: var(--opg-marron);
+    }
+    .nm-guia-item dd code {
+        background: var(--opg-crema-dorada); border-radius: 4px; padding: 0 4px; font-size: 11px;
+    }
+
+    @media (max-width: 700px) {
+        .nm-guia-cuerpo { grid-template-columns: 1fr; }
+        .npcs-staff .secondBackground, .npcs-staff .thirdBackground { padding: 10px; }
+        .nm-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-	<br>
-    <if $npc_id == '' then>
-      NPC ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='npc_id'><button
-        onclick=onClickTid()>Buscar</button><br>Número de NPCs: {$npcs_count}<br>
-		
-    </if>
-	<if $npc_id !='' then>
-      NPC ID<br><input style="width: 300px;" class="textbox" type="text" value='{$npc_id}' disabled><br>
-        <form method="post" action="/op/staff/npcs_modificar.php" name="crear_npcs" id="crear_npcs">
-        <div style="display: none">
-           <input type="text" name="npc_id" value="{$npc_id}">
-        </div><br>
-		ID de NPC*: <br><input style="width: 300px;" class="textbox" value="{$npc_id}" type="text" name="nuevo_npc_id" id="nuevo_npc_id" required /><br>
-<!--         Etiqueta*: <br><input style="width: 300px;" class="textbox" value="{$npc['control_akuma']}" type="text" name="control_akuma" id="control_akuma" /><br>   -->
-		Etiqueta*: <br><input style="width: 500px;" class="textbox" value="{$npc['etiqueta']}" type="text" name="etiqueta" id="etiqueta" /><br>  
-        Nombre*: <br><input style="width: 300px;" class="textbox" value="{$npc['nombre']}" type="text" name="nombre" id="nombre" /><br>
-		Apodo*: <br><input style="width: 300px;" class="textbox" value="{$npc['apodo']}" type="text" name="apodo" id="apodo" /><br>
-		Facción*: <br><input style="width: 300px;" class="textbox" value="{$npc['faccion']}" type="text" name="faccion" id="faccion" /><br>  
-		Raza*: <br><input style="width: 300px;" class="textbox" value="{$npc['raza']}" type="text" name="raza" id="raza" /><br>  
-		Edad*: <br><input style="width: 300px;" class="textbox" value="{$npc['edad']}" type="text" name="edad" id="edad" /><br>    
-	    Altura*: <br><input style="width: 300px;" class="textbox" value="{$npc['altura']}" type="text" name="altura" id="altura" /><br>  
-		Peso*: <br><input style="width: 300px;" class="textbox" value="{$npc['peso']}" type="text" name="peso" id="peso" /><br>    
-		Sexo*: <br><input style="width: 300px;" class="textbox" value="{$npc['sexo']}" type="text" name="sexo" id="sexo" /><br>    
-	    Temporada*: <br><input style="width: 300px;" class="textbox" value="{$npc['temporada']}" type="text" name="temporada" id="temporada" /><br>  
-		Nivel*: <br><input style="width: 300px;" class="textbox" value="{$npc['nivel']}" type="text" name="nivel" id="nivel" /><br><br>    
-		  
-		Fuerza*: <br><input style="width: 300px;" class="textbox" value="{$npc['fuerza']}" type="text" name="fuerza" id="fuerza" /><br>  
-		Resistencia*: <br><input style="width: 300px;" class="textbox" value="{$npc['resistencia']}" type="text" name="resistencia" id="resistencia" /><br>  
-		Destreza*: <br><input style="width: 300px;" class="textbox" value="{$npc['destreza']}" type="text" name="destreza" id="destreza" /><br>  
-		Voluntad*: <br><input style="width: 300px;" class="textbox" value="{$npc['voluntad']}" type="text" name="voluntad" id="voluntad" /><br>  
-		Puntería*: <br><input style="width: 300px;" class="textbox" value="{$npc['punteria']}" type="text" name="punteria" id="punteria" /><br>  
-		Agilidad*: <br><input style="width: 300px;" class="textbox" value="{$npc['agilidad']}" type="text" name="agilidad" id="agilidad" /><br>  
-		Reflejos*: <br><input style="width: 300px;" class="textbox" value="{$npc['reflejos']}" type="text" name="reflejos" id="reflejos" /><br>  
-			
-		Vitalidad*: <br><input style="width: 300px;" class="textbox" value="{$npc['vitalidad']}" type="text" name="vitalidad" id="vitalidad" /><br>  
-		Energía*: <br><input style="width: 300px;" class="textbox" value="{$npc['energia']}" type="text" name="energia" id="energia" /><br>  
-		Haki*: <br><input style="width: 300px;" class="textbox" value="{$npc['haki']}" type="text" name="haki" id="haki" /><br>  
-			
-		Kenbunshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['kenbun']}" type="text" name="kenbun" id="kenbun" /><br>
-		<small>Kenbunshoku Haki (0 = No despertado).</small><br>
-		Haoshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['haoshoku']}" type="text" name="hao" id="hao" /><br>
-		<small>Haoshoku Haki (-1 = Bloqueado, 0 = No despertado).</small><br>
-		Busoshoku*: <br><input style="width: 300px;" class="textbox" value="{$npc['buso']}" type="text" name="buso" id="buso" /><br>
-		<small>Busoshoku Haki (0 = No despertado).</small><br>  
-		  
-		Extra*: <br><input style="width: 300px;" class="textbox" value="{$npc['extra']}" type="text" name="extra" id="extra" /><br>  
-		Wanted*: <br><input style="width: 300px;" class="textbox" value="{$npc['wanted']}" type="text" name="wanted" id="wanted" /><br>  
-		Reputación*: <br><input style="width: 300px;" class="textbox" value="{$npc['reputacion']}" type="text" name="reputacion" id="reputacion" /><br>  
-<!-- 		Rango*: <br><input style="width: 300px;" class="textbox" value="{$npc['rango']}" type="text" name="rango" id="rango" /><br> -->
-			
-		<br>Rango: <br>
-		<select name="rango" id="rango">
-			<option value="Ciudadano" <if $npc['rango'] == 'Ciudadano' then>selected</if>>Civil</option>
+    {$header}
+    <div class="indice npcs-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
-			<option value="Pirata" <if $npc['rango'] == 'Pirata' then>selected</if>>Pirata</option>
-			<option value="CapitanPirata" <if $npc['rango'] == 'CapitanPirata' then>selected</if>>Capitán Pirata</option>
-			<option value="Corsario" <if $npc['rango'] == 'Corsario' then>selected</if>>Corsario</option>
-			<option value="Bucanero" <if $npc['rango'] == 'Bucanero' then>selected</if>>Bucanero</option>
-			<option value="LoboDeMar" <if $npc['rango'] == 'LoboDeMar' then>selected</if>>Lobo de Mar</option>
-			<option value="Supernova" <if $npc['rango'] == 'Supernova' then>selected</if>>Supernova</option>
-			<option value="PirataAfamado" <if $npc['rango'] == 'PirataAfamado' then>selected</if>>Pirata Afamado</option>
-			<option value="ViceCapitanFamoso" <if $npc['rango'] == 'ViceCapitanFamoso' then>selected</if>>Vice Capitán Famoso</option>
-			<option value="CapitanFamoso" <if $npc['rango'] == 'CapitanFamoso' then>selected</if>>Capitán Famoso</option>
-			<option value="Shichibukai" <if $npc['rango'] == 'Shichibukai' then>selected</if>>Shichibukai</option>
-			<option value="GranPirata" <if $npc['rango'] == 'GranPirata' then>selected</if>>Gran Pirata</option>
-			<option value="GranViceCapitan" <if $npc['rango'] == 'GranViceCapitan' then>selected</if>>Gran Vice Capitán</option>
-			<option value="GranCapitan" <if $npc['rango'] == 'GranCapitan' then>selected</if>>Gran Capitán</option>
-			<option value="ComandanteP" <if $npc['rango'] == 'ComandanteP' then>selected</if>>Comandante de Yonkou</option>
-			<option value="PrimerComandante" <if $npc['rango'] == 'PrimerComandante' then>selected</if>>Primer Comandante de Yonkou</option>
-			<option value="Yonkou" <if $npc['rango'] == 'Yonkou' then>selected</if>>Yonkou</option>
-			<option value="LeyendaDelMar" <if $npc['rango'] == 'LeyendaDelMar' then>selected</if>>Leyenda del Mar</option>
-			<option value="AladelRey" <if $npc['rango'] == 'AladelRey' then>selected</if>>Ala del Rey</option>
-			<option value="ReyPirata" <if $npc['rango'] == 'ReyPirata' then>selected</if>>Rey de los Piratas</option>
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-			<option value="ReclutaM" <if $npc['rango'] == 'ReclutaM' then>selected</if>>Recluta</option>
-			<option value="SoldadoM" <if $npc['rango'] == 'SoldadoM' then>selected</if>>Soldado Raso</option>
-			<option value="SargentoM" <if $npc['rango'] == 'SargentoM' then>selected</if>>Sargento</option>
-			<option value="Suboficial" <if $npc['rango'] == 'Suboficial' then>selected</if>>Suboficial</option>
-			<option value="Alferez" <if $npc['rango'] == 'Alferez' then>selected</if>>Alferez</option>
-			<option value="Teniente" <if $npc['rango'] == 'Teniente' then>selected</if>>Teniente</option>
-			<option value="ComandanteM" <if $npc['rango'] == 'ComandanteM' then>selected</if>>Comandante</option>
-			<option value="Capitan" <if $npc['rango'] == 'Capitan' then>selected</if>>Capitán</option>
-			<option value="Comodoro" <if $npc['rango'] == 'Comodoro' then>selected</if>>Comodoro</option>
-			<option value="ContraAlmirante" <if $npc['rango'] == 'ContraAlmirante' then>selected</if>>Contralmirante</option>
-			<option value="Vicealmirante" <if $npc['rango'] == 'Vicealmirante' then>selected</if>>Vice Almirante</option>
-			<option value="Almirante" <if $npc['rango'] == 'Almirante' then>selected</if>>Almirante</option>
-			<option value="AlmiranteFlota" <if $npc['rango'] == 'AlmiranteFlota' then>selected</if>>Almirante de Flota</option>
-			<option value="Instructor" <if $npc['rango'] == 'Instructor' then>selected</if>>Instructor</option>
-			<option value="Inspector" <if $npc['rango'] == 'Inspector' then>selected</if>>Inspector General</option>
-			<option value="HeroeDeLaMarina" <if $npc['rango'] == 'HeroeDeLaMarina' then>selected</if>>Heroe de la Marina</option>
-
-			<option value="CP1" <if $npc['rango'] == 'CP1' then>selected</if>>Cipher Pol 1</option>
-			<option value="CP2" <if $npc['rango'] == 'CP2' then>selected</if>>Cipher Pol 2</option>
-			<option value="CP3" <if $npc['rango'] == 'CP3' then>selected</if>>Cipher Pol 3</option>
-			<option value="CP4" <if $npc['rango'] == 'CP4' then>selected</if>>Cipher Pol 4</option>
-			<option value="CP5" <if $npc['rango'] == 'CP5' then>selected</if>>Cipher Pol 5</option>
-			<option value="CP6" <if $npc['rango'] == 'CP6' then>selected</if>>Cipher Pol 6</option>
-			<option value="CP7" <if $npc['rango'] == 'CP7' then>selected</if>>Cipher Pol 7</option>
-			<option value="CP8" <if $npc['rango'] == 'CP8' then>selected</if>>Cipher Pol 8</option>
-			<option value="CP9" <if $npc['rango'] == 'CP9' then>selected</if>>Cipher Pol 9</option>
-			<option value="CPAegis0" <if $npc['rango'] == 'CPAegis0' then>selected</if>>Cipher Pol 0</option>
-			<option value="CPMasquerade" <if $npc['rango'] == 'CPMasquerade' then>selected</if>>Cipher Pol Masquerade</option>
-			<option value="CPComisario" <if $npc['rango'] == 'CPComisario' then>selected</if>>Comisario</option>
-			<option value="CPComandanteEjecutivo" <if $npc['rango'] == 'CPComandanteEjecutivo' then>selected</if>>Comandante Ejecutivo</option>
-			<option value="CPCaballeroDivino" <if $npc['rango'] == 'CPCaballeroDivino' then>selected</if>>Caballero Divino</option>
-			<option value="CPComandanteSupremo" <if $npc['rango'] == 'CPComandanteSupremo' then>selected</if>>Comandante Supremo</option>
-
-			<option value="Cazador" <if $npc['rango'] == 'Cazador' then>selected</if>>Cazador</option>
-			<option value="CazadorZeta" <if $npc['rango'] == 'CazadorZeta' then>selected</if>>Cazador Zeta</option>
-			<option value="CazadorEpsilon" <if $npc['rango'] == 'CazadorEpsilon' then>selected</if>>Cazador Epsilon</option>
-			<option value="CazadorDelta" <if $npc['rango'] == 'CazadorDelta' then>selected</if>>Cazador Delta</option>
-			<option value="CazadorGamma" <if $npc['rango'] == 'CazadorGamma' then>selected</if>>Cazador Gamma</option>
-			<option value="CazadorBeta" <if $npc['rango'] == 'CazadorBeta' then>selected</if>>Cazador Beta</option>
-			<option value="CazadorAlpha" <if $npc['rango'] == 'CazadorAlpha' then>selected</if>>Cazador Alpha</option>
-			<option value="CazadorOmega" <if $npc['rango'] == 'CazadorOmega' then>selected</if>>Cazador Omega</option>
-			<option value="ReyCazador" <if $npc['rango'] == 'ReyCazador' then>selected</if>>Rey de los Cazadores</option>
-
-			<option value="ReclutaR" <if $npc['rango'] == 'ReclutaR' then>selected</if>>Recluta</option>
-			<option value="SoldadoR" <if $npc['rango'] == 'SoldadoR' then>selected</if>>Soldado Raso</option>
-			<option value="SargentoR" <if $npc['rango'] == 'SargentoR' then>selected</if>>Sargento</option>
-			<option value="AgenteR" <if $npc['rango'] == 'AgenteR' then>selected</if>>Agente</option>
-			<option value="Oficial" <if $npc['rango'] == 'Oficial' then>selected</if>>Oficial</option>
-			<option value="Mariscal" <if $npc['rango'] == 'Mariscal' then>selected</if>>Mariscal Revolucionario</option>
-			<option value="General" <if $npc['rango'] == 'General' then>selected</if>>General</option>
-			<option value="ComandanteAdjunto" <if $npc['rango'] == 'ComandanteAdjunto' then>selected</if>>Comandante Adjunto</option>
-			<option value="ComandanteR" <if $npc['rango'] == 'ComandanteR' then>selected</if>>Comandante Revolucionario</option>
-			<option value="JefePersonal" <if $npc['rango'] == 'JefePersonal' then>selected</if>>Jefe de Personal</option>
-			<option value="ComandanteSupremo" <if $npc['rango'] == 'ComandanteSupremo' then>selected</if>>Comandante Supremo</option>
-		</select><br>
-			
-		Sangre*: <br><input style="width: 300px;" class="textbox" value="{$npc['sangre']}" type="text" name="sangre" id="sangre" /><br>  
-		Akuma: <br><input style="width: 300px;" class="textbox" value="{$npc['akuma']}" type="text" name="akuma" id="akuma" /><br>  
-		Avatar (200x300px)*: <br><input style="width: 500px;" class="textbox" value="{$npc['avatar1']}" type="text" name="avatar1" id="avatar1" /><br>  
-	    Avatar2 (420x420px)*: <br><input style="width: 500px;" class="textbox" value="{$npc['avatar2']}" type="text" name="avatar2" id="avatar2" /><br>  
-		
-        Apariencia*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="apariencia" minlength="1" placeholder="">{$npc['apariencia']}</textarea><br>
-		Personalidad*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="personalidad" minlength="1" placeholder="">{$npc['personalidad']}</textarea><br>
-		Historia 1*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia1" minlength="1" placeholder="">{$npc['historia1']}</textarea><br>
-		Historia 2*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia2" minlength="1" placeholder="">{$npc['historia2']}</textarea><br>
-		Historia 3*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="historia3" minlength="1" placeholder="">{$npc['historia3']}</textarea><br>
-		Estilo de Combate*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="estilo_combate" minlength="1" placeholder="">{$npc['estilo_combate']}</textarea><br>
-
-        <!-- Estilos aprendidos: mismos selects que en staff_ficha_atributos -->
-        <div style="margin-top:8px;">
-            <div style="margin-bottom:4px;">Estilo 1: <br>
-				<select name="estilo1" id="estilo1">
-					<option value="bloqueado" <if $npc['estilo1'] == 'bloqueado' then>selected</if>>Bloqueado</option>
-					<option value="no_bloqueado" <if $npc['estilo1'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
-					<option value="Gunkata" <if $npc['estilo1'] == 'Gunkata' then>selected</if>>Gunkata</option>
-					<option value="Hasshoken" <if $npc['estilo1'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
-					<option value="Santoryu" <if $npc['estilo1'] == 'Santoryu' then>selected</if>>Santoryu</option>
-					<option value="Kuroashi" <if $npc['estilo1'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
-					<option value="Gyojin Karate" <if $npc['estilo1'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
-					<option value="Gyojin Jujutsu" <if $npc['estilo1'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
-					<option value="Okama Kempo" <if $npc['estilo1'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
-					<option value="Sora Yokujin" <if $npc['estilo1'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
-					<option value="Rokushiki" <if $npc['estilo1'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
-					<option value="Ninjutsu" <if $npc['estilo1'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
-					<option value="Ryusoken" <if $npc['estilo1'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
-					<option value="Jiyuumura Kempo" <if $npc['estilo1'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
-					<option value="Clima Tact" <if $npc['estilo1'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
-					<option value="Pop Green" <if $npc['estilo1'] == 'Pop Green' then>selected</if>>Pop Green</option>
-					<option value="Hakai Shin" <if $npc['estilo1'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
-					<option value="Funekiri" <if $npc['estilo1'] == 'Funekiri' then>selected</if>>Funekiri</option>
-					<option value="Railgun Style" <if $npc['estilo1'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
-					<option value="Gyojin Bukijutsu" <if $npc['estilo1'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
-					<option value="Shuron Hakke" <if $npc['estilo1'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
-					<option value="Raqisat Alsahra" <if $npc['estilo1'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
-					<option value="Breeskjold" <if $npc['estilo1'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
-					<option value="Impacto Explosivo" <if $npc['estilo1'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
-					<option value="Royal Guard" <if $npc['estilo1'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
-					<option value="Shikaku Teikoku" <if $npc['estilo1'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
-					<option value="Duelliste de Givre" <if $npc['estilo1'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
-					<option value="Filo Della Vita" <if $npc['estilo1'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
-					<option value="Havets Symfoni" <if $npc['estilo1'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
-					<option value="Bakudai Karin" <if $npc['estilo1'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
-					<option value="Yama Kurai" <if $npc['estilo1'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
-					<option value="Shiseiju" <if $npc['estilo1'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
-					<option value="Sea Corsair" <if $npc['estilo1'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
-					<option value="Wano Nitoryu" <if $npc['estilo1'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
-					<option value="Mano de Tahur" <if $npc['estilo1'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
-					<option value="Kokudan" <if $npc['estilo1'] == 'Kokudan' then>selected</if>>Kokudan</option>
-					<option value="Kodai no Bushido" <if $npc['estilo1'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
-					<option value="Ittoryu Sekai" <if $npc['estilo1'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
-					<option value="Global Performer" <if $npc['estilo1'] == 'Global Performer' then>selected</if>>Global Performer</option>
-					<option value="Ashigara Dokoi" <if $npc['estilo1'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
-					<option value="Cavalry Warrior" <if $npc['estilo1'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
-					<option value="Kanpo Kenpo" <if $npc['estilo1'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
-					<option value="Estilo Único" <if $npc['estilo1'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
-					<option value="Akuma5" <if $npc['estilo1'] == 'Akuma5' then>selected</if>>Akuma T5</option>
-					<option value="Akuma6" <if $npc['estilo1'] == 'Akuma6' then>selected</if>>Akuma T6</option>
-				</select><br>
-			</div>
-            <div style="margin-bottom:4px;">Estilo 2: <br>
-				<select name="estilo2" id="estilo2">
-					<option value="bloqueado" <if $npc['estilo2'] == 'bloqueado' then>selected</if>>Bloqueado</option>
-					<option value="no_bloqueado" <if $npc['estilo2'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
-					<option value="Gunkata" <if $npc['estilo2'] == 'Gunkata' then>selected</if>>Gunkata</option>
-					<option value="Hasshoken" <if $npc['estilo2'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
-					<option value="Santoryu" <if $npc['estilo2'] == 'Santoryu' then>selected</if>>Santoryu</option>
-					<option value="Kuroashi" <if $npc['estilo2'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
-					<option value="Gyojin Karate" <if $npc['estilo2'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
-					<option value="Gyojin Jujutsu" <if $npc['estilo2'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
-					<option value="Okama Kempo" <if $npc['estilo2'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
-					<option value="Sora Yokujin" <if $npc['estilo2'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
-					<option value="Rokushiki" <if $npc['estilo2'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
-					<option value="Ninjutsu" <if $npc['estilo2'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
-					<option value="Ryusoken" <if $npc['estilo2'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
-					<option value="Jiyuumura Kempo" <if $npc['estilo2'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
-					<option value="Clima Tact" <if $npc['estilo2'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
-					<option value="Pop Green" <if $npc['estilo2'] == 'Pop Green' then>selected</if>>Pop Green</option>
-					<option value="Hakai Shin" <if $npc['estilo2'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
-					<option value="Funekiri" <if $npc['estilo2'] == 'Funekiri' then>selected</if>>Funekiri</option>
-					<option value="Railgun Style" <if $npc['estilo2'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
-					<option value="Gyojin Bukijutsu" <if $npc['estilo2'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
-					<option value="Shuron Hakke" <if $npc['estilo2'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
-					<option value="Raqisat Alsahra" <if $npc['estilo2'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
-					<option value="Breeskjold" <if $npc['estilo2'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
-					<option value="Impacto Explosivo" <if $npc['estilo2'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
-					<option value="Royal Guard" <if $npc['estilo2'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
-					<option value="Shikaku Teikoku" <if $npc['estilo2'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
-					<option value="Duelliste de Givre" <if $npc['estilo2'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
-					<option value="Filo Della Vita" <if $npc['estilo2'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
-					<option value="Havets Symfoni" <if $npc['estilo2'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
-					<option value="Bakudai Karin" <if $npc['estilo2'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
-					<option value="Yama Kurai" <if $npc['estilo2'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
-					<option value="Shiseiju" <if $npc['estilo2'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
-					<option value="Sea Corsair" <if $npc['estilo2'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
-					<option value="Wano Nitoryu" <if $npc['estilo2'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
-					<option value="Mano de Tahur" <if $npc['estilo2'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
-					<option value="Kokudan" <if $npc['estilo2'] == 'Kokudan' then>selected</if>>Kokudan</option>
-					<option value="Kodai no Bushido" <if $npc['estilo2'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
-					<option value="Ittoryu Sekai" <if $npc['estilo2'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
-					<option value="Global Performer" <if $npc['estilo2'] == 'Global Performer' then>selected</if>>Global Performer</option>
-					<option value="Ashigara Dokoi" <if $npc['estilo2'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
-					<option value="Cavalry Warrior" <if $npc['estilo2'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
-					<option value="Kanpo Kenpo" <if $npc['estilo2'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
-					<option value="Estilo Único" <if $npc['estilo2'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
-					<option value="Akuma5" <if $npc['estilo2'] == 'Akuma5' then>selected</if>>Akuma T5</option>
-					<option value="Akuma6" <if $npc['estilo2'] == 'Akuma6' then>selected</if>>Akuma T6</option>
-				</select><br>
-			</div>
-            <div style="margin-bottom:4px;">Estilo 3: <br>
-			   <select name="estilo3" id="estilo3">
-					<option value="bloqueado" <if $npc['estilo3'] == 'bloqueado' then>selected</if>>Bloqueado</option>
-					<option value="no_bloqueado" <if $npc['estilo3'] == 'no_bloqueado' then>selected</if>>No Bloqueado</option>
-					<option value="Gunkata" <if $npc['estilo3'] == 'Gunkata' then>selected</if>>Gunkata</option>
-					<option value="Hasshoken" <if $npc['estilo3'] == 'Hasshoken' then>selected</if>>Hasshoken</option>
-					<option value="Santoryu" <if $npc['estilo3'] == 'Santoryu' then>selected</if>>Santoryu</option>
-					<option value="Kuroashi" <if $npc['estilo3'] == 'Kuroashi' then>selected</if>>Kuroashi</option>
-					<option value="Gyojin Karate" <if $npc['estilo3'] == 'Gyojin Karate' then>selected</if>>Gyojin Karate</option>
-					<option value="Gyojin Jujutsu" <if $npc['estilo3'] == 'Gyojin Jujutsu' then>selected</if>>Gyojin Jujutsu</option>
-					<option value="Okama Kempo" <if $npc['estilo3'] == 'Okama Kempo' then>selected</if>>Okama Kempo</option>
-					<option value="Sora Yokujin" <if $npc['estilo3'] == 'Sora Yokujin' then>selected</if>>Sora Yokujin</option>
-					<option value="Rokushiki" <if $npc['estilo3'] == 'Rokushiki' then>selected</if>>Rokushiki</option>
-					<option value="Ninjutsu" <if $npc['estilo3'] == 'Ninjutsu' then>selected</if>>Ninjutsu</option>
-					<option value="Ryusoken" <if $npc['estilo3'] == 'Ryusoken' then>selected</if>>Ryusoken</option>
-					<option value="Jiyuumura Kempo" <if $npc['estilo3'] == 'Jiyuumura Kempo' then>selected</if>>Jiyuumura Kempo</option>
-					<option value="Clima Tact" <if $npc['estilo3'] == 'Clima Tact' then>selected</if>>Clima Tact</option>
-					<option value="Pop Green" <if $npc['estilo3'] == 'Pop Green' then>selected</if>>Pop Green</option>
-					<option value="Hakai Shin" <if $npc['estilo3'] == 'Hakai Shin' then>selected</if>>Hakai Shin</option>
-					<option value="Funekiri" <if $npc['estilo3'] == 'Funekiri' then>selected</if>>Funekiri</option>
-					<option value="Railgun Style" <if $npc['estilo3'] == 'Railgun Style' then>selected</if>>Railgun Style</option>
-					<option value="Gyojin Bukijutsu" <if $npc['estilo3'] == 'Gyojin Bukijutsu' then>selected</if>>Gyojin Bukijutsu</option>
-					<option value="Shuron Hakke" <if $npc['estilo3'] == 'Shuron Hakke' then>selected</if>>Shuron Hakke</option>
-					<option value="Raqisat Alsahra" <if $npc['estilo3'] == 'Raqisat Alsahra' then>selected</if>>Raqisat Alsahra</option>
-					<option value="Breeskjold" <if $npc['estilo3'] == 'Breeskjold' then>selected</if>>Breeskjold</option>
-					<option value="Impacto Explosivo" <if $npc['estilo3'] == 'Impacto Explosivo' then>selected</if>>Impacto Explosivo</option>
-					<option value="Royal Guard" <if $npc['estilo3'] == 'Royal Guard' then>selected</if>>Royal Guard</option>
-					<option value="Shikaku Teikoku" <if $npc['estilo3'] == 'Shikaku Teikoku' then>selected</if>>Shikaku Teikoku</option>
-					<option value="Duelliste de Givre" <if $npc['estilo3'] == 'Duelliste de Givre' then>selected</if>>Duelliste de Givre</option>
-					<option value="Filo Della Vita" <if $npc['estilo3'] == 'Filo Della Vita' then>selected</if>>Filo Della Vita</option>
-					<option value="Havets Symfoni" <if $npc['estilo3'] == 'Havets Symfoni' then>selected</if>>Havets Symfoni</option>
-					<option value="Bakudai Karin" <if $npc['estilo3'] == 'Bakudai Karin' then>selected</if>>Bakudai Karin</option>
-					<option value="Yama Kurai" <if $npc['estilo3'] == 'Yama Kurai' then>selected</if>>Yama Kurai</option>
-					<option value="Shiseiju" <if $npc['estilo3'] == 'Shiseiju' then>selected</if>>Shiseiju</option>
-					<option value="Sea Corsair" <if $npc['estilo3'] == 'Sea Corsair' then>selected</if>>Sea Corsair</option>
-					<option value="Wano Nitoryu" <if $npc['estilo3'] == 'Wano Nitoryu' then>selected</if>>Wano Nitoryu</option>
-					<option value="Mano de Tahur" <if $npc['estilo3'] == 'Mano de Tahur' then>selected</if>>Mano de Tahur</option>
-					<option value="Kokudan" <if $npc['estilo3'] == 'Kokudan' then>selected</if>>Kokudan</option>
-					<option value="Kodai no Bushido" <if $npc['estilo3'] == 'Kodai no Bushido' then>selected</if>>Kodai no Bushido</option>
-					<option value="Ittoryu Sekai" <if $npc['estilo3'] == 'Ittoryu Sekai' then>selected</if>>Ittoryu Sekai</option>
-					<option value="Global Performer" <if $npc['estilo3'] == 'Global Performer' then>selected</if>>Global Performer</option>
-					<option value="Ashigara Dokoi" <if $npc['estilo3'] == 'Ashigara Dokoi' then>selected</if>>Ashigara Dokoi</option>
-					<option value="Cavalry Warrior" <if $npc['estilo3'] == 'Cavalry Warrior' then>selected</if>>Cavalry Warrior</option>
-					<option value="Kanpo Kenpo" <if $npc['estilo3'] == 'Kanpo Kenpo' then>selected</if>>Kanpo Kenpo</option>
-					<option value="Estilo Único" <if $npc['estilo3'] == 'Estilo Único' then>selected</if>>Estilo Único</option>
-					<option value="Akuma5" <if $npc['estilo3'] == 'Akuma5' then>selected</if>>Akuma T5</option>
-					<option value="Akuma6" <if $npc['estilo3'] == 'Akuma6' then>selected</if>>Akuma T6</option>
-				</select><br>
-			</div>
-            <!-- El 4º slot de estilo se retiró (igual que en fichas de jugador): ya no es editable. -->
-            <!-- Se conserva como campo oculto para no perder el valor histórico de NPCs ya creados. -->
-            <input type="hidden" name="estilo4" id="estilo4" value="{$npc['estilo4']}">
+        <div>
+            <div class="barra-op bbox nm-titulo"><span class="barra-texto-op">Crear / modificar NPCs</span></div>
+            <div class="barra-espacio-op bbox nm-descripcion">
+                Catálogo de mybb_op_npcs. Buscar un NPC ID existente para editarlo o eliminarlo, o escribir uno nuevo para crearlo.
+            </div>
         </div>
 
-        <!-- Disciplinas (igual que fichas) -->
-        <div style="margin-top:8px;">
-            <table class="form-table">
-                <tr>
-                    <td>Belica 1: <br>
-                        <select name="belica1" id="belica1" class="textbox">
-                          <option value="Escudero" <if $npc['belica1'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica1'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica1'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica1'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica1'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica1'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica1'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica1'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica1'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica1'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica1'] == 'Tirador' then>selected</if>>Tirador</option>
-                          <option value="Pícaro" <if $npc['belica1'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                    <td>Belica 2: <br>
-                        <select name="belica2" id="belica2" class="textbox">
-                          <option value="" <if $npc['belica2'] == '' then>selected</if>>Sin Disciplina</option>
-                          <option value="Escudero" <if $npc['belica2'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica2'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica2'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica2'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica2'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica2'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica2'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica2'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica2'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica2'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica2'] == 'Tirador' then>selected</if>>Tirador</option>
-						  <option value="Pícaro" <if $npc['belica2'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                    <td>Belica 3: <br>
-                        <select name="belica3" id="belica3" class="textbox">
-                          <option value="" <if $npc['belica3'] == '' then>selected</if>>Sin Disciplina</option>
-                          <option value="Escudero" <if $npc['belica3'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica3'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica3'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica3'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica3'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica3'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica3'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica3'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica3'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica3'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica3'] == 'Tirador' then>selected</if>>Tirador</option>
-						<option value="Pícaro" <if $npc['belica3'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Belica 4: <br>
-                        <select name="belica4" id="belica4" class="textbox">
-                          <option value="" <if $npc['belica4'] == '' then>selected</if>>Sin Disciplina</option>
-                          <option value="Escudero" <if $npc['belica4'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica4'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica4'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica4'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica4'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica4'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica4'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica4'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica4'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica4'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica4'] == 'Tirador' then>selected</if>>Tirador</option>
-						<option value="Pícaro" <if $npc['belica4'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                    <td>Belica 5: <br>
-                        <select name="belica5" id="belica5" class="textbox">
-                          <option value="" <if $npc['belica5'] == '' then>selected</if>>Sin Disciplina</option>
-                          <option value="Escudero" <if $npc['belica5'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica5'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica5'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica5'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica5'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica5'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica5'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica5'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica5'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica5'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica5'] == 'Tirador' then>selected</if>>Tirador</option>
-						<option value="Pícaro" <if $npc['belica5'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                    <td>Belica 6: <br>
-                        <select name="belica6" id="belica6" class="textbox">
-                          <option value="" <if $npc['belica6'] == '' then>selected</if>>Sin Disciplina</option>
-                          <option value="Escudero" <if $npc['belica6'] == 'Escudero' then>selected</if>>Escudero</option>
-                          <option value="Artista Marcial" <if $npc['belica6'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                          <option value="Combatiente" <if $npc['belica6'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                          <option value="Artista" <if $npc['belica6'] == 'Artista' then>selected</if>>Artista</option>
-                          <option value="Asesino" <if $npc['belica6'] == 'Asesino' then>selected</if>>Asesino</option>
-                          <option value="Guerrero" <if $npc['belica6'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                          <option value="Espadachín" <if $npc['belica6'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                          <option value="Tecnicista" <if $npc['belica6'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                          <option value="Artillero" <if $npc['belica6'] == 'Artillero' then>selected</if>>Artillero</option>
-                          <option value="Arquero" <if $npc['belica6'] == 'Arquero' then>selected</if>>Arquero</option>
-                          <option value="Tirador" <if $npc['belica6'] == 'Tirador' then>selected</if>>Tirador</option>
-							<option value="Pícaro" <if $npc['belica6'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Belica 7: <br>
-                        <select name="belica7" id="belica7">
-						  <option value="" <if $npc['belica7'] == '' then>selected</if>>Sin Disciplina</option>
-						  <option value="Escudero" <if $npc['belica7'] == 'Escudero' then>selected</if>>Escudero</option>
-						  <option value="Artista Marcial" <if $npc['belica7'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-						  <option value="Combatiente" <if $npc['belica7'] == 'Combatiente' then>selected</if>>Combatiente</option>
-						  <option value="Artista" <if $npc['belica7'] == 'Artista' then>selected</if>>Artista</option>
-						  <option value="Asesino" <if $npc['belica7'] == 'Asesino' then>selected</if>>Asesino</option>
-						  <option value="Guerrero" <if $npc['belica7'] == 'Guerrero' then>selected</if>>Guerrero</option>
-						  <option value="Espadachín" <if $npc['belica7'] == 'Espadachín' then>selected</if>>Espadachín</option>
-						  <option value="Tecnicista" <if $npc['belica7'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-						  <option value="Artillero" <if $npc['belica7'] == 'Artillero' then>selected</if>>Artillero</option>
-						  <option value="Arquero" <if $npc['belica7'] == 'Arquero' then>selected</if>>Arquero</option>
-						  <option value="Tirador" <if $npc['belica7'] == 'Tirador' then>selected</if>>Tirador</option>
-						<option value="Pícaro" <if $npc['belica7'] == 'Pícaro' then>selected</if>>Pícaro</option>
-						</select>
-                    </td>
-                    <td>Belica 8: <br>
-                        <select name="belica8" id="belica8">
-                  <option value="" <if $npc['belica8'] == '' then>selected</if>>Sin Disciplina</option>
-                  <option value="Escudero" <if $npc['belica8'] == 'Escudero' then>selected</if>>Escudero</option>
-                  <option value="Artista Marcial" <if $npc['belica8'] == 'Artista Marcial' then>selected</if>>Artista Marcial</option>
-                  <option value="Combatiente" <if $npc['belica8'] == 'Combatiente' then>selected</if>>Combatiente</option>
-                  <option value="Artista" <if $npc['belica8'] == 'Artista' then>selected</if>>Artista</option>
-                  <option value="Asesino" <if $npc['belica8'] == 'Asesino' then>selected</if>>Asesino</option>
-                  <option value="Guerrero" <if $npc['belica8'] == 'Guerrero' then>selected</if>>Guerrero</option>
-                  <option value="Espadachín" <if $npc['belica8'] == 'Espadachín' then>selected</if>>Espadachín</option>
-                  <option value="Tecnicista" <if $npc['belica8'] == 'Tecnicista' then>selected</if>>Tecnicista</option>
-                  <option value="Artillero" <if $npc['belica8'] == 'Artillero' then>selected</if>>Artillero</option>
-                  <option value="Arquero" <if $npc['belica8'] == 'Arquero' then>selected</if>>Arquero</option>
-                  <option value="Tirador" <if $npc['belica8'] == 'Tirador' then>selected</if>>Tirador</option>
-				<option value="Pícaro" <if $npc['belica8'] == 'Pícaro' then>selected</if>>Pícaro</option>
-                </select>
-                    </td>
-                </tr>
-            </table>
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <details>
+            <summary class="nm-guia-barra">Guía de campos</summary>
+            <dl class="nm-guia-cuerpo">
+                <div class="nm-guia-item"><dt>Ocultar con <code>???</code></dt><dd>Nombre, etiqueta, extra, vitalidad, energía, haki, fuerza, resistencia, destreza, agilidad, voluntad, reflejos y puntería: si el valor empieza con tres signos de interrogación, el BBCode <code>[npc=ID]</code> los muestra como <code>???</code> en vez del valor real (ver <code>inc/plugins/BBCustom_npc.php</code>). El resto de campos (sangre, akuma, wanted, reputación, haki de despertar) no tienen este truco.</dd></div>
+                <div class="nm-guia-item"><dt>Información</dt><dd>Columna JSON pensada para habilidades de NPC en combate. No se encontró ningún lector activo en el código actual — dejar vacío salvo que sepas exactamente el formato que espera un sistema futuro.</dd></div>
+                <div class="nm-guia-item"><dt>Oficios / Bélicas (código)</dt><dd>JSON que generan los editores visuales de abajo al marcar casillas y niveles. Editarlos a mano puede romper el formato que leen <code>editor_oficios.js</code> / <code>editor_belicas.js</code>.</dd></div>
+                <div class="nm-guia-item"><dt>Estilos (JSON/lista)</dt><dd>Listado adicional de estilos secundarios, de uso avanzado; no lo gestiona ningún editor visual.</dd></div>
+                <div class="nm-guia-item"><dt>Estilo 4</dt><dd>Ya no es editable (igual que en las fichas de jugador, el 4º slot de estilo se retiró). El valor histórico solo se conserva para NPCs creados antes de ese cambio.</dd></div>
+                <div class="nm-guia-item"><dt>Bélica / Oficio</dt><dd>Mismos catálogos que usan las fichas de jugador (<code>op/staff/ficha_atributos.php</code>). "Sin Disciplina" / "Sin Oficio" deja el slot vacío.</dd></div>
+                <div class="nm-guia-item"><dt>npc_id</dt><dd>Identificador usado en <code>[npc=ID]</code> y por <code>op/crafteo.php</code> para vincular NPCs a un usuario a través de <code>mybb_op_npcs_usuarios</code>.</dd></div>
+            </dl>
+        </details>
+
+        <div>
+            <div class="barra-op bbox nm-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar / crear</span></div>
+            <div class="barra-espacio-op bbox nm-panel-cuerpo">
+                <form method="get" id="nm-buscar-form">
+                    <label for="nm-buscar" style="font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin-right: 6px;">NPC ID o nombre</label>
+                    <span class="nm-buscar-caja">
+                        <input type="text" id="nm-buscar" name="npc_id" value="{$npc_id_esc}" placeholder="npc-001, Nombre..." autocomplete="off">
+                        <div class="nm-resultados" id="nm-resultados" hidden></div>
+                    </span>
+                    <button class="btn-op btn-op--sm">Buscar / crear</button>
+                </form>
+                <small>Número de NPCs registrados: {$npcs_count}</small>
+            </div>
         </div>
 
-        <!-- Oficios como en fichas -->
-        <div style="margin-top:8px;">
-            Oficio 1: <br>
-            <select name="oficio1" id="oficio1" class="textbox">
-              <option value="" <if $npc['oficio1'] == '' then>selected</if>>Sin Oficio</option>
-              <option value="Navegante" <if $npc['oficio1'] == 'Navegante' then>selected</if>>Navegante</option>
-              <option value="Cocinero" <if $npc['oficio1'] == 'Cocinero' then>selected</if>>Cocinero</option>
-              <option value="Médico" <if $npc['oficio1'] == 'Médico' then>selected</if>>Médico</option>
-              <option value="Recolector" <if $npc['oficio1'] == 'Recolector' then>selected</if>>Recolector</option>
-              <option value="Artesano" <if $npc['oficio1'] == 'Artesano' then>selected</if>>Artesano</option>
-              <option value="Inventor" <if $npc['oficio1'] == 'Inventor' then>selected</if>>Inventor</option>
-              <option value="Investigador" <if $npc['oficio1'] == 'Investigador' then>selected</if>>Investigador</option>
-              <option value="Carpintero" <if $npc['oficio1'] == 'Carpintero' then>selected</if>>Carpintero</option>
-              <option value="Mercader" <if $npc['oficio1'] == 'Mercader' then>selected</if>>Mercader</option>
-              <option value="Aventurero" <if $npc['oficio1'] == 'Aventurero' then>selected</if>>Aventurero</option>
-            </select>
-            <br><br>Oficio 2: <br>
-            <select name="oficio2" id="oficio2" class="textbox">
-              <option value="" <if $npc['oficio2'] == '' then>selected</if>>Sin Oficio</option>
-              <option value="Navegante" <if $npc['oficio2'] == 'Navegante' then>selected</if>>Navegante</option>
-              <option value="Cocinero" <if $npc['oficio2'] == 'Cocinero' then>selected</if>>Cocinero</option>
-              <option value="Médico" <if $npc['oficio2'] == 'Médico' then>selected</if>>Médico</option>
-              <option value="Recolector" <if $npc['oficio2'] == 'Recolector' then>selected</if>>Recolector</option>
-              <option value="Artesano" <if $npc['oficio2'] == 'Artesano' then>selected</if>>Artesano</option>
-              <option value="Inventor" <if $npc['oficio2'] == 'Inventor' then>selected</if>>Inventor</option>
-              <option value="Investigador" <if $npc['oficio2'] == 'Investigador' then>selected</if>>Investigador</option>
-              <option value="Carpintero" <if $npc['oficio2'] == 'Carpintero' then>selected</if>>Carpintero</option>
-              <option value="Mercader" <if $npc['oficio2'] == 'Mercader' then>selected</if>>Mercader</option>
-              <option value="Aventurero" <if $npc['oficio2'] == 'Aventurero' then>selected</if>>Aventurero</option>
-            </select>
-        </div> 
+        <if $npc_id != '' then>
+        <form method="post" id="crear_npcs">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="accion" value="guardar">
+            <input type="hidden" name="npc_id_old" value="{$npc_id_esc}">
+            <input type="hidden" name="belicas_disponibles" id="belicas_disponibles" value="{$npc_esc['belicas_disponibles']}">
 
-        <!-- Código de Oficios, Bélicas y Elementos -->
-        <div class="section-block">
-          <div class="section-title">Código de Oficios, Bélicas y Elementos</div>
-          <table class="form-table">
-            <tr>
-              <td colspan="3">Oficios Código:<br>
-                <textarea id="oficios" name="oficios">{$npc['oficios']}</textarea>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="3">Belicas Código:<br>
-                <textarea id="belicas" name="belicas">{$npc['belicas']}</textarea>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="3">Elementos:<br>
-                <textarea id="elementos" name="elementos">{$npc['elementos']}</textarea>
-              </td>
-            </tr>
-          </table>
-          <!-- Hidden input to store belicas disponibles for backend. Editor JS will keep this updated -->
-          <input type="hidden" id="belicas_disponibles" name="belicas_disponibles" value="{$npc['belicas_disponibles']}">
-        </div>
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Identidad</div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="npc_id">NPC ID</label><input type="text" id="npc_id" name="npc_id" value="{$npc_id_esc}" required></div>
+                    <div class="af-field"><label for="nombre">Nombre</label><input type="text" id="nombre" name="nombre" value="{$npc_esc['nombre']}" required></div>
+                    <div class="af-field"><label for="apodo">Apodo</label><input type="text" id="apodo" name="apodo" value="{$npc_esc['apodo']}"></div>
+                    <div class="af-field"><label for="etiqueta">Etiqueta</label><input type="text" id="etiqueta" name="etiqueta" value="{$npc_esc['etiqueta']}"></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="avatar1">Avatar (200×300px)</label><input type="text" id="avatar1" name="avatar1" value="{$npc_esc['avatar1']}"></div>
+                    <div class="af-field"><label for="avatar2">Avatar 2 (420×420px)</label><input type="text" id="avatar2" name="avatar2" value="{$npc_esc['avatar2']}"></div>
+                </div>
+            </div>
 
-        <!-- keep Estilos JSON text area for advanced use -->
-        <div style="margin-top:8px;">Estilos (JSON / lista):<br>
-            <textarea placeholder="Estilos secundarios / listado" style="width: 400px;height: 80px;" name="estilos">{$npc['estilos']}</textarea>
-        </div>
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Datos básicos</div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="faccion">Facción</label><input type="text" id="faccion" name="faccion" value="{$npc_esc['faccion']}"></div>
+                    <div class="af-field"><label for="raza">Raza</label><input type="text" id="raza" name="raza" value="{$npc_esc['raza']}"></div>
+                    <div class="af-field"><label for="edad">Edad</label><input type="text" id="edad" name="edad" value="{$npc_esc['edad']}"></div>
+                    <div class="af-field"><label for="sexo">Sexo</label><input type="text" id="sexo" name="sexo" value="{$npc_esc['sexo']}"></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="altura">Altura</label><input type="text" id="altura" name="altura" value="{$npc_esc['altura']}"></div>
+                    <div class="af-field"><label for="peso">Peso</label><input type="text" id="peso" name="peso" value="{$npc_esc['peso']}"></div>
+                    <div class="af-field"><label for="temporada">Temporada</label><input type="text" id="temporada" name="temporada" value="{$npc_esc['temporada']}"></div>
+                    <div class="af-field"><label for="nivel">Nivel</label><input type="text" id="nivel" name="nivel" value="{$npc_esc['nivel']}"></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="rango">Rango</label><select id="rango" name="rango">{$npc_rango_opciones}</select></div>
+                    <div class="af-field"><label for="sangre">Sangre</label><input type="text" id="sangre" name="sangre" value="{$npc_esc['sangre']}"></div>
+                    <div class="af-field"><label for="akuma">Akuma</label><input type="text" id="akuma" name="akuma" value="{$npc_esc['akuma']}"></div>
+                    <div class="af-field"><label for="wanted">Wanted</label><input type="text" id="wanted" name="wanted" value="{$npc_esc['wanted']}"></div>
+                    <div class="af-field"><label for="reputacion">Reputación</label><input type="text" id="reputacion" name="reputacion" value="{$npc_esc['reputacion']}"></div>
+                </div>
+            </div>
 
-		Extras*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="extra" minlength="1" placeholder="">{$npc['extra']}</textarea><br>
-		Información*: (este campo sirve para las habilidades de NPC. Requiere un código especial, por defecto dejar vacío): <br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="info" minlength="1" placeholder="">{$npc['info']}</textarea><br>
-		Notas*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="notas" minlength="1" placeholder="">{$npc['notas']}</textarea><br><br>
-        <input class="button" type="submit" value="Modificar NPC">
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Estadísticas</div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="fuerza">Fuerza</label><input type="text" id="fuerza" name="fuerza" value="{$npc_esc['fuerza']}"></div>
+                    <div class="af-field"><label for="resistencia">Resistencia</label><input type="text" id="resistencia" name="resistencia" value="{$npc_esc['resistencia']}"></div>
+                    <div class="af-field"><label for="destreza">Destreza</label><input type="text" id="destreza" name="destreza" value="{$npc_esc['destreza']}"></div>
+                    <div class="af-field"><label for="voluntad">Voluntad</label><input type="text" id="voluntad" name="voluntad" value="{$npc_esc['voluntad']}"></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="punteria">Puntería</label><input type="text" id="punteria" name="punteria" value="{$npc_esc['punteria']}"></div>
+                    <div class="af-field"><label for="agilidad">Agilidad</label><input type="text" id="agilidad" name="agilidad" value="{$npc_esc['agilidad']}"></div>
+                    <div class="af-field"><label for="reflejos">Reflejos</label><input type="text" id="reflejos" name="reflejos" value="{$npc_esc['reflejos']}"></div>
+                    <div class="af-field"><label for="control_akuma">Control Akuma</label><input type="text" id="control_akuma" name="control_akuma" value="{$npc_esc['control_akuma']}"></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="vitalidad">Vitalidad</label><input type="text" id="vitalidad" name="vitalidad" value="{$npc_esc['vitalidad']}"></div>
+                    <div class="af-field"><label for="energia">Energía</label><input type="text" id="energia" name="energia" value="{$npc_esc['energia']}"></div>
+                    <div class="af-field"><label for="haki">Haki</label><input type="text" id="haki" name="haki" value="{$npc_esc['haki']}"></div>
+                </div>
+            </div>
 
-		<strong>Nota para moderador</strong>: Si quieres que la info de un NPC no se vea, agrega tres signos de interrogación al principio del campo (???).<br><br><br><br><br>
-		
-      </form>
-		<button onclick=borrarNPC()>Borrar NPC</button>
-    </if>
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Despertares de Haki</div>
+                <div class="nm-row">
+                    <div class="af-field">
+                        <label for="kenbun">Kenbunshoku</label><input type="text" id="kenbun" name="kenbun" value="{$npc_esc['kenbun']}">
+                        <small>0 = No despertado.</small>
+                    </div>
+                    <div class="af-field">
+                        <label for="hao">Haoshoku</label><input type="text" id="hao" name="hao" value="{$npc_esc['haoshoku']}">
+                        <small>-1 = Bloqueado, 0 = No despertado.</small>
+                    </div>
+                    <div class="af-field">
+                        <label for="buso">Busoshoku</label><input type="text" id="buso" name="buso" value="{$npc_esc['buso']}">
+                        <small>0 = No despertado.</small>
+                    </div>
+                </div>
+            </div>
 
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Apariencia, personalidad e historia</div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="apariencia">Apariencia</label><textarea id="apariencia" name="apariencia" class="nm-textarea-grande">{$npc_esc['apariencia']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="personalidad">Personalidad</label><textarea id="personalidad" name="personalidad" class="nm-textarea-grande">{$npc_esc['personalidad']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="historia1">Historia 1</label><textarea id="historia1" name="historia1" class="nm-textarea-grande">{$npc_esc['historia1']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="historia2">Historia 2</label><textarea id="historia2" name="historia2" class="nm-textarea-grande">{$npc_esc['historia2']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="historia3">Historia 3</label><textarea id="historia3" name="historia3" class="nm-textarea-grande">{$npc_esc['historia3']}</textarea></div>
+                </div>
+            </div>
 
-  </div>
-  {$footer}
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Estilo de combate</div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="estilo_combate">Descripción del estilo</label><textarea id="estilo_combate" name="estilo_combate" class="nm-textarea-grande">{$npc_esc['estilo_combate']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="estilo1">Estilo 1</label><select id="estilo1" name="estilo1">{$npc_estilo1_opciones}</select></div>
+                    <div class="af-field"><label for="estilo2">Estilo 2</label><select id="estilo2" name="estilo2">{$npc_estilo2_opciones}</select></div>
+                    <div class="af-field"><label for="estilo3">Estilo 3</label><select id="estilo3" name="estilo3">{$npc_estilo3_opciones}</select></div>
+                </div>
+                <!-- El 4º slot de estilo se retiró (igual que en fichas de jugador): ya no es editable. -->
+                <!-- Se conserva como campo oculto para no perder el valor histórico de NPCs ya creados. -->
+                <input type="hidden" name="estilo4" id="estilo4" value="{$npc_estilo4_esc}">
+            </div>
+
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Disciplinas bélicas</div>
+                <div class="nm-grid-belicas">
+                    <div class="af-field"><label for="belica1">Bélica 1</label><select id="belica1" name="belica1">{$npc_belica1_opciones}</select></div>
+                    <div class="af-field"><label for="belica2">Bélica 2</label><select id="belica2" name="belica2">{$npc_belica2_opciones}</select></div>
+                    <div class="af-field"><label for="belica3">Bélica 3</label><select id="belica3" name="belica3">{$npc_belica3_opciones}</select></div>
+                    <div class="af-field"><label for="belica4">Bélica 4</label><select id="belica4" name="belica4">{$npc_belica4_opciones}</select></div>
+                    <div class="af-field"><label for="belica5">Bélica 5</label><select id="belica5" name="belica5">{$npc_belica5_opciones}</select></div>
+                    <div class="af-field"><label for="belica6">Bélica 6</label><select id="belica6" name="belica6">{$npc_belica6_opciones}</select></div>
+                    <div class="af-field"><label for="belica7">Bélica 7</label><select id="belica7" name="belica7">{$npc_belica7_opciones}</select></div>
+                    <div class="af-field"><label for="belica8">Bélica 8</label><select id="belica8" name="belica8">{$npc_belica8_opciones}</select></div>
+                </div>
+            </div>
+
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Oficios</div>
+                <div class="nm-row">
+                    <div class="af-field"><label for="oficio1">Oficio 1</label><select id="oficio1" name="oficio1">{$npc_oficio1_opciones}</select></div>
+                    <div class="af-field"><label for="oficio2">Oficio 2</label><select id="oficio2" name="oficio2">{$npc_oficio2_opciones}</select></div>
+                </div>
+            </div>
+
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Código de oficios, bélicas y estilos</div>
+                <p class="nm-codigo-nota">Los editores visuales de abajo actualizan estos campos automáticamente al marcar casillas — no hace falta tocarlos a mano.</p>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="oficios">Oficios (código)</label><textarea id="oficios" name="oficios" class="nm-textarea-codigo">{$npc_esc['oficios']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="belicas">Bélicas (código)</label><textarea id="belicas" name="belicas" class="nm-textarea-codigo">{$npc_esc['belicas']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="estilos">Estilos (JSON / lista)</label><textarea id="estilos" name="estilos" class="nm-textarea-codigo">{$npc_esc['estilos']}</textarea></div>
+                </div>
+            </div>
+
+            <div class="nm-seccion">
+                <div class="nm-seccion-titulo">Extra, información y notas</div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="extra">Extra</label><textarea id="extra" name="extra" class="nm-textarea-grande">{$npc_esc['extra']}</textarea></div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo">
+                        <label for="info">Información</label>
+                        <textarea id="info" name="info" class="nm-textarea-grande">{$npc_esc['info']}</textarea>
+                        <small>Sirve para las habilidades del NPC en combate. Requiere un código especial — dejar vacío por defecto.</small>
+                    </div>
+                </div>
+                <div class="nm-row">
+                    <div class="af-field nm-ancho-completo"><label for="notas">Notas</label><textarea id="notas" name="notas" class="nm-textarea-grande">{$npc_esc['notas']}</textarea></div>
+                </div>
+            </div>
+
+            <div class="nm-guardar">
+                <button class="btn-op btn-op--primario">Guardar</button>
+                <if $npc_existe == 1 then>
+                <button type="button" class="opg-chip chip-peligro" id="nm-eliminar">Eliminar NPC</button>
+                </if>
+            </div>
+        </form>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/core.js?v=1"></script>
+    <script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_oficios.js?v=1"></script>
+    <script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_belicas.js?v=1"></script>
+
+    <script>
+    (function () {
+        var input = document.getElementById('nm-buscar');
+        var lista = document.getElementById('nm-resultados');
+        if (!input || !lista) { return; }
+        var caja = input.closest('.nm-buscar-caja');
+        var tercerFondo = document.querySelector('.npcs-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrar() {
+            lista.hidden = true;
+            lista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('nm-dropdown-abierto'); }
+        }
+
+        function marcarActivo() {
+            lista.querySelectorAll('.nm-resultado').forEach(function (it, i) {
+                it.classList.toggle('nm-activo', i === activo);
+            });
+        }
+
+        function pintar(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                lista.innerHTML = '<div class="nm-resultado-vacio">Sin resultados.</div>';
+            } else {
+                lista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="nm-resultado" data-id="' + esc(r.id) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            lista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('nm-dropdown-abierto'); }
+        }
+
+        input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrar(); return; }
+            timer = setTimeout(function () {
+                fetch('npcs_modificar.php?buscar_npc=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(pintar)
+                    .catch(cerrar);
+            }, 200);
+        });
+
+        lista.addEventListener('click', function (e) {
+            var b = e.target.closest('.nm-resultado');
+            if (!b) { return; }
+            input.value = b.getAttribute('data-id');
+            cerrar();
+            document.getElementById('nm-buscar-form').submit();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = lista.querySelectorAll('.nm-resultado');
+            if (lista.hidden || !items.length) { return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activo = Math.min(activo + 1, items.length - 1);
+                marcarActivo();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activo = Math.max(activo - 1, 0);
+                marcarActivo();
+            } else if (e.key === 'Enter' && activo >= 0) {
+                e.preventDefault();
+                items[activo].click();
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!caja.contains(e.target)) { cerrar(); }
+        });
+    })();
+
+    (function () {
+        var btnEliminar = document.getElementById('nm-eliminar');
+        if (!btnEliminar) { return; }
+        btnEliminar.addEventListener('click', function () {
+            if (!confirm('¿Eliminar este NPC? Esta acción no se puede deshacer.')) { return; }
+            var form = document.getElementById('crear_npcs');
+            form.querySelector('input[name="accion"]').value = 'eliminar';
+            form.submit();
+        });
+    })();
+    </script>
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-
-<script src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/core.js?v=1"></script>
-<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_oficios.js?v=1"></script>
-<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_belicas.js?v=1"></script>
-<script defer src="{$mybb->settings['bburl']}/jscripts/fichaAtributos/editor_elementos.js?v=1"></script>
-
-<script>
-	
-  let is_pet = `{$is_pet}`;
-  let is_npc = `{$is_npc}`;
-  let is_npc_user = `{$is_npc_user}`;
-  let npc_id = `{$npc_id}`;
-	
-  function borrarNPC() {
-	  
-	if (confirm('¿Estás seguro que quieres borrar este NPC?')) {
-		
-		if (is_npc_user) {
-			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_npc_usuario';		
-		} else if (is_pet) {
-			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_mascota';		
-		} else {
-			console.log('hello');
-			window.location.href = window.location.pathname + '?npc_id=' + npc_id + '&accion=borrar_npc';		
-		}
-		
-	}
-	  
-  }
-	
-  function onClickTid() {
-    const npcIdValue = document.getElementById('npc_id').value;
-    if (npcIdValue) {
-		window.location.href = window.location.pathname + '?npc_id=' + npcIdValue;		
-	}
-  }
-</script>
 
 </html>

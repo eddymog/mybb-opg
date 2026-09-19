@@ -308,42 +308,30 @@ a.button:hover, button:hover, input.button:hover {
    aplicada acá para que TODA página de /op/ con este marco la herede gratis.
    Los var(--opg-*, <hex-de-siempre>) tienen fallback al valor de antes, así
    que si opg-tokens.css no llegó a cargar en alguna página vieja, se ve
-   exactamente igual que hoy — nada de esto depende de que el archivo cargue.
-
-   .mainBackground usa --opg-textura-trama (halftone, "de imprenta") porque es
-   el marco exterior y no lleva texto encima. .secondBackground/.thirdBackground
-   usan --opg-textura-grano en cambio: un grano más tenue e irregular (no puntos
-   en grilla) pensado para ir DEBAJO de contenido real, que es justo lo que pasa
-   en .thirdBackground. Van acá y no como clase .opg-grano en cada plantilla
-   porque el pedido puntual fue "que no haga falta tocar cada página" — .opg-grano
-   sigue siendo la opción correcta para destacar 1-2 paneles sueltos que no pasan
-   por este marco (ver jscripts/opg-tokens.css). Páginas que pisan el
-   background-color de estas clases a mano (op_mercado_negro, op_tienda_kuros,
-   fondos oscuros) siguen viéndose bien: el grano es puntos negros al 5%, así que
-   sobre un fondo oscuro es imperceptible — probado a ojo antes de subir esto. */
+   exactamente igual que hoy — nada de esto depende de que el archivo cargue. */
 
 .mainBackground {
     background: var(--opg-textura-trama, none), var(--opg-crema-cuerpo, #ffe3a0);
     padding: 10px;
     margin-bottom: 100px;
-    border-bottom-left-radius: var(--opg-radio-lg, 18px);
-    border-bottom-right-radius: var(--opg-radio-lg, 18px);
+    border-radius: var(--opg-radio-lg, 18px);
 }
 
 .secondBackground {
     padding: 20px;
-    background: var(--opg-textura-grano, none), var(--opg-crema-boton, #fcecd2);
+    background-color: var(--opg-crema-boton, #fcecd2);
     display: flex;
     justify-content: center;
     align-items: center;
     border: 3px solid var(--opg-tinta, black);
     border-radius: var(--opg-radio-md, 10px);
+    box-shadow: var(--opg-sombra-offset, 4px 4px 0 black);
 }
 
 .thirdBackground {
 	padding: 20px;
     width: 1030px;
-    background: var(--opg-textura-grano, none), var(--opg-crema-cuerpo, #ffe3a0);
+    background-color: var(--opg-crema-cuerpo, #ffe3a0);
     border: 2px solid var(--opg-tinta, #000000);
     border-radius: var(--opg-radio-sm, 6px);
     display: flex;

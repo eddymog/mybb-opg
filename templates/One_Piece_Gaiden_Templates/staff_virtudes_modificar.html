@@ -1,44 +1,231 @@
 <html>
 
 <head>
-  <title>Modificar Virtudes y Defectos</title>
-  {$headerinclude}
+    <title>Crear / modificar virtudes y defectos</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .virtudes-staff .thirdBackground { width: 100%; max-width: 700px; gap: var(--opg-espacio-5); text-align: left; }
+    /* El dropdown de abajo es position:absolute, así que no empuja el alto de la tarjeta.
+       Sin esto, en la página "recién buscando" (sin virtud todavía) se sale del marco. */
+    .virtudes-staff .thirdBackground.vm-dropdown-abierto { padding-bottom: 280px; transition: padding-bottom var(--opg-rapido); }
+
+    .vm-titulo { padding: var(--opg-espacio-2); }
+    .vm-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .vm-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .vm-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: center; flex-wrap: wrap; }
+    .vm-panel-cuerpo input[type=text] {
+        width: 220px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+
+    /* Typeahead contra el servidor (ver docs/style.md y staff_objetos_modificar.html) */
+    .vm-buscar-caja { position: relative; display: inline-block; }
+    .vm-resultados {
+        position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px;
+        min-width: 260px; max-height: 260px; overflow-y: auto;
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        box-shadow: var(--opg-sombra-offset);
+    }
+    .vm-resultado {
+        display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .vm-resultado + .vm-resultado { border-top: 1px solid rgba(0, 0, 0, .1); }
+    .vm-resultado:hover, .vm-resultado.vm-activo { background: var(--opg-naranja); color: #fff; }
+    .vm-resultado span { display: block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; opacity: .75; }
+    .vm-resultado-vacio { padding: 8px 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); font-style: italic; }
+
+    .vm-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field textarea {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    .af-field textarea { min-height: 110px; resize: vertical; }
+    .af-field input:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field textarea:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+
+    .vm-guardar { display: flex; gap: var(--opg-espacio-3); align-items: center; margin-top: var(--opg-espacio-5); }
+    .opg-chip.chip-peligro:hover { background: var(--opg-rojo-error); color: #fff; }
+
+    @media (max-width: 700px) {
+        .virtudes-staff .secondBackground, .virtudes-staff .thirdBackground { padding: 10px; }
+        .vm-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-    <if $virtud_id == '' then>
-      Virtud/Defecto ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='virtud_id'><button
-        onclick=onClickTid()>Buscar</button><br><br>
-    </if>
-	<if $virtud_id !='' then>
+    {$header}
+    <div class="indice virtudes-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
-        <form method="post" action="/op/staff/virtudes_modificar.php" name="crear_virtudes" id="crear_virtudes">
-		Virtud/Defecto ID:<br><input  class="textbox" type="text" name="virtud_id" value='{$virtud_id}'><br>
-        <div style="display: none">
-           <input type="text" name="virtud_id_old" value="{$virtud_id}">
-        </div><br>
-        Nombre de virtud/defecto*: <br><input style="width: 300px;" class="textbox" value="{$virtud['nombre']}" type="text" name="nombre" id="nombre" required /><br>
-        Puntos*: <br><input style="width: 300px;" class="textbox" value="{$virtud['puntos']}" type="text" name="puntos" id="puntos" required /><br>
-        Descripción*:<br>
-        <textarea style="width: 400px;height: 125px;" name="descripcion" minlength="1" required>{$virtud['descripcion']}</textarea><br><br>
-        <input class="button" type="submit" value="Modificar">
-      </form>
-    </if>
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-  </div>
-  {$footer}
+        <div>
+            <div class="barra-op bbox vm-titulo"><span class="barra-texto-op">Crear / modificar virtudes y defectos</span></div>
+            <div class="barra-espacio-op bbox vm-descripcion">
+                Catálogo de mybb_op_virtudes. Buscar un Virtud/Defecto ID existente para editarlo o eliminarlo, o escribir uno nuevo para crearlo.
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox vm-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar / crear</span></div>
+            <div class="barra-espacio-op bbox vm-panel-cuerpo">
+                <form method="get" id="vm-buscar-form">
+                    <label for="vm-buscar" style="font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin-right: 6px;">Virtud/Defecto ID o nombre</label>
+                    <span class="vm-buscar-caja">
+                        <input type="text" id="vm-buscar" name="virtud_id" value="{$virtud_id_esc}" placeholder="V001, Valiente..." autocomplete="off">
+                        <div class="vm-resultados" id="vm-resultados" hidden></div>
+                    </span>
+                    <button class="btn-op btn-op--sm">Buscar / crear</button>
+                </form>
+            </div>
+        </div>
+
+        <if $virtud_id != '' then>
+        <form method="post" id="crear_virtudes">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="accion" value="guardar">
+            <input type="hidden" name="virtud_id_old" value="{$virtud_id_esc}">
+
+            <div class="vm-row">
+                <div class="af-field"><label for="virtud_id">Virtud/Defecto ID</label><input type="text" id="virtud_id" name="virtud_id" value="{$virtud_id_esc}" required></div>
+                <div class="af-field"><label for="nombre">Nombre</label><input type="text" id="nombre" name="nombre" value="{$virtud_esc['nombre']}" required></div>
+                <div class="af-field"><label for="puntos">Puntos</label><input type="text" id="puntos" name="puntos" value="{$virtud_esc['puntos']}" required></div>
+            </div>
+            <div class="vm-row">
+                <div class="af-field" style="flex-basis:100%"><label for="descripcion">Descripción</label><textarea id="descripcion" name="descripcion" required>{$virtud_esc['descripcion']}</textarea></div>
+            </div>
+
+            <div class="vm-guardar">
+                <button class="btn-op btn-op--primario">Guardar</button>
+                <if $virtud_existe == 1 then>
+                <button type="button" class="opg-chip chip-peligro" id="vm-eliminar">Eliminar</button>
+                </if>
+            </div>
+        </form>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var input = document.getElementById('vm-buscar');
+        var lista = document.getElementById('vm-resultados');
+        if (!input || !lista) { return; }
+        var caja = input.closest('.vm-buscar-caja');
+        var tercerFondo = document.querySelector('.virtudes-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrar() {
+            lista.hidden = true;
+            lista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('vm-dropdown-abierto'); }
+        }
+
+        function marcarActivo() {
+            lista.querySelectorAll('.vm-resultado').forEach(function (it, i) {
+                it.classList.toggle('vm-activo', i === activo);
+            });
+        }
+
+        function pintar(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                lista.innerHTML = '<div class="vm-resultado-vacio">Sin resultados.</div>';
+            } else {
+                lista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="vm-resultado" data-id="' + esc(r.id) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            lista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('vm-dropdown-abierto'); }
+        }
+
+        input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrar(); return; }
+            timer = setTimeout(function () {
+                fetch('virtudes_modificar.php?buscar_virtud=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(pintar)
+                    .catch(cerrar);
+            }, 200);
+        });
+
+        lista.addEventListener('click', function (e) {
+            var b = e.target.closest('.vm-resultado');
+            if (!b) { return; }
+            input.value = b.getAttribute('data-id');
+            cerrar();
+            document.getElementById('vm-buscar-form').submit();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = lista.querySelectorAll('.vm-resultado');
+            if (lista.hidden || !items.length) { return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activo = Math.min(activo + 1, items.length - 1);
+                marcarActivo();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activo = Math.max(activo - 1, 0);
+                marcarActivo();
+            } else if (e.key === 'Enter' && activo >= 0) {
+                e.preventDefault();
+                items[activo].click();
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!caja.contains(e.target)) { cerrar(); }
+        });
+    })();
+
+    (function () {
+        var btnEliminar = document.getElementById('vm-eliminar');
+        if (!btnEliminar) { return; }
+        btnEliminar.addEventListener('click', function () {
+            if (!confirm('¿Eliminar esta virtud/defecto? Esta acción no se puede deshacer.')) { return; }
+            var form = document.getElementById('crear_virtudes');
+            form.querySelector('input[name="accion"]').value = 'eliminar';
+            form.submit();
+        });
+    })();
+    </script>
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-  function onClickTid() {
-    const virtudId = document.getElementById('virtud_id').value;
-    if (virtudId) {
-		    window.location.href = window.location.pathname + '?virtud_id=' + virtudId;		
-	}
-  }
-</script>
 
 </html>

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 25, 2026 at 09:36 PM
+-- Generation Time: Sep 19, 2026 at 08:47 AM
 -- Server version: 5.7.44-48
--- PHP Version: 8.3.26
+-- PHP Version: 8.4.24
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -902,6 +902,37 @@ CREATE TABLE `mybb_op_adviento_abiertos` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_afiliados`
+--
+
+CREATE TABLE `mybb_op_afiliados` (
+  `id` int(11) NOT NULL,
+  `tipo` enum('hermano','grande','pequeno') COLLATE utf8_unicode_ci NOT NULL,
+  `nombre` varchar(120) COLLATE utf8_unicode_ci NOT NULL,
+  `url` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `imagen` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `descripcion` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `orden` int(11) NOT NULL DEFAULT '0',
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `agregado_por` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `tiempo` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_afiliados_rate_limit`
+--
+
+CREATE TABLE `mybb_op_afiliados_rate_limit` (
+  `id` int(11) NOT NULL,
+  `ip` varchar(45) COLLATE utf8_unicode_ci NOT NULL,
+  `tiempo` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_akumas`
 --
 
@@ -1173,11 +1204,54 @@ CREATE TABLE `mybb_op_avisosvpn` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_bandas`
+--
+
+CREATE TABLE `mybb_op_bandas` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(100) NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `descripcion` text,
+  `bandera` varchar(500) NOT NULL,
+  `fecha` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_banda_invitaciones`
+--
+
+CREATE TABLE `mybb_op_banda_invitaciones` (
+  `id` int(11) NOT NULL,
+  `banda_id` int(11) NOT NULL,
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `miembro_uid` int(11) NOT NULL DEFAULT '0',
+  `fecha` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_banda_miembros`
+--
+
+CREATE TABLE `mybb_op_banda_miembros` (
+  `id` int(11) NOT NULL,
+  `banda_id` int(11) NOT NULL,
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `miembro_uid` int(11) NOT NULL DEFAULT '0',
+  `fecha` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_barcos`
 --
 
 CREATE TABLE `mybb_op_barcos` (
-  `barco_id` varchar(80) CHARACTER SET utf8 NOT NULL,
+  `barco_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
   `nombre_barco` varchar(80) CHARACTER SET utf8 NOT NULL,
   `vitalidad` int(11) NOT NULL,
   `espacios` int(11) NOT NULL,
@@ -1185,7 +1259,140 @@ CREATE TABLE `mybb_op_barcos` (
   `tiempo_viaje` int(11) NOT NULL,
   `resistencia` int(11) NOT NULL,
   `espacios_mejora` int(11) NOT NULL,
-  `ruputura` int(11) NOT NULL
+  `ruputura` int(11) NOT NULL,
+  `mejora_tripulacion` tinyint(1) NOT NULL DEFAULT '0',
+  `mejora_vitalidad` tinyint(1) NOT NULL DEFAULT '0',
+  `mejora_resistencia` tinyint(1) NOT NULL DEFAULT '0',
+  `mejora_ruptura` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_acceso`
+--
+
+CREATE TABLE `mybb_op_barco_acceso` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `member_uid` int(11) NOT NULL DEFAULT '0',
+  `rol` varchar(80) NOT NULL DEFAULT 'tripulante',
+  `added_at` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_cofre`
+--
+
+CREATE TABLE `mybb_op_barco_cofre` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `objeto_id` varchar(255) NOT NULL DEFAULT '',
+  `cantidad` int(11) NOT NULL DEFAULT '1',
+  `added_by` int(11) NOT NULL DEFAULT '0',
+  `added_at` int(11) NOT NULL DEFAULT '0',
+  `apodo` varchar(255) NOT NULL DEFAULT '',
+  `imagen` varchar(255) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_cofre_historial`
+--
+
+CREATE TABLE `mybb_op_barco_cofre_historial` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `uid` int(11) NOT NULL DEFAULT '0',
+  `tipo` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `clase` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `objeto_id` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `nombre` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `cantidad` int(11) NOT NULL DEFAULT '0',
+  `timestamp` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_estado`
+--
+
+CREATE TABLE `mybb_op_barco_estado` (
+  `barco_id` varchar(80) NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `berries` bigint(20) NOT NULL DEFAULT '0',
+  `owner_rangos` varchar(100) NOT NULL DEFAULT '',
+  `owner_ausente` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_invitaciones`
+--
+
+CREATE TABLE `mybb_op_barco_invitaciones` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `owner_uid` int(11) NOT NULL,
+  `miembro_uid` int(11) NOT NULL,
+  `fecha` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_npcs`
+--
+
+CREATE TABLE `mybb_op_barco_npcs` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `owner_uid` int(11) NOT NULL,
+  `ref_id` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `tipo` varchar(5) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'npc',
+  `rol` varchar(32) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `ausente` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_salas`
+--
+
+CREATE TABLE `mybb_op_barco_salas` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) NOT NULL DEFAULT '',
+  `owner_uid` int(11) NOT NULL DEFAULT '0',
+  `slot` int(11) NOT NULL DEFAULT '1',
+  `nombre` varchar(255) NOT NULL DEFAULT '',
+  `descripcion` text NOT NULL,
+  `imagen` varchar(255) NOT NULL DEFAULT '',
+  `tipo` varchar(50) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_barco_tripulacion`
+--
+
+CREATE TABLE `mybb_op_barco_tripulacion` (
+  `id` int(11) NOT NULL,
+  `barco_id` varchar(80) COLLATE utf8_unicode_ci NOT NULL,
+  `owner_uid` int(11) NOT NULL,
+  `miembro_uid` int(11) NOT NULL,
+  `fecha` int(11) NOT NULL DEFAULT '0',
+  `rango` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `ausente` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1300,6 +1507,68 @@ CREATE TABLE `mybb_op_consumir` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_costes_akuma`
+--
+
+CREATE TABLE `mybb_op_costes_akuma` (
+  `dominio` int(11) NOT NULL,
+  `coste_normal` int(11) DEFAULT NULL,
+  `coste_camino` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_costes_belica`
+--
+
+CREATE TABLE `mybb_op_costes_belica` (
+  `slot` int(11) NOT NULL,
+  `coste_slot` int(11) NOT NULL DEFAULT '0',
+  `coste_espe1` int(11) NOT NULL DEFAULT '0',
+  `coste_espe2` int(11) NOT NULL DEFAULT '0',
+  `coste_up` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_costes_estilo`
+--
+
+CREATE TABLE `mybb_op_costes_estilo` (
+  `slot` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `coste_nuevo` int(11) DEFAULT NULL,
+  `coste_reembolso` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_costes_haki`
+--
+
+CREATE TABLE `mybb_op_costes_haki` (
+  `nivel` int(11) NOT NULL,
+  `coste` int(11) NOT NULL DEFAULT '0',
+  `coste_camino` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_costes_oficio`
+--
+
+CREATE TABLE `mybb_op_costes_oficio` (
+  `clave` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `coste_nikas` int(11) NOT NULL DEFAULT '0',
+  `coste_puntos_oficio` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_crafteo_npcs`
 --
 
@@ -1367,6 +1636,20 @@ CREATE TABLE `mybb_op_dados` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_disciplinas`
+--
+
+CREATE TABLE `mybb_op_disciplinas` (
+  `nombre` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `camino1` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `camino2` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `orden` int(11) NOT NULL DEFAULT '0',
+  `imagen` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_entrenamientos_usuarios`
 --
 
@@ -1398,6 +1681,18 @@ CREATE TABLE `mybb_op_equipamiento_personaje` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_estilos_catalogo`
+--
+
+CREATE TABLE `mybb_op_estilos_catalogo` (
+  `nombre` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `imagen` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `orden` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_experiencia_limite`
 --
 
@@ -1406,6 +1701,60 @@ CREATE TABLE `mybb_op_experiencia_limite` (
   `uid` int(10) NOT NULL,
   `semana` int(10) NOT NULL,
   `experiencia_semanal` float NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_facciones`
+--
+
+CREATE TABLE `mybb_op_facciones` (
+  `nombre` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `orden` int(11) NOT NULL DEFAULT '0',
+  `usergroup` int(11) NOT NULL DEFAULT '0',
+  `color_faccion` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_rombo` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_border_tag` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_rango` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_border` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_border_pill` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_texto` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `color_chat` varchar(120) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_facciones_rangos`
+--
+
+CREATE TABLE `mybb_op_facciones_rangos` (
+  `id` int(11) NOT NULL,
+  `faccion` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
+  `valor` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `nombre_visible` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `imagen` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `orden` int(11) NOT NULL DEFAULT '0',
+  `reputacion_min` int(11) DEFAULT NULL,
+  `nivel_min` int(11) DEFAULT NULL,
+  `sueldo_semanal` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_fama`
+--
+
+CREATE TABLE `mybb_op_fama` (
+  `id` int(11) NOT NULL,
+  `reputacion_min` int(11) NOT NULL DEFAULT '0',
+  `perc_malo` int(11) NOT NULL DEFAULT '0',
+  `perc_bueno` int(11) NOT NULL DEFAULT '0',
+  `nombre_bueno` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `nombre_neutral` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `nombre_malo` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1429,6 +1778,7 @@ CREATE TABLE `mybb_op_fichas` (
   `temporada` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `puntos_estadistica` int(11) NOT NULL DEFAULT '60',
   `nivel` int(11) NOT NULL DEFAULT '1',
+  `nivel_ajustado` tinyint(1) NOT NULL DEFAULT '0',
   `limite_nivel` int(20) NOT NULL DEFAULT '20',
   `fuerza` int(3) NOT NULL DEFAULT '0',
   `fuerza_pasiva` int(3) NOT NULL DEFAULT '0',
@@ -1489,8 +1839,8 @@ CREATE TABLE `mybb_op_fichas` (
   `belica10` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `belica11` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `belica12` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `belicas` json NOT NULL DEFAULT 'null',
-  `oficios` json NOT NULL DEFAULT 'null',
+  `belicas` json NOT NULL,
+  `oficios` json NOT NULL,
   `oficio1` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `puntos_oficio` int(10) NOT NULL DEFAULT '0',
   `oficio2` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -1502,10 +1852,11 @@ CREATE TABLE `mybb_op_fichas` (
   `estilo3` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'bloqueado',
   `estilo4` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'bloqueado',
   `estilos` json DEFAULT NULL,
-  `elementos` json NOT NULL DEFAULT 'null',
+  `elementos` json NOT NULL,
   `sangre` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `akuma` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `akuma_subnombre` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `akuma_origen` varchar(20) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `dominio_akuma` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
   `hao` int(5) NOT NULL DEFAULT '-1',
   `hao_chance` int(5) NOT NULL DEFAULT '1',
@@ -1524,7 +1875,7 @@ CREATE TABLE `mybb_op_fichas` (
   `ranuras` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '0 / 6',
   `equipamiento_espacio` int(11) NOT NULL DEFAULT '5',
   `implantes` text COLLATE utf8_unicode_ci NOT NULL,
-  `equipamiento` json NOT NULL DEFAULT 'null',
+  `equipamiento` json NOT NULL,
   `secret1` int(11) NOT NULL DEFAULT '0',
   `rango_inframundo` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `cronologia` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
@@ -1534,64 +1885,9 @@ CREATE TABLE `mybb_op_fichas` (
   `aventurasActivas` int(10) UNSIGNED NOT NULL DEFAULT '0',
   `slotAventuras` int(10) UNSIGNED NOT NULL DEFAULT '3',
   `expNarradorMensualActual` int(11) NOT NULL COMMENT '675 máximo',
-  `nivelnarrador` varchar(80) CHARACTER SET utf8 NOT NULL DEFAULT 'Aprendiz'
+  `nivelnarrador` varchar(80) CHARACTER SET utf8 NOT NULL DEFAULT 'Aprendiz',
+  `wantedcustom` bigint(20) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Triggers `mybb_op_fichas`
---
-DELIMITER $$
-CREATE TRIGGER `u_fichas_triggers` AFTER UPDATE ON `mybb_op_fichas` FOR EACH ROW BEGIN
-    INSERT INTO `mybb_audit_op_fichas` (
-        `fid`, `nombre`, `apodo`, `faccion`, `raza`, `berries`,
-        `puntos_estadistica`, `nivel`,
-        `fuerza`, `fuerza_pasiva`,
-        `resistencia`, `resistencia_pasiva`,
-        `destreza`, `destreza_pasiva`,
-        `voluntad`, `voluntad_pasiva`,
-        `punteria`, `punteria_pasiva`,
-        `agilidad`, `agilidad_pasiva`,
-        `reflejos`, `reflejos_pasiva`,
-        `vitalidad`, `vitalidad_pasiva`,
-        `energia`, `energia_pasiva`,
-        `haki`, `haki_pasiva`,
-        `nika`, `kuro`,
-        `rasgos_positivos`, `rasgos_negativos`,
-        `reputacion`, `reputacion_positiva`, `reputacion_negativa`,
-        `rango`, `fama`,
-        `belica1`, `belica2`, `belica3`, `belica4`, `belica5`, `belica6`,
-        `belicas`, `oficios`,
-        `oficio1`, `puntos_oficio`, `oficio2`,
-        `estilo1`, `estilo2`, `estilo3`, `estilo4`,`estilos`,
-		`akuma`, `akuma_subnombre`,
-        `hao`, `hao_chance`, `kenbun`, `buso`, `muerto`
-    ) VALUES (
-        NEW.`fid`, NEW.`nombre`, NEW.`apodo`, NEW.`faccion`, NEW.`raza`, NEW.`berries`,
-        NEW.`puntos_estadistica`, NEW.`nivel`,
-        NEW.`fuerza`, NEW.`fuerza_pasiva`,
-        NEW.`resistencia`, NEW.`resistencia_pasiva`,
-        NEW.`destreza`, NEW.`destreza_pasiva`,
-        NEW.`voluntad`, NEW.`voluntad_pasiva`,
-        NEW.`punteria`, NEW.`punteria_pasiva`,
-        NEW.`agilidad`, NEW.`agilidad_pasiva`,
-        NEW.`reflejos`, NEW.`reflejos_pasiva`,
-        NEW.`vitalidad`, NEW.`vitalidad_pasiva`,
-        NEW.`energia`, NEW.`energia_pasiva`,
-        NEW.`haki`, NEW.`haki_pasiva`,
-        NEW.`nika`, NEW.`kuro`,
-        NEW.`rasgos_positivos`, NEW.`rasgos_negativos`,
-        NEW.`reputacion`, NEW.`reputacion_positiva`, NEW.`reputacion_negativa`,
-        NEW.`rango`, NEW.`fama`,
-        NEW.`belica1`, NEW.`belica2`, NEW.`belica3`, NEW.`belica4`, NEW.`belica5`,NEW.`belica6`,
-        NEW.`belicas`, NEW.`oficios`,
-        NEW.`oficio1`, NEW.`puntos_oficio`, NEW.`oficio2`,
-        NEW.`estilo1`, NEW.`estilo2`, NEW.`estilo3`, NEW.`estilo4`, NEW.`estilos`,
-        NEW.`akuma`, NEW.`akuma_subnombre`,
-        NEW.`hao`, NEW.`hao_chance`, NEW.`kenbun`, NEW.`buso`, NEW.`muerto`
-    );
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1716,6 +2012,25 @@ CREATE TABLE `mybb_op_fichas_guardar` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_fichas_reset`
+--
+
+CREATE TABLE `mybb_op_fichas_reset` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `peticion_id` int(10) UNSIGNED NOT NULL,
+  `uid` int(10) UNSIGNED NOT NULL,
+  `backup_json` longtext NOT NULL,
+  `propuesta_json` longtext NOT NULL,
+  `estado` enum('pendiente','aplicado','rechazado') NOT NULL DEFAULT 'pendiente',
+  `staff_uid` int(10) UNSIGNED DEFAULT NULL,
+  `staff_nombre` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `applied_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_fichas_secret`
 --
 
@@ -1735,6 +2050,44 @@ CREATE TABLE `mybb_op_fichas_secret` (
   `avatar2` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '/images/op/uploads/AvatarReputacion2_One_Piece_Gaiden_Foro_Rol.png',
   `es_visible` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_gacha_aniversario_gratis`
+--
+
+CREATE TABLE `mybb_op_gacha_aniversario_gratis` (
+  `uid` int(10) UNSIGNED NOT NULL,
+  `fecha` int(10) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_gacha_aniversario_gratis_2`
+--
+
+CREATE TABLE `mybb_op_gacha_aniversario_gratis_2` (
+  `uid` int(10) UNSIGNED NOT NULL,
+  `fecha` int(10) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_gacha_aniversario_log`
+--
+
+CREATE TABLE `mybb_op_gacha_aniversario_log` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `uid` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `username` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `banner` enum('berries','kuros') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `premio_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `premio_nombre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `fecha` int(10) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1808,7 +2161,8 @@ CREATE TABLE `mybb_op_inventario` (
   `especial` int(10) NOT NULL DEFAULT '0',
   `editado` int(10) NOT NULL DEFAULT '0',
   `usado` int(11) NOT NULL DEFAULT '0',
-  `vendidoReciente` timestamp(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000'
+  `vendidoReciente` timestamp(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000',
+  `bautizado` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1841,7 +2195,8 @@ CREATE TABLE `mybb_op_islas` (
   `tamano` text COLLATE utf8_unicode_ci NOT NULL,
   `zonas` text COLLATE utf8_unicode_ci NOT NULL,
   `habitantes` text COLLATE utf8_unicode_ci NOT NULL,
-  `facilities` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Listado de construcciones de los conquistadores'
+  `facilities` text COLLATE utf8_unicode_ci NOT NULL COMMENT 'Listado de construcciones de los conquistadores',
+  `lore` mediumtext COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1859,7 +2214,11 @@ CREATE TABLE `mybb_op_isla_eventos` (
   `estacion` enum('Primavera','Verano','Otoño','Invierno') COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Estación en que ocurrió',
   `dia` tinyint(2) UNSIGNED DEFAULT NULL COMMENT 'Día de la estación (1-90)',
   `staff_uid` int(10) UNSIGNED NOT NULL COMMENT 'UID del staff que creó el evento',
-  `fecha_creacion` int(10) UNSIGNED NOT NULL COMMENT 'Timestamp de creación'
+  `fecha_creacion` int(10) UNSIGNED NOT NULL COMMENT 'Timestamp de creación',
+  `tema_url` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `narrador_uid` int(10) NOT NULL DEFAULT '0',
+  `personajes` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `impacto` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Bajo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Eventos históricos de las islas';
 
 -- --------------------------------------------------------
@@ -1978,6 +2337,23 @@ CREATE TABLE `mybb_op_mascotas` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_mensajes`
+--
+
+CREATE TABLE `mybb_op_mensajes` (
+  `id` int(11) NOT NULL,
+  `uid_dest` int(11) NOT NULL,
+  `remitente` varchar(100) NOT NULL DEFAULT 'Sistema',
+  `titulo` varchar(255) NOT NULL,
+  `cuerpo` text NOT NULL,
+  `leida` tinyint(1) NOT NULL DEFAULT '0',
+  `fecha` int(11) NOT NULL,
+  `fecha_juego` varchar(100) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_misiones_lista`
 --
 
@@ -1993,6 +2369,31 @@ CREATE TABLE `mybb_op_misiones_lista` (
   `time` int(100) NOT NULL COMMENT 'tiempo requerido para completar la misión',
   `coste` int(10) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_niveles`
+--
+
+CREATE TABLE `mybb_op_niveles` (
+  `nivel` int(11) NOT NULL,
+  `exp_min` int(11) NOT NULL DEFAULT '0',
+  `exp_max` int(11) NOT NULL DEFAULT '0',
+  `bono_puntos` int(11) DEFAULT NULL,
+  `limite_temporal` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_niveles_requeridos`
+--
+
+CREATE TABLE `mybb_op_niveles_requeridos` (
+  `clave` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `nivel_min` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -2146,6 +2547,20 @@ CREATE TABLE `mybb_op_objetos` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `mybb_op_oficios_catalogo`
+--
+
+CREATE TABLE `mybb_op_oficios_catalogo` (
+  `nombre` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `sub1` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `sub2` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `orden` int(11) NOT NULL DEFAULT '0',
+  `imagen` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `mybb_op_oficios_usuarios`
 --
 
@@ -2224,6 +2639,18 @@ CREATE TABLE `mybb_op_peticiones` (
   `mod_nombre` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `atendidoPor` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `notasMod` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mybb_op_plugin_categories`
+--
+
+CREATE TABLE `mybb_op_plugin_categories` (
+  `codename` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+  `category` varchar(190) COLLATE utf8_unicode_ci NOT NULL,
+  `subcategory` varchar(190) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -2500,7 +2927,8 @@ CREATE TABLE `mybb_op_viajes` (
   `timestamp` int(100) NOT NULL,
   `tiempo_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `postViaje` text COLLATE utf8_unicode_ci NOT NULL,
-  `dado_naval` int(11) NOT NULL DEFAULT '-1'
+  `dado_naval` int(11) NOT NULL DEFAULT '-1',
+  `barco_id` varchar(64) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -3755,6 +4183,20 @@ ALTER TABLE `mybb_op_adviento_abiertos`
   ADD KEY `idx_anio` (`anio`);
 
 --
+-- Indexes for table `mybb_op_afiliados`
+--
+ALTER TABLE `mybb_op_afiliados`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `tipo_orden` (`tipo`,`orden`);
+
+--
+-- Indexes for table `mybb_op_afiliados_rate_limit`
+--
+ALTER TABLE `mybb_op_afiliados_rate_limit`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ip_tiempo` (`ip`,`tiempo`);
+
+--
 -- Indexes for table `mybb_op_akumas`
 --
 ALTER TABLE `mybb_op_akumas`
@@ -3848,6 +4290,86 @@ ALTER TABLE `mybb_op_avisos`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `mybb_op_bandas`
+--
+ALTER TABLE `mybb_op_bandas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nombre` (`nombre`),
+  ADD KEY `owner_uid` (`owner_uid`);
+
+--
+-- Indexes for table `mybb_op_banda_invitaciones`
+--
+ALTER TABLE `mybb_op_banda_invitaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_invite` (`banda_id`,`miembro_uid`),
+  ADD KEY `miembro_uid` (`miembro_uid`);
+
+--
+-- Indexes for table `mybb_op_banda_miembros`
+--
+ALTER TABLE `mybb_op_banda_miembros`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_member` (`banda_id`,`miembro_uid`),
+  ADD KEY `miembro_uid` (`miembro_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_acceso`
+--
+ALTER TABLE `mybb_op_barco_acceso`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `barco_member` (`barco_id`,`owner_uid`,`member_uid`),
+  ADD KEY `member_uid` (`member_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_cofre`
+--
+ALTER TABLE `mybb_op_barco_cofre`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `barco_owner` (`barco_id`,`owner_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_cofre_historial`
+--
+ALTER TABLE `mybb_op_barco_cofre_historial`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_barco` (`barco_id`(50),`owner_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_estado`
+--
+ALTER TABLE `mybb_op_barco_estado`
+  ADD PRIMARY KEY (`barco_id`,`owner_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_invitaciones`
+--
+ALTER TABLE `mybb_op_barco_invitaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unica` (`barco_id`,`owner_uid`,`miembro_uid`);
+
+--
+-- Indexes for table `mybb_op_barco_npcs`
+--
+ALTER TABLE `mybb_op_barco_npcs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unico_ref` (`barco_id`,`owner_uid`,`ref_id`);
+
+--
+-- Indexes for table `mybb_op_barco_salas`
+--
+ALTER TABLE `mybb_op_barco_salas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `barco_slot` (`barco_id`,`owner_uid`,`slot`);
+
+--
+-- Indexes for table `mybb_op_barco_tripulacion`
+--
+ALTER TABLE `mybb_op_barco_tripulacion`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unico_miembro` (`barco_id`,`owner_uid`,`miembro_uid`);
+
+--
 -- Indexes for table `mybb_op_cambioid`
 --
 ALTER TABLE `mybb_op_cambioid`
@@ -3879,6 +4401,36 @@ ALTER TABLE `mybb_op_consumir`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `mybb_op_costes_akuma`
+--
+ALTER TABLE `mybb_op_costes_akuma`
+  ADD PRIMARY KEY (`dominio`);
+
+--
+-- Indexes for table `mybb_op_costes_belica`
+--
+ALTER TABLE `mybb_op_costes_belica`
+  ADD PRIMARY KEY (`slot`);
+
+--
+-- Indexes for table `mybb_op_costes_estilo`
+--
+ALTER TABLE `mybb_op_costes_estilo`
+  ADD PRIMARY KEY (`slot`);
+
+--
+-- Indexes for table `mybb_op_costes_haki`
+--
+ALTER TABLE `mybb_op_costes_haki`
+  ADD PRIMARY KEY (`nivel`);
+
+--
+-- Indexes for table `mybb_op_costes_oficio`
+--
+ALTER TABLE `mybb_op_costes_oficio`
+  ADD PRIMARY KEY (`clave`);
+
+--
 -- Indexes for table `mybb_op_crafteo_npcs`
 --
 ALTER TABLE `mybb_op_crafteo_npcs`
@@ -3899,6 +4451,12 @@ ALTER TABLE `mybb_op_creacion_usuarios`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `mybb_op_disciplinas`
+--
+ALTER TABLE `mybb_op_disciplinas`
+  ADD PRIMARY KEY (`nombre`);
+
+--
 -- Indexes for table `mybb_op_entrenamientos_usuarios`
 --
 ALTER TABLE `mybb_op_entrenamientos_usuarios`
@@ -3912,9 +4470,34 @@ ALTER TABLE `mybb_op_equipamiento_personaje`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `mybb_op_estilos_catalogo`
+--
+ALTER TABLE `mybb_op_estilos_catalogo`
+  ADD PRIMARY KEY (`nombre`);
+
+--
 -- Indexes for table `mybb_op_experiencia_limite`
 --
 ALTER TABLE `mybb_op_experiencia_limite`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `mybb_op_facciones`
+--
+ALTER TABLE `mybb_op_facciones`
+  ADD PRIMARY KEY (`nombre`);
+
+--
+-- Indexes for table `mybb_op_facciones_rangos`
+--
+ALTER TABLE `mybb_op_facciones_rangos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `faccion` (`faccion`);
+
+--
+-- Indexes for table `mybb_op_fama`
+--
+ALTER TABLE `mybb_op_fama`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -3932,10 +4515,39 @@ ALTER TABLE `mybb_op_fichas_audit`
   ADD KEY `idx_changed_at` (`changed_at`);
 
 --
+-- Indexes for table `mybb_op_fichas_reset`
+--
+ALTER TABLE `mybb_op_fichas_reset`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `uid` (`uid`),
+  ADD KEY `peticion_id` (`peticion_id`),
+  ADD KEY `estado` (`estado`);
+
+--
 -- Indexes for table `mybb_op_fichas_secret`
 --
 ALTER TABLE `mybb_op_fichas_secret`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `mybb_op_gacha_aniversario_gratis`
+--
+ALTER TABLE `mybb_op_gacha_aniversario_gratis`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- Indexes for table `mybb_op_gacha_aniversario_gratis_2`
+--
+ALTER TABLE `mybb_op_gacha_aniversario_gratis_2`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- Indexes for table `mybb_op_gacha_aniversario_log`
+--
+ALTER TABLE `mybb_op_gacha_aniversario_log`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_banner_id` (`banner`,`id`),
+  ADD KEY `idx_uid_banner` (`uid`,`banner`);
 
 --
 -- Indexes for table `mybb_op_hentai`
@@ -4025,10 +4637,29 @@ ALTER TABLE `mybb_op_mascotas`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `mybb_op_mensajes`
+--
+ALTER TABLE `mybb_op_mensajes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `uid_dest` (`uid_dest`);
+
+--
 -- Indexes for table `mybb_op_misiones_lista`
 --
 ALTER TABLE `mybb_op_misiones_lista`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `mybb_op_niveles`
+--
+ALTER TABLE `mybb_op_niveles`
+  ADD PRIMARY KEY (`nivel`);
+
+--
+-- Indexes for table `mybb_op_niveles_requeridos`
+--
+ALTER TABLE `mybb_op_niveles_requeridos`
+  ADD PRIMARY KEY (`clave`);
 
 --
 -- Indexes for table `mybb_op_npcs`
@@ -4048,6 +4679,12 @@ ALTER TABLE `mybb_op_npcs_usuarios`
 ALTER TABLE `mybb_op_objetos`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `id` (`id`);
+
+--
+-- Indexes for table `mybb_op_oficios_catalogo`
+--
+ALTER TABLE `mybb_op_oficios_catalogo`
+  ADD PRIMARY KEY (`nombre`);
 
 --
 -- Indexes for table `mybb_op_oficios_usuarios`
@@ -4075,6 +4712,12 @@ ALTER TABLE `mybb_op_peticionAventuras_meta`
 --
 ALTER TABLE `mybb_op_peticiones`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `mybb_op_plugin_categories`
+--
+ALTER TABLE `mybb_op_plugin_categories`
+  ADD PRIMARY KEY (`codename`);
 
 --
 -- Indexes for table `mybb_op_razas`
@@ -4170,7 +4813,8 @@ ALTER TABLE `mybb_op_tirada_rey`
 -- Indexes for table `mybb_op_viajes`
 --
 ALTER TABLE `mybb_op_viajes`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_barco_id` (`barco_id`);
 
 --
 -- Indexes for table `mybb_op_virtudes`
@@ -4694,6 +5338,18 @@ ALTER TABLE `mybb_op_adviento_abiertos`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `mybb_op_afiliados`
+--
+ALTER TABLE `mybb_op_afiliados`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_afiliados_rate_limit`
+--
+ALTER TABLE `mybb_op_afiliados_rate_limit`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `mybb_op_auditoria_posts_ia`
 --
 ALTER TABLE `mybb_op_auditoria_posts_ia`
@@ -4751,6 +5407,66 @@ ALTER TABLE `mybb_op_audit_recompensas`
 -- AUTO_INCREMENT for table `mybb_op_avisos`
 --
 ALTER TABLE `mybb_op_avisos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_bandas`
+--
+ALTER TABLE `mybb_op_bandas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_banda_invitaciones`
+--
+ALTER TABLE `mybb_op_banda_invitaciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_banda_miembros`
+--
+ALTER TABLE `mybb_op_banda_miembros`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_acceso`
+--
+ALTER TABLE `mybb_op_barco_acceso`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_cofre`
+--
+ALTER TABLE `mybb_op_barco_cofre`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_cofre_historial`
+--
+ALTER TABLE `mybb_op_barco_cofre_historial`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_invitaciones`
+--
+ALTER TABLE `mybb_op_barco_invitaciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_npcs`
+--
+ALTER TABLE `mybb_op_barco_npcs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_salas`
+--
+ALTER TABLE `mybb_op_barco_salas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_barco_tripulacion`
+--
+ALTER TABLE `mybb_op_barco_tripulacion`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -4820,16 +5536,40 @@ ALTER TABLE `mybb_op_experiencia_limite`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `mybb_op_facciones_rangos`
+--
+ALTER TABLE `mybb_op_facciones_rangos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_fama`
+--
+ALTER TABLE `mybb_op_fama`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `mybb_op_fichas_audit`
 --
 ALTER TABLE `mybb_op_fichas_audit`
   MODIFY `audit_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `mybb_op_fichas_reset`
+--
+ALTER TABLE `mybb_op_fichas_reset`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `mybb_op_fichas_secret`
 --
 ALTER TABLE `mybb_op_fichas_secret`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_gacha_aniversario_log`
+--
+ALTER TABLE `mybb_op_gacha_aniversario_log`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `mybb_op_hide`
@@ -4896,6 +5636,12 @@ ALTER TABLE `mybb_op_mapa_posiciones`
 --
 ALTER TABLE `mybb_op_mascotas`
   MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `mybb_op_mensajes`
+--
+ALTER TABLE `mybb_op_mensajes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `mybb_op_misiones_lista`

@@ -1,57 +1,241 @@
 <html>
 
 <head>
-  <title>Modificar Islas</title>
-  {$headerinclude}
+    <title>Crear / modificar islas</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .islas-staff .thirdBackground { width: 100%; max-width: 900px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .is-titulo { padding: var(--opg-espacio-2); }
+    .is-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .is-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+    .is-descripcion a { color: var(--opg-morado-texto); }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .is-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: center; flex-wrap: wrap; }
+    .is-panel-cuerpo input[type=text] {
+        width: 220px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+
+    /* Typeahead contra el servidor (ver docs/style.md y staff_objetos_modificar.html) */
+    .is-buscar-caja { position: relative; display: inline-block; }
+    .is-resultados {
+        position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px;
+        min-width: 260px; max-height: 260px; overflow-y: auto;
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        box-shadow: var(--opg-sombra-offset);
+    }
+    .is-resultado {
+        display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .is-resultado + .is-resultado { border-top: 1px solid rgba(0, 0, 0, .1); }
+    .is-resultado:hover, .is-resultado.is-activo { background: var(--opg-naranja); color: #fff; }
+    .is-resultado span { display: block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; opacity: .75; }
+    .is-resultado-vacio { padding: 8px 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); font-style: italic; }
+
+    /* El dropdown es position:absolute y no empuja el alto de la tarjeta: sin esto, en la
+       página "recién buscando" (sin isla todavía) se sale del marco (ver style.md). */
+    .islas-staff .thirdBackground.is-dropdown-abierto { padding-bottom: 280px; transition: padding-bottom var(--opg-rapido); }
+
+    .is-seccion-titulo {
+        display: inline-block; margin: var(--opg-espacio-5) 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .is-seccion-titulo:first-of-type { margin-top: 0; }
+
+    .is-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 190px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field textarea {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    .af-field textarea { min-height: 110px; resize: vertical; }
+    .af-field input:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field textarea:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+
+    .is-guardar { margin-top: var(--opg-espacio-5); }
+
+    @media (max-width: 700px) {
+        .islas-staff .secondBackground, .islas-staff .thirdBackground { padding: 10px; }
+        .is-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-    <if $isla_id == '' then>
-      Isla ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='isla_id'><button
-        onclick=onClickTid()>Buscar</button><br><br>
-    </if>
-	<if $isla_id !='' then>
-      Isla ID<br><input style="width: 300px;" class="textbox" type="text" value='{$isla_id}' disabled><br>
-        <form method="post" action="/op/staff/islas_modificar.php" name="crear_islas" id="crear_islas">
-        <div style="display: none">
-           <input type="text" name="isla_id" value="{$isla_id}">
-        </div><br>
-		ID de Isla*: <br><input style="width: 300px;" class="textbox" value="{$isla_id}" type="text" name="nuevo_isla_id" id="nuevo_isla_id" required /><br>
-			
-        Nombre: <br><input style="width: 300px;" class="textbox" value="{$isla['nombre']}" type="text" name="nombre" id="nombre" /><br>
-		
-        Gobierno:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="gobierno" minlength="1" placeholder="">{$isla['gobierno']}</textarea><br>
-		Facción Dominante*:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="faccion" minlength="1" placeholder="">{$isla['faccion']}</textarea><br>
-		Tamaño:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="tamano" minlength="1" placeholder="">{$isla['tamano']}</textarea><br>
-		Actividad comercial:<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="comercio" minlength="1" placeholder="">{$isla['comercio']}</textarea><br>
-		Habitantes destacados (separados por coma, sin espacio):<br>
-        <textarea placeholder="" style="width: 400px;height: 125px;" name="habitantes" minlength="1" placeholder="">{$isla['habitantes']}</textarea><br>
-		Zonas:<br>
-        <textarea placeholder="" style="width: 800px;height: 250px;" name="zonas" minlength="1" placeholder="">{$isla['zonas']}</textarea><br>
-		<br>
-        <input class="button" type="submit" value="Modificar Isla">
-      </form>
-    </if>
-	<br>
-	Link de la isla: <a href="/op/isla.php?isla_id={$isla_id}">/op/isla.php?isla_id={$isla_id}</a>
-  </div>
-  {$footer}
+    {$header}
+    <div class="indice islas-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox is-titulo"><span class="barra-texto-op">Crear / modificar islas</span></div>
+            <div class="barra-espacio-op bbox is-descripcion">
+                Datos de mybb_op_islas (mapa del mundo). Buscar una isla existente para editarla, o escribir un isla ID nuevo para crearla.
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox is-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar / crear isla</span></div>
+            <div class="barra-espacio-op bbox is-panel-cuerpo">
+                <form method="get" id="is-buscar-form">
+                    <label for="is-buscar" style="font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin-right: 6px;">Isla ID o nombre</label>
+                    <span class="is-buscar-caja">
+                        <input type="text" id="is-buscar" name="isla_id" value="{$isla_id_esc}" placeholder="Dressrosa, isla-42..." autocomplete="off">
+                        <div class="is-resultados" id="is-resultados" hidden></div>
+                    </span>
+                    <button class="btn-op btn-op--sm">Buscar / crear</button>
+                </form>
+            </div>
+        </div>
+
+        <if $isla_id != '' then>
+        <form method="post" id="crear_islas">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="isla_id_old" value="{$isla_id_esc}">
+
+            <h2 class="is-seccion-titulo">Identificación</h2>
+            <div class="is-row">
+                <div class="af-field"><label for="isla_id">Isla ID</label><input type="text" id="isla_id" name="isla_id" value="{$isla_id_esc}" required></div>
+                <div class="af-field"><label for="nombre">Nombre</label><input type="text" id="nombre" name="nombre" value="{$isla_esc['nombre']}" required></div>
+            </div>
+
+            <h2 class="is-seccion-titulo">Detalles</h2>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="gobierno">Gobierno</label><textarea id="gobierno" name="gobierno">{$isla_esc['gobierno']}</textarea></div>
+            </div>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="faccion">Facción dominante</label><textarea id="faccion" name="faccion">{$isla_esc['faccion']}</textarea></div>
+            </div>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="tamano">Tamaño</label><textarea id="tamano" name="tamano">{$isla_esc['tamano']}</textarea></div>
+            </div>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="comercio">Actividad comercial</label><textarea id="comercio" name="comercio">{$isla_esc['comercio']}</textarea></div>
+            </div>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="habitantes">Habitantes destacados (separados por coma, sin espacio)</label><textarea id="habitantes" name="habitantes">{$isla_esc['habitantes']}</textarea></div>
+            </div>
+            <div class="is-row">
+                <div class="af-field" style="flex-basis:100%"><label for="zonas">Zonas</label><textarea id="zonas" name="zonas" style="min-height:200px;">{$isla_esc['zonas']}</textarea></div>
+            </div>
+
+            <button class="btn-op btn-op--primario is-guardar">Guardar</button>
+        </form>
+
+        <p class="is-descripcion" style="padding-left:0;">Link de la isla: <a href="{$isla_link}" target="_blank">{$isla_link}</a></p>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var input = document.getElementById('is-buscar');
+        var lista = document.getElementById('is-resultados');
+        if (!input || !lista) { return; }
+        var caja = input.closest('.is-buscar-caja');
+        var tercerFondo = document.querySelector('.islas-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrar() {
+            lista.hidden = true;
+            lista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('is-dropdown-abierto'); }
+        }
+
+        function marcarActivo() {
+            lista.querySelectorAll('.is-resultado').forEach(function (it, i) {
+                it.classList.toggle('is-activo', i === activo);
+            });
+        }
+
+        function pintar(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                lista.innerHTML = '<div class="is-resultado-vacio">Sin resultados.</div>';
+            } else {
+                lista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="is-resultado" data-id="' + esc(r.id) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            lista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('is-dropdown-abierto'); }
+        }
+
+        input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrar(); return; }
+            timer = setTimeout(function () {
+                fetch('islas_modificar.php?buscar_isla=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(pintar)
+                    .catch(cerrar);
+            }, 200);
+        });
+
+        lista.addEventListener('click', function (e) {
+            var b = e.target.closest('.is-resultado');
+            if (!b) { return; }
+            input.value = b.getAttribute('data-id');
+            cerrar();
+            document.getElementById('is-buscar-form').submit();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = lista.querySelectorAll('.is-resultado');
+            if (lista.hidden || !items.length) { return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activo = Math.min(activo + 1, items.length - 1);
+                marcarActivo();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activo = Math.max(activo - 1, 0);
+                marcarActivo();
+            } else if (e.key === 'Enter' && activo >= 0) {
+                e.preventDefault();
+                items[activo].click();
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!caja.contains(e.target)) { cerrar(); }
+        });
+    })();
+    </script>
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-  function onClickTid() {
-    const islaId = document.getElementById('isla_id').value;
-    if (islaId) {
-		window.location.href = window.location.pathname + '?isla_id=' + islaId;		
-	}
-  }
-</script>
 
 </html>

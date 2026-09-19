@@ -1,51 +1,114 @@
 <html>
 
 <head>
-  <title>Editar Tema</title>
-  {$headerinclude}
+    <title>Editar fecha de tema</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .editar-tema .thirdBackground { width: 100%; max-width: 700px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .et-titulo { padding: var(--opg-espacio-2); }
+    .et-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .et-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .et-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); }
+    .et-buscar { display: flex; gap: var(--opg-espacio-2); align-items: center; flex-wrap: wrap; }
+    .et-buscar input[type=number] {
+        width: 140px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+
+    .et-tema-actual { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-morado-texto); margin: 0 0 var(--opg-espacio-3); }
+
+    .et-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 140px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field select {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    /* appearance:none + flecha propia: el <select> nativo con "font: inherit" (line-height
+       heredado, casi siempre más chico del que hace falta) recortaba el texto arriba — un
+       <input> con el mismo CSS no lo sufre porque el navegador no le aplica ese recorte.
+       Sacar el estilo nativo del todo evita que vuelva a pasar y empareja la altura. */
+    .af-field select {
+        /* templates/global.css tiene un "select { height: 32px; }" sitewide que gana por ser
+           la única regla que fija height — con mi padding vertical más grande, esos 32px fijos
+           dejaban muy poco alto para el texto y lo recortaban arriba. height:auto lo evita. */
+        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
+            linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+    .af-field input:hover, .af-field select:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field select:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+
+    @media (max-width: 700px) {
+        .editar-tema .secondBackground, .editar-tema .thirdBackground { padding: 10px; }
+        .et-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-    <if $tid == '' then>
-      Tema ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='tid'><button
-        onclick=onClickTid()>Buscar</button><br><br>
-    </if>
-	<if $tid !='' then>
+    {$header}
+    <div class="indice editar-tema">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
-		Tema ID:<br><input id='tid' class="textbox" type="text" name="tid" value='{$tid}' disabled><br>
-        
-        Dia*: <br><input style="width: 300px;" class="textbox" value="{$thread['day']}" type="text" name="dia" id="dia" required /><br>
-        Año*: <br><input style="width: 300px;" class="textbox" value="{$thread['year']}" type="text" name="ano" id="ano" required /><br>
-        Estación* (Primavera, Verano, Invierno, Otoño):<br><input value="{$thread['estacion']}" style="width: 300px;" class="textbox" value="" type="text" name="estacion" id="estacion" required /><br>
-        <button onclick=editarFecha()>Editar Fecha</button>
-    </if>
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-  </div>
-  {$footer}
+        <div>
+            <div class="barra-op bbox et-titulo"><span class="barra-texto-op">Editar fecha de tema</span></div>
+            <div class="barra-espacio-op bbox et-descripcion">
+                Cambia el día/año/estación in-game (columnas custom de mybb_threads) de un tema por su ID.
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox et-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar tema</span></div>
+            <div class="barra-espacio-op bbox et-panel-cuerpo">
+                <form method="get" class="et-buscar">
+                    <label for="et-tid" style="font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);">ID del tema</label>
+                    <input type="number" id="et-tid" name="tid" min="1" value="{$et_tid_valor}" required>
+                    <button class="btn-op btn-op--sm">Buscar</button>
+                </form>
+            </div>
+        </div>
+
+        <if $et_tema_actual != '' then>
+        <div>
+            <div class="barra-op bbox et-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Tema: {$et_tema_actual}</span></div>
+            <div class="barra-espacio-op bbox et-panel-cuerpo">
+                {$et_form}
+            </div>
+        </div>
+        </if>
+        <if $et_tema_actual == '' then>{$et_form}</if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-  function onClickTid() {
-    const temaId = document.getElementById('tid').value;
-    if (temaId) {
-		    window.location.href = window.location.pathname + '?tid=' + temaId;		
-	}
-  }
-	
-  function editarFecha() {
-    const dia = document.getElementById('dia').value;
-	const temaId = document.getElementById('tid').value;
-	const ano = document.getElementById('ano').value;
-	const estacion = document.getElementById('estacion').value;
-    if (temaId && dia && ano && estacion) {
-		// https://onepiecegaiden.com/op/editar_tema.php?tid=3533&estacion=Primavera&dia=421&ano=725
-		// alert(window.location.pathname + '?tid=' + temaId + '&estacion=' + estacion + '&dia=' + dia + '&ano=' + ano);
-		window.location.href = window.location.pathname + '?tid=' + temaId + '&estacion=' + estacion + '&dia=' + dia + '&ano=' + ano;		
-	}
-  }
-</script>
 
 </html>

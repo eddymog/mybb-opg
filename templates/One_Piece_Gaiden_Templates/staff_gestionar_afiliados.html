@@ -1,13 +1,312 @@
 <html>
+
 <head>
-<title>Gestión de Afiliados - One Piece Gaiden</title>
-{$headerinclude}
+    <title>Gestión de Afiliados — One Piece Gaiden</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .afiliados-staff .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .af-titulo { padding: var(--opg-espacio-2); }
+    .af-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .af-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .af-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); }
+    .af-conteos { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: baseline; font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-marron); }
+    .af-conteos .lbl { font-family: InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; letter-spacing: 1px; font-size: 11px; color: var(--opg-morado-texto); margin-right: 4px; }
+    .af-conteos-nota { flex-basis: 100%; font-size: 12px; color: var(--opg-gris-texto); }
+
+    .af-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 220px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field select {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    /* appearance:none + flecha propia: el <select> nativo con "font: inherit" (line-height
+       heredado, casi siempre más chico del que hace falta) recortaba el texto arriba — un
+       <input> con el mismo CSS no lo sufre porque el navegador no le aplica ese recorte.
+       Sacar el estilo nativo del todo evita que vuelva a pasar y empareja la altura. */
+    .af-field select {
+        /* templates/global.css tiene un "select { height: 32px; }" sitewide que gana por ser
+           la única regla que fija height — con mi padding vertical más grande, esos 32px fijos
+           dejaban muy poco alto para el texto y lo recortaban arriba. height:auto lo evita. */
+        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
+            linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+    .af-field input:hover, .af-field select:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field select:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+    .af-preview { width: 140px; flex: 0 0 auto; }
+    .af-preview label { font-size: 11px; color: var(--opg-gris-texto); text-transform: none; letter-spacing: 0; }
+    .af-preview .af-thumb { width: 140px; }
+
+    .af-thumb { background: var(--opg-crema-dorada); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); overflow: hidden; }
+    .af-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .af-msg { margin: var(--opg-espacio-2) 0; font-size: 13px; min-height: 18px; font-family: InterMedium, var(--opg-fuente-cuerpo); }
+    .af-msg.ok  { color: var(--opg-verde-exito); }
+    .af-msg.err { color: var(--opg-rojo-error); }
+    .af-buttons { display: flex; gap: var(--opg-espacio-2); margin-top: 4px; }
+
+    /* Título de sección con raya de acento, sin caja propia (ver style.md §7: "menos cajas anidadas") */
+    .af-lista-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .af-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--opg-espacio-4); }
+
+    /* Tarjeta viñeta (ver style.md §7 .opg-card--media): fila en vez de miniatura cuadrada. */
+    .af-item {
+        display: flex; gap: var(--opg-espacio-3); min-width: 0; padding: var(--opg-espacio-2);
+        background:
+            linear-gradient(var(--opg-morado), var(--opg-morado)) top / 100% 4px no-repeat,
+            var(--opg-crema-clara);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset); transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+    }
+    .af-item:hover { transform: translate(-2px, -2px); box-shadow: var(--opg-sombra-offset-hover); }
+    .af-item .af-thumb { width: 96px; flex: 0 0 auto; margin-top: 4px; }
+    .af-meta { min-width: 0; flex: 1 1 auto; }
+    .af-name { font-family: var(--opg-fuente-titular); font-size: 14px; color: var(--opg-ciruela); margin-bottom: 2px; word-break: break-word; }
+    .af-tag { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--opg-morado-texto); margin-left: 4px; }
+    .af-sub { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); margin-bottom: 8px; }
+    .af-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .af-actions .opg-chip { font-size: 11px; padding: 2px 8px; }
+    .opg-chip.chip-peligro:hover { background: var(--opg-rojo-error); color: #fff; }
+
+    @media (max-width: 700px) {
+        .afiliados-staff .secondBackground, .afiliados-staff .thirdBackground { padding: 10px; }
+        .af-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
+
 <body>
-{$header}
-<br />
-{$gestionar_afiliados_contenido}
-<br class="clear" />
-{$footer}
+    {$header}
+    <div class="indice afiliados-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox af-titulo"><span class="barra-texto-op">Gestión de afiliados</span></div>
+            <div class="barra-espacio-op bbox af-descripcion">
+                Altas, bajas y edición de los afiliados que se muestran en el índice del foro.
+            </div>
+        </div>
+
+        <div>
+            <div class="barra-op bbox af-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Cupos activos</span></div>
+            <div class="barra-espacio-op bbox af-panel-cuerpo">
+                <div class="af-conteos">
+                    <span><span class="lbl">Almirante</span> {$af_conteo_hermano}</span>
+                    <span><span class="lbl">Capitanes</span> {$af_conteo_grande}</span>
+                    <span><span class="lbl">Piratas</span> {$af_conteo_pequeno}</span>
+                    <span class="af-conteos-nota">Si un nivel supera su tope, los sobrantes (por orden) no se muestran en el índice.</span>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="barra-op bbox af-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" id="af-form-title" style="font-size: 15px;">Agregar afiliado</span></div>
+            <div class="barra-espacio-op bbox af-panel-cuerpo">
+                <input type="hidden" id="af-id" value="">
+                <div class="af-row">
+                    <div class="af-field">
+                        <label for="af-tipo">Nivel</label>
+                        <select id="af-tipo">
+                            <option value="hermano">Afiliado Almirante (hermano)</option>
+                            <option value="grande" selected>Afiliados Capitanes (grande)</option>
+                            <option value="pequeno">Afiliados Piratas (pequeno)</option>
+                        </select>
+                    </div>
+                    <div class="af-field">
+                        <label for="af-nombre">Nombre del foro</label>
+                        <input type="text" id="af-nombre" maxlength="120" placeholder="Nombre visible (queda en el title)">
+                    </div>
+                    <div class="af-field">
+                        <label for="af-orden">Orden</label>
+                        <input type="number" id="af-orden" value="0">
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-field">
+                        <label for="af-url">URL del foro</label>
+                        <input type="text" id="af-url" maxlength="255" placeholder="https://...">
+                    </div>
+                    <div class="af-field">
+                        <label for="af-imagen">URL de la imagen</label>
+                        <input type="text" id="af-imagen" maxlength="255" placeholder="https://... (súbela antes con el uploader)">
+                    </div>
+                    <div class="af-preview">
+                        <label>Preview</label>
+                        <div class="af-thumb" id="af-preview-thumb" style="aspect-ratio:16/9"><img id="af-preview-img" src="" alt=""></div>
+                    </div>
+                </div>
+                <div class="af-row">
+                    <div class="af-field" style="flex-basis:100%">
+                        <label for="af-descripcion">Descripción (opcional · nota interna de Staff, no se muestra en público)</label>
+                        <input type="text" id="af-descripcion" maxlength="255">
+                    </div>
+                </div>
+                <div class="af-msg" id="af-msg"></div>
+                <div class="af-buttons">
+                    <button type="button" class="btn-op btn-op--primario" id="af-save">Guardar</button>
+                    <button type="button" class="opg-chip" id="af-cancel" style="display:none">Cancelar edición</button>
+                </div>
+            </div>
+        </div>
+
+        <section>
+            <h2 class="af-lista-titulo">Afiliados cargados</h2>
+            <div class="af-list" id="af-list">{$af_tarjetas}</div>
+        </section>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var POST_KEY = "{$mybb->post_code}";
+        var ENDPOINT = "/op/staff/gestionar_afiliados.php";
+
+        var el = function (id) { return document.getElementById(id); };
+        var fId = el("af-id"), fTipo = el("af-tipo"), fNombre = el("af-nombre"), fOrden = el("af-orden"),
+            fUrl = el("af-url"), fImg = el("af-imagen"), fDesc = el("af-descripcion"),
+            msg = el("af-msg"), title = el("af-form-title"), cancelBtn = el("af-cancel"),
+            prevImg = el("af-preview-img"), prevThumb = el("af-preview-thumb"), list = el("af-list");
+
+        function ratioFor(t) { return t === "pequeno" ? "1/1" : "16/9"; }
+        function refreshPreview() {
+            prevImg.src = fImg.value || "";
+            prevThumb.style.aspectRatio = ratioFor(fTipo.value);
+        }
+        fImg.addEventListener("input", refreshPreview);
+        fTipo.addEventListener("change", refreshPreview);
+
+        function resetForm() {
+            fId.value = ""; fNombre.value = ""; fUrl.value = ""; fImg.value = ""; fDesc.value = ""; fOrden.value = "0";
+            fTipo.value = "grande"; title.textContent = "Agregar afiliado"; cancelBtn.style.display = "none";
+            msg.className = "af-msg"; msg.textContent = "";
+            refreshPreview();
+        }
+        cancelBtn.addEventListener("click", resetForm);
+
+        function post(data, cb) {
+            data.my_post_key = POST_KEY;
+            var body = Object.keys(data).map(function (k) {
+                return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
+            }).join("&");
+            fetch(ENDPOINT, {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                credentials: "same-origin",
+                body: body
+            }).then(function (r) { return r.json(); }).then(cb).catch(function () {
+                msg.className = "af-msg err"; msg.textContent = "Error de red.";
+            });
+        }
+
+        function esc(s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+
+        function cardHtml(a) {
+            var ratio = a.tipo === "pequeno" ? "1/1" : "16/9";
+            var activo = parseInt(a.activo, 10);
+            var estado = activo ? "Activo" : "Inactivo";
+            var col = activo ? "var(--opg-verde-exito, #27ae60)" : "var(--opg-gris-texto, #999)";
+            return '<div class="af-item" id="af-item-' + a.id + '" data-id="' + a.id + '" data-tipo="' + esc(a.tipo) + '" data-nombre="' + esc(a.nombre) + '" data-url="' + esc(a.url) + '" data-imagen="' + esc(a.imagen) + '" data-descripcion="' + esc(a.descripcion || "") + '" data-orden="' + esc(a.orden) + '" data-activo="' + activo + '">'
+                + '<div class="af-thumb" style="aspect-ratio:' + ratio + '"><img src="' + esc(a.imagen) + '" alt="" onerror="this.style.opacity=0.2"></div>'
+                + '<div class="af-meta"><div class="af-name">' + esc(a.nombre) + ' <span class="af-tag">' + esc(a.tipo) + '</span></div>'
+                + '<div class="af-sub">orden: ' + esc(a.orden) + ' · <span style="color:' + col + '">' + estado + '</span></div>'
+                + '<div class="af-actions"><button type="button" class="af-edit opg-chip" data-id="' + a.id + '">Editar</button>'
+                + '<button type="button" class="af-toggle opg-chip" data-id="' + a.id + '">' + (activo ? "Desactivar" : "Activar") + '</button>'
+                + '<button type="button" class="af-del opg-chip chip-peligro" data-id="' + a.id + '">Eliminar</button></div></div></div>';
+        }
+
+        el("af-save").addEventListener("click", function () {
+            var id = fId.value.trim();
+            var accion = id ? "editar" : "agregar";
+            msg.className = "af-msg"; msg.textContent = "Guardando...";
+            post({
+                accion: accion, id: id, tipo: fTipo.value, nombre: fNombre.value,
+                url: fUrl.value, imagen: fImg.value, descripcion: fDesc.value, orden: fOrden.value
+            }, function (res) {
+                if (!res || !res.success) { msg.className = "af-msg err"; msg.textContent = (res && res.error) || "Error."; return; }
+                var html = cardHtml(res.afiliado);
+                var tmp = document.createElement("div"); tmp.innerHTML = html;
+                var newCard = tmp.firstChild;
+                var existing = el("af-item-" + res.afiliado.id);
+                if (existing) { existing.parentNode.replaceChild(newCard, existing); }
+                else {
+                    var vacio = list.querySelector(".opg-vacio"); if (vacio) { vacio.remove(); }
+                    list.insertBefore(newCard, list.firstChild);
+                }
+                msg.className = "af-msg ok"; msg.textContent = "Guardado.";
+                resetForm();
+            });
+        });
+
+        list.addEventListener("click", function (e) {
+            var b = e.target.closest("button"); if (!b) return;
+            var id = b.getAttribute("data-id");
+            var item = el("af-item-" + id); if (!item) return;
+
+            if (b.classList.contains("af-edit")) {
+                fId.value = id;
+                fTipo.value = item.getAttribute("data-tipo");
+                fNombre.value = item.getAttribute("data-nombre");
+                fUrl.value = item.getAttribute("data-url");
+                fImg.value = item.getAttribute("data-imagen");
+                fDesc.value = item.getAttribute("data-descripcion");
+                fOrden.value = item.getAttribute("data-orden");
+                title.textContent = "Editar afiliado #" + id;
+                cancelBtn.style.display = "inline-block";
+                refreshPreview();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                return;
+            }
+            if (b.classList.contains("af-toggle")) {
+                post({ accion: "toggle", id: id }, function (res) {
+                    if (res && res.success) {
+                        var a = {
+                            id: id, tipo: item.getAttribute("data-tipo"), nombre: item.getAttribute("data-nombre"),
+                            url: item.getAttribute("data-url"), imagen: item.getAttribute("data-imagen"),
+                            descripcion: item.getAttribute("data-descripcion"), orden: item.getAttribute("data-orden"),
+                            activo: res.activo
+                        };
+                        var tmp = document.createElement("div"); tmp.innerHTML = cardHtml(a);
+                        item.parentNode.replaceChild(tmp.firstChild, item);
+                    }
+                });
+                return;
+            }
+            if (b.classList.contains("af-del")) {
+                if (!confirm("¿Eliminar este afiliado? Esta acción no se puede deshacer.")) return;
+                post({ accion: "eliminar", id: id }, function (res) {
+                    if (res && res.success) { item.remove(); }
+                });
+                return;
+            }
+        });
+
+        refreshPreview();
+    })();
+    </script>
 </body>
+
 </html>

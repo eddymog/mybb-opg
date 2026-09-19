@@ -1,78 +1,115 @@
 <html>
 
 <head>
-  <title>Modificar Sabias Qué</title>
-  {$headerinclude}
+    <title>Modificar "Sabías qué"</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .sabiasque-staff .thirdBackground { width: 100%; max-width: 760px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .sq-titulo { padding: var(--opg-espacio-2); }
+    .sq-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .sq-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .sq-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); }
+    .sq-panel-cabecera { display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-2); flex-wrap: wrap; }
+
+    .sq-form { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field select, .af-field textarea {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    /* appearance:none + flecha propia: el <select> nativo trae su propio padding/altura,
+       que con "font: inherit" (line-height heredado, casi siempre más chico del que hace
+       falta) le recortaba el texto arriba — un <input> con el mismo CSS no lo sufre porque
+       el navegador no le aplica ese recorte. Sacar el estilo nativo del todo evita que
+       vuelva a pasar y de paso empareja la altura con los inputs de al lado. */
+    .af-field select {
+        /* templates/global.css tiene un "select { height: 32px; }" sitewide (más su propio
+           padding/flecha) que gana por ser la única regla que fija height — con mi padding
+           vertical más grande, esos 32px fijos dejaban ~12px para el texto y lo recortaban
+           arriba. height:auto dejo que la caja crezca con el padding en vez de pelearse con eso. */
+        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
+            linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+    .af-field textarea { min-height: 100px; resize: vertical; }
+    .af-field input:hover, .af-field select:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field select:focus, .af-field textarea:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+
+    .sq-lista-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .sq-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opg-chip.chip-activo, .opg-chip.chip-activo:hover { background: var(--opg-morado-cta); color: #fff; }
+
+    @media (max-width: 700px) {
+        .sabiasque-staff .secondBackground, .sabiasque-staff .thirdBackground { padding: 10px; }
+        .sq-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-	Último ID: {$sabiasque_count}<br>
-    <if $sabiasque_id == '' then>
-      Sabias Qué ID*<br><input style="width: 300px;" class="textbox" type="text" placeholder="" required id='sabiasque_id'><button
-        onclick=onClickTid()>Buscar</button><br><br>
-    </if>
-	<if $sabiasque_id !='' then>
+    {$header}
+    <div class="indice sabiasque-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
-        <form method="post" action="/op/staff/sabiasque_modificar.php" name="modificar_sabiasque" id="modificar_sabiasque">
-		Sabías qué ID:<br><input  class="textbox" type="text" name="sabiasque_id" value='{$sabiasque_id}'><br>
-		Tipo:<br>	
-		<select class="" name="tipo" id="tipo">
-		  <option value="1" <if $sabiasque['tipo'] == '1' then>selected</if>>Sabias qué</option>
-		  <option value="2" <if $sabiasque['tipo'] == '2' then>selected</if>>Hay rumores sobre</option>
-		  <option value="3" <if $sabiasque['tipo'] == '3' then>selected</if>>Alguien dijo una vez</option>
-		  <option value="4" <if $sabiasque['tipo'] == '4' then>selected</if>>En este foro</option>
-		</select>
-        <br>
-		Autor (opcional):<br>	
-		<input  class="textbox" type="text" name="autor" value="{$sabiasque['autor']}"><br>
-        Texto*:<br>
-        <textarea style="width: 400px;height: 125px;" name="texto" minlength="1" required>{$sabiasque['texto']}</textarea><br><br>
-        <input class="button" type="submit" value="Modificar">
-      </form>
-    </if>
-	 
-	<br>
-	  
-	<button id="sabiasques_boton" onclick="mostrarSabiasQue()">Mostrar Sabias Qués</button>
-	<div id="sabiasques" style="display: none;font-family: InterRegular;border: 2px dashed black;padding: 5px 10px;text-align: justify;margin: 0px 30px;">
-		
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox sq-titulo"><span class="barra-texto-op">Modificar "Sabías qué"</span></div>
+            <div class="barra-espacio-op bbox sq-descripcion">
+                Frases que el header del foro muestra al azar (&#36;g_sabiasque en global.php).
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox sq-titulo" style="padding: 3px 8px 4px;">
+                <span class="sq-panel-cabecera">
+                    <span class="barra-texto-op" style="font-size: 15px;"><if $sq_editando != '' then>Editando {$sq_editando}<else />Crear nuevo</if></span>
+                    <if $sq_editando != '' then><a class="opg-chip" href="/op/staff/sabiasque_modificar.php">+ Nuevo</a></if>
+                </span>
+            </div>
+            <div class="barra-espacio-op bbox sq-panel-cuerpo">
+                {$sq_form}
+            </div>
+        </div>
+
+        <section>
+            <h2 class="sq-lista-titulo">Todos los cargados</h2>
+            <div class="sq-lista">{$sq_lista}</div>
+        </section>
+
     </div>
-
-  </div>
-  {$footer}
+    </div>
+    </div>
+    </div>
+    {$footer}
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-  const sabiasques = {$sabiasques_json};
-	
-  for (let i = 0; i < sabiasques.length; i++) {
-	  let sabiasque = sabiasques[i];
-	  let autor = '';
-	  
-	  if (sabiasque['autor']) {
-		 autor = ` - Autor: ` + sabiasque['autor'];  
-	  }
-	  
-	  $('#sabiasques').append(`
-	  	  <div><a href="/op/staff/sabiasque_modificar.php?sabiasque_id=` + sabiasque['id'] + `">ID: ` + sabiasque['id'] + `</a> - Tipo: ` + sabiasque['tipo'] + autor + `</div>
-		  <div>` + sabiasque['texto'] + `</div><br>
-	  `);
-  }
-
-  function mostrarSabiasQue() {
-	  $('#sabiasques').css('display', 'block');
-   	  $('#sabiasques_boton').css('display', 'none');
-  }	
-	
-  function onClickTid() {
-    const sabiasqueId = document.getElementById('sabiasque_id').value;
-    if (sabiasqueId) {
-		    window.location.href = window.location.pathname + '?sabiasque_id=' + sabiasqueId;		
-	}
-  }
-</script>
 
 </html>

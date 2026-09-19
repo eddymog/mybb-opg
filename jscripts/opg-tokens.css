@@ -13,21 +13,21 @@
  * que NO pasa por {$headerinclude} (poco común; las de op/staff/ sí pasan),
  * cargalo a mano con el número de "VERSIÓN ACTUAL" de abajo:
  *
- *      <link rel="stylesheet" href="/jscripts/opg-tokens.css?ver=6">
+ *      <link rel="stylesheet" href="/jscripts/opg-tokens.css?ver=8">
  *
- * 1. Usá las variables en vez de hex sueltos: `color: var(--opg-naranja)`
+ * 1. Usar las variables en vez de hex sueltos: `color: var(--opg-naranja)`
  *    en vez de `color: #ff8900`.
- * 2. Para botones, usá `.btn-op` (ver abajo) en vez de inventar otra clase;
+ * 2. Para botones, usar `.btn-op` (ver abajo) en vez de inventar otra clase;
  *    para tarjetas de listado, `.opg-card` / `.opg-chip`.
  *
- * VERSIÓN ACTUAL: 6 — subila (acá y en el <link> de headerinclude.html) cada
+ * VERSIÓN ACTUAL: 8 — subila (acá y en el <link> de headerinclude.html) cada
  * vez que edites este archivo.
  * -------------------------------------------------------------------------
  * `?ver=N` porque este archivo ahora se carga en TODAS las páginas del foro,
  * no solo en dos herramientas de staff de bajo tráfico — mismo patrón que
  * jquery.js?ver=1823 al lado, en el mismo archivo. Cloudflare cachea este
  * dominio agresivamente e ignora `Cache-Control` del origin (confirmado en
- * producción), así que con tráfico real ese caché de borde es lo que querés
+ * producción), así que con tráfico real ese caché de borde es lo que conviene
  * — la forma de que un cambio se vea es una URL nueva, no pedirle a
  * Cloudflare que deje de cachear un archivo que ahora carga cada visita al
  * foro entero.
@@ -52,7 +52,7 @@
   --opg-naranja-accion-hover: #ff9b00;
 
   /* ── Morado (secundario / realce) ────────────────────────────────────── */
-  --opg-morado: #9664e0;               /* 3.52:1 sobre crema: NO para texto de cuerpo, solo bordes/acentos/texto grande — usá --opg-morado-texto para texto */
+  --opg-morado: #9664e0;               /* 3.52:1 sobre crema: NO para texto de cuerpo, solo bordes/acentos/texto grande — usar --opg-morado-texto para texto */
   --opg-morado-borde: #8f59f7;
   --opg-morado-apagado: #6e67d1;
   --opg-morado-neon: #cf44ff;
@@ -131,8 +131,28 @@
 
   /* ── Texturas ─────────────────────────────────────────────────────────── */
   /* Trama de puntos (halftone): se combina con el fondo propio de cada
-     componente, no reemplaza el color. Ej.: background: var(--opg-textura-trama), var(--opg-crema-clara); */
-  --opg-textura-trama: radial-gradient(circle, rgba(0, 0, 0, .14) 1.6px, transparent 1.6px) 0 0 / 9px 9px;
+     componente, no reemplaza el color. Ej.: background: var(--opg-textura-trama), var(--opg-crema-clara);
+     Dos capas de puntos intercaladas (como el medio tono real de una imprenta,
+     no una grilla recta de lunares) y bien tenue (7%, no 14%): tiene que leerse
+     como textura de papel al pasar de largo, no como decoración que se nota. */
+  --opg-textura-trama:
+    radial-gradient(circle, rgba(0, 0, 0, .07) 1.1px, transparent 1.1px) 0 0 / 10px 10px,
+    radial-gradient(circle, rgba(0, 0, 0, .07) 1.1px, transparent 1.1px) 5px 5px / 10px 10px;
+  /* Grano de papel, puro CSS (sin filtro SVG): a diferencia de .opg-grano (pensado
+     para 1-2 paneles destacados nada más, ver más abajo), esta variable SÍ está
+     pensada para ir en la base de un componente que se repite en cada página —
+     op_global.css la usa en .secondBackground/.thirdBackground, así que llega a
+     todo /op/ sin que cada plantilla tenga que agregar la clase .opg-grano a mano.
+     Cinco capas de puntos con tamaños de mosaico que no coinciden entre sí
+     (11/13/14/15/16px) para que no se note la repetición del patrón, más tenue
+     que la trama de arriba (4.5-5%, no 7%) porque acá el contenido real (texto,
+     inputs) se apoya encima. */
+  --opg-textura-grano:
+    radial-gradient(circle at 15% 30%, rgba(0, 0, 0, .05) 0.6px, transparent 0.6px) 0 0 / 14px 14px,
+    radial-gradient(circle at 60% 10%, rgba(0, 0, 0, .045) 0.5px, transparent 0.5px) 0 0 / 11px 11px,
+    radial-gradient(circle at 80% 70%, rgba(0, 0, 0, .05) 0.7px, transparent 0.7px) 0 0 / 16px 16px,
+    radial-gradient(circle at 30% 80%, rgba(0, 0, 0, .045) 0.5px, transparent 0.5px) 0 0 / 13px 13px,
+    radial-gradient(circle at 45% 50%, rgba(0, 0, 0, .05) 0.6px, transparent 0.6px) 0 0 / 15px 15px;
   /* Borde rasgado, para 1-2 paneles destacados como mucho — no para todo. */
   --opg-recorte-rasgado: polygon(0% 8%, 4% 2%, 9% 6%, 14% 1%, 20% 5%, 26% 0%, 33% 4%, 40% 0%, 47% 5%, 54% 1%,
     61% 6%, 68% 2%, 75% 6%, 82% 1%, 89% 5%, 95% 0%, 100% 6%, 100% 100%, 0% 100%);
@@ -187,8 +207,8 @@
 /* Contraste real (blanco sobre el fondo, WCAG AA = 4.5 texto normal / 3.0 texto grande):
  * --primario (naranja) 2.38:1 y --exito (verde) 2.87:1 FALLAN los dos umbrales en frío.
  * Legibles en la práctica solo por el borde + text-shadow negro de .btn-op — eso no es
- * decorativo acá, sostiene la lectura. Si agregás una variante de color nueva, mantené
- * ese borde y esa sombra; no lo saques "para simplificar". Ver docs/style.md §7 §Contraste. */
+ * decorativo acá, sostiene la lectura. Si se agrega una variante de color nueva, mantener
+ * ese borde y esa sombra; no sacarlo "para simplificar". Ver docs/style.md §7 §Contraste. */
 .btn-op--primario   { background: var(--opg-naranja); }
 .btn-op--primario:hover   { background: var(--opg-naranja-hover); }
 .btn-op--secundario { background: var(--opg-morado-cta); }
@@ -332,7 +352,7 @@ a.opg-chip:hover, button.opg-chip:hover { background: var(--opg-naranja); color:
 
 /**
  * Enlace "← Volver" a la herramienta/página contenedora. Nace de banners.php
- * (con moonGetHeavy, ya desactualizado) y op_upload (ya en Inter); usá esta
+ * (con moonGetHeavy, ya desactualizado) y op_upload (ya en Inter); usar esta
  * clase en vez de reescribirla una tercera vez.
  */
 .opg-volver, a.opg-volver:link, a.opg-volver:visited {
@@ -347,7 +367,7 @@ a.opg-volver:hover { color: var(--opg-morado-borde); }
 /**
  * Estado vacío: para cuando un listado/galería no tiene nada que mostrar
  * todavía ("No hay banners activos", "Todavía no hay imágenes subidas"…).
- * Nace de `.vacio` en op_upload; usá esta clase en vez de reescribirla.
+ * Nace de `.vacio` en op_upload; usar esta clase en vez de reescribirla.
  */
 .opg-vacio {
   font-family: var(--opg-fuente-cuerpo);

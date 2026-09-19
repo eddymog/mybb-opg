@@ -42,8 +42,27 @@ $ficha_aprobada = false;
         output_page($page);
         return;
     }
+// END REGION REDIRECCIONES DE SEGURIDAD
 
-    $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' "); 
+// REGION MODO VISTA
+    // Tiene que ir ANTES de buscar la ficha (que usa $uid en el WHERE): si se
+    // resuelve después, como estaba, siempre se busca la ficha de la sesión
+    // actual y modo_vista nunca llega a mostrar la de otra persona. Mismo
+    // orden que ya usa entrenamiento_tecnicas.php.
+    $modo_vista_input = $mybb->get_input('modo_vista');
+    $modo_vista = ($modo_vista_input && ($g_is_staff) || $mybb->user['uid'] == $modo_vista_input);
+    if ($modo_vista) {
+        $uid = $modo_vista_input;
+    }
+    // Si estamos en modo_vista, obtener también el nombre de usuario correspondiente
+    if ($modo_vista) {
+        $query_user = $db->query("SELECT username FROM mybb_users WHERE uid='".intval($uid)."' LIMIT 1");
+        if ($uq = $db->fetch_array($query_user)) { $username = $uq['username']; }
+    }
+// END REGION MODO VISTA
+
+// REGION REDIRECCIONES DE SEGURIDAD (continúa, ahora ya con el $uid correcto)
+    $query_ficha = $db->query(" SELECT * FROM mybb_op_fichas WHERE fid='$uid' ");
     while ($f = $db->fetch_array($query_ficha)) { $ficha = $f; $ficha_aprobada = !in_array($f['aprobada_por'], array('sin_aprobar', 'pendiente_reset'), true); $ficha_existe = true; }
 
     if ($ficha == null || $ficha_aprobada == false) {
@@ -63,19 +82,6 @@ $ficha_aprobada = false;
         return;
     }
 // END REGION REDIRECCIONES DE SEGURIDAD
-
-// REGION MODO VISTA
-    $modo_vista_input = $mybb->get_input('modo_vista'); 
-    $modo_vista = ($modo_vista_input && ($g_is_staff) || $mybb->user['uid'] == $modo_vista_input);
-    if ($modo_vista) {
-        $uid = $modo_vista_input;
-    }
-    // Si estamos en modo_vista, obtener también el nombre de usuario correspondiente
-    if ($modo_vista) {
-        $query_user = $db->query("SELECT username FROM mybb_users WHERE uid='".intval($uid)."' LIMIT 1");
-        if ($uq = $db->fetch_array($query_user)) { $username = $uq['username']; }
-    }
-// END REGION MODO VISTA
 
 // Valor por defecto para plantillas JS
 $reclamar_npc_id_js = '';

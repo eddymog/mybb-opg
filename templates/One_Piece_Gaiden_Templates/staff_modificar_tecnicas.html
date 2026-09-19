@@ -1,147 +1,335 @@
 <html>
-  <head>
-    <title>Modificar Técnicas</title>
+
+<head>
+    <title>Crear / modificar técnicas</title>
     {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
     <style>
-      .form-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-      .form-table td { padding: 0px 8px; vertical-align: middle; border: none; }
-      .textbox, textarea { width: 100%; box-sizing: border-box; }
-      textarea { resize: vertical; }
-      .section-title { text-align: center; font-weight: bold; font-size: 16px; color: #000; margin: 10px 0 0px 0; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-      .section-block { margin-bottom: 2px; }
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .tecnicas-staff .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .tec-titulo { padding: var(--opg-espacio-2); }
+    .tec-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .tec-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .tec-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; gap: var(--opg-espacio-2) var(--opg-espacio-4); align-items: center; flex-wrap: wrap; }
+    .tec-panel-cuerpo input[type=text] {
+        width: 220px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); background: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+
+    /* Typeahead contra el servidor (ver docs/style.md y staff_objetos_modificar.html) */
+    .tec-buscar-caja { position: relative; display: inline-block; }
+    .tec-resultados {
+        position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px;
+        min-width: 260px; max-height: 260px; overflow-y: auto;
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        box-shadow: var(--opg-sombra-offset);
+    }
+    .tec-resultado {
+        display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .tec-resultado + .tec-resultado { border-top: 1px solid rgba(0, 0, 0, .1); }
+    .tec-resultado:hover, .tec-resultado.tec-activo { background: var(--opg-naranja); color: #fff; }
+    .tec-resultado span { display: block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; opacity: .75; }
+    .tec-resultado-vacio { padding: 8px 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); font-style: italic; }
+
+    /* El dropdown es position:absolute y no empuja el alto de la tarjeta: sin esto, en la
+       página "recién buscando" (sin técnica todavía) se sale del marco (ver style.md). */
+    .tecnicas-staff .thirdBackground.tec-dropdown-abierto { padding-bottom: 280px; transition: padding-bottom var(--opg-rapido); }
+
+    /* Guía de campos: acordeón informativo, cerrado por defecto para no ocupar
+       lugar cuando ya se sabe qué va en cada campo. */
+    .tec-guia-barra {
+        display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+        background: var(--opg-morado); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-2) var(--opg-espacio-4); color: #fff;
+        font-family: var(--opg-fuente-titular); letter-spacing: .5px; text-shadow: var(--opg-sombra-titular);
+    }
+    .tec-guia-barra::-webkit-details-marker { display: none; }
+    .tec-guia-barra::after { content: "▾"; margin-left: auto; transition: transform var(--opg-rapido); }
+    details[open] > .tec-guia-barra::after { transform: rotate(180deg); }
+    .tec-guia-cuerpo {
+        margin: 0; border: 2px solid var(--opg-tinta); border-top: 0; border-radius: 0 0 var(--opg-radio-md) var(--opg-radio-md);
+        background: var(--opg-crema-clara); padding: var(--opg-espacio-4);
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: var(--opg-espacio-4);
+    }
+    .tec-guia-item dt {
+        font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: .5px; color: var(--opg-morado-texto); margin-bottom: 2px;
+    }
+    .tec-guia-item dd {
+        margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; line-height: 1.5; color: var(--opg-marron);
+    }
+    .tec-guia-item dd code {
+        background: var(--opg-crema-dorada); border-radius: 4px; padding: 0 4px; font-size: 11px;
+    }
+
+    .tec-seccion-titulo {
+        display: inline-block; margin: var(--opg-espacio-5) 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .tec-seccion-titulo:first-of-type { margin-top: 0; }
+
+    .tec-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; }
+    .af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .af-field input, .af-field select, .af-field textarea {
+        box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+        transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+    }
+    /* templates/global.css tiene un "select { height: 32px; }" sitewide que gana por ser la
+       única regla que fija height — con nuestro padding vertical más grande, esos 32px fijos
+       dejan muy poco alto para el texto y lo recortan arriba (ver style.md). */
+    .af-field select {
+        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image:
+            linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
+            linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+    .af-field textarea { min-height: 110px; resize: vertical; }
+    .af-field input:hover, .af-field select:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:focus, .af-field select:focus, .af-field textarea:focus {
+        outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+    }
+
+    .tec-guardar { margin-top: var(--opg-espacio-5); }
+
+    @media (max-width: 700px) {
+        .tecnicas-staff .secondBackground, .tecnicas-staff .thirdBackground { padding: 10px; }
+        .tec-titulo .barra-texto-op { font-size: 20px; }
+        .tec-guia-cuerpo { grid-template-columns: 1fr; }
+    }
     </style>
-  </head>
-  <body>
+</head>
+
+<body>
     {$header}
-    <div class="fondo-blanco">
-      <if $tecnica_id == '' then>
-        Técnica ID*<br>
-        <input style="width: 300px;" class="textbox" type="text" placeholder="HOS602" required id="tecnica_id">
-        <button id="btn_buscar" onclick="onClickTid()">Buscar</button><br><br>
-      </if>
+    <div class="indice tecnicas-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
-      <if $tecnica_id != '' then>
-        <form method="post" action="/op/staff/tecnicas_modificar.php" name="crear_tecnicas" id="crear_tecnicas">
-          <input type="hidden" name="tecnica_id" value="{$tecnica_id}">
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-          <!-- Identificación -->
-          <table class="form-table">
-            <tr>
-              <td>Técnica ID: <br>
-                <input class="textbox" type="text" name="tid" id="tid" value="{$tecnica['tid']}" required>
-              </td>
-              <td>Nombre de Técnica: <br>
-                <input class="textbox" type="text" name="nombre" id="nombre" value="{$tecnica['nombre']}" required>
-              </td>
-              <td>Razón: <br>
-                <input class="textbox" type="text" name="razon" required>
-              </td>
-            </tr>
-          </table>
+        <div>
+            <div class="barra-op bbox tec-titulo"><span class="barra-texto-op">Crear / modificar técnicas</span></div>
+            <div class="barra-espacio-op bbox tec-descripcion">
+                Catálogo de mybb_op_tecnicas — es lo mismo que arma la tarjeta del BBCode [tecnica=TID] en los posts.
+                Buscar una técnica existente para editarla, o escribir un técnica ID nuevo para crearla.
+            </div>
+        </div>
 
-          <!-- Información Básica -->
-          <div class="section-block">
-            <div class="section-title">Información Básica</div>
-            <table class="form-table">
-              <tr>
-                <td>Estilo: <br>
-                  <input class="textbox" value="{$tecnica['estilo']}" type="text" name="estilo" id="estilo" required>
-                </td>
-                <td>Tier: <br>
-                  <input class="textbox" value="{$tecnica['tier']}" type="text" name="tier" id="tier" required>
-                </td>
-                <td>Clase: <br>
-                  <input class="textbox" value="{$tecnica['clase']}" type="text" name="clase" id="clase" required>
-                </td>
-              </tr>
-              <tr>
-                <td>Tipo: <br>
-                  <input class="textbox" value="{$tecnica['tipo']}" type="text" name="tipo" id="tipo" required>
-                </td>
-                <td>Rama: <br>
-                  <input class="textbox" value="{$tecnica['rama']}" type="text" name="rama" id="rama" required>
-                </td>
-                <td>Estilo: <br>
-                  <input class="textbox" value="{$tecnica['estilo']}" type="text" name="estilo" id="estilo" required>
-                </td>
-              </tr>
-            </table>
-          </div>
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
 
-          <!-- Información Bélica -->
-          <div class="section-block">
-            <div class="section-title">Información Bélica</div>
-            <table class="form-table">
-              <tr>
-                <td>Energía: <br>
-                  <input class="textbox" value="{$tecnica['energia']}" type="text" name="energia" id="energia">
-                </td>
-                <td>Mantenimiento Energía: <br>
-                  <input class="textbox" value="{$tecnica['energia_turno']}" type="text" name="energia_turno" id="energia_turno">
-                </td>
-                <td>Haki: <br>
-                  <input class="textbox" value="{$tecnica['haki']}" type="text" name="haki" id="haki">
-                </td>
-                <td>Mantenimiento Haki: <br>
-                  <input class="textbox" value="{$tecnica['haki_turno']}" type="text" name="haki_turno" id="haki_turno">
-                </td>
-              </tr>
-              <tr>
-                <td>Efectos: <br>
-                  <input class="textbox" value="{$tecnica['efectos']}" type="text" name="efectos" id="efectos">
-                </td>
-                <td>Requisitos: <br>
-                  <input class="textbox" value="{$tecnica['requisitos']}" type="text" name="requisitos" id="requisitos">
-                </td>
-                <td>Enfriamiento: <br>
-                  <input class="textbox" value="{$tecnica['enfriamiento']}" type="text" name="enfriamiento" id="enfriamiento">
-                </td>
-              </tr>
-            </table>
-            <table class="form-table" style="width:100%;">
-              <tr>
-                <td colspan="4">Descripción: <br>
-                  <textarea class="textbox" name="descripcion" style="width:100%; height:120px; resize: vertical;" required>{$tecnica['descripcion']}</textarea>
-                </td>
-              </tr>
-            </table>
-          </div>
+        <details>
+            <summary class="tec-guia-barra">Guía de campos</summary>
+            <dl class="tec-guia-cuerpo">
+                <div class="tec-guia-item">
+                    <dt>Técnica ID</dt>
+                    <dd>Identificador único. Lo usa el BBCode <code>[tecnica=TID]</code> en los posts y <code>mybb_op_tec_aprendidas</code> para saber quién la tiene aprendida. Cambiarlo en una técnica existente la renombra — los aprendizajes ya registrados se actualizan solos.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Estilo / Rama</dt>
+                    <dd>El estilo agrupa técnicas relacionadas (usar <code>Racial</code> para técnicas raciales/innatas); la rama es una subdivisión dentro del estilo, para organizar el árbol de progresión cuando tiene varios caminos.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Clase</dt>
+                    <dd><code>Activa</code> (un solo uso), <code>Pasiva</code> (siempre encendida), <code>Mantenida</code> (se sostiene turno a turno — por eso existen los costos "por turno") o <code>Conjunta</code> (técnica combinada). El buscador público (<code>op/tecnicas_buscar.php</code>) solo reconoce estos 4 valores.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Tipo</dt>
+                    <dd>El rol táctico: <code>Ofensiva</code>, <code>Defensiva</code>, <code>Ambiental</code>, <code>Elusiva</code> o <code>Utilidad</code>. Mismo caso que Clase: son los únicos 5 valores que filtra el buscador público.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Tier</dt>
+                    <dd>Nivel de poder/dificultad de la técnica dentro de su estilo.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Energía / Haki (y "por turno")</dt>
+                    <dd>Costo al usarla una vez. El costo "por turno" es lo que cuesta mantenerla activa cada turno — solo tiene sentido real en técnicas de clase Mantenida.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Enfriamiento</dt>
+                    <dd>Turnos que hay que esperar antes de poder volver a usarla.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Requisitos</dt>
+                    <dd>Qué necesita el personaje para aprenderla (nivel, técnicas previas, etc.). Aparece como aviso destacado arriba de la descripción en la tarjeta del post.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Efectos</dt>
+                    <dd>Qué hace mecánicamente la técnica. Se muestra en su propio cuadro, separado de la Descripción.</dd>
+                </div>
+                <div class="tec-guia-item">
+                    <dt>Descripción</dt>
+                    <dd>El texto narrativo/de rol: cómo se ve o se ejecuta la técnica.</dd>
+                </div>
+            </dl>
+        </details>
 
-          <br>
-          <input class="button" type="submit" value="Modificar">
+        <div>
+            <div class="barra-op bbox tec-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar / crear técnica</span></div>
+            <div class="barra-espacio-op bbox tec-panel-cuerpo">
+                <form method="get" id="tec-buscar-form">
+                    <label for="tec-buscar" style="font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin-right: 6px;">Técnica ID o nombre</label>
+                    <span class="tec-buscar-caja">
+                        <input type="text" id="tec-buscar" name="tecnica_id" value="{$tecnica_id_esc}" placeholder="HOS602, Pistola de Humo..." autocomplete="off">
+                        <div class="tec-resultados" id="tec-resultados" hidden></div>
+                    </span>
+                    <button class="btn-op btn-op--sm">Buscar / crear</button>
+                </form>
+            </div>
+        </div>
+
+        <if $tecnica_id != '' then>
+        <form method="post" id="crear_tecnicas">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="tid_old" value="{$tecnica_id_esc}">
+
+            <h2 class="tec-seccion-titulo">Identificación</h2>
+            <div class="tec-row">
+                <div class="af-field"><label for="tid">Técnica ID</label><input type="text" id="tid" name="tid" value="{$tecnica_id_esc}" required></div>
+                <div class="af-field"><label for="nombre">Nombre</label><input type="text" id="nombre" name="nombre" value="{$tecnica_esc['nombre']}" required></div>
+            </div>
+
+            <h2 class="tec-seccion-titulo">Clasificación</h2>
+            <div class="tec-row">
+                <div class="af-field"><label for="estilo">Estilo</label><input type="text" id="estilo" name="estilo" value="{$tecnica_esc['estilo']}" required></div>
+                <div class="af-field"><label for="rama">Rama</label><input type="text" id="rama" name="rama" value="{$tecnica_esc['rama']}"></div>
+                <div class="af-field"><label for="tier">Tier</label><input type="text" id="tier" name="tier" value="{$tecnica_esc['tier']}" required></div>
+            </div>
+            <div class="tec-row">
+                <div class="af-field"><label for="clase">Clase</label><select id="clase" name="clase" required>{$tec_opciones_clase}</select></div>
+                <div class="af-field"><label for="tipo">Tipo</label><select id="tipo" name="tipo" required>{$tec_opciones_tipo}</select></div>
+            </div>
+
+            <h2 class="tec-seccion-titulo">Costos y enfriamiento</h2>
+            <div class="tec-row">
+                <div class="af-field"><label for="energia">Energía</label><input type="text" id="energia" name="energia" value="{$tecnica_esc['energia']}"></div>
+                <div class="af-field"><label for="energia_turno">Energía por turno</label><input type="text" id="energia_turno" name="energia_turno" value="{$tecnica_esc['energia_turno']}"></div>
+                <div class="af-field"><label for="haki">Haki</label><input type="text" id="haki" name="haki" value="{$tecnica_esc['haki']}"></div>
+                <div class="af-field"><label for="haki_turno">Haki por turno</label><input type="text" id="haki_turno" name="haki_turno" value="{$tecnica_esc['haki_turno']}"></div>
+                <div class="af-field"><label for="enfriamiento">Enfriamiento</label><input type="text" id="enfriamiento" name="enfriamiento" value="{$tecnica_esc['enfriamiento']}"></div>
+            </div>
+
+            <h2 class="tec-seccion-titulo">Contenido</h2>
+            <div class="tec-row">
+                <div class="af-field" style="flex-basis:100%"><label for="requisitos">Requisitos</label><input type="text" id="requisitos" name="requisitos" value="{$tecnica_esc['requisitos']}"></div>
+            </div>
+            <div class="tec-row">
+                <div class="af-field" style="flex-basis:100%"><label for="efectos">Efectos</label><textarea id="efectos" name="efectos">{$tecnica_esc['efectos']}</textarea></div>
+            </div>
+            <div class="tec-row">
+                <div class="af-field" style="flex-basis:100%"><label for="descripcion">Descripción</label><textarea id="descripcion" name="descripcion" required>{$tecnica_esc['descripcion']}</textarea></div>
+            </div>
+
+            <button class="btn-op btn-op--primario tec-guardar">Guardar</button>
         </form>
-      </if>
-    </div>
+        </if>
 
+    </div>
+    </div>
+    </div>
+    </div>
     {$footer}
 
-    <if $log_var != '' then>
-      <script>
-        alert("{$log_var}");
-      </script>
-    </if>
-
     <script>
-      function onClickTid() {
-        const input = document.getElementById('tecnica_id');
-        if (!input) {
-          alert('No se encontró el campo Técnica ID');
-          return;
-        }
-        const tecnicaId = input.value.trim();
-        if (!tecnicaId) {
-          alert('Introduce un Técnica ID');
-          return;
-        }
-        const url = new URL(window.location.href);
-        url.searchParams.set('tecnica_id', tecnicaId);
-        window.location.href = url.toString();
-      }
+    (function () {
+        var input = document.getElementById('tec-buscar');
+        var lista = document.getElementById('tec-resultados');
+        if (!input || !lista) { return; }
+        var caja = input.closest('.tec-buscar-caja');
+        var tercerFondo = document.querySelector('.tecnicas-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
 
-      (function attachHandler(){
-        var btn = document.getElementById('btn_buscar');
-        if (btn) btn.addEventListener('click', function(e){ e.preventDefault(); onClickTid(); });
-      })();
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrar() {
+            lista.hidden = true;
+            lista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('tec-dropdown-abierto'); }
+        }
+
+        function marcarActivo() {
+            lista.querySelectorAll('.tec-resultado').forEach(function (it, i) {
+                it.classList.toggle('tec-activo', i === activo);
+            });
+        }
+
+        function pintar(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                lista.innerHTML = '<div class="tec-resultado-vacio">Sin resultados.</div>';
+            } else {
+                lista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="tec-resultado" data-id="' + esc(r.id) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            lista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('tec-dropdown-abierto'); }
+        }
+
+        input.addEventListener('input', function () {
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrar(); return; }
+            timer = setTimeout(function () {
+                fetch('tecnicas_modificar.php?buscar_tecnica=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(pintar)
+                    .catch(cerrar);
+            }, 200);
+        });
+
+        lista.addEventListener('click', function (e) {
+            var b = e.target.closest('.tec-resultado');
+            if (!b) { return; }
+            input.value = b.getAttribute('data-id');
+            cerrar();
+            document.getElementById('tec-buscar-form').submit();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = lista.querySelectorAll('.tec-resultado');
+            if (lista.hidden || !items.length) { return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activo = Math.min(activo + 1, items.length - 1);
+                marcarActivo();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activo = Math.max(activo - 1, 0);
+                marcarActivo();
+            } else if (e.key === 'Enter' && activo >= 0) {
+                e.preventDefault();
+                items[activo].click();
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!caja.contains(e.target)) { cerrar(); }
+        });
+    })();
     </script>
-  </body>
+</body>
+
 </html>

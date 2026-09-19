@@ -1,39 +1,86 @@
 <html>
 
 <head>
-  <title>Salario Facción</title>
-  {$headerinclude}
+    <title>Salario de facción</title>
+    {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .salario-staff .thirdBackground { width: 100%; max-width: 760px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .sf-titulo { padding: var(--opg-espacio-2); }
+    .sf-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .sf-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+    .sf-descripcion code { background: var(--opg-crema-dorada); border-radius: 4px; padding: 0 4px; font-size: 12px; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .sf-panel-cuerpo { padding: var(--opg-espacio-5) var(--opg-espacio-4); text-align: center; }
+
+    .sf-lista-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
+    }
+    .sf-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .sf-lista > .opg-vacio { padding: var(--opg-espacio-4); }
+    .sf-fila { padding: var(--opg-espacio-2) var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .sf-fila:nth-child(odd)  { background: var(--opg-crema); }
+    .sf-fila:nth-child(even) { background: var(--opg-crema-dorada); }
+    .sf-fila + .sf-fila { border-top: 1px solid rgba(0, 0, 0, .15); }
+
+    @media (max-width: 700px) {
+        .salario-staff .secondBackground, .salario-staff .thirdBackground { padding: 10px; }
+        .sf-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco" style="text-align: center;">
-      <form method="post" action="/op/staff/salario_faccion.php" name="salario_faccion" id="salario_faccion">
-        <div style="display: none">
-           <input type="text" id="salario" name="salario" value="1">
+    {$header}
+    <div class="indice salario-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox sf-titulo"><span class="barra-texto-op">Salario de facción</span></div>
+            <div class="barra-espacio-op bbox sf-descripcion">
+                Paga el sueldo semanal a todos los personajes con un rango de facción pagado. Los montos se configuran en
+                Configuración del foro &rarr; OPG Facciones (columna <code>sueldo_semanal</code> de cada rango) — no hay nada que elegir acá.
+            </div>
         </div>
-        
-		<h2>¡Entrega los salarios!</h2>
-        <input  class="button" type="submit" onclick="entregarSalarios();" style=" font-size: 30px; " value="Entregar salarios">
-		<br><br><br><br>
-		<div>
-			{$salarios_entregados}
-		</div>  
-		
-      </form>
-  </div>
-  {$footer}
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div>
+            <div class="barra-op bbox sf-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Repartir</span></div>
+            <div class="barra-espacio-op bbox sf-panel-cuerpo">
+                <form method="post" onsubmit="return confirm('¿Entregar el salario semanal a todos los personajes con rango pagado?');">
+                    <input type="hidden" name="my_post_key" value="{$post_key}">
+                    <button class="btn-op btn-op--hero btn-op--secundario">Entregar salarios</button>
+                </form>
+            </div>
+        </div>
+
+        <section>
+            <h2 class="sf-lista-titulo">Últimos repartos</h2>
+            <div class="sf-lista">{$salarios_entregados}</div>
+        </section>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
 </body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-function entregarSalarios() {
-	if (confirm('¿Estás seguro que quieres entregar los salarios?')) {
-		return true;
-	} else {
-		return false;
-	}
-}
-</script>
 
 </html>

@@ -32,7 +32,7 @@ Las fuentes se cargan por `@font-face` desde `https://onepiecegaiden.com/images/
 
 > La URL externa de arriba es la que usan algunas plantillas viejas, pero ya no es la
 > fuente real: el CSS compilado del tema (`cache/themes/theme3/fonts.css`) carga las
-> fuentes en local, `/images/op/fonts/moon_get-Heavy.otf`. Para código nuevo, usá la
+> fuentes en local, `/images/op/fonts/moon_get-Heavy.otf`. Para código nuevo, usar la
 > ruta local (más rápida y no depende de que ese dominio siga en pie).
 
 **Regla de oro del titular** (plantillas existentes; para código nuevo ver §7) — `moonGetHeavy` casi nunca va "pelado": siempre
@@ -188,7 +188,7 @@ El patrón de campo del juego: una **barra naranja** con el título y, pegado de
 - `.barra-texto-op` = `moonGetHeavy` blanco con `text-shadow: 1px 1px 1px black`.
 - Subtítulo opcional en 9px entre paréntesis para instrucciones.
 - Existe `.barra-op-abajo` (redondeada abajo) para cerrar un bloque.
-- Evitá darle `height` fija a la barra si lleva dos líneas: depende del `line-height` del tema y se corta.
+- Evitar darle `height` fija a la barra si lleva dos líneas: depende del `line-height` del tema y se corta.
 
 ### Botón principal grande (`.testDraw` / `.realDraw` / `.blockedDraw`)
 El botón de "acción de la página" (ENTREGAR, TIRAR…): grande, centrado y con tipografía de titular.
@@ -237,7 +237,7 @@ El foro es **muy táctil**: casi todo reacciona al hover.
 
 ## 5. Checklist para que algo "se sienta OPG"
 
-Al crear una página/componente nuevo, revisá:
+Al crear una página/componente nuevo, revisar:
 
 - [ ] Titulares en `moonGetHeavy` **con `text-shadow` negro** (o `.text-moon`).
 - [ ] Cuerpo de texto en `InterRegular`.
@@ -251,11 +251,15 @@ Al crear una página/componente nuevo, revisá:
 - [ ] Rojo `#dc3545` para errores, verde `#27ae60` para éxito, gris `#71706f` para bloqueado.
 - [ ] Páginas de `/op/`: dentro del marco `.mainBackground` → `.thirdBackground` y con
       campos `.barra-op` + `.barra-espacio-op` (ver §3), cargando `{$headerinclude}`.
-- [ ] Código nuevo: usá las variables de `jscripts/opg-tokens.css` (ya cargado por
+- [ ] Código nuevo: usar las variables de `jscripts/opg-tokens.css` (ya cargado por
       `{$headerinclude}`, no hace falta un `<link>` propio) y su botón único `.btn-op`
       en vez de copiar hex o inventar otra clase de botón (ver §7).
-- [ ] Herramienta de staff nueva: mirá `op_upload`, `staff_consola_mod` o `op/staff/banners.php`
-      como referencia — las tres usan `opg-tokens.css` (ver §7 "Dónde se usa ya").
+- [ ] Formulario largo de `op/staff/` con "buscar / crear", guía de campos o
+      typeahead: usar las clases de `jscripts/opg-components.css`
+      (`.af-field`, `.aviso`, `.opg-guia-*`, `.opg-resultado*`) en vez de
+      copiar y prefijar de nuevo el CSS de otra herramienta (ver §7).
+- [ ] Herramienta de staff nueva: tomar como referencia `op_upload`, `staff_consola_mod` o `op/staff/banners.php`
+      — las tres usan `opg-tokens.css` (ver §7 "Dónde se usa ya").
 
 ---
 
@@ -266,9 +270,9 @@ Al crear una página/componente nuevo, revisá:
   CSS custom properties (`--rosa-primary`, `--card-game-*`, `--newspaper-*`,
   `--border`, `--accent-color`), pero conviven varios sistemas distintos sin una
   fuente única. **No asumas que hay un `:root` global** con estas variables:
-  antes de usar `var(--x)`, confirmá que el template donde estás lo define.
+  antes de usar `var(--x)`, confirmar que el template en cuestión lo define.
 - **Duplicación de valores:** el mismo naranja aparece como `#ff8900`, `#ff7e00`
-  y `#ff7b00` según el template. Al elegir, usá los canónicos de §2.
+  y `#ff7b00` según el template. Al elegir, usar los canónicos de §2.
 - **Caso afiliados:** el CSS de la sección de afiliados
   (`op/functions/afiliados_functions.php`) usa colores **translúcidos neutros**
   (`rgba(128,128,128,...)`) a propósito, para ser theme-agnóstico y no romper. Si
@@ -308,7 +312,7 @@ real: `cache-control: max-age=2592000`, 30 días). `jscripts/.htaccess` igual le
 `Cache-Control: no-cache` al archivo, como respaldo para el caso de que algo le pegue
 directo al origin sin pasar por Cloudflare — pero el mecanismo real es otro.
 
-**Cuando edites `opg-tokens.css`, subí el `?ver=N` en dos lugares y nada más:** el
+**Al editar `opg-tokens.css`, subir el `?ver=N` en dos lugares y nada más:** el
 comentario "VERSIÓN ACTUAL" del propio archivo, y el `<link>` en `headerinclude.html`
 (mismo patrón que `jquery.js?ver=1823` ahí al lado). Cambiar la URL revienta cualquier
 caché sin depender de que Cloudflare respete nada. Como el archivo se carga una sola
@@ -462,9 +466,9 @@ Reglas que salieron de rediseñar la consola de staff:
   use enlaza `https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css`,
   como ya hace `op_mercado_negro`.
 - **El tema centra todo el texto** (`text-align: center` en el `body` de
-  `global.css`): en páginas de tarjetas, poné `text-align: left` en el contenedor.
+  `global.css`): en páginas de tarjetas, poner `text-align: left` en el contenedor.
 - **Enlaces:** las reglas `a:link`/`a:visited` del tema ganan a una clase simple. Para
-  enlaces con estilo propio usá `a.clase:link, a.clase:visited` (como ya hacen
+  enlaces con estilo propio usar `a.clase:link, a.clase:visited` (como ya hacen
   `.opg-card` y `.opg-chip`) o se verán en azul.
 
 ### Contraste
@@ -495,7 +499,7 @@ Dos conclusiones, no una:
   negro" de §1, no un accidente. La consecuencia práctica es que ese borde y esa
   sombra no son decorativos en estos dos casos: si alguna vez se simplifica `.btn-op`
   quitándoselos "porque total no se nota", estos dos botones se vuelven realmente
-  difíciles de leer. Si se agrega una variante de color nueva, mantené el mismo borde
+  difíciles de leer. Si se agrega una variante de color nueva, mantener el mismo borde
   y la misma sombra en vez de asumir que alcanza con el `color: #fff`.
 
 ### Texturas y micro-animaciones (para código nuevo)
@@ -565,10 +569,84 @@ cargan (eso ya lo hacen todas):
   igual que esa, es candidata a migrar sin apuro. Sigue con `.barra-op`/
   `.barra-espacio-op` de §3 para los paneles de "Banner fijo" y "Nuevo banner",
   que es el uso normal de esas clases, no algo pendiente de reemplazar.
+- `op/staff/gestionar_afiliados.php`: `.btn-op--primario` (Guardar), `.opg-chip`
+  para las acciones por afiliado (Editar, Activar/Desactivar, Eliminar) y
+  `.opg-vacio`. Las tarjetas (`.af-item`) siguen la misma receta de franja +
+  sombra desplazada que `.banner-tile`/`.subida`, con acento morado.
+- `op/staff/akumas_modificar.php`: fusiona lo que antes eran dos páginas
+  (`akumas_modificar.php` + `akumas_crear.php`, que ahora queda sin usar) en
+  una sola con typeahead, secciones, `.af-field`, `.btn-op--primario` para
+  guardar y un `.opg-chip.chip-peligro` para eliminar (solo visible editando
+  un existente). `ocupada`/`es_npc`/`es_oculta` pasaron de texto libre a
+  `<select>` con los valores reales confirmados en `op/akumas.php` y
+  `op/staff/akumas_inactivas.php`. Además, la "Guía de campos" documenta la
+  diferencia entre `descripcion` (texto plano) y `detalles` (HTML/BBCode de
+  verdad que `[akuma=ID]` muestra tal cual). Las dos páginas originales
+  tenían SQL injection casi total y CSRF; el registro de auditoría estaba
+  comentado en las dos, así que no quedaba ningún rastro de quién
+  creaba/modificaba/borraba una akuma.
+- `op/staff/virtudes_modificar.php`: mismo caso que `akumas_modificar.php` —
+  fusiona `virtudes_modificar.php` + `virtudes_crear.php` (que queda sin
+  usar) en una sola página con typeahead, `.af-field`, `.btn-op--primario`
+  y `.opg-chip.chip-peligro` para eliminar. Solo 4 campos (ID, nombre,
+  puntos, descripción), así que no necesitó guía de campos aparte.
+- `op/staff/npcs_modificar.php`: catálogo de ~50 campos (mismos catálogos de
+  rango/estilo/bélica/oficio que las fichas de jugador) reorganizado en
+  secciones con `.af-field`/`.nm-grid-belicas` y guía de campos. Era la peor
+  vulnerabilidad de todo `/op/staff/`: el control de permisos corría
+  DESPUÉS de todos los INSERT/UPDATE/DELETE, así que cualquiera sin sesión
+  podía crear/editar/borrar un NPC con solo mandar un POST a la URL, sin
+  CSRF y con inyección SQL casi total. También tenía un `SHOW COLUMNS` +
+  `ALTER TABLE` corriendo en cada carga de página, y ramas muertas para
+  `mybb_op_mascotas`/`mybb_op_npcs_usuarios` que dependían de variables
+  (`$is_pet`/`$is_npc_user`) que nunca se definían — se sacaron (esas tablas
+  las gestionan `op/compas.php` y `op/crafteo.php`, esta página nunca pudo
+  editarlas de verdad). El campo "Elementos" del formulario tampoco se
+  guardaba nunca (`mybb_op_npcs` no tiene esa columna) — se quitó.
+- `op/staff/objetos_modificar.php`: catálogo de ~30 campos reorganizado en
+  secciones con título de raya de acento (Identificación, Info básica,
+  comercial, de crafteo, técnica), grid `.af-field` y `.btn-op--primario` para
+  Guardar. Tenía SQL injection en casi todos los campos (solo `descripcion`
+  pasaba por `addslashes()`) y CSRF total; ahora todo escapado y con
+  `verify_post_check()`.
+- `op/staff/tecnicas_modificar.php`: mismo patrón (typeahead, secciones,
+  `.af-field`), más una "Guía de campos" plegable (`<details>`) con lo que
+  significa cada uno, sacado de cómo los usa de verdad
+  `inc/plugins/BBCustom_tecnica.php` y los valores fijos que ya exige
+  `op/tecnicas_buscar.php` para `clase`/`tipo` (ahora son `<select>`, antes
+  texto libre). Tenía casi todos los campos sin escapar (ni `addslashes()`)
+  y CSRF total; corregido igual que el resto.
+- `op/staff/salario_faccion.php` y `op/staff/salario_staff.php`: mismo patrón
+  de Post/Redirect/Get, `.btn-op` (`--hero` para la acción de un solo botón de
+  la primera, `--primario` para las dos de la segunda) y listado de filas
+  para el historial. Las dos tenían CSRF total — pagar sueldo/kuros con solo
+  forzar un POST — y `salario_faccion.php` además usaba variables
+  (`$user_uid`, `$staff`, `$razon`) que nunca se definían en ningún lado, así
+  que la atribución del pago en los logs quedaba vacía. `salario_staff.php`
+  recalculaba a mano lo que ya hace `is_admin()`.
+- `op/staff/referidos.php`: mismo patrón de Post/Redirect/Get, `.btn-op--sm`
+  para buscar y `.btn-op--primario` para guardar, listado de filas para los
+  referidos actuales. Tenía SQL injection (ni siquiera `addslashes()`) en
+  `fid`/`ficha_id`/`ref_id`, corriendo antes del chequeo de permisos, y CSRF
+  total.
+- `op/staff/islas_modificar.php`: mismo patrón que `objetos_modificar.php`
+  (typeahead contra el servidor, secciones con raya de acento, `.af-field`,
+  `.btn-op--primario`). El campo para renombrar una isla existente no hacía
+  nada (el `UPDATE` nunca tocaba `isla_id`); ahora si el ID cambia, actualiza
+  la fila en vez de ignorarlo en silencio.
+- `op/staff/editar_tema.php` y `op/staff/sabiasque_modificar.php`: mismo patrón
+  de Post/Redirect/Get con cookie de aviso que `banners.php`, `.btn-op--primario`
+  para la acción principal, `.opg-chip` para lo secundario (crear nuevo, saltar
+  a otro registro) y `.opg-vacio`. Las dos venían sin CSRF y con el ID en la URL
+  usado crudo en SQL; de paso quedaron con `verify_post_check()` y los IDs
+  siempre `(int)`.
 - `--opg-textura-trama`, `--opg-recorte-rasgado`, `.opg-grano` y `.opg-en-curso`
   están en `opg-tokens.css` pero **ninguna página los usa todavía** — son para la
   próxima vez que un panel destacado, una textura de fondo o un estado "en curso"
-  hagan falta.
+  hagan falta. `--opg-textura-grano` sí se usa, pero no vía clase: está
+  incrustada directo en `.secondBackground`/`.thirdBackground` de
+  `templates/op_global.css`, así que llega a toda página con el marco de tres
+  fondos sin que la plantilla tenga que pedirla.
 
 ### Qué NO hace este archivo
 
@@ -582,8 +660,78 @@ cargan (eso ya lo hacen todas):
   se usan — esos siguen siendo válidos y están documentados en §3. Es la opción para
   lo que se escriba de ahora en adelante, no una migración de lo viejo.
 
+### Componentes de interfaz (`jscripts/opg-components.css`)
+
+Complemento de `opg-tokens.css`, mismo esquema (`{$headerinclude}` lo carga en
+todo el foro; `?ver=N` manual, subir el número en el `<link>` y en el propio
+archivo cada vez que se edite). La separación es a propósito: `opg-tokens.css`
+son valores crudos (colores, espaciados) más un puñado de componentes que ya
+vivían ahí (`.btn-op`, `.opg-card`, `.opg-chip`, `.opg-volver`); este archivo
+junta los **patrones de interfaz** que fueron apareciendo, copiados y
+ligeramente distintos, en cada herramienta nueva de `op/staff/`:
+
+- `.af-field` (envoltorio label + input/textarea/select, con el arreglo de la
+  flechita del `<select>` — ver "Qué resuelve" más arriba)
+- `.aviso` / `.aviso.ok` / `.aviso.err` (mensaje post-guardado del patrón
+  Post/Redirect/Get)
+- `.opg-guia-barra` / `.opg-guia-cuerpo` / `.opg-guia-item` (acordeón "Guía de
+  campos")
+- `.opg-buscar-caja` / `.opg-resultados` / `.opg-resultado` /
+  `.opg-resultado-vacio` / `.opg-dropdown-abierto` (typeahead contra el
+  servidor, patrón `?buscar_x=`)
+- `.opg-chip.chip-peligro` (variante roja de `.opg-chip` para "Eliminar")
+
+**Las páginas ya rediseñadas siguen con su copia prefijada propia**
+(`.om-resultado`, `.tec-guia-barra`, `.nm-dropdown-abierto`...) — crear este
+archivo no las migra solas. Pasarlas a las clases genéricas de acá es un
+cambio pendiente, a hacer de a una la próxima vez que se toque esa página.
+Código nuevo sí debería partir directamente de estas clases en vez de
+inventar una versión prefijada más.
+
+### Prefijos por página (temporal)
+
+Mientras una página siga con su propio CSS prefijado (en vez de las clases
+genéricas de `opg-components.css` de arriba), usar el prefijo ya asignado acá
+para esa herramienta — así dos páginas nunca chocan si algún día comparten
+plantilla o se copian entre sí sin querer.
+
+| Prefijo | Página |
+|---|---|
+| `om-` | `staff_objetos_modificar` |
+| `tec-` | `staff_modificar_tecnicas` |
+| `am-` | `staff_akumas_modificar` |
+| `vm-` | `staff_virtudes_modificar` |
+| `nm-` | `staff_npcs_modificar` |
+| `is-` | `staff_islas_modificar` |
+
+**Esta tabla es temporal.** Existe solo porque hoy conviven clases genéricas
+(`.af-field`, `.aviso`, `.opg-guia-*`) con clases todavía prefijadas por
+página para lo que no se migró. El objetivo es que, a medida que cada página
+pase a usar las clases genéricas, deje de necesitar prefijo propio — cuando
+ya no quede ninguna página con CSS prefijado, borrar esta tabla en vez de
+mantenerla actualizada indefinidamente.
+
+### Orden dentro de un `<style>` de página (para código nuevo)
+
+Los `<style>` inline de `op/staff/` ya pasaron de unas pocas líneas a bloques
+de 100-150+ (`staff_npcs_modificar.html` es el caso más grande hasta ahora).
+Sin un orden fijo, un bloque así termina con reglas agregadas donde quedó
+lugar en vez de donde corresponde. Orden a seguir, de arriba a abajo, con un
+comentario de una línea marcando cada corte:
+
+1. **Marco de la página** — overrides de `.thirdBackground`/`.secondBackground`
+   específicos de esta herramienta (ancho máximo, el modificador
+   `.opg-dropdown-abierto` si aplica).
+2. **Componentes compartidos, ajustados para esta página** — cuando un
+   componente de `opg-components.css` necesita un detalle propio acá (p. ej.
+   un ancho de columna distinto en la grilla de la guía).
+3. **Específico de esta herramienta** — todo lo que no existe en ninguna otra
+   página (grillas de bélicas/estilos, etc.).
+4. **`@media`** — al final siempre, un solo bloque por breakpoint en vez de
+   uno por sección.
+
 ---
 
 _Generado analizando `templates/` (mybb_templates, op_templates,
-One_Piece_Gaiden_Templates). Si el diseño evoluciona, re-analizá y actualizá los
+One_Piece_Gaiden_Templates). Si el diseño evoluciona, volver a analizar y actualizar los
 hex canónicos de §2._
