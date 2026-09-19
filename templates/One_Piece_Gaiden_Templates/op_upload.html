@@ -1,21 +1,144 @@
 <html>
 
 <head>
-    <title>Upload</title>
+    <title>Hosting de imágenes</title>
     {$headerinclude}
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
+    <style>
+    /* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+    .hosting .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .hosting-titulo { padding: var(--opg-espacio-2); }
+    .hosting-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .hosting-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso a { color: #fff; font-weight: bold; text-decoration: underline; word-break: break-all; }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .subir-barra { padding: 3px 8px 4px; line-height: 1.25; }
+    .subir-cuerpo {
+        display: flex; gap: var(--opg-espacio-3) var(--opg-espacio-4); align-items: center; justify-content: center; flex-wrap: wrap;
+        padding: var(--opg-espacio-3) var(--opg-espacio-4);
+    }
+    .subir-reemplazar { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    /* "Subir" solo aparece con un archivo elegido (el input es required → :valid) */
+    .subir-boton { display: none; }
+    .subir-form:has(input[type=file]:valid) .subir-boton { display: inline-block; }
+
+    .hosting input[type=file] { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
+    .hosting input[type=file]::file-selector-button {
+        font-family: var(--opg-fuente-titular); letter-spacing: 1px; background: var(--opg-crema-dorada); color: #000;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 3px 8px; margin-right: 8px; cursor: pointer;
+    }
+
+    /* Título de sección con raya de acento, sin caja propia (ver style.md §7: "menos cajas anidadas") */
+    .galeria-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-azul);
+    }
+
+    .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr)); gap: var(--opg-espacio-4); }
+    /* Tarjeta viñeta (ver style.md §7 .opg-card): sombra dura desplazada, se levanta al pasar el ratón */
+    .subida {
+        display: flex; flex-direction: column; min-width: 0;
+        background:
+            linear-gradient(var(--opg-azul), var(--opg-azul)) top / 100% 5px no-repeat,
+            var(--opg-crema-clara);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden;
+        box-shadow: var(--opg-sombra-offset); transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+    }
+    .subida:hover { transform: translate(-2px, -2px); box-shadow: var(--opg-sombra-offset-hover); }
+    .subida-miniatura { display: block; aspect-ratio: 4 / 3; margin-top: 5px; background: repeating-conic-gradient(#e9dcc4 0% 25%, #f6ecda 0% 50%) 50% / 16px 16px; border-bottom: 2px solid var(--opg-tinta); overflow: hidden; }
+    .subida-miniatura img { width: 100%; height: 100%; object-fit: contain; display: block; transition: transform var(--opg-rapido); }
+    .subida:hover .subida-miniatura img { transform: scale(1.05); }
+    .subida-info { display: flex; flex-direction: column; gap: 4px; padding: var(--opg-espacio-2); }
+    .subida-nombre { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subida-fecha { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+    .subida-acciones { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+    .subida-acciones .opg-chip { font-size: 11px; padding: 2px 8px; }
+    .opg-chip.copiado, button.opg-chip.copiado { background: var(--opg-verde-exito); color: #fff; }
+
+    .paginacion { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); margin-top: var(--opg-espacio-4); }
+    .paginacion-estado { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+
+    @media (max-width: 700px) {
+        .hosting .secondBackground, .hosting .thirdBackground { padding: 10px; }
+        .hosting-titulo .barra-texto-op { font-size: 20px; }
+    }
+    </style>
 </head>
 
 <body>
     {$header}
-    <div class="fondo-blanco" style="text-align: center;">
-		<form action="/op/staff/upload.php" method="post" enctype="multipart/form-data">
-		  Selecciona imagen a subir:
-		  <input type="file" name="fileToUpload" id="fileToUpload">
-		  <input type="submit" value="Upload Image" name="submit">
-		</form>
-    </div>
+    <div class="indice hosting">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
 
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox hosting-titulo"><span class="barra-texto-op">Hosting de imágenes</span></div>
+            <div class="barra-espacio-op bbox hosting-descripcion">
+                Las imágenes se guardan en <strong>/images/op/uploads/</strong> con el mismo nombre que tiene el archivo en tu ordenador,
+                así que ponle el nombre definitivo antes de subirla. Hay {$upload_total} imágenes.
+            </div>
+        </div>
+
+        {$upload_aviso}
+
+        <form action="/op/staff/upload.php" method="post" enctype="multipart/form-data" class="subir-form">
+            <input type="hidden" name="my_post_key" value="{$mybb->post_code}">
+            <div class="barra-op bbox subir-barra">
+                <span class="barra-texto-op" style="font-size: 15px;">Nueva imagen</span>
+                <br>
+                <span class="barra-texto-op" style="font-size: 9px;">(JPG, PNG, GIF o WEBP · máximo {$upload_max_mb} MB)</span>
+            </div>
+            <div class="barra-espacio-op bbox subir-cuerpo">
+                <input type="file" name="fileToUpload" accept="image/jpeg,image/png,image/gif,image/webp" required>
+                <label class="subir-reemplazar"><input type="checkbox" name="reemplazar" value="1"> Reemplazar si ya existe</label>
+                <button class="btn-op btn-op--secundario subir-boton">Subir</button>
+            </div>
+        </form>
+
+        <section>
+            <h2 class="galeria-titulo">Últimas imágenes subidas</h2>
+            <div class="galeria">{$upload_galeria}</div>
+            {$upload_paginacion}
+        </section>
+
+    </div>
+    </div>
+    </div>
+    </div>
     {$footer}
+
+    <script>
+    document.addEventListener('click', function (ev) {
+        var boton = ev.target.closest('[data-copiar]');
+        if (!boton) return;
+        var texto = boton.getAttribute('data-copiar');
+        var hecho = function () {
+            var original = boton.textContent;
+            boton.classList.add('copiado');
+            boton.textContent = '¡Copiado!';
+            setTimeout(function () { boton.classList.remove('copiado'); boton.textContent = original; }, 1500);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texto).then(hecho);
+        } else {
+            var area = document.createElement('textarea');
+            area.value = texto; document.body.appendChild(area); area.select();
+            document.execCommand('copy'); document.body.removeChild(area); hecho();
+        }
+    });
+    </script>
 </body>
 
 </html>

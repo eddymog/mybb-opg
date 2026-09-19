@@ -318,7 +318,7 @@ function banners_seccion($titulo, $estado, $banners, $actual, $vacio, $plegable 
         ? '<div class="grid">' . implode('', array_map(function ($n) use ($estado, $actual) {
             return banners_tarjeta($estado, $n, $actual);
         }, array_keys($banners))) . '</div>'
-        : '<p class="vacio">' . $vacio . '</p>';
+        : '<p class="opg-vacio">' . $vacio . '</p>';
 
     $barra = '<span>' . $titulo . ' (' . count($banners) . ')</span>';
 
@@ -339,11 +339,9 @@ ob_start();
 <head>
 <title>Banners del header — <?= htmlspecialchars($mybb->settings['bbname']) ?></title>
 <?= $headerinclude ?>
+<!-- opg-tokens.css ya lo carga $headerinclude (ver docs/style.md §7) -->
 <style>
 .banners-staff .thirdBackground { width: 100%; max-width: 1030px; gap: 20px; }
-
-.banners-volver { font-family: moonGetHeavy; color: #6c10ab; text-decoration: none; letter-spacing: 1px; font-size: 13px; }
-.banners-volver:hover { color: #8f59f7; }
 
 .banners-titulo { padding: 8px; }
 .banners-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
@@ -434,7 +432,6 @@ details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
 }
 .banners-staff input[type=file]::file-selector-button:hover { background: #ffa600; }
 
-.vacio { font-family: InterRegular; color: #5e5e5e; font-style: italic; text-align: center; margin: 0; }
 
 @media (max-width: 700px) {
     .banners-staff .secondBackground, .banners-staff .thirdBackground { padding: 10px; }
@@ -451,7 +448,7 @@ details.seccion:not([open]) > summary.seccion-barra { border-radius: 10px; }
 <div class="thirdBackground">
 
     <div>
-        <a class="banners-volver" href="/op/staff/consola_mod.php">&larr; Consola</a>
+        <a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a>
     </div>
 
     <div>

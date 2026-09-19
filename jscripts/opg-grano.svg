@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Filtro de grano de papel para .opg-grano en opg-tokens.css (ver docs/style.md §7).
+    Vive en su propio archivo SVG (en vez de inline en cada página) porque un filtro
+    CSS puede referenciar un <filter> de un SVG externo por URL: filter: url('/jscripts/opg-grano.svg#opg-grano').
+  -->
+  <filter id="opg-grano" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.23  0 0 0 0 0.08  0 0 0 0 0  0 0 0 0.09 0"/>
+  </filter>
+</svg>

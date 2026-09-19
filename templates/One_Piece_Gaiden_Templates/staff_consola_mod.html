@@ -1,204 +1,130 @@
 <html>
 
 <head>
+    <title>Consola de staff</title>
+    {$headerinclude}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+    <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
     <style>
-    body {
-        font-family: 'moonGetHeavy', sans-serif;
-        font-weight: bold;
-        background-color:rgb(255, 255, 255);
-        line-height: 1.6;
+    /* Marco de tres fondos (op_global.css) con ancho fluido en vez de 1030px fijos */
+    /* text-align: el body del tema (global.css) centra todo el texto */
+    .consola .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-6); text-align: left; }
+
+    /* ── Cabecera: título, saludo, rol y buscador fijo ─────────────────────── */
+    .consola-cabecera {
+        position: sticky; top: 0; z-index: 10;
+        /* Halftone sobre el naranja (ver style.md §7): un elemento, sin ancestro
+           sticky de por medio, así que no choca con nada. */
+        background: var(--opg-textura-trama), var(--opg-naranja);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-3) var(--opg-espacio-4);
+        display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3) var(--opg-espacio-4);
     }
-    .fondo-blanco {
-        max-width: 1100px;
-        margin: 0 auto;
-        background-color: #fff;
-        padding: 20px 30px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    .consola-titulo {
+        margin: 0; font-family: var(--opg-fuente-titular); font-weight: normal; font-size: 22px; letter-spacing: 1px; color: #fff;
+        text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black, 2px 2px 0 black;
     }
-    h2 {
-        text-align: center;
-        color:rgb(207, 0, 0);
-        font-weight: bold;
-        margin-top: 25px;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #eee;
+    .consola-usuario { margin-left: auto; display: flex; align-items: center; gap: var(--opg-espacio-2); font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-ciruela); }
+    .consola-rol {
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+        color: #fff; background: var(--opg-ciruela); border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 1px 8px;
     }
-    .categoria {
-        margin-bottom: 25px;
-        text-align: center;
+    .consola-buscar-caja { flex: 1 1 100%; position: relative; }
+    .consola-buscar-caja .fa-magnifying-glass { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--opg-gris-texto); font-size: 13px; }
+    .consola-buscar {
+        width: 100%; box-sizing: border-box; font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-marron);
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 8px 40px 8px 34px;
     }
-    .categoria h3 {
-        margin-top: 15px;
-        margin-bottom: 10px;
-        color:rgb(255, 114, 114);
-        font-weight: bold;
-        font-size: 18px;
-        display: inline-block;
-        padding: 0 15px;
-        position: relative;
+    .consola-buscar::placeholder { color: var(--opg-gris-texto); }
+    .consola-atajo {
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto);
+        border: 1px solid var(--opg-gris-texto); border-radius: 4px; padding: 0 6px; line-height: 18px;
     }
-    .categoria h3:before, .categoria h3:after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        height: 2px;
-        width: 50px;
-        background-color: #ddd;
+
+    /* ── Grupos: título con raya de acento, sin caja propia ────────────────── */
+    .grupo-titulo {
+        display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
+        font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+        padding-bottom: 4px; border-bottom: 5px solid var(--opg-card-acento, var(--opg-naranja));
     }
-    .categoria h3:before {
-        left: -50px;
+    .grid-herramientas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: var(--opg-espacio-5); }
+
+    .herramienta-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: var(--opg-espacio-1); }
+    .herramienta-ir {
+        margin-top: auto; padding-top: var(--opg-espacio-1); align-self: flex-end;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-morado-texto);
     }
-    .categoria h3:after {
-        right: -50px;
-    }
-    .botones-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 10px;
-    }
-    .boton {
-        display: inline-block;
-        padding: 12px 20px;
-        background-image: linear-gradient(135deg,rgb(255, 209, 152),rgb(206, 186, 216));
-        border: none;
-        border-radius: 6px;
-        text-decoration: none;
-        color:rgb(0, 0, 0) !important; /* Forzar color blanco */
-        font-weight: bold;
-        font-size: 15px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 10px rgba(153, 50, 204, 0.3);
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        letter-spacing: 0.5px;
-        position: relative;
-        overflow: hidden;
-    }
-    .boton:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 15px rgba(153, 50, 204, 0.4);
-        color: #ff3333 !important; /* Texto rojo al hacer hover */
-    }
-    .boton:before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: 0.5s;
-    }
-    .boton:hover:before {
-        left: 100%;
-    }
-    .seccion {
-        text-align: center;
-        margin-bottom: 25px;
+    .herramienta-ir .fa-arrow-right { transition: transform var(--opg-rapido); }
+    a.herramienta:hover .herramienta-ir .fa-arrow-right { transform: translateX(3px); }
+
+    .sin-resultados { display: none; text-align: center; font-family: var(--opg-fuente-cuerpo); color: var(--opg-gris-texto); font-style: italic; margin: 0; }
+
+    @media (max-width: 700px) {
+        .consola .secondBackground, .consola .thirdBackground { padding: 10px; }
+        .consola-usuario { margin-left: 0; }
     }
     </style>
-    <title>Herramientas de Mod</title>
-    {$headerinclude}
 </head>
 
 <body>
     {$header}
-    <div class="fondo-blanco">
-        <h2>Herramientas</h2>
-        
-        <div class="categoria">
-            <h3>Objetos</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/objetos_modificar.php">Crear/Modificar objetos</a>
-                <a class="boton" href="/op/staff/objetos_ficha.php">Modificar objetos de fichas</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>Técnicas</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/tecnicas_modificar.php">Crear/Modificar técnicas únicas</a>
-                <a class="boton" href="/op/staff/tecnicas_ficha.php">Modificar técnicas de fichas</a>
-                <a class="boton" href="/op/staff/tecnicas_aprender.php">Modificar técnicas para aprender</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>Akumas</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/akumas_crear.php">Crear akumas</a>
-                <a class="boton" href="/op/staff/akumas_modificar.php">Modificar akumas</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>NPC</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/npcs_modificar.php">Crear/Modificar NPCs</a>
-				<a class="boton" href="/op/staff/generadorpj.php">Generador NPCs</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>Virtudes y Defectos</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/virtudes_crear.php">Crear virtudes/defectos</a>
-                <a class="boton" href="/op/staff/virtudes_modificar.php">Modificar virtudes/defectos</a>
-                <a class="boton" href="/op/staff/virtudes_ficha.php">Modificar virtudes/defectos de fichas</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>Ficha</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/ficha_atributos.php">Modificar atributos de ficha</a>
-                <a class="boton" href="/op/staff/islas_modificar.php">Modificar islas</a>
-				<a class="boton" href="/op/staff/referidos.php">Ingresar Referido</a>
-            </div>
-        </div>
-        
-        <div class="categoria">
-            <h3>Utilidades</h3>
-            <div class="botones-container">
-                <a class="boton" href="/op/staff/upload.php">Hosting de imágenes</a>
-                <a class="boton" href="/op/staff/sabiasque_modificar.php">Modificar Sabías Qué</a>
-                <a class="boton" href="/op/staff/banners.php">Banners del header</a>
-                <a class="boton" href="/op/staff/referidos.php">Modificar Referidos</a>
-                <a class="boton" href="/op/staff/contar_temas.php">Contador temas abiertos de users</a>
-				<a class="boton" href="/op/staff/editar_tema.php">Editer Fecha de Temas</a>
+    <div class="indice consola">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div class="consola-cabecera">
+            <h1 class="consola-titulo">Consola de staff</h1>
+            <div class="consola-usuario">Hola, {$consola_usuario} <span class="consola-rol">{$consola_rol}</span></div>
+            <div class="consola-buscar-caja">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="consola-buscar" class="consola-buscar" placeholder="Buscar herramienta… (akumas, salario, log)" autocomplete="off" aria-label="Buscar herramienta">
+                <kbd class="consola-atajo" title="Pulsa / para buscar">/</kbd>
             </div>
         </div>
 
-        <h2>Moderación</h2>
-        <div class="seccion">
-            <div class="botones-container">
-                <a class="boton" href="./fichas_en_cola.php">Fichas en cola</a>
-                <a class="boton" href="./peticiones_admin.php">Peticiones administrativas</a>
-                <a class="boton" href="./reset_peticiones.php">Resets de Build</a>
-                <a class="boton" href="./salario_faccion.php">Salario de Facciones</a>
-                <a class="boton" href="./salario_staff.php">Salario de Staff (Kuros)</a>
-                <a class="boton" href="/op/staff/entregar_recompensas.php">Entregar recompensas autonarradas</a>
-                <a class="boton" href="/op/staff/entregar_recompensas_aventuras.php">Entregar recompensas aventuras</a>
-                <a class="boton" href="/op/staff/entregar_recompensas_narradores.php">Entregar recompensas narradores</a>
-                <a class="boton" href="/op/staff/resurreciones.php">Reencarnaciones</a>
-				<a class="boton" href="/op/staff/gestionar_afiliados.php">Gestionar Afiliados</a>
-            </div>
-        </div>
-        
-        <h2>Logs</h2>
-        <div class="seccion">
-            <div class="botones-container">
-                <!-- <a class="boton" href="/op/en_construccion.php">Log de técnicas asignadas a fichas por Staff</a> -->
-                <a class="boton" href="/op/staff/log_consola_mod.php">Log de cambios de consola de Staff</a>
-                <a class="boton" href="/op/staff/log_entregas.php">Log de entregas de recompensas</a>
-                <a class="boton" href="/op/staff/akumas_inactivas.php">Akumas Inactivas</a>
-            </div>
-        </div>
+        {$consola_secciones}
+
+        <p class="sin-resultados" id="consola-sin-resultados">Ninguna herramienta coincide con la búsqueda.</p>
+
+    </div>
+    </div>
+    </div>
     </div>
     {$footer}
+
+    <script>
+    (function () {
+        var campo = document.getElementById('consola-buscar');
+        var vacio = document.getElementById('consola-sin-resultados');
+        var normalizar = function (t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+
+        campo.addEventListener('input', function () {
+            var q = normalizar(campo.value.trim());
+            var alguno = false;
+            document.querySelectorAll('.consola .grupo').forEach(function (grupo) {
+                var visibles = 0;
+                grupo.querySelectorAll('[data-buscar]').forEach(function (el) {
+                    // Por inicio de palabra: "log" encuentra "Log de consola" pero no "catálogo".
+                    var ok = q === '' || (' ' + normalizar(el.getAttribute('data-buscar')).replace(/[^a-z0-9]+/g, ' ')).indexOf(' ' + q) !== -1;
+                    el.style.display = ok ? '' : 'none';
+                    if (ok) visibles++;
+                });
+                grupo.style.display = visibles ? '' : 'none';
+                if (visibles) alguno = true;
+            });
+            vacio.style.display = alguno ? 'none' : 'block';
+        });
+
+        // "/" enfoca el buscador (salvo que ya estés escribiendo en otro campo); Esc lo limpia.
+        document.addEventListener('keydown', function (ev) {
+            var enCampo = ['INPUT', 'TEXTAREA', 'SELECT'].indexOf(ev.target.tagName) !== -1 || ev.target.isContentEditable;
+            if (ev.key === '/' && !enCampo) { ev.preventDefault(); campo.focus(); campo.select(); }
+            if (ev.key === 'Escape' && ev.target === campo) { campo.value = ''; campo.dispatchEvent(new Event('input')); campo.blur(); }
+        });
+    })();
+    </script>
 </body>
 
 </html>

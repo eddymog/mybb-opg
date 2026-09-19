@@ -1,0 +1,27 @@
+# opg-tokens.css y opg-grano.svg se editan a mano y sin build step (ver
+# docs/style.md §7).
+#
+# Este header YA NO es el mecanismo principal para ver los cambios: este
+# dominio está detrás de Cloudflare, que lo ignora y cachea con su propia
+# política (confirmado en producción con curl -D: `cache-control:
+# max-age=2592000`, `cf-cache-status: HIT`). Ahora que opg-tokens.css se
+# carga desde headerinclude.html en TODO el foro (no solo en dos páginas de
+# staff), lo correcto es que Cloudflare SÍ lo cachee agresivamente — es
+# tráfico real, no dos herramientas internas — y el mecanismo para ver un
+# cambio es el `?ver=N` manual en headerinclude.html (mismo patrón que
+# jquery.js?ver= ahí mismo), no pedirle a Cloudflare que deje de cachear.
+#
+# Este header se deja igual de todos modos: no molesta, y ayuda en el caso
+# de que algo le pegue directo al origin sin pasar por Cloudflare.
+<IfModule mod_headers.c>
+    <FilesMatch "^(opg-tokens\.css|opg-grano\.svg)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+# AddCharset: el content-type que manda el servidor no declara charset
+# (`text/css` a secas), así que el navegador adivina la codificación del
+# texto. Los archivos están en UTF-8 de verdad (confirmado con xxd sobre los
+# bytes servidos) — esto hace explícito el charset para que nadie tenga que
+# adivinar y las tildes/comillas no se vean como "Ã©"/"â€”".
+AddCharset UTF-8 .css .svg
