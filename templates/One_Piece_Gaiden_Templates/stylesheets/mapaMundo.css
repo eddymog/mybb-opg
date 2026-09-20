@@ -1,0 +1,626 @@
+.mapContainer {
+    width: 987px;
+    height: 749px;
+    margin: 0 auto;
+    position: relative;
+}
+
+button {
+    position: absolute;
+    z-index: 1;
+    padding: 7px;
+    opacity: 0.9;
+    filter: grayscale(30%);
+    font-family: Lemon Milk
+}
+
+button:hover {
+    opacity: 1;
+    filter: grayscale(0%);
+    transform: scale(1.1)
+}
+
+#buttonParent img {
+    z-index: 1;
+    position: absolute;
+    top: -70px
+}
+
+#mapImage {
+    position: absolute;
+    left: 0px;
+    top: 0px
+}
+
+#rayNat {
+    left: 650px;
+    top: 250px;
+    background-color: #e0da1c !important;
+    color: #000
+}
+
+#rayNat img {
+    left: 19px
+}
+
+#groNat {
+    left: 200px;
+    top: 250px;
+    background-color: #963 !important
+}
+
+#groNat img {
+    left: 30px
+}
+
+#windNat {
+    left: 100px;
+    top: 610px;
+    background-color: #ffb366 !important;
+    color: #000
+}
+
+#windNat img {
+    left: 25px
+}
+
+#watNat {
+    top: 470px;
+    left: 780px;
+    background-color: #80bfff !important
+}
+
+#watNat img {
+    left: 20px
+}
+
+#fireNat {
+    background-color: #8d600d !important;
+    font-family: Georgia;	
+	transition: all 0.2s ease-out;
+/* 	opacity: 0; */
+}
+
+#fireNat img {
+    left: 24px
+}
+
+#SNat {
+    top: 1000px;
+    left: 200px;
+    background-color: #3e1861 !important
+}
+
+#SNat img {
+    left: 24px
+}
+
+#ESNat {
+    top: 800px;
+    left: 550px;
+    background-color: #8795fb !important
+}
+
+#ESNat img {
+    left: 99px
+}
+
+#ENNat {
+    top: 350px;
+    left: 750px;
+    background-color: #080080 !important
+}
+
+#ENNat img {
+    left: 90px
+}
+
+#NNat {
+    top: 170px;
+    left: 400px;
+    background-color: #aa46b1 !important
+}
+
+#NNat img {
+    left: 60px
+}
+
+#WNat {
+    top: 400px;
+    left: 100px;
+    background-color: #880015 !important
+}
+
+#WNat img {
+    left: 68px
+}
+
+#world {
+    top: 20px;
+    left: 20px;
+    display: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-weight: normal;
+    font-family: Lemon Milk
+}
+
+#konoha {
+    top: 425px;
+    left: 451px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#ciudadMoeru {
+    top: 300px;
+    left: 310px;
+    font-size: 16px;
+    padding: 5px 10px
+}
+
+#temploFuego {
+    top: 790px;
+    left: 650px
+}
+
+#ciudadShukuba {
+    top: 635px;
+    left: 553px
+}
+
+#bosqueMuerte {
+    top: 525px;
+    left: 420px
+}
+
+#aldeaKisaragi {
+    top: 415px;
+    left: 280px
+}
+
+#puebloMotoyoshi {
+    top: 235px;
+    left: 600px
+}
+
+#valleFin {
+    top: 170px;
+    left: 460px
+}
+
+#kiri {
+    top: 490px;
+    left: 492px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#islaAgua {
+    top: 430px;
+    left: 537px;
+    font-size: 16px;
+    padding: 5px 10px
+}
+
+#fortalezaShoseki {
+    top: 320px;
+    left: 350px
+}
+
+#bahiaNaufragio {
+    top: 660px;
+    left: 712px
+}
+
+#islaOeste {
+    top: 480px;
+    left: 297px
+}
+
+#islaSur {
+    top: 700px;
+    left: 453px
+}
+
+#islaEste {
+    top: 510px;
+    left: 813px
+}
+
+#islaNorte {
+    top: 250px;
+    left: 530px
+}
+
+#suna {
+    top: 525px;
+    left: 480px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#temploViento {
+    top: 1030px;
+    left: 45px
+}
+
+#oasisVida {
+    top: 330px;
+    left: 595px
+}
+
+#desiertoInfernal {
+    top: 530px;
+    left: 593px
+}
+
+#aldeaBenparo {
+    left: 0px;
+    top: 650px
+}
+
+#puebloYoshira {
+    top: 770px;
+    left: 430px
+}
+
+#ciudadSoyokaze {
+    top: 420px;
+    left: 196px;
+    font-size: 16px;
+    padding: 5px 10px
+}
+
+#ciudadPashubo {
+    top: 218px;
+    left: 440px
+}
+
+#iwa {
+    top: 640px;
+    left: 634px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#costaNorte {
+    top: 460px;
+    left: 697px
+}
+
+#estadioManana {
+    top: 580px;
+    left: 260px
+}
+
+#aldeaShinsen {
+    top: 980px;
+    left: 325px
+}
+
+#puebloRyushi {
+    top: 330px;
+    left: 198px
+}
+
+#ciudadIo {
+    top: 770px;
+    left: 480px
+}
+
+#temploHeiwa {
+    top: 325px;
+    left: 525px
+}
+
+#ciudadJigoku {
+    top: 620px;
+    left: 30px;
+    font-size: 16px;
+    padding: 5px 10px
+}
+
+#kumo {
+    top: 610px;
+    left: 310px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#caboMuri {
+    top: 60px;
+    left: 850px
+}
+
+#islaTortuga {
+    top: 780px;
+    left: 460px
+}
+
+#aldeaIchida {
+    top: 485px;
+    left: 380px
+}
+
+#puebloUnkai {
+    top: 740px;
+    left: 156px
+}
+
+#ciudadGunryo {
+    top: 760px;
+    left: 335px
+}
+
+#temploRayo {
+    top: 580px;
+    left: 498px
+}
+
+#ciudadKouten {
+    top: 595px;
+    left: 375px;
+    font-size: 16px;
+    padding: 5px 10px
+}
+
+#tani {
+    top: 780px;
+    left: 808px
+}
+
+#rios {
+    top: 650px;
+    left: 760px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#kusa {
+    top: 390px;
+    left: 702px
+}
+
+#hierba {
+    top: 260px;
+    left: 670px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#ame {
+    top: 495px;
+    left: 652px
+}
+
+#lluvia {
+    top: 420px;
+    left: 610px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#ishi {
+    top: 440px;
+    left: 404px
+}
+
+#pajaros {
+    top: 400px;
+    left: 450px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#hoshi {
+    top: 380px;
+    left: 111px
+}
+
+#osos {
+    top: 300px;
+    left: 150px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#yuki {
+    top: 315px;
+    left: 30px
+}
+
+#nieve {
+    top: 250px;
+    left: 10px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#shimo {
+    top: 750px;
+    left: 729px
+}
+
+#helado {
+    top: 670px;
+    left: 670px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#yu {
+    top: 865px;
+    left: 650px
+}
+
+#termales {
+    top: 900px;
+    left: 670px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#oto {
+    top: 845px;
+    left: 444px
+}
+
+#arroz {
+    top: 760px;
+    left: 390px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#fideos {
+    top: 580px;
+    left: 355px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#taki {
+    top: 760px;
+    left: 131px
+}
+
+#cascada {
+    top: 670px;
+    left: 150px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#ozu {
+    top: 1120px;
+    left: 640px
+}
+
+#nagi {
+    top: 765px;
+    left: 502px
+}
+
+#garra {
+    top: 560px;
+    left: 240px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#pantanos {
+    top: 220px;
+    left: 830px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#montana {
+    top: 330px;
+    left: 390px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#olas {
+    top: 490px;
+    left: 217px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#getsu {
+    top: 1205px;
+    left: 501px
+}
+
+#luna {
+    top: 1130px;
+    left: 450px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#mar {
+    top: 830px;
+    left: 329px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#te {
+    top: 350px;
+    left: 150px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#jungla {
+    top: 1200px;
+    left: 720px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#acantilado {
+    top: 610px;
+    left: 300px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#cobre {
+    top: 690px;
+    left: 100px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#marfil {
+    top: 385px;
+    left: 258px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#chToS {
+    top: 1100px;
+    left: 300px;
+    background-color: #8795fb
+}
+
+#chToS img {
+    position: absolute;
+    top: -70px;
+    left: 99px
+}
+
+#chToN {
+    top: 200px;
+    left: 600px;
+    background-color: #080080
+}
+
+#chToN img {
+    position: absolute;
+    top: -70px;
+    left: 108px
+}
+
+#te2 {
+    top: 1000px;
+    left: 50px;
+    background-color: #fff;
+    color: #004c7f
+}
+
+#ozu2 {
+    top: 490px;
+    left: 856px
+}
+
+#nagi2 {
+    top: 65px;
+    left: 686px
+}

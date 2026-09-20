@@ -1,178 +1,130 @@
 <?php
 /**
- * MyBB 1.8
- * Copyright 2014 MyBB Group, All Rights Reserved
+ * Staff - Técnicas en creación (cola de moderación del foro 8)
  *
- * Website: http://www.mybb.com
- * License: http://www.mybb.com/about/license
+ * Reescrito por varios problemas reales:
+ * 1. Inyección SQL: `tid` (ID de tema) se interpolaba sin escapar/castear
+ *    en el UPDATE de "Abandonar" — un valor como `1 OR 1=1` movía TODOS
+ *    los temas de foro en vez de uno solo.
+ * 2. CSRF: "Abandonar" era un simple `<a href>` (GET) sin token.
+ * 3. XSS: `subject` (título del tema) y `username` se mostraban sin
+ *    escapar — el título de un tema es texto libre del usuario.
+ * 4. Permisos solo se chequeaban al final; ahora es lo primero.
  */
 
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'tecnicas_creacion.php');
 require_once "./../../global.php";
-require "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
 
-global $templates, $mybb;
-$uid = $mybb->user['uid'];
+global $templates, $mybb, $db;
+$uid = (int) $mybb->user['uid'];
 
-$accion = $mybb->get_input('accion');
-$tid_input = $mybb->get_input('tid');
-
-$reload_js = "<script>window.location.href = window.location.pathname;</script>";
-
-if ($accion == 'abandonar' && $tid_input) {
-
-    $db->query(" 
-        UPDATE `mybb_threads` SET `fid`=85,`closed`=1 WHERE tid=$tid_input
-    ");
-
-    eval('$reload_script = $reload_js;');
-}
-
-if (is_mod($uid) || is_staff($uid) || is_user($uid)) { 
-    $peticiones_li = "";
-
-    // $borrar_a = "$url_page?accion=borrar&peti_id=$pid";
-
-    function print_tecnicas_sin_contestar() {
-        global $db;
-        $query_tecnicas = $db->query("
-            SELECT t.* FROM mybb_threads as t
-            INNER JOIN mybb_forums as f ON t.fid = f.fid 
-            AND f.fid = 8 AND t.closed = 0
-            AND t.uid = t.lastposteruid
-            AND t.visible = 1
-            AND t.replies = 0
-            AND t.tid != 97
-            ORDER BY t.lastpost ASC
-        ");
-
-        $peticiones_li = "";
-        while ($q = $db->fetch_array($query_tecnicas)) {
-            $tid = $q['tid'];
-            $subject = $q['subject'];
-            $subject = "<a href='/showthread.php?tid=$tid' target='_blank'>$subject</a>";
-
-            $username = $q['username'];
-            $uid = $q['uid'];
-            $nombre = "<a href='/op/ficha.php?uid=$uid' target='_blank'>$username</a>";
-            
-            $lastpost = date('d/m/Y', intval($q['lastpost']));
-            $days_ago = floor(((time() - intval($q['lastpost']))) / 86400);
-
-            $peticiones_li .= "<li>";
-            $peticiones_li .= "<strong>Usuario</strong>: [$nombre]<br>";
-            $peticiones_li .= "<strong>Título</strong>: $subject<br>";
-            $peticiones_li .= "<strong>Fecha</strong>: $lastpost - Hace $days_ago días.<br>";
-            $peticiones_li .= "</li><br>";
-        }
-
-        if ($peticiones_li != "") {
-            return "<h2>Creaciones sin respuesta de moderación:</h2>" . $peticiones_li;
-        } else {
-            return "";
-        }
-    }
-
-    function print_tecnicas_a_moderar() {
-        global $db;
-        $query_tecnicas = $db->query("
-            SELECT t.* FROM mybb_threads as t
-            INNER JOIN mybb_forums as f ON t.fid = f.fid 
-            AND f.fid = 8 AND t.closed = 0
-            AND t.uid = t.lastposteruid
-            AND t.visible = 1
-            AND t.replies > 0
-            AND t.tid != 97
-            ORDER BY t.lastpost ASC
-        ");
-
-        $peticiones_li = "";
-        while ($q = $db->fetch_array($query_tecnicas)) {
-            $tid = $q['tid'];
-            $subject = $q['subject'];
-            $subject = "<a href='/showthread.php?tid=$tid' target='_blank'>$subject</a>";
-
-            $username = $q['username'];
-            $uid = $q['uid'];
-            $nombre = "<a href='/op/ficha.php?uid=$uid' target='_blank'>$username</a>";
-            
-            $lastpost = date('d/m/Y', intval($q['lastpost']));
-            $days_ago = floor(((time() - intval($q['lastpost']))) / 86400);
-
-            $peticiones_li .= "<li>";
-            $peticiones_li .= "<strong>Usuario</strong>: [$nombre]<br>";
-            $peticiones_li .= "<strong>Título</strong>: $subject<br>";
-            $peticiones_li .= "<strong>Fecha</strong>: $lastpost - Hace $days_ago días.<br>";
-            $peticiones_li .= "</li><br>";
-        }
-
-        if ($peticiones_li != "") {
-            return "<h2>Creaciones donde el usuario respondió y está a la espera:</h2>" . $peticiones_li;
-        } else {
-            return "";
-        }
-    }
-    
-    function print_tecnicas_no_moderar() {
-        global $db;
-        $query_tecnicas = $db->query("
-            SELECT t.* FROM mybb_threads as t
-            INNER JOIN mybb_forums as f ON t.fid = f.fid 
-            AND f.fid = 8 AND t.closed = 0
-            AND t.uid != t.lastposteruid
-            AND t.visible = 1
-            AND t.tid != 97
-            ORDER BY t.lastpost DESC
-        ");
-
-        $peticiones_li = "";
-        while ($q = $db->fetch_array($query_tecnicas)) {
-            $tid = $q['tid'];
-            $subject = $q['subject'];
-            $subject = "<a href='/showthread.php?tid=$tid' target='_blank'>$subject</a>";
-
-            $username = $q['username'];
-            $uid = $q['uid'];
-            $nombre = "<a href='/op/ficha.php?uid=$uid' target='_blank'>$username</a>";
-            
-            $lastpost = date('d/m/Y', intval($q['lastpost']));
-            $days_ago = floor(((time() - intval($q['lastpost']))) / 86400);
-
-            $peticiones_li .= "<li>";
-            $peticiones_li .= "<strong>Usuario</strong>: [$nombre]<br>";
-            $peticiones_li .= "<strong>Título</strong>: $subject<br>";
-            $peticiones_li .= "<strong>Fecha</strong>: $lastpost - Hace $days_ago días.<br>";
-            
-            // move tid to 333 and 
-            // 333
-
-            // UPDATE `mybb_threads` SET `fid`=[value-2],`closed`=[value-16] WHERE tid='XXX'
-
-            $url_page = "/op/staff/tecnicas_creacion.php";
-            $resolver_a = "$url_page?accion=abandonar&tid=$tid";
-            $peticiones_li .= "<span><a href='$resolver_a' >Abandonar</a></span>";
-
-            // $peticiones_li .= "<span><a href='$borrar_a' target='_blank'>Borrar</a></span>";
-            $peticiones_li .= "</li><br>";
-        
-        }
-
-        if ($peticiones_li != "") {
-            return "<h2>Técnicas que el usuario debe responder. No toca moderar.</h2>" . $peticiones_li;
-        } else {
-            return "";
-        }
-    }
-
-    $peticiones_li .= print_tecnicas_sin_contestar();
-    $peticiones_li .= print_tecnicas_a_moderar();
-    $peticiones_li .= print_tecnicas_no_moderar();
-
-    eval("\$page = \"".$templates->get("staff_tecnicas_creacion")."\";");
-    output_page($page);
-} else {
+if (!is_mod($uid) && !is_staff($uid) && !is_user($uid)) {
     eval("\$page = \"".$templates->get("sin_permisos")."\";");
     output_page($page);
+    exit;
 }
+
+$accion = $mybb->get_input('accion', MyBB::INPUT_STRING);
+$tid_input = (int) $mybb->get_input('tid', MyBB::INPUT_INT);
+
+if ($accion === 'abandonar' && $tid_input > 0) {
+    verify_post_check($mybb->get_input('my_post_key'));
+    $db->query("UPDATE `mybb_threads` SET `fid`=85, `closed`=1 WHERE `tid`='{$tid_input}'");
+    header('Location: /op/staff/tecnicas_creacion.php');
+    exit;
+}
+
+$post_key = generate_post_check();
+
+function tc_item($q)
+{
+    $tid = (int) $q['tid'];
+    $subject_esc = htmlspecialchars($q['subject'], ENT_QUOTES, 'UTF-8');
+    $username_esc = htmlspecialchars($q['username'], ENT_QUOTES, 'UTF-8');
+    $uid_hilo = (int) $q['uid'];
+    $lastpost = date('d/m/Y', (int) $q['lastpost']);
+    $days_ago = floor((time() - (int) $q['lastpost']) / 86400);
+
+    $html = '<div class="tc-item">';
+    $html .= '<div class="tc-item-linea"><strong>Usuario</strong>: <a href="/op/ficha.php?uid=' . $uid_hilo . '" target="_blank">' . $username_esc . '</a></div>';
+    $html .= '<div class="tc-item-linea"><strong>Título</strong>: <a href="/showthread.php?tid=' . $tid . '" target="_blank">' . $subject_esc . '</a></div>';
+    $html .= '<div class="tc-item-linea"><strong>Fecha</strong>: ' . $lastpost . ' &mdash; hace ' . $days_ago . ' días.</div>';
+    return array($html, $tid);
+}
+
+function print_tecnicas_sin_contestar()
+{
+    global $db;
+    $query = $db->query("
+        SELECT t.* FROM `mybb_threads` AS t
+        INNER JOIN `mybb_forums` AS f ON t.fid = f.fid
+        AND f.fid = 8 AND t.closed = 0
+        AND t.uid = t.lastposteruid
+        AND t.visible = 1
+        AND t.replies = 0
+        AND t.tid != 97
+        ORDER BY t.lastpost ASC
+    ");
+
+    $html = '';
+    while ($q = $db->fetch_array($query)) {
+        list($item_html) = tc_item($q);
+        $html .= $item_html . '</div>';
+    }
+    if ($html === '') { return ''; }
+    return '<div class="tc-seccion"><div class="barra-op bbox"><span class="barra-texto-op">Sin respuesta de moderación</span></div><div class="barra-espacio-op bbox">' . $html . '</div></div>';
+}
+
+function print_tecnicas_a_moderar()
+{
+    global $db;
+    $query = $db->query("
+        SELECT t.* FROM `mybb_threads` AS t
+        INNER JOIN `mybb_forums` AS f ON t.fid = f.fid
+        AND f.fid = 8 AND t.closed = 0
+        AND t.uid = t.lastposteruid
+        AND t.visible = 1
+        AND t.replies > 0
+        AND t.tid != 97
+        ORDER BY t.lastpost ASC
+    ");
+
+    $html = '';
+    while ($q = $db->fetch_array($query)) {
+        list($item_html) = tc_item($q);
+        $html .= $item_html . '</div>';
+    }
+    if ($html === '') { return ''; }
+    return '<div class="tc-seccion"><div class="barra-op bbox"><span class="barra-texto-op">El usuario respondió, a la espera de moderación</span></div><div class="barra-espacio-op bbox">' . $html . '</div></div>';
+}
+
+function print_tecnicas_no_moderar($post_key)
+{
+    global $db;
+    $query = $db->query("
+        SELECT t.* FROM `mybb_threads` AS t
+        INNER JOIN `mybb_forums` AS f ON t.fid = f.fid
+        AND f.fid = 8 AND t.closed = 0
+        AND t.uid != t.lastposteruid
+        AND t.visible = 1
+        AND t.tid != 97
+        ORDER BY t.lastpost DESC
+    ");
+
+    $html = '';
+    while ($q = $db->fetch_array($query)) {
+        list($item_html, $tid) = tc_item($q);
+        $abandonar_a = 'tecnicas_creacion.php?accion=abandonar&tid=' . $tid . '&my_post_key=' . rawurlencode($post_key);
+        $item_html .= '<div class="tc-item-acciones"><a class="opg-chip" href="' . htmlspecialchars($abandonar_a, ENT_QUOTES, 'UTF-8') . '" onclick="return confirm(\'¿Abandonar este tema? El usuario debe responder, no toca moderar todavía.\');">Abandonar</a></div>';
+        $html .= $item_html . '</div>';
+    }
+    if ($html === '') { return ''; }
+    return '<div class="tc-seccion"><div class="barra-op bbox"><span class="barra-texto-op">A la espera del usuario &mdash; no toca moderar</span></div><div class="barra-espacio-op bbox">' . $html . '</div></div>';
+}
+
+$peticiones_li = print_tecnicas_sin_contestar() . print_tecnicas_a_moderar() . print_tecnicas_no_moderar($post_key);
+
+eval("\$page = \"".$templates->get("staff_tecnicas_creacion")."\";");
+output_page($page);

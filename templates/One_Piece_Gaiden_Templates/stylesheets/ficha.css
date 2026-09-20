@@ -1,0 +1,951 @@
+/** Aquí inician los estilos del contenido del foro **/
+#mainBackground {
+background-color: #0E1A28;
+    padding: 10px;
+    height: auto;
+    box-sizing: border-box;
+}
+
+#secondBackground {
+    padding: 10px;
+    background-color: #1A304C;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: auto;
+}
+
+#thirdFichaBackground {
+    width: 1060px;
+    background-color: #0E1A28;
+    border: 1px solid #6492A0;
+    margin: auto;
+    height: auto;
+}
+
+#fichaBox {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin-top: 20px;
+}
+
+/** Estilos de contenedores de la ficha **/
+
+#seccionIzquierda {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#seccionIzquierda span {
+  font-family: 'LemonMilkLight';
+}
+
+#seccionIzquierda p {
+  font-family: 'LemonMilkLight';
+}
+
+/** Estilos generales **/
+
+.fichaTab {
+  display: flex;
+  flex-direction: row;
+  width: 100%
+}
+
+.parteIzq {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding-left: 13px;
+}
+
+.parteDer {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 12px
+}
+
+/* Estilos comunes para todas las partes izquierdas y derechas */
+
+.parteIzq span {
+  text-transform: uppercase;
+  color: white;
+  font-family: 'Inter';
+  font-weight: 300;
+  letter-spacing: 3px;
+  font-size: 16px;
+  text-shadow: 0px 1px 1px #010101;
+}
+
+.parteIzq p {
+  text-transform: uppercase;
+  color: white;
+  font-family: 'Inter';
+  font-weight: 300;
+  letter-spacing: 3px;
+  font-size: 16px;
+  margin: auto;
+  text-shadow: 0px 1px 1px #010101;
+}
+
+.parteDer span {
+    text-transform: uppercase;
+    color: white;
+    font-family: 'Inter';
+    font-weight: 300;
+	font-size: 18px;
+}
+
+/** Estilos de tamaño de secciones de tabs **/
+
+.izquierdaPR,
+.izquierdaPE {
+  width: 280px;
+  background-color: #4B4286;
+
+}
+
+.derechaPR,
+.derechaPE {
+  width: 50px;
+  background-color: #4B4286;
+}
+
+.izquierdaPR span,
+.izquierdaPE span {
+	font-size: 16px;
+}
+
+.izquierdaEdad,
+.izquierdaRango {
+  width: 35px;
+  background-color: #4B4286;
+  display: flex;
+  justify-content: center;
+}
+
+.derechaEdad,
+.derechaRango {
+  width: 90px;
+  background-color: #3C356B;
+}
+
+.izquierdaAldea {
+  width: 35px;
+  background-color: #4B4286;
+  display: flex;
+  justify-content: center;
+}
+
+.derechaAldea {
+  width: 90px;
+  background-color: #3C356B;
+}
+
+.izquierdaFaccion {
+  width: 125px;
+  background-color: #262143;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.izquierdaClan,
+.izquierdaClase {
+  width: 35px;
+  background-color: #4B4286;
+  display: flex;
+  justify-content: center;
+}
+
+.derechaClan,
+.derechaClase {
+  width: 280px;
+  background-color: #3C356B;
+}
+
+/** Estilos para textos de tabs con Kanji **/
+
+.izquierdaEdad span,
+.izquierdaRango span,
+.izquierdaClan span,
+.izquierdaAldea span {
+  font-size: 20px;
+}
+
+/** Estilos de FilaTab **/
+
+.filaTab {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+/** Avatar de Ficha **/
+
+.avatarBox {
+  width: 260px;
+  height: 460px;
+  background-color: #4B4286;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatarPic {
+  width: 250px;
+  height: 450px;
+  background-color: #2a2d31;;
+}
+
+#seccionDerecha {
+  width: 700px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+#bannerFicha {
+  width: 700px;
+  height: 100px;
+  background-image: url(https://i.ibb.co/dP9HbhQ/Pre-Set-Banner.png);
+  position: relative;
+  border: 3px solid var(--grupo-sin-aldea);
+  box-sizing: border-box;
+}
+
+#gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to left, var(--grupo-sin-aldea) 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+#bannerFichaImagen {
+  width: 700px;
+  height: 100px;
+}
+
+/** Divisor de información de Personaje **/
+
+.divisorInformacion {
+width: 100%;
+    height: 50px;
+    background: white;
+    font-family: 'Inter';
+    font-size: 24px;
+    letter-spacing: 5px;
+    font-weight: 200;
+    color: white;
+	display:flex;
+	justify-content: center;
+	align-items: center;
+	font-family: 'LemonMilkLight';
+}
+
+/** Estilos Tabs y variables de colores según ID de grupo**/
+
+.seccionesTab {
+  display: flex;
+  justify-content: space-between;
+  width: 700px;
+}
+
+.tab {
+  height: 45px;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  /* Añadida propiedad box-sizing */
+  transition: background-color 0.3s ease;
+  /* Agregada transición para el cambio de color de fondo */
+}
+
+.tab.active-tab {
+  background-color: #AEAEAE;
+  /* Color del primer tab activo */
+  color: #FFFFFF;
+  /* Color del texto del primer tab activo */
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+  /* Sombra del primer tab activo */
+  text-decoration: underline;
+  /* Texto subrayado del primer tab activo */
+}
+
+.tab.inactive-tab {
+  background-color: #D9D9D9;
+  /* Color de los tabs inactivos */
+  color: #FFFFFF;
+  /* Color del texto de los tabs inactivos */
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
+  /* Sombra de los tabs inactivos */
+}
+
+.tab-text {
+  text-align: center;
+}
+
+
+/** Estilo de la caja de información de los tabs **/
+
+
+.content {
+  background-color: #5D5592;
+  /* Color de fondo del contenido */
+  width: 700px;
+  height: auto;
+}
+
+#content-info {
+  margin: 20px;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: auto;
+	gap: 30px;
+}
+
+#content-techniques {
+margin: 5px;
+    flex-direction: column;
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+
+/** Estilos de cajas contenedores de información de Historia, Apariencia, etc... **/
+
+.boxHistoria, .boxExtra, .boxFisico, .boxPersonalidad {
+  display: flex;
+}
+
+.boxHistoria {
+  position: relative;
+  background-color: #3C356B;
+  width: auto;
+  height: 200px;
+  color: #FFF;
+
+}
+
+.boxFisico {
+  position: relative;
+  background-color: #3C356B;
+  width: auto;
+  height: 175px;
+  color: #FFF;
+}
+
+.boxPersonalidad {
+  position: relative;
+  background-color: #3C356B;
+  width: auto;
+  height: 175px;
+  color: #FFF;
+}
+
+.boxExtra {
+  position: relative;
+  background-color: #3C356B;
+  width: auto;
+  height: 100px;
+  color: #FFF;
+}
+
+/** Botón de edición de información de personaje **/
+
+.boxInformationbtn {
+display: flex;
+justify-content: center;
+}
+
+.editInformationButton {
+	width: 70%;
+text-align: center;
+    padding: 10px;
+    font-family: 'Inter';
+    font-size: 16px;
+    background-color: #B60000;
+    border: 5px solid #A40000;
+	cursor: pointer;
+}
+
+.informationButtonInput {
+background: none;
+    font-size: 16px;
+    text-transform: uppercase;
+    font-family: 'Inter';
+    font-weight: bolder;
+    color: white;
+}
+
+/** Botón de asignar estadisticas **/
+
+.editstatsbutton {
+	box-sizing: border-box;
+    background: #B60000;
+    width: 123px;
+    border: 3px solid #A40000;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	cursor: pointer;
+}
+
+.editstatsbutton input {
+background: none;
+    font-family: 'Inter';
+    text-transform: uppercase;
+    color: white;
+    font-weight: bold;
+}
+
+/** Estilos para titulos de secciones de ficha **/
+
+.titleH, .titleP {
+  position: absolute;
+  top: -25px;
+  left: 20px;
+  font-family: Inter;
+  font-size: 32px;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-family: 'LemonMilkMedium';
+
+}
+
+.titleA {
+  position: absolute;
+  top: -25px;
+  right: 20px;
+  font-family: Inter;
+  font-size: 32px;
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-family: 'LemonMilkMedium';
+}
+
+.titleE {
+    position: absolute;
+    left: 52%;
+    top: -25px;
+    font-family: Inter;
+    font-size: 32px;
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+	font-family: 'LemonMilkMedium';
+}
+
+
+/** Estilos para cajas de texto con scroll **/
+
+.boxTexto {
+  width: 90%;
+  height: 80%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: inherit;
+}
+
+.texto {
+  font-family: 'Open Sans', "Inter", sans-serif;
+  font-size: 16px;
+  color: #FFFFFF;
+  font-weight: 100;
+  text-align: justify;
+  overflow: auto;
+  width: 100%;
+  padding-right: 15px; /* Agregado espacio para la barra de desplazamiento */
+  margin-top: 6px;
+}
+
+.texto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.texto::-webkit-scrollbar-thumb {
+	background-color: #AEAEAE;
+  border-radius: 3px; /* Toque moderno: esquinas redondeadas */
+}
+
+.texto::-webkit-scrollbar-track {
+	background-color: #D9D9D9;
+  border-radius: 5px;
+}
+
+/** Estilos de la caja de PB **/
+
+#cajaPB {
+    width: 700px;
+    height: 35px;
+    font-family: 'Inter';
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: white;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	font-family: 'LemonMilkLight';
+	text-align: center;
+}
+
+/** Estilos de las tabs **/
+
+.cajaTabs {
+    height: 35px;
+    font-family: 'Inter';
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: white;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+	font-family: 'LemonMilkLight';
+    width: 50%;
+    margin: -20px 0px;
+	cursor: pointer;
+	transition: all 0.3s;
+}
+
+
+/** Estilos de información de sección inferior de sección izquierda **/
+
+#userInfo {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  text-align: right;
+  color: white;
+}
+
+.userNombre {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Inter';
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: 'LemonMilkLight';
+  text-shadow: 2px 2px 2px #010101;
+}
+
+.userApodo {
+  font-size: 20px;
+  font-weight: normal;
+  font-family: 'Inter';
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 2px #010101;
+}
+
+/** Estilos para sección de técnicas en Ficha **/
+
+.privatezone {
+padding: 0px 15px 15px 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+	gap: 10px;
+}
+
+.divisortecnicas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 50px;
+    color: white;
+    font-family: 'Inter';
+    letter-spacing: 20px;
+    text-transform: uppercase;
+    font-weight: 200;
+    font-size: 32px;
+}
+
+.cajaTecnicas {
+	width: 100%;
+	height: auto;
+}
+
+/** Estilos de cajas de técnicas **//
+
+.tecscontainer {
+    background-color: #1a1a1a;
+    width: 992px;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.tecselector {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+		cursor: pointer;
+}
+
+.tecselectorBox {
+	display:flex;
+	flex-direction: row;
+}
+
+.tecselector input{
+    width: 175px;
+    height: 35px;
+    color: #FFF;
+    font-size: 16px;
+    font-family: 'Inter';
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: bold;
+			cursor: pointer;
+}
+
+/**Estilos generales de Kanji **/
+
+.kanjiBox {
+width: 35px;
+height: 35px;
+display: flex;
+justify-content: center;
+	align-items: center;
+}
+
+.kanjiBox span {
+    font-family: 'Inter';
+    text-transform: uppercase;
+    font-weight: bold;
+    color: white;
+    font-size: 24px;
+}
+
+#ninKanji {
+background-color: #014C7D;
+}
+
+#taiKanji {
+background-color: #B63606;
+}
+
+#genKanji {
+background-color: #48224C;
+}
+
+
+#ninbutton{
+       background-color: #015f9c;
+}
+
+#taibutton {
+        background-color: #E34307;
+}
+
+#genbutton {
+        background-color: #5A2B5F;
+}
+
+#clanbutton {
+	background-color: #034458;
+}
+
+#ma1button {
+     background-color: #62162F;
+}
+
+#ma2button {
+background-color: #62162F;
+}
+
+#unibutton {
+background-color: #0A5455;
+}
+
+.Suiton {
+background-color: #7CABC9;
+}
+
+.Raiton {
+background-color: #DDC74F;
+}
+
+.Katon {
+background-color: #b60000;
+}
+
+#pasivasbutton {
+background-color: #138183;
+}
+
+/** Estilos de caja de técnicas y fondos **/
+
+.tecblock {
+width: 100%;
+    height: 550px;
+    overflow-y: scroll;
+}
+
+.tecblock::-webkit-scrollbar-track {
+	background-color: #bcc3d1;
+}
+
+.tecblock::-webkit-scrollbar {
+	width: 10px;
+}
+
+.tecblock::-webkit-scrollbar-thumb {
+	background-color: #0f1520;
+}
+
+.ninjutsu {
+      background-color: #01304E;
+}
+
+.taijutsu {
+      background-color: #882804;
+}
+
+.genjutsu {
+      background-color: #361a39;
+}
+
+.clan {
+      background-color: #022935;
+}
+
+.maestria {
+      background-color: #67171f;
+}
+
+.suiton_general {
+  background-color: #4a6779; /* Cambia el valor por el color deseado */
+  /* Otras propiedades de fondo, como tamaño, posición, repetición, etc. */
+}
+
+.katon_general {
+background-color: #6d0000;
+}
+
+.raiton_general {
+background-color: #85772f;
+}
+
+.doton_general {
+
+}
+
+.fuuton_general {
+}
+
+#ma1block {
+background-color: #3b0d1c;
+}
+
+#ma2block {
+background-color: #3b0d1c;
+}
+
+#uniblock {
+background-color: #063233;
+}
+
+#pasivasblock {
+background-color: #0b4d4f;
+}
+
+/** Contenedor de técnicas en spoilers **/
+
+#tecDiv {
+    width: 100%;
+    text-align: center;
+}
+
+#tecDiv h4 {
+    font-size: 24px;
+    text-decoration: none;
+    font-family: 'Inter';
+    letter-spacing: 5px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: white;
+}
+
+/** Estilos de Stats **/
+
+
+.puntosHabilidadPJ {
+  width: 100%;
+  height: 30px;
+  display: flex;
+  flex-direction: row;
+  background-color: #014C7D;
+}
+
+/** Estilos de suma de stats para vida, chakra y regeneración **/
+
+.statsum {
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+	gap: 40px;
+}
+
+.charhp, .charck, .charregck{
+display: flex;
+    flex-direction: row;
+}
+
+.lefthp, .leftck, .leftregck {
+width: auto;
+    padding: 0px 5px 0 5px;
+    height: 30px;
+    background-color: #3C356B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter';
+    font-weight: bolder;
+    letter-spacing: 3px;
+    color: white;
+}
+
+.righthp, .rightck, .rightregck {
+    background-color: #4B4286;
+    width: 50px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter';
+    font-weight: bolder;
+    color: white;
+}
+
+/** Estilos de tab de nivel **/
+
+.nivelIzq {
+width: 640px;
+    background-color: #D9D9D9;
+    height: 30px;
+    color: #3C356B;
+    font-family: 'Inter';
+    font-weight: bold;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+}
+
+.nivelIzq span {
+margin-left: 5px;
+}
+
+.nivelDer {
+width: 50px;
+    background-color: #AEAEAE;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Inter';
+    font-weight: bold;
+    color: white;
+}
+
+/** Estilos de cajas de estadisticas regulares **/
+
+.statsRowFirst {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.statRowSecond {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.statboxregular {
+	display: flex;
+	flex-direction: row;
+	font-family: 'Inter';
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.statboxleft {
+    width: 73px;
+    height: 30px;
+    background-color: #D9D9D9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #3C356B;
+}
+
+.statboxleft span, .irrstatboxleft span {
+letter-spacing: 2px;
+	text-transform: uppercase;
+}
+
+.statboxright {
+    width: 50px;
+    height: 30px;
+    background-color: #AEAEAE;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.statboxirregular {
+	display: flex;
+	flex-direction: row;
+}
+
+.irrstatboxleft {
+	width: 214.5px;
+    height: 30px;
+    background-color: #D9D9D9;
+    color: #3C356B;
+    font-weight: bold;
+    font-family: 'Inter';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.irrstatboxrigth {
+width: 50px;
+    height: 30px;
+    background-color: #AEAEAE;
+    color: white;
+    font-family: 'Inter';
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+

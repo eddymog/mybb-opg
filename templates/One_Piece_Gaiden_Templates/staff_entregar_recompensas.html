@@ -1,151 +1,140 @@
 <html>
 
 <head>
-  <title>Consola Súper Secreta</title>
-  {$headerinclude}
+    <title>Entregar recompensas</title>
+    {$headerinclude}
+    <style>
+    .er-staff .thirdBackground { width: 100%; max-width: 600px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .er-titulo { padding: var(--opg-espacio-2); }
+    .er-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .er-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+    .er-nombre { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin: 0 0 var(--opg-espacio-3); }
+    .er-nombre a { color: var(--opg-morado-texto); }
+
+    .er-row { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .er-row:last-child { margin-bottom: 0; }
+
+    .er-campo-fijo { flex: 0 0 auto; }
+    .er-campo-fijo input, .er-campo-fijo select { width: 200px; }
+
+    .er-staff .af-field input,
+    .er-staff .af-field select {
+        box-sizing: border-box; height: auto; line-height: 1.3; font-size: 14px; padding: 8px 10px;
+    }
+    .er-staff .af-field select {
+        appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-    <if $fid=='' then>
-      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
-      Accion:<br>
-      <select id="accion">
-        <option value="T1">T1</option>
-        <option value="T2">T2</option>
-	    <option value="T3">T3</option>
-		<option value="T4">T4</option>
-      </select><br><br>
-      <button onclick=onClickAccion()>Ir</button>
-      <br><br>
-    </if>
-	
-	<if $fid != '' && $accion == 'T1' then>
-		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
-		Accion:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br>
-		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
-		<hr>
-		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
-		Reputación:<br>
-		<select id="reputacionT1">
-          <option value="positiva">Positiva</option>
-		  <option value="negativa">Negativa</option>
-        </select><br><br>
-<!-- 		Recompensas a entregar:<br>
-		<div id="resultadosT1" name="resultadosT1"> 
-		</div><br>-->
-		<input onclick="entregarT1()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
-	</if>
-	  
-	<if $fid != '' && $accion == 'T2' then>
-		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
-		Accion:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br>
-		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
-		<hr>
-		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
-		Reputación:<br>
-		<select id="reputacionT2">
-          <option value="positiva">Positiva</option>
-		  <option value="negativa">Negativa</option>
-        </select><br><br>
-<!-- 		Recompensas a entregar:<br>
-		<div id="resultadosT2" name="resultadosT2">
-		</div><br> -->
-		<input onclick="entregarT2()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
-	</if>
-	  
-	<if $fid != '' && $accion == 'T3' then>
-		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
-		Accion:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br>
-		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
-		<hr>
-		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
-		Reputación:<br>
-		<select id="reputacionT3">
-          <option value="positiva">Positiva</option>
-		  <option value="negativa">Negativa</option>
-        </select><br><br>
-<!-- 		Recompensas a entregar:<br>
-		<div id="resultadosT3" name="resultadosT3"> 
-		</div><br>-->
-		<input onclick="entregarT3()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
-	</if>
-	  
-	<if $fid != '' && $accion == 'T4' then>
-		User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br>
-		Accion:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br>
-		<p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
-		<hr>
-		ID del Tema: <br><input class="textbox" type="text" name="tid" id="tid" required><br>
-		Reputación:<br>
-		<select id="reputacionT4">
-          <option value="positiva">Positiva</option>
-		  <option value="negativa">Negativa</option>
-        </select><br><br>
-<!-- 		Recompensas a entregar:<br>
-		<div id="resultadosT3" name="resultadosT3"> 
-		</div><br>-->
-		<input onclick="entregarT4()" class="button" value="Entregar" style=" width: 93px; font-size: 22px; ">
-	</if>
-	
-  </div>
-  {$footer}
-</body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-	function entregarT1() {
-		$.post("/op/staff/entregar_recompensas.php", { ficha_id: '{$fid}', accion: 'T1', reputacion: $('#reputacionT1').val(), tid: $('#tid').val() }, function( data ) {
-			alert('¡Entregada recompensa!');
-			console.log(data);
-			window.location = "/op/staff/log_entregas.php";
-		}); 
-	}
-	
-	function entregarT2() {
-		$.post("/op/staff/entregar_recompensas.php", { ficha_id: '{$fid}', accion: 'T2', reputacion: $('#reputacionT2').val(), tid: $('#tid').val() }, function( data ) {
-			alert('¡Entregada recompensa!');
-			console.log(data);
-			window.location = "/op/staff/log_entregas.php";
-		}); 
-	}
-	
-	function entregarT3() {
-		$.post("/op/staff/entregar_recompensas.php", { ficha_id: '{$fid}', accion: 'T3', reputacion: $('#reputacionT3').val(), tid: $('#tid').val() }, function( data ) {
-			alert('¡Entregada recompensa!');
-			console.log(data);
-			window.location = "/op/staff/log_entregas.php";
-		}); 
-	}
-	
-	function entregarT4() {
-		$.post("/op/staff/entregar_recompensas.php", { ficha_id: '{$fid}', accion: 'T4', reputacion: $('#reputacionT4').val(), tid: $('#tid').val() }, function( data ) {
-			alert('¡Entregada recompensa!');
-			console.log(data);
-			window.location = "/op/staff/log_entregas.php";
-		}); 
-	}
-	
-  function onClickAccion() {
-    const fid = document.getElementById('fid').value;
-    const accion = document.getElementById('accion').value;
-    if (fid && accion) {
-      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+    {$header}
+    <div class="indice er-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox er-titulo"><span class="barra-texto-op">Entregar recompensas</span></div>
+            <div class="barra-espacio-op bbox er-descripcion">
+                Entregar recompensas de tramo autonarrado (T1-T4) a un personaje: experiencia, nikas, berries y reputación.
+            </div>
+        </div>
+
+        <if $fid == '' then>
+        <div>
+            <div class="barra-op bbox" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar personaje</span></div>
+            <div class="barra-espacio-op bbox">
+                <div class="er-row">
+                    <div class="af-field er-campo-fijo"><label for="fid-buscar">UID del personaje</label><input type="number" min="1" required id="fid-buscar"></div>
+                    <div class="af-field er-campo-fijo">
+                        <label for="accion-buscar">Tramo</label>
+                        <select id="accion-buscar">
+                            <option value="T1">T1</option>
+                            <option value="T2">T2</option>
+                            <option value="T3">T3</option>
+                            <option value="T4">T4</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: center;"><button class="btn-op btn-op--sm" onclick="onClickAccion()">Buscar</button></div>
+            </div>
+        </div>
+        </if>
+
+        <if $fid != '' && $accion != '' && $ficha_existe == 1 then>
+        <div id="entregar-recompensa" data-post-key="{$post_key}" data-fid="{$fid_esc}" data-accion="{$accion_esc}">
+            <div class="er-row">
+                <div class="af-field er-campo-fijo"><label for="fid">UID</label><input type="number" id="fid" value="{$fid_esc}" disabled></div>
+                <div class="af-field er-campo-fijo"><label for="accion-mostrada">Tramo</label><input type="text" id="accion-mostrada" value="{$accion_esc}" disabled></div>
+            </div>
+            <p class="er-nombre">Personaje: <a href="/op/ficha.php?uid={$fid_esc}" target="_blank">{$ficha_nombre_esc}</a></p>
+
+            <div class="er-row">
+                <div class="af-field"><label for="tid">ID del tema</label><input type="number" id="tid" min="1" required></div>
+                <div class="af-field">
+                    <label for="reputacion">Reputación a sumar</label>
+                    <select id="reputacion">
+                        <option value="positiva">Positiva</option>
+                        <option value="negativa">Negativa</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: center;"><button class="btn-op btn-op--primario" id="btn-entregar">Entregar</button></div>
+        </div>
+        </if>
+
+        <if $fid != '' && $ficha_existe == 0 then>
+        <p class="aviso err">Ese UID no tiene ficha.</p>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    function onClickAccion() {
+        var fid = document.getElementById('fid-buscar').value;
+        var accion = document.getElementById('accion-buscar').value;
+        if (fid && accion) {
+            window.location.href = window.location.pathname + '?fid=' + encodeURIComponent(fid) + '&accion=' + encodeURIComponent(accion);
+        }
     }
-  }
-</script>
+
+    (function () {
+        var contenedor = document.getElementById('entregar-recompensa');
+        if (!contenedor) { return; }
+
+        document.getElementById('btn-entregar').addEventListener('click', function () {
+            var tid = document.getElementById('tid').value;
+            if (!tid) { return; }
+
+            $.post('/op/staff/entregar_recompensas.php', {
+                my_post_key: contenedor.getAttribute('data-post-key'),
+                ficha_id: contenedor.getAttribute('data-fid'),
+                accion: contenedor.getAttribute('data-accion'),
+                reputacion: document.getElementById('reputacion').value,
+                tid: tid
+            }, function (data) {
+                if (data && data.error) {
+                    alert(data.error);
+                    return;
+                }
+                alert('¡Entregada recompensa!');
+                window.location = '/op/staff/log_entregas.php';
+            }, 'json');
+        });
+    })();
+    </script>
+</body>
 
 </html>

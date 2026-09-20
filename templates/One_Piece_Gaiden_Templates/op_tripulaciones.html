@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>Tripulaciones — {$bbname_html}</title>
+{$headerinclude}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" crossorigin="anonymous" />
+<style>
+.td-pagina .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+.td-titulo { padding: var(--opg-espacio-2); }
+.td-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+
+.td-filtros {
+    display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); align-items: flex-end;
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara);
+    padding: var(--opg-espacio-3) var(--opg-espacio-4);
+}
+.af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; }
+.af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+.af-field input, .af-field select {
+    box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px;
+}
+.td-check { display: flex; align-items: center; gap: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); padding-bottom: 8px; }
+
+.td-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: var(--opg-espacio-4); }
+
+.td-tarjeta { display: flex; flex-direction: column; gap: var(--opg-espacio-2); align-items: flex-start; }
+.td-logo, .td-logo-vacio { width: 64px; height: 64px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); object-fit: cover; }
+.td-logo-vacio { display: flex; align-items: center; justify-content: center; background: var(--opg-crema-dorada); color: var(--opg-gris-texto); font-size: 22px; }
+.td-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.td-badge {
+    font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; text-transform: uppercase; letter-spacing: .5px;
+    color: #fff; background: var(--opg-morado-texto); border-radius: 999px; padding: 2px 8px;
+}
+.td-badge-estado { background: var(--opg-gris-bloqueado); }
+.td-mensaje { margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; font-style: italic; color: var(--opg-marron); }
+
+@media (max-width: 700px) {
+    .td-pagina .secondBackground, .td-pagina .thirdBackground { padding: 10px; }
+    .td-titulo .barra-texto-op { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+{$header}
+<div class="indice td-pagina">
+<div class="mainBackground">
+<div class="secondBackground">
+<div class="thirdBackground">
+
+    <div class="barra-op bbox td-titulo"><span class="barra-texto-op">Tripulaciones</span></div>
+
+    <form method="get" class="td-filtros">
+        <div class="af-field">
+            <label for="td-faccion">Facción</label>
+            <select id="td-faccion" name="faccion">
+                {$faccion_options_html}
+            </select>
+        </div>
+        <div class="af-field">
+            <label for="td-min">Mínimo de miembros</label>
+            <input type="number" id="td-min" name="min_miembros" min="0" value="{$min_miembros_val}">
+        </div>
+        <label class="td-check"><input type="checkbox" name="buscando" value="1"{$buscando_checked}> Buscando miembros</label>
+        <button type="submit" class="btn-op btn-op--sm btn-op--primario">Filtrar</button>
+    </form>
+
+    <div class="td-grid">
+        {$tarjetas_html}
+    </div>
+
+</div>
+</div>
+</div>
+</div>
+{$footer}
+</body>
+</html>

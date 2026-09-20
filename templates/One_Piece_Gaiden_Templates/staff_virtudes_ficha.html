@@ -1,55 +1,130 @@
 <html>
 
 <head>
-  <title>Consola Súper Secreta</title>
-  {$headerinclude}
+    <title>Virtudes de la ficha</title>
+    {$headerinclude}
+    <style>
+    .virtudes-ficha-staff .thirdBackground { width: 100%; max-width: 600px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .vf-titulo { padding: var(--opg-espacio-2); }
+    .vf-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .vf-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .vf-row { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+    .vf-row:last-child { margin-bottom: 0; }
+    .vf-nombre { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); margin: 0 0 var(--opg-espacio-3); }
+    .vf-nombre a { color: var(--opg-morado-texto); }
+
+    /* Campo de ancho fijo (UID, Acción): ancho explícito en el propio
+       input/select en vez de depender de flex-grow — mismo patrón que
+       op/staff/objetos_ficha.php / tecnicas_ficha.php. */
+    .vf-campo-fijo { flex: 0 0 auto; }
+    .vf-campo-fijo input, .vf-campo-fijo select { width: 200px; }
+
+    /* Defensivo: en producción los inputs/selects se vieron mucho más altos
+       de lo esperado con solo la clase compartida .af-field — se fuerza el
+       tamaño acá con más especificidad (ver objetos_ficha.php/tecnicas_ficha.php). */
+    .virtudes-ficha-staff .af-field input,
+    .virtudes-ficha-staff .af-field select {
+        box-sizing: border-box; height: auto; line-height: 1.3; font-size: 14px; padding: 8px 10px;
+    }
+    .virtudes-ficha-staff .af-field select {
+        appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+    </style>
 </head>
 
 <body>
-  {$header}
-  <div class="fondo-blanco">
-    <if $fid=='' then>
-      User ID:<br><input class="textbox" type="number" name="name" min="100" max="2000" required id='fid'><br><br>
-      Acción:<br>
-      <select id="accion">
-        <option value="Añadir">Añadir</option>
-        <option value="Remover">Remover</option>
-      </select><br><br>
-      <button onclick=onClickAccion()>Buscar</button>
-      <br><br>
-    </if>
-    <if $fid !='' && $accion != '' then>
-      <form method="post" action="/op/staff/virtudes_ficha.php" name="ficha_virtudes" id="ficha_virtudes">
-        <div style="display: none">
-           <input type="text" id="fid" name="ficha_id" value="{$fid}">
-           <input type="text" id="fid" name="accion" value="{$accion}">
+    {$header}
+    <div class="indice virtudes-ficha-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox vf-titulo"><span class="barra-texto-op">Virtudes de la ficha</span></div>
+            <div class="barra-espacio-op bbox vf-descripcion">
+                Añadir o remover virtudes/defectos de un personaje, en lote, separados por comas.
+            </div>
         </div>
-        User ID:<br><input class="textbox" type="number" name="name" required id='fid' value={$fid} disabled><br><br>
-        Acción:<br>
-        <select id="accion" disabled>
-          <option value="{$accion}">{$accion}</option>
-        </select><br>
-        <p>Nombre de cuenta: <a href="/op/ficha.php?uid={$fid}" target="_blank">{$ficha['nombre']}</a></p>
-        <textarea style="width: 350px;height: 125px;" name="virtudes" minlength="1" required placeholder=""></textarea><br>
-        <span>*Escribe todos los virtudes que quieras añadir/remover separadas por comas, y sin espacios.</span><br><br>
-        Miembro de Staff: <br><input class="textbox" type="text" name="staff" required><br>
-        Razón: <br><input class="textbox" type="text" name="razon" required><br><br>
-        <input class="button" type="submit" value="Guardar">
-      </form>
-    </if>
-  </div>
-  {$footer}
-</body>
-<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
-{$reload_script}
-<script>
-  function onClickAccion() {
-    const fid = document.getElementById('fid').value;
-    const accion = document.getElementById('accion').value;
-    if (fid && accion) {
-      window.location.href = window.location.pathname + '?fid=' + fid + '&accion=' + accion;
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <if $fid == '' then>
+        <div>
+            <div class="barra-op bbox" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar personaje</span></div>
+            <div class="barra-espacio-op bbox">
+                <div class="vf-row">
+                    <div class="af-field vf-campo-fijo"><label for="fid-buscar">UID del personaje</label><input type="number" min="1" required id="fid-buscar"></div>
+                    <div class="af-field vf-campo-fijo">
+                        <label for="accion-buscar">Acción</label>
+                        <select id="accion-buscar">
+                            <option value="Añadir">Añadir</option>
+                            <option value="Remover">Remover</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-op btn-op--sm" onclick="onClickAccion()">Buscar</button>
+            </div>
+        </div>
+        </if>
+
+        <if $fid != '' && $accion != '' && $ficha_existe == 1 then>
+        <form method="post" id="virtudes_ficha">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="ficha_id" value="{$fid_esc}">
+            <input type="hidden" name="accion" value="{$accion_esc}">
+
+            <div class="vf-row">
+                <div class="af-field vf-campo-fijo"><label for="fid">UID</label><input type="number" id="fid" value="{$fid_esc}" disabled></div>
+                <div class="af-field vf-campo-fijo"><label for="accion-mostrada">Acción</label><input type="text" id="accion-mostrada" value="{$accion_esc}" disabled></div>
+            </div>
+            <p class="vf-nombre">Personaje: <a href="/op/ficha.php?uid={$fid_esc}" target="_blank">{$ficha_nombre_esc}</a></p>
+
+            <div class="vf-row">
+                <div class="af-field">
+                    <label for="virtudes">Virtudes/defectos (separados por comas)</label>
+                    <textarea id="virtudes" name="virtudes" minlength="1" required placeholder="V001,D002" style="min-height: 110px;"></textarea>
+                    <small>Escribir todas las virtud/defecto ID que se quieran añadir o remover, separadas por comas, sin espacios.</small>
+                </div>
+            </div>
+
+            <div class="vf-row">
+                <div class="af-field">
+                    <label for="razon">Razón</label>
+                    <input type="text" id="razon" name="razon" required>
+                </div>
+            </div>
+
+            <button class="btn-op btn-op--primario">Guardar</button>
+        </form>
+        </if>
+
+        <if $fid != '' && $ficha_existe == 0 then>
+        <p class="aviso err">Ese UID no tiene ficha.</p>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    function onClickAccion() {
+        var fid = document.getElementById('fid-buscar').value;
+        var accion = document.getElementById('accion-buscar').value;
+        if (fid && accion) {
+            window.location.href = window.location.pathname + '?fid=' + encodeURIComponent(fid) + '&accion=' + encodeURIComponent(accion);
+        }
     }
-  }
-</script>
+    </script>
+</body>
 
 </html>

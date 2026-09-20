@@ -1,0 +1,102 @@
+<html>
+<head>
+<title>Revisar solicitud de Tripulación — {$bbname_html}</title>
+{$headerinclude}
+<style>
+.rev-pagina .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+.rev-titulo { padding: var(--opg-espacio-2); }
+.rev-titulo .barra-texto-op { font-size: 24px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+
+.aviso { font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px; }
+.aviso.ok  { background: var(--opg-verde-exito); }
+.aviso.err { background: var(--opg-rojo-error); }
+
+.rev-datos {
+    border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara);
+    padding: var(--opg-espacio-4); display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: var(--opg-espacio-4);
+}
+.rev-dato { display: flex; flex-direction: column; gap: 4px; }
+.rev-dato--ancho { grid-column: 1 / -1; }
+.rev-dato dt { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); margin: 0; }
+.rev-dato dd { margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); line-height: 1.5; }
+.rev-dato dd a { color: var(--opg-morado-texto); }
+
+/* Detalles para staff: se destaca distinto del resto — es justo la
+   información pensada para esta pantalla, no para mostrarse en la
+   tripulación una vez creada. */
+.rev-staff {
+    border: 2px dashed var(--opg-naranja); border-radius: var(--opg-radio-md); background: var(--opg-crema-dorada);
+    padding: var(--opg-espacio-3) var(--opg-espacio-4);
+}
+.rev-staff dt { color: var(--opg-naranja-quemado, var(--opg-morado-texto)); }
+
+.rev-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3); align-items: center; }
+
+@media (max-width: 700px) {
+    .rev-pagina .secondBackground, .rev-pagina .thirdBackground { padding: 10px; }
+}
+</style>
+</head>
+<body>
+{$header}
+<div class="indice rev-pagina">
+<div class="mainBackground">
+<div class="secondBackground">
+<div class="thirdBackground">
+
+    <div><a class="opg-volver" href="/op/staff/peticiones_admin.php">&larr; Peticiones</a></div>
+
+    <div>
+        <div class="barra-op bbox rev-titulo"><span class="barra-texto-op">Revisar solicitud de Tripulación</span></div>
+    </div>
+
+    {$r_msg_html}
+
+    <dl class="rev-datos">
+        <div class="rev-dato">
+            <dt>Solicitante</dt>
+            <dd><a target="_blank" href="/op/personaje.php?uid={$r_uid}">{$r_personaje} — {$r_uid}</a></dd>
+        </div>
+        <div class="rev-dato">
+            <dt>Nombre propuesto</dt>
+            <dd>{$r_nombre}</dd>
+        </div>
+        <div class="rev-dato">
+            <dt>Facción</dt>
+            <dd>{$r_faccion}</dd>
+        </div>
+        <div class="rev-dato">
+            <dt>Fecha</dt>
+            <dd>{$r_fecha}</dd>
+        </div>
+        <div class="rev-dato rev-dato--ancho">
+            <dt>Link del tema</dt>
+            <dd><a target="_blank" href="{$r_link}">{$r_link}</a></dd>
+        </div>
+        <div class="rev-dato rev-dato--ancho">
+            <dt>Ideales</dt>
+            <dd>{$r_ideales}</dd>
+        </div>
+        <div class="rev-dato rev-dato--ancho">
+            <dt>Detalles</dt>
+            <dd>{$r_detalles}</dd>
+        </div>
+    </dl>
+
+    <dl class="rev-staff">
+        <div class="rev-dato">
+            <dt>Otros (para staff)</dt>
+            <dd>{$r_detalles_staff}</dd>
+        </div>
+    </dl>
+
+    {$r_acciones_html}
+
+</div>
+</div>
+</div>
+</div>
+{$footer}
+</body>
+</html>

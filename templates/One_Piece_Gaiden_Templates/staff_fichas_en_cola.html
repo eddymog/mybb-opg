@@ -1,23 +1,52 @@
 <html>
 
 <head>
-    <style>
-
-
-    </style>
-    <title>Consola Súper Secreta</title>
+    <title>Fichas en cola</title>
     {$headerinclude}
+    <style>
+    .fc-staff .thirdBackground { width: 100%; max-width: 700px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .fc-titulo { padding: var(--opg-espacio-2); }
+    .fc-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .fc-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .fc-item {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3);
+    }
+    .fc-item:last-child { margin-bottom: 0; }
+    .fc-item-linea { font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); margin-bottom: var(--opg-espacio-2); }
+    .fc-item-linea a { color: var(--opg-morado-texto); }
+    .fc-item-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); }
+    </style>
 </head>
 
 <body>
     {$header}
-    <div class="fondo-blanco">
-    <h2>Fichas en Cola</h2>
-    <ul>
-        {$li_fichas}
-    </ul>
+    <div class="indice fc-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox fc-titulo"><span class="barra-texto-op">Fichas en cola</span></div>
+            <div class="barra-espacio-op bbox fc-descripcion">
+                Personajes nuevos a la espera de aprobación de facción.
+            </div>
+        </div>
+
+        <if $fichas_li == '' then>
+        <p class="aviso ok">No hay fichas en cola.</p>
+        </if>
+
+        {$fichas_li}
+
     </div>
-    {$reload_script}
+    </div>
+    </div>
+    </div>
     {$footer}
 </body>
 

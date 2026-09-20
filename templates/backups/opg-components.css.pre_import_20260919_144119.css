@@ -1,0 +1,187 @@
+@charset "UTF-8";
+/**
+ * OPG — Componentes de interfaz (para código nuevo)
+ * ====================================================
+ * Complemento de opg-tokens.css: tokens.css son los valores crudos (colores,
+ * espaciados, radios...) más un puñado de componentes que ya vivían ahí
+ * (.btn-op, .opg-card, .opg-chip, .opg-volver, .opg-vacio). Este archivo junta
+ * los patrones de INTERFAZ que fueron apareciendo, copiados y ligeramente
+ * distintos, en cada herramienta nueva de op/staff/ — formularios largos con
+ * "buscar / crear", typeahead contra el servidor, acordeón de "Guía de
+ * campos", avisos de éxito/error post-guardado. En vez de seguir copiando
+ * `.om-resultado`, `.tec-resultado`, `.nm-resultado`... con el mismo CSS
+ * carácter por carácter, la idea es usar las clases genéricas de acá.
+ *
+ * Cómo usarlo
+ * -----------
+ * Ya lo carga {$headerinclude} (una sola vez, para todo el foro) — no hace
+ * falta un <link> propio en tu página. Si estás escribiendo algo standalone
+ * que NO pasa por {$headerinclude}, cargalo a mano con el número de "VERSIÓN
+ * ACTUAL" de abajo:
+ *
+ *      <link rel="stylesheet" href="/jscripts/opg-components.css?ver=1">
+ *
+ * VERSIÓN ACTUAL: 1 — subila (acá y en el <link> de headerinclude.html) cada
+ * vez que edites este archivo. Mismo motivo que en opg-tokens.css: Cloudflare
+ * cachea agresivamente, así que un cambio se ve con una URL nueva.
+ *
+ * Migración de páginas existentes: las herramientas de op/staff/ ya
+ * rediseñadas (objetos_modificar, tecnicas_modificar, akumas_modificar,
+ * virtudes_modificar, islas_modificar, npcs_modificar...) siguen con su
+ * propia copia prefijada (`.om-resultado`, `.nm-resultado`...) por ahora.
+ * Pasarlas a estas clases genéricas es un cambio pendiente, a hacer de a
+ * una — no es automático por el solo hecho de que este archivo exista.
+ */
+
+/**
+ * Campo de formulario (para código nuevo)
+ * ------------------------------------------
+ * Envoltorio label + input/textarea/select para formularios largos de
+ * op/staff/ (objetos, técnicas, NPCs...). Usar `.af-field--ancho-completo`
+ * para que un campo (normalmente un textarea) ocupe todo el ancho de la fila
+ * en vez de compartirla con otros `.af-field`.
+ *
+ * <div class="af-field">
+ *   <label for="nombre">Nombre</label>
+ *   <input type="text" id="nombre" name="nombre">
+ * </div>
+ */
+.af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; }
+.af-field label {
+  font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px;
+  text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto);
+}
+.af-field small { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+.af-field input, .af-field textarea, .af-field select {
+  box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+  background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+  transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+}
+.af-field textarea { min-height: 90px; resize: vertical; }
+.af-field input:hover, .af-field textarea:hover, .af-field select:hover { border-color: var(--opg-naranja-hover); }
+.af-field input:focus, .af-field textarea:focus, .af-field select:focus {
+  outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+}
+.af-field input:disabled { background: var(--opg-gris-bloqueado); color: var(--opg-gris-texto); }
+.af-field--ancho-completo { flex-basis: 100%; }
+
+/* El <select> del global.css sitewide clipea verticalmente el texto de las
+ * opciones cuando se le suma cualquier padding propio (ver docs/style.md §7) —
+ * esto lo reemplaza por una flechita hecha con dos degradados en vez de la
+ * imagen de fondo de global.css. */
+.af-field select {
+  appearance: none; -webkit-appearance: none; height: auto; padding-right: 32px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+  background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+
+/**
+ * Aviso de resultado (para código nuevo)
+ * ------------------------------------------
+ * Mensaje post-guardado del patrón Post/Redirect/Get (cookie de flash +
+ * redirect), ok o error. Ver docs/style.md.
+ *
+ * <p class="aviso ok">Objeto guardado.</p>
+ * <p class="aviso err">El nombre es obligatorio.</p>
+ */
+.aviso {
+  font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+  border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+}
+.aviso.ok  { background: var(--opg-verde-exito); }
+.aviso.err { background: var(--opg-rojo-error); }
+
+/**
+ * Guía de campos (para código nuevo)
+ * ------------------------------------------
+ * Acordeón informativo, cerrado por defecto, para documentar campos no
+ * obvios (qué los consume, valores especiales como "???", convenciones de
+ * formato) sin ocupar lugar en pantalla para quien ya sabe qué va en cada
+ * campo. Ver docs/style.md — la regla de la casa es documentar solo lo que
+ * se pudo verificar leyendo el código consumidor real (BBCode, combate,
+ * crafteo...), nunca inventar un uso plausible.
+ *
+ * <details>
+ *   <summary class="opg-guia-barra">Guía de campos</summary>
+ *   <dl class="opg-guia-cuerpo">
+ *     <div class="opg-guia-item">
+ *       <dt>Campo</dt>
+ *       <dd>Para qué sirve, quién lo lee (<code>archivo.php</code>).</dd>
+ *     </div>
+ *   </dl>
+ * </details>
+ */
+.opg-guia-barra {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+  background: var(--opg-morado); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+  padding: var(--opg-espacio-2) var(--opg-espacio-4); color: #fff;
+  font-family: var(--opg-fuente-titular); letter-spacing: .5px; text-shadow: var(--opg-sombra-titular);
+}
+.opg-guia-barra::-webkit-details-marker { display: none; }
+.opg-guia-barra::after { content: "▾"; margin-left: auto; transition: transform var(--opg-rapido); }
+details[open] > .opg-guia-barra::after { transform: rotate(180deg); }
+.opg-guia-cuerpo {
+  margin: 0; border: 2px solid var(--opg-tinta); border-top: 0; border-radius: 0 0 var(--opg-radio-md) var(--opg-radio-md);
+  background: var(--opg-crema-clara); padding: var(--opg-espacio-4);
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: var(--opg-espacio-4);
+}
+.opg-guia-item dt {
+  font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: .5px; color: var(--opg-morado-texto); margin-bottom: 2px;
+}
+.opg-guia-item dd {
+  margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; line-height: 1.5; color: var(--opg-marron);
+}
+.opg-guia-item dd code {
+  background: var(--opg-crema-dorada); border-radius: 4px; padding: 0 4px; font-size: 11px;
+}
+@media (max-width: 700px) {
+  .opg-guia-cuerpo { grid-template-columns: 1fr; }
+}
+
+/**
+ * Typeahead contra el servidor (para código nuevo)
+ * ------------------------------------------
+ * Buscador de "ID o nombre" con resultados en vivo (debounce ~200ms contra un
+ * endpoint `?buscar_x=` propio de la página, ver docs/style.md). El elemento
+ * con `.opg-buscar-caja` necesita ser el padre directo de `.opg-resultados`
+ * (position: relative / absolute).
+ *
+ * El dropdown es position:absolute, así que no empuja el alto de su
+ * contenedor — si ese contenedor tiene borde/fondo propio (como
+ * `.thirdBackground`), agregarle la clase `.opg-dropdown-abierto` mientras el
+ * dropdown esté abierto para que no se salga del marco (ver JS de cualquier
+ * página que ya use este patrón, p. ej. npcs_modificar).
+ *
+ * <span class="opg-buscar-caja">
+ *   <input type="text" autocomplete="off">
+ *   <div class="opg-resultados" hidden></div>
+ * </span>
+ */
+.opg-buscar-caja { position: relative; display: inline-block; }
+.opg-resultados {
+  position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px;
+  min-width: 260px; max-height: 260px; overflow-y: auto;
+  background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+  box-shadow: var(--opg-sombra-offset);
+}
+.opg-resultado {
+  display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer;
+  font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+}
+.opg-resultado + .opg-resultado { border-top: 1px solid rgba(0, 0, 0, .1); }
+.opg-resultado:hover, .opg-resultado.opg-activo { background: var(--opg-naranja); color: #fff; }
+.opg-resultado span { display: block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; opacity: .75; }
+.opg-resultado-vacio { padding: 8px 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); font-style: italic; }
+
+.opg-dropdown-abierto { padding-bottom: 280px; transition: padding-bottom var(--opg-rapido); }
+
+/**
+ * Chip de peligro: variante de `.opg-chip` (ver opg-tokens.css) para
+ * "Eliminar" en las herramientas de catálogo (objetos, técnicas, akumas,
+ * virtudes, NPCs...). Queda blanco en reposo — solo se pone rojo al pasar el
+ * mouse, para no gritar peligro todo el tiempo en una fila de acciones.
+ *
+ * <button type="button" class="opg-chip chip-peligro">Eliminar</button>
+ */
+.opg-chip.chip-peligro:hover { background: var(--opg-rojo-error); color: #fff; }

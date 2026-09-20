@@ -1,0 +1,1604 @@
+<html>
+
+<head>
+  <title>Generador de Personajes</title>
+  {$headerinclude}
+  <style>
+  .generadorpj2-staff .thirdBackground { width: 100%; max-width: 1100px; gap: var(--opg-espacio-5); text-align: left; }
+
+  .g2-titulo { padding: var(--opg-espacio-2); }
+  .g2-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+
+  .g2-seccion { margin-bottom: var(--opg-espacio-5); }
+  .g2-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); }
+
+  /* Tiles de estadísticas: no hay componente compartido para esto todavía */
+  .g2-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--opg-espacio-3); }
+  .g2-stat { text-align: center; background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: var(--opg-espacio-3); }
+  .g2-stat-label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-gris-texto); margin-bottom: 4px; }
+  .g2-stat-valor { font-family: var(--opg-fuente-titular); font-size: 24px; color: var(--opg-naranja); margin-bottom: 6px; text-shadow: var(--opg-sombra-titular); }
+  .g2-stat-input { width: 60px; text-align: center; font-weight: bold; }
+  .g2-stat-nivel { width: 220px; margin: 0 auto var(--opg-espacio-4); }
+  .g2-subtitulo { margin: var(--opg-espacio-4) 0 var(--opg-espacio-2); font-family: var(--opg-fuente-titular); font-size: 15px; letter-spacing: 1px; color: var(--opg-morado-texto); }
+  .g2-stat.calc-vida { background: #fff3cd; }
+  .g2-stat.calc-energia { background: #d4edda; }
+  .g2-stat.calc-haki { background: #d1ecf1; }
+
+  /* Virtudes / defectos */
+  .g2-balance { text-align: center; background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-4); font-family: var(--opg-fuente-cuerpo); font-size: 13px; }
+  .g2-balance-valor { font-family: var(--opg-fuente-titular); font-size: 32px; margin-bottom: var(--opg-espacio-2); }
+  .g2-balance-valor.positivo { color: var(--opg-verde-exito); }
+  .g2-balance-valor.negativo { color: var(--opg-rojo-error); }
+  .g2-balance-valor.neutro { color: var(--opg-gris-texto); }
+  .g2-balance-detalle { display: flex; gap: var(--opg-espacio-4); justify-content: center; margin-top: var(--opg-espacio-2); }
+
+  .g2-vd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--opg-espacio-4); }
+  .g2-vd-titulo { font-family: var(--opg-fuente-titular); font-size: 15px; letter-spacing: 1px; margin-bottom: var(--opg-espacio-2); }
+  .g2-vd-titulo.virtud { color: var(--opg-verde-exito); }
+  .g2-vd-titulo.defecto { color: var(--opg-rojo-error); }
+  .g2-vd-lista { max-height: 320px; overflow-y: auto; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: var(--opg-espacio-2); background: var(--opg-crema-clara); }
+  .g2-vd-item {
+      background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+      padding: var(--opg-espacio-2) var(--opg-espacio-3); margin-bottom: var(--opg-espacio-2); cursor: pointer; user-select: none;
+      transition: background var(--opg-rapido), color var(--opg-rapido), transform var(--opg-rapido);
+      font-family: var(--opg-fuente-cuerpo); font-size: 13px;
+  }
+  .g2-vd-item:last-child { margin-bottom: 0; }
+  .g2-vd-item.virtud { border-left: 4px solid var(--opg-verde-exito); }
+  .g2-vd-item.defecto { border-left: 4px solid var(--opg-rojo-error); }
+  .g2-vd-item:hover { background: var(--opg-naranja); color: #fff; text-shadow: var(--opg-sombra-titular); transform: translateY(-1px); }
+  .g2-vd-item.selected.virtud { background: var(--opg-verde-exito); color: #fff; text-shadow: var(--opg-sombra-titular); }
+  .g2-vd-item.selected.defecto { background: var(--opg-rojo-error); color: #fff; text-shadow: var(--opg-sombra-titular); }
+  .g2-vd-puntos.virtud { color: var(--opg-verde-exito); font-weight: bold; }
+  .g2-vd-puntos.defecto { color: var(--opg-rojo-error); font-weight: bold; }
+  .g2-vd-desc { display: block; color: var(--opg-gris-texto); font-size: 12px; margin-top: 2px; }
+
+  /* Armas / técnicas */
+  .g2-armas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--opg-espacio-4); }
+  .g2-info-caja { margin-top: var(--opg-espacio-2); padding: var(--opg-espacio-2) var(--opg-espacio-3); background: var(--opg-crema); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); font-family: var(--opg-fuente-cuerpo); font-size: 13px; }
+
+  /* Resumen de combate: panel destacado, igual criterio que el original */
+  .g2-combate { background: var(--opg-naranja); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: var(--opg-espacio-4); }
+  .g2-combate > .barra-texto-op { display: block; text-align: center; margin-bottom: var(--opg-espacio-2); }
+  .g2-modo { text-align: center; margin: var(--opg-espacio-3) 0 var(--opg-espacio-4); }
+  .g2-modo label { margin-right: var(--opg-espacio-4); color: #fff; font-family: var(--opg-fuente-titular); letter-spacing: 1px; text-shadow: var(--opg-sombra-titular); font-size: 13px; cursor: pointer; }
+  .g2-combate-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--opg-espacio-3); }
+  .g2-combate-stat { text-align: center; background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: var(--opg-espacio-3); }
+  .g2-combate-valor { font-family: var(--opg-fuente-titular); font-size: 26px; color: var(--opg-naranja); margin-bottom: 4px; }
+  .g2-combate-label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-gris-texto); }
+
+  /* Copiar URL: el JS (sin modificar) resetea el fondo del botón a #0055bb luego
+     de mostrar "¡COPIADO!" en verde. var(--opg-azul) es ese mismo hex, así que
+     usarlo como color de reposo evita que el botón quede de otro color después
+     del primer uso. */
+  .g2-btn-copiar { background: var(--opg-azul); }
+  .g2-resultado-copiar { display: flex; gap: var(--opg-espacio-2); align-items: center; }
+  .g2-resultado-copiar input { flex: 1; font-family: monospace; font-size: 12px; }
+
+  @media (max-width: 780px) {
+    .generadorpj2-staff .secondBackground, .generadorpj2-staff .thirdBackground { padding: 10px; }
+    .g2-titulo .barra-texto-op { font-size: 20px; }
+    .g2-vd-grid { grid-template-columns: 1fr; }
+  }
+  </style>
+</head>
+
+<body>
+  {$header}
+  <div class="indice generadorpj2-staff">
+  <div class="mainBackground">
+  <div class="secondBackground">
+  <div class="thirdBackground">
+
+    <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+    <div class="barra-op bbox g2-titulo"><span class="barra-texto-op">Generador de Personajes</span></div>
+
+    <!-- Información básica -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Información básica</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="g2-row">
+          <div class="af-field"><label for="nombre-personaje">Nombre del personaje</label><input type="text" id="nombre-personaje" placeholder="Ingresa el nombre"></div>
+          <div class="af-field"><label for="nivel-personaje">Nivel</label><input type="number" id="nivel-personaje" value="1" min="1" max="999" onchange="actualizarNivel()"></div>
+          <div class="af-field">
+            <label for="oficio-personaje">Oficio</label>
+            <select id="oficio-personaje">
+              <option value="Navegante">Navegante</option>
+              <option value="Cocinero">Cocinero</option>
+              <option value="Medico">Medico</option>
+              <option value="Explorador">Explorador</option>
+              <option value="Artesano">Artesano</option>
+              <option value="Inventor">Inventor</option>
+              <option value="Carpintero">Carpintero</option>
+              <option value="Mercader">Mercader</option>
+            </select>
+          </div>
+          <div class="af-field">
+            <label for="disciplina-personaje">Disciplina bélica</label>
+            <select id="disciplina-personaje">
+              <option value="Combatiente">Combatiente</option>
+              <option value="Espadachin">Espadachin</option>
+              <option value="Contundente">Contundente</option>
+              <option value="Tirador">Tirador</option>
+              <option value="Especialista">Especialista</option>
+              <option value="Artillero">Artillero</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Estadísticas</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="g2-stat-nivel g2-stat">
+          <div class="g2-stat-label">Nivel</div>
+          <div class="g2-stat-valor" id="stat-display-NIV">1</div>
+          <input type="number" class="g2-stat-input" id="stat-NIV" value="1" min="1" max="999" onchange="actualizarEstadistica('NIV')">
+        </div>
+
+        <div class="g2-stats-grid">
+          <div class="g2-stat">
+            <div class="g2-stat-label">Fuerza</div>
+            <div class="g2-stat-valor" id="stat-display-FUE">0</div>
+            <input type="number" class="g2-stat-input" id="stat-FUE" value="0" min="0" max="999" onchange="actualizarEstadistica('FUE')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Agilidad</div>
+            <div class="g2-stat-valor" id="stat-display-AGI">0</div>
+            <input type="number" class="g2-stat-input" id="stat-AGI" value="0" min="0" max="999" onchange="actualizarEstadistica('AGI')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Puntería</div>
+            <div class="g2-stat-valor" id="stat-display-PUN">0</div>
+            <input type="number" class="g2-stat-input" id="stat-PUN" value="0" min="0" max="999" onchange="actualizarEstadistica('PUN')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Destreza</div>
+            <div class="g2-stat-valor" id="stat-display-DES">0</div>
+            <input type="number" class="g2-stat-input" id="stat-DES" value="0" min="0" max="999" onchange="actualizarEstadistica('DES')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Resistencia</div>
+            <div class="g2-stat-valor" id="stat-display-RES">0</div>
+            <input type="number" class="g2-stat-input" id="stat-RES" value="0" min="0" max="999" onchange="actualizarEstadistica('RES')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Reflejos</div>
+            <div class="g2-stat-valor" id="stat-display-REF">0</div>
+            <input type="number" class="g2-stat-input" id="stat-REF" value="0" min="0" max="999" onchange="actualizarEstadistica('REF')">
+          </div>
+          <div class="g2-stat">
+            <div class="g2-stat-label">Voluntad</div>
+            <div class="g2-stat-valor" id="stat-display-VOL">0</div>
+            <input type="number" class="g2-stat-input" id="stat-VOL" value="0" min="0" max="999" onchange="actualizarEstadistica('VOL')">
+          </div>
+        </div>
+
+        <div class="g2-subtitulo">Estadísticas calculadas</div>
+        <div class="g2-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+          <div class="g2-stat calc-vida">
+            <div class="g2-stat-label">Vida</div>
+            <div class="g2-stat-valor" id="stat-display-VIDA">0</div>
+          </div>
+          <div class="g2-stat calc-energia">
+            <div class="g2-stat-label">Energía</div>
+            <div class="g2-stat-valor" id="stat-display-ENERGIA">0</div>
+          </div>
+          <div class="g2-stat calc-haki">
+            <div class="g2-stat-label">Haki</div>
+            <div class="g2-stat-valor" id="stat-display-HAKI">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Virtudes y defectos -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Virtudes y defectos</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="g2-balance">
+          <div class="g2-balance-valor" id="balance-total">0</div>
+          <div>Balance de puntos</div>
+          <div class="g2-balance-detalle">
+            <div>Virtudes: <span id="puntos-virtudes" style="color: var(--opg-verde-exito); font-weight: bold;">0</span></div>
+            <div>Defectos: <span id="puntos-defectos" style="color: var(--opg-rojo-error); font-weight: bold;">0</span></div>
+          </div>
+        </div>
+
+        <div class="g2-vd-grid">
+          <div>
+            <div class="g2-vd-titulo virtud">Virtudes</div>
+            <div class="g2-vd-lista" id="virtudes-lista"></div>
+          </div>
+          <div>
+            <div class="g2-vd-titulo defecto">Defectos</div>
+            <div class="g2-vd-lista" id="defectos-lista"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Armas -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Armas equipadas</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="g2-armas-grid">
+          <div class="af-field">
+            <label for="arma-principal">Arma principal</label>
+            <select id="arma-principal" onchange="seleccionarArma(this.value, 0)">
+              <option value="">Sin arma</option>
+            </select>
+            <div id="arma-principal-info" class="g2-info-caja" style="display: none;"></div>
+          </div>
+          <div class="af-field">
+            <label for="arma-secundaria">Arma secundaria</label>
+            <select id="arma-secundaria" onchange="seleccionarArma(this.value, 1)">
+              <option value="">Sin arma</option>
+            </select>
+            <div id="arma-secundaria-info" class="g2-info-caja" style="display: none;"></div>
+          </div>
+          <div class="af-field">
+            <label for="arma-terciaria">Arma terciaria</label>
+            <select id="arma-terciaria" onchange="seleccionarArma(this.value, 2)">
+              <option value="">Sin arma</option>
+            </select>
+            <div id="arma-terciaria-info" class="g2-info-caja" style="display: none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Técnicas -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Técnicas</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="af-field">
+          <label for="tecnica-seleccionada">Técnica seleccionada</label>
+          <select id="tecnica-seleccionada" onchange="seleccionarTecnica(this.value)">
+            <option value="">Sin técnica</option>
+          </select>
+        </div>
+        <div id="tecnica-info" style="display: none; margin-top: var(--opg-espacio-3);" class="g2-info-caja">
+          <div id="tecnica-detalles"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de combate -->
+    <div class="g2-seccion g2-combate">
+      <span class="barra-texto-op">Resumen de combate</span>
+      <div class="g2-modo">
+        <label>
+          <input type="radio" name="modo-combate" value="ataque" checked onchange="cambiarModoCombate('ataque')">
+          Modo ataque
+        </label>
+        <label>
+          <input type="radio" name="modo-combate" value="defensa" onchange="cambiarModoCombate('defensa')">
+          Modo defensa
+        </label>
+      </div>
+      <div class="g2-combate-stats">
+        <div class="g2-combate-stat">
+          <div class="g2-combate-valor" id="combate-golpe-basico">0</div>
+          <div class="g2-combate-label" id="combate-golpe-label">Golpe básico</div>
+        </div>
+        <div class="g2-combate-stat">
+          <div class="g2-combate-valor" id="combate-tecnica">0</div>
+          <div class="g2-combate-label">Daño técnica</div>
+        </div>
+        <div class="g2-combate-stat">
+          <div class="g2-combate-valor" id="combate-total">0</div>
+          <div class="g2-combate-label">Total</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="g2-seccion">
+      <div class="barra-op bbox"><span class="barra-texto-op">Descripción del personaje</span></div>
+      <div class="barra-espacio-op bbox">
+        <div class="g2-row">
+          <div class="af-field"><label for="apariencia-personaje">Apariencia</label><textarea id="apariencia-personaje" placeholder="Describe la apariencia del personaje..."></textarea></div>
+          <div class="af-field"><label for="personalidad-personaje">Personalidad</label><textarea id="personalidad-personaje" placeholder="Describe la personalidad del personaje..."></textarea></div>
+        </div>
+        <div class="af-field af-field--ancho-completo" style="margin-top: var(--opg-espacio-3);">
+          <label for="historia-personaje">Historia</label>
+          <textarea id="historia-personaje" placeholder="Cuenta la historia del personaje..." style="min-height: 120px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: var(--opg-espacio-5) 0;">
+      <button class="btn-op btn-op--secundario" onclick="generarResumen()">Generar resumen completo</button>
+      <button class="btn-op btn-op--exito" onclick="generarURL()" style="margin-left: var(--opg-espacio-3);">Generar URL</button>
+    </div>
+
+    <div id="url-generada" class="g2-seccion" style="display: none;">
+      <div class="barra-op bbox"><span class="barra-texto-op">URL del personaje</span></div>
+      <div class="barra-espacio-op bbox">
+        <p style="color: var(--opg-marron); margin-bottom: var(--opg-espacio-3);">Compartir esta URL para que otros puedan ver este personaje:</p>
+        <div class="g2-resultado-copiar">
+          <input type="text" id="url-resultado" readonly>
+          <button class="btn-op btn-op--sm g2-btn-copiar" onclick="copiarURL()">Copiar</button>
+        </div>
+        <div style="text-align: center; margin-top: var(--opg-espacio-3);">
+          <button class="btn-op btn-op--primario" onclick="abrirURL()">Abrir en nueva pestaña</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resumen-final" class="g2-seccion" style="display: none;">
+      <div class="barra-op bbox"><span class="barra-texto-op">Resumen del personaje</span></div>
+      <div class="barra-espacio-op bbox" id="contenido-resumen"></div>
+    </div>
+
+  </div>
+  </div>
+  </div>
+  </div>
+  {$footer}
+</body>
+
+<script type="text/javascript">
+// Variables del sistema
+var objetos_array_json = {$objetos_json};
+var virtudes_json = {$virtudes_json};
+var defectos_json = {$defectos_json};
+var objetos_json = {$objetos_json};
+var tecnicas_array_json = {$tecnicas_array_json};
+var tecnicas_json = {$tecnicas_json};
+
+// Funciones globales para eventos HTML
+window.actualizarNivel = function() { if (window.GEN && window.GEN.actualizarNivel) window.GEN.actualizarNivel(); };
+window.actualizarEstadistica = function(stat) { if (window.GEN && window.GEN.actualizarEstadistica) window.GEN.actualizarEstadistica(stat); };
+window.seleccionarArma = function(objetoId, slot) { if (window.GEN && window.GEN.seleccionarArma) window.GEN.seleccionarArma(objetoId, slot); };
+window.seleccionarTecnica = function(tecnicaId) { if (window.GEN && window.GEN.seleccionarTecnica) window.GEN.seleccionarTecnica(tecnicaId); };
+window.cambiarModoCombate = function(modo) { if (window.GEN && window.GEN.cambiarModoCombate) window.GEN.cambiarModoCombate(modo); };
+window.generarResumen = function() { if (window.GEN && window.GEN.generarResumen) window.GEN.generarResumen(); };
+window.generarURL = function() { if (window.GEN && window.GEN.generarURL) window.GEN.generarURL(); };
+window.copiarURL = function() { if (window.GEN && window.GEN.copiarURL) window.GEN.copiarURL(); };
+window.abrirURL = function() { if (window.GEN && window.GEN.abrirURL) window.GEN.abrirURL(); };
+
+// Objeto GEN optimizado
+window.GEN = {
+  inicializado: false,
+  
+  personaje: {
+    nombre: '', nivel: 1, oficio: 'Navegante', disciplina: 'Combatiente',
+    estadisticas: { NIV: 1, FUE: 0, AGI: 0, PUN: 0, DES: 0, RES: 0, REF: 0, VOL: 0 },
+    virtudes: [], defectos: [], armas: [null, null, null], tecnica: null,
+    apariencia: '', personalidad: '', historia: '',
+    vidaCalculada: 0, energiaCalculada: 0, hakiCalculado: 0
+  },
+  
+  modoCombate: 'ataque',
+  
+  init: function() {
+    if (this.inicializado) return;
+    this.cargarArmas();
+    this.cargarTecnicas();
+    this.cargarVirtudes();
+    this.cargarDefectos();
+    this.actualizarTodo();
+    
+    // Cargar datos desde URL si están disponibles (después de 5 segundos)
+    var self = this;
+    setTimeout(function() {
+      self.cargarDesdeURL();
+    }, 5000);
+    
+    this.inicializado = true;
+  },
+  
+  actualizarNivel: function() {
+    var nivel = parseInt(document.getElementById('nivel-personaje').value) || 1;
+    this.personaje.nivel = nivel;
+    this.personaje.estadisticas.NIV = nivel;
+    document.getElementById('stat-NIV').value = nivel;
+    this.actualizarEstadistica('NIV');
+  },
+  
+  actualizarEstadistica: function(stat) {
+    var valor = parseInt(document.getElementById('stat-' + stat).value) || 0;
+    this.personaje.estadisticas[stat] = valor;
+    document.getElementById('stat-display-' + stat).textContent = valor;
+    
+    if (stat === 'NIV') {
+      document.getElementById('nivel-personaje').value = valor;
+      this.personaje.nivel = valor;
+    }
+    
+    // Actualizar estadísticas calculadas (vida, energía, haki)
+    this.actualizarEstadisticasCalculadas();
+    this.actualizarCombate();
+  },
+  
+  actualizarEstadisticasCalculadas: function() {
+    var vida = 0;
+    var energia = 0;
+    var haki = 0;
+    
+    var stats = this.personaje.estadisticas;
+    
+    // Fórmulas según las especificaciones:
+    // Agilidad: 3 Vida + 4 Energía
+    vida += stats.AGI * 3;
+    energia += stats.AGI * 4;
+    
+    // Destreza: 4 Vida + 3 Energía
+    vida += stats.DES * 4;
+    energia += stats.DES * 3;
+    
+    // Fuerza: 6 Vida + 1 Energía
+    vida += stats.FUE * 6;
+    energia += stats.FUE * 1;
+    
+    // Puntería: 1 Vida + 6 Energía
+    vida += stats.PUN * 1;
+    energia += stats.PUN * 6;
+    
+    // Reflejos: 1 Vida + 1 Energía
+    vida += stats.REF * 1;
+    energia += stats.REF * 1;
+    
+    // Resistencia: 15 Vida + 3 Energía
+    vida += stats.RES * 15;
+    energia += stats.RES * 3;
+    
+    // Voluntad: 1 Vida + 1 Energía + 10 Haki
+    vida += stats.VOL * 1;
+    energia += stats.VOL * 1;
+    haki += stats.VOL * 10;
+    
+    // Actualizar la interfaz
+    document.getElementById('stat-display-VIDA').textContent = vida;
+    document.getElementById('stat-display-ENERGIA').textContent = energia;
+    document.getElementById('stat-display-HAKI').textContent = haki;
+    
+    // Guardar en el personaje para uso posterior
+    this.personaje.vidaCalculada = vida;
+    this.personaje.energiaCalculada = energia;
+    this.personaje.hakiCalculado = haki;
+  },
+  
+  cargarArmas: function() {
+    var selectores = ['arma-principal', 'arma-secundaria', 'arma-terciaria'];
+    var armasCache = [];
+    
+    // Preparar lista de armas una sola vez
+    if (typeof objetos_json !== 'undefined' && objetos_json) {
+      if (typeof objetos_array_json !== 'undefined' && Array.isArray(objetos_array_json)) {
+        for (var j = 0; j < objetos_array_json.length; j++) {
+          var id = objetos_array_json[j];
+          if (id === 'LLST001') continue;
+          var obj = objetos_json[id] ? objetos_json[id][0] : null;
+          if (obj && obj.categoria && obj.categoria.toLowerCase() === 'armas') {
+            armasCache.push({id: id, objeto: obj});
+          }
+        }
+      } else {
+        for (var id in objetos_json) {
+          if (id === 'LLST001') continue;
+          var obj = objetos_json[id];
+          if (Array.isArray(obj)) obj = obj[0];
+          if (obj && obj.categoria && obj.categoria.toLowerCase() === 'armas') {
+            armasCache.push({id: id, objeto: obj});
+          }
+        }
+      }
+    }
+    
+    // Aplicar a todos los selectores
+    for (var i = 0; i < selectores.length; i++) {
+      var sel = document.getElementById(selectores[i]);
+      if (!sel) continue;
+      
+      sel.innerHTML = '<option value="">Sin arma</option>';
+      
+      for (var k = 0; k < armasCache.length; k++) {
+        var opt = document.createElement('option');
+        opt.value = armasCache[k].id;
+        opt.textContent = (armasCache[k].objeto.editado === '1' ? armasCache[k].objeto.apodo : armasCache[k].objeto.nombre);
+        sel.appendChild(opt);
+      }
+    }
+  },
+  
+  seleccionarArma: function(id, indice) {
+    var prefijos = ['principal', 'secundaria', 'terciaria'];
+    var prefijo = prefijos[indice];
+    var info = document.getElementById('arma-' + prefijo + '-info');
+    
+    if (!id || !info) {
+      if (info) info.style.display = 'none';
+      this.personaje.armas[indice] = null;
+      this.actualizarCombate();
+      return;
+    }
+    
+    if (!objetos_json[id]) return;
+    var obj = objetos_json[id][0];
+    
+    if (obj) {
+      this.personaje.armas[indice] = obj;
+      this.mostrarInfoArma(obj, info);
+      info.style.display = 'block';
+      this.actualizarCombate();
+    }
+  },
+  
+  mostrarInfoArma: function(arma, contenedor) {
+    var html = '<strong>' + (arma.editado === '1' ? arma.apodo : arma.nombre) + '</strong><br>';
+    
+    if (this.modoCombate === 'defensa' && arma.bloqueo) {
+      html += '<strong>Bloqueo:</strong> ' + arma.bloqueo + '<br>';
+    } else if (arma.dano) {
+      html += '<strong>Daño:</strong> ' + arma.dano + '<br>';
+    }
+    
+    if (arma.subcategoria) html += '<strong>Tipo:</strong> ' + arma.subcategoria + '<br>';
+    if (arma.descripcion) html += '<em>' + arma.descripcion + '</em>';
+    
+    contenedor.innerHTML = html;
+  },
+  
+  cargarTecnicas: function() {
+    var sel = document.getElementById('tecnica-seleccionada');
+    if (!sel) return;
+    
+    sel.innerHTML = '<option value="">Sin técnica</option>';
+    
+    // Buscar técnicas en el DOM
+    var tecnicas = document.querySelectorAll('.tecnica_spoiler');
+    if (!tecnicas.length) {
+      var contenedorOculto = document.getElementById('tecnicas-ocultas');
+      if (contenedorOculto) {
+        tecnicas = contenedorOculto.querySelectorAll('.tecnica_spoiler');
+      }
+    }
+    
+    if (!tecnicas.length && typeof tecnicas_json !== 'undefined') {
+      this.cargarTecnicasDesdeJSON(sel);
+      return;
+    }
+    
+    if (!tecnicas.length) {
+      var opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No hay técnicas disponibles';
+      opt.disabled = true;
+      sel.appendChild(opt);
+      return;
+    }
+    
+    var found = [];
+    for (var i = 0; i < tecnicas.length; i++) {
+      var datos = this.extraerDatosTecnica(tecnicas[i]);
+      if (datos && datos.nombre) {
+        found.push({elemento: tecnicas[i], datos: datos, indice: i});
+      }
+    }
+    
+    found.sort(function(a, b) { return a.datos.nombre.localeCompare(b.datos.nombre); });
+    
+    for (var j = 0; j < found.length; j++) {
+      var opt = document.createElement('option');
+      opt.value = found[j].indice;
+      opt.textContent = found[j].datos.nombre + ' (Tier ' + found[j].datos.tier + ')';
+      sel.appendChild(opt);
+    }
+  },
+  
+  cargarTecnicasDesdeJSON: function(sel) {
+    if (typeof tecnicas_json === 'undefined') return;
+    
+    var tecnicasArray = [];
+    
+    for (var id in tecnicas_json) {
+      if (tecnicas_json.hasOwnProperty(id)) {
+        var tecnica = tecnicas_json[id];
+        if (Array.isArray(tecnica)) tecnica = tecnica[0];
+        
+        if (tecnica && tecnica.nombre) {
+          tecnicasArray.push({id: id, tecnica: tecnica});
+        }
+      }
+    }
+    
+    tecnicasArray.sort(function(a, b) {
+      return a.tecnica.nombre.localeCompare(b.tecnica.nombre);
+    });
+    
+    for (var i = 0; i < tecnicasArray.length; i++) {
+      var item = tecnicasArray[i];
+      var opt = document.createElement('option');
+      opt.value = item.id;
+      var tier = item.tecnica.tier || 'Sin tier';
+      opt.textContent = item.tecnica.nombre + ' (Tier: ' + tier + ')';
+      sel.appendChild(opt);
+    }
+  },
+  
+  extraerDatosTecnica: function(el) {
+    var nombre = '';
+    var rama = '';
+    var tipoCompleto = '';
+    var tier = 0;
+    
+    var nomEl = el.querySelector('.tecnica_spoiler_button');
+    if (nomEl) {
+      nombre = (nomEl.textContent || '').trim();
+    }
+    
+    if (!nombre) {
+      var campos = el.querySelectorAll('.tecnica_field');
+      if (campos.length > 0) {
+        nombre = (campos[0].textContent || '').trim();
+      }
+    }
+    
+    if (!nombre) {
+      var textoCompleto = el.textContent || '';
+      var lineas = textoCompleto.split('\n');
+      for (var i = 0; i < lineas.length; i++) {
+        var linea = lineas[i].trim();
+        if (linea && linea.length > 3) {
+          nombre = linea;
+          break;
+        }
+      }
+    }
+    
+    var campos = el.querySelectorAll('.tecnica_field');
+    if (campos.length >= 4) {
+      rama = (campos[1].textContent || '').trim();
+      tipoCompleto = (campos[2].textContent || '').trim().toLowerCase();
+      var tierTexto = (campos[3].textContent || '').trim();
+      var tierMatch = tierTexto.match(/tier\s*(\d+)/i);
+      tier = tierMatch ? parseInt(tierMatch[1], 10) : 0;
+    }
+    
+    if (!nombre) return null;
+    
+    return {
+      nombre: nombre, rama: rama, tipoCompleto: tipoCompleto, tier: tier,
+      esOfensiva: tipoCompleto.indexOf('ofensiva') !== -1,
+      esDefensiva: tipoCompleto.indexOf('defensiva') !== -1,
+      esUtilidad: tipoCompleto.indexOf('utilidad') !== -1,
+      esPasiva: tipoCompleto.indexOf('pasiva') !== -1
+    };
+  },
+  
+  seleccionarTecnica: function(indice) {
+    var info = document.getElementById('tecnica-info');
+    var detalles = document.getElementById('tecnica-detalles');
+    
+    if (!indice || indice === '' || !info) {
+      if (info) info.style.display = 'none';
+      this.personaje.tecnica = null;
+      this.actualizarCombate();
+      return;
+    }
+    
+    // Buscar técnicas en múltiples ubicaciones
+    var tecnicas = document.querySelectorAll('.tecnica_spoiler');
+    if (!tecnicas.length) {
+      var contenedorOculto = document.getElementById('tecnicas-ocultas');
+      if (contenedorOculto) {
+        tecnicas = contenedorOculto.querySelectorAll('.tecnica_spoiler');
+      }
+    }
+    
+    var indiceNum = parseInt(indice, 10);
+    
+    if (isNaN(indiceNum) || indiceNum < 0 || indiceNum >= tecnicas.length) {
+      // Intentar buscar por ID si es que es un ID y no un índice
+      if (typeof tecnicas_json !== 'undefined' && tecnicas_json[indice]) {
+        this.seleccionarTecnicaPorId(indice);
+        return;
+      }
+      return;
+    }
+    
+    var el = tecnicas[indiceNum];
+    if (!el) return;
+    
+    var datos = this.extraerDatosTecnica(el);
+    
+    if (datos) {
+      this.personaje.tecnica = {elemento: el, datos: datos, indice: indiceNum};
+      
+      var html = '<strong>' + datos.nombre + '</strong><br>';
+      html += '<strong>Rama:</strong> ' + datos.rama + '<br>';
+      html += '<strong>Tipo:</strong> ' + datos.tipoCompleto + '<br>';
+      html += '<strong>Tier:</strong> ' + datos.tier + '<br>';
+      
+      var efectoEl = el.querySelector('.tecnica_efecto');
+      if (efectoEl) {
+        html += '<strong>Efecto:</strong> ' + efectoEl.innerHTML;
+      }
+      
+      detalles.innerHTML = html;
+      info.style.display = 'block';
+      this.actualizarCombate();
+    }
+  },
+  
+  seleccionarTecnicaPorId: function(id) {
+    if (!tecnicas_json || !tecnicas_json[id]) return;
+    
+    var tecnica = tecnicas_json[id];
+    if (Array.isArray(tecnica)) tecnica = tecnica[0];
+    
+    var info = document.getElementById('tecnica-info');
+    var detalles = document.getElementById('tecnica-detalles');
+    
+    this.personaje.tecnica = {
+      elemento: null,
+      datos: {
+        nombre: tecnica.nombre || 'Sin nombre',
+        rama: tecnica.rama || 'Sin rama',
+        tipoCompleto: tecnica.tipo || 'Sin tipo',
+        tier: tecnica.tier || 0,
+        esOfensiva: false,
+        esDefensiva: false,
+        esUtilidad: false,
+        esPasiva: false
+      },
+      id: id,
+      tecnicaJson: tecnica
+    };
+    
+    var html = '<strong>' + this.personaje.tecnica.datos.nombre + '</strong><br>';
+    html += '<strong>Rama:</strong> ' + this.personaje.tecnica.datos.rama + '<br>';
+    html += '<strong>Tipo:</strong> ' + this.personaje.tecnica.datos.tipoCompleto + '<br>';
+    html += '<strong>Tier:</strong> ' + this.personaje.tecnica.datos.tier + '<br>';
+    
+    if (tecnica.descripcion) {
+      html += '<strong>Descripción:</strong> ' + tecnica.descripcion + '<br>';
+    }
+    
+    if (tecnica.efecto) {
+      html += '<strong>Efecto:</strong> ' + tecnica.efecto;
+    }
+    
+    detalles.innerHTML = html;
+    info.style.display = 'block';
+    this.actualizarCombate();
+  },
+  
+  calcularDanoTecnica: function() {
+    if (!this.personaje.tecnica) {
+      return 0;
+    }
+    
+    var efecto = null;
+    
+    if (this.personaje.tecnica.tecnicaJson) {
+      var tecnicaJson = this.personaje.tecnica.tecnicaJson;
+      
+      if (tecnicaJson.efecto) {
+        efecto = tecnicaJson.efecto;
+      } else if (tecnicaJson.efectos) {
+        efecto = tecnicaJson.efectos;
+      } else if (tecnicaJson.descripcion_efecto) {
+        efecto = tecnicaJson.descripcion_efecto;
+      } else if (tecnicaJson.formula) {
+        efecto = tecnicaJson.formula;
+      } else {
+        for (var campo in tecnicaJson) {
+          if (tecnicaJson.hasOwnProperty(campo)) {
+            var valor = tecnicaJson[campo];
+            if (typeof valor === 'string' && this.contieneFormula(valor)) {
+              efecto = valor;
+              break;
+            }
+          }
+        }
+      }
+    } else if (this.personaje.tecnica.elemento) {
+      var efectoEl = this.personaje.tecnica.elemento.querySelector('.tecnica_efecto');
+      if (efectoEl) {
+        efecto = efectoEl.textContent || efectoEl.innerHTML || '';
+      } else {
+        var tooltips = this.personaje.tecnica.elemento.querySelectorAll('.tec-tooltip');
+        for (var i = 0; i < tooltips.length; i++) {
+          var tt = tooltips[i].querySelector('.stat-tooltiptext') || tooltips[i].querySelector('.tec-tooltiptext');
+          if (tt) {
+            var texto = tt.textContent || '';
+            if (this.contieneFormula(texto)) {
+              efecto = texto;
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    if (!efecto) {
+      return 0;
+    }
+    
+    return this.procesarFormulaEfecto(efecto);
+  },
+  
+  cargarVirtudes: function() {
+    var container = document.getElementById('virtudes-lista');
+    if (!container || !virtudes_json) {
+      if (container) container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No hay virtudes disponibles</p>';
+      return;
+    }
+    
+    container.innerHTML = '';
+    var count = 0;
+    
+    for (var id in virtudes_json) {
+      if (virtudes_json.hasOwnProperty(id)) {
+        try {
+          var virtud = Array.isArray(virtudes_json[id]) ? virtudes_json[id][0] : virtudes_json[id];
+          if (virtud && virtud.nombre) {
+            var div = document.createElement('div');
+            div.className = 'virtud-item';
+            div.setAttribute('data-id', id);
+            div.onclick = function() { GEN.toggleVirtud(this.getAttribute('data-id')); };
+            
+            div.innerHTML = '<strong>' + virtud.nombre + '</strong> <span style="color: #28a745; font-weight: bold;">(+' + (virtud.puntos || '1') + ' pts)</span><br>' +
+                           '<small style="color: #666;">' + (virtud.descripcion || 'Sin descripción') + '</small>';
+            
+            container.appendChild(div);
+            count++;
+          }
+        } catch (e) {
+          // Error procesando virtud, continuar con la siguiente
+        }
+      }
+    }
+    
+    if (count === 0) {
+      container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No se pudieron cargar las virtudes</p>';
+    }
+  },
+  
+  cargarDefectos: function() {
+    var container = document.getElementById('defectos-lista');
+    if (!container || !defectos_json) {
+      if (container) container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No hay defectos disponibles</p>';
+      return;
+    }
+    
+    container.innerHTML = '';
+    var count = 0;
+    
+    for (var id in defectos_json) {
+      if (defectos_json.hasOwnProperty(id)) {
+        try {
+          var defecto = Array.isArray(defectos_json[id]) ? defectos_json[id][0] : defectos_json[id];
+          if (defecto && defecto.nombre) {
+            var div = document.createElement('div');
+            div.className = 'defecto-item';
+            div.setAttribute('data-id', id);
+            div.onclick = function() { GEN.toggleDefecto(this.getAttribute('data-id')); };
+            
+            div.innerHTML = '<strong>' + defecto.nombre + '</strong> <span style="color: #dc3545; font-weight: bold;">(-' + (defecto.puntos || '1') + ' pts)</span><br>' +
+                           '<small style="color: #666;">' + (defecto.descripcion || 'Sin descripción') + '</small>';
+            
+            container.appendChild(div);
+            count++;
+          }
+        } catch (e) {
+          // Error procesando defecto, continuar con el siguiente
+        }
+      }
+    }
+    
+    if (count === 0) {
+      container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No se pudieron cargar los defectos</p>';
+    }
+  },
+  
+  toggleVirtud: function(id) {
+    var indice = this.personaje.virtudes.indexOf(id);
+    var elemento = document.querySelector('.virtud-item[data-id="' + id + '"]');
+    
+    if (indice > -1) {
+      this.personaje.virtudes.splice(indice, 1);
+      elemento.classList.remove('selected');
+    } else {
+      this.personaje.virtudes.push(id);
+      elemento.classList.add('selected');
+    }
+    
+    this.actualizarBalance();
+  },
+  
+  toggleDefecto: function(id) {
+    var indice = this.personaje.defectos.indexOf(id);
+    var elemento = document.querySelector('.defecto-item[data-id="' + id + '"]');
+    
+    if (indice > -1) {
+      this.personaje.defectos.splice(indice, 1);
+      elemento.classList.remove('selected');
+    } else {
+      this.personaje.defectos.push(id);
+      elemento.classList.add('selected');
+    }
+    
+    this.actualizarBalance();
+  },
+  
+  actualizarBalance: function() {
+    var puntosVirtudes = 0;
+    var puntosDefectos = 0;
+    
+    for (var i = 0; i < this.personaje.virtudes.length; i++) {
+      var id = this.personaje.virtudes[i];
+      if (virtudes_json && virtudes_json[id]) {
+        var virtud = virtudes_json[id];
+        if (Array.isArray(virtud) && virtud[0] && virtud[0].puntos) {
+          puntosVirtudes += parseInt(virtud[0].puntos) || 0;
+        } else if (virtud.puntos) {
+          puntosVirtudes += parseInt(virtud.puntos) || 0;
+        } else {
+          puntosVirtudes += 1;
+        }
+      }
+    }
+    
+    for (var j = 0; j < this.personaje.defectos.length; j++) {
+      var id = this.personaje.defectos[j];
+      if (defectos_json && defectos_json[id]) {
+        var defecto = defectos_json[id];
+        if (Array.isArray(defecto) && defecto[0] && defecto[0].puntos) {
+          puntosDefectos += parseInt(defecto[0].puntos) || 0;
+        } else if (defecto.puntos) {
+          puntosDefectos += parseInt(defecto.puntos) || 0;
+        } else {
+          puntosDefectos += 1;
+        }
+      }
+    }
+    
+    var balance = puntosVirtudes + puntosDefectos;
+    
+    var puntosVirtudesEl = document.getElementById('puntos-virtudes');
+    var puntosDefectosEl = document.getElementById('puntos-defectos');
+    var balanceEl = document.getElementById('balance-total');
+    
+    if (puntosVirtudesEl) puntosVirtudesEl.textContent = puntosVirtudes;
+    if (puntosDefectosEl) puntosDefectosEl.textContent = puntosDefectos;
+    
+    if (balanceEl) {
+      balanceEl.textContent = balance;
+      balanceEl.className = 'balance-valor ';
+      if (balance > 0) balanceEl.className += 'balance-positivo';
+      else if (balance < 0) balanceEl.className += 'balance-negativo';
+      else balanceEl.className += 'balance-neutro';
+    }
+  },
+  
+  cambiarModoCombate: function(modo) {
+    this.modoCombate = modo;
+    
+    for (var i = 0; i < 3; i++) {
+      if (this.personaje.armas[i]) {
+        var prefijos = ['principal', 'secundaria', 'terciaria'];
+        var info = document.getElementById('arma-' + prefijos[i] + '-info');
+        if (info) {
+          this.mostrarInfoArma(this.personaje.armas[i], info);
+        }
+      }
+    }
+    
+    var label = document.getElementById('combate-golpe-label');
+    if (label) {
+      label.textContent = modo === 'defensa' ? 'BLOQUEO BÁSICO' : 'GOLPE BÁSICO';
+    }
+    
+    this.actualizarCombate();
+  },
+  
+  calcularDanoArma: function(arma) {
+    if (!arma) return 0;
+    
+    var texto = '';
+    if (this.modoCombate === 'defensa' && arma.bloqueo) {
+      texto = arma.bloqueo;
+    } else if (arma.dano) {
+      texto = arma.dano;
+    } else {
+      return 0;
+    }
+    
+    var total = 0;
+    
+    // Primero, extraer y sumar el daño base (números que no están en fórmulas)
+    var textoSinFormulas = texto.replace(/\[([A-Z]{3})[x×](\d+(?:[,.]?\d+)?)\]/g, '');
+    var nums = textoSinFormulas.match(/\b\d+\b/g);
+    if (nums) {
+      for (var k = 0; k < nums.length; k++) {
+        var num = parseInt(nums[k], 10);
+        if (!isNaN(num)) {
+          total += num;
+        }
+      }
+    }
+    
+    // Luego, calcular y sumar las fórmulas de estadísticas
+    var patron = /\[([A-Z]{3})[x×](\d+(?:[,.]?\d+)?)\]/g;
+    var match;
+    
+    while ((match = patron.exec(texto)) !== null) {
+      var stat = match[1];
+      var mult = parseFloat(match[2].replace(',', '.'));
+      if (this.personaje.estadisticas[stat] !== undefined && !isNaN(mult)) {
+        var val = Math.floor(this.personaje.estadisticas[stat] * mult);
+        total += val;
+      }
+    }
+    
+    return total;
+  },
+  
+  calcularDanoTecnica: function() {
+    if (!this.personaje.tecnica) {
+      console.log('? calcularDanoTecnica: No hay técnica seleccionada');
+      return 0;
+    }
+    
+    console.log('? calcularDanoTecnica: Técnica encontrada:', this.personaje.tecnica.datos ? this.personaje.tecnica.datos.nombre : 'Sin datos');
+    
+    var efecto = null;
+    
+    // Buscar el campo "efecto" específicamente
+    if (this.personaje.tecnica.tecnicaJson) {
+      console.log('? Buscando campo "efecto" en técnica JSON...');
+      var tecnicaJson = this.personaje.tecnica.tecnicaJson;
+      
+      // Buscar específicamente el campo "efecto"
+      if (tecnicaJson.efecto) {
+        efecto = tecnicaJson.efecto;
+        console.log('✅ Campo "efecto" encontrado en JSON:', efecto);
+      }
+      // Campos alternativos por si el campo se llama diferente
+      else if (tecnicaJson.efectos) {
+        efecto = tecnicaJson.efectos;
+        console.log('✅ Campo "efectos" encontrado en JSON:', efecto);
+      }
+      else if (tecnicaJson.descripcion_efecto) {
+        efecto = tecnicaJson.descripcion_efecto;
+        console.log('✅ Campo "descripcion_efecto" encontrado en JSON:', efecto);
+      }
+      else if (tecnicaJson.formula) {
+        efecto = tecnicaJson.formula;
+        console.log('✅ Campo "formula" encontrado en JSON:', efecto);
+      }
+      else {
+        console.log('❌ No se encontró campo "efecto" en técnica JSON');
+        // Buscar cualquier campo que contenga fórmulas
+        for (var campo in tecnicaJson) {
+          if (tecnicaJson.hasOwnProperty(campo)) {
+            var valor = tecnicaJson[campo];
+            if (typeof valor === 'string' && this.contieneFormula(valor)) {
+              efecto = valor;
+              console.log('✅ Fórmula encontrada en campo "' + campo + '":', efecto);
+              break;
+            }
+          }
+        }
+      }
+    }
+    // Si tenemos elemento DOM, buscar en él
+    else if (this.personaje.tecnica.elemento) {
+      console.log('? Buscando campo "efecto" en elemento DOM...');
+      var efectoEl = this.personaje.tecnica.elemento.querySelector('.tecnica_efecto');
+      if (efectoEl) {
+        efecto = efectoEl.textContent || efectoEl.innerHTML || '';
+        console.log('✅ Contenido de .tecnica_efecto encontrado:', efecto);
+      } else {
+        console.log('❌ No se encontró .tecnica_efecto en elemento DOM');
+        
+        // Buscar en tooltips como alternativa
+        var tooltips = this.personaje.tecnica.elemento.querySelectorAll('.tec-tooltip');
+        for (var i = 0; i < tooltips.length; i++) {
+          var tt = tooltips[i].querySelector('.stat-tooltiptext') || tooltips[i].querySelector('.tec-tooltiptext');
+          if (tt) {
+            var texto = tt.textContent || '';
+            if (this.contieneFormula(texto)) {
+              efecto = texto;
+              console.log('✅ Fórmula encontrada en tooltip:', efecto);
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    if (!efecto) {
+      console.log('❌ No se encontró campo "efecto" o fórmula válida');
+      return 0;
+    }
+    
+    console.log('? Procesando efecto para calcular daño:', efecto);
+    
+    // Calcular el daño basándose en el efecto
+    return this.procesarFormulaEfecto(efecto);
+  },
+  
+  contieneFormula: function(texto) {
+    if (!texto || typeof texto !== 'string') return false;
+    
+    // Verificar si contiene patrones de fórmula
+    return texto.match(/\[([A-Z]{3})[x×*](\d+(?:[,.]?\d+)?)\]/) ||
+           texto.match(/\[(\d+(?:[,.]?\d+)?)[x×*]Nivel\]/) ||
+           texto.match(/\[([A-Z]{3})\s*[x×*]\s*(\d+(?:[,.]?\d+)?)\]/) ||
+           texto.match(/\[(\d+(?:[,.]?\d+)?)\s*[x×*]\s*Nivel\]/);
+  },
+  
+  procesarFormulaEfecto: function(efecto) {
+    var total = 0;
+    
+    // Patrón para estadísticas: [FUE x 2], [AGI×1.5], [RES*3], etc.
+    var patronStat = /\[([A-Z]{3})\s*[x×*]\s*(\d+(?:[,.]?\d+)?)\]/g;
+    var match;
+    
+    while ((match = patronStat.exec(efecto)) !== null) {
+      var stat = match[1];
+      var mult = parseFloat(match[2].replace(',', '.'));
+      
+      if (this.personaje.estadisticas[stat] !== undefined && !isNaN(mult)) {
+        var valorStat = this.personaje.estadisticas[stat];
+        var val = Math.floor(valorStat * mult);
+        total += val;
+      }
+    }
+    
+    // Patrón para nivel: [2 x Nivel], [1.5×Nivel], [3*Nivel], etc.
+    var patronNivel = /\[(\d+(?:[,.]?\d+)?)\s*[x×*]\s*Nivel\]/g;
+    
+    while ((match = patronNivel.exec(efecto)) !== null) {
+      var multiplicador = parseFloat(match[1].replace(',', '.'));
+      
+      if (!isNaN(multiplicador) && this.personaje.nivel > 0) {
+        var val = Math.ceil(multiplicador * this.personaje.nivel);
+        total += val;
+      }
+    }
+    
+    // Patrón para valores fijos: números sueltos que no estén en fórmulas
+    if (total === 0) {
+      var numerosEncontrados = efecto.match(/\b(\d+)\b/g);
+      if (numerosEncontrados) {
+        for (var i = 0; i < numerosEncontrados.length; i++) {
+          var num = parseInt(numerosEncontrados[i], 10);
+          if (!isNaN(num) && num > 0 && num <= 1000) {
+            total += num;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Patrón alternativo: buscar fórmulas con formato diferente
+    if (total === 0) {
+      // Patrón: FUE×2, AGI*1.5, etc. (sin corchetes)
+      var patronAlt1 = /([A-Z]{3})\s*[x×*]\s*(\d+(?:[,.]?\d+)?)/g;
+      while ((match = patronAlt1.exec(efecto)) !== null) {
+        var stat = match[1];
+        var mult = parseFloat(match[2].replace(',', '.'));
+        
+        if (this.personaje.estadisticas[stat] !== undefined && !isNaN(mult)) {
+          var valorStat = this.personaje.estadisticas[stat];
+          var val = Math.floor(valorStat * mult);
+          total += val;
+        }
+      }
+      
+      // Patrón: 2×Nivel, 1.5*Nivel, etc. (sin corchetes)
+      var patronAlt2 = /(\d+(?:[,.]?\d+)?)\s*[x×*]\s*Nivel/g;
+      while ((match = patronAlt2.exec(efecto)) !== null) {
+        var multiplicador = parseFloat(match[1].replace(',', '.'));
+        
+        if (!isNaN(multiplicador) && this.personaje.nivel > 0) {
+          var val = Math.ceil(multiplicador * this.personaje.nivel);
+          total += val;
+        }
+      }
+    }
+    
+    return total;
+  },
+  
+  actualizarCombate: function() {
+    var golpeBasico = 0;
+    var danoTecnica = 0;
+    
+    var armasActivas = this.personaje.armas.filter(function(arma) { return arma !== null; });
+    var numArmas = armasActivas.length;
+    
+    if (numArmas === 0) {
+      golpeBasico = this.modoCombate === 'defensa' ? this.personaje.estadisticas.RES : this.personaje.estadisticas.FUE;
+    } else {
+      var multiplicador = 1.0;
+      if (numArmas === 2) multiplicador = 0.75;
+      else if (numArmas === 3) multiplicador = 0.60;
+      
+      for (var i = 0; i < armasActivas.length; i++) {
+        var danoArma = this.calcularDanoArma(armasActivas[i]);
+        golpeBasico += danoArma * multiplicador;
+      }
+      
+      golpeBasico = Math.floor(golpeBasico);
+    }
+    
+    danoTecnica = this.calcularDanoTecnica();
+    
+    document.getElementById('combate-golpe-basico').textContent = golpeBasico;
+    document.getElementById('combate-tecnica').textContent = danoTecnica;
+    
+    var total = golpeBasico + danoTecnica;
+    if (this.modoCombate === 'defensa' && this.personaje.tecnica && !this.personaje.tecnica.datos.esDefensiva) {
+      total = golpeBasico;
+    }
+    
+    document.getElementById('combate-total').textContent = total;
+  },
+  
+  actualizarTodo: function() {
+    this.actualizarEstadisticasCalculadas();
+    this.actualizarBalance();
+    this.actualizarCombate();
+  },
+  
+  generarResumen: function() {
+    this.personaje.nombre = document.getElementById('nombre-personaje').value || 'Sin nombre';
+    this.personaje.oficio = document.getElementById('oficio-personaje').value;
+    this.personaje.disciplina = document.getElementById('disciplina-personaje').value;
+    this.personaje.apariencia = document.getElementById('apariencia-personaje').value || 'Sin descripción';
+    this.personaje.personalidad = document.getElementById('personalidad-personaje').value || 'Sin descripción';
+    this.personaje.historia = document.getElementById('historia-personaje').value || 'Sin historia';
+    
+    var html = '<div style="font-family: InterRegular; line-height: 1.6;">';
+    
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">INFORMACIÓN BÁSICA</h3>';
+    html += '<p><strong>Nombre:</strong> ' + this.personaje.nombre + '</p>';
+    html += '<p><strong>Nivel:</strong> ' + this.personaje.nivel + '</p>';
+    html += '<p><strong>Oficio:</strong> ' + this.personaje.oficio + '</p>';
+    html += '<p><strong>Disciplina Bélica:</strong> ' + this.personaje.disciplina + '</p>';
+    
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">ESTADÍSTICAS</h3>';
+    html += '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">';
+    var stats = ['NIV', 'FUE', 'AGI', 'PUN', 'DES', 'RES', 'REF', 'VOL'];
+    for (var i = 0; i < stats.length; i++) {
+      html += '<div style="text-align: center; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">';
+      html += '<div style="font-weight: bold; color: #666;">' + stats[i] + '</div>';
+      html += '<div style="font-size: 18px; color: #0055bb;">' + this.personaje.estadisticas[stats[i]] + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">ESTADÍSTICAS CALCULADAS</h3>';
+    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">';
+    html += '<div style="text-align: center; background-color: #fff3cd; padding: 15px; border-radius: 8px; border: 2px solid #ffc107;">';
+    html += '<div style="font-size: 24px; color: #856404; font-weight: bold;">' + (this.personaje.vidaCalculada || 0) + '</div>';
+    html += '<div style="color: #856404; font-weight: bold;">VIDA</div></div>';
+    html += '<div style="text-align: center; background-color: #d4edda; padding: 15px; border-radius: 8px; border: 2px solid #28a745;">';
+    html += '<div style="font-size: 24px; color: #155724; font-weight: bold;">' + (this.personaje.energiaCalculada || 0) + '</div>';
+    html += '<div style="color: #155724; font-weight: bold;">ENERGÍA</div></div>';
+    html += '<div style="text-align: center; background-color: #d1ecf1; padding: 15px; border-radius: 8px; border: 2px solid #17a2b8;">';
+    html += '<div style="font-size: 24px; color: #0c5460; font-weight: bold;">' + (this.personaje.hakiCalculado || 0) + '</div>';
+    html += '<div style="color: #0c5460; font-weight: bold;">HAKI</div></div>';
+    html += '</div>';
+    
+    // Sección de Armas Equipadas
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">ARMAS EQUIPADAS</h3>';
+    var armasEquipadas = false;
+    var armasHtml = '';
+    
+    var selectoresArmas = ['arma-principal', 'arma-secundaria', 'arma-terciaria'];
+    var nombresArmas = ['Principal', 'Secundaria', 'Terciaria'];
+    
+    for (var a = 0; a < selectoresArmas.length; a++) {
+      var select = document.getElementById(selectoresArmas[a]);
+      if (select && select.value) {
+        var armaId = select.value;
+        var arma = this.personaje.armas[a];
+        if (arma) {
+          armasEquipadas = true;
+          armasHtml += '<div style="margin-bottom: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #0055bb;">';
+          armasHtml += '<strong>' + nombresArmas[a] + ':</strong> ' + (arma.editado === '1' ? arma.apodo : arma.nombre);
+          if (arma.subcategoria) armasHtml += ' <em>(' + arma.subcategoria + ')</em>';
+          if (this.modoCombate === 'defensa' && arma.bloqueo) {
+            armasHtml += '<br><strong>Bloqueo:</strong> ' + arma.bloqueo;
+          } else if (arma.dano) {
+            armasHtml += '<br><strong>Daño:</strong> ' + arma.dano;
+          }
+          armasHtml += '</div>';
+        }
+      }
+    }
+    
+    if (armasEquipadas) {
+      html += armasHtml;
+    } else {
+      html += '<p style="color: #666; font-style: italic;">No hay armas equipadas</p>';
+    }
+    
+    // Sección de Técnica Seleccionada
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">TÉCNICA SELECCIONADA</h3>';
+    if (this.personaje.tecnica && this.personaje.tecnica.datos) {
+      html += '<div style="padding: 15px; background-color: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745;">';
+      html += '<div style="font-size: 18px; font-weight: bold; color: #0055bb; margin-bottom: 10px;">' + this.personaje.tecnica.datos.nombre + '</div>';
+      html += '<div style="margin-bottom: 5px;"><strong>Rama:</strong> ' + this.personaje.tecnica.datos.rama + '</div>';
+      html += '<div style="margin-bottom: 5px;"><strong>Tipo:</strong> ' + this.personaje.tecnica.datos.tipoCompleto + '</div>';
+      html += '<div style="margin-bottom: 10px;"><strong>Tier:</strong> ' + this.personaje.tecnica.datos.tier + '</div>';
+      html += '</div>';
+    } else {
+      html += '<p style="color: #666; font-style: italic;">No hay técnica seleccionada</p>';
+    }
+    
+    // Agregar secciones de virtudes, defectos, armas, técnicas, etc.
+    html += '<h3 style="color: #0055bb; border-bottom: 2px solid #0055bb; padding-bottom: 5px;">ESTADÍSTICAS DE COMBATE</h3>';
+    html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">';
+    html += '<div style="text-align: center; background-color: #e3f2fd; padding: 15px; border-radius: 8px;">';
+    html += '<div style="font-size: 24px; color: #0055bb; font-weight: bold;">' + document.getElementById('combate-golpe-basico').textContent + '</div>';
+    html += '<div>Golpe Básico</div></div>';
+    html += '<div style="text-align: center; background-color: #e3f2fd; padding: 15px; border-radius: 8px;">';
+    html += '<div style="font-size: 24px; color: #0055bb; font-weight: bold;">' + document.getElementById('combate-tecnica').textContent + '</div>';
+    html += '<div>Daño Técnica</div></div>';
+    html += '<div style="text-align: center; background-color: #e3f2fd; padding: 15px; border-radius: 8px;">';
+    html += '<div style="font-size: 24px; color: #0055bb; font-weight: bold;">' + document.getElementById('combate-total').textContent + '</div>';
+    html += '<div>Total</div></div>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    document.getElementById('contenido-resumen').innerHTML = html;
+    document.getElementById('resumen-final').style.display = 'block';
+    document.getElementById('resumen-final').scrollIntoView({ behavior: 'smooth' });
+  },
+  
+  generarURL: function() {
+    // Recopilar toda la información actual del personaje
+    var datosPersonaje = {
+      nombre: document.getElementById('nombre-personaje').value || '',
+      nivel: document.getElementById('nivel-personaje').value || '1',
+      oficio: document.getElementById('oficio-personaje').value || 'Navegante',
+      disciplina: document.getElementById('disciplina-personaje').value || 'Combatiente',
+      estadisticas: {},
+      virtudes: this.personaje.virtudes.slice(), // Copia del array
+      defectos: this.personaje.defectos.slice(), // Copia del array
+      armas: [],
+      tecnica: null,
+      apariencia: document.getElementById('apariencia-personaje').value || '',
+      personalidad: document.getElementById('personalidad-personaje').value || '',
+      historia: document.getElementById('historia-personaje').value || '',
+      modoCombate: this.modoCombate
+    };
+    
+    // Recopilar estadísticas
+    var stats = ['NIV', 'FUE', 'AGI', 'PUN', 'DES', 'RES', 'REF', 'VOL'];
+    for (var i = 0; i < stats.length; i++) {
+      var valor = document.getElementById('stat-' + stats[i]).value;
+      datosPersonaje.estadisticas[stats[i]] = valor || '0';
+    }
+    
+    // Recopilar armas seleccionadas
+    var selectoresArmas = ['arma-principal', 'arma-secundaria', 'arma-terciaria'];
+    for (var j = 0; j < selectoresArmas.length; j++) {
+      var select = document.getElementById(selectoresArmas[j]);
+      if (select && select.value) {
+        datosPersonaje.armas.push(select.value);
+      } else {
+        datosPersonaje.armas.push('');
+      }
+    }
+    
+    // Recopilar técnica seleccionada
+    var tecnicaSelect = document.getElementById('tecnica-seleccionada');
+    if (tecnicaSelect && tecnicaSelect.value) {
+      datosPersonaje.tecnica = tecnicaSelect.value;
+    }
+    
+    // Convertir a JSON y codificar para URL
+    var jsonData = JSON.stringify(datosPersonaje);
+    var encodedData = encodeURIComponent(btoa(jsonData)); // Base64 y luego URL encode
+    
+    // Obtener la URL actual sin parámetros
+    var baseURL = window.location.href.split('?')[0];
+    
+    // Crear la URL completa
+    var urlCompleta = baseURL + '?data=' + encodedData;
+    
+    // Mostrar la URL generada
+    document.getElementById('url-resultado').value = urlCompleta;
+    document.getElementById('url-generada').style.display = 'block';
+    document.getElementById('url-generada').scrollIntoView({ behavior: 'smooth' });
+  },
+  
+  copiarURL: function() {
+    var input = document.getElementById('url-resultado');
+    input.select();
+    input.setSelectionRange(0, 99999); // Para móviles
+    
+    try {
+      document.execCommand('copy');
+      // Cambiar temporalmente el texto del botón
+      var btn = event.target;
+      var textoOriginal = btn.textContent;
+      btn.textContent = '¡COPIADO!';
+      btn.style.backgroundColor = '#28a745';
+      
+      setTimeout(function() {
+        btn.textContent = textoOriginal;
+        btn.style.backgroundColor = '#0055bb';
+      }, 2000);
+    } catch (err) {
+      alert('No se pudo copiar automáticamente. Por favor, selecciona y copia la URL manualmente.');
+    }
+  },
+  
+  abrirURL: function() {
+    var url = document.getElementById('url-resultado').value;
+    if (url) {
+      window.open(url, '_blank');
+    }
+  },
+  
+  cargarDesdeURL: function() {
+    // Función para cargar datos desde la URL al inicializar la página
+    var urlParams = new URLSearchParams(window.location.search);
+    var data = urlParams.get('data');
+    
+    if (!data) return;
+    
+    try {
+      // Decodificar la data
+      var decodedData = atob(decodeURIComponent(data));
+      var datosPersonaje = JSON.parse(decodedData);
+      
+      // Cargar información básica
+      if (datosPersonaje.nombre) {
+        document.getElementById('nombre-personaje').value = datosPersonaje.nombre;
+      }
+      if (datosPersonaje.nivel) {
+        document.getElementById('nivel-personaje').value = datosPersonaje.nivel;
+        this.personaje.nivel = parseInt(datosPersonaje.nivel);
+      }
+      if (datosPersonaje.oficio) {
+        document.getElementById('oficio-personaje').value = datosPersonaje.oficio;
+        this.personaje.oficio = datosPersonaje.oficio;
+      }
+      if (datosPersonaje.disciplina) {
+        document.getElementById('disciplina-personaje').value = datosPersonaje.disciplina;
+        this.personaje.disciplina = datosPersonaje.disciplina;
+      }
+      
+      // Cargar estadísticas
+      if (datosPersonaje.estadisticas) {
+        for (var stat in datosPersonaje.estadisticas) {
+          if (datosPersonaje.estadisticas.hasOwnProperty(stat)) {
+            var valor = datosPersonaje.estadisticas[stat];
+            var input = document.getElementById('stat-' + stat);
+            if (input) {
+              input.value = valor;
+              this.personaje.estadisticas[stat] = parseInt(valor) || 0;
+              this.actualizarEstadistica(stat);
+            }
+          }
+        }
+      }
+      
+      // Cargar virtudes y defectos
+      if (datosPersonaje.virtudes && Array.isArray(datosPersonaje.virtudes)) {
+        for (var i = 0; i < datosPersonaje.virtudes.length; i++) {
+          this.toggleVirtud(datosPersonaje.virtudes[i]);
+        }
+      }
+      
+      if (datosPersonaje.defectos && Array.isArray(datosPersonaje.defectos)) {
+        for (var j = 0; j < datosPersonaje.defectos.length; j++) {
+          this.toggleDefecto(datosPersonaje.defectos[j]);
+        }
+      }
+      
+      // Cargar armas
+      if (datosPersonaje.armas && Array.isArray(datosPersonaje.armas)) {
+        var selectoresArmas = ['arma-principal', 'arma-secundaria', 'arma-terciaria'];
+        for (var k = 0; k < selectoresArmas.length && k < datosPersonaje.armas.length; k++) {
+          if (datosPersonaje.armas[k]) {
+            var select = document.getElementById(selectoresArmas[k]);
+            if (select) {
+              select.value = datosPersonaje.armas[k];
+              this.seleccionarArma(datosPersonaje.armas[k], k);
+            }
+          }
+        }
+      }
+      
+      // Cargar técnica
+      if (datosPersonaje.tecnica) {
+        var tecnicaSelect = document.getElementById('tecnica-seleccionada');
+        if (tecnicaSelect) {
+          tecnicaSelect.value = datosPersonaje.tecnica;
+          this.seleccionarTecnica(datosPersonaje.tecnica);
+        }
+      }
+      
+      // Cargar descripciones
+      if (datosPersonaje.apariencia) {
+        document.getElementById('apariencia-personaje').value = datosPersonaje.apariencia;
+      }
+      if (datosPersonaje.personalidad) {
+        document.getElementById('personalidad-personaje').value = datosPersonaje.personalidad;
+      }
+      if (datosPersonaje.historia) {
+        document.getElementById('historia-personaje').value = datosPersonaje.historia;
+      }
+      
+      // Cargar modo de combate
+      if (datosPersonaje.modoCombate) {
+        this.modoCombate = datosPersonaje.modoCombate;
+        var radios = document.querySelectorAll('input[name="modo-combate"]');
+        for (var l = 0; l < radios.length; l++) {
+          if (radios[l].value === datosPersonaje.modoCombate) {
+            radios[l].checked = true;
+            break;
+          }
+        }
+      }
+      
+      // Actualizar todo
+      this.actualizarTodo();
+      
+      // Mostrar notificación de carga exitosa
+      alert('¡Personaje cargado exitosamente desde la URL!');
+      
+    } catch (err) {
+      console.error('Error cargando datos desde URL:', err);
+      alert('Error al cargar los datos del personaje desde la URL. Es posible que la URL esté dañada.');
+    }
+  }
+};
+
+// Inicializar cuando el documento esté listo
+document.addEventListener('DOMContentLoaded', function() {
+  function intentarInicializar() {
+    if (GEN.inicializado) return;
+    
+    var variablesDisponibles = (
+      typeof objetos_array_json !== 'undefined' &&
+      typeof virtudes_json !== 'undefined' &&
+      typeof defectos_json !== 'undefined'
+    );
+    
+    var elementosDisponibles = (
+      document.getElementById('virtudes-lista') &&
+      document.getElementById('defectos-lista')
+    );
+    
+    if (variablesDisponibles && elementosDisponibles) {
+      GEN.init();
+    } else if (!GEN.inicializado) {
+      setTimeout(intentarInicializar, 1000);
+    }
+  }
+  
+  setTimeout(intentarInicializar, 500);
+});
+
+window.addEventListener('load', function() {
+  if (!GEN.inicializado) {
+    setTimeout(function() { 
+      if (!GEN.inicializado) {
+        GEN.init(); 
+      }
+    }, 1000);
+  }
+});
+</script>
+
+
+</html>

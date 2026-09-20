@@ -108,13 +108,10 @@
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/general.js?ver=1827"></script>
 
 {$stylesheets}
-<!-- Tokens de diseño para código nuevo (docs/style.md §7). ?ver= manual, mismo
-     patrón que jquery.js?ver= arriba: subilo cada vez que edites el archivo. -->
-<link rel="stylesheet" href="/jscripts/opg-tokens.css?ver=8">
-<!-- Componentes de interfaz para código nuevo (jscripts/opg-components.css):
-     af-field, aviso, guía de campos, typeahead, chip de peligro. Mismo
-     esquema de ?ver= que el de arriba. -->
-<link rel="stylesheet" href="/jscripts/opg-components.css?ver=1">
+<!-- opg-tokens.css / opg-components.css: ahora hojas de estilo reales del
+     tema (tid=3), sincronizadas por opg_stylesheet_sync.php — ya vienen
+     incluidas en {$stylesheets} de arriba, no hace falta un <link> propio.
+     Ver docs/css-sync-design.md. -->
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/copyphpcode/copyphpcode.js"></script>
 <script type="text/javascript">
 <!--

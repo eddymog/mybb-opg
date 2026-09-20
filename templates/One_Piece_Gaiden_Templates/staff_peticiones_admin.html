@@ -1,0 +1,220 @@
+<html>
+
+<head>
+    <title>Peticiones administrativas</title>
+    {$headerinclude}
+    {$csrf_script}
+    <style>
+    .pa-staff .thirdBackground { width: 100%; max-width: 800px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .pa-titulo { padding: var(--opg-espacio-2); }
+    .pa-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+
+    .pa-topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--opg-espacio-2); }
+
+    .pa-filtros {
+        display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--opg-espacio-3);
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4);
+    }
+    .pa-filtros .af-field { flex: 1 1 200px; }
+    .pa-filtros .af-field select {
+        box-sizing: border-box; width: 100%; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px;
+        appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+
+    .pa-paginacion { display: flex; align-items: center; justify-content: center; gap: var(--opg-espacio-3); margin: var(--opg-espacio-3) 0; }
+    .pa-paginacion-texto { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+
+    .pa-chip-categoria { font-size: 11px; padding: 2px 8px; }
+
+    .pa-seccion { margin-bottom: var(--opg-espacio-5); }
+    .pa-seccion:last-child { margin-bottom: 0; }
+
+    /* Encabezado de categoría: antes una .barra-op naranja completa por
+       categoría (seis en esta página) resultaba muy pesado repetido tantas
+       veces — .barra-op es la chrome de "título de página" según style.md,
+       no pensada para repetirse así. Acá una franja de acento simple. */
+    .pa-categoria {
+        border-left: 4px solid var(--opg-naranja); padding: 4px var(--opg-espacio-3);
+        margin-bottom: var(--opg-espacio-3); font-family: moonGetHeavy; font-size: 15px;
+        letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+    }
+
+    /* Tarjeta de petición en dos columnas: contenido de la petición a la
+       izquierda, gestión de staff (atendido/asignar/notas/resolver) a la
+       derecha — antes todo apilado en una sola columna hacía la tarjeta muy
+       alta. pa-item--simple (tripulaciones, sin controles de gestión) vuelve
+       a una sola columna. */
+    .pa-item {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3);
+        display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--opg-espacio-4);
+    }
+    .pa-item:last-child { margin-bottom: 0; }
+    .pa-item--simple { display: block; }
+
+    .pa-item-gestion { padding-left: var(--opg-espacio-4); border-left: 1px dashed var(--opg-tinta); }
+
+    @media (max-width: 720px) {
+        .pa-item { grid-template-columns: 1fr; }
+        .pa-item-gestion { padding-left: 0; border-left: none; padding-top: var(--opg-espacio-3); border-top: 1px dashed var(--opg-tinta); }
+    }
+
+    .pa-item-linea { font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); margin-bottom: var(--opg-espacio-2); }
+    .pa-item-linea:last-child { margin-bottom: 0; }
+    .pa-item-linea a { color: var(--opg-morado-texto); word-break: break-word; }
+    .pa-item-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin-top: var(--opg-espacio-2); }
+
+    .pa-item select.sel-mod {
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; padding: 4px 8px; border: 2px solid var(--opg-tinta);
+        border-radius: var(--opg-radio-sm); background: #fff; color: var(--opg-ciruela);
+    }
+    .pa-item-notas { margin-top: var(--opg-espacio-2); padding-top: var(--opg-espacio-2); border-top: 1px dashed var(--opg-tinta); }
+    .pa-item-notas label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+    .pa-item-notas textarea {
+        display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: var(--opg-espacio-2);
+        padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 13px; resize: vertical;
+    }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice pa-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div class="barra-op bbox pa-titulo"><span class="barra-texto-op">Peticiones administrativas</span></div>
+
+        <div class="pa-topbar">
+            <a class="opg-chip" href="/op/staff/reset_peticiones.php">Resets de build<if $resets_build_pendientes > 0 then> ({$resets_build_pendientes})</if></a>
+            <if $resuelto == '1' then>
+            <a class="opg-chip" href="/op/staff/peticiones_admin.php">Ver pendientes</a>
+            <else>
+            <a class="opg-chip" href="/op/staff/peticiones_admin.php?resuelto=1">Ver resueltas</a>
+            </if>
+        </div>
+
+        <form class="pa-filtros" method="get" action="/op/staff/peticiones_admin.php">
+            <input type="hidden" name="resuelto" value="{$resuelto}">
+            <div class="af-field">
+                <label for="pa-categoria">Categoría</label>
+                <select id="pa-categoria" name="categoria">{$categoria_opciones}</select>
+            </div>
+            <div class="af-field">
+                <label for="pa-atendido">Atendido por</label>
+                <select id="pa-atendido" name="atendido">{$atendido_opciones}</select>
+            </div>
+            <button type="submit" class="btn-op btn-op--sm">Filtrar</button>
+        </form>
+
+        {$paginacion_html}
+
+        <if $peticiones_li == '' then>
+        <p class="aviso ok">No hay peticiones en esta vista.</p>
+        </if>
+
+        {$peticiones_li}
+
+        {$paginacion_html}
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        document.addEventListener('click', function (e) {
+            var btnMod = e.target.closest('.save-mod');
+            if (btnMod) {
+                var pid = btnMod.dataset.pid;
+                var sel = document.getElementById(btnMod.dataset.targetId);
+                if (!pid || !sel) { return; }
+
+                var nombre = sel.value;
+                btnMod.disabled = true;
+                var prevText = btnMod.textContent;
+                btnMod.textContent = 'Guardando...';
+
+                var params = new URLSearchParams();
+                params.set('accion', 'asignar_mod');
+                params.set('peti_id', pid);
+                params.set('nombre_mod', nombre);
+                if (window.MYBB_POST_KEY) { params.set('my_post_key', window.MYBB_POST_KEY); }
+
+                fetch('/op/staff/peticiones_admin.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                    body: params.toString()
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (res && res.success) {
+                            var li = btnMod.closest('.pa-item');
+                            var span = li && li.querySelector('.atendido-por');
+                            if (span) { span.textContent = res.atendidoPor || 'Sin asignar'; }
+                        } else {
+                            alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
+                        }
+                    })
+                    .catch(function () { alert('Fallo de red/servidor'); })
+                    .finally(function () {
+                        btnMod.disabled = false;
+                        btnMod.textContent = prevText || 'Guardar';
+                    });
+                return;
+            }
+
+            var btnNotas = e.target.closest('.save-notas');
+            if (btnNotas) {
+                var pidN = btnNotas.dataset.pid;
+                var ta = document.getElementById(btnNotas.dataset.targetId);
+                if (!pidN || !ta) { return; }
+
+                var notas = ta.value;
+                btnNotas.disabled = true;
+                var prevTextN = btnNotas.textContent;
+                btnNotas.textContent = 'Guardando...';
+
+                var paramsN = new URLSearchParams();
+                paramsN.set('accion', 'guardar_notas_mod');
+                paramsN.set('peti_id', pidN);
+                paramsN.set('notas', notas);
+                if (window.MYBB_POST_KEY) { paramsN.set('my_post_key', window.MYBB_POST_KEY); }
+
+                fetch('/op/staff/peticiones_admin.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                    body: paramsN.toString()
+                })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        if (res && res.success) {
+                            ta.style.outline = '2px solid #4caf50';
+                            setTimeout(function () { ta.style.outline = ''; }, 800);
+                        } else {
+                            alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
+                        }
+                    })
+                    .catch(function () { alert('Fallo de red/servidor'); })
+                    .finally(function () {
+                        btnNotas.disabled = false;
+                        btnNotas.textContent = prevTextN || 'Guardar notas';
+                    });
+            }
+        });
+    })();
+    </script>
+</body>
+
+</html>

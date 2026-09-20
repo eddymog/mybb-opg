@@ -1,0 +1,113 @@
+<html>
+<head>
+<title>Solicitar Tripulación — {$bbname_html}</title>
+{$headerinclude}
+<style>
+/* text-align: el body del tema (global.css) centra todo el texto (ver style.md §7) */
+.ts-solicitar .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+
+.ts-titulo { padding: var(--opg-espacio-2); }
+.ts-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+.ts-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+.aviso { font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px; }
+.aviso.ok  { background: var(--opg-verde-exito); }
+.aviso.err { background: var(--opg-rojo-error); }
+
+/* Fila que envuelve, y campo (ver staff_objetos_modificar.html — misma
+   referencia que las demás herramientas ya rediseñadas): flex-wrap en vez de
+   una grilla rígida, así los campos fluyen y aprovechan el ancho disponible
+   sin quedar todo apilado en una sola columna angosta. */
+.ts-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
+.af-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 190px; }
+.af-field label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+.af-field input, .af-field textarea {
+    box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.3;
+    transition: box-shadow var(--opg-rapido), border-color var(--opg-rapido);
+}
+.af-field textarea { min-height: 110px; resize: vertical; flex-basis: 260px; }
+.af-field input:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+.af-field input:focus, .af-field textarea:focus {
+    outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
+}
+.af-field input:disabled { background: var(--opg-gris-bloqueado); color: var(--opg-gris-texto); }
+.af-field small { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+
+.ts-guardar { margin-top: var(--opg-espacio-5); }
+.ts-acciones { display: flex; justify-content: center; }
+
+@media (max-width: 700px) {
+    .ts-solicitar .secondBackground, .ts-solicitar .thirdBackground { padding: 10px; }
+    .ts-titulo .barra-texto-op { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+{$header}
+<div class="indice ts-solicitar">
+<div class="mainBackground">
+<div class="secondBackground">
+<div class="thirdBackground">
+
+    <div><a class="opg-volver" href="peticiones.php">&larr; Mis peticiones</a></div>
+
+    <div>
+        <div class="barra-op bbox ts-titulo"><span class="barra-texto-op">Solicitar Tripulación</span></div>
+        <div class="barra-espacio-op bbox ts-descripcion">
+            Completa el formulario para solicitar la creación de una nueva tripulación. Un miembro del staff la revisará
+            antes de que quede creada. Mientras esté pendiente, puedes volver a esta página para editarla.
+        </div>
+    </div>
+
+    {$msg_html}
+    {$pendiente_aviso_html}
+
+    <form method="post" id="ts-form">
+        <input type="hidden" name="my_post_key" value="{$post_key_html}">
+        <input type="hidden" name="solicitud_id" value="{$v_solicitud_id}">
+
+        <div class="ts-row">
+            <div class="af-field">
+                <label for="ts-nombre">Nombre de la tripulación*</label>
+                <input type="text" id="ts-nombre" name="nombre_propuesto" maxlength="80" required value="{$v_nombre}">
+            </div>
+            <div class="af-field">
+                <label for="ts-faccion">Facción</label>
+                <input type="text" id="ts-faccion" value="{$faccion_actual_html}" disabled>
+                <small>La de tu personaje, no se puede cambiar acá.</small>
+            </div>
+            <div class="af-field">
+                <label for="ts-link">Link*</label>
+                <input type="text" id="ts-link" name="link" required value="{$v_link}">
+                <small>Link al tema donde se formó la tripulación, dentro del foro correspondiente.</small>
+            </div>
+        </div>
+
+        <div class="ts-row">
+            <div class="af-field">
+                <label for="ts-ideales">Ideales</label>
+                <textarea id="ts-ideales" name="ideales" placeholder="Cuenta los ideales de la tripulación: qué la mueve, qué busca, qué valores comparten quienes la forman.">{$v_ideales}</textarea>
+            </div>
+            <div class="af-field">
+                <label for="ts-detalles">Detalles</label>
+                <textarea id="ts-detalles" name="detalles" placeholder="Detalles relevantes de la tripulación que quieras mencionar.">{$v_detalles}</textarea>
+            </div>
+            <div class="af-field">
+                <label for="ts-otros">Otros</label>
+                <textarea id="ts-otros" name="otros" placeholder="Detalles relevantes para el staff sobre la tripulación: puede tenerse en cuenta al evaluar la solicitud. Quiénes son los integrantes iniciales (al menos uno más además de ti), si hay diferencias de facción entre ustedes, o cualquier otra cosa que el staff deba saber.">{$v_otros}</textarea>
+            </div>
+        </div>
+
+        <div class="ts-acciones">
+            <button type="submit" class="btn-op btn-op--primario ts-guardar">{$boton_texto}</button>
+        </div>
+    </form>
+
+</div>
+</div>
+</div>
+</div>
+{$footer}
+</body>
+</html>

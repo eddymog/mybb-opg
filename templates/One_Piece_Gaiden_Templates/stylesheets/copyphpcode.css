@@ -1,0 +1,13 @@
+.tooltip-copy {
+  position: fixed;
+  background-color: #333;
+  color: #fff;
+  padding: 6px 12px; /* Adjust padding to make the tooltip shorter */
+  font-size: 14px; /* Adjust font size */
+  border-radius: 4px;
+  bottom: 20px;
+	margin-bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 200px; /* Limit the width of the tooltip */
+}

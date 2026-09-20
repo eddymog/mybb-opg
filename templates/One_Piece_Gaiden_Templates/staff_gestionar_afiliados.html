@@ -30,10 +30,7 @@
        <input> con el mismo CSS no lo sufre porque el navegador no le aplica ese recorte.
        Sacar el estilo nativo del todo evita que vuelva a pasar y empareja la altura. */
     .af-field select {
-        /* templates/global.css tiene un "select { height: 32px; }" sitewide que gana por ser
-           la única regla que fija height — con mi padding vertical más grande, esos 32px fijos
-           dejaban muy poco alto para el texto y lo recortaban arriba. height:auto lo evita. */
-        height: auto; appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
         background-image:
             linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%),
             linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);

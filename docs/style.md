@@ -243,21 +243,22 @@ Al crear una página/componente nuevo, revisar:
 - [ ] Cuerpo de texto en `InterRegular`.
 - [ ] Cajas con **borde negro** (`2px solid black` por defecto) y radio `8–10px`.
 - [ ] Naranja `#ff8900` como acción primaria; hover a `#dc822a`. **Excepción:** en páginas de
-      juego donde las barras ya son naranjas (`.barra-op`), el botón principal va en el morado
-      de llamada a la acción `rgba(70,12,110,1)` (`.testDraw`) para no perderse entre ellas.
+      juego con varias barras naranjas repetidas como parte del contenido (`op_intercambio`,
+      los paneles de `banners.php`), el botón principal va en el morado de llamada a la acción
+      `rgba(70,12,110,1)` (`.testDraw`/`.btn-op--secundario`) para no perderse entre ellas. Un
+      solo `.barra-op` de título (el caso normal — el nombre de la página) **no** activa esta
+      excepción: ahí `.btn-op--primario` sigue siendo lo correcto, confirmado en
+      `objetos_modificar.php` y `op_tripulacion_solicitar.html` (donde usar `--secundario`
+      solo por tener un título en `.barra-op` fue el primer intento, equivocado).
 - [ ] Morado `#9664e0` / `#8f59f7` como secundario/realce.
 - [ ] Fondos de panel en crema (`#ffedd2` / `#ffe59b`), no blanco puro plano.
 - [ ] Hover con `scale(1.05)` + `transition: all .25s ease`.
 - [ ] Rojo `#dc3545` para errores, verde `#27ae60` para éxito, gris `#71706f` para bloqueado.
 - [ ] Páginas de `/op/`: dentro del marco `.mainBackground` → `.thirdBackground` y con
       campos `.barra-op` + `.barra-espacio-op` (ver §3), cargando `{$headerinclude}`.
-- [ ] Código nuevo: usar las variables de `jscripts/opg-tokens.css` (ya cargado por
+- [ ] Código nuevo: usar las variables de `opg-tokens.css` (ya cargado por
       `{$headerinclude}`, no hace falta un `<link>` propio) y su botón único `.btn-op`
       en vez de copiar hex o inventar otra clase de botón (ver §7).
-- [ ] Formulario largo de `op/staff/` con "buscar / crear", guía de campos o
-      typeahead: usar las clases de `jscripts/opg-components.css`
-      (`.af-field`, `.aviso`, `.opg-guia-*`, `.opg-resultado*`) en vez de
-      copiar y prefijar de nuevo el CSS de otra herramienta (ver §7).
 - [ ] Herramienta de staff nueva: tomar como referencia `op_upload`, `staff_consola_mod` o `op/staff/banners.php`
       — las tres usan `opg-tokens.css` (ver §7 "Dónde se usa ya").
 
@@ -288,41 +289,35 @@ Al crear una página/componente nuevo, revisar:
 ## 7. Sistema de tokens (para código nuevo)
 
 Los §§1-6 son una guía *descriptiva*: documentan lo que el foro ya hace, hex sueltos
-para copiar a mano. `jscripts/opg-tokens.css` es el mismo contenido pero como
-variables CSS reales — un primer paso *prescriptivo*, sin migrar nada de lo que ya
-existe (ver §6). Ya lo carga `headerinclude.html`, así que sus variables y clases
-están disponibles en **todas las páginas del foro**, no solo en las que las usan hoy
-(`op_upload`, `staff_consola_mod`, `banners.php`) — nadie tiene que agregar un
-`<link>` propio.
+para copiar a mano. `opg-tokens.css` es el mismo contenido pero como variables CSS
+reales — un primer paso *prescriptivo*, sin migrar nada de lo que ya existe (ver §6).
+
+**Dónde vive:** `templates/One_Piece_Gaiden_Templates/stylesheets/opg-tokens.css`
+en git — pero la fuente real es una hoja de estilo del tema (tid=3), no un archivo
+estático. `inc/plugins/opg_stylesheet_sync.php` mantiene las dos sincronizadas en
+los dos sentidos (ver [css-sync-design.md](css-sync-design.md)). Ya no vive en
+`/jscripts/` ni lleva `?ver=N` — ese archivo estático se retiró cuando se migró al
+sistema de temas.
+
+`{$stylesheets}` en `headerinclude.html` ya lo incluye (junto con `op_global.css`/
+`global.css`), así que sus variables y clases están disponibles en **todas las
+páginas del foro** sin que nadie tenga que agregar un `<link>` propio. Si algún día
+hace falta una página que **no** pase por `{$headerinclude}` (hoy no hay ninguna
+así), enlazar directo al archivo ya compilado:
 
 ```html
-<!-- En headerinclude.html, después de {$stylesheets}. El ?ver= es manual — ver
-     "Cache" abajo — y ya está puesto ahí, no hace falta repetirlo en cada página. -->
-<link rel="stylesheet" href="/jscripts/opg-tokens.css?ver=6">
+<link rel="stylesheet" href="/cache/themes/theme3/opg-tokens.css">
 ```
-
-Si estás escribiendo algo standalone que **no** pasa por `{$headerinclude}` (poco
-común — las páginas de `op/staff/` sí pasan), cargalo a mano con el mismo `?ver=`.
 
 ### Cache
 
-El dominio está detrás de Cloudflare, que cachea `opg-tokens.css` de forma agresiva e
-**ignora el `Cache-Control` del origin** (confirmado con `curl -D` contra el sitio
-real: `cache-control: max-age=2592000`, 30 días). `jscripts/.htaccess` igual le pone
-`Cache-Control: no-cache` al archivo, como respaldo para el caso de que algo le pegue
-directo al origin sin pasar por Cloudflare — pero el mecanismo real es otro.
-
-**Al editar `opg-tokens.css`, subir el `?ver=N` en dos lugares y nada más:** el
-comentario "VERSIÓN ACTUAL" del propio archivo, y el `<link>` en `headerinclude.html`
-(mismo patrón que `jquery.js?ver=1823` ahí al lado). Cambiar la URL revienta cualquier
-caché sin depender de que Cloudflare respete nada. Como el archivo se carga una sola
-vez desde `headerinclude.html`, es una edición en un solo lugar — nunca "cada página
-que lo usa".
-
-El servidor tampoco declara `charset` en `text/css`, así que el navegador adivina la
-codificación del texto. Arreglado con `AddCharset UTF-8 .css .svg` en
-`jscripts/.htaccess` más `@charset "UTF-8";` como primera línea del archivo — si en
-algún momento aparecen tildes rotas (`Ã©`, `â€”`) en otro CSS del foro, es la misma causa.
+Ya no aplica el mecanismo de purga manual que este archivo necesitaba cuando vivía
+en `/jscripts/` (Cloudflare cachea esa ruta de forma agresiva e ignora
+`Cache-Control` del origin — eso sigue siendo cierto para lo que quede ahí, como
+`opg-grano.svg`, pero no para esto). Las rutas de `cache/themes/` no las cachea
+Cloudflare, así que un cambio sincronizado por `opg_stylesheet_sync.php` se ve sin
+purgar ni versionar nada — ver "Nota sobre Cloudflare" en
+[css-sync-design.md](css-sync-design.md).
 
 ### Qué resuelve
 
@@ -409,6 +404,31 @@ ya tiene barras naranjas, misma excepción que en el checklist de §5), `--exito
 `--peligro`. Tamaños: por defecto, `--sm` (inline, dentro de tarjetas) y `--hero`
 (la acción principal de la página, tipo "ENTREGAR"/"SUBIR").
 
+### Filas de campos (`.af-field` en una fila flex, no en una grilla)
+
+`.af-field` (envoltorio label + input/textarea/select, ver "Qué resuelve" arriba)
+asume un padre flex, no una grilla: su propia definición ya trae
+`flex: 1 1 160px` (o `190px` en algunas páginas), que es lo que le permite
+acomodarse solo según el ancho disponible. El patrón real — confirmado en
+`staff_objetos_modificar.html` y replicado después en
+`op_tripulacion_solicitar.html`, que en su primer intento probó una
+`display:grid` de 2 columnas fijas y hubo que corregirlo — es agrupar varios
+`.af-field` relacionados dentro de una fila `display:flex; flex-wrap:wrap;
+gap: ...` (con el prefijo de la página, ej. `.om-row`, `.ts-row`), no dentro
+de una grilla de columnas fijas.
+
+La diferencia importa en la práctica: con flex-wrap, un campo angosto (un
+`<input>` corto) y uno que necesita más lugar conviven en la misma fila sin
+dejar huecos ni forzar el mismo ancho a los dos, y el número de campos por
+fila se ajusta solo al ancho de pantalla. Con una grilla de columnas fijas,
+cada campo ocupa su columna entera aunque no la necesite, y hay que definir
+a mano qué pasa cuando un campo "no encaja" en el patrón de columnas.
+
+Los `textarea` se benefician de un `flex-basis` más grande que los inputs
+cortos de la misma fila (`260px` en `op_tripulacion_solicitar`, contra los
+`190px` por defecto), para no quedar tan angostos como un campo de texto de
+una sola línea.
+
 ### Tarjeta viñeta (`.opg-card`) y chips (`.opg-chip`)
 
 Para listados de cosas (herramientas, elementos, resultados), en vez de la tarjeta
@@ -428,7 +448,7 @@ con barra naranja `.barra-op` de §3:
 - **`.opg-card--media`**: variante sin el `padding` ni el icono+título de `.opg-card`,
   para grillas de miniaturas (imágenes, archivos) donde el contenido tiene que ir a
   sangre en el borde. Mismo marco (borde, radio, sombra desplazada, hover) — ver el
-  comentario en `jscripts/opg-tokens.css` para el ejemplo completo.
+  comentario en `opg-tokens.css` para el ejemplo completo.
 - **`.opg-vacio`**: para cuando un listado no tiene nada que mostrar todavía
   ("No hay banners activos", "Todavía no hay imágenes subidas"…). Reemplaza el
   `.vacio` que `banners.php` y `op_upload` tenían cada uno por su lado.
@@ -463,8 +483,17 @@ Reglas que salieron de rediseñar la consola de staff:
   naranja queda para la marca y el título de la página.
 - **El morado de llamada a la acción es para lo urgente**, no para cada botón.
 - **Iconos:** Font Awesome 6 (`fa-solid fa-*`). No lo carga el tema: la página que lo
-  use enlaza `https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css`,
-  como ya hace `op_mercado_negro`.
+  use enlaza `fontawesome.min.css` + `solid.min.css` de
+  `https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/`. **No usar
+  `all.min.css`**: ese bundle incluye los shims de compatibilidad v4 (la clase
+  `.fa` sola, sin prefijo de estilo), y el menú del header
+  (`templates/One_Piece_Gaiden_Templates/header.html`) está lleno de
+  `<i class="fa fa-book">` heredados que en el resto del foro no muestran nada
+  porque esa clase no tiene estilo — cargar `all.min.css` en una página los
+  vuelve visibles ahí, dando un header inconsistente según la página. Pasó de
+  verdad en `op_mercado_negro`/`staff_consola_mod` (origen del patrón) y se
+  repitió al copiarlo en `op_tripulacion`/`op_tripulaciones`/`op_peticiones`
+  antes de encontrar la causa.
 - **El tema centra todo el texto** (`text-align: center` en el `body` de
   `global.css`): en páginas de tarjetas, poner `text-align: left` en el contenedor.
 - **Enlaces:** las reglas `a:link`/`a:visited` del tema ganan a una clase simple. Para
@@ -506,7 +535,7 @@ Dos conclusiones, no una:
 
 Nacen de un muestrario de ideas armado para modernizar el look sin perder el
 espíritu (manga/cómic, "peso de tinta") — ver §6, ya no hay que copiar los valores
-a mano, están en `jscripts/opg-tokens.css`:
+a mano, están en `opg-tokens.css`:
 
 - **`--opg-textura-trama`**: trama de puntos (halftone) vía `radial-gradient`, sin
   imagen. Se combina con el fondo propio de cada componente, no lo reemplaza:
@@ -556,7 +585,12 @@ cargan (eso ya lo hacen todas):
 - `staff_consola_mod` (la portada de `/op/staff/`): `.opg-card` (con la franja de
   acento en degradado vía `color-mix()` y el tilt al hacer hover), `.opg-chip`,
   acentos por grupo, panel de contadores, la regla tipográfica de §7 y el halftone
-  de la cabecera. Es la referencia de este sistema.
+  de la cabecera. Es la referencia de este sistema. **El header con halftone +
+  `<h1>` es solo de esa página** (el menú de nivel superior) — una herramienta o
+  formulario individual sigue con el título en `.barra-op`/`.barra-espacio-op`
+  de §3, como `banners.php` y `objetos_modificar.php`. Copiar el header de
+  `staff_consola_mod` para una herramienta puntual fue el primer intento (equivocado)
+  al construir `op_tripulacion_solicitar.html`.
 - `op_upload` (hosting de imágenes): `.btn-op`, `.opg-chip` para copiar URL/`[img]` y
   paginar, `.opg-vacio`, `.opg-volver`. Su galería (`.subida`) usa los tokens de
   sombra desplazada a mano porque se escribió antes de que existiera
@@ -640,6 +674,27 @@ cargan (eso ya lo hacen todas):
   a otro registro) y `.opg-vacio`. Las dos venían sin CSRF y con el ID en la URL
   usado crudo en SQL; de paso quedaron con `verify_post_check()` y los IDs
   siempre `(int)`.
+- `op/staff/objetos_ficha.php`: herramienta chica (añadir/remover objetos del
+  inventario de una ficha puntual, en lote separado por comas) con `.af-field`,
+  `.btn-op--primario` y Post/Redirect/Get con cookie de aviso. Tenía inyección
+  SQL en `ficha_id`, cada `objeto_id` y la razón, CSRF total, y el resultado se
+  mostraba con un `alert()` de JavaScript escrito entre comillas invertidas —
+  una comilla invertida en el nombre del personaje o en el texto de un objeto
+  rompía el script. Tampoco validaba
+  que el UID buscado tuviera ficha antes de escribir en
+  `mybb_op_inventario`, así que un UID inexistente creaba filas de inventario
+  huérfanas en silencio.
+- `op/staff/generadorpj.php` / `generadorpj2.php`: calculadora de personajes
+  para narradores (~1250 líneas de JS del lado del cliente, sin tocar). El
+  rediseño fue solo del HTML/CSS alrededor — permiso, escapado de los
+  catálogos que se embeben en un `<script>` (`JSON_HEX_TAG`/`AMP`/`APOS`/
+  `QUOT` para que una descripción con `</script>` literal no cortara el
+  bloque) y `.af-field`/`.btn-op`/marco de tres fondos en vez del CSS ad-hoc
+  original. `generadorpj2.php` es una página aparte (no un reemplazo) armada
+  para probar un segundo intento del diseño sin arriesgar la que ya estaba en
+  uso; el JS de las dos es idéntico byte a byte (extraído del original con
+  `sed`, nunca reescrito a mano, para no arriesgar un bug nuevo en la
+  calculadora).
 - `--opg-textura-trama`, `--opg-recorte-rasgado`, `.opg-grano` y `.opg-en-curso`
   están en `opg-tokens.css` pero **ninguna página los usa todavía** — son para la
   próxima vez que un panel destacado, una textura de fondo o un estado "en curso"
@@ -660,12 +715,15 @@ cargan (eso ya lo hacen todas):
   se usan — esos siguen siendo válidos y están documentados en §3. Es la opción para
   lo que se escriba de ahora en adelante, no una migración de lo viejo.
 
-### Componentes de interfaz (`jscripts/opg-components.css`)
+### Componentes de interfaz (`opg-components.css`)
 
-Complemento de `opg-tokens.css`, mismo esquema (`{$headerinclude}` lo carga en
-todo el foro; `?ver=N` manual, subir el número en el `<link>` y en el propio
-archivo cada vez que se edite). La separación es a propósito: `opg-tokens.css`
-son valores crudos (colores, espaciados) más un puñado de componentes que ya
+Complemento de `opg-tokens.css`, mismo esquema y misma ubicación real: vive en
+`templates/One_Piece_Gaiden_Templates/stylesheets/opg-components.css` en git,
+pero la fuente real es una hoja de estilo del tema (tid=3) sincronizada por
+`inc/plugins/opg_stylesheet_sync.php` — no un archivo estático, no lleva
+`?ver=N` (ver "Dónde vive" arriba y [css-sync-design.md](css-sync-design.md)).
+La separación entre los dos archivos es a propósito: `opg-tokens.css` son
+valores crudos (colores, espaciados) más un puñado de componentes que ya
 vivían ahí (`.btn-op`, `.opg-card`, `.opg-chip`, `.opg-volver`); este archivo
 junta los **patrones de interfaz** que fueron apareciendo, copiados y
 ligeramente distintos, en cada herramienta nueva de `op/staff/`:
@@ -682,11 +740,14 @@ ligeramente distintos, en cada herramienta nueva de `op/staff/`:
 - `.opg-chip.chip-peligro` (variante roja de `.opg-chip` para "Eliminar")
 
 **Las páginas ya rediseñadas siguen con su copia prefijada propia**
-(`.om-resultado`, `.tec-guia-barra`, `.nm-dropdown-abierto`...) — crear este
-archivo no las migra solas. Pasarlas a las clases genéricas de acá es un
-cambio pendiente, a hacer de a una la próxima vez que se toque esa página.
-Código nuevo sí debería partir directamente de estas clases en vez de
-inventar una versión prefijada más.
+(`.om-resultado`, `.tec-guia-barra`, `.nm-dropdown-abierto`...) — que el
+archivo exista no las migra solas. Pasarlas a las clases genéricas de acá es
+un cambio pendiente, a hacer de a una la próxima vez que se toque esa
+página. Código nuevo (`objetos_ficha.php`, `generadorpj2.php`) ya parte
+directo de estas clases en vez de inventar una versión prefijada más para lo
+que ya existe genérico — solo se define localmente lo que de verdad no tiene
+equivalente compartido todavía (tiles de estadísticas, tarjetas de
+virtud/defecto, etc.).
 
 ### Prefijos por página (temporal)
 
@@ -703,6 +764,9 @@ plantilla o se copian entre sí sin querer.
 | `vm-` | `staff_virtudes_modificar` |
 | `nm-` | `staff_npcs_modificar` |
 | `is-` | `staff_islas_modificar` |
+| `of-` | `staff_objetos_ficha` |
+| `gen-` | `staff_generadorpj` |
+| `g2-` | `staff_generadorpj2` |
 
 **Esta tabla es temporal.** Existe solo porque hoy conviven clases genéricas
 (`.af-field`, `.aviso`, `.opg-guia-*`) con clases todavía prefijadas por
@@ -729,6 +793,22 @@ comentario de una línea marcando cada corte:
    página (grillas de bélicas/estilos, etc.).
 4. **`@media`** — al final siempre, un solo bloque por breakpoint en vez de
    uno por sección.
+
+### JS dentro de un template: sin nombres de variable con `$` (para código nuevo)
+
+Un template de MyBB se renderiza con `eval("\$page = \"" . $templates->get(...) . "\";")`
+— el contenido entero del template pasa por el parser de un string entre
+comillas dobles de PHP antes de mostrarse. Cualquier `$algo` suelto en el
+HTML o el JS del template, no solo el `{$variable}` que se pone a propósito,
+se interpreta como una variable PHP. Un `var $buscar = document.getElementById(...)`
+en JavaScript (nombres estilo jQuery) se convierte en un intento de
+interpolar una variable PHP `$buscar` que normalmente no existe — el
+resultado es una cadena vacía donde debería haber JS real, y el script se
+rompe en silencio, sin ningún error visible en el navegador que apunte a la
+causa. Pasó en la primera versión de `op_tripulacion_solicitar.html`. Para
+código nuevo: nombres de variable JS sin `$` (`elBuscar`, no `$buscar`),
+dejando `$` únicamente para las interpolaciones `{$variable}` que sí se
+quiere que MyBB resuelva.
 
 ---
 

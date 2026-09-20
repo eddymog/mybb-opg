@@ -3,7 +3,12 @@
 <head>
     <title>Consola de staff</title>
     {$headerinclude}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+    <!-- fontawesome+solid, no all.min.css: ese bundle trae los shims de v4
+         (clase "fa" sola) y hace que los <i class="fa fa-..."> del menú del
+         header (normalmente sin estilo en el resto del foro) se vean como
+         iconos acá. Ver docs/style.md §7. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" crossorigin="anonymous" />
     <!-- opg-tokens.css ya lo carga headerinclude (ver docs/style.md §7) -->
     <style>
     /* Marco de tres fondos (op_global.css) con ancho fluido en vez de 1030px fijos */

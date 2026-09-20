@@ -1,0 +1,33 @@
+<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Temas</title>
+</head>
+<body>
+    <form action="contar_temas.php" method="post">
+        <p>Tipos de tema:</p>
+        <ol>
+            <li>Común</li>
+            <li>Anuncio</li>
+            <li>Aventura</li>
+            <li>Combate</li>
+            <li>Presente</li>
+            <li>Diario</li>
+        </ol>
+
+        <label for="tipo">Tipo de tema:</label>
+        <input type="text" id="tipo" name="tipo">
+
+        <br><br>
+
+        <label for="usuario">Usuario:</label>
+        <input type="text" id="usuario" name="usuario">
+
+        <br><br>
+
+        <input type="submit" value="Enviar">
+    </form>
+</body>
+</html>

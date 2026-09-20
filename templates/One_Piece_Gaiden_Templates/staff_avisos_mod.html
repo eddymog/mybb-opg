@@ -1,23 +1,50 @@
 <html>
 
 <head>
-    <style>
-
-
-    </style>
-    <title>Consola - Avisos</title>
+    <title>Avisos</title>
     {$headerinclude}
+    <style>
+    .av-staff .thirdBackground { width: 100%; max-width: 700px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .av-titulo { padding: var(--opg-espacio-2); }
+    .av-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+
+    .av-seccion { margin-bottom: var(--opg-espacio-5); }
+    .av-seccion:last-child { margin-bottom: 0; }
+
+    .av-item {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3);
+    }
+    .av-item:last-child { margin-bottom: 0; }
+    .av-item-linea { font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); margin-bottom: var(--opg-espacio-2); }
+    .av-item-linea:last-child { margin-bottom: 0; }
+    .av-item-linea a { color: var(--opg-morado-texto); word-break: break-word; }
+    .av-item-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin-top: var(--opg-espacio-2); }
+    </style>
 </head>
 
 <body>
     {$header}
-    <div class="fondo-blanco">
-    <h4>Avisos:</h4>
-    <ul>
+    <div class="indice av-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div class="barra-op bbox av-titulo"><span class="barra-texto-op">Avisos</span></div>
+
+        <if $peticiones_li == '' then>
+        <p class="aviso ok">No hay avisos pendientes.</p>
+        </if>
+
         {$peticiones_li}
-    </ul>
+
     </div>
-    {$reload_script}
+    </div>
+    </div>
+    </div>
     {$footer}
 </body>
 
