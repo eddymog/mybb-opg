@@ -1,10 +1,23 @@
 <?php
 /**
- * Staff - Atributos de ficha
+ * Staff - Atributos de ficha (v2, con secciones plegables)
  *
- * El editor completo de una ficha de personaje: ~90 campos de
- * mybb_op_fichas (stats, oficios, bélicas, estilos, wanted, reputación...)
- * más berries/nika/kuro/experiencia. Reescrito por varios problemas reales:
+ * Copia funcional exacta de op/staff/ficha_atributos.php — misma lógica de
+ * guardado, mismos ~90 campos de mybb_op_fichas, mismo template de datos
+ * (`$ficha_esc`, `$fa_*_opciones`). Lo único que cambia es el template
+ * (`staff_ficha_atributos2`): cada sección pasa de `<div class="fa-seccion">`
+ * con una `.barra-op` naranja completa a un `<details>` plegable con la
+ * franja morada `.opg-guia-barra` ya usada en el foro para acordeones (ver
+ * opg-components.css) — con 12 secciones, repetir la `.barra-op` (pensada
+ * como chrome de "título de página") en cada una era demasiado peso visual
+ * y obligaba a bajar por 90+ campos en un solo scroll largo. "Información
+ * básica" y "Configuración del personaje" arrancan abiertas (las más
+ * tocadas), el resto arranca cerrado. Los campos dentro de un `<details>`
+ * cerrado se envían igual con el formulario — el plegado es solo visual.
+ *
+ * Todos los bugs de la versión original ya están resueltos acá, igual que
+ * en ficha_atributos.php (ver ese archivo si se quiere el detalle de cada
+ * uno):
  *
  * 1. Inyección SQL: prácticamente ningún campo pasaba por escape_string —
  *    ~85 UPDATE independientes, cada uno con su propio valor sin escapar.
@@ -17,7 +30,7 @@
  *    el HTML nunca los mandaba por POST, así que en cada guardado el PHP
  *    los encontraba "vacíos" y los pisaba a '' en la base, borrando el
  *    valor real sin que nadie lo pidiera. Se restauran como campos
- *    editables normales.
+*    editables normales.
  * 5. `espacios` sí tiene columna real y su <input> sí es editable, pero el
  *    PHP nunca leía `$_POST['espacios']` — cualquier cambio ahí se perdía
  *    en silencio. Ahora se guarda.
@@ -40,7 +53,7 @@
  */
 
 define("IN_MYBB", 1);
-define('THIS_SCRIPT', 'ficha_atributos.php');
+define('THIS_SCRIPT', 'ficha_atributos2.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
 
@@ -54,7 +67,7 @@ if (!is_mod($uid) && !is_staff($uid)) {
     exit;
 }
 
-define('FICHA_ATRIBUTOS_MSG_COOKIE', 'ficha_atributos_msg');
+define('FICHA_ATRIBUTOS_MSG_COOKIE', 'ficha_atributos2_msg');
 
 // Campos de mybb_op_fichas que se procesan de forma genérica: leer,
 // comparar contra el valor actual, y si cambió, escapar + loguear + sumar
@@ -225,7 +238,7 @@ if ($mybb->request_method == 'post') {
         'tipo'  => $error !== '' ? 'err' : 'ok',
         'texto' => $error !== '' ? $error : 'Ficha actualizada.',
     ))), 15, true);
-    header('Location: ' . ($ficha_id !== '' ? 'ficha_atributos.php?fid=' . rawurlencode($ficha_id) : 'ficha_atributos.php'));
+    header('Location: ' . ($ficha_id !== '' ? 'ficha_atributos2.php?fid=' . rawurlencode($ficha_id) : 'ficha_atributos2.php'));
     exit;
 }
 
@@ -403,5 +416,5 @@ for ($i = 1; $i <= 4; $i++) {
     $$var = fa_opciones($ESTILO_OPCIONES, $ficha ? $ficha['estilo' . $i] : '');
 }
 
-eval("\$page = \"".$templates->get("staff_ficha_atributos")."\";");
+eval("\$page = \"".$templates->get("staff_ficha_atributos2")."\";");
 output_page($page);

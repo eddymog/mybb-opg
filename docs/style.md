@@ -482,18 +482,21 @@ Reglas que salieron de rediseñar la consola de staff:
 - **Un color de acento por grupo** (de la paleta de §2), no naranja para todo: el
   naranja queda para la marca y el título de la página.
 - **El morado de llamada a la acción es para lo urgente**, no para cada botón.
-- **Iconos:** Font Awesome 6 (`fa-solid fa-*`). No lo carga el tema: la página que lo
-  use enlaza `fontawesome.min.css` + `solid.min.css` de
-  `https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/`. **No usar
-  `all.min.css`**: ese bundle incluye los shims de compatibilidad v4 (la clase
-  `.fa` sola, sin prefijo de estilo), y el menú del header
+- **Iconos:** Font Awesome 6 (`fa-solid fa-*`). Se carga **global, una sola vez**,
+  en `templates/One_Piece_Gaiden_Templates/headerinclude.html`
+  (`all.min.css` de `https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/`)
+  — ninguna página necesita su propio `<link>`. Es `all.min.css` a propósito:
+  ese bundle incluye los shims de compatibilidad v4 (la clase `.fa` sola, sin
+  prefijo de estilo), necesarios porque el menú del header
   (`templates/One_Piece_Gaiden_Templates/header.html`) está lleno de
-  `<i class="fa fa-book">` heredados que en el resto del foro no muestran nada
-  porque esa clase no tiene estilo — cargar `all.min.css` en una página los
-  vuelve visibles ahí, dando un header inconsistente según la página. Pasó de
-  verdad en `op_mercado_negro`/`staff_consola_mod` (origen del patrón) y se
-  repitió al copiarlo en `op_tripulacion`/`op_tripulaciones`/`op_peticiones`
-  antes de encontrar la causa.
+  `<i class="fa fa-book">` heredados que dependen de esa clase para verse.
+  **Historia real, por si se repite el patrón:** esto se probó primero al
+  revés — cargar `fontawesome.min.css` + `solid.min.css` (sin shims) por
+  página, en `op_mercado_negro`/`staff_consola_mod` y después
+  `op_tripulacion`/`op_tripulaciones`/`op_peticiones` — precisamente para que
+  esos íconos del header NO se vieran (evitar un header inconsistente entre
+  páginas). Se revirtió esa decisión: ahora sí se quieren esos íconos, en
+  todas las páginas, así que la carga global con shims es la actual.
 - **El tema centra todo el texto** (`text-align: center` en el `body` de
   `global.css`): en páginas de tarjetas, poner `text-align: left` en el contenedor.
 - **Enlaces:** las reglas `a:link`/`a:visited` del tema ganan a una clase simple. Para

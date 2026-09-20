@@ -155,11 +155,20 @@ $CATEGORIAS = array(
 define('PA_POR_PAGINA', 20);
 
 $resuelto = $mybb->get_input('resuelto', MyBB::INPUT_STRING) === '1' ? '1' : '0';
-$categoria_filtro = $mybb->get_input('categoria', MyBB::INPUT_STRING);
-if ($categoria_filtro !== 'tripulacion' && !isset($CATEGORIAS[$categoria_filtro])) {
-    $categoria_filtro = '';
+
+// Los filtros y la paginación solo tienen sentido viendo "resueltas" (que
+// solo crece); "pendientes" siempre se ve completa, sin UI para
+// filtrar/paginar — así que se ignora cualquier `categoria`/`atendido`
+// que llegue igual por la URL en esa vista.
+$categoria_filtro = '';
+$atendido_filtro = '';
+if ($resuelto === '1') {
+    $categoria_filtro = $mybb->get_input('categoria', MyBB::INPUT_STRING);
+    if ($categoria_filtro !== 'tripulacion' && !isset($CATEGORIAS[$categoria_filtro])) {
+        $categoria_filtro = '';
+    }
+    $atendido_filtro = trim($mybb->get_input('atendido', MyBB::INPUT_STRING));
 }
-$atendido_filtro = trim($mybb->get_input('atendido', MyBB::INPUT_STRING));
 $pagina = max(1, (int) $mybb->get_input('pagina', MyBB::INPUT_INT));
 $post_key = generate_post_check();
 

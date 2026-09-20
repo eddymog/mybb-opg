@@ -43,7 +43,7 @@ $consola_grupos = array(
     )),
     'Personajes' => array('morado', array(
         array('fa-sliders', 'Atributos de ficha', 'Stats, oficios, bélicas y elementos de un personaje.', array(
-            array('Modificar', 'ficha_atributos.php'),
+            array('Modificar', 'ficha_atributos2.php'),
         )),
         array('fa-box-open', 'Inventario y habilidades', 'Lo que tiene asignado un personaje concreto.', array(
             array('Objetos', 'objetos_ficha.php'),

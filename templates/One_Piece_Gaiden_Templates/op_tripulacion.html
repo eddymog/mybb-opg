@@ -5,8 +5,7 @@
 <!-- fontawesome+solid, no all.min.css: ver nota en docs/style.md §7 sobre por
      qué all.min.css hace aparecer iconos del menú del header que en el resto
      del foro no se ven. -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" crossorigin="anonymous" />
+<!-- Font Awesome ya lo carga {$headerinclude} para todo el foro (ver docs/style.md §7). -->
 <style>
 .tr-pagina .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
 
@@ -54,8 +53,8 @@
 }
 
 .tr-agregar { display: flex; gap: var(--opg-espacio-3); align-items: center; margin-bottom: var(--opg-espacio-4); }
-.tr-agregar #tr-buscar {
-    width: 260px; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+.tr-agregar input[type=number] {
+    width: 220px; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
     font-family: var(--opg-fuente-cuerpo); font-size: 13px;
 }
 
@@ -120,52 +119,5 @@
 </div>
 </div>
 {$footer}
-<script>
-(function () {
-    var buscar = document.getElementById('tr-buscar');
-    if (!buscar) { return; }
-
-    var resultados = document.getElementById('tr-resultados');
-    var form = document.getElementById('tr-agregar-form');
-    var fidInput = document.getElementById('tr-agregar-fid');
-    var debounceTimer = null;
-
-    buscar.addEventListener('input', function () {
-        var q = buscar.value.trim();
-        clearTimeout(debounceTimer);
-        if (q === '') { resultados.hidden = true; return; }
-        debounceTimer = setTimeout(function () {
-            fetch('tripulacion.php?buscar_personaje=' + encodeURIComponent(q))
-                .then(function (r) { return r.json(); })
-                .then(function (items) {
-                    resultados.innerHTML = '';
-                    if (items.length === 0) {
-                        var vacio = document.createElement('div');
-                        vacio.className = 'opg-resultado-vacio';
-                        vacio.textContent = 'Sin resultados.';
-                        resultados.appendChild(vacio);
-                    } else {
-                        items.forEach(function (item) {
-                            var btn = document.createElement('button');
-                            btn.type = 'button';
-                            btn.className = 'opg-resultado';
-                            btn.textContent = item.nombre;
-                            btn.addEventListener('click', function () {
-                                fidInput.value = item.fid;
-                                form.submit();
-                            });
-                            resultados.appendChild(btn);
-                        });
-                    }
-                    resultados.hidden = false;
-                });
-        }, 200);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.opg-buscar-caja')) { resultados.hidden = true; }
-    });
-})();
-</script>
 </body>
 </html>

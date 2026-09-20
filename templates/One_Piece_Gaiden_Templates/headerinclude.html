@@ -13,6 +13,13 @@
 <meta name="twitter:title" content="One Piece Gaiden — El foro de rol de One Piece más automatizado" />
 <meta name="twitter:description" content="El foro de rol de One Piece más automatizado que existe. Sistema RPG completo con combate, crafteo, viajes y mucho más." />
 <link rel="icon" type="image/png" href="{$mybb->settings['bburl']}/images/op/favicon.png" />
+<!-- Font Awesome 6, con los shims de v4 (all.min.css incluye la clase "fa"
+     sola además de "fa-solid"/etc): a propósito, para que los <i class="fa
+     fa-..."> ya escritos en header.html (el menú del foro) se vean como
+     íconos. Antes se cargaba por página sin shims para evitar justo esto —
+     decisión revertida: ahora sí se quieren esos íconos, en todas partes, así
+     que se carga acá una sola vez para todo el foro en vez de por página. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
 <style>
 .item-outer .tooltip{position:static!important}
 .opg-tip-toggle{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);border:1px solid #666;color:#ddd;font-size:10px;padding:2px 6px;cursor:pointer;border-radius:3px;line-height:1.4;white-space:nowrap;z-index:1}

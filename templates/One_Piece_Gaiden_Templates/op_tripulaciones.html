@@ -2,8 +2,7 @@
 <head>
 <title>Tripulaciones — {$bbname_html}</title>
 {$headerinclude}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" crossorigin="anonymous" />
+<!-- Font Awesome ya lo carga {$headerinclude} para todo el foro (ver docs/style.md §7). -->
 <style>
 .td-pagina .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
 
@@ -57,10 +56,6 @@
             <select id="td-faccion" name="faccion">
                 {$faccion_options_html}
             </select>
-        </div>
-        <div class="af-field">
-            <label for="td-min">Mínimo de miembros</label>
-            <input type="number" id="td-min" name="min_miembros" min="0" value="{$min_miembros_val}">
         </div>
         <label class="td-check"><input type="checkbox" name="buscando" value="1"{$buscando_checked}> Buscando miembros</label>
         <button type="submit" class="btn-op btn-op--sm btn-op--primario">Filtrar</button>

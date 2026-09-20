@@ -3,10 +3,9 @@
  * Directorio de Tripulaciones
  *
  * Listado público (cualquier usuario logueado, no hace falta ficha) de
- * todas las tripulaciones, con filtro por facción, por "buscando miembros"
- * y por cantidad mínima de miembros. Ver docs/200_Design_Tripulacion.md,
- * sección "Página 1". Solo lectura — la gestión vive en
- * op/tripulacion.php?id=X.
+ * todas las tripulaciones, con filtro por facción y por "buscando miembros".
+ * Ver docs/200_Design_Tripulacion.md, sección "Página 1". Solo lectura — la
+ * gestión vive en op/tripulacion.php?id=X.
  */
 
 define("IN_MYBB", 1);
@@ -29,7 +28,6 @@ $TRIPU_FACCIONES = array('Pirata', 'Marina', 'CipherPol', 'Revolucionario', 'Caz
 
 $f_faccion  = trim($mybb->get_input('faccion', MyBB::INPUT_STRING));
 $f_buscando = $mybb->get_input('buscando', MyBB::INPUT_INT) ? 1 : 0;
-$f_min      = $mybb->get_input('min_miembros', MyBB::INPUT_INT);
 
 $where = array("estado != 2"); // Disueltas no se listan; Activas e Inactivas sí.
 if (in_array($f_faccion, $TRIPU_FACCIONES, true)) {
@@ -48,9 +46,6 @@ $query = $db->query("
     LIMIT 100
 ");
 while ($t = $db->fetch_array($query)) {
-    if ($f_min > 0 && (int) $t['cantidad_miembros'] < $f_min) {
-        continue; // Filtro por cantidad: más simple hacerlo acá que con HAVING sobre una subquery.
-    }
     $tripulaciones[] = $t;
 }
 
@@ -67,7 +62,6 @@ foreach ($TRIPU_FACCIONES as $f) {
 }
 
 $buscando_checked = $f_buscando ? ' checked' : '';
-$min_miembros_val = $f_min > 0 ? (int) $f_min : '';
 
 $tarjetas_html = '';
 foreach ($tripulaciones as $t) {

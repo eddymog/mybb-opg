@@ -103,6 +103,7 @@
             </if>
         </div>
 
+        <if $resuelto == '1' then>
         <form class="pa-filtros" method="get" action="/op/staff/peticiones_admin.php">
             <input type="hidden" name="resuelto" value="{$resuelto}">
             <div class="af-field">
@@ -115,6 +116,7 @@
             </div>
             <button type="submit" class="btn-op btn-op--sm">Filtrar</button>
         </form>
+        </if>
 
         {$paginacion_html}
 
