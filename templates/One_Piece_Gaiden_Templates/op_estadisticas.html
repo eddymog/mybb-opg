@@ -40,6 +40,162 @@
 				top: -3px;
 				left: 250px;
 			}
+			.censo-grid-fila { display: flex; flex-direction: row; justify-content: space-between; gap: 20px; }
+			.censo-grid-fila + .censo-grid-fila { margin-top: 22px; }
+			.censo-tarjeta { width: 300px; min-width: 0; }
+
+			.estadisticas-rankings { margin-top: 20px; text-align: left; }
+			.rankings-titulo { margin: 0; padding: 9px 13px; color: #fff; background: var(--opg-naranja, #ff8500); border: 2px solid #111; border-radius: 6px 6px 0 0; font: 16px moonGetHeavy; letter-spacing: 0; text-transform: uppercase; text-shadow: 1px 1px 1px #000; }
+			.rankings-titulo--banner { margin-bottom: 10px; border-radius: 6px; text-align: center; }
+			.rankings-titulo--experiencia { background: var(--opg-morado, #8f59f7); }
+			.rankings-titulo--temas { background: var(--opg-azul, #00bbed); }
+			.ranking-contexto { padding: 8px 12px; border: 2px solid #111; border-bottom: 0; border-radius: 6px 6px 0 0; color: var(--opg-marron, #3b2417); background: var(--opg-crema, #fff5d9); font: 11px InterMedium, Arial, sans-serif; text-align: center; }
+			.ranking-podio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; gap: 2px; padding: 16px 12px 0; border: 2px solid #111; background: var(--opg-textura-trama), var(--opg-crema-dorada, #f5d89a); }
+			.ranking-podio__puesto { display: flex; min-width: 0; min-height: 206px; padding: 12px 10px; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: flex-end; gap: 7px; border: 2px solid #111; border-bottom: 0; color: #111 !important; text-align: center; text-decoration: none !important; transition: transform .15s ease; }
+			.ranking-podio__puesto:hover { color: #111; transform: translateY(-3px); }
+			.ranking-podio__puesto--1 { min-height: 234px; order: 2; background: #f4c542; }
+			.ranking-podio__puesto--2 { order: 1; background: #d8dce3; }
+			.ranking-podio__puesto--3 { order: 3; background: #c9844b; }
+			.ranking-podio__puesto.ranking-fila--actual { box-shadow: inset 0 0 0 4px var(--opg-morado, #8f59f7); }
+			.ranking-podio__puesto img { width: 112px; height: 112px; border: 3px solid #111; border-radius: 5px; object-fit: cover; background: #fff; }
+			.ranking-podio__puesto--1 img { width: 138px; height: 138px; }
+			.ranking-podio__numero { font: 19px moonGetHeavy; }
+			.ranking-podio__nombre { width: calc(100% - 12px); overflow: hidden; padding: 5px 6px; color: #fff; background: #111; font: 13px moonGetHeavy; text-overflow: ellipsis; white-space: nowrap; }
+			.ranking-podio__puesto:hover .ranking-podio__nombre { color: var(--opg-crema-dorada, #f5d89a); text-decoration: underline; text-underline-offset: 3px; }
+			.ranking-podio__puesto strong { font: 17px moonGetHeavy; }
+			.ranking-podio__puesto small { font: 9px InterRegular, Arial, sans-serif; }
+			.ranking-lista-titulo { margin: 12px 0 0; padding: 6px 10px; border: 2px solid #111; border-bottom: 0; border-radius: 6px 6px 0 0; color: #fff; background: var(--opg-naranja, #ff8500); font: 11px moonGetHeavy; letter-spacing: 0; text-transform: uppercase; text-shadow: 1px 1px #000; }
+			.ranking-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; border: 2px solid #111; background: var(--opg-crema-dorada, #f5d89a); }
+			.ranking-fila { position: relative; display: grid; grid-template-columns: 104px minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 5px 13px; align-items: center; min-height: 112px; padding: 9px 12px 9px 9px; border: 2px solid #111; border-radius: 6px; box-shadow: 4px 4px 0 rgba(0,0,0,.25); background: var(--opg-crema, #fff5d9); overflow: hidden; }
+			.ranking-fila:nth-child(even) { background: #fff; }
+			.ranking-fila--actual { box-shadow: inset 5px 0 var(--opg-morado, #8f59f7); }
+			.ranking-posicion { position: absolute; z-index: 1; top: 5px; left: 5px; min-width: 34px; padding: 4px 6px; border: 2px solid #111; border-radius: 4px; color: #fff; background: var(--opg-morado, #8f59f7); font: 13px moonGetHeavy; text-align: center; text-shadow: 1px 1px #000; }
+			.ranking-avatar { grid-column: 1; grid-row: 1 / 3; width: 100px; height: 100px; border: 3px solid #111; border-radius: 5px; object-fit: cover; background: #fff; }
+			.ranking-nombre, .ranking-personal a { overflow: hidden; color: var(--opg-morado-texto, #6736a5); font: 13px InterMedium, Arial, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+			.ranking-fila .ranking-nombre { align-self: end; color: var(--opg-morado-texto, #6736a5) !important; font: 16px/1.2 moonGetHeavy; text-decoration: none !important; white-space: normal; }
+			.ranking-fila .ranking-nombre:after { display: inline-block; margin-left: 6px; content: ">"; color: var(--opg-naranja, #d86d00); font-size: 16px; transition: transform .15s ease; }
+			.ranking-fila .ranking-nombre:hover { color: var(--opg-naranja, #d86d00) !important; text-decoration: underline !important; text-underline-offset: 3px; }
+			.ranking-fila .ranking-nombre:hover:after { transform: translateX(3px); }
+			.ranking-personal a:hover { color: var(--opg-naranja, #d86d00); }
+			.ranking-valor { align-self: start; color: var(--opg-marron, #3b2417); font: 20px moonGetHeavy; text-align: left; }
+			.ranking-valor small { color: #666; font: 10px InterRegular, Arial, sans-serif; }
+			.ranking-personal { display: grid; grid-template-columns: auto 45px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 8px; padding: 10px 12px; border: 2px solid #111; border-radius: 4px; background: var(--opg-morado, #8f59f7); color: #fff; }
+			.ranking-personal > span { font: 11px moonGetHeavy; text-transform: uppercase; }
+			.ranking-personal > strong { font: 18px moonGetHeavy; }
+			.ranking-personal > a { color: #fff !important; font-family: InterMedium, Arial, sans-serif; text-decoration: none; }
+			.ranking-personal > a:hover { color: #fff !important; text-decoration: underline; text-underline-offset: 3px; }
+			.ranking-personal b { font: 13px InterMedium, Arial, sans-serif; }
+			.ranking-progreso { grid-column: 1 / -1; padding-top: 7px; border-top: 1px solid rgba(255,255,255,.4); color: #fff; font: 11px/1.4 InterRegular, Arial, sans-serif; }
+			.ranking-rivales { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+			.ranking-rivales > span { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; padding: 8px 10px; border: 1px solid rgba(255,255,255,.55); background: rgba(0,0,0,.16); }
+			.ranking-rivales small { grid-column: 1 / -1; color: #fff; font: 9px moonGetHeavy; text-transform: uppercase; }
+			.ranking-rivales a, .ranking-rivales em { overflow: hidden; color: #fff; font: 11px InterMedium, Arial, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+			.ranking-personal .ranking-rivales a { color: var(--opg-crema-dorada, #f5d89a) !important; text-decoration: none; }
+			.ranking-personal .ranking-rivales a:hover { color: #fff !important; text-decoration: underline; text-underline-offset: 3px; }
+			.ranking-rivales b { color: #fff; font: 10px InterRegular, Arial, sans-serif; white-space: nowrap; }
+			.ranking-personal--vacio { display: block; font: 12px InterRegular, Arial, sans-serif; }
+			.ranking-vacio { margin: 0; padding: 18px; color: #666; font: 12px InterRegular, Arial, sans-serif; text-align: center; }
+			.censo-progreso { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 12px; align-items: center; margin-top: 10px; border: 2px solid #111; border-radius: 6px; box-shadow: 4px 4px 0 rgba(0,0,0,.35); color: var(--opg-marron, #3b2417); background: var(--opg-textura-trama), var(--opg-crema-dorada, #f5d89a); overflow: hidden; }
+			.censo-progreso__titulo { align-self: stretch; display: flex; align-items: center; gap: 7px; padding: 10px 13px; color: #fff; background: var(--opg-morado, #8f59f7); font: 13px moonGetHeavy; text-transform: uppercase; text-shadow: 1px 1px #000; }
+			.censo-progreso__contador { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+			.censo-progreso__contador strong { color: var(--opg-morado-texto, #6736a5); font: 23px moonGetHeavy; }
+			.censo-progreso__contador small { color: #555; font: 10px InterMedium, Arial, sans-serif; }
+			.censo-progreso__mensaje { padding: 9px 12px 9px 0; border-left: 1px solid rgba(0,0,0,.2); font: 12px/1.4 InterMedium, Arial, sans-serif; }
+			.estadisticas-herramienta { margin-top: 20px; }
+			.estadisticas-buscador { position: relative; display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 8px; padding: 14px; border: 2px solid #111; background: var(--opg-crema-dorada, #f5d89a); }
+			.estadisticas-buscador__campo { position: relative; }
+			.estadisticas-buscador input[type="search"] { width: 100%; height: 40px; box-sizing: border-box; padding: 7px 10px; border: 2px solid #111; border-radius: 4px; color: var(--opg-marron, #3b2417); background: #fff; font: 13px InterRegular, Arial, sans-serif; }
+			.estadisticas-resultados { position: absolute; z-index: 10; top: 43px; right: 0; left: 0; border: 2px solid #111; background: #fff; box-shadow: 4px 4px 0 rgba(0,0,0,.3); }
+			.estadisticas-resultados:empty { display: none; }
+			.estadisticas-resultado { display: block; width: 100%; padding: 9px 10px; border: 0; border-bottom: 1px solid #ddd; color: var(--opg-marron, #3b2417); background: #fff; font: 12px InterRegular, Arial, sans-serif; text-align: left; cursor: pointer; }
+			.estadisticas-resultado:hover { background: var(--opg-crema-dorada, #f5d89a); }
+			.comparacion-encabezado, .consulta-personaje { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px; border: 2px solid #111; border-bottom: 0; background: var(--opg-morado, #8f59f7); color: #fff; }
+			.comparacion-encabezado img, .consulta-personaje img { width: 54px; height: 54px; border: 2px solid #111; border-radius: 4px; object-fit: cover; }
+			.comparacion-encabezado div, .consulta-personaje div { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+			.comparacion-encabezado span, .consulta-personaje small { font: 10px InterRegular, Arial, sans-serif; }
+			.comparacion-encabezado a, .consulta-personaje a { overflow: hidden; color: #fff; font: 15px moonGetHeavy; text-overflow: ellipsis; white-space: nowrap; }
+			.comparacion-tabla { border: 2px solid #111; }
+			.comparacion-fila { display: grid; grid-template-columns: minmax(130px, 1fr) repeat(3, minmax(100px, .7fr)); gap: 8px; align-items: center; padding: 10px 12px; background: var(--opg-crema, #fff5d9); }
+			.comparacion-fila:nth-child(even) { background: var(--opg-crema-dorada, #f5d89a); }
+			.comparacion-fila span { display: flex; flex-direction: column; font: 15px moonGetHeavy; }
+			.comparacion-fila small { color: #666; font: 9px InterRegular, Arial, sans-serif; }
+			.comparacion-fila b { text-align: right; }
+			.diferencia-positiva { color: #237a3b; }
+			.diferencia-negativa { color: #b62d2d; }
+			.duelo { margin-top: 14px; border: 3px solid #111; border-radius: 6px; box-shadow: 6px 6px 0 rgba(0,0,0,.35); overflow: hidden; }
+			.duelo-arena { display: grid; grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr); align-items: stretch; background: #111; }
+			.duelo-luchador { display: grid; grid-template-columns: 112px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 4px 12px; align-items: center; min-width: 0; padding: 16px 18px; color: #fff !important; text-decoration: none !important; }
+			.duelo-luchador--propio { background: var(--opg-naranja, #ff8500); }
+			.duelo-luchador--rival { grid-template-columns: minmax(0, 1fr) 112px; background: var(--opg-azul, #00bbed); text-align: right; }
+			.duelo-luchador span { align-self: end; font: 11px moonGetHeavy; text-transform: uppercase; text-shadow: 1px 1px #000; }
+			.duelo-luchador--propio span, .duelo-luchador--propio strong { grid-column: 2; }
+			.duelo-luchador--rival span, .duelo-luchador--rival strong { grid-column: 1; }
+			.duelo-luchador img { grid-column: 1; grid-row: 1 / 3; width: 108px; height: 108px; border: 3px solid #111; border-radius: 5px; object-fit: cover; background: #fff; }
+			.duelo-luchador--rival img { grid-column: 2; }
+			.duelo-luchador strong { align-self: start; overflow: hidden; font: 17px/1.2 moonGetHeavy; text-overflow: ellipsis; text-shadow: 1px 1px #000; }
+			.duelo-luchador:hover strong { text-decoration: underline; text-underline-offset: 3px; }
+			.duelo-marcador { z-index: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-content: center; align-items: center; gap: 8px; padding: 12px; color: #fff; background: var(--opg-morado, #8f59f7); text-align: center; }
+			.duelo-marcador span { font: 31px moonGetHeavy; }
+			.duelo-marcador b { display: grid; width: 58px; height: 58px; place-items: center; border: 3px solid #111; border-radius: 50%; color: #111; background: var(--opg-crema-dorada, #f5d89a); font: 22px moonGetHeavy; transform: rotate(-5deg); }
+			.duelo-marcador small { grid-column: 1 / -1; font: 10px/1.3 InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.duelo-estadisticas { padding: 8px 14px 12px; background: var(--opg-crema, #fff5d9); }
+			.duelo-estadistica { position: relative; padding: 10px 0 7px; }
+			.duelo-estadistica + .duelo-estadistica { border-top: 1px solid rgba(0,0,0,.2); }
+			.duelo-estadistica__cabecera { display: grid; grid-template-columns: 1fr 150px 1fr; gap: 10px; align-items: end; }
+			.duelo-estadistica__cabecera > strong { font: 12px moonGetHeavy; text-align: center; text-transform: uppercase; }
+			.duelo-valor { display: flex; align-items: baseline; gap: 6px; color: var(--opg-marron, #3b2417); font: 16px moonGetHeavy; }
+			.duelo-valor--derecha { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+			.duelo-valor small { color: #666; font: 9px InterRegular, Arial, sans-serif; }
+			.duelo-valor--ganador { color: #237a3b; }
+			.duelo-valor--empate { color: var(--opg-morado-texto, #6736a5); }
+			.duelo-barra { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; height: 13px; margin-top: 5px; border: 2px solid #111; background: #111; }
+			.duelo-barra__lado { display: flex; background: rgba(255,255,255,.7); }
+			.duelo-barra__lado--propio { justify-content: flex-end; }
+			.duelo-barra__lado i { display: block; height: 100%; background: var(--opg-naranja, #ff8500); }
+			.duelo-barra__lado--rival i { background: var(--opg-azul, #00bbed); }
+			.duelo-estadistica__unidad { display: block; margin-top: 3px; color: #777; font: 8px InterRegular, Arial, sans-serif; text-align: center; text-transform: uppercase; }
+			.consulta-rankings { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid #111; }
+			.consulta-rankings > div { display: flex; padding: 14px; flex-direction: column; align-items: center; gap: 3px; background: var(--opg-crema, #fff5d9); }
+			.consulta-rankings > div + div { border-left: 1px solid rgba(0,0,0,.2); }
+			.consulta-rankings span { font: 11px moonGetHeavy; }
+			.consulta-rankings strong { color: var(--opg-morado-texto, #6736a5); font: 24px moonGetHeavy; }
+			.consulta-rankings small { color: #666; font: 11px InterRegular, Arial, sans-serif; }
+			@media (max-width: 650px) {
+				.estadisticas-rankings { margin-top: 30px; }
+				.ranking-lista { grid-template-columns: 1fr; }
+				.ranking-fila { grid-template-columns: 82px minmax(0, 1fr); min-height: 90px; padding: 7px; }
+				.ranking-avatar { width: 78px; height: 78px; border-width: 2px; }
+				.ranking-fila .ranking-nombre { font-size: 13px; }
+				.ranking-valor { font-size: 16px; }
+				.ranking-personal { grid-template-columns: auto 38px minmax(0, 1fr); }
+				.ranking-personal b { grid-column: 3; }
+				.ranking-podio { grid-template-columns: 1fr; align-items: stretch; padding: 8px; }
+				.ranking-podio__puesto, .ranking-podio__puesto--1 { min-height: 0; padding: 8px; flex-direction: row; justify-content: flex-start; border-bottom: 2px solid #111; }
+				.ranking-podio__puesto--1 { order: 1; }
+				.ranking-podio__puesto--2 { order: 2; }
+				.ranking-podio__puesto--3 { order: 3; }
+				.ranking-podio__puesto img, .ranking-podio__puesto--1 img { width: 72px; height: 72px; }
+				.ranking-podio__nombre { text-align: left; }
+				.estadisticas-buscador, .comparacion-fila, .consulta-rankings { grid-template-columns: 1fr; }
+				.comparacion-fila b { text-align: left; }
+				.consulta-rankings > div + div { border-top: 1px solid rgba(0,0,0,.2); border-left: 0; }
+				.censo-progreso { grid-template-columns: 1fr; gap: 0; }
+				.censo-progreso__titulo { justify-content: center; }
+				.censo-progreso__contador { justify-content: center; padding: 8px 10px 3px; }
+				.censo-progreso__mensaje { padding: 5px 10px 10px; border-left: 0; text-align: center; }
+				.ranking-rivales { grid-template-columns: 1fr; }
+				.duelo-arena { grid-template-columns: 1fr 72px 1fr; }
+				.duelo-luchador, .duelo-luchador--rival { display: flex; padding: 10px 6px; flex-direction: column; text-align: center; }
+				.duelo-luchador img, .duelo-luchador--rival img { width: 68px; height: 68px; order: 1; }
+				.duelo-luchador span { order: 0; }
+				.duelo-luchador strong { width: 100%; order: 2; font-size: 10px; }
+				.duelo-marcador { grid-template-columns: 1fr; gap: 2px; padding: 6px 2px; }
+				.duelo-marcador span { display: none; }
+				.duelo-marcador b { width: 45px; height: 45px; margin: auto; font-size: 17px; }
+				.duelo-marcador small { grid-column: 1; font-size: 7px; }
+				.duelo-estadistica__cabecera { grid-template-columns: 1fr 90px 1fr; }
+				.duelo-valor { font-size: 12px; }
+			}
 
 		</style>
 		<title>Censo y Estadísticas</title>
@@ -50,22 +206,46 @@
 		<div class="indice">
 			<div class="mainBackground">
 				<div class="secondBackground">
-					<div class="thirdBackground" style="height: 1000px;">
+					<div class="thirdBackground">
+						<if $accion == 'censo' then>
 						<div style="margin-bottom: 10px;">
 							<img src="/images/op/uploads/Censo_One_Piece_Gaiden_Foro_Rol.png" />
 						</div>
+						</if>
+						<if $accion == 'mas-posts' then>
+						<h1 class="rankings-titulo rankings-titulo--banner">Top 20 · Más Posts de rol</h1>
+						</if>
+						<if $accion == 'mas-experiencia' then>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--experiencia">Top 20 · Más Experiencia</h1>
+						</if>
+						<if $accion == 'mas-temas' then>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--temas">Top 20 · Más Temas de rol</h1>
+						</if>
+						<if $accion == 'comparar' then>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--experiencia">Comparar personajes</h1>
+						</if>
+						<if $accion == 'consultar-ranking' then>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--temas">Consultar clasificación</h1>
+						</if>
 						<div style="display: flex; flex-direction: column;">
 							<div style="display: flex; flex-direction: row">
 								<div class="row" style=" display: flex; flex-direction: column; ">
 									<div class="col-3" style=" display: flex; ">
 										<div class="h6" style=" font-size: 13px; color: white; background-color: #8f59f7; border: 1px solid black; font-family: moonGetHeavy; text-shadow: 1px 1px black; width: 82px; text-align: center; "><span style=" position: relative; top: 5px; ">Acción:</span></div><br>
-										<select class="form-control" id="select-accion" onchange="onChangeAccion(this)" style=" border: 1px solid black; width: 135px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
+										<select class="form-control" id="select-accion" onchange="onChangeAccion(this)" style=" border: 1px solid black; width: 190px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
 											<option value='censo'>Censo</option>
+											<option value='mas-posts'>Más Posts</option>
+											<option value='mas-experiencia'>Más Experiencia</option>
+											<option value='mas-temas'>Más Temas</option>
+											<option value='comparar'>Comparar</option>
+											<option value='consultar-ranking'>Consultar clasificación</option>
+											<option value='aventureros'>Aventureros</option>
 										</select>
 									</div>
+									<if $accion == 'censo' then>
 									<div class="col-3" style=" display: flex; ">
 										<div class="h6" style=" font-size: 13px; color: white; background-color: #8f59f7; border: 1px solid black; font-family: moonGetHeavy; text-shadow: 1px 1px black; width: 82px; text-align: center; "><span style=" position: relative; top: 5px; ">Duración:</span></div><br>
-										<select class="form-control" id="select-tiempo" onchange="onChangeTiempo(this)" style=" border: 1px solid black; width: 135px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
+										<select class="form-control" id="select-tiempo" onchange="onChangeTiempo(this)" style=" border: 1px solid black; width: 190px; font-family: moonGetHeavy; color: black; font-size: 12px; ">
 											<option value='1'>24 horas</option>
 											<option value='2'>48 horas</option>
 											<option value='7'>1 semana</option>
@@ -73,22 +253,26 @@
 											<option value='28'>4 semanas</option>
 										</select>
 									</div>
+									</if>
 								</div>
+								<if $accion == 'censo' then>
 								<div style=" font-size: 21px;font-family: moonGetHeavy;color: black;width: 100%;background-color: #ff8500;text-align: center;">
 									<div style=" position: relative; top: 1px; ">
 										<span style="color: white;">{$totalPjs}</span> Personajes han posteado <span style="color: white;">{$numeroPosts} veces</span> en zonas de rol <br>y <span style="color: white;">{$numeroPostsTotal} veces</span> en todo el foro.
 									</div>
 								</div>
+								</if>
 							</div>
+							<if $accion == 'censo' then>{$progresoCenso}</if>
 							<br>
 
 							<if $accion == 'censo' then>
 
 								<div style="display: flex; flex-direction: column;">
 								
-									<div style="display: flex; flex-direction: row; justify-content: space-between;">
+									<div class="censo-grid-fila">
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" style="background-color: #ff0909">
 												<span><img class="imagenTitulo1" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Piratas
@@ -103,7 +287,7 @@
 											</div>
 										</div>
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" >
 												<span><img class="imagenTitulo1" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Marines
@@ -118,7 +302,7 @@
 											</div>
 										</div>
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" style="background-color: #0d114b">
 												<span><img class="imagenTitulo1" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Cipher Pol
@@ -134,9 +318,9 @@
 										</div>
 										
 									</div>
-									<div style="display: flex; flex-direction: row; justify-content: space-between;margin-top: 110px;">
+									<div class="censo-grid-fila">
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" style="background-color: #e1b078">
 												<span><img class="imagenTitulo1" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Revos
@@ -151,7 +335,7 @@
 											</div>
 										</div>
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" style="background-color: #00f700">
 												<span><img class="imagenTitulo1" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Cazadores
@@ -166,7 +350,7 @@
 											</div>
 										</div>
 										
-										<div style=" width: 300px; height: 300px; ">
+										<div class="censo-tarjeta">
 											<div class="censo-titulo-grupo" style="background-color: #ff17fc">
 												<span><img class="imagenTitulo1" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
 												Civil
@@ -188,6 +372,62 @@
 								</div>
 
 							</if>
+
+							<if $accion == 'mas-posts' then>
+							<section class="estadisticas-rankings" aria-label="Top 20 de personajes con más posts de rol">
+								<div class="ranking-panel">
+									<div class="ranking-contexto">{$metaPostsRol}</div>
+									<div class="ranking-podio">{$podioPostsRol}</div>
+									<h2 class="ranking-lista-titulo">Resto del Top 20</h2>
+									<div class="ranking-lista">{$topPostsRol}</div>
+									{$posicionPostsRol}
+								</div>
+							</section>
+							</if>
+							<if $accion == 'mas-experiencia' then>
+							<section class="estadisticas-rankings" aria-label="Top 20 de personajes con más experiencia">
+								<div class="ranking-panel">
+									<div class="ranking-contexto">{$metaExperiencia}</div>
+									<div class="ranking-podio">{$podioExperiencia}</div>
+									<h2 class="ranking-lista-titulo">Resto del Top 20</h2>
+									<div class="ranking-lista">{$topExperiencia}</div>
+									{$posicionExperiencia}
+								</div>
+							</section>
+							</if>
+							<if $accion == 'mas-temas' then>
+							<section class="estadisticas-rankings" aria-label="Top 20 de personajes con más temas de rol">
+								<div class="ranking-panel">
+									<div class="ranking-contexto">{$metaTemasRol}</div>
+									<div class="ranking-podio">{$podioTemasRol}</div>
+									<h2 class="ranking-lista-titulo">Resto del Top 20</h2>
+									<div class="ranking-lista">{$topTemasRol}</div>
+									{$posicionTemasRol}
+								</div>
+							</section>
+							</if>
+							<if $accion == 'comparar' then>
+							<section class="estadisticas-herramienta" aria-label="Comparar personajes">
+								<form class="estadisticas-buscador" method="get" autocomplete="off">
+									<input type="hidden" name="accion" value="comparar">
+									<input type="hidden" name="comparar_fid" id="comparar-fid" value="{$compararFid}">
+									<div class="estadisticas-buscador__campo"><input type="search" class="personaje-typeahead" value="{$compararTexto}" placeholder="Comparar con nombre, apodo o FID" data-fid="comparar-fid" aria-label="Personaje para comparar"><div class="estadisticas-resultados"></div></div>
+									<button class="button-op-custom" type="submit">Comparar</button>
+								</form>
+								{$comparacionResultado}
+							</section>
+							</if>
+							<if $accion == 'consultar-ranking' then>
+							<section class="estadisticas-herramienta" aria-label="Consultar clasificación de un personaje">
+								<form class="estadisticas-buscador" method="get" autocomplete="off">
+									<input type="hidden" name="accion" value="consultar-ranking">
+									<input type="hidden" name="consultar_fid" id="consultar-fid" value="{$consultarFid}">
+									<div class="estadisticas-buscador__campo"><input type="search" class="personaje-typeahead" value="{$consultarTexto}" placeholder="Buscar nombre, apodo o FID" data-fid="consultar-fid" aria-label="Personaje que consultar"><div class="estadisticas-resultados"></div></div>
+									<button class="button-op-custom" type="submit">Consultar</button>
+								</form>
+								{$consultaRankingResultado}
+							</section>
+							</if>
 						</div>
 
 					</div>
@@ -205,11 +445,55 @@
 		
 		function onChangeAccion(accion) {
 			console.log(accion);
+			if (accion.value === 'aventureros') {
+				window.location.href = '/op/aventuras_personaje.php';
+				return;
+			}
 			window.location.href = window.location.pathname + '?accion=' + accion.value + '&tiempo={$tiempo}';
 		}
 		
-		document.getElementById("select-tiempo").value = "{$tiempo}";
+		var selectTiempo = document.getElementById("select-tiempo");
+		if (selectTiempo) selectTiempo.value = "{$tiempo}";
 		document.getElementById("select-accion").value = "{$accion}";
+		document.querySelectorAll('.personaje-typeahead').forEach(function (input) {
+			var resultados = input.parentElement.querySelector('.estadisticas-resultados');
+			var fidInput = document.getElementById(input.getAttribute('data-fid'));
+			var temporizador;
+			input.addEventListener('input', function () {
+				fidInput.value = '';
+				clearTimeout(temporizador);
+				var termino = input.value.trim();
+				if (termino.length < 3 && !/^\d+$/.test(termino)) {
+					resultados.innerHTML = '';
+					return;
+				}
+				temporizador = setTimeout(function () {
+					fetch('/op/estadisticas.php?ajax=buscar-personajes&q=' + encodeURIComponent(termino), { credentials: 'same-origin' })
+						.then(function (respuesta) { return respuesta.json(); })
+						.then(function (items) {
+							resultados.innerHTML = '';
+							items.forEach(function (item) {
+								var boton = document.createElement('button');
+								boton.type = 'button';
+								boton.className = 'estadisticas-resultado';
+								boton.textContent = item.label;
+								boton.addEventListener('click', function () {
+									input.value = item.label;
+									fidInput.value = item.fid;
+									resultados.innerHTML = '';
+									input.form.submit();
+								});
+								resultados.appendChild(boton);
+							});
+						});
+				}, 250);
+			});
+		});
+		document.addEventListener('click', function (evento) {
+			if (!evento.target.closest('.estadisticas-buscador__campo')) {
+				document.querySelectorAll('.estadisticas-resultados').forEach(function (lista) { lista.innerHTML = ''; });
+			}
+		});
 		$('.duracion').map((i) => {
 			$('.duracion')[i].innerHTML = $("#select-tiempo").find("option[value='{$tiempo}']").text();
 		});

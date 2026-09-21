@@ -1,0 +1,124 @@
+<div id="opg-adventure-redesign">
+  <style>
+    #opg-adventure-redesign {
+      --ink: light-dark(#251f1b, #f4eee7);
+      --muted: light-dark(#706862, #b9afa8);
+      --paper: light-dark(#fffdf8, #211d1a);
+      --paper-2: light-dark(#f5efe5, #2b2521);
+      --line: light-dark(#d8cec1, #51473f);
+      --purple: light-dark(#6c438a, #c49ce2);
+      --green: light-dark(#287647, #75c995);
+      --blue: light-dark(#346f9c, #83b7df);
+      --red: light-dark(#a3433e, #e38d87);
+      --gold: light-dark(#a56b17, #e4b55e);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      background: transparent;
+    }
+    #opg-adventure-redesign * { box-sizing: border-box; }
+    #opg-adventure-redesign .window { overflow: hidden; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+    #opg-adventure-redesign .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+    #opg-adventure-redesign h1 { margin: 0; font-size: 20px; font-weight: 500; }
+    #opg-adventure-redesign .sub { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    #opg-adventure-redesign .tabs { display: flex; gap: 4px; }
+    #opg-adventure-redesign button { min-height: 36px; padding: 7px 12px; color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 5px; font: inherit; cursor: pointer; }
+    #opg-adventure-redesign button[aria-selected="true"] { color: var(--paper); background: var(--ink); }
+    #opg-adventure-redesign .content { padding: 16px 18px 20px; }
+    #opg-adventure-redesign .toolbar { display: grid; grid-template-columns: minmax(230px, 1fr) auto; gap: 10px; align-items: center; }
+    #opg-adventure-redesign .search { position: relative; }
+    #opg-adventure-redesign input { width: 100%; min-height: 40px; padding: 8px 12px 8px 36px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 5px; font: inherit; }
+    #opg-adventure-redesign .search i { position: absolute; left: 11px; top: 11px; width: 17px; color: var(--muted); }
+    #opg-adventure-redesign .clear { color: var(--purple); border-color: var(--line); }
+    #opg-adventure-redesign .metrics { display: grid; grid-template-columns: repeat(4, 1fr); margin: 16px 0; border-block: 1px solid var(--line); }
+    #opg-adventure-redesign .metric { padding: 12px 14px; border-right: 1px solid var(--line); }
+    #opg-adventure-redesign .metric:last-child { border-right: 0; }
+    #opg-adventure-redesign .metric strong { display: block; font-size: 22px; font-weight: 500; }
+    #opg-adventure-redesign .metric span { color: var(--muted); font-size: 12px; }
+    #opg-adventure-redesign .tier-strip { display: grid; grid-template-columns: repeat(10, 1fr); gap: 1px; margin-bottom: 16px; overflow: hidden; background: var(--line); border: 1px solid var(--line); border-radius: 5px; }
+    #opg-adventure-redesign .tier { padding: 8px 4px; text-align: center; background: var(--paper-2); }
+    #opg-adventure-redesign .tier span { display: block; color: var(--muted); font-size: 11px; }
+    #opg-adventure-redesign .tier strong { font-size: 15px; font-weight: 500; }
+    #opg-adventure-redesign .list { border-top: 1px solid var(--line); }
+    #opg-adventure-redesign .row { display: grid; grid-template-columns: minmax(260px, 1.3fr) minmax(220px, 1fr) 90px; gap: 14px; align-items: center; padding: 13px 4px; border-bottom: 1px solid var(--line); }
+    #opg-adventure-redesign .titleline { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+    #opg-adventure-redesign .titleline strong { font-weight: 500; }
+    #opg-adventure-redesign .meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    #opg-adventure-redesign .status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
+    #opg-adventure-redesign .status::before { width: 7px; height: 7px; content: ""; border-radius: 50%; background: currentColor; }
+    #opg-adventure-redesign .progress { color: var(--green); }
+    #opg-adventure-redesign .done { color: var(--blue); }
+    #opg-adventure-redesign .sent { color: var(--gold); }
+    #opg-adventure-redesign .denied { color: var(--red); }
+    #opg-adventure-redesign .players { color: var(--ink); font-size: 12px; line-height: 1.55; }
+    #opg-adventure-redesign .players span { color: var(--muted); }
+    #opg-adventure-redesign .open { justify-self: end; color: var(--purple); }
+    #opg-adventure-redesign .ranking { display: none; }
+    #opg-adventure-redesign .ranking.active, #opg-adventure-redesign .adventures.active { display: block; }
+    #opg-adventure-redesign .adventures:not(.active) { display: none; }
+    #opg-adventure-redesign .rank-row { display: grid; grid-template-columns: 36px 1fr 100px 100px 72px; gap: 10px; align-items: center; min-height: 52px; border-bottom: 1px solid var(--line); }
+    #opg-adventure-redesign .place { color: var(--purple); font-size: 18px; text-align: center; }
+    #opg-adventure-redesign .rank-num { text-align: center; }
+    #opg-adventure-redesign .rank-num strong { display: block; font-weight: 500; }
+    #opg-adventure-redesign .rank-num span { color: var(--muted); font-size: 11px; }
+    @media (max-width: 680px) {
+      #opg-adventure-redesign .topbar { align-items: flex-start; flex-direction: column; }
+      #opg-adventure-redesign .toolbar { grid-template-columns: 1fr; }
+      #opg-adventure-redesign .metrics { grid-template-columns: repeat(2, 1fr); }
+      #opg-adventure-redesign .metric:nth-child(2) { border-right: 0; }
+      #opg-adventure-redesign .metric:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      #opg-adventure-redesign .tier-strip { grid-template-columns: repeat(5, 1fr); }
+      #opg-adventure-redesign .row { grid-template-columns: 1fr auto; }
+      #opg-adventure-redesign .players { grid-column: 1 / -1; }
+      #opg-adventure-redesign .rank-row { grid-template-columns: 30px 1fr repeat(3, 58px); }
+      #opg-adventure-redesign .rank-num span { font-size: 9px; }
+    }
+  </style>
+  <div class="window">
+    <div class="topbar">
+      <div><h1>Aventuras</h1><div class="sub">Actividad narrativa y progreso de personajes</div></div>
+      <div class="tabs" role="tablist" aria-label="Vista">
+        <button type="button" role="tab" aria-selected="true" data-view="adventures">Listado</button>
+        <button type="button" role="tab" aria-selected="false" data-view="ranking">Top 20</button>
+      </div>
+    </div>
+    <div class="content">
+      <section class="adventures active" data-panel="adventures">
+        <div class="toolbar">
+          <label class="search"><i data-lucide="search" aria-hidden="true"></i><input value="" placeholder="Buscar por ID, nombre o apodo" aria-label="Buscar personaje"></label>
+          <button type="button" class="clear">Ver todas</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><strong>18</strong><span>En progreso</span></div>
+          <div class="metric"><strong>126</strong><span>Finalizadas</span></div>
+          <div class="metric"><strong>7</strong><span>Enviadas</span></div>
+          <div class="metric"><strong>4</strong><span>Pendientes</span></div>
+        </div>
+        <div class="tier-strip" aria-label="Aventuras por tier">
+          <div class="tier"><span>T1</span><strong>22</strong></div><div class="tier"><span>T2</span><strong>31</strong></div><div class="tier"><span>T3</span><strong>28</strong></div><div class="tier"><span>T4</span><strong>19</strong></div><div class="tier"><span>T5</span><strong>14</strong></div><div class="tier"><span>T6</span><strong>9</strong></div><div class="tier"><span>T7</span><strong>6</strong></div><div class="tier"><span>T8</span><strong>4</strong></div><div class="tier"><span>T9</span><strong>1</strong></div><div class="tier"><span>T10</span><strong>0</strong></div>
+        </div>
+        <div class="list">
+          <div class="row"><div><div class="titleline"><strong>#284 · T4</strong><span class="status progress">En progreso</span></div><div class="meta">Narrador: Casca · Enviada 18/09/2026</div></div><div class="players">Monkey D. Rui <span>Nv. 31</span> · Arlen <span>Nv. 28</span></div><button class="open">Abrir tema</button></div>
+          <div class="row"><div><div class="titleline"><strong>#271 · T2</strong><span class="status done">Finalizada</span></div><div class="meta">Narrador: Lilith · Enviada 03/09/2026</div></div><div class="players">Kael <span>Nv. 19</span></div><button class="open">Abrir tema</button></div>
+          <div class="row"><div><div class="titleline"><strong>#266 · T3</strong><span class="status sent">Enviada</span></div><div class="meta">Sin narrador · Enviada 29/08/2026</div></div><div class="players">Nara <span>Nv. 24</span> · Ivo <span>Nv. 22</span></div><button class="open">Detalles</button></div>
+          <div class="row"><div><div class="titleline"><strong>#259 · T1</strong><span class="status denied">Denegada</span></div><div class="meta">Narrador: Avery · Enviada 21/08/2026</div></div><div class="players">Elias <span>Nv. 12</span></div><button class="open">Detalles</button></div>
+        </div>
+      </section>
+      <section class="ranking" data-panel="ranking">
+        <div class="rank-row"><span class="place">1</span><strong>Monkey D. Rui</strong><div class="rank-num"><strong>5</strong><span>En progreso</span></div><div class="rank-num"><strong>18</strong><span>Finalizadas</span></div><div class="rank-num"><strong>23</strong><span>Total</span></div></div>
+        <div class="rank-row"><span class="place">2</span><strong>Kael</strong><div class="rank-num"><strong>3</strong><span>En progreso</span></div><div class="rank-num"><strong>16</strong><span>Finalizadas</span></div><div class="rank-num"><strong>19</strong><span>Total</span></div></div>
+        <div class="rank-row"><span class="place">3</span><strong>Nara</strong><div class="rank-num"><strong>4</strong><span>En progreso</span></div><div class="rank-num"><strong>12</strong><span>Finalizadas</span></div><div class="rank-num"><strong>16</strong><span>Total</span></div></div>
+        <div class="rank-row"><span class="place">4</span><strong>Arlen</strong><div class="rank-num"><strong>2</strong><span>En progreso</span></div><div class="rank-num"><strong>11</strong><span>Finalizadas</span></div><div class="rank-num"><strong>13</strong><span>Total</span></div></div>
+      </section>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const root = document.getElementById('opg-adventure-redesign');
+      const tabs = root.querySelectorAll('[data-view]');
+      tabs.forEach(tab => tab.addEventListener('click', () => {
+        tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+        root.querySelectorAll('[data-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.panel === tab.dataset.view));
+      }));
+    })();
+  </script>
+</div>

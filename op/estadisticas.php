@@ -21,18 +21,28 @@ $accion = 'censo';
 $dateformat = '';
 
 if ($mybb->get_input('tiempo')) {
-    $tiempo = $mybb->get_input('tiempo'); 
+    $tiempo = $mybb->get_input('tiempo', MyBB::INPUT_INT);
 }
 
 if ($mybb->get_input('accion')) {
     $accion = $mybb->get_input('accion');
 }
 
-if ($tiempo >= 0 && $tiempo <= 60) {
-    $timestamp = time() - ($tiempo * 24 * 3600);
-    $dateformat = date("Y-m-d H:i:s", $timestamp);
-    echo "<script>console.log('$timestamp ====  $dateformat || $tiempo');</script>";
+if ($accion === 'aventureros') {
+    header('Location: /op/aventuras_personaje.php');
+    exit;
 }
+
+$accionesPermitidas = array('censo', 'mas-posts', 'mas-experiencia', 'mas-temas', 'comparar', 'consultar-ranking');
+if (!in_array($accion, $accionesPermitidas, true)) {
+    $accion = 'censo';
+}
+
+if (!in_array($tiempo, array(1, 2, 7, 14, 28), true)) {
+    $tiempo = 14;
+}
+$timestamp = time() - ($tiempo * 24 * 3600);
+$dateformat = date("Y-m-d H:i:s", $timestamp);
 
 function queryUsersFaccion($faccion) {
     global $db, $timestamp;
@@ -45,7 +55,7 @@ function queryUsersFaccion($faccion) {
         INNER JOIN mybb_users as users ON users.uid = fichas.fid
         WHERE p.dateline > $timestamp
         AND fichas.faccion = '$faccion'                                                             
-        AND (f.parentlist LIKE '10,%' OR f.parentlist LIKE '%246,%')
+        AND f.parentlist LIKE '10,%'
         GROUP BY fichas.nombre
         ORDER BY p.username) t;
     ");
@@ -68,7 +78,7 @@ function queryNumeroPosts() {
         INNER JOIN mybb_threads as t ON p.tid = t.tid 
         INNER JOIN mybb_forums as f ON t.fid = f.fid 
         WHERE p.dateline > $timestamp
-        AND (f.parentlist LIKE '10,%' OR f.parentlist LIKE '%246,%')
+        AND f.parentlist LIKE '10,%'
     ");
 }
 
@@ -79,9 +89,210 @@ function queryNumeroUsuarios() {
         INNER JOIN mybb_threads as t ON p.tid = t.tid 
         INNER JOIN mybb_forums as f ON t.fid = f.fid 
         WHERE p.dateline > $timestamp
-        AND (f.parentlist LIKE '10,%' OR f.parentlist LIKE '%246,%')
+        AND f.parentlist LIKE '10,%'
         GROUP BY p.username;
     ");
+}
+
+function estadisticasEscapar($valor) {
+    return htmlspecialchars((string)$valor, ENT_QUOTES, 'UTF-8');
+}
+
+function estadisticasNombrePersonaje($fila) {
+    $nombre = trim((string)($fila['nombre'] ?? ''));
+    $apodo = trim((string)($fila['apodo'] ?? ''));
+    if ($nombre === '') {
+        $nombre = (string)($fila['username'] ?? 'Personaje desconocido');
+    }
+    if ($apodo !== '' && $apodo !== $nombre) {
+        $nombre .= ' · ' . $apodo;
+    }
+    return $nombre;
+}
+
+function estadisticasValor($valor, $tipo) {
+    if ($tipo === 'experiencia') {
+        $numero = (float)$valor;
+        return number_format($numero, $numero == floor($numero) ? 0 : 2, ',', '.');
+    }
+    return my_number_format((int)$valor);
+}
+
+function estadisticasConstruirRanking($query, $tipo, $sufijo, $uidActual) {
+    global $db;
+
+    $primeros = array();
+    $todas = array();
+    $filaPersonal = null;
+    $indice = 0;
+    $posicion = 0;
+    $valorAnterior = null;
+    $clasificados = 0;
+    $totalAcumulado = 0;
+    $avatarDefecto = '/images/op/uploads/AvatarHabilidades_One_Piece_Gaiden_Foro_Rol.png';
+
+    while ($fila = $db->fetch_array($query)) {
+        $indice++;
+        $valor = $tipo === 'experiencia' ? (float)$fila['valor'] : (int)$fila['valor'];
+        if ($valorAnterior === null || $valor != $valorAnterior) {
+            $posicion = $indice;
+            $valorAnterior = $valor;
+        }
+
+        $fila['posicion'] = $posicion;
+        $fila['valor_formateado'] = estadisticasValor($valor, $tipo);
+        $fila['valor_numerico'] = $valor;
+        $fila['avatar'] = trim((string)($fila['avatar'] ?? '')) ?: $avatarDefecto;
+        $fila['nombre_completo'] = estadisticasNombrePersonaje($fila);
+        $totalAcumulado += $valor;
+        if ($valor > 0) {
+            $clasificados++;
+        }
+        if ((int)$fila['uid'] === $uidActual) {
+            $filaPersonal = $fila;
+        }
+        $todas[(int)$fila['uid']] = $fila;
+
+        if ($indice <= 20) {
+            $primeros[] = $fila;
+        }
+    }
+
+    $podio = '';
+    $filas = '';
+    $ordenPodio = 0;
+    foreach ($primeros as $fila) {
+        $nombre = estadisticasEscapar($fila['nombre_completo']);
+        $claseActual = (int)$fila['uid'] === $uidActual ? ' ranking-fila--actual' : '';
+        if ($ordenPodio < 3) {
+            $ordenPodio++;
+            $podio .= '<a class="ranking-podio__puesto ranking-podio__puesto--' . $ordenPodio . $claseActual . '" href="/op/personaje.php?uid=' . (int)$fila['uid'] . '">'
+                . '<span class="ranking-podio__numero">#' . (int)$fila['posicion'] . '</span>'
+                . '<img src="' . estadisticasEscapar($fila['avatar']) . '" alt="" loading="lazy" decoding="async">'
+                . '<span class="ranking-podio__nombre">' . $nombre . '</span>'
+                . '<strong>' . $fila['valor_formateado'] . ' <small>' . estadisticasEscapar($sufijo) . '</small></strong>'
+                . '</a>';
+            continue;
+        }
+        $filas .= '<div class="ranking-fila' . $claseActual . '">'
+            . '<span class="ranking-posicion">#' . (int)$fila['posicion'] . '</span>'
+            . '<img class="ranking-avatar" src="' . estadisticasEscapar($fila['avatar']) . '" alt="" loading="lazy" decoding="async">'
+            . '<a class="ranking-nombre" href="/op/personaje.php?uid=' . (int)$fila['uid'] . '">' . $nombre . '</a>'
+            . '<strong class="ranking-valor">' . $fila['valor_formateado'] . ' <small>' . estadisticasEscapar($sufijo) . '</small></strong>'
+            . '</div>';
+    }
+
+    if ($podio === '') {
+        $podio = '<p class="ranking-vacio">Todavía no hay datos para formar el podio.</p>';
+    }
+    if ($filas === '') {
+        $filas = '<p class="ranking-vacio">Todavía no hay más posiciones clasificadas.</p>';
+    }
+
+    if ($uidActual <= 0) {
+        $personal = '<div class="ranking-personal ranking-personal--vacio">Inicia sesión para consultar tu posición.</div>';
+    } elseif (!$filaPersonal) {
+        $personal = '<div class="ranking-personal ranking-personal--vacio">Tu personaje todavía no figura en este ranking.</div>';
+    } else {
+        $nombrePersonal = estadisticasEscapar(estadisticasNombrePersonaje($filaPersonal));
+        $progreso = '';
+        $valores = array_values($todas);
+        $indicePersonal = array_search((int)$filaPersonal['uid'], array_map(function ($fila) {
+            return (int)$fila['uid'];
+        }, $valores), true);
+        $superior = null;
+        $inferior = null;
+        if ($indicePersonal !== false) {
+            for ($i = $indicePersonal - 1; $i >= 0; $i--) {
+                if ($valores[$i]['valor_numerico'] > $filaPersonal['valor_numerico']) {
+                    $superior = $valores[$i];
+                    break;
+                }
+            }
+            for ($i = $indicePersonal + 1, $totalValores = count($valores); $i < $totalValores; $i++) {
+                if ($valores[$i]['valor_numerico'] < $filaPersonal['valor_numerico']) {
+                    $inferior = $valores[$i];
+                    break;
+                }
+            }
+        }
+        if ((int)$filaPersonal['posicion'] === 1) {
+            $siguiente = null;
+            foreach ($valores as $filaRanking) {
+                if ($filaRanking['valor_numerico'] < $filaPersonal['valor_numerico']) {
+                    $siguiente = $filaRanking;
+                    break;
+                }
+            }
+            $empatados = 0;
+            foreach ($valores as $filaRanking) {
+                if ($filaRanking['valor_numerico'] == $filaPersonal['valor_numerico']) $empatados++;
+            }
+            $progreso = $empatados > 1
+                ? 'Estás empatado en el primer puesto. Necesitas 1 ' . estadisticasEscapar($sufijo) . ' para liderar en solitario.'
+                : ($siguiente
+                    ? 'Lideras con una ventaja de ' . estadisticasValor($filaPersonal['valor_numerico'] - $siguiente['valor_numerico'], $tipo) . ' ' . estadisticasEscapar($sufijo) . '.'
+                    : 'Estás en el primer puesto.');
+        } elseif ($indicePersonal !== false) {
+            if ($superior) {
+                $faltan = $superior['valor_numerico'] - $filaPersonal['valor_numerico'];
+                $progreso = 'Necesitas ' . estadisticasValor($faltan, $tipo) . ' ' . estadisticasEscapar($sufijo)
+                    . ' para alcanzar el puesto #' . (int)$superior['posicion'] . ' y '
+                    . estadisticasValor($faltan + 1, $tipo) . ' para superarlo.';
+            }
+        }
+        $rivales = '<div class="ranking-rivales">';
+        if ($superior) {
+            $rivales .= '<span><small>Próximo rival</small><a href="/op/personaje.php?uid=' . (int)$superior['uid'] . '">'
+                . estadisticasEscapar($superior['nombre_completo']) . '</a><b>#' . (int)$superior['posicion'] . ' · '
+                . $superior['valor_formateado'] . ' ' . estadisticasEscapar($sufijo) . '</b></span>';
+        } else {
+            $rivales .= '<span><small>Próximo rival</small><em>Nadie por encima</em></span>';
+        }
+        if ($inferior) {
+            $rivales .= '<span><small>Detrás de ti</small><a href="/op/personaje.php?uid=' . (int)$inferior['uid'] . '">'
+                . estadisticasEscapar($inferior['nombre_completo']) . '</a><b>#' . (int)$inferior['posicion'] . ' · '
+                . $inferior['valor_formateado'] . ' ' . estadisticasEscapar($sufijo) . '</b></span>';
+        } else {
+            $rivales .= '<span><small>Detrás de ti</small><em>Nadie por debajo</em></span>';
+        }
+        $rivales .= '</div>';
+        $personal = '<div class="ranking-personal"><span>Tu posición</span>'
+            . '<strong>#' . (int)$filaPersonal['posicion'] . '</strong>'
+            . '<a href="/op/personaje.php?uid=' . (int)$filaPersonal['uid'] . '">' . $nombrePersonal . '</a>'
+            . '<b>' . $filaPersonal['valor_formateado'] . ' ' . estadisticasEscapar($sufijo) . '</b>'
+            . ($progreso !== '' ? '<small class="ranking-progreso">' . $progreso . '</small>' : '')
+            . $rivales . '</div>';
+    }
+
+    $meta = my_number_format($clasificados) . ' personajes clasificados · '
+        . estadisticasValor($totalAcumulado, $tipo) . ' ' . estadisticasEscapar($sufijo) . ' acumulados';
+
+    return array('podio' => $podio, 'lista' => $filas, 'personal' => $personal, 'meta' => $meta, 'todos' => $todas);
+}
+
+if ($mybb->get_input('ajax') === 'buscar-personajes') {
+    $termino = trim($mybb->get_input('q', MyBB::INPUT_STRING));
+    header('Content-Type: application/json; charset=utf-8');
+    if (mb_strlen($termino) < 3 && !ctype_digit($termino)) {
+        echo '[]';
+        exit;
+    }
+    $like = $db->escape_string(addcslashes($termino, '%_'));
+    $porId = ctype_digit($termino) ? ' OR f.fid=' . (int)$termino : '';
+    $queryBusqueda = $db->query("SELECT f.fid, f.nombre, f.apodo
+        FROM mybb_op_fichas f
+        WHERE f.nombre LIKE '%{$like}%' OR f.apodo LIKE '%{$like}%'{$porId}
+        ORDER BY f.nombre ASC LIMIT 10");
+    $resultados = array();
+    while ($fichaBusqueda = $db->fetch_array($queryBusqueda)) {
+        $resultados[] = array(
+            'fid' => (int)$fichaBusqueda['fid'],
+            'label' => estadisticasNombrePersonaje($fichaBusqueda) . ' (#' . (int)$fichaBusqueda['fid'] . ')',
+        );
+    }
+    echo json_encode($resultados, JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 
@@ -438,6 +649,7 @@ $totalNumPostsCP = 0;
 $totalNumPostsRevo = 0;
 $totalNumPostsCaza = 0;
 $totalNumPostsCivil = 0;
+$progresoCenso = '';
 
 if ($accion == 'censo') {
     $query_posts_total = queryNumeroPostsTotal();
@@ -449,6 +661,39 @@ if ($accion == 'censo') {
     $query_revo = queryUsersFaccion('Revolucionario');
     $query_cazarrecompensas = queryUsersFaccion('Cazadores');
     $query_civil = queryUsersFaccion('Civil');
+
+    if ((int)$uid > 0) {
+        $queryCensoRanking = $db->query("SELECT p.uid, COUNT(*) AS valor
+            FROM mybb_posts p
+            INNER JOIN mybb_threads t ON t.tid = p.tid
+            INNER JOIN mybb_forums f ON f.fid = t.fid
+            INNER JOIN mybb_op_fichas fi ON fi.fid = p.uid
+            WHERE p.dateline > {$timestamp} AND f.parentlist LIKE '10,%'
+            GROUP BY p.uid ORDER BY valor DESC, p.uid ASC");
+        $liderCenso = 0;
+        $lideresCenso = 0;
+        $postsPersonalesCenso = 0;
+        while ($filaCenso = $db->fetch_array($queryCensoRanking)) {
+            if ($liderCenso === 0) $liderCenso = (int)$filaCenso['valor'];
+            if ((int)$filaCenso['valor'] === $liderCenso) $lideresCenso++;
+            if ((int)$filaCenso['uid'] === (int)$uid) $postsPersonalesCenso = (int)$filaCenso['valor'];
+        }
+        if ($liderCenso > 0) {
+            if ($postsPersonalesCenso >= $liderCenso) {
+                $textoProgresoCenso = $lideresCenso > 1
+                    ? 'Estás empatado en el primer puesto. Un post más te permitiría liderar en solitario.'
+                    : 'Eres quien más ha posteado durante este periodo.';
+            } else {
+                $faltanCenso = $liderCenso - $postsPersonalesCenso + 1;
+                $textoProgresoCenso = 'Necesitas ' . my_number_format($faltanCenso) . ' posts más para superar al líder del censo.';
+            }
+            $progresoCenso = '<div class="censo-progreso">'
+                . '<span class="censo-progreso__titulo"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Tu actividad</span>'
+                . '<span class="censo-progreso__contador"><strong>' . my_number_format($postsPersonalesCenso) . '</strong><small>posts en este periodo</small></span>'
+                . '<span class="censo-progreso__mensaje">' . $textoProgresoCenso . '</span>'
+                . '</div>';
+        }
+    }
 
     $oddEvenCivil = 0;
     $oddEvenCaza  = 0;
@@ -491,7 +736,7 @@ if ($accion == 'censo') {
 
             $pirataUsuariosStr = $pirataUsuariosStr . "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -520,7 +765,7 @@ if ($accion == 'censo') {
     
             $marineUsuariosStr .= "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -547,7 +792,7 @@ if ($accion == 'censo') {
             $oddEvenCP = $oddEvenCP + 1;
             $cipherPolUsuariosStr .= "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -575,7 +820,7 @@ if ($accion == 'censo') {
 
             $revoUsuariosStr .= "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -603,7 +848,7 @@ if ($accion == 'censo') {
 
             $cazarrecompensasUsuariosStr .= "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -632,7 +877,7 @@ if ($accion == 'censo') {
 
             $civilUsuariosStr .= "
                 <div style='display: flex;flex-direction: row;border-left: 1px solid black;border-right: 1px solid black;'>
-                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
+                    <div><a href='/op/ficha.php?uid=$player_uid' target='_blank'><img src='$avatar' loading='lazy' decoding='async' style=' width: 60px; height: 60px; border: 1px solid white; box-sizing: border-box; '></a></div>
                     <div style=' text-align: center; width: 100%; font-size: 21px; font-family: InterRegular; color: black; background-color: $backgroundColor; '>$nombre <br />($userNumPosts)</div>
                 </div>
             ";
@@ -667,6 +912,174 @@ if ($accion == 'censo') {
     //     $clanesSinAldeaStr .= "<h6>$nombreClan - $numeroPjs</h6>";
     // }
     
+}
+
+$topPostsRol = '';
+$podioPostsRol = '';
+$posicionPostsRol = '';
+$metaPostsRol = '';
+$topExperiencia = '';
+$podioExperiencia = '';
+$posicionExperiencia = '';
+$metaExperiencia = '';
+$topTemasRol = '';
+$podioTemasRol = '';
+$posicionTemasRol = '';
+$metaTemasRol = '';
+
+if (in_array($accion, array('mas-posts', 'comparar', 'consultar-ranking'), true)) {
+    $queryRankingPosts = $db->query("
+    SELECT u.uid, u.username, u.avatar, fi.nombre, fi.apodo, COALESCE(rp.valor, 0) AS valor
+    FROM mybb_users u
+    INNER JOIN mybb_op_fichas fi ON fi.fid = u.uid
+    LEFT JOIN (
+        SELECT p.uid, COUNT(p.pid) AS valor
+        FROM mybb_posts p
+        INNER JOIN mybb_threads t ON t.tid = p.tid
+        INNER JOIN mybb_forums fo ON fo.fid = t.fid
+        WHERE fo.parentlist LIKE '10,%'
+        GROUP BY p.uid
+    ) rp ON rp.uid = u.uid
+    ORDER BY valor DESC, fi.nombre ASC, u.uid ASC
+");
+    $rankingPosts = estadisticasConstruirRanking($queryRankingPosts, 'entero', 'posts', (int)$uid);
+    $podioPostsRol = $rankingPosts['podio'];
+    $topPostsRol = $rankingPosts['lista'];
+    $posicionPostsRol = $rankingPosts['personal'];
+    $metaPostsRol = $rankingPosts['meta'];
+}
+if (in_array($accion, array('mas-experiencia', 'comparar', 'consultar-ranking'), true)) {
+    $queryRankingExperiencia = $db->query("
+    SELECT u.uid, u.username, u.avatar, u.newpoints AS valor, fi.nombre, fi.apodo
+    FROM mybb_users u
+    INNER JOIN mybb_op_fichas fi ON fi.fid = u.uid
+    WHERE u.uid NOT IN (92, 966, 152, 121, 850)
+    ORDER BY u.newpoints DESC, fi.nombre ASC, u.uid ASC
+");
+    $rankingExperiencia = estadisticasConstruirRanking($queryRankingExperiencia, 'experiencia', 'EXP', (int)$uid);
+    $podioExperiencia = $rankingExperiencia['podio'];
+    $topExperiencia = $rankingExperiencia['lista'];
+    $posicionExperiencia = $rankingExperiencia['personal'];
+    $metaExperiencia = $rankingExperiencia['meta'];
+}
+if (in_array($accion, array('mas-temas', 'comparar', 'consultar-ranking'), true)) {
+    $queryRankingTemas = $db->query("
+    SELECT u.uid, u.username, u.avatar, fi.nombre, fi.apodo, COALESCE(rt.valor, 0) AS valor
+    FROM mybb_users u
+    INNER JOIN mybb_op_fichas fi ON fi.fid = u.uid
+    LEFT JOIN (
+        SELECT t.uid, COUNT(t.tid) AS valor
+        FROM mybb_threads t
+        INNER JOIN mybb_forums fo ON fo.fid = t.fid
+        WHERE fo.parentlist LIKE '10,%'
+        GROUP BY t.uid
+    ) rt ON rt.uid = u.uid
+    ORDER BY valor DESC, fi.nombre ASC, u.uid ASC
+");
+    $rankingTemas = estadisticasConstruirRanking($queryRankingTemas, 'entero', 'temas', (int)$uid);
+    $podioTemasRol = $rankingTemas['podio'];
+    $topTemasRol = $rankingTemas['lista'];
+    $posicionTemasRol = $rankingTemas['personal'];
+    $metaTemasRol = $rankingTemas['meta'];
+}
+
+$comparacionResultado = '';
+$consultaRankingResultado = '';
+$compararTexto = '';
+$consultarTexto = '';
+$compararFid = max(0, $mybb->get_input('comparar_fid', MyBB::INPUT_INT));
+$consultarFid = max(0, $mybb->get_input('consultar_fid', MyBB::INPUT_INT));
+
+if ($accion === 'comparar') {
+    if ((int)$uid <= 0) {
+        $comparacionResultado = '<p class="ranking-vacio">Inicia sesión para comparar tu personaje con otro.</p>';
+    } elseif ($compararFid > 0) {
+        $categorias = array(
+            array('Posts de rol', $rankingPosts, 'posts', 'entero'),
+            array('Experiencia', $rankingExperiencia, 'EXP', 'experiencia'),
+            array('Temas de rol', $rankingTemas, 'temas', 'entero'),
+        );
+        if (!isset($rankingPosts['todos'][$compararFid])) {
+            $comparacionResultado = '<p class="ranking-vacio">No se encontró el personaje seleccionado.</p>';
+        } else {
+            $objetivo = $rankingPosts['todos'][$compararFid];
+            $personajePropio = $rankingPosts['todos'][(int)$uid];
+            $compararTexto = estadisticasEscapar($objetivo['nombre_completo'] . ' (#' . $compararFid . ')');
+            $filasDuelo = '';
+            $victoriasPropias = 0;
+            $victoriasObjetivo = 0;
+            $empates = 0;
+            foreach ($categorias as $categoria) {
+                list($etiqueta, $rankingCategoria, $sufijo, $tipo) = $categoria;
+                $propio = $rankingCategoria['todos'][(int)$uid] ?? null;
+                $otro = $rankingCategoria['todos'][$compararFid] ?? null;
+                if (!$propio || !$otro) continue;
+                $diferencia = $propio['valor_numerico'] - $otro['valor_numerico'];
+                if ($diferencia > 0) {
+                    $victoriasPropias++;
+                    $clasePropia = ' duelo-valor--ganador';
+                    $claseObjetivo = '';
+                } elseif ($diferencia < 0) {
+                    $victoriasObjetivo++;
+                    $clasePropia = '';
+                    $claseObjetivo = ' duelo-valor--ganador';
+                } else {
+                    $empates++;
+                    $clasePropia = $claseObjetivo = ' duelo-valor--empate';
+                }
+                $maximo = max(1, $propio['valor_numerico'], $otro['valor_numerico']);
+                $porcentajePropio = max(3, (int)round(($propio['valor_numerico'] / $maximo) * 100));
+                $porcentajeObjetivo = max(3, (int)round(($otro['valor_numerico'] / $maximo) * 100));
+                $filasDuelo .= '<div class="duelo-estadistica">'
+                    . '<div class="duelo-estadistica__cabecera"><span class="duelo-valor' . $clasePropia . '"><small>#' . (int)$propio['posicion'] . '</small>'
+                    . $propio['valor_formateado'] . '</span><strong>' . estadisticasEscapar($etiqueta) . '</strong>'
+                    . '<span class="duelo-valor duelo-valor--derecha' . $claseObjetivo . '"><small>#' . (int)$otro['posicion'] . '</small>'
+                    . $otro['valor_formateado'] . '</span></div>'
+                    . '<div class="duelo-barra"><span class="duelo-barra__lado duelo-barra__lado--propio"><i style="width:' . $porcentajePropio . '%"></i></span>'
+                    . '<span class="duelo-barra__lado duelo-barra__lado--rival"><i style="width:' . $porcentajeObjetivo . '%"></i></span></div>'
+                    . '<small class="duelo-estadistica__unidad">' . estadisticasEscapar($sufijo) . '</small></div>';
+            }
+            $resultadoDuelo = $victoriasPropias > $victoriasObjetivo
+                ? 'Ventaja para ti'
+                : ($victoriasObjetivo > $victoriasPropias ? 'Ventaja para tu rival' : 'Duelo empatado');
+            $comparacionResultado = '<div class="duelo"><div class="duelo-arena">'
+                . '<a class="duelo-luchador duelo-luchador--propio" href="/op/personaje.php?uid=' . (int)$uid . '"><span>Tú</span><img src="'
+                . estadisticasEscapar($personajePropio['avatar']) . '" alt="" loading="lazy" decoding="async"><strong>'
+                . estadisticasEscapar($personajePropio['nombre_completo']) . '</strong></a>'
+                . '<div class="duelo-marcador"><span>' . $victoriasPropias . '</span><b>VS</b><span>' . $victoriasObjetivo . '</span><small>'
+                . estadisticasEscapar($resultadoDuelo) . ($empates > 0 ? ' · ' . $empates . ' empate' . ($empates > 1 ? 's' : '') : '') . '</small></div>'
+                . '<a class="duelo-luchador duelo-luchador--rival" href="/op/personaje.php?uid=' . $compararFid . '"><span>Rival</span><img src="'
+                . estadisticasEscapar($objetivo['avatar']) . '" alt="" loading="lazy" decoding="async"><strong>'
+                . estadisticasEscapar($objetivo['nombre_completo']) . '</strong></a>'
+                . '</div><div class="duelo-estadisticas">' . $filasDuelo . '</div></div>';
+        }
+    }
+}
+
+if ($accion === 'consultar-ranking' && $consultarFid > 0) {
+    $base = $rankingPosts['todos'][$consultarFid] ?? null;
+    if (!$base) {
+        $consultaRankingResultado = '<p class="ranking-vacio">No se encontró el personaje seleccionado.</p>';
+    } else {
+        $consultarTexto = estadisticasEscapar($base['nombre_completo'] . ' (#' . $consultarFid . ')');
+        $consultaRankingResultado = '<div class="consulta-personaje"><img src="' . estadisticasEscapar($base['avatar'])
+            . '" alt="" loading="lazy" decoding="async"><div><a href="/op/personaje.php?uid=' . $consultarFid . '">'
+            . estadisticasEscapar($base['nombre_completo']) . '</a><small>FID #' . $consultarFid . '</small></div></div><div class="consulta-rankings">';
+        $resumenes = array(
+            array('Más Posts', $rankingPosts, 'posts'),
+            array('Más Experiencia', $rankingExperiencia, 'EXP'),
+            array('Más Temas', $rankingTemas, 'temas'),
+        );
+        foreach ($resumenes as $resumen) {
+            list($etiqueta, $rankingResumen, $sufijo) = $resumen;
+            $filaResumen = $rankingResumen['todos'][$consultarFid] ?? null;
+            if (!$filaResumen) continue;
+            $consultaRankingResultado .= '<div><span>' . estadisticasEscapar($etiqueta) . '</span><strong>#'
+                . (int)$filaResumen['posicion'] . '</strong><small>' . $filaResumen['valor_formateado'] . ' '
+                . estadisticasEscapar($sufijo) . '</small></div>';
+        }
+        $consultaRankingResultado .= '</div>';
+    }
 }
 
 eval("\$page = \"".$templates->get("op_estadisticas")."\";");

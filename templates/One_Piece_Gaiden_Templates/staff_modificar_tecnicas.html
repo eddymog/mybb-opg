@@ -100,8 +100,11 @@
         background-repeat: no-repeat;
     }
     .af-field textarea { min-height: 110px; resize: vertical; }
-    .af-field input:hover, .af-field select:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
-    .af-field input:focus, .af-field select:focus, .af-field textarea:focus {
+    /* Técnica ID es inmutable una vez creada (ver tecnicas_modificar.php) — se
+       ve pero no se toca, para que no se pueda renombrar por accidente. */
+    .af-field input[readonly] { background: var(--opg-crema-clara); color: var(--opg-gris-texto); cursor: not-allowed; }
+    .af-field input:not([readonly]):hover, .af-field select:hover, .af-field textarea:hover { border-color: var(--opg-naranja-hover); }
+    .af-field input:not([readonly]):focus, .af-field select:focus, .af-field textarea:focus {
         outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35);
     }
 
@@ -140,7 +143,7 @@
             <dl class="tec-guia-cuerpo">
                 <div class="tec-guia-item">
                     <dt>Técnica ID</dt>
-                    <dd>Identificador único. Lo usa el BBCode <code>[tecnica=TID]</code> en los posts y <code>mybb_op_tec_aprendidas</code> para saber quién la tiene aprendida. Cambiarlo en una técnica existente la renombra — los aprendizajes ya registrados se actualizan solos.</dd>
+                    <dd>Identificador único. Lo usa el BBCode <code>[tecnica=TID]</code> en los posts y <code>mybb_op_tec_aprendidas</code> para saber quién la tiene aprendida. No se puede cambiar desde acá una vez creada — para renombrar una técnica existente hay que hacerlo directo en la base de datos.</dd>
                 </div>
                 <div class="tec-guia-item">
                     <dt>Estilo / Rama</dt>
@@ -202,7 +205,7 @@
 
             <h2 class="tec-seccion-titulo">Identificación</h2>
             <div class="tec-row">
-                <div class="af-field"><label for="tid">Técnica ID</label><input type="text" id="tid" name="tid" value="{$tecnica_id_esc}" required></div>
+                <div class="af-field"><label for="tid">Técnica ID</label><input type="text" id="tid" value="{$tecnica_id_esc}" readonly></div>
                 <div class="af-field"><label for="nombre">Nombre</label><input type="text" id="nombre" name="nombre" value="{$tecnica_esc['nombre']}" required></div>
             </div>
 

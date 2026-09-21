@@ -83,6 +83,16 @@ $CAMPOS_SIMPLES = array(
     'reflejos_pasiva', 'control_akuma_pasiva', 'espacios',
 );
 
+// Si uno de estos tres no llega en el POST (o llega con algo que no es un
+// entero), NO se toca: son columnas int NOT NULL en mybb_op_fichas, y sin
+// este guard un campo ausente se guardaba como '' → MySQL lo convertía en
+// 0 silenciosamente, borrando el valor real sin que nadie lo pidiera.
+$CAMPOS_ENTEROS_ESTRICTOS = array(
+    'equipamiento_espacio' => true,
+    'control_akuma' => true,
+    'control_akuma_pasiva' => true,
+);
+
 // ── POST: guardar ─────────────────────────────────────────────────────────────
 
 if ($mybb->request_method == 'post') {
@@ -109,7 +119,13 @@ if ($mybb->request_method == 'post') {
         $cambiados = array();
 
         foreach ($CAMPOS_SIMPLES as $campo) {
+            if (!array_key_exists($campo, $mybb->input)) {
+                continue;
+            }
             $valor = trim($mybb->get_input($campo, MyBB::INPUT_STRING));
+            if (isset($CAMPOS_ENTEROS_ESTRICTOS[$campo]) && !preg_match('/^-?\d+$/', $valor)) {
+                continue;
+            }
             $actual = (string) $f_var[$campo];
             if ($valor !== $actual) {
                 $log .= "-- De {$actual} a {$valor} {$campo}.\n";

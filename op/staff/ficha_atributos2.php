@@ -96,6 +96,12 @@ $CAMPOS_SIMPLES = array(
     'reflejos_pasiva', 'control_akuma_pasiva', 'espacios',
 );
 
+$CAMPOS_ENTEROS_ESTRICTOS = array(
+    'equipamiento_espacio' => true,
+    'control_akuma' => true,
+    'control_akuma_pasiva' => true,
+);
+
 // ── POST: guardar ─────────────────────────────────────────────────────────────
 
 if ($mybb->request_method == 'post') {
@@ -122,7 +128,13 @@ if ($mybb->request_method == 'post') {
         $cambiados = array();
 
         foreach ($CAMPOS_SIMPLES as $campo) {
+            if (!array_key_exists($campo, $mybb->input)) {
+                continue;
+            }
             $valor = trim($mybb->get_input($campo, MyBB::INPUT_STRING));
+            if (isset($CAMPOS_ENTEROS_ESTRICTOS[$campo]) && !preg_match('/^-?\d+$/', $valor)) {
+                continue;
+            }
             $actual = (string) $f_var[$campo];
             if ($valor !== $actual) {
                 $log .= "-- De {$actual} a {$valor} {$campo}.\n";
@@ -132,16 +144,26 @@ if ($mybb->request_method == 'post') {
         }
 
         // akuma_origen: valor restringido a una lista fija, igual que antes.
-        $akuma_origen = $mybb->get_input('akuma_origen', MyBB::INPUT_STRING);
-        $akuma_origen = in_array($akuma_origen, array('', 'aventura'), true) ? $akuma_origen : '';
-        if ($akuma_origen !== (string) ($f_var['akuma_origen'] ?? '')) {
-            $log .= "-- De " . ($f_var['akuma_origen'] ?? '') . " a {$akuma_origen} akuma_origen.\n";
-            $set_parts[] = "`akuma_origen`='" . $db->escape_string($akuma_origen) . "'";
+        // Mismo guard que el bucle de arriba: si no llega en el POST, no se toca
+        // (sin esto, un campo ausente se leía como '' y eso resetea el valor).
+        if (array_key_exists('akuma_origen', $mybb->input)) {
+            $akuma_origen = $mybb->get_input('akuma_origen', MyBB::INPUT_STRING);
+            $akuma_origen = in_array($akuma_origen, array('', 'aventura'), true) ? $akuma_origen : '';
+            if ($akuma_origen !== (string) ($f_var['akuma_origen'] ?? '')) {
+                $log .= "-- De " . ($f_var['akuma_origen'] ?? '') . " a {$akuma_origen} akuma_origen.\n";
+                $set_parts[] = "`akuma_origen`='" . $db->escape_string($akuma_origen) . "'";
+            }
         }
 
         // oficios / belicas: limpiar especializaciones vacías del JSON antes
-        // de guardar, igual que la versión anterior.
+        // de guardar, igual que la versión anterior. Mismo guard: son columnas
+        // JSON NOT NULL, y '' no es JSON válido — sin esto, un campo ausente
+        // del POST tira un UPDATE inválido y $db->query() corta la página
+        // entera con un error, sin guardar ni siquiera los demás cambios.
         foreach (array('oficios', 'belicas') as $campo_json) {
+            if (!array_key_exists($campo_json, $mybb->input)) {
+                continue;
+            }
             $valor = $mybb->get_input($campo_json, MyBB::INPUT_STRING);
             if ($valor !== (string) $f_var[$campo_json]) {
                 $decoded = json_decode($valor, true);

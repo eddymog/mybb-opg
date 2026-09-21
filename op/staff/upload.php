@@ -19,7 +19,8 @@ $uid = (int)$mybb->user['uid'];
 
 // El control de acceso va ANTES de procesar nada: antes solo protegía el
 // formulario y cualquiera (incluso sin sesión) podía enviar el POST.
-if (!is_mod($uid) && !is_staff($uid)) {
+// UID 11: acceso puntual solo a esta página (no es_staff en general).
+if (!is_mod($uid) && !is_staff($uid) && $uid !== 11) {
     $mensaje_redireccion = "Si no eres Staff, no tienes acceso a esta página.";
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);

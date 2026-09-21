@@ -66,8 +66,12 @@ function tecnicas_url($id = '')
 if ($mybb->request_method == 'post') {
     verify_post_check($mybb->get_input('my_post_key'));
 
-    $tid_old     = trim($mybb->get_input('tid_old', MyBB::INPUT_STRING));
-    $tid_new     = trim($mybb->get_input('tid', MyBB::INPUT_STRING));
+    // El Técnica ID es inmutable desde este formulario (ver input readonly y sin
+    // `name` en el template): se identifica siempre por `tid_old`, nunca por un
+    // campo `tid` editable. Antes existía un flujo de rename que terminó
+    // provocando un fatal error (UNIQUE KEY (tid, uid) en mybb_op_tec_aprendidas)
+    // cuando el ID cambiaba sin que el staff lo notara.
+    $tid         = trim($mybb->get_input('tid_old', MyBB::INPUT_STRING));
     $nombre      = trim($mybb->get_input('nombre', MyBB::INPUT_STRING));
     $estilo      = trim($mybb->get_input('estilo', MyBB::INPUT_STRING));
     $clase       = trim($mybb->get_input('clase', MyBB::INPUT_STRING));
@@ -75,7 +79,7 @@ if ($mybb->request_method == 'post') {
     $descripcion = trim($mybb->get_input('descripcion', MyBB::INPUT_STRING));
 
     $error = '';
-    if ($tid_new === '') { $error = 'El técnica ID es obligatorio.'; }
+    if ($tid === '') { $error = 'El técnica ID es obligatorio.'; }
     elseif ($nombre === '') { $error = 'El nombre es obligatorio.'; }
     elseif ($estilo === '') { $error = 'El estilo es obligatorio.'; }
     elseif (!in_array($clase, $TECNICAS_CLASES, true)) { $error = 'La clase debe ser una de: ' . implode(', ', $TECNICAS_CLASES) . '.'; }
@@ -90,27 +94,18 @@ if ($mybb->request_method == 'post') {
             }
         }
 
-        $existe = (bool) $db->fetch_field($db->query("SELECT tid FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid_new) . "'"), 'tid');
-        $es_rename = $tid_old !== '' && $tid_old !== $tid_new
-            && $db->fetch_field($db->query("SELECT tid FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid_old) . "'"), 'tid');
-
-        if ($es_rename) {
-            // Los usuarios que ya la aprendieron quedan apuntando al tid nuevo.
-            $db->query("UPDATE `mybb_op_tec_aprendidas` SET `tid`='" . $db->escape_string($tid_new) . "' WHERE tid='" . $db->escape_string($tid_old) . "'");
-        }
+        $existe = (bool) $db->fetch_field($db->query("SELECT tid FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid) . "'"), 'tid');
 
         $set = array();
         foreach ($campos as $col => $val) {
             $set[] = "`{$col}`='" . $db->escape_string($val) . "'";
         }
-        $set[] = "`tid`='" . $db->escape_string($tid_new) . "'";
 
-        if ($existe || $es_rename) {
-            $id_where = $es_rename ? $tid_old : $tid_new;
-            $db->query("UPDATE `mybb_op_tecnicas` SET " . implode(', ', $set) . " WHERE `tid`='" . $db->escape_string($id_where) . "'");
+        if ($existe) {
+            $db->query("UPDATE `mybb_op_tecnicas` SET " . implode(', ', $set) . " WHERE `tid`='" . $db->escape_string($tid) . "'");
         } else {
             $cols = array('tid');
-            $vals = array("'" . $db->escape_string($tid_new) . "'");
+            $vals = array("'" . $db->escape_string($tid) . "'");
             foreach ($campos as $col => $val) {
                 $cols[] = $col;
                 $vals[] = "'" . $db->escape_string($val) . "'";
@@ -118,7 +113,7 @@ if ($mybb->request_method == 'post') {
             $db->query("INSERT INTO `mybb_op_tecnicas` (`" . implode('`, `', $cols) . "`) VALUES (" . implode(', ', $vals) . ")");
         }
 
-        $log_texto = "Técnica {$tid_new} (" . ($existe || $es_rename ? 'modificada' : 'creada') . " por {$mybb->user['username']}): nombre={$nombre}, clase={$clase}, tipo={$tipo}.";
+        $log_texto = "Técnica {$tid} (" . ($existe ? 'modificada' : 'creada') . " por {$mybb->user['username']}): nombre={$nombre}, clase={$clase}, tipo={$tipo}.";
         $db->query("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
             . "('" . (int) $uid . "', '" . $db->escape_string($mybb->user['username']) . "', 'Apertura', '" . $db->escape_string($log_texto) . "')");
     }
@@ -127,7 +122,7 @@ if ($mybb->request_method == 'post') {
         'tipo'  => $error !== '' ? 'err' : 'ok',
         'texto' => $error !== '' ? $error : 'Técnica guardada.',
     ))), 15, true);
-    header('Location: ' . tecnicas_url($error !== '' ? $tid_old : $tid_new));
+    header('Location: ' . tecnicas_url($tid));
     exit;
 }
 
