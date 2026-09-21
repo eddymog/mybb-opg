@@ -22,6 +22,19 @@ require_once MYBB_ROOT.'inc/class_parser.php';
 $parser = new postParser;
 
 // ============================================
+// RESTRICCIÓN DE ACCESO — USUARIO ESPECÍFICO
+// ============================================
+if (isset($mybb->user['uid']) && $mybb->user['uid'] == 25)
+{
+	header('Content-Type: text/html; charset=utf-8');
+	echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Acceso restringido</title></head><body>';
+	echo '<h1>Acceso restringido</h1>';
+	echo '<p>No tienes acceso a esta página.</p>';
+	echo '</body></html>';
+	exit;
+}
+
+// ============================================
 // PROTECCIÓN ANTI-ATAQUES Y RATE LIMITING
 // ============================================
 // Verificar que el archivo de funciones de seguridad existe

@@ -991,12 +991,13 @@ function checkUnreadMessages() {
 		</span>
 	</div> -->
 	<if $g_is_staff then>
-		<div style="text-align: center;width: 1100px;margin: auto;height: 27px;background-color: #ff7e00;box-shadow: 0px 1px 2px black;background-image: linear-gradient(#ff7e00, #c66c0f);">
+		<div id="peticiones_staff" style="text-align: center;width: 1100px;margin: auto;height: 27px;background-color: #ff7e00;box-shadow: 0px 1px 2px black;background-image: linear-gradient(#ff7e00, #c66c0f);">
 			<span style="color: white !important;font-family: 'LemonMilkMedium';font-size: 21px;text-shadow: 1px 1px 1px black;position: relative;top: -3px;letter-spacing: 1px;">
 				<a href="https://onepiecegaiden.com/op/staff/fichas_en_cola.php">Fichas</a>: {$g_fichas_en_cola} | <a href="https://onepiecegaiden.com/op/staff/peticiones_admin.php">Peticiones</a>: {$g_peticiones} | <a href="https://onepiecegaiden.com/op/staff/peticiones_bugs.php">Bugs</a>: {$g_peticiones_bug} | <a href="/op/staff/tecnicas_creacion.php">Creaciones</a>: {$g_total_creaciones_sin_moderar} / {$g_total_creaciones_pendientes} | <a href="https://onepiecegaiden.com/op/staff/avisos.php">Avisos:</a> {$g_peticiones_avisos}
 			</span>
 		</div>
 	</if>
+	<!-- {op_temas_header} -->
 		<!-- <div class="wrapper">
 			<a href="{$mybb->settings['bburl']}/index.php"><img src="{$theme['logo']}" title="{$mybb->settings['bbname']}" /></a>
 		</div> -->

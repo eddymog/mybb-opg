@@ -1,0 +1,78 @@
+<html>
+<head>
+    <title>{$op_temas_html_title}</title>
+    {$headerinclude}
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <script defer src="{$mybb->settings['bburl']}/jscripts/vendor/alpinejs-3.17.3.min.js"></script>
+</head>
+<body>
+    {$header}
+    <div class="indice op-temas-page"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+        <main class="op-temas-shell" x-data="{ selectorVista: false }" @keydown.escape.window="selectorVista = false">
+            <header class="op-temas-page-header">
+                <div>
+                    <h1>{$op_temas_titulo}</h1>
+                    <p>{$op_temas_subtitulo}</p>
+                </div>
+                <button type="button" class="btn-op btn-op--secundario op-temas-selector-boton"
+                    @click="selectorVista = !selectorVista" :aria-expanded="selectorVista.toString()"
+                    aria-controls="op-temas-selector-vista">
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i> Ver otro personaje
+                </button>
+            </header>
+            <section id="op-temas-selector-vista" class="op-temas-selector" x-show="selectorVista" x-cloak>
+                <div>
+                    <h2>Buscar personaje</h2>
+                    <p>Consulta sus temas por nombre, apodo o FID.</p>
+                </div>
+                <div class="op-temas-selector__buscador opg-buscar-caja">
+                    <label class="sr-only" for="op-temas-buscar-vista">Nombre, apodo o FID</label>
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search" id="op-temas-buscar-vista" name="q" autocomplete="off"
+                        placeholder="Nombre, apodo o FID" aria-autocomplete="list"
+                        aria-controls="op-temas-vista-resultados"
+                        hx-get="/op/temas.php" hx-trigger="keyup changed delay:250ms"
+                        hx-target="#op-temas-vista-resultados"
+                        hx-vals='{"action":"buscar_modo_vista","modo_vista":"{$op_temas_vista_uid}"}'>
+                    <div id="op-temas-vista-resultados" class="op-temas-resultados opg-resultados" role="listbox"></div>
+                </div>
+                <button type="button" class="op-temas-icono" title="Cerrar buscador" aria-label="Cerrar buscador"
+                    @click="selectorVista = false">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </section>
+            {$op_temas_tracker}
+        </main>
+    </div></div></div></div>
+    {$footer}
+    <script>
+    (function () {
+        document.addEventListener('input', function (event) {
+            if (!event.target.matches('.op-temas-buscador input[type="search"]')) return;
+            var form = event.target.closest('form');
+            var hidden = form ? form.querySelector('.op-temas-participante-uid') : null;
+            if (hidden) hidden.value = '';
+        });
+
+        document.addEventListener('click', function (event) {
+            var option = event.target.closest('.op-temas-personaje-opcion');
+            if (option) {
+                var form = option.closest('form');
+                var input = form.querySelector('input[type="search"]');
+                var hidden = form.querySelector('.op-temas-participante-uid');
+                input.value = option.getAttribute('data-label') || '';
+                hidden.value = option.getAttribute('data-uid') || '';
+                var results = form.querySelector('.op-temas-resultados');
+                if (results) results.innerHTML = '';
+                return;
+            }
+            if (!event.target.closest('.op-temas-buscador')) {
+                document.querySelectorAll('.op-temas-resultados').forEach(function (results) {
+                    results.innerHTML = '';
+                });
+            }
+        });
+    }());
+    </script>
+</body>
+</html>

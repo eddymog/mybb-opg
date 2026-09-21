@@ -1,0 +1,128 @@
+<section id="op-temas-tracker" class="op-temas-tracker"
+    x-data="{ tab: localStorage.getItem('opTemasTab') || 'debes' }">
+    {$op_temas_aviso}
+
+    <details class="op-temas-guia">
+        <summary>
+            <span><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Cómo funciona el tracker</span>
+            <i class="fa-solid fa-chevron-down op-temas-guia__flecha" aria-hidden="true"></i>
+        </summary>
+        <div class="op-temas-guia__contenido">
+            <p class="op-temas-guia__intro"><strong>Este tracker recuerda tus temas de rol y calcula cuándo puedes volver a responder.</strong> No publica ni modifica mensajes: solamente lee los posts visibles del foro. Cada personaje tiene su propio tracker; si cambias de personaje, también cambian esta lista y sus conteos.</p>
+
+            <div class="op-temas-guia__secciones">
+                <section>
+                    <h3><span>1</span> Cómo se añade un tema</h3>
+                    <ul>
+                        <li><strong>Automáticamente:</strong> cuando creas un tema o publicas una respuesta dentro de la zona de rol, el tema empieza a seguirse sin que tengas que hacer nada.</li>
+                        <li><strong>Manualmente:</strong> puedes introducir su TID para seguir un tema antiguo o uno en el que todavía no hayas publicado.</li>
+                        <li>Al añadirlo manualmente debes indicar si te toca, si no te toca o si puede calcularse desde tu última respuesta.</li>
+                        <li>Los temas históricos no se importan todos de golpe: aparecerán cuando vuelvas a publicar en ellos o cuando los añadas por TID.</li>
+                        <li>Si un post está pendiente de moderación, contará cuando sea aprobado y pase a ser visible.</li>
+                        <li>Los temas de otras zonas del foro no se incorporan al tracker.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><span>2</span> Cómo funciona una ronda normal</h3>
+                    <ol>
+                        <li>Cuando publicas, tu respuesta abre una ronda nueva.</li>
+                        <li>El tracker espera a que respondan los demás participantes de esa ronda. Pueden hacerlo en cualquier orden.</li>
+                        <li>Cuando todos los participantes esperados han respondido, el tema pasa a <strong>Me toca</strong>.</li>
+                        <li>Cuando vuelves a publicar, comienza la ronda siguiente y el proceso se repite.</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h3><span>3</span> Qué significan los estados</h3>
+                    <dl>
+                        <div><dt><i class="fa-solid fa-bolt" aria-hidden="true"></i> Me toca</dt><dd>Ya se cumplieron las condiciones de la ronda y el personaje puede responder.</dd></div>
+                        <div><dt><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Esperando</dt><dd>Falta la respuesta de uno o más participantes, o todavía debe publicar el narrador.</dd></div>
+                        <div><dt><i class="fa-solid fa-lock" aria-hidden="true"></i> Cerrados</dt><dd>El tema terminó o fue cerrado, pero sigue guardado hasta que su propietario lo retire.</dd></div>
+                    </dl>
+                    <p>Los números superiores son un resumen. Puedes pulsarlos o usar las pestañas para cambiar de lista.</p>
+                </section>
+
+                <section>
+                    <h3><span>4</span> Participantes de la ronda</h3>
+                    <ul>
+                        <li>Los personajes que ya participaron al empezar el seguimiento se añaden automáticamente.</li>
+                        <li>Si una persona nueva publica, se incorpora automáticamente y su respuesta cuenta para esa ronda.</li>
+                        <li>En <strong>Configurar ronda</strong> puedes comprobar quién respondió y quién está pendiente.</li>
+                        <li>Si alguien abandona el tema, debes retirarlo manualmente. Si vuelve a publicar, el tracker lo incorporará otra vez.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><span>5</span> Rondas con narrador</h3>
+                    <p>Puedes seleccionar manualmente quién narra el tema. En este modo, cada publicación del narrador inicia una ronda nueva para los personajes.</p>
+                    <p>Desde ese momento, todos los personajes pendientes pueden responder sin esperar entre ellos. Si el narrador fue el último en publicar, todos los que todavía no respondieron aparecerán en <strong>Pendientes</strong>.</p>
+                </section>
+
+                <section>
+                    <h3><span>6</span> Correcciones manuales</h3>
+                    <ul>
+                        <li><strong>Me toca responder</strong> fuerza el tema a esa lista cuando el cálculo automático no representa la situación real.</li>
+                        <li><strong>No me toca</strong> indica que debes seguir esperando y toma la situación actual como punto de partida.</li>
+                        <li>Después de tu próxima publicación, el ajuste se consume y el tracker vuelve a calcular las rondas automáticamente.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><span>7</span> Dejar de seguir y temas cerrados</h3>
+                    <ul>
+                        <li>Puedes retirar cualquier tema de tu tracker. Si vuelves a publicar en él, se añadirá automáticamente otra vez.</li>
+                        <li>Un tema cerrado permanece en <strong>Cerrados</strong> hasta que lo retires manualmente.</li>
+                        <li>Si un tema se mueve fuera de la zona de rol o deja de estar disponible para ti, deja de mostrarse.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3><span>8</span> Modo vista</h3>
+                    <p><strong>Ver otro personaje</strong> permite consultar públicamente su tracker. Solo se muestran los temas que puedas ver según tus permisos del foro.</p>
+                    <p>En Modo vista puedes revisar estados, participantes y rondas, pero no modificar ningún dato del otro personaje.</p>
+                </section>
+            </div>
+
+            <p class="op-temas-guia__nota"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> <strong>En resumen:</strong> normalmente solo necesitas rolear. El tracker añade los temas, registra las respuestas y actualiza los turnos por ti; los controles manuales existen para excepciones.</p>
+        </div>
+    </details>
+
+    {$op_temas_modo_vista}
+
+    <div class="op-temas-resumen" aria-label="Resumen del tracker">
+        <button type="button" class="op-temas-resumen__item op-temas-resumen__item--debes"
+            :aria-pressed="tab === 'debes'" @click="tab = 'debes'; localStorage.setItem('opTemasTab', tab)">
+            <span>{$op_temas_conteo_debes}</span><strong>Debes responder</strong>
+        </button>
+        <button type="button" class="op-temas-resumen__item op-temas-resumen__item--esperando"
+            :aria-pressed="tab === 'esperando'" @click="tab = 'esperando'; localStorage.setItem('opTemasTab', tab)">
+            <span>{$op_temas_conteo_esperando}</span><strong>Esperando</strong>
+        </button>
+        <button type="button" class="op-temas-resumen__item op-temas-resumen__item--cerrados"
+            :aria-pressed="tab === 'cerrados'" @click="tab = 'cerrados'; localStorage.setItem('opTemasTab', tab)">
+            <span>{$op_temas_conteo_cerrados}</span><strong>Cerrados</strong>
+        </button>
+    </div>
+
+    {$op_temas_alta}
+
+    <div class="op-temas-tabs" role="tablist" aria-label="Estado de los temas">
+        <button type="button" role="tab" :aria-selected="tab === 'debes'"
+            @click="tab = 'debes'; localStorage.setItem('opTemasTab', tab)">Me toca</button>
+        <button type="button" role="tab" :aria-selected="tab === 'esperando'"
+            @click="tab = 'esperando'; localStorage.setItem('opTemasTab', tab)">Esperando</button>
+        <button type="button" role="tab" :aria-selected="tab === 'cerrados'"
+            @click="tab = 'cerrados'; localStorage.setItem('opTemasTab', tab)">Cerrados</button>
+    </div>
+
+    <div class="op-temas-lista" role="tabpanel" x-show="tab === 'debes'" x-cloak>
+        {$op_temas_lista_debes}
+    </div>
+    <div class="op-temas-lista" role="tabpanel" x-show="tab === 'esperando'" x-cloak>
+        {$op_temas_lista_esperando}
+    </div>
+    <div class="op-temas-lista" role="tabpanel" x-show="tab === 'cerrados'" x-cloak>
+        {$op_temas_lista_cerrados}
+    </div>
+</section>

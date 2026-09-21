@@ -65,6 +65,64 @@
         <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
         <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
 
+        <details>
+            <summary class="opg-guia-barra">Guía de campos</summary>
+            <dl class="opg-guia-cuerpo">
+                <div class="opg-guia-item">
+                    <dt>Wanted / Wanted guardado / Wanted reputación</dt>
+                    <dd><code>wanted</code> es el flag (1/0) que decide si el personaje aparece en el tablón de más buscados (<code>op/wanted.php</code>). <code>wantedGuardado</code> es el monto que se muestra ahí: se recalcula solo a partir de la reputación positiva/negativa (más bonos de virtudes) con <code>calcular_wanted()</code> y queda cacheado acá. <code>wanted_repu</code> ya no lo lee ese cálculo — quedó como campo legado.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Ranuras</dt>
+                    <dd>Cupos de implantes, formato <code>usados / máximo</code>. Arranca en <code>0 / 6</code> al crear el personaje, y algunas virtudes/defectos lo cambian (Iron Heart → <code>0 / 9</code>, Cuerpo Puro → <code>0 / 0</code>, Incompatible → <code>0 / 3</code>, ver <code>op/ficha_crear.php</code>). La API lo expone como <code>ranuras_implantes</code>.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Secret1 / campos "2" (doble vida)</dt>
+                    <dd>Marca que el personaje tiene una identidad secreta desbloqueada — se activa junto con la virtud V034, que además crea la fila correspondiente en <code>mybb_op_fichas_secret</code> (<code>op/ficha_crear.php</code>). Reputación2 / reputación positiva2 / negativa2 son las de esa identidad alterna.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Dominio akuma</dt>
+                    <dd>Contador 0-6 del nivel de dominio de la fruta del diablo. Se sube pagando nika desde <code>op/mejoras.php</code> (el costo cambia según si el personaje tiene el camino Akuma) y desbloquea las pasivas de cada nivel.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Origen akuma</dt>
+                    <dd>Solo admite vacío o <code>aventura</code>. Con <code>aventura</code>, el propio jugador puede renombrar su fruta/subnombre desde el panel de reset de stats (<code>op/personaje.php</code>); si no, el nombre queda fijo (asignado por staff o gacha).</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Puntos estadística</dt>
+                    <dd>Puntos sin repartir en las estadísticas principales, gastables desde <code>op/ficha_estadisticas.php</code>. No es una estadística en sí — se otorgan automáticamente al subir de nivel.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Estadísticas principales vs. pasivas</dt>
+                    <dd>El valor de combate real es la suma de ambas (p. ej. <code>fuerza_completa = fuerza + fuerza_pasiva</code>, ver <code>op/belico_data.php</code> / <code>op/api_combate.php</code>). Las pasivas también alimentan vitalidad y energía extra, cada una con su propio multiplicador.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Movido inframundo</dt>
+                    <dd>Total acumulado de berries movidos en el mercado negro — se suma en cada venta desde <code>op/mercado_negro.php</code>. Solo se muestra formateado en la ficha (<code>op/personaje.php</code>); la virtud V019 le suma +50.000.000 al total mostrado.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Espacios</dt>
+                    <dd>No se encontró ningún consumidor activo de esta columna en <code>mybb_op_fichas</code>. No confundir con la columna <code>espacios</code> de barcos u objetos — son tablas y sistemas totalmente distintos.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Cómo nos conociste</dt>
+                    <dd>Respuesta de encuesta capturada una sola vez al crear el personaje (<code>op/ficha_crear.php</code>). Este panel solo la muestra (deshabilitada); no hay forma de reescribirla desde acá.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Cronología</dt>
+                    <dd>Guarda el ID del tema de cronología del personaje. El único consumidor encontrado es la API (<code>api/ficha.php</code>), que lo expone tal cual — no alimenta ninguna lógica interna del foro.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>FX</dt>
+                    <dd>Campo de texto libre sin ningún consumidor mecánico encontrado en el código actual — es descriptivo/narrativo.</dd>
+                </div>
+                <div class="opg-guia-item">
+                    <dt>Nivel</dt>
+                    <dd>Gate central de casi todo el sistema (crafteo, entrenamiento, viajes, combate, mercado negro...). Tocarlo a mano puede saltarse la lógica de subida de nivel de <code>op/personaje.php</code>, que también reparte <code>puntos_estadistica</code> al subir.</dd>
+                </div>
+            </dl>
+        </details>
+
         <if $fid == '' then>
         <div>
             <div class="barra-op bbox" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Buscar personaje</span></div>
