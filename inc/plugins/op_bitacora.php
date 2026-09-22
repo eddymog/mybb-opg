@@ -30,7 +30,7 @@ function op_bitacora_info()
         'website' => '',
         'author' => 'OPG',
         'authorsite' => '',
-        'version' => '1.0',
+        'version' => '1.2',
         'compatibility' => '18*',
     );
 }
@@ -186,6 +186,8 @@ function op_bitacora_install()
             ronda_inicio_pid INT UNSIGNED NOT NULL DEFAULT 0,
             override_estado VARCHAR(12) NOT NULL DEFAULT 'auto',
             narrador_uid INT UNSIGNED NOT NULL DEFAULT 0,
+            estado_grupo VARCHAR(12) NOT NULL DEFAULT '',
+            estado_desde INT UNSIGNED NOT NULL DEFAULT 0,
             creado_en INT UNSIGNED NOT NULL,
             actualizado_en INT UNSIGNED NOT NULL,
             PRIMARY KEY (id),
@@ -254,6 +256,9 @@ function op_bitacora_deactivate()
 function op_bitacora_uninstall()
 {
     global $db;
+    if ($db->table_exists('op_bitacora_eventos')) {
+        $db->drop_table('op_bitacora_eventos');
+    }
     if ($db->table_exists('op_temas_participantes')) {
         $db->drop_table('op_temas_participantes');
     }

@@ -50,8 +50,8 @@ funcionando**, pero cubre un solo perfil, no los 5.
   respuesta de moderación" (nadie contestó todavía), "El usuario respondió,
   a la espera de moderación" (mod ya contestó, el usuario volvió a postear
   — exactamente el segundo caso que describís en el pedido original), y "A
-  la espera del usuario" (mod ya contestó, el usuario no volvió — con un
-  botón "Abandonar" que mueve el tema a `fid=85` y lo cierra).
+  la espera del usuario" (mod ya contestó y el usuario no volvió). La página
+  antigua incluye una acción "Abandonar" que no se conserva en el sistema nuevo.
 - **[`global.php`](/Users/eddymogollon/Documents/Code/mybb-opg/global.php) (línea ~857)**
   — calcula dos contadores (`$g_total_creaciones_sin_moderar` y
   `$g_total_creaciones_pendientes`) dentro del mismo bloque `if
@@ -73,11 +73,9 @@ que se separaron los 5 perfiles. Hay que cambiar `f.fid = 8` por
 queries existentes.
 
 **Lo que definitivamente no existe todavía:** ninguna acción de
-"Completada" / "Cancelada" por petición. Lo único que hay parecido es
-"Abandonar" en `tecnicas_creacion.php`, que mueve el tema a un forum de
-archivo genérico (`fid=85`) — no es lo mismo que archivarlo en el subforo
-de Completadas o Canceladas de su propio perfil. Tampoco hay nada que
-use los FIDs 446-455.
+"Completada" / "Cancelada" por petición. Tampoco hay nada que use los FIDs
+446-455. La acción antigua "Abandonar" no se porta: cancelar una solicitud
+cubre ese mismo resultado dentro del subforo correcto de su perfil.
 
 ## Requisitos funcionales
 
@@ -86,6 +84,8 @@ use los FIDs 446-455.
    - El usuario creó el tema y nadie de staff respondió todavía.
    - Staff ya respondió, pero el usuario volvió a postear después — hay
      que revisar esa respuesta también.
+   El header muestra un único número con la suma de ambos casos. Las
+   solicitudes que están esperando al usuario no se incluyen.
 2. **Página `/op/staff/solicitudes_creacion.php`** que liste, agrupadas por
    perfil (o con filtro por perfil), las peticiones pendientes de los 5
    subforos — básicamente `tecnicas_creacion.php` generalizado a los 5 FIDs
@@ -93,6 +93,9 @@ use los FIDs 446-455.
 3. **Botones "Completada" / "Cancelada" por petición**, que muevan el tema
    al subforo hijo correspondiente de su propio perfil (ej: una petición de
    Técnicas completada va al FID 447, no a un forum de archivo genérico).
+   Ambos botones deben estar disponibles en los tres grupos, sin importar si
+   el último post pertenece al usuario o a un moderador.
+   No existe una acción separada "Abandonar": se utiliza "Cancelada".
 4. **Contador global visible en todo el sitio** (el que ya vive en
    `#peticiones_staff` del header) — debe sumar los 5 perfiles, no solo
    Técnicas.
@@ -104,7 +107,12 @@ use los FIDs 446-455.
    archivan en subforos reales, esto es un `COUNT(*)` por FID de
    Completadas/Canceladas de la tabla de arriba — no hace falta una tabla
    nueva para esto.
-6. **Cada petición listada debe mostrar también quién ya posteó
+6. **Distribución actual de moderaciones pendientes por perfil**, en una
+   tabla situada antes de los listados. Muestra los cinco perfiles y separa
+   las columnas "Sin respuesta de moderación" y "El usuario respondió", con
+   totales para ambas. No incluye las solicitudes que están esperando al
+   usuario y no cambia al aplicar el filtro de tarjetas.
+7. **Cada petición listada debe mostrar también quién ya posteó
    respondiéndola**, no solo quién la abrió. Por convención: el que abre
    el tema es el usuario que pide la creación; el/los que postean después
    son moderadores. `tc_item()` (la función que arma cada tarjeta en
@@ -113,7 +121,15 @@ use los FIDs 446-455.
    participaron. Se resuelve con un `SELECT DISTINCT uid, username FROM
    mybb_posts WHERE tid=X AND uid != <uid del que abrió el tema>` por cada
    tema listado (o un solo query con `GROUP_CONCAT` para toda la lista de
-   una).
+   una). Los enlaces de personajes usan `/op/personaje.php?uid=<UID>`.
+8. **La plantilla `staff_solicitudes_creacion` la instala y actualiza el
+   plugin** desde el archivo versionado. No debe requerir creación manual
+   desde el Admin CP.
+9. **Actividad de moderadores que resolvieron solicitudes.** Un botón muestra
+   una tabla ordenada por cantidad de resoluciones, con Completadas, Canceladas
+   y desglose por los cinco perfiles. La atribución empieza cuando se instala
+   la tabla de auditoría; no se infieren resoluciones históricas a partir del
+   último post del tema.
 
 ## Cómo implementarlo (respuesta a "¿plugin o no?")
 
@@ -129,9 +145,6 @@ correcto armado como plugin real, para un caso casi idéntico —
   dato por request y dejarlo en una variable global (`$op_temas_header`).
 - El `header.html` la consume como `{$op_temas_header}` — sin que
   `global.php` sepa nada de esto.
-- Su `activate()` (`op_temas_insertar_placeholder_header()`) inserta ese
-  placeholder en la fila `header` de `mybb_templates` automáticamente al
-  activar el plugin — no hace falta editar el template a mano.
 - Trae funciones `_info()` / `_install()` / `_is_installed()` /
   `_activate()` / `_uninstall()` estándar de MyBB, instala su propio
   template y su propio stylesheet.
@@ -147,15 +160,13 @@ Para esto sería el mismo esqueleto que `op_bitacora`:
 1. **`inc/plugins/op_solicitudes_creacion.php`** (+ un
    `op_solicitudes_creacion/functions.php` si se pone denso) con
    `$plugins->add_hook('global_intermediate',
-   'op_solicitudes_creacion_hook_header')`, que calcula los dos contadores
-   (mismas dos queries que hoy tiene `global.php`, pero sumando los 5 FIDs
-   de perfiles en vez de `f.fid = 8`) y los deja en variables globales
-   nuevas (ej. `$op_solicitudes_creacion_pendientes` /
-   `$op_solicitudes_creacion_sin_responder`).
-2. En `activate()`, insertar el placeholder correspondiente en el
-   `header` (mismo mecanismo que `op_temas_insertar_placeholder_header()`)
-   reemplazando el uso actual de `{$g_total_creaciones_sin_moderar}` /
-   `{$g_total_creaciones_pendientes}` en `header.html`.
+   'op_solicitudes_creacion_hook_header')`, que calcula los dos estados
+   pendientes (en una consulta, sumando los 5 FIDs de perfiles en vez de
+   `f.fid = 8`) y deja la suma de ambos en
+   `$op_solicitudes_creacion_pendientes`.
+2. Editar manualmente `header.html` para consumir las variables nuevas del
+   plugin y enlazar a `solicitudes_creacion.php`. Instalar, activar,
+   desactivar o desinstalar el plugin no modifica `header.html`.
 3. Dejar los dos contadores viejos en `global.php` tal cual (no vale la
    pena tocarlos si van a quedar sin uso una vez migrado el header) o, si
    se prefiere, borrarlos en un commit aparte — pero como tarea de
@@ -165,17 +176,15 @@ Para esto sería el mismo esqueleto que `op_bitacora`:
    usuario), pero recorriendo los 5 FIDs y mostrando de qué perfil es cada
    petición. Esta parte sí es una página de `/op/staff/`, no un plugin —
    sigue el patrón normal de esa carpeta.
-5. Agregar las dos acciones nuevas (Completada/Cancelada) siguiendo el
-   mismo patrón que ya usa "Abandonar" en `tecnicas_creacion.php` (POST
-   con `my_post_key`, `UPDATE mybb_threads SET fid=... WHERE tid=...`),
-   pero calculando el FID de destino según el perfil de origen del tema en
-   vez de un valor fijo.
+5. Agregar Completada/Cancelada mediante POST con `my_post_key`, calculando
+   el FID de destino según el perfil de origen del tema. Las dos acciones
+   están disponibles en los tres grupos, incluida una petición que esté a
+   la espera del usuario.
 
-No se necesita una tabla nueva (`mybb_op_creaciones` ni similar): el estado
-de una petición ya lo representa en qué forum vive el tema (pendiente en su
-subforo, o archivado en Completadas/Canceladas) — es el mismo enfoque que
-ya usa "Abandonar", solo que apuntando al subforo correcto en vez de uno
-genérico.
+No se necesita una tabla propia para representar el estado de una petición:
+ya lo representa el forum donde vive el tema. Sí se crea
+`mybb_op_solicitudes_creacion_resoluciones` para registrar quién ejecutó
+cada resolución y poder construir el resumen sin atribuciones aproximadas.
 
 ## Pendiente antes de implementar
 

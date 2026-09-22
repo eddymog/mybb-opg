@@ -19,10 +19,9 @@ cubra los 5 perfiles del foro, con:
 - en cada petición listada, además de quién la abrió, quién ya la respondió
   (los moderadores que postearon en el tema).
 
-No hay tabla nueva en la base de datos: el estado de una petición lo
-representa el forum donde vive el tema (pendiente en su subforo de perfil,
-o archivado en su Completadas/Canceladas), igual que ya hace "Abandonar" en
-`tecnicas_creacion.php`.
+El estado de una petición lo representa el forum donde vive el tema. La única
+tabla propia, `op_solicitudes_creacion_resoluciones`, es un registro de
+auditoría para atribuir cada resolución al moderador que pulsó la acción.
 
 ## 2. Estado actual relevante
 
@@ -42,13 +41,15 @@ o archivado en su Completadas/Canceladas), igual que ya hace "Abandonar" en
 - **`templates/.../header.html`** (línea 996, dentro de `<if $g_is_staff
   then>`) ya muestra `Creaciones: {$g_total_creaciones_sin_moderar} /
   {$g_total_creaciones_pendientes}` enlazando a `tecnicas_creacion.php`.
-  Esta entrada se reemplaza por la nueva variable del plugin.
+  Esta entrada se reemplaza manualmente por las variables nuevas del plugin.
 - **`inc/plugins/op_bitacora.php`** (+ su `functions.php`) es el
   precedente exacto a seguir para "variable global calculada por request,
   sin tocar `global.php`": hookea `global_intermediate`, expone
   `$op_temas_header`, y su `activate()` inserta el placeholder en la fila
   `header` de `mybb_templates` automáticamente
-  (`op_temas_insertar_placeholder_header()`).
+  (`op_temas_insertar_placeholder_header()`). Para Solicitudes solo se
+  reutilizan el hook y el instalador de plantillas; no se copia la mutación
+  automática del header.
 - FIDs confirmados por el dueño del proyecto: los 5 perfiles (369, 370,
   371, 372, 373), sus 10 subforos de Completadas/Canceladas (446-455), y
   el FID 8 como forum padre/categoría que los contiene a los 5.
@@ -64,9 +65,10 @@ o archivado en su Completadas/Canceladas), igual que ya hace "Abandonar" en
 |---|---|
 | `inc/plugins/op_solicitudes_creacion.php` | Registro del plugin, instalación, hook de header |
 | `inc/plugins/op_solicitudes_creacion/functions.php` | Mapa de perfiles/FIDs, queries compartidas, cálculo de contadores |
-| `op/staff/solicitudes_creacion.php` | Página de staff: listado, filtros, acciones Completada/Cancelada/Abandonar, estadísticas |
-| `templates/.../staff_solicitudes_creacion.html` | Plantilla de la página |
-| `templates/.../op_solicitudes_creacion_header.html` | Fragmento del header (opcional; puede ser HTML directo en el hook, como hace hoy `header.html` con Fichas/Peticiones/Bugs) |
+| `op/staff/solicitudes_creacion.php` | Página de staff: listado, filtros, acciones Completada/Cancelada, estadísticas |
+| `templates/.../staff_solicitudes_creacion.html` | Plantilla de la página, instalada y actualizada por el plugin |
+| `templates/.../header.html` | Consume manualmente las variables del contador y enlaza a la página |
+| `mybb_op_solicitudes_creacion_resoluciones` | Auditoría de TID, perfil, acción, moderador y fecha para el resumen de actividad |
 
 La lógica compartida (mapa de perfiles, queries de conteo, resolución de
 FID destino para Completada/Cancelada) vive en `functions.php` para que la
@@ -84,10 +86,12 @@ MyBB conserva la fuente de verdad completa:
 - `mybb_threads.uid == mybb_threads.lastposteruid` determina si le toca
   responder a staff (última palabra la tuvo el usuario) o no;
 - `mybb_posts` determina quién ya posteó en el tema (para listar los
-  moderadores que respondieron).
+  moderadores que respondieron);
+- `mybb_op_solicitudes_creacion_resoluciones` determina quién ejecutó cada
+  resolución desde que se habilitó la auditoría.
 
 No se persiste ningún estado nuevo: mover el tema de forum ES la acción de
-marcarlo Completada/Cancelada/Abandonada.
+marcarlo Completada o Cancelada.
 
 ### 3.3 Mapa de perfiles (configuración fija, no tabla)
 
@@ -125,18 +129,16 @@ FIDs en vez de uno:
    pero `t.replies > 0`. Staff ya había contestado y el usuario volvió a
    postear; hay que revisar esa respuesta de nuevo.
 3. **A la espera del usuario** — `t.fid IN (perfiles)`, `t.uid !=
-   t.lastposteruid`. Staff ya contestó y espera al usuario; no toca
-   moderar. Esta es la única categoría con la acción "Abandonar" (mueve a
-   `fid=85`, igual que hoy).
+   t.lastposteruid`. Staff ya contestó y espera al usuario; no toca moderar.
 
 Los grupos 1 y 2 son "pendiente" en el sentido del requisito original; el
 grupo 3 no cuenta para el contador global.
 
 ### 4.1 Completada / Cancelada
 
-Disponibles sobre cualquier petición de los grupos 1 o 2 (staff puede
-resolver una petición ni bien la ve, sin necesidad de que pase por "a la
-espera del usuario" primero). Acción:
+Disponibles sobre cualquier petición de los tres grupos. El autor del último
+post no condiciona la posibilidad de completar o cancelar; incluso una
+petición a la espera del usuario puede resolverse directamente. Acción:
 
 ```text
 UPDATE mybb_threads
@@ -144,9 +146,8 @@ SET fid = <FID completadas o canceladas del perfil de origen>, closed = 1
 WHERE tid = <tid> AND fid IN (369,370,371,372,373)
 ```
 
-El `WHERE fid IN (...)` es la misma protección que ya usa "Abandonar"
-implícitamente por venir de una lista filtrada — pero acá se hace explícito
-en el propio `UPDATE`, para que no se pueda mover un tema arbitrario
+El `WHERE fid IN (...)` se hace explícito en el propio `UPDATE`, para que no
+se pueda mover un tema arbitrario
 mandando un `tid` de cualquier otro forum del sitio (ver §10).
 
 El FID destino se resuelve buscando `t.fid` original dentro de
@@ -163,16 +164,16 @@ MyBB cargó usuario y permisos.
 ```php
 function op_solicitudes_creacion_hook_header()
 {
-    global $mybb, $op_solicitudes_creacion_sin_responder, $op_solicitudes_creacion_reabiertas;
-    $op_solicitudes_creacion_sin_responder = 0;
-    $op_solicitudes_creacion_reabiertas = 0;
+    global $mybb, $op_solicitudes_creacion_pendientes;
+    $op_solicitudes_creacion_pendientes = 0;
 
     if (!is_staff($mybb->user['uid']) && !is_mod($mybb->user['uid']) && !is_user($mybb->user['uid'])) {
         return;
     }
 
-    [$op_solicitudes_creacion_sin_responder, $op_solicitudes_creacion_reabiertas] =
-        op_solicitudes_creacion_contar_pendientes();
+    $conteo = op_solicitudes_creacion_contar_pendientes();
+    $op_solicitudes_creacion_pendientes =
+        (int)$conteo['sin_responder'] + (int)$conteo['reabiertas'];
 }
 ```
 
@@ -191,13 +192,11 @@ de permisos que ya usa `is_staff() || is_mod() || is_user()` en
 por:
 
 ```text
-<a href="/op/staff/solicitudes_creacion.php">Solicitudes</a>: {$op_solicitudes_creacion_sin_responder} / {$op_solicitudes_creacion_reabiertas}
+<a href="/op/staff/solicitudes_creacion.php">Solicitudes</a>: {$op_solicitudes_creacion_pendientes}
 ```
 
-La inserción/edición de esta línea la hace `activate()` del plugin
-(`find_replace_templatesets`, mismo mecanismo que
-`op_temas_insertar_placeholder_header()`), no una edición manual del
-template.
+Esta línea se mantiene manualmente en `header.html`. El ciclo de vida del
+plugin no inserta, reemplaza ni retira contenido del header.
 
 ## 6. Consultas y rendimiento
 
@@ -215,14 +214,9 @@ WHERE fid IN (369,370,371,372,373)
   AND closed = 0
   AND uid = lastposteruid
   AND visible = 1
-  AND tid != 97
 ```
 
-(el `tid != 97` se conserva del código actual — probablemente un tema
-fijado/plantilla que no es una petición real; verificar contra la base
-antes de portarlo, no inventar qué es si no se puede confirmar).
-
-### 6.2 Listado con posteadores (requisito #6)
+### 6.2 Listado con posteadores (requisito #7)
 
 Para no hacer una query por tarjeta, se resuelven los "moderadores que ya
 participaron" de todos los temas listados en una página con un solo query
@@ -269,28 +263,35 @@ is_user($uid)`, chequeado primero, antes de cualquier otra lógica.
 1. Título + descripción breve.
 2. Filtro por perfil (los 5, más "Todos" por defecto) — `<select>` que
    recarga por GET, mismo patrón simple que el resto de `/op/staff/`.
-3. Tres secciones (igual que hoy, pero ahora con el perfil de cada tema
+3. Tabla "Moderaciones pendientes por perfil", siempre global y situada
+   antes de los listados. Separa en columnas `sin respuesta` y `usuario
+   respondió` para cada uno de los cinco perfiles; no incluye "A la espera
+   del usuario".
+4. Tres secciones (igual que hoy, pero ahora con el perfil de cada tema
    visible en la tarjeta):
    - Sin respuesta de moderación
    - El usuario respondió, a la espera de moderación
-   - A la espera del usuario (con botón Abandonar)
-4. Cada tarjeta de petición (extensión de `tc_item()`):
+   - A la espera del usuario
+5. Cada tarjeta de petición (extensión de `tc_item()`):
    - Perfil (nuevo — de qué categoría es esta petición)
    - Usuario (autor del tema)
-   - **Moderadores que ya respondieron** (nuevo, requisito #6) — lista de
+   - **Moderadores que ya respondieron** (nuevo, requisito #7) — lista de
      usuarios distintos al autor que postearon en el tema
    - Título (link al tema)
    - Fecha del último post
-   - Acciones: **Completada**, **Cancelada** (grupos 1 y 2), **Abandonar**
-     (solo grupo 3)
-5. Sección de estadísticas, al final de la página: una tabla con una fila
+   - Acciones: **Completada** y **Cancelada** en los tres grupos
+6. Sección de estadísticas, al final de la página: una tabla con una fila
    por perfil y columnas Completadas / Canceladas (más un total).
+7. Selector Tarjetas/Compacta junto al filtro. La preferencia se conserva en
+   `localStorage`; ambos modos reutilizan el mismo HTML y las mismas acciones.
+8. Botón Actividad del equipo que despliega una tabla con total, completadas,
+   canceladas y desglose dinámico por perfil. Solo usa resoluciones registradas
+   por este sistema; no atribuye archivos históricos al último posteador.
 
 ### 7.3 Confirmaciones
 
-Completada/Cancelada llevan `onclick="return confirm(...)"` igual que
-Abandonar hoy — son irreversibles desde esta pantalla (mover el tema no
-tiene un botón de deshacer).
+Completada/Cancelada llevan `onclick="return confirm(...)"`; son
+irreversibles desde esta pantalla (mover el tema no tiene un botón de deshacer).
 
 ## 8. Contrato HTTP
 
@@ -302,7 +303,6 @@ y POST (mutaciones), como el resto de `/op/staff/`.
 | `GET` | página, opcionalmente `?perfil=<fid>` | Listado filtrado + estadísticas |
 | `POST` | `accion=completar&tid=X` | Mueve el tema al FID `completadas` de su perfil, cierra |
 | `POST` | `accion=cancelar&tid=X` | Mueve el tema al FID `canceladas` de su perfil, cierra |
-| `POST` | `accion=abandonar&tid=X` | Igual que hoy: mueve a `fid=85`, cierra |
 
 Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
 `tid` casteado a entero, y confirma `t.fid IN
@@ -327,30 +327,25 @@ Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
 ## 10. Instalación y ciclo de vida del plugin
 
 `op_solicitudes_creacion_install()`:
-- registra la plantilla `staff_solicitudes_creacion` (si se decide sacarla
-  del set fijo del tema y versionarla como plantilla de plugin, siguiendo
-  el patrón de `op_bitacora`; alternativa más simple: dejarla como
-  plantilla común del tema OPG, ya que `op/staff/*.php` normalmente no
-  instala sus propias plantillas — a decidir en la fase de implementación,
-  no bloquea el diseño).
+- registra o actualiza la plantilla `staff_solicitudes_creacion` desde el
+  archivo versionado del tema OPG;
+- crea `op_solicitudes_creacion_resoluciones` si no existe.
 
 `op_solicitudes_creacion_activate()`:
-- reemplaza la línea de `Creaciones` por la de `Solicitudes` en el
-  template `header` vía `find_replace_templatesets`, igual que
-  `op_temas_insertar_placeholder_header()`.
+- asegura que la plantilla y la tabla de auditoría estén instaladas;
+- no modifica `header.html`.
 
 `op_solicitudes_creacion_deactivate()`:
-- revierte la línea del header a como estaba (o simplemente la deja
-  inerte, como hace `op_bitacora_deactivate()` — no hay datos que
-  limpiar porque no hay tablas nuevas).
+- deshabilita el hook sin modificar `header.html` ni eliminar la plantilla.
 
 `op_solicitudes_creacion_uninstall()`:
-- no hay tablas que borrar. Solo revertir el template si corresponde.
+- retira la plantilla y la tabla de auditoría propias del plugin;
+- no modifica el header.
 
 ## 11. Seguridad
 
 - Gate de permisos primero, como en toda la carpeta `/op/staff/`.
-- CSRF (`my_post_key`) en Completada/Cancelada/Abandonar.
+- CSRF (`my_post_key`) en Completada/Cancelada.
 - FID destino resuelto server-side desde el mapa fijo, nunca desde input
   del cliente.
 - `tid` casteado a entero antes de cualquier interpolación SQL.
@@ -368,16 +363,17 @@ Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
   sin duplicados (`DISTINCT` por `tid, uid`).
 - **Staff completa/cancela una petición del grupo 3** ("a la espera del
   usuario"): las acciones Completada/Cancelada quedan disponibles ahí
-  también, no hace falta esperar a que el usuario responda para cerrar
-  una petición que ya no tiene sentido seguir esperando — a confirmar si
-  se quiere restringir esto en la implementación.
+  también; no hace falta esperar a que el usuario responda.
 - **Tema movido/cerrado por fuera de esta página** (ej. un mod lo mueve a
   mano desde el ACP): en la siguiente carga simplemente deja de aparecer
   en pendientes y empieza a contar en las estadísticas si cayó en un FID
   de completadas/canceladas — no hace falta sincronizar nada.
-- **`tid = 97`** (o el que corresponda tras verificar contra la base): se
-  excluye de los conteos igual que hoy, asumiendo que sigue siendo un
-  tema fijo/plantilla y no una petición real.
+- **Exclusiones heredadas por TID**: no se conserva `tid != 97` ni otra
+  excepción sin una regla funcional confirmada. Todo tema visible dentro
+  de los cinco FIDs de perfil se procesa con las mismas reglas.
+- **Temas archivados antes del registro de actividad**: cuentan en el histórico por perfil,
+  pero no se atribuyen a ningún moderador porque no existe evidencia fiable
+  de quién pulsó la resolución.
 
 ## 13. Estrategia de pruebas
 
@@ -388,7 +384,7 @@ Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
   FIDs y confirmar que aparecen en el grupo correcto.
 - **Completada/Cancelada**: confirmar que el tema termina en el FID
   correcto según su perfil de origen (ej. una de Técnicas completada cae
-  en 447, no en 452 ni en el `fid=85` genérico de Abandonar).
+  en 447, no en 452).
 - **Intento de mover un tema ajeno**: armar un POST con `tid` de un tema
   fuera de los 5 FIDs y confirmar que la validación del §10 lo rechaza.
 - **Moderadores listados**: petición con 0, 1 y varios posts de staff;
@@ -403,12 +399,13 @@ Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
 ### Fase 1: Plugin y contador de header
 - `inc/plugins/op_solicitudes_creacion.php` + `functions.php`.
 - Mapa de perfiles, query agregada de conteo (§6.1).
-- Hook `global_intermediate`, reemplazo de la línea del header.
+- Hook `global_intermediate`; la línea que consume sus variables se agrega
+  manualmente a `header.html`.
 
 ### Fase 2: Página funcional
 - `/op/staff/solicitudes_creacion.php`: 3 grupos, filtro por perfil,
   listado generalizado a los 5 FIDs.
-- Acciones Completada/Cancelada/Abandonar con las validaciones del §10.
+- Acciones Completada/Cancelada con las validaciones del §10.
 
 ### Fase 3: Moderadores por petición
 - Query de posteadores (§6.2) y su render en cada tarjeta.
@@ -417,13 +414,16 @@ Cada `POST` exige `verify_post_check($mybb->get_input('my_post_key'))`,
 - Sección de completadas/canceladas por perfil (§6.3) al final de la
   página.
 
+### Fase 5: Auditoría y actividad
+- Tabla de resoluciones instalada por el plugin.
+- Registro del moderador dentro de la acción POST.
+- Panel Resoluciones por moderador con desglose por perfil.
+
 ## 15. Fuera de alcance
 
 - Deshacer una petición ya marcada Completada/Cancelada (mover manual
   desde el ACP si hace falta corregir un error).
 - Notificaciones (Discord, PM) cuando una petición cambia de estado.
-- Historial/auditoría de quién completó o canceló cada petición —
-  `tecnicas_creacion.php` tampoco lo tiene hoy para "Abandonar".
 - Editar el mapa de perfiles/FIDs desde el ACP — queda como constante en
   código; cambiarlo es un cambio de código, no de configuración.
 - Un 6to perfil o reestructuración de la categoría padre (fid=8) — el

@@ -154,6 +154,186 @@ $CATEGORIAS = array(
 );
 define('PA_POR_PAGINA', 20);
 
+function pa_html($value)
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function pa_enlace_personaje($uid, $nombre)
+{
+    $uid = (int) $uid;
+    $texto = pa_html($nombre !== '' ? $nombre : ('Usuario #' . $uid));
+    if ($uid <= 0) {
+        return $texto;
+    }
+    return '<a href="/op/personaje.php?uid=' . $uid . '" target="_blank" rel="noopener">' . $texto . '</a>';
+}
+
+/**
+ * Resumen global por categoría. No depende de los filtros de la lista para
+ * que siempre represente la carga completa del sistema.
+ */
+function pa_resumen_categorias($categorias)
+{
+    global $db;
+
+    $resumen = array();
+    foreach ($categorias as $key => $label) {
+        $resumen[$key] = array('label' => $label, 'pendientes' => 0, 'resueltas' => 0);
+    }
+    $resumen['tripulacion'] = array('label' => 'Tripulaciones', 'pendientes' => 0, 'resueltas' => 0);
+
+    $keys = array_map(array($db, 'escape_string'), array_keys($categorias));
+    $query = $db->query("
+        SELECT `categoria`,
+               SUM(CASE WHEN `resuelto`=0 THEN 1 ELSE 0 END) AS pendientes,
+               SUM(CASE WHEN `resuelto`=1 THEN 1 ELSE 0 END) AS resueltas
+        FROM `mybb_op_peticiones`
+        WHERE `categoria` IN ('" . implode("','", $keys) . "')
+        GROUP BY `categoria`
+    ");
+    while ($row = $db->fetch_array($query)) {
+        $key = (string) $row['categoria'];
+        if (!isset($resumen[$key])) {
+            continue;
+        }
+        $resumen[$key]['pendientes'] = (int) $row['pendientes'];
+        $resumen[$key]['resueltas'] = (int) $row['resueltas'];
+    }
+
+    $tripulaciones = $db->fetch_array($db->query("
+        SELECT SUM(CASE WHEN `estado`=0 THEN 1 ELSE 0 END) AS pendientes,
+               SUM(CASE WHEN `estado` IN (1,2) THEN 1 ELSE 0 END) AS resueltas
+        FROM `mybb_op_tripulaciones_solicitudes`
+    "));
+    $resumen['tripulacion']['pendientes'] = (int) ($tripulaciones['pendientes'] ?? 0);
+    $resumen['tripulacion']['resueltas'] = (int) ($tripulaciones['resueltas'] ?? 0);
+
+    return $resumen;
+}
+
+function pa_render_distribucion($resumen)
+{
+    $filas = '';
+    $totalPendientes = 0;
+    $totalResueltas = 0;
+    foreach ($resumen as $datos) {
+        $pendientes = (int) $datos['pendientes'];
+        $resueltas = (int) $datos['resueltas'];
+        $totalPendientes += $pendientes;
+        $totalResueltas += $resueltas;
+        $filas .= '<tr><th scope="row">' . pa_html($datos['label']) . '</th>'
+            . '<td>' . $pendientes . '</td><td>' . $resueltas . '</td><td>' . ($pendientes + $resueltas) . '</td></tr>';
+    }
+
+    return '<div class="pa-tabla-wrap"><table class="pa-tabla"><thead><tr><th>Categoría</th>'
+        . '<th>Pendientes</th><th>Resueltas</th><th>Total</th></tr></thead><tbody>' . $filas
+        . '</tbody><tfoot><tr><th scope="row">Total</th><td>' . $totalPendientes . '</td><td>' . $totalResueltas
+        . '</td><td>' . ($totalPendientes + $totalResueltas) . '</td></tr></tfoot></table></div>';
+}
+
+/**
+ * Actividad histórica atribuida al usuario que ejecutó cada resolución.
+ * Se combinan las peticiones administrativas y las solicitudes de
+ * tripulación sin hacer consultas por moderador.
+ */
+function pa_actividad_equipo($categorias)
+{
+    global $db;
+
+    $actividad = array();
+    $sinAtribuir = 0;
+    $keys = array_map(array($db, 'escape_string'), array_keys($categorias));
+    $query = $db->query("
+        SELECT CAST(p.`mod_uid` AS UNSIGNED) AS uid,
+               COALESCE(NULLIF(MAX(u.`username`), ''), NULLIF(MAX(p.`mod_nombre`), '')) AS username,
+               COUNT(*) AS cantidad
+        FROM `mybb_op_peticiones` p
+        LEFT JOIN `mybb_users` u ON u.`uid`=CAST(p.`mod_uid` AS UNSIGNED)
+        WHERE p.`resuelto`=1
+          AND p.`categoria` IN ('" . implode("','", $keys) . "')
+          AND CAST(p.`mod_uid` AS UNSIGNED) > 0
+        GROUP BY CAST(p.`mod_uid` AS UNSIGNED)
+    ");
+    while ($row = $db->fetch_array($query)) {
+        $moderadorUid = (int) $row['uid'];
+        $actividad[$moderadorUid] = array(
+            'uid' => $moderadorUid,
+            'username' => (string) ($row['username'] ?: ('Usuario #' . $moderadorUid)),
+            'total' => (int) $row['cantidad'],
+        );
+    }
+
+    $tripulaciones = $db->query("
+        SELECT s.`resuelto_por` AS uid, MAX(u.`username`) AS username, COUNT(*) AS cantidad
+        FROM `mybb_op_tripulaciones_solicitudes` s
+        LEFT JOIN `mybb_users` u ON u.`uid`=s.`resuelto_por`
+        WHERE s.`estado` IN (1,2) AND s.`resuelto_por` IS NOT NULL AND s.`resuelto_por` > 0
+        GROUP BY s.`resuelto_por`
+    ");
+    while ($row = $db->fetch_array($tripulaciones)) {
+        $moderadorUid = (int) $row['uid'];
+        if (!isset($actividad[$moderadorUid])) {
+            $actividad[$moderadorUid] = array(
+                'uid' => $moderadorUid,
+                'username' => (string) ($row['username'] ?: ('Usuario #' . $moderadorUid)),
+                'total' => 0,
+            );
+        }
+        $cantidad = (int) $row['cantidad'];
+        $actividad[$moderadorUid]['total'] += $cantidad;
+    }
+
+    $sinAtribuir += (int) $db->fetch_field($db->query("
+        SELECT COUNT(*) AS cantidad FROM `mybb_op_peticiones`
+        WHERE `resuelto`=1 AND `categoria` IN ('" . implode("','", $keys) . "')
+          AND (`mod_uid` IS NULL OR `mod_uid`='' OR CAST(`mod_uid` AS UNSIGNED)=0)
+    "), 'cantidad');
+    $sinAtribuir += (int) $db->fetch_field($db->query("
+        SELECT COUNT(*) AS cantidad FROM `mybb_op_tripulaciones_solicitudes`
+        WHERE `estado` IN (1,2) AND (`resuelto_por` IS NULL OR `resuelto_por`=0)
+    "), 'cantidad');
+
+    $actividad = array_values($actividad);
+    usort($actividad, function ($a, $b) {
+        if ((int) $a['total'] === (int) $b['total']) {
+            return strcasecmp((string) $a['username'], (string) $b['username']);
+        }
+        return (int) $b['total'] <=> (int) $a['total'];
+    });
+
+    return array('moderadores' => $actividad, 'sin_atribuir' => $sinAtribuir);
+}
+
+function pa_render_actividad($actividad)
+{
+    if (empty($actividad['moderadores'])) {
+        $mensaje = '<p class="opg-vacio">Todavía no hay resoluciones atribuidas a integrantes del equipo.</p>';
+        if ((int) $actividad['sin_atribuir'] > 0) {
+            $mensaje .= '<p class="pa-actividad__nota"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> '
+                . (int) $actividad['sin_atribuir'] . ' resoluciones antiguas no tienen moderador atribuido.</p>';
+        }
+        return $mensaje;
+    }
+
+    $filas = '';
+    $totalGeneral = 0;
+    foreach ($actividad['moderadores'] as $moderador) {
+        $totalGeneral += (int) $moderador['total'];
+        $filas .= '<tr><th scope="row">' . pa_enlace_personaje($moderador['uid'], $moderador['username']) . '</th>'
+            . '<td><strong>' . (int) $moderador['total'] . '</strong></td></tr>';
+    }
+    $nota = (int) $actividad['sin_atribuir'] > 0
+        ? '<p class="pa-actividad__nota"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> '
+            . (int) $actividad['sin_atribuir'] . ' resoluciones antiguas no tienen moderador atribuido y no aparecen en las filas.</p>'
+        : '';
+
+    return '<div class="pa-tabla-wrap pa-tabla-wrap--actividad"><table class="pa-tabla pa-tabla--actividad"><thead><tr>'
+        . '<th>Moderador</th><th>Resoluciones</th></tr></thead><tbody>' . $filas
+        . '</tbody><tfoot><tr><th scope="row">Total atribuido</th><td>' . $totalGeneral
+        . '</td></tr></tfoot></table></div>' . $nota;
+}
+
 $resuelto = $mybb->get_input('resuelto', MyBB::INPUT_STRING) === '1' ? '1' : '0';
 
 // Los filtros y la paginación solo tienen sentido viendo "resueltas" (que
@@ -196,7 +376,7 @@ while ($m = $db->fetch_array($mods_query)) {
  * (LIMIT/OFFSET + conteo total). Antes cada categoría se listaba aparte
  * con su propio LIMIT 100 fijo y sin forma de ver más — bien para
  * "pendientes" (pocas a la vez) pero mal para "resueltas", que solo
- * crece. Cada tarjeta ahora lleva su categoría como chip, ya que al no
+ * crece. Cada tarjeta lleva su categoría en la cinta superior, ya que al no
  * agrupar por categoría hace falta indicarla en cada una.
  */
 function pa_listar_peticiones($resuelto, $categoria_filtro, $atendido_filtro, $pagina, $mods, $post_key, $categorias)
@@ -226,15 +406,18 @@ function pa_listar_peticiones($resuelto, $categoria_filtro, $atendido_filtro, $p
 
     $html = '';
     while ($q = $db->fetch_array($query)) {
-        $categoria_esc = htmlspecialchars($categorias[$q['categoria']] ?? $q['categoria'], ENT_QUOTES, 'UTF-8');
+        $categoria_key = isset($categorias[$q['categoria']]) ? (string) $q['categoria'] : 'otros';
+        $categoria_esc = pa_html($categorias[$q['categoria']] ?? $q['categoria']);
         $pid = (int) $q['id'];
         $u_uid = (int) $q['uid'];
-        $nombre_esc = htmlspecialchars($q['nombre'], ENT_QUOTES, 'UTF-8');
-        $resumen_esc = htmlspecialchars($q['resumen'], ENT_QUOTES, 'UTF-8');
-        $descripcion_esc = nl2br(htmlspecialchars($q['descripcion'], ENT_QUOTES, 'UTF-8'));
-        $url_esc = htmlspecialchars($q['url'], ENT_QUOTES, 'UTF-8');
-        $enviado_esc = htmlspecialchars($q['enviado'], ENT_QUOTES, 'UTF-8');
-        $mod_nombre_esc = htmlspecialchars($q['mod_nombre'], ENT_QUOTES, 'UTF-8');
+        $nombre = (string) $q['nombre'];
+        $resumen_esc = pa_html($q['resumen'] !== '' ? $q['resumen'] : 'Petición sin resumen');
+        $descripcion_esc = nl2br(pa_html($q['descripcion']));
+        $url = trim((string) $q['url']);
+        $url_esc = pa_html($url);
+        $url_segura = preg_match('#^(https?://|/)#i', $url) ? $url_esc : '';
+        $enviado_esc = pa_html($q['enviado']);
+        $mod_nombre_esc = pa_html($q['mod_nombre']);
 
         $fecha = '';
         try {
@@ -249,47 +432,52 @@ function pa_listar_peticiones($resuelto, $categoria_filtro, $atendido_filtro, $p
         $select_id = 'sel_mod_' . $pid;
         $notes_id = 'notas_' . $pid;
 
-        $html .= '<div class="pa-item">';
+        $enlace_url = $url_segura !== ''
+            ? '<a href="' . $url_segura . '" target="_blank" rel="noopener">Abrir enlace relacionado <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>'
+            : '<span class="pa-card__sin-dato">No indicado</span>';
 
-        $html .= '<div class="pa-item-contenido">';
-        $html .= '<div class="pa-item-linea"><span class="opg-chip pa-chip-categoria">' . $categoria_esc . '</span></div>';
-        $html .= '<div class="pa-item-linea">[<a href="/op/personaje.php?uid=' . $u_uid . '" target="_blank">' . $nombre_esc . ' - ' . $u_uid . '</a>]</div>';
-        $html .= '<div class="pa-item-linea"><strong>Resumen</strong>: ' . $resumen_esc . '</div>';
-        $html .= '<div class="pa-item-linea"><strong>Descripción</strong>: ' . $descripcion_esc . '</div>';
-        $html .= '<div class="pa-item-linea"><strong>URL</strong>: <a href="' . $url_esc . '" target="_blank">' . $url_esc . '</a></div>';
-        $html .= '<div class="pa-item-linea"><strong>Fecha</strong>: ' . $enviado_esc . ' - ' . $fecha . '</div>';
+        $html .= '<article class="pa-card pa-card--' . pa_html($categoria_key) . '">';
+        $html .= '<div class="pa-card__cinta"><span>' . $categoria_esc . '</span><span>Petición #' . $pid . '</span></div>';
+        $html .= '<div class="pa-card__cuerpo">';
+        $html .= '<div class="pa-card__contenido">';
+        $html .= '<h3>' . $resumen_esc . '</h3>';
+        $html .= '<dl class="pa-card__datos">';
+        $html .= '<div><dt><i class="fa-solid fa-user" aria-hidden="true"></i> Solicitante</dt><dd>' . pa_enlace_personaje($u_uid, $nombre) . ' <span class="pa-card__uid">#' . $u_uid . '</span></dd></div>';
+        $html .= '<div><dt><i class="fa-solid fa-clock" aria-hidden="true"></i> Enviada</dt><dd>' . $enviado_esc . ($fecha !== '' ? ' · ' . pa_html($fecha) : '') . '</dd></div>';
+        $html .= '<div><dt><i class="fa-solid fa-link" aria-hidden="true"></i> Referencia</dt><dd>' . $enlace_url . '</dd></div>';
+        $html .= '</dl>';
+        $html .= '<div class="pa-card__descripcion"><strong>Descripción</strong><p>' . ($descripcion_esc !== '' ? $descripcion_esc : 'Sin descripción adicional.') . '</p></div>';
         $html .= '</div>';
 
-        $html .= '<div class="pa-item-gestion">';
-        $html .= '<div class="pa-item-linea"><strong>Atendido por</strong>: <span class="atendido-por">' . htmlspecialchars($atendidoPor !== '' ? $atendidoPor : 'Sin asignar', ENT_QUOTES, 'UTF-8') . '</span></div>';
+        $html .= '<div class="pa-card__gestion">';
+        $html .= '<div class="pa-card__gestion-titulo"><span><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Gestión</span><span class="atendido-por">' . pa_html($atendidoPor !== '' ? $atendidoPor : 'Sin asignar') . '</span></div>';
 
-        $html .= '<div class="pa-item-linea"><label for="' . $select_id . '"><strong>Asignar a</strong></label> ';
+        $html .= '<div class="pa-card__asignacion"><label for="' . $select_id . '">Asignar a</label><div>';
         $html .= '<select id="' . $select_id . '" class="sel-mod" data-pid="' . $pid . '">';
         foreach (array_map('trim', $mods) as $name) {
             $normOpt = norm_name($name);
             $isMatch = ($normOpt === $normAtendido) || ($normAtendido === '' && $normOpt === norm_name('Sin asignar'));
-            $name_esc = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            $name_esc = pa_html($name);
             $html .= '<option value="' . $name_esc . '"' . ($isMatch ? ' selected' : '') . '>' . $name_esc . '</option>';
         }
-        $html .= '</select> <button type="button" class="opg-chip save-mod" data-pid="' . $pid . '" data-target-id="' . $select_id . '">Guardar</button></div>';
+        $html .= '</select><button type="button" class="btn-op btn-op--sm btn-op--secundario save-mod" data-pid="' . $pid . '" data-target-id="' . $select_id . '" title="Guardar asignación"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button></div></div>';
 
-        $html .= '<div class="pa-item-notas">';
-        $html .= '<label for="' . $notes_id . '"><strong>Notas de moderación</strong></label><br>';
-        $html .= '<textarea id="' . $notes_id . '" class="notas-text" data-pid="' . $pid . '" rows="3">' . htmlspecialchars($notasMod, ENT_QUOTES, 'UTF-8') . '</textarea>';
-        $html .= '<button type="button" class="opg-chip save-notas" data-pid="' . $pid . '" data-target-id="' . $notes_id . '">Guardar notas</button>';
+        $html .= '<div class="pa-card__notas">';
+        $html .= '<label for="' . $notes_id . '">Notas de moderación</label>';
+        $html .= '<textarea id="' . $notes_id . '" class="notas-text" data-pid="' . $pid . '" rows="3">' . pa_html($notasMod) . '</textarea>';
+        $html .= '<button type="button" class="btn-op btn-op--sm btn-op--secundario save-notas" data-pid="' . $pid . '" data-target-id="' . $notes_id . '"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar notas</button>';
         $html .= '</div>';
 
         if ($q['mod_nombre'] !== '') {
-            $html .= '<div class="pa-item-linea"><strong>Moderador que ha resuelto</strong>: ' . $mod_nombre_esc . '</div>';
+            $html .= '<p class="pa-card__resuelta"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Resuelta por <strong>' . $mod_nombre_esc . '</strong></p>';
         }
 
-        if (is_mod($uid) || is_staff($uid)) {
+        if ($resuelto !== '1' && (is_mod($uid) || is_staff($uid))) {
             $resolver_a = 'peticiones_admin.php?accion=resolver&peti_id=' . $pid . '&my_post_key=' . rawurlencode($post_key);
-            $html .= '<div class="pa-item-acciones"><a class="opg-chip" href="' . htmlspecialchars($resolver_a, ENT_QUOTES, 'UTF-8') . '">Resolver</a></div>';
+            $html .= '<div class="pa-card__acciones"><a class="btn-op btn-op--sm btn-op--exito" href="' . pa_html($resolver_a) . '" onclick="return confirm(\'¿Marcar esta petición como resuelta?\');"><i class="fa-solid fa-check" aria-hidden="true"></i> Resolver</a></div>';
         }
         $html .= '</div>';
-
-        $html .= '</div>';
+        $html .= '</div></article>';
     }
 
     return array('html' => $html, 'total' => $total, 'total_paginas' => $total_paginas, 'pagina' => $pagina);
@@ -308,6 +496,11 @@ function print_peticion_tripulacion($resuelto)
 {
     global $db;
     $estado_filtro = $resuelto === '1' ? 'estado IN (1,2)' : 'estado = 0';
+    $total = (int) $db->fetch_field($db->query("
+        SELECT COUNT(*) AS cantidad
+        FROM `mybb_op_tripulaciones_solicitudes`
+        WHERE {$estado_filtro}
+    "), 'cantidad');
     $query = $db->query("
         SELECT s.*, f.nombre AS nombre_personaje
         FROM `mybb_op_tripulaciones_solicitudes` s
@@ -320,21 +513,25 @@ function print_peticion_tripulacion($resuelto)
     $html = '';
     while ($q = $db->fetch_array($query)) {
         $id = (int) $q['id'];
-        $nombre_propuesto = htmlspecialchars($q['nombre_propuesto'], ENT_QUOTES, 'UTF-8');
-        $nombre_personaje = htmlspecialchars($q['nombre_personaje'] ?: ('UID ' . (int) $q['uid']), ENT_QUOTES, 'UTF-8');
+        $nombre_propuesto = pa_html($q['nombre_propuesto']);
+        $nombre_personaje = (string) ($q['nombre_personaje'] ?: ('UID ' . (int) $q['uid']));
         $u_uid = (int) $q['uid'];
         $fecha = date('Y-m-d H:i', (int) $q['created_at']);
         $estado_label = array('Pendiente', 'Aprobada', 'Rechazada')[(int) $q['estado']] ?? '';
 
-        $html .= '<div class="pa-item pa-item--simple">';
-        $html .= '<div class="pa-item-linea">[<a href="/op/personaje.php?uid=' . $u_uid . '" target="_blank">' . $nombre_personaje . ' - ' . $u_uid . '</a>] solicita <strong>' . $nombre_propuesto . '</strong> <span class="atendido-por">(' . htmlspecialchars($estado_label, ENT_QUOTES, 'UTF-8') . ')</span></div>';
-        $html .= '<div class="pa-item-linea"><strong>Fecha</strong>: ' . htmlspecialchars($fecha, ENT_QUOTES, 'UTF-8') . '</div>';
-        $html .= '<div class="pa-item-acciones"><a class="opg-chip" href="/op/tripulacion_solicitar.php?tripu_id=' . $id . '">Revisar solicitud &rarr;</a></div>';
-        $html .= '</div>';
+        $html .= '<article class="pa-card pa-card--tripulacion pa-card--simple">';
+        $html .= '<div class="pa-card__cinta"><span>Tripulaciones</span><span>Solicitud #' . $id . '</span></div>';
+        $html .= '<div class="pa-card__cuerpo"><div class="pa-card__contenido">';
+        $html .= '<h3>' . $nombre_propuesto . '</h3><dl class="pa-card__datos">';
+        $html .= '<div><dt><i class="fa-solid fa-user" aria-hidden="true"></i> Solicitante</dt><dd>' . pa_enlace_personaje($u_uid, $nombre_personaje) . ' <span class="pa-card__uid">#' . $u_uid . '</span></dd></div>';
+        $html .= '<div><dt><i class="fa-solid fa-clock" aria-hidden="true"></i> Enviada</dt><dd>' . pa_html($fecha) . '</dd></div>';
+        $html .= '<div><dt><i class="fa-solid fa-signal" aria-hidden="true"></i> Estado</dt><dd><strong>' . pa_html($estado_label) . '</strong></dd></div>';
+        $html .= '</dl></div><div class="pa-card__acciones pa-card__acciones--simple">';
+        $html .= '<a class="btn-op btn-op--sm btn-op--primario" href="/op/tripulacion_solicitar.php?tripu_id=' . $id . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Revisar solicitud</a>';
+        $html .= '</div></div></article>';
     }
 
-    if ($html === '') { return ''; }
-    return '<div class="pa-seccion"><div class="pa-categoria"><span>Tripulaciones</span></div>' . $html . '</div>';
+    return array('html' => $html, 'total' => $total);
 }
 
 function pa_opciones_categoria($categorias, $seleccionada)
@@ -389,6 +586,16 @@ $resets_build_pendientes = (int) $db->fetch_field(
     'c'
 );
 
+$resumen_categorias = pa_resumen_categorias($CATEGORIAS);
+$pa_total_pendientes = 0;
+$pa_total_resueltas = 0;
+foreach ($resumen_categorias as $datos_categoria) {
+    $pa_total_pendientes += (int) $datos_categoria['pendientes'];
+    $pa_total_resueltas += (int) $datos_categoria['resueltas'];
+}
+$pa_distribucion = pa_render_distribucion($resumen_categorias);
+$pa_actividad = pa_render_actividad(pa_actividad_equipo($CATEGORIAS));
+
 // El filtro 'tripulacion' no es una categoría real de mybb_op_peticiones —
 // cambia por completo a la lista de solicitudes de tripulación. Con
 // 'Todas' se muestran ambas listas (comportamiento previo).
@@ -397,16 +604,24 @@ $mostrar_tripulaciones = $categoria_filtro === '' || $categoria_filtro === 'trip
 
 $peticiones_li = '';
 $paginacion_html = '';
+$pa_total_vista = 0;
 if ($mostrar_peticiones) {
     $resultado = pa_listar_peticiones($resuelto, $categoria_filtro, $atendido_filtro, $pagina, $mods, $post_key, $CATEGORIAS);
-    if ($resultado['html'] !== '') {
-        $peticiones_li .= '<div class="pa-seccion">' . $resultado['html'] . '</div>';
-    }
+    $peticiones_li .= $resultado['html'];
+    $pa_total_vista += (int) $resultado['total'];
     $paginacion_html = pa_paginacion_html($resultado['pagina'], $resultado['total_paginas'], $resuelto, $categoria_filtro, $atendido_filtro);
 }
 if ($mostrar_tripulaciones) {
-    $peticiones_li .= print_peticion_tripulacion($resuelto);
+    $resultado_tripulaciones = print_peticion_tripulacion($resuelto);
+    $peticiones_li .= $resultado_tripulaciones['html'];
+    $pa_total_vista += (int) $resultado_tripulaciones['total'];
 }
+
+$pa_listado_titulo = $resuelto === '1' ? 'Peticiones resueltas' : 'Peticiones pendientes';
+$pa_listado_icono = $resuelto === '1' ? 'box-archive' : 'inbox';
+$pa_listado_descripcion = $resuelto === '1'
+    ? 'Histórico de peticiones atendidas. Los filtros solo modifican este listado.'
+    : 'Cola activa de peticiones que todavía requieren gestión del equipo.';
 
 $categoria_opciones = pa_opciones_categoria($CATEGORIAS, $categoria_filtro);
 $atendido_opciones = pa_opciones_atendido($mods, $atendido_filtro);

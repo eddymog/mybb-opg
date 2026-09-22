@@ -951,3 +951,106 @@ mezclar el motor de rondas con cambios visuales no relacionados.
 - mensaje positivo en cero;
 - coste medido y aceptable;
 - coincidencia con los conteos de la pagina.
+
+## 17. Ampliacion implementada: metricas temporales y orden
+
+1. El plugin crea o anade idempotentemente `estado_grupo` y `estado_desde`.
+2. `op_bitacora_listar()` carga el post que inicia la ronda y las fechas de
+   respuesta de participantes, calcula el grupo y persiste su inicio solo al
+   cambiar entre `turno` y `al_dia`.
+3. Los posts propios fijan directamente `al_dia` usando el `dateline` real del
+   post; los overrides manuales usan `TIME_NOW`.
+4. La consulta principal incluye `threads.replies`; no se ejecuta un `COUNT`
+   adicional por tarjeta.
+5. Cada tarjeta expone `data-lastpost` y muestra total de posts, ultimo post
+   absoluto/relativo y antiguedad del estado.
+6. El control segmentado ordena ambas listas en cliente, persiste en
+   `localStorage` y se reaplica despues de HTMX.
+
+## 18. Checklist de implementacion pendiente
+
+### 18.1 Antiguedad visual
+
+- [x] Definir umbrales de 3 y 7 dias como constantes configurables.
+- [x] Calcular una clase `normal`, `atencion` o `antiguo` usando
+  exclusivamente `estado_desde`.
+- [x] Aplicar prioridad fuerte solo en `Tu turno`; en `Al dia` mostrar la
+  antiguedad sin apariencia de error.
+- [x] Agregar texto e icono ademas del color; queda pendiente verificar
+  contraste y foco visualmente.
+- [x] Probar limites exactos: 2d23h59m, 3d, 6d23h59m y 7d.
+
+### 18.2 Accion principal
+
+- [x] Agregar a cada tarjeta una clase de enlace propia que no herede `.btn-op`.
+- [x] Usar `Responder` con `newreply.php?tid={tid}` en `Tu turno` y
+  `Ver ultimo post` con `showthread.php?action=lastpost` en `Al dia`.
+- [x] Mantener `target="_blank"`, `rel="noopener"` y una etiqueta accesible con
+  el titulo del tema.
+- [x] Reorganizar el header de la tarjeta para que retirada y configuracion
+  sigan siendo secundarias y no se solapen en movil.
+
+### 18.3 Modo compacto, nombres y vacios
+
+- [x] Anadir un control segmentado `Detallado / Compacto` gestionado por Alpine.
+- [x] Persistir `opBitacoraVista` en `localStorage` y restaurarlo tras HTMX.
+- [x] Implementar `.op-temas-tracker--compacto` sin duplicar el HTML de las
+  tarjetas. Oculta progreso, participantes, historial y metadatos secundarios,
+  pero conserva estado, tiempos, posts, accion y acceso a configuracion.
+- [x] Mostrar solo `op_fichas.nombre` en la Bitacora y reservar `username` como
+  fallback, sin concatenar apodos.
+- [x] Renderizar en PHP un vacio diferente para `Tu turno`, `Al dia` y la
+  Bitacora sin seguimientos.
+- [x] Usar literalmente `Todo al dia. No tienes respuestas pendientes. Eres
+  increible!` cuando la pestana `Tu turno` este vacia.
+
+### 18.4 Ultima actividad del header
+
+- [x] Extender el resumen con `ultima_actividad`, calculada durante la misma
+  lectura en bloque mediante el maximo de `lastpost`, `actualizado_en` y
+  `estado_desde`.
+- [x] Crear un helper comun para formato relativo y evitar una segunda version
+  distinta entre tarjeta y header.
+- [x] Anadir `{$op_temas_header_actualizado}` a `op_bitacora_header.html` solo
+  cuando exista al menos un seguimiento visible.
+- [x] Confirmar por inspeccion que recargar una pagina no modifica por si mismo
+  la fecha; queda pendiente la prueba integrada.
+- [ ] Medir de nuevo el hook global y verificar que no aparece una consulta
+  adicional por seguimiento.
+
+### 18.5 Historial corto
+
+- [x] Anadir `op_bitacora_eventos` al instalador y a
+  `docs/bitacora_migration.sql` mediante una migracion idempotente.
+- [x] Crear un helper unico para insertar eventos y aceptar `pid=NULL` en
+  acciones manuales.
+- [x] Registrar asignacion, cambio y retirada de narrador en sus operaciones
+  existentes.
+- [x] Registrar `manual_turno` y `manual_al_dia` al aplicar overrides.
+- [x] Registrar `ronda_normal_iniciada` cuando publica el propietario y
+  `ronda_narrada_iniciada` cuando publica el narrador seleccionado.
+- [x] Usar `(seguimiento_id, tipo, pid)` para que reprocesar hooks automaticos
+  sea idempotente.
+- [x] Leer los ultimos cinco eventos de todos los seguimientos visibles en una
+  unica consulta compatible con MySQL sin funciones de ventana y agruparlos en
+  PHP; no cargar historiales completos para recortarlos despues.
+- [x] Renderizar `Actividad reciente` como un `<details>` de solo lectura,
+  disponible tambien en `modo_vista`.
+- [x] No crear eventos retroactivos para seguimientos anteriores al despliegue.
+- [x] Eliminar los eventos asociados cuando el personaje deja de seguir el
+  tema, antes de eliminar el seguimiento.
+- [x] Definir en desinstalacion la eliminacion de la tabla y comprobar por
+  inspeccion que la desactivacion conserva sus datos.
+
+### 18.6 Verificacion final
+
+- [x] Ejecutar `php -l` sobre plugin, funciones y controlador.
+- [x] Ejecutar `git diff --check` sobre los archivos de la Bitacora.
+- [ ] Revisar la migracion en una copia de datos.
+- [ ] Probar rondas normales y narradas con posts aprobados, desmoderados y
+  reprocesados.
+- [ ] Verificar las dos densidades y todos los estados vacios en escritorio y
+  movil.
+- [ ] Comparar conteos y ultima actividad entre la pagina y el header.
+- [ ] Ejecutar `EXPLAIN` y confirmar que resumen e historial no
+  introducen consultas N+1.

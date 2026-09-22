@@ -1,0 +1,214 @@
+<html>
+<head>
+    <title>Aventuras por personaje</title>
+    {$headerinclude}
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <script defer src="{$mybb->settings['bburl']}/jscripts/vendor/alpinejs-3.17.3.min.js"></script>
+    <style>
+    [x-cloak] { display: none !important; }
+    .aventuras-personaje .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-4); text-align: left; }
+    .aventuras-shell { display: flex; flex-direction: column; gap: var(--opg-espacio-6); }
+    .aventuras-cabecera { display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-4); padding: var(--opg-espacio-3) var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); background: var(--opg-textura-trama), var(--opg-naranja); }
+    .aventuras-cabecera h1 { margin: 0; color: #fff; font-family: var(--opg-fuente-titular); font-size: 24px; font-weight: normal; letter-spacing: 1px; text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black, 2px 2px 0 black; }
+    .aventuras-cabecera p { margin: 3px 0 0; color: var(--opg-ciruela); font: 12px/1.4 InterMedium, var(--opg-fuente-cuerpo); }
+    .aventuras-tabs { display: flex; gap: 4px; flex: 0 0 auto; }
+    .aventuras-tab { min-height: 36px; padding: 7px 12px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); color: var(--opg-marron); background: var(--opg-crema); font-family: var(--opg-fuente-titular); font-size: 12px; font-weight: normal; letter-spacing: 0; cursor: pointer; transition: transform var(--opg-rapido), background var(--opg-rapido); }
+    .aventuras-tab:hover { transform: scale(1.05); background: var(--opg-crema-dorada); }
+    .aventuras-tab[aria-selected=true] { color: #fff; background: var(--opg-morado); text-shadow: 1px 1px 1px black; }
+    .aventuras-contenido { display: flex; flex-direction: column; gap: var(--opg-espacio-4); padding: 0; }
+    .vista-solo-lista, .vista-solo-autonarradas { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+    .aventuras-filtros { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: var(--opg-espacio-2); align-items: start; }
+    .personaje-buscador { min-width: 0; }
+    .personaje-buscador input[type=search] { width: 100%; height: 38px; box-sizing: border-box; font: 13px var(--opg-fuente-cuerpo); color: var(--opg-marron); background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px; }
+    .personaje-resultados { display: none; }
+    .personaje-resultados:not(:empty) { display: block; }
+    .personaje-buscador.htmx-request .personaje-resultados { opacity: .55; }
+    .personaje-opcion { width: 100%; text-align: left; }
+    .personaje-ayuda { margin-top: 5px; color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
+    .aventuras-resumen { display: flex; flex-direction: column; gap: var(--opg-espacio-3); }
+    .aventuras-resumen__titulo, .aventuras-lista-titulo { margin: 0; padding: 7px 11px; color: #fff; background: var(--opg-naranja); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md) var(--opg-radio-md) 0 0; font-family: var(--opg-fuente-titular); font-size: 13px; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; text-shadow: 1px 1px 1px black; }
+    .aventuras-conteo { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)); border: 2px solid var(--opg-tinta); border-top: 0; background: var(--opg-crema); }
+    .aventuras-conteo__item { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 11px 13px; border-right: 1px solid rgba(0,0,0,.14); }
+    .aventuras-conteo__item:nth-child(3n) { border-right: 0; }
+    .aventuras-conteo__item:nth-child(-n+3) { border-bottom: 1px solid rgba(0,0,0,.14); }
+    .aventuras-conteo__valor { flex: 0 0 auto; min-width: 28px; color: var(--opg-morado-texto); font: 21px var(--opg-fuente-titular); }
+    .aventuras-conteo__etiqueta { color: var(--opg-marron); font: 12px/1.25 var(--opg-fuente-cuerpo); }
+    .aventuras-tiers-conteo { display: grid; grid-template-columns: repeat(10, minmax(48px, 1fr)); gap: 1px; overflow: hidden; border: 2px solid var(--opg-tinta); border-top: 0; background: var(--opg-tinta); }
+    .aventuras-tiers-conteo--autonarradas { grid-template-columns: repeat(3, minmax(80px, 1fr)); }
+    .aventuras-tier-conteo { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; background: var(--opg-crema-dorada); }
+    .aventuras-tier-conteo span { color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
+    .aventuras-tier-conteo strong { color: var(--opg-morado-texto); font: 18px var(--opg-fuente-titular); }
+    .aventuras-lista-bloque { display: flex; flex-direction: column; }
+    .aventuras-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-top: 0; }
+    .aventuras-lista > .opg-vacio { padding: var(--opg-espacio-4); }
+    .aventura-fila { display: grid; grid-template-columns: minmax(280px, 1.15fr) minmax(240px, 1fr) auto; gap: 10px 18px; align-items: center; padding: 13px 12px; }
+    .aventura-fila:nth-child(odd) { background: var(--opg-crema-dorada); }
+    .aventura-fila:nth-child(even) { background: var(--opg-crema); }
+    .aventura-fila + .aventura-fila { border-top: 1px solid rgba(0,0,0,.15); }
+    .aventura-identidad, .aventura-meta, .aventura-jugadores { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; }
+    .aventura-id { font: 12px var(--opg-fuente-titular); color: var(--opg-gris-texto); }
+    .aventura-tier, .aventura-etiqueta { display: inline-flex; align-items: center; min-height: 21px; padding: 2px 6px; border-radius: var(--opg-radio-sm); font: 11px InterMedium, var(--opg-fuente-cuerpo); }
+    .aventura-tier { color: #fff; background: var(--opg-morado); }
+    .aventura-etiqueta--infra { color: #fff; background: var(--opg-naranja); }
+    .aventura-estado { display: inline-flex; align-items: center; gap: 5px; color: var(--opg-gris-texto); font: 11px InterMedium, var(--opg-fuente-cuerpo); }
+    .aventura-estado:before { width: 7px; height: 7px; content: ""; border-radius: 50%; background: currentColor; }
+    .aventura-estado--progreso { color: var(--opg-verde-exito); }
+    .aventura-estado--finalizada { color: var(--opg-azul); }
+    .aventura-estado--denegada, .aventura-estado--borrado { color: var(--opg-rojo-error); }
+    .aventura-estado--sin-narrador { color: var(--opg-dorado); }
+    .aventura-meta { margin-top: 5px; color: var(--opg-marron); font: 12px var(--opg-fuente-cuerpo); }
+    .aventura-jugador { display: inline-flex; align-items: center; gap: 5px; color: var(--opg-marron); font: 12px var(--opg-fuente-cuerpo); }
+    a.aventura-jugador, .aventura-personaje-link { color: var(--opg-morado-texto); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    a.aventura-jugador:hover, .aventura-personaje-link:hover, .ranking-personaje:hover { color: var(--opg-naranja); }
+    .aventura-jugador + .aventura-jugador:before { margin-right: 3px; content: "·"; color: var(--opg-gris-texto); }
+    .aventura-jugador--seleccionado { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); }
+    .aventura-nivel { color: var(--opg-gris-texto); font-size: 10px; }
+    .aventura-sin-dato { color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
+    .aventura-detalle { grid-column: 1 / 3; color: var(--opg-marron); font: 12px var(--opg-fuente-cuerpo); }
+    .aventura-detalle summary { cursor: pointer; color: var(--opg-morado-texto); }
+    .aventura-detalle div { margin-top: 6px; line-height: 1.45; }
+    .aventura-accion { justify-self: end; }
+    .paginacion { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); color: var(--opg-marron); font: 13px var(--opg-fuente-cuerpo); }
+    .ranking-aventuras { scroll-margin-top: 18px; }
+    .ranking-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-top: 0; }
+    .ranking-lista > .opg-vacio { padding: var(--opg-espacio-4); }
+    .ranking-fila { display: grid; grid-template-columns: 34px minmax(220px, 1fr) 105px 105px 82px; gap: 10px; align-items: center; min-height: 52px; padding: 7px 12px; }
+    .ranking-fila:nth-child(odd) { background: var(--opg-crema-dorada); }
+    .ranking-fila:nth-child(even) { background: var(--opg-crema); }
+    .ranking-fila + .ranking-fila { border-top: 1px solid rgba(0,0,0,.14); }
+    .ranking-puesto { color: var(--opg-morado-texto); font: 20px var(--opg-fuente-titular); text-align: center; }
+    .ranking-personaje { color: var(--opg-morado-texto); font: 13px InterMedium, var(--opg-fuente-cuerpo); }
+    .ranking-personaje small { color: var(--opg-gris-texto); font: 10px var(--opg-fuente-cuerpo); }
+    .ranking-cifra, .ranking-total { display: flex; flex-direction: column; align-items: center; }
+    .ranking-cifra strong, .ranking-total strong { color: var(--opg-marron); font: 17px var(--opg-fuente-titular); }
+    .ranking-cifra small, .ranking-total small { color: var(--opg-gris-texto); font: 10px var(--opg-fuente-cuerpo); }
+    .ranking-total { border-left: 1px solid rgba(0,0,0,.18); }
+    .ranking-encabezado h2 { margin: 0; padding: 7px 11px; color: #fff; background: var(--opg-naranja); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md) var(--opg-radio-md) 0 0; font-family: var(--opg-fuente-titular); font-size: 14px; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; text-shadow: 1px 1px 1px black; }
+    .ranking-encabezado p { margin: 0; padding: 7px 11px; color: var(--opg-marron); background: var(--opg-crema); border-right: 2px solid var(--opg-tinta); border-left: 2px solid var(--opg-tinta); font: 12px var(--opg-fuente-cuerpo); }
+    @media (max-width: 760px) {
+        .aventuras-conteo { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+        .aventuras-conteo__item, .aventuras-conteo__item:nth-child(3n) { border-right: 1px solid rgba(0,0,0,.14); border-bottom: 1px solid rgba(0,0,0,.14); }
+        .aventuras-conteo__item:nth-child(2n) { border-right: 0; }
+        .aventuras-tiers-conteo { grid-template-columns: repeat(5, 1fr); }
+        .aventura-fila { grid-template-columns: 1fr auto; }
+        .aventura-principal, .aventura-jugadores, .aventura-detalle { grid-column: 1 / -1; }
+        .ranking-fila { grid-template-columns: 30px minmax(150px, 1fr) repeat(3, 74px); }
+    }
+    @media (max-width: 560px) {
+        .aventuras-personaje .secondBackground, .aventuras-personaje .thirdBackground { padding: 10px; }
+        .aventuras-titulo .barra-texto-op { font-size: 20px; }
+        .aventuras-cabecera { align-items: flex-start; flex-direction: column; }
+        .aventuras-contenido { padding: 12px; }
+        .aventuras-filtros { grid-template-columns: 1fr; }
+        .personaje-buscador { width: 100%; }
+        .aventuras-conteo { grid-template-columns: 1fr; }
+        .aventuras-conteo__item, .aventuras-conteo__item:nth-child(2n), .aventuras-conteo__item:nth-child(3n) { border-right: 0; border-bottom: 1px solid rgba(0,0,0,.14); }
+        .aventura-fila { grid-template-columns: 1fr; }
+        .aventura-principal, .aventura-jugadores, .aventura-detalle, .aventura-accion { grid-column: 1; }
+        .aventura-accion { justify-self: start; }
+        .ranking-fila { grid-template-columns: 28px 1fr repeat(3, 52px); gap: 6px; padding: 7px 6px; }
+        .ranking-cifra small, .ranking-total small { font-size: 8px; }
+    }
+    </style>
+</head>
+<body>
+    {$header}
+    <div class="indice aventuras-personaje" x-data="{ vista: '{$aventuras_vista_inicial}' }"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+        <div class="aventuras-shell">
+            <header class="aventuras-cabecera">
+                <div>
+                    <h1>Aventuras</h1>
+                    <p x-show="vista === 'lista'">{$aventuras_resultado}</p>
+                    <p x-show="vista === 'autonarradas'" x-cloak>{$aventuras_autonarradas_resultado}</p>
+                    <p x-show="vista === 'top'" x-cloak>Personajes con más aventuras en progreso y finalizadas.</p>
+                </div>
+                <div class="aventuras-tabs" role="tablist" aria-label="Vista de aventuras">
+                    <button type="button" class="aventuras-tab" role="tab" :aria-selected="vista === 'lista'" @click="vista = 'lista'; location.hash = 'lista-aventuras'">
+                        <i class="fa-solid fa-list" aria-hidden="true"></i> Listado
+                    </button>
+                    <button type="button" class="aventuras-tab" role="tab" :aria-selected="vista === 'autonarradas'" @click="vista = 'autonarradas'; location.hash = 'aventuras-autonarradas'">
+                        <i class="fa-solid fa-book-open" aria-hidden="true"></i> Autonarradas
+                    </button>
+                    <button type="button" class="aventuras-tab" role="tab" :aria-selected="vista === 'top'" @click="vista = 'top'; location.hash = 'top-aventureros'">
+                        <i class="fa-solid fa-ranking-star" aria-hidden="true"></i> Top 20
+                    </button>
+                </div>
+            </header>
+            <div class="aventuras-contenido">
+                <form method="get" class="aventuras-filtros" id="filtro-personaje" autocomplete="off" x-show="vista !== 'top'" x-cloak>
+                    <input type="hidden" name="vista" :value="vista">
+                    <div class="personaje-buscador opg-buscar-caja">
+                        <input type="search" id="personaje" name="personaje" value="{$aventuras_personaje}" placeholder="Buscar por ID, nombre o apodo" aria-label="Personaje" aria-autocomplete="list" aria-controls="personaje-resultados"
+                            hx-get="aventuras_personaje.php" hx-trigger="keyup changed delay:250ms" hx-target="#personaje-resultados" hx-vals='{"action":"buscar_personajes"}' hx-indicator="closest .personaje-buscador">
+                        <input type="hidden" id="personaje-fid" name="fid" value="{$aventuras_fid}">
+                        <div class="personaje-resultados opg-resultados" id="personaje-resultados" role="listbox"></div>
+                        <div class="personaje-ayuda">Escribe al menos 3 caracteres o un ID y selecciona una ficha.</div>
+                    </div>
+                    <button class="btn-op btn-op--sm btn-op--primario"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrar</button>
+                    {$aventuras_limpiar}
+                </form>
+            <div class="vista-solo-lista" x-show="vista === 'lista'" x-cloak>
+                <section class="aventuras-resumen" aria-label="Resumen de aventuras">
+                    <div class="aventuras-resumen__bloque">
+                        <h2 class="barra-op bbox aventuras-resumen__titulo">Aventuras por estado</h2>
+                        <div class="aventuras-conteo">{$aventuras_conteo_estados}</div>
+                    </div>
+                    <div class="aventuras-resumen__bloque">
+                        <h2 class="barra-op bbox aventuras-resumen__titulo">Distribución por tier</h2>
+                        <div class="aventuras-tiers-conteo">{$aventuras_conteo_tiers}</div>
+                    </div>
+                </section>
+                <section class="aventuras-lista-bloque" id="lista-aventuras">
+                    <h2 class="barra-op bbox aventuras-lista-titulo">Registro de aventuras</h2>
+                    <div class="aventuras-lista">{$aventuras_lista}</div>
+                </section>
+                {$aventuras_paginacion}
+            </div>
+            <section class="vista-solo-autonarradas" id="aventuras-autonarradas" x-show="vista === 'autonarradas'" x-cloak>
+                <div class="aventuras-resumen__bloque">
+                    <h2 class="barra-op bbox aventuras-resumen__titulo">Distribución autonarrada por tier</h2>
+                    <div class="aventuras-tiers-conteo aventuras-tiers-conteo--autonarradas">{$aventuras_autonarradas_conteo_tiers}</div>
+                </div>
+                <div class="aventuras-lista-bloque">
+                    <h2 class="barra-op bbox aventuras-lista-titulo">Aventuras autonarradas T1-T3</h2>
+                    <div class="aventuras-lista">{$aventuras_autonarradas_lista}</div>
+                </div>
+                {$aventuras_autonarradas_paginacion}
+            </section>
+            <section class="ranking-aventuras vista-solo-top" id="top-aventureros" x-show="vista === 'top'" x-cloak>
+                <div class="ranking-encabezado">
+                    <h2 class="barra-op bbox">Top 20 de aventureros</h2>
+                    <p>Ordenado por la suma de aventuras en progreso y finalizadas.</p>
+                </div>
+                <div class="ranking-lista">{$aventuras_top_20}</div>
+            </section>
+            </div>
+        </div>
+    </div></div></div></div>
+    {$footer}
+    <script>
+    (function () {
+        var input = document.getElementById('personaje');
+        var fid = document.getElementById('personaje-fid');
+        var resultados = document.getElementById('personaje-resultados');
+        if (!input || !fid || !resultados) return;
+        function cerrar() { resultados.innerHTML = ''; }
+        input.addEventListener('input', function () {
+            fid.value = '';
+        });
+        resultados.addEventListener('click', function (evento) {
+            var opcion = evento.target.closest('.personaje-opcion');
+            if (!opcion) return;
+            input.value = opcion.getAttribute('data-label');
+            fid.value = opcion.getAttribute('data-fid');
+            cerrar();
+            document.getElementById('filtro-personaje').submit();
+        });
+        document.addEventListener('click', function (evento) {
+            if (!evento.target.closest('.personaje-buscador')) cerrar();
+        });
+    }());
+    </script>
+</body>
+</html>

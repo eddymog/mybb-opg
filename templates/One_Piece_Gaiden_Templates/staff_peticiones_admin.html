@@ -1,179 +1,328 @@
 <html>
-
 <head>
     <title>Peticiones administrativas</title>
     {$headerinclude}
     {$csrf_script}
     <style>
-    .pa-staff .thirdBackground { width: 100%; max-width: 800px; gap: var(--opg-espacio-5); text-align: left; }
+    .pa-page .thirdBackground { width: 100%; max-width: 1100px; gap: var(--opg-espacio-6); text-align: left; }
 
-    .pa-titulo { padding: var(--opg-espacio-2); }
-    .pa-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .pa-cabecera {
+        display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-4);
+        padding: var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: 8px;
+        background: var(--opg-textura-trama), var(--opg-naranja); box-shadow: var(--opg-sombra-offset);
+    }
+    .pa-cabecera h1 {
+        margin: 0; color: #fff; font: 26px var(--opg-fuente-titular); letter-spacing: 0;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000, 2px 2px 0 #000;
+    }
+    .pa-cabecera p { margin: 4px 0 0; color: var(--opg-ciruela); font: 13px/1.4 var(--opg-fuente-cuerpo); }
+    .pa-cabecera__resumen {
+        display: flex; flex: 0 0 auto; overflow: hidden; border: 2px solid var(--opg-tinta);
+        border-radius: 8px; background: var(--opg-crema-clara);
+    }
+    .pa-resumen-item { min-width: 105px; padding: 8px 12px; text-align: center; }
+    .pa-resumen-item + .pa-resumen-item { border-left: 2px solid var(--opg-tinta); }
+    .pa-resumen-item strong { display: block; color: var(--opg-morado-texto); font: 22px var(--opg-fuente-titular); }
+    .pa-resumen-item span { display: block; color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
 
-    .pa-topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--opg-espacio-2); }
+    .pa-toolbar {
+        display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: var(--opg-espacio-3);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4); border: 2px solid var(--opg-tinta);
+        border-radius: 8px; background: var(--opg-crema-dorada);
+    }
+    .pa-toolbar__nav, .pa-toolbar__lateral { display: flex; align-items: center; flex-wrap: wrap; gap: var(--opg-espacio-2); }
+    .pa-toolbar__lateral { justify-content: flex-end; }
+    .pa-toolbar a { text-decoration: none; }
+    .pa-actividad-toggle[aria-expanded="true"] { background: var(--opg-verde-exito); }
+    .pa-actividad-toggle .fa-chevron-down { margin-left: 5px; transition: transform var(--opg-rapido); }
+    .pa-actividad-toggle[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+
+    .pa-vista {
+        display: inline-flex; flex: 0 0 auto; overflow: hidden; border: 2px solid var(--opg-tinta);
+        border-radius: 6px; background: var(--opg-crema-clara);
+    }
+    .pa-vista__boton {
+        min-height: 34px; padding: 6px 10px; border: 0; background: transparent; color: var(--opg-marron);
+        font: 11px var(--opg-fuente-cuerpo); letter-spacing: 0; cursor: pointer;
+    }
+    .pa-vista__boton + .pa-vista__boton { border-left: 2px solid var(--opg-tinta); }
+    .pa-vista__boton[aria-pressed="true"] { background: var(--opg-morado-cta); color: #fff; }
+    .pa-vista__boton:focus-visible { position: relative; z-index: 1; outline: 3px solid var(--opg-naranja); outline-offset: -3px; }
+    .pa-vista__boton i { margin-right: 5px; }
 
     .pa-filtros {
-        display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--opg-espacio-3);
-        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
-        padding: var(--opg-espacio-3) var(--opg-espacio-4);
+        display: flex; flex: 1 0 100%; align-items: end; flex-wrap: wrap; gap: var(--opg-espacio-3);
+        box-sizing: border-box; margin: 0; padding-top: var(--opg-espacio-3); border-top: 1px solid rgba(0, 0, 0, .25);
     }
-    .pa-filtros .af-field { flex: 1 1 200px; }
+    .pa-filtros .af-field { flex: 1 1 220px; }
     .pa-filtros .af-field select {
-        box-sizing: border-box; width: 100%; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
-        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 14px;
-        appearance: none; -webkit-appearance: none; padding-right: 32px; cursor: pointer;
+        box-sizing: border-box; width: 100%; padding: 8px 32px 8px 10px; border: 2px solid var(--opg-tinta);
+        border-radius: var(--opg-radio-sm); appearance: none; -webkit-appearance: none; cursor: pointer;
+        background-color: #fff; color: var(--opg-ciruela); font: 14px var(--opg-fuente-cuerpo);
         background-image: linear-gradient(45deg, transparent 50%, var(--opg-tinta) 50%), linear-gradient(135deg, var(--opg-tinta) 50%, transparent 50%);
-        background-position: calc(100% - 20px) center, calc(100% - 15px) center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+        background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+        background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
     }
 
-    .pa-paginacion { display: flex; align-items: center; justify-content: center; gap: var(--opg-espacio-3); margin: var(--opg-espacio-3) 0; }
-    .pa-paginacion-texto { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .pa-actividad, .pa-distribucion { border-top: 4px solid var(--opg-tinta); padding-top: var(--opg-espacio-5); }
+    .pa-actividad[hidden] { display: none; }
+    .pa-actividad > h2, .pa-distribucion > h2 { margin: 0 0 4px; color: var(--opg-ciruela); font: 21px var(--opg-fuente-titular); letter-spacing: 0; }
+    .pa-actividad > p, .pa-distribucion > p { margin: 0 0 var(--opg-espacio-4); color: var(--opg-gris-texto); font: 12px/1.5 var(--opg-fuente-cuerpo); }
+    .pa-actividad__nota { margin: var(--opg-espacio-3) 0 0; color: var(--opg-gris-texto); font: 11px/1.4 var(--opg-fuente-cuerpo); }
+    .pa-tabla-wrap { overflow-x: auto; border: 2px solid var(--opg-tinta); border-radius: 8px; }
+    .pa-tabla { width: 100%; border-collapse: collapse; background: var(--opg-crema-clara); font: 13px var(--opg-fuente-cuerpo); }
+    .pa-tabla th, .pa-tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(0, 0, 0, .2); text-align: center; }
+    .pa-tabla th:first-child { text-align: left; }
+    .pa-tabla thead th { background: var(--opg-morado-cta); color: #fff; font-family: var(--opg-fuente-titular); text-shadow: var(--opg-sombra-titular); }
+    .pa-tabla tbody tr:nth-child(even) { background: var(--opg-crema-dorada); }
+    .pa-tabla tbody th { text-align: left; }
+    .pa-tabla tbody a { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    .pa-tabla tbody a:hover { color: var(--opg-naranja-hover); text-decoration: underline; }
+    .pa-tabla tfoot th, .pa-tabla tfoot td { border-bottom: 0; background: var(--opg-naranja); color: #fff; font-family: var(--opg-fuente-titular); text-shadow: var(--opg-sombra-titular); }
+    .pa-tabla-wrap--actividad { max-width: 720px; }
+    .pa-tabla--actividad th:last-child, .pa-tabla--actividad td:last-child { width: 150px; }
+    .pa-tabla--actividad tbody td:last-child { color: var(--opg-morado-texto); font: 18px var(--opg-fuente-titular); }
 
-    .pa-chip-categoria { font-size: 11px; padding: 2px 8px; }
-
-    .pa-seccion { margin-bottom: var(--opg-espacio-5); }
-    .pa-seccion:last-child { margin-bottom: 0; }
-
-    /* Encabezado de categoría: antes una .barra-op naranja completa por
-       categoría (seis en esta página) resultaba muy pesado repetido tantas
-       veces — .barra-op es la chrome de "título de página" según style.md,
-       no pensada para repetirse así. Acá una franja de acento simple. */
-    .pa-categoria {
-        border-left: 4px solid var(--opg-naranja); padding: 4px var(--opg-espacio-3);
-        margin-bottom: var(--opg-espacio-3); font-family: moonGetHeavy; font-size: 15px;
-        letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
+    .pa-listado__cabecera { display: flex; align-items: center; gap: var(--opg-espacio-3); }
+    .pa-listado__icono {
+        display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px;
+        border: 2px solid var(--opg-tinta); border-radius: 8px; background: var(--opg-naranja);
+        color: #fff; font-size: 18px; text-shadow: var(--opg-sombra-titular);
     }
-
-    /* Tarjeta de petición en dos columnas: contenido de la petición a la
-       izquierda, gestión de staff (atendido/asignar/notas/resolver) a la
-       derecha — antes todo apilado en una sola columna hacía la tarjeta muy
-       alta. pa-item--simple (tripulaciones, sin controles de gestión) vuelve
-       a una sola columna. */
-    .pa-item {
-        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
-        padding: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3);
-        display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--opg-espacio-4);
+    .pa-listado__cabecera h2 { margin: 0; color: var(--opg-ciruela); font: 19px var(--opg-fuente-titular); letter-spacing: 0; }
+    .pa-listado__cabecera h2 span {
+        display: inline-block; min-width: 22px; margin-left: 6px; padding: 1px 6px; text-align: center;
+        border: 2px solid var(--opg-tinta); border-radius: 999px; background: var(--opg-naranja);
+        color: #fff; font-size: 12px; text-shadow: var(--opg-sombra-titular); vertical-align: 2px;
     }
-    .pa-item:last-child { margin-bottom: 0; }
-    .pa-item--simple { display: block; }
+    .pa-listado__cabecera p { margin: 3px 0 0; color: var(--opg-gris-texto); font: 12px/1.4 var(--opg-fuente-cuerpo); }
+    .pa-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--opg-espacio-4); }
 
-    .pa-item-gestion { padding-left: var(--opg-espacio-4); border-left: 1px dashed var(--opg-tinta); }
-
-    @media (max-width: 720px) {
-        .pa-item { grid-template-columns: 1fr; }
-        .pa-item-gestion { padding-left: 0; border-left: none; padding-top: var(--opg-espacio-3); border-top: 1px dashed var(--opg-tinta); }
+    .pa-card {
+        --pa-acento: var(--opg-naranja); min-width: 0; overflow: hidden; border: 2px solid var(--opg-tinta);
+        border-radius: 8px; background: var(--opg-textura-trama), var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta);
     }
-
-    .pa-item-linea { font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); margin-bottom: var(--opg-espacio-2); }
-    .pa-item-linea:last-child { margin-bottom: 0; }
-    .pa-item-linea a { color: var(--opg-morado-texto); word-break: break-word; }
-    .pa-item-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin-top: var(--opg-espacio-2); }
-
-    .pa-item select.sel-mod {
-        font-family: var(--opg-fuente-cuerpo); font-size: 13px; padding: 4px 8px; border: 2px solid var(--opg-tinta);
-        border-radius: var(--opg-radio-sm); background: #fff; color: var(--opg-ciruela);
+    .pa-card--tema { --pa-acento: var(--opg-morado); }
+    .pa-card--combate { --pa-acento: var(--opg-rojo-faccion); }
+    .pa-card--tecnica { --pa-acento: var(--opg-azul); }
+    .pa-card--otros { --pa-acento: var(--opg-morado-apagado); }
+    .pa-card--tripulacion { --pa-acento: var(--opg-verde-exito); }
+    .pa-card__cinta {
+        display: flex; justify-content: space-between; gap: var(--opg-espacio-2); padding: 6px 10px;
+        border-bottom: 2px solid var(--opg-tinta); background: var(--pa-acento); color: #fff;
+        font: 11px var(--opg-fuente-cuerpo); text-shadow: 1px 1px 1px #000;
     }
-    .pa-item-notas { margin-top: var(--opg-espacio-2); padding-top: var(--opg-espacio-2); border-top: 1px dashed var(--opg-tinta); }
-    .pa-item-notas label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
-    .pa-item-notas textarea {
-        display: block; width: 100%; max-width: 100%; box-sizing: border-box; margin-top: 4px; margin-bottom: var(--opg-espacio-2);
-        padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
-        background: #fff; color: var(--opg-ciruela); font-family: var(--opg-fuente-cuerpo); font-size: 13px; resize: vertical;
+    .pa-card__cinta span:first-child { font-family: var(--opg-fuente-titular); }
+    .pa-card__cuerpo { padding: var(--opg-espacio-4); }
+    .pa-card h3 { margin: 0 0 var(--opg-espacio-3); color: var(--opg-morado-texto); font: 18px/1.25 var(--opg-fuente-titular); letter-spacing: 0; overflow-wrap: anywhere; }
+    .pa-card__datos { display: grid; gap: 7px; margin: 0; }
+    .pa-card__datos > div { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+    .pa-card__datos dt { color: var(--opg-gris-texto); font: 10px var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .pa-card__datos dd { min-width: 0; margin: 0; color: var(--opg-marron); font: 12px/1.4 var(--opg-fuente-cuerpo); overflow-wrap: anywhere; }
+    .pa-card__datos a { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    .pa-card__datos a:hover { color: var(--opg-naranja-hover); text-decoration: underline; }
+    .pa-card__uid, .pa-card__sin-dato { color: var(--opg-gris-texto); font-size: 10px; }
+    .pa-card__descripcion { margin-top: var(--opg-espacio-3); padding-top: var(--opg-espacio-3); border-top: 1px solid rgba(0, 0, 0, .2); }
+    .pa-card__descripcion strong { color: var(--opg-ciruela); font: 12px var(--opg-fuente-titular); }
+    .pa-card__descripcion p { margin: 5px 0 0; color: var(--opg-marron); font: 12px/1.5 var(--opg-fuente-cuerpo); overflow-wrap: anywhere; }
+
+    .pa-card__gestion { margin: var(--opg-espacio-4) calc(-1 * var(--opg-espacio-4)) calc(-1 * var(--opg-espacio-4)); padding: var(--opg-espacio-3) var(--opg-espacio-4); border-top: 2px solid var(--opg-tinta); background: var(--opg-crema-dorada); }
+    .pa-card__gestion-titulo { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: var(--opg-espacio-3); color: var(--opg-ciruela); font: 11px var(--opg-fuente-cuerpo); }
+    .pa-card__gestion-titulo > span:first-child { font-family: var(--opg-fuente-titular); }
+    .pa-card__gestion-titulo .atendido-por { padding: 3px 7px; border: 1px solid var(--opg-tinta); border-radius: 999px; background: #fff; text-align: right; }
+    .pa-card__asignacion label, .pa-card__notas label { display: block; margin-bottom: 4px; color: var(--opg-morado-texto); font: 10px InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .pa-card__asignacion > div { display: flex; align-items: stretch; gap: 6px; }
+    .pa-card select.sel-mod, .pa-card__notas textarea {
+        box-sizing: border-box; min-width: 0; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        background: #fff; color: var(--opg-ciruela); font: 12px var(--opg-fuente-cuerpo);
+    }
+    .pa-card select.sel-mod { flex: 1 1 auto; padding: 5px 7px; }
+    .pa-card__notas { margin-top: var(--opg-espacio-3); }
+    .pa-card__notas textarea { display: block; width: 100%; max-width: 100%; margin-bottom: 6px; padding: 7px 9px; resize: vertical; }
+    .pa-card__resuelta { margin: var(--opg-espacio-3) 0 0; color: var(--opg-verde-exito); font: 11px/1.4 var(--opg-fuente-cuerpo); }
+    .pa-card__acciones { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 6px; margin-top: var(--opg-espacio-3); }
+    .pa-card__acciones a { text-decoration: none; }
+    .pa-card__acciones--simple { align-items: end; margin-top: var(--opg-espacio-4); }
+
+    .pa-paginacion { display: flex; align-items: center; justify-content: center; gap: var(--opg-espacio-3); margin: 0; }
+    .pa-paginacion-texto { color: var(--opg-marron); font: 13px var(--opg-fuente-cuerpo); }
+
+    .pa-page--compacta .pa-grid { grid-template-columns: 1fr; gap: 7px; }
+    .pa-page--compacta .pa-card { display: grid; grid-template-columns: 135px minmax(0, 1fr); box-shadow: 2px 2px 0 var(--opg-tinta); }
+    .pa-page--compacta .pa-card__cinta { flex-direction: column; justify-content: center; border-right: 2px solid var(--opg-tinta); border-bottom: 0; }
+    .pa-page--compacta .pa-card__cuerpo { display: grid; grid-template-columns: minmax(240px, 1.2fr) minmax(310px, 1fr); gap: 12px; padding: 9px 11px; }
+    .pa-page--compacta .pa-card h3 { margin-bottom: 7px; font-size: 14px; }
+    .pa-page--compacta .pa-card__datos { gap: 3px; }
+    .pa-page--compacta .pa-card__datos > div { grid-template-columns: 82px minmax(0, 1fr); gap: 5px; }
+    .pa-page--compacta .pa-card__datos dt { font-size: 9px; }
+    .pa-page--compacta .pa-card__datos dd, .pa-page--compacta .pa-card__descripcion p { font-size: 10px; }
+    .pa-page--compacta .pa-card__descripcion { margin-top: 6px; padding-top: 6px; }
+    .pa-page--compacta .pa-card__gestion { margin: 0; padding: 0 0 0 12px; border-top: 0; border-left: 1px solid rgba(0, 0, 0, .25); background: transparent; }
+    .pa-page--compacta .pa-card__notas { margin-top: 6px; }
+    .pa-page--compacta .pa-card__notas textarea { height: 42px; min-height: 42px; }
+    .pa-page--compacta .pa-card--simple .pa-card__cuerpo { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+    .pa-page--compacta .pa-card__acciones--simple { margin: 0; }
+
+    @media (max-width: 820px) {
+        .pa-cabecera { align-items: stretch; flex-direction: column; }
+        .pa-cabecera__resumen { width: 100%; }
+        .pa-resumen-item { flex: 1 1 50%; min-width: 0; }
+        .pa-toolbar { align-items: stretch; flex-direction: column; }
+        .pa-toolbar__lateral { justify-content: flex-start; }
+        .pa-grid { grid-template-columns: 1fr; }
+        .pa-page--compacta .pa-card { grid-template-columns: 110px minmax(0, 1fr); }
+        .pa-page--compacta .pa-card__cuerpo { grid-template-columns: 1fr; }
+        .pa-page--compacta .pa-card__gestion { padding: 9px 0 0; border-top: 1px solid rgba(0, 0, 0, .25); border-left: 0; }
+    }
+    @media (max-width: 520px) {
+        .pa-page .secondBackground, .pa-page .thirdBackground { padding: 8px; }
+        .pa-toolbar__nav, .pa-toolbar__lateral, .pa-filtros { align-items: stretch; flex-direction: column; }
+        .pa-toolbar .btn-op, .pa-toolbar a.btn-op, .pa-filtros .btn-op { box-sizing: border-box; width: 100%; text-align: center; }
+        .pa-vista { align-self: flex-start; }
+        .pa-card__datos > div { grid-template-columns: 1fr; gap: 2px; }
+        .pa-card__asignacion > div { align-items: stretch; flex-direction: column; }
+        .pa-page--compacta .pa-card { display: block; }
+        .pa-page--compacta .pa-card__cinta { flex-direction: row; border-right: 0; border-bottom: 2px solid var(--opg-tinta); }
+        .pa-page--compacta .pa-card__cuerpo, .pa-page--compacta .pa-card--simple .pa-card__cuerpo { grid-template-columns: 1fr; }
+        .pa-card__acciones .btn-op { box-sizing: border-box; width: 100%; text-align: center; }
     }
     </style>
 </head>
-
 <body>
     {$header}
-    <div class="indice pa-staff">
-    <div class="mainBackground">
-    <div class="secondBackground">
-    <div class="thirdBackground">
-
+    <div class="indice pa-page"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
         <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-        <div class="barra-op bbox pa-titulo"><span class="barra-texto-op">Peticiones administrativas</span></div>
+        <header class="pa-cabecera">
+            <div><h1>Peticiones administrativas</h1><p>Gestión de ficha, narración, combate, técnicas y otras peticiones del foro.</p></div>
+            <div class="pa-cabecera__resumen" aria-label="Resumen de peticiones">
+                <div class="pa-resumen-item"><strong>{$pa_total_pendientes}</strong><span>pendientes</span></div>
+                <div class="pa-resumen-item"><strong>{$pa_total_resueltas}</strong><span>resueltas</span></div>
+            </div>
+        </header>
 
-        <div class="pa-topbar">
-            <a class="opg-chip" href="/op/staff/reset_peticiones.php">Resets de build<if $resets_build_pendientes > 0 then> ({$resets_build_pendientes})</if></a>
+        <section class="pa-toolbar" aria-label="Acciones de peticiones">
+            <div class="pa-toolbar__nav">
+                <a class="btn-op btn-op--sm btn-op--primario" href="/op/staff/reset_peticiones.php"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Resets de build<if $resets_build_pendientes > 0 then> ({$resets_build_pendientes})</if></a>
+                <if $resuelto == '1' then>
+                <a class="btn-op btn-op--sm btn-op--secundario" href="/op/staff/peticiones_admin.php"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Ver pendientes</a>
+                <else>
+                <a class="btn-op btn-op--sm btn-op--secundario" href="/op/staff/peticiones_admin.php?resuelto=1"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Ver resueltas</a>
+                </if>
+            </div>
+            <div class="pa-toolbar__lateral">
+                <button class="btn-op btn-op--sm btn-op--secundario pa-actividad-toggle" type="button" data-pa-actividad-toggle aria-expanded="false" aria-controls="pa-actividad-equipo"><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Actividad del equipo <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                <div class="pa-vista" role="group" aria-label="Modo de visualización">
+                    <button class="pa-vista__boton" type="button" data-pa-vista="tarjetas" aria-pressed="true" title="Vista de tarjetas"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>Tarjetas</button>
+                    <button class="pa-vista__boton" type="button" data-pa-vista="compacta" aria-pressed="false" title="Vista compacta"><i class="fa-solid fa-list" aria-hidden="true"></i>Compacta</button>
+                </div>
+            </div>
             <if $resuelto == '1' then>
-            <a class="opg-chip" href="/op/staff/peticiones_admin.php">Ver pendientes</a>
-            <else>
-            <a class="opg-chip" href="/op/staff/peticiones_admin.php?resuelto=1">Ver resueltas</a>
+            <form class="pa-filtros" method="get" action="/op/staff/peticiones_admin.php">
+                <input type="hidden" name="resuelto" value="{$resuelto}">
+                <div class="af-field"><label for="pa-categoria">Categoría</label><select id="pa-categoria" name="categoria">{$categoria_opciones}</select></div>
+                <div class="af-field"><label for="pa-atendido">Atendido por</label><select id="pa-atendido" name="atendido">{$atendido_opciones}</select></div>
+                <button type="submit" class="btn-op btn-op--sm btn-op--primario"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrar</button>
+            </form>
             </if>
+        </section>
+
+        <section class="pa-actividad" id="pa-actividad-equipo" hidden>
+            <h2>Resoluciones por moderador</h2>
+            <p>Actividad histórica atribuida a quien resolvió cada petición.</p>
+            {$pa_actividad}
+        </section>
+
+        <section class="pa-listado">
+            <header class="pa-listado__cabecera">
+                <span class="pa-listado__icono"><i class="fa-solid fa-{$pa_listado_icono}" aria-hidden="true"></i></span>
+                <div><h2>{$pa_listado_titulo} <span>{$pa_total_vista}</span></h2><p>{$pa_listado_descripcion}</p></div>
+            </header>
+        </section>
+
+        {$paginacion_html}
+
+        <div class="pa-grid">
+            <if $peticiones_li == '' then>
+            <p class="opg-vacio">No hay peticiones en esta vista.</p>
+            </if>
+            {$peticiones_li}
         </div>
 
-        <if $resuelto == '1' then>
-        <form class="pa-filtros" method="get" action="/op/staff/peticiones_admin.php">
-            <input type="hidden" name="resuelto" value="{$resuelto}">
-            <div class="af-field">
-                <label for="pa-categoria">Categoría</label>
-                <select id="pa-categoria" name="categoria">{$categoria_opciones}</select>
-            </div>
-            <div class="af-field">
-                <label for="pa-atendido">Atendido por</label>
-                <select id="pa-atendido" name="atendido">{$atendido_opciones}</select>
-            </div>
-            <button type="submit" class="btn-op btn-op--sm">Filtrar</button>
-        </form>
-        </if>
-
         {$paginacion_html}
 
-        <if $peticiones_li == '' then>
-        <p class="aviso ok">No hay peticiones en esta vista.</p>
-        </if>
-
-        {$peticiones_li}
-
-        {$paginacion_html}
-
-    </div>
-    </div>
-    </div>
-    </div>
+        <section class="pa-distribucion">
+            <h2>Distribución por categoría</h2>
+            <p>Estado global de las peticiones administrativas y de tripulación, independiente de los filtros del listado.</p>
+            {$pa_distribucion}
+        </section>
+    </div></div></div></div>
     {$footer}
 
     <script>
     (function () {
+        var page = document.querySelector('.pa-page');
+        var viewButtons = document.querySelectorAll('[data-pa-vista]');
+        var activityButton = document.querySelector('[data-pa-actividad-toggle]');
+        var activityPanel = document.getElementById('pa-actividad-equipo');
+        var storageKey = 'opg_peticiones_admin_vista';
+
+        function applyView(view) {
+            var compact = view === 'compacta';
+            if (page) { page.classList.toggle('pa-page--compacta', compact); }
+            viewButtons.forEach(function (button) {
+                button.setAttribute('aria-pressed', button.getAttribute('data-pa-vista') === view ? 'true' : 'false');
+            });
+        }
+
+        var savedView = 'tarjetas';
+        try { savedView = localStorage.getItem(storageKey) === 'compacta' ? 'compacta' : 'tarjetas'; } catch (error) {}
+        applyView(savedView);
+
+        viewButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var view = button.getAttribute('data-pa-vista');
+                applyView(view);
+                try { localStorage.setItem(storageKey, view); } catch (error) {}
+            });
+        });
+
+        if (activityButton && activityPanel) {
+            activityButton.addEventListener('click', function () {
+                var open = activityButton.getAttribute('aria-expanded') !== 'true';
+                activityButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+                activityPanel.hidden = !open;
+            });
+        }
+
         document.addEventListener('click', function (e) {
             var btnMod = e.target.closest('.save-mod');
             if (btnMod) {
                 var pid = btnMod.dataset.pid;
                 var sel = document.getElementById(btnMod.dataset.targetId);
                 if (!pid || !sel) { return; }
-
                 var nombre = sel.value;
                 btnMod.disabled = true;
-                var prevText = btnMod.textContent;
+                var prevHtml = btnMod.innerHTML;
                 btnMod.textContent = 'Guardando...';
-
                 var params = new URLSearchParams();
                 params.set('accion', 'asignar_mod');
                 params.set('peti_id', pid);
                 params.set('nombre_mod', nombre);
                 if (window.MYBB_POST_KEY) { params.set('my_post_key', window.MYBB_POST_KEY); }
-
                 fetch('/op/staff/peticiones_admin.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-                    body: params.toString()
+                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }, body: params.toString()
                 })
                     .then(function (r) { return r.json(); })
                     .then(function (res) {
                         if (res && res.success) {
-                            var li = btnMod.closest('.pa-item');
-                            var span = li && li.querySelector('.atendido-por');
+                            var card = btnMod.closest('.pa-card');
+                            var span = card && card.querySelector('.atendido-por');
                             if (span) { span.textContent = res.atendidoPor || 'Sin asignar'; }
-                        } else {
-                            alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
-                        }
+                        } else { alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido')); }
                     })
                     .catch(function () { alert('Fallo de red/servidor'); })
-                    .finally(function () {
-                        btnMod.disabled = false;
-                        btnMod.textContent = prevText || 'Guardar';
-                    });
+                    .finally(function () { btnMod.disabled = false; btnMod.innerHTML = prevHtml; });
                 return;
             }
 
@@ -182,41 +331,30 @@
                 var pidN = btnNotas.dataset.pid;
                 var ta = document.getElementById(btnNotas.dataset.targetId);
                 if (!pidN || !ta) { return; }
-
                 var notas = ta.value;
                 btnNotas.disabled = true;
-                var prevTextN = btnNotas.textContent;
+                var prevHtmlN = btnNotas.innerHTML;
                 btnNotas.textContent = 'Guardando...';
-
                 var paramsN = new URLSearchParams();
                 paramsN.set('accion', 'guardar_notas_mod');
                 paramsN.set('peti_id', pidN);
                 paramsN.set('notas', notas);
                 if (window.MYBB_POST_KEY) { paramsN.set('my_post_key', window.MYBB_POST_KEY); }
-
                 fetch('/op/staff/peticiones_admin.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-                    body: paramsN.toString()
+                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }, body: paramsN.toString()
                 })
                     .then(function (r) { return r.json(); })
                     .then(function (res) {
                         if (res && res.success) {
-                            ta.style.outline = '2px solid #4caf50';
+                            ta.style.outline = '2px solid var(--opg-verde-exito)';
                             setTimeout(function () { ta.style.outline = ''; }, 800);
-                        } else {
-                            alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido'));
-                        }
+                        } else { alert('No se guardó: ' + (res && res.error ? res.error : 'desconocido')); }
                     })
                     .catch(function () { alert('Fallo de red/servidor'); })
-                    .finally(function () {
-                        btnNotas.disabled = false;
-                        btnNotas.textContent = prevTextN || 'Guardar notas';
-                    });
+                    .finally(function () { btnNotas.disabled = false; btnNotas.innerHTML = prevHtmlN; });
             }
         });
-    })();
+    }());
     </script>
 </body>
-
 </html>

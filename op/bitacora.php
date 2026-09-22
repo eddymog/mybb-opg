@@ -26,7 +26,7 @@ if ($opTemasOwnerUid <= 0) {
 
 $queryFichaVista = $db->simple_select(
     'op_fichas',
-    'fid,nombre,apodo',
+    'fid,nombre',
     "fid='{$opTemasOwnerUid}'",
     array('limit' => 1)
 );
@@ -41,12 +41,8 @@ if (!$opTemasFichaVista) {
 function op_bitacora_nombre_personaje($row)
 {
     $nombre = trim((string)($row['nombre'] ?? ''));
-    $apodo = trim((string)($row['apodo'] ?? ''));
     if ($nombre === '') {
         $nombre = trim((string)($row['username'] ?? 'Personaje #' . (int)($row['participante_uid'] ?? 0)));
-    }
-    if ($apodo !== '' && $apodo !== $nombre) {
-        $nombre .= ' - ' . $apodo;
     }
     return $nombre;
 }
@@ -227,7 +223,8 @@ function op_bitacora_render_configuracion($tema, $soloLectura = false)
     }
 
     return '<details class="op-temas-config">'
-        . '<summary><i class="fa-solid fa-' . ($soloLectura ? 'users' : 'users-gear') . '" aria-hidden="true"></i> '
+        . '<summary title="' . ($soloLectura ? 'Ver ronda' : 'Configurar ronda') . '"><i class="fa-solid fa-'
+        . ($soloLectura ? 'users' : 'users-gear') . '" aria-hidden="true"></i> '
         . ($soloLectura ? 'Ver ronda' : 'Configurar ronda') . '</summary>'
         . '<div class="op-temas-config__cuerpo">' . $turnos
         . '<div class="op-temas-participantes-grid"><section><h4>Ya respondieron</h4>' . $respondieron . '</section>'
@@ -236,13 +233,65 @@ function op_bitacora_render_configuracion($tema, $soloLectura = false)
         . $buscador . '</div></details>';
 }
 
+function op_bitacora_render_historial($tema, $soloLectura = false)
+{
+    $items = '';
+    foreach ((array)($tema['historial'] ?? array()) as $evento) {
+        $relacionado = op_bitacora_nombre_personaje(array(
+            'participante_uid' => (int)($evento['relacionado_uid'] ?? 0),
+            'nombre' => $evento['relacionado_nombre'] ?? '',
+            'username' => $evento['relacionado_username'] ?? '',
+        ));
+        $relacionado = op_bitacora_escape($relacionado);
+        switch ((string)$evento['tipo']) {
+            case 'narrador_asignado':
+                $texto = $relacionado . ' fue establecido como narrador.';
+                break;
+            case 'narrador_cambiado':
+                $texto = 'El narrador se cambio a ' . $relacionado . '.';
+                break;
+            case 'narrador_retirado':
+                $texto = 'Se retiro a ' . $relacionado . ' como narrador.';
+                break;
+            case 'manual_turno':
+                $texto = $soloLectura
+                    ? 'El personaje indico manualmente que debe responder.'
+                    : 'Marcaste manualmente que debes responder.';
+                break;
+            case 'manual_al_dia':
+                $texto = $soloLectura
+                    ? 'El personaje indico manualmente que no le toca responder.'
+                    : 'Marcaste manualmente que no te toca responder.';
+                break;
+            case 'ronda_narrada_iniciada':
+                $texto = $relacionado . ' inicio una ronda narrada.';
+                break;
+            case 'ronda_normal_iniciada':
+                $texto = $soloLectura
+                    ? 'Una publicacion del personaje inicio una nueva ronda.'
+                    : 'Tu publicacion inicio una nueva ronda.';
+                break;
+            default:
+                continue 2;
+        }
+        $fecha = (int)($evento['creado_en'] ?? 0);
+        $items .= '<li><span>' . $texto . '</span><time datetime="' . op_bitacora_escape(date('c', $fecha)) . '">hace '
+            . op_bitacora_escape(op_bitacora_tiempo_transcurrido($fecha)) . '</time></li>';
+    }
+    if ($items === '') {
+        return '';
+    }
+    return '<details class="op-temas-historial"><summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> '
+        . 'Actividad reciente</summary><ol>' . $items . '</ol></details>';
+}
+
 function op_bitacora_render_tarjeta($tema, $soloLectura = false)
 {
     $id = (int)$tema['id'];
     $tid = (int)$tema['tid'];
     $titulo = op_bitacora_escape($tema['subject']);
     $foro = op_bitacora_escape($tema['forum_name']);
-    $url = '/showthread.php?tid=' . $tid . '&action=lastpost';
+    $urlTema = '/showthread.php?tid=' . $tid . '&action=lastpost';
     $prefijo = '';
     $prefijoId = (int)($tema['prefix'] ?? 0);
     if ($prefijoId > 0) {
@@ -253,10 +302,12 @@ function op_bitacora_render_tarjeta($tema, $soloLectura = false)
     }
     $ultimoNombre = op_bitacora_escape(op_bitacora_nombre_personaje(array(
         'nombre' => $tema['last_nombre'] ?? '',
-        'apodo' => $tema['last_apodo'] ?? '',
         'username' => $tema['last_username'] ?? 'Desconocido',
     )));
-    $fecha = my_date('d/m/Y H:i', (int)$tema['lastpost']);
+    $ultimoPost = (int)$tema['lastpost'];
+    $fecha = my_date('d/m/Y H:i', $ultimoPost);
+    $ultimoHace = op_bitacora_tiempo_transcurrido($ultimoPost);
+    $totalPosts = max(1, (int)($tema['replies'] ?? 0) + 1);
     $estado = (string)$tema['estado'];
     $cerrado = $estado === 'cerrado';
     $manual = !empty($tema['estado_es_manual']);
@@ -270,6 +321,20 @@ function op_bitacora_render_tarjeta($tema, $soloLectura = false)
     } else {
         $estadoTexto = !empty($tema['narrador_uid']) ? 'Esperando al narrador' : 'Esperando respuesta';
         $estadoClase = 'esperando';
+    }
+    $grupoTexto = $estadoClase === 'debes' ? 'Tu turno' : 'Al día';
+    $estadoDesde = (int)($tema['estado_desde'] ?? 0);
+    if ($estadoDesde <= 0) {
+        $estadoDesde = (int)($tema['ronda_inicio_fecha'] ?? $ultimoPost);
+    }
+    $estadoTiempo = '<span class="op-temas-estado-tiempo"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> '
+        . $grupoTexto . ' desde hace ' . op_bitacora_escape(op_bitacora_tiempo_transcurrido($estadoDesde)) . '</span>';
+    $prioridad = (string)($tema['prioridad_estado'] ?? 'normal');
+    $marcaPrioridad = '';
+    if ($prioridad === 'antiguo') {
+        $marcaPrioridad = '<span class="op-temas-prioridad op-temas-prioridad--antiguo">Pendiente antiguo</span>';
+    } elseif ($prioridad === 'atencion') {
+        $marcaPrioridad = '<span class="op-temas-prioridad">Requiere atencion</span>';
     }
 
     $pendientes = '';
@@ -300,6 +365,15 @@ function op_bitacora_render_tarjeta($tema, $soloLectura = false)
     }
     $marcaManual = $manual ? '<span class="op-temas-manual">Ajuste manual</span>' : '';
     $configuracion = $cerrado ? '' : op_bitacora_render_configuracion($tema, $soloLectura);
+    $accionTexto = $cerrado ? 'Ver tema' : ($estadoClase === 'debes' ? 'Responder' : 'Ver ultimo post');
+    $accionIcono = $estadoClase === 'debes' ? 'reply' : 'arrow-up-right-from-square';
+    $urlAccion = !$cerrado && $estadoClase === 'debes'
+        ? '/newreply.php?tid=' . $tid
+        : $urlTema;
+    $claseAccion = $estadoClase === 'debes' ? 'responder' : ($cerrado ? 'cerrado' : 'ver');
+    $accionPrincipal = '<a class="op-temas-accion op-temas-accion--' . $claseAccion . '" href="' . $urlAccion
+        . '" target="_blank" rel="noopener" aria-label="' . $accionTexto . ': ' . $titulo . '">'
+        . '<i class="fa-solid fa-' . $accionIcono . '" aria-hidden="true"></i> ' . $accionTexto . '</a>';
     $retirar = '';
     if (!$soloLectura) {
         $retirar = '<form class="op-temas-retirar"' . op_bitacora_form_attrs() . ' onsubmit="return confirm(\'Confirmar: dejar de seguir este tema?\')">'
@@ -307,16 +381,23 @@ function op_bitacora_render_tarjeta($tema, $soloLectura = false)
             . '<button class="op-temas-icono op-temas-icono--peligro" type="submit" title="Dejar de seguir" aria-label="Dejar de seguir ' . $titulo . '">'
             . '<i class="fa-solid fa-trash-can" aria-hidden="true"></i></button></form>';
     }
+    $acciones = '<div class="op-temas-card__acciones">' . $accionPrincipal . $retirar . '</div>';
+    $historial = op_bitacora_render_historial($tema, $soloLectura);
 
-    return '<article class="op-temas-card op-temas-card--' . $estadoClase . '">'
-        . '<header class="op-temas-card__header"><div><span class="op-temas-estado">' . $estadoTexto . '</span>' . $marcaManual . $marcaNarrador
-        . '<h3>' . $prefijo . '<a href="' . $url . '" target="_blank" rel="noopener">' . $titulo . '</a></h3></div>' . $retirar . '</header>'
-        . '<div class="op-temas-card__meta"><span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' . $foro . '</span>'
-        . '<span>TID ' . $tid . '</span><span>Ultimo post: ' . $ultimoNombre . ' - ' . op_bitacora_escape($fecha) . '</span></div>'
+    return '<article class="op-temas-card op-temas-card--' . $estadoClase . ' op-temas-card--prioridad-' . $prioridad
+        . '" data-lastpost="' . $ultimoPost . '" data-estado-desde="' . $estadoDesde . '">'
+        . '<header class="op-temas-card__header"><div><div class="op-temas-card__estados"><span class="op-temas-estado">' . $estadoTexto . '</span>' . $marcaManual . $marcaNarrador . $estadoTiempo . $marcaPrioridad . '</div>'
+        . '<h3>' . $prefijo . '<a href="' . $urlTema . '" target="_blank" rel="noopener">' . $titulo . '</a></h3></div>' . $acciones . '</header>'
+        . '<div class="op-temas-card__meta"><span class="op-temas-meta-lugar"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' . $foro . '</span>'
+        . '<span class="op-temas-meta-tid"><i class="fa-solid fa-hashtag" aria-hidden="true"></i> TID ' . $tid . '</span>'
+        . '<span class="op-temas-meta-posts"><i class="fa-solid fa-message" aria-hidden="true"></i> ' . $totalPosts . ($totalPosts === 1 ? ' post' : ' posts') . '</span>'
+        . '<span class="op-temas-meta-ultimo"><i class="fa-solid fa-clock" aria-hidden="true"></i> '
+        . '<span class="op-temas-meta-ultimo__detalle">Ultimo post: ' . $ultimoNombre . ' · '
+        . op_bitacora_escape($fecha) . ' · </span>hace ' . op_bitacora_escape($ultimoHace) . '</span></div>'
         . ($cerrado ? '<p class="op-temas-cerrado-aviso"><i class="fa-solid fa-lock" aria-hidden="true"></i> Este tema esta cerrado.'
             . ($soloLectura ? '' : ' Retíralo de la bitácora cuando hayas terminado.') . '</p>'
             : '<div class="op-temas-ronda"><strong>' . $progreso . '</strong><div class="op-temas-pendientes">' . $pendientes . '</div></div>' . $configuracion)
-        . '</article>';
+        . $historial . '</article>';
 }
 
 function op_bitacora_render_resultado_busqueda($ficha)
@@ -367,14 +448,22 @@ function op_bitacora_render_tracker(
     global $templates, $mybb;
     $op_temas_conteo_debes = (int)$listado['conteos']['debes_responder'];
     $op_temas_conteo_esperando = (int)$listado['conteos']['esperando'];
+    $sinSeguimientos = $op_temas_conteo_debes === 0 && $op_temas_conteo_esperando === 0;
 
     $op_temas_lista_debes = '';
     foreach ($listado['debes_responder'] as $tema) {
         $op_temas_lista_debes .= op_bitacora_render_tarjeta($tema, $soloLectura);
     }
     if ($op_temas_lista_debes === '') {
-        $op_temas_lista_debes = '<p class="op-temas-vacio"><i class="fa-solid fa-check" aria-hidden="true"></i> '
-            . ($soloLectura ? 'Este personaje no tiene temas en Tu turno.' : 'No tienes temas en Tu turno.') . '</p>';
+        if ($soloLectura) {
+            $textoVacio = 'Este personaje no tiene temas en Tu turno.';
+        } elseif ($sinSeguimientos) {
+            $textoVacio = 'Tu Bitacora esta vacia. Agrega un TID o publica en una zona de rol para comenzar.';
+        } else {
+            $textoVacio = 'Todo al dia. No tienes respuestas pendientes. Eres increible!';
+        }
+        $op_temas_lista_debes = '<div class="op-temas-vacio"><i class="fa-solid fa-check" aria-hidden="true"></i><strong>'
+            . op_bitacora_escape($textoVacio) . '</strong></div>';
     }
 
     $op_temas_lista_esperando = '';
@@ -382,8 +471,13 @@ function op_bitacora_render_tracker(
         $op_temas_lista_esperando .= op_bitacora_render_tarjeta($tema, $soloLectura);
     }
     if ($op_temas_lista_esperando === '') {
-        $op_temas_lista_esperando = '<p class="op-temas-vacio">'
-            . ($soloLectura ? 'Este personaje no tiene temas en Al día.' : 'No tienes temas en Al día.') . '</p>';
+        $textoVacio = $soloLectura
+            ? 'Este personaje no tiene temas en Al dia.'
+            : ($sinSeguimientos
+                ? 'Los temas que sigas apareceran aqui cuando no necesiten tu respuesta.'
+                : 'No tienes temas en Al dia. Toda tu actividad seguida requiere respuesta.');
+        $op_temas_lista_esperando = '<div class="op-temas-vacio"><i class="fa-solid fa-inbox" aria-hidden="true"></i><strong>'
+            . op_bitacora_escape($textoVacio) . '</strong></div>';
     }
 
     $op_temas_aviso = '';
@@ -546,7 +640,6 @@ $listado = op_bitacora_listar($opTemasOwnerUid);
 $opTemasVistaNombre = op_bitacora_nombre_personaje(array(
     'participante_uid' => $opTemasOwnerUid,
     'nombre' => $opTemasFichaVista['nombre'],
-    'apodo' => $opTemasFichaVista['apodo'],
 ));
 $opTemasMostrarMisTemas = $opTemasSessionUid > 0
     && op_bitacora_personaje_tiene_ficha($opTemasSessionUid);

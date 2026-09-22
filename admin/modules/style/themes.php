@@ -1369,8 +1369,6 @@ if($mybb->input['action'] == "edit")
 
 	$properties = my_unserialize($theme['properties']);
 	$page->output_nav_tabs($sub_tabs, 'edit_stylesheets');
-/* + PL:fastyle + */ $plugins->run_hooks("fastyle_themes_hijack");
-/* + PL:fastyle + */ if (false) {
 
 	$table = new Table;
 	$table->construct_header($lang->stylesheets);
@@ -1574,7 +1572,6 @@ if($mybb->input['action'] == "edit")
 
 	echo '<br />';
 
-/* + PL:fastyle + */ }
 	// Theme Properties table
 	if($errors)
 	{

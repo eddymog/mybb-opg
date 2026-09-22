@@ -51,6 +51,26 @@
     (function () {
         var typeaheadStates = new WeakMap();
 
+        window.opBitacoraOrdenar = function (orden) {
+            var direccion = orden === 'antiguos' ? 1 : -1;
+            document.querySelectorAll('#op-temas-tracker .op-temas-lista').forEach(function (lista) {
+                var tarjetas = Array.prototype.slice.call(lista.children).filter(function (elemento) {
+                    return elemento.classList.contains('op-temas-card');
+                });
+                tarjetas.sort(function (a, b) {
+                    return direccion * ((Number(a.dataset.lastpost) || 0) - (Number(b.dataset.lastpost) || 0));
+                });
+                tarjetas.forEach(function (tarjeta) { lista.appendChild(tarjeta); });
+            });
+        };
+
+        document.addEventListener('htmx:afterSwap', function (event) {
+            if (!event.target.matches('#op-temas-tracker')) return;
+            var orden = 'recientes';
+            try { orden = localStorage.getItem('opTemasOrden') === 'antiguos' ? 'antiguos' : 'recientes'; } catch (error) {}
+            window.requestAnimationFrame(function () { window.opBitacoraOrdenar(orden); });
+        });
+
         function cancelTypeahead(input) {
             var state = typeaheadStates.get(input);
             if (!state) return;

@@ -343,7 +343,7 @@ a.opg-card:hover, .opg-card--interactiva:hover {
   padding: 3px 10px;
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--opg-rapido), color var(--opg-rapido);
+  transition: background var(--opg-rapido), color var(--opg-rapido) !important;
 }
 /* button.opg-chip: sin esto hereda el estilo de botón nativo del navegador */
 button.opg-chip { font: inherit; font-family: InterMedium, var(--opg-fuente-cuerpo); }

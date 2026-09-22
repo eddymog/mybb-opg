@@ -18,7 +18,8 @@ La implementación se considera terminada cuando:
 - cada petición listada muestra también los moderadores que ya postearon
   en el tema, no solo el usuario que lo abrió;
 - Completada y Cancelada mueven el tema al subforo correcto según su
-  perfil de origen, resuelto siempre en servidor;
+  perfil de origen, resuelto siempre en servidor, y están disponibles en
+  los tres grupos sin depender del autor del último post;
 - la sección de estadísticas muestra completadas/canceladas por perfil,
   dentro de la misma página;
 - el contador del header (`#peticiones_staff`) suma los 5 perfiles, vía un
@@ -26,6 +27,8 @@ La implementación se considera terminada cuando:
 - no existe ninguna consulta N+1 por tarjeta listada;
 - todas las mutaciones validan permisos, `post_key`, y que el `tid`
   pertenece a uno de los 5 FIDs de perfil antes de mover nada.
+- cada resolución nueva registra moderador, acción y perfil para alimentar
+  el resumen desplegable de actividad de moderación.
 
 ## 2. Archivos
 
@@ -42,7 +45,7 @@ La implementación se considera terminada cuando:
 
 | Archivo | Cambio |
 |---|---|
-| `templates/One_Piece_Gaiden_Templates/header.html` | Reemplazar la línea `Creaciones: {$g_total_creaciones_sin_moderar} / {$g_total_creaciones_pendientes}` (línea 996) por `Solicitudes: {$op_solicitudes_creacion_sin_responder} / {$op_solicitudes_creacion_reabiertas}`, enlazando a `solicitudes_creacion.php` |
+| `templates/One_Piece_Gaiden_Templates/header.html` | Reemplazar manualmente la línea de `Creaciones` por `Solicitudes: {$op_solicitudes_creacion_pendientes}`, enlazando a `solicitudes_creacion.php` |
 
 ### 2.3 No se toca
 
@@ -55,7 +58,8 @@ La implementación se considera terminada cuando:
   redirige ni se borra en esta entrega; es candidato a deprecar en un
   commit de limpieza posterior, una vez que `solicitudes_creacion.php`
   esté validado en producción.
-- No hay tablas ni migraciones SQL nuevas.
+- El plugin crea `op_solicitudes_creacion_resoluciones`; no requiere una
+  migración SQL manual.
 
 ## 3. Convenciones de implementación
 
@@ -111,53 +115,20 @@ Funciones de ciclo de vida:
 - `op_solicitudes_creacion_activate()`;
 - `op_solicitudes_creacion_deactivate()`.
 
-No hay tablas, así que `install()`/`uninstall()` son mucho más livianos
-que en `op_bitacora`: no hay `CREATE TABLE` ni `DROP TABLE`. Lo único
-que instala/desinstala este plugin es la plantilla y el reemplazo de la
-línea del header (ver §4.2). `is_installed()` puede devolver `true`
-siempre (o verificar que la plantilla `staff_solicitudes_creacion` existe,
-si se decide instalarla como plantilla de plugin — ver Tarea 5).
+`install()` y `activate()` crean la tabla de auditoría si no existe y
+registran la plantilla. `uninstall()` elimina ambos recursos propios;
+`deactivate()` conserva el historial.
 
-### 4.2 Activación: reemplazo de la línea del header
+### 4.2 Instalación de la plantilla
 
-```php
-function op_solicitudes_creacion_insertar_header()
-{
-    global $db;
-    $buscar = "<a href=\"/op/staff/tecnicas_creacion.php\">Creaciones</a>: {\$g_total_creaciones_sin_moderar} / {\$g_total_creaciones_pendientes}";
-    $reemplazo = "<a href=\"/op/staff/solicitudes_creacion.php\">Solicitudes</a>: {\$op_solicitudes_creacion_sin_responder} / {\$op_solicitudes_creacion_reabiertas}";
+`install()` y `activate()` leen
+`templates/One_Piece_Gaiden_Templates/staff_solicitudes_creacion.html` y
+registran o actualizan `staff_solicitudes_creacion` en el set maestro y el
+set OPG, siguiendo el cargador de plantillas de `op_bitacora`.
 
-    $query = $db->simple_select('templates', 'tid,template', "title='header'");
-    while ($template = $db->fetch_array($query)) {
-        if (strpos($template['template'], $buscar) === false) {
-            continue; // ya migrado, o plantilla custom que no tiene la linea original
-        }
-        $updated = str_replace($buscar, $reemplazo, $template['template']);
-        $db->update_query('templates', array(
-            'template' => $db->escape_string($updated),
-            'dateline' => TIME_NOW,
-        ), "tid='" . (int)$template['tid'] . "'");
-    }
-}
-
-function op_solicitudes_creacion_activate()
-{
-    op_solicitudes_creacion_insertar_header();
-}
-```
-
-Mismo mecanismo que `op_temas_insertar_placeholder_header()`, pero en vez
-de insertar un placeholder nuevo, **reemplaza** una línea existente — así
-no queda duplicada la entrada de Creaciones/Solicitudes en el header. Si
-la línea original ya no está (por ejemplo, porque alguien la editó a
-mano), la función no hace nada — no hay que forzar un reemplazo a ciegas
-sobre una plantilla que cambió.
-
-`op_solicitudes_creacion_deactivate()` puede dejar la línea tal cual quedó
-(igual que `op_bitacora_deactivate()` — sin hook, la variable
-simplemente queda vacía y no rompe nada) o revertir al texto de
-`Creaciones` original; ambas son válidas, decidir en el momento según
-convenga probar el rollback.
+`activate()`, `deactivate()` y `uninstall()` no modifican `header.html`.
+La referencia a las variables del contador se mantiene manualmente en el
+archivo versionado y en la plantilla sincronizada del tema.
 
 ### 4.3 Verificación
 
@@ -169,9 +140,8 @@ php -l inc/plugins/op_solicitudes_creacion/functions.php
 En MyBB:
 
 1. instalar y activar;
-2. confirmar que la línea del header cambió una sola vez (activar dos
-   veces no debe duplicarla ni romperla);
-3. desactivar y reactivar sin errores;
+2. confirmar que `staff_solicitudes_creacion` fue instalada;
+3. desactivar y reactivar sin modificar `header.html`;
 4. confirmar que `tecnicas_creacion.php` sigue funcionando sin cambios
    (no se tocó).
 
@@ -209,12 +179,10 @@ WHERE fid IN (<fids de perfil>)
   AND closed = 0
   AND uid = lastposteruid
   AND visible = 1
-  AND tid != 97
 ```
 
-Antes de portar el `tid != 97`, confirmar contra la base en vivo qué tema
-es — si no se puede confirmar, dejarlo igual (es el comportamiento actual)
-pero sin inventar una explicación en el comentario del código.
+No se porta la excepción heredada `tid != 97`: cualquier tema visible que
+esté en uno de los cinco FIDs de perfil debe seguir las mismas reglas.
 
 ### 5.3 Listado de pendientes (para la página)
 
@@ -231,7 +199,7 @@ cada tema con: `tid`, `subject`, `fid` (perfil), `uid` (autor), `username`
 perfil) — y agregando `f.fid`/nombre de perfil al `SELECT` para poder
 mostrarlo en cada tarjeta.
 
-### 5.4 Moderadores por tema (requisito #6)
+### 5.4 Moderadores por tema (requisito #7)
 
 ```php
 op_solicitudes_creacion_cargar_posteadores(array $tids): array // ['tid' => [['uid'=>, 'username'=>], ...]]
@@ -271,26 +239,34 @@ y en PHP se reparte contra `OP_SOLICITUDES_CREACION_PERFILES` cruzando
 cada `completadas`/`canceladas` con el resultado (0 si no aparece en el
 `GROUP BY`).
 
+La página también llama a
+`op_solicitudes_creacion_distribucion_pendientes()`, que agrupa por FID los
+temas abiertos y visibles donde `uid = lastposteruid`, separando mediante
+sumas condicionales los que tienen `replies = 0` y `replies > 0`. Devuelve
+siempre las cinco claves del mapa, con ceros cuando un perfil no tiene
+moderaciones pendientes, y no se limita por el filtro visual de tarjetas.
+
 ### 5.6 Mutación: mover una petición
 
 ```php
-op_solicitudes_creacion_resolver(int $tid, string $accion): array // ['ok'=>bool, 'code'=>string]
+op_solicitudes_creacion_resolver(int $tid, string $accion, int $moderadorUid): array // ['ok'=>bool, 'code'=>string]
 ```
 
-`$accion` es `'completar'`, `'cancelar'` o `'abandonar'`. Secuencia:
+`$accion` es `'completar'` o `'cancelar'`. Secuencia:
 
 1. cargar `threads.fid` actual del `tid`;
-2. si `$accion` es `completar`/`cancelar`: exigir que el `fid` actual esté
+2. exigir que el `fid` actual esté
    en `OP_SOLICITUDES_CREACION_PERFILES` (si no, `code = 'perfil_invalido'`
    y no se mueve nada — ver validación §10 del diseño);
-3. resolver el FID destino con `op_solicitudes_creacion_fid_destino()`
-   (o `85` fijo para `abandonar`, igual que hoy);
+3. resolver el FID destino con `op_solicitudes_creacion_fid_destino()`;
 4. `UPDATE threads SET fid = <destino>, closed = 1 WHERE tid = <tid> AND
    fid IN (<fids de perfil>)` — el `AND fid IN (...)` en el propio
    `UPDATE` es la protección real contra mover un tema ajeno, no solo la
    validación previa en PHP (defensa en profundidad, ante una carrera
    entre el paso 1 y el `UPDATE`);
-5. devolver `ok=true` solo si `affected_rows > 0`.
+5. registrar o actualizar la auditoría del TID con perfil original, acción,
+   UID del moderador y fecha;
+6. devolver `ok=true` solo si `affected_rows > 0`.
 
 ## 6. Tarea 3: hook de header
 
@@ -299,9 +275,8 @@ op_solicitudes_creacion_resolver(int $tid, string $accion): array // ['ok'=>bool
 ```php
 function op_solicitudes_creacion_hook_header()
 {
-    global $mybb, $op_solicitudes_creacion_sin_responder, $op_solicitudes_creacion_reabiertas;
-    $op_solicitudes_creacion_sin_responder = 0;
-    $op_solicitudes_creacion_reabiertas = 0;
+    global $mybb, $op_solicitudes_creacion_pendientes;
+    $op_solicitudes_creacion_pendientes = 0;
 
     $uid = (int)($mybb->user['uid'] ?? 0);
     if ($uid <= 0 || !(is_staff($uid) || is_mod($uid) || is_user($uid))) {
@@ -309,8 +284,8 @@ function op_solicitudes_creacion_hook_header()
     }
 
     $conteo = op_solicitudes_creacion_contar_pendientes();
-    $op_solicitudes_creacion_sin_responder = (int)$conteo['sin_responder'];
-    $op_solicitudes_creacion_reabiertas = (int)$conteo['reabiertas'];
+    $op_solicitudes_creacion_pendientes = (int)$conteo['sin_responder']
+        + (int)$conteo['reabiertas'];
 }
 ```
 
@@ -323,7 +298,7 @@ contadores de `#peticiones_staff`.
 1. como usuario normal: el header no muestra la línea de Solicitudes (la
    plantilla ya la envuelve en `<if $g_is_staff then>`, no hace falta
    lógica extra acá);
-2. como staff: los dos números coinciden con un `COUNT(*)` manual sobre
+2. como staff: el número coincide con la suma manual de ambos estados sobre
    los 5 FIDs;
 3. crear una petición de prueba en cada uno de los 5 perfiles y confirmar
    que el contador sube en los 5 casos (no solo en Técnicas, que era el
@@ -358,9 +333,9 @@ Gate de permisos primero, mismo patrón que `tecnicas_creacion.php`.
 $accion = $mybb->get_input('accion', MyBB::INPUT_STRING);
 $tid_input = (int) $mybb->get_input('tid', MyBB::INPUT_INT);
 
-if (in_array($accion, ['completar', 'cancelar', 'abandonar'], true) && $tid_input > 0) {
+if (in_array($accion, ['completar', 'cancelar'], true) && $tid_input > 0) {
     verify_post_check($mybb->get_input('my_post_key'));
-    $resultado = op_solicitudes_creacion_resolver($tid_input, $accion);
+    $resultado = op_solicitudes_creacion_resolver($tid_input, $accion, $uid);
     header('Location: /op/staff/solicitudes_creacion.php' . ($resultado['ok'] ? '' : '?error=' . rawurlencode($resultado['code'])));
     exit;
 }
@@ -383,6 +358,7 @@ $todos_los_tids = array_column(
     'tid'
 );
 $posteadores = op_solicitudes_creacion_cargar_posteadores($todos_los_tids);
+$distribucion_pendientes = op_solicitudes_creacion_distribucion_pendientes();
 $estadisticas = op_solicitudes_creacion_estadisticas();
 $post_key = generate_post_check();
 ```
@@ -399,9 +375,9 @@ agregue:
 
 - el nombre del perfil (badge o texto);
 - la lista de moderadores que ya postearon (nombre + link a
-  `/op/ficha.php?uid=`), o "Nadie respondió todavía" si está vacía;
-- botones Completada/Cancelada (grupos 1 y 2) o Abandonar (grupo 3), cada
-  uno con `my_post_key` y `confirm()`.
+  `/op/personaje.php?uid=`), o "Nadie respondió todavía" si está vacía;
+- botones Completada/Cancelada en los tres grupos, sin importar quién hizo
+  el último post. Cada acción incluye `my_post_key` y `confirm()`.
 
 ### 7.5 Sección de estadísticas
 
@@ -420,22 +396,25 @@ Composición (ver diseño §7.2):
 
 1. Título + descripción.
 2. `<select>` de filtro por perfil (GET, recarga la página).
-3. Tres secciones de tarjetas.
-4. Tabla de estadísticas al final.
+3. Tabla global de moderaciones pendientes por los cinco perfiles.
+4. Tres secciones de tarjetas.
+5. Tabla de estadísticas al final.
+6. Selector Tarjetas/Compacta persistido en `localStorage`. El modo compacto
+   reorganiza las tarjetas como filas mediante una clase CSS en el contenedor,
+   sin duplicar peticiones ni formularios.
+7. Botón Actividad del equipo que despliega el resumen registrado, con columnas
+   Total, Completadas, Canceladas y una columna por perfil.
 
-Registrarla como plantilla común del tema OPG (no como plantilla
-instalada por el plugin) es la opción más simple y consistente con cómo
-ya vive `staff_tecnicas_creacion` — decidir en esta tarea si se justifica
-el mecanismo de instalación de `op_bitacora` para una sola plantilla,
-o si alcanza con agregarla a mano una vez, como el resto de `/op/staff/`.
+El plugin instala y actualiza esta plantilla desde el archivo versionado,
+siguiendo el mecanismo de `op_bitacora`. No requiere creación manual desde
+el Admin CP.
 
 ## 9. Tarea 6: `header.html`
 
-Reemplazar la línea 996 (ver §4.2 para el mecanismo automático vía
-`activate()`). Si se prefiere no depender del reemplazo automático del
-plugin, esta tarea puede hacerse a mano como parte del despliegue — ambas
-opciones son válidas, pero el reemplazo automático es más seguro para no
-olvidarlo en un ambiente y no en otro.
+Reemplazar manualmente la entrada actual de Creaciones por el enlace a
+`/op/staff/solicitudes_creacion.php` y las variables
+`{$op_solicitudes_creacion_pendientes}`. Ninguna función del ciclo de vida
+del plugin debe editar esta plantilla.
 
 ## 10. Tarea 7: pruebas
 
@@ -470,11 +449,12 @@ hardcodeado en vez de leerse del mapa.
 | 3 | El usuario vuelve a postear en ese tema | Pasa a "El usuario respondió, a la espera de moderación" |
 | 4 | Completar la petición del paso 3 | Termina en el FID `completadas` de su perfil, cerrado |
 | 5 | Cancelar otra distinta | Termina en el FID `canceladas` de su perfil, cerrado |
-| 6 | Abandonar una del grupo "a la espera del usuario" | Termina en `fid=85`, cerrado (comportamiento actual sin cambios) |
+| 6 | Completar o cancelar una del grupo "a la espera del usuario" | Se archiva en el FID correspondiente de su perfil |
 | 7 | Filtrar por un perfil específico | Solo aparecen temas de ese `fid` |
 | 8 | Ver estadísticas | Los totales de completadas/canceladas coinciden con el paso 4 y 5 |
 | 9 | Ver una petición sin respuesta de staff | Sección de moderadores vacía |
 | 10 | Ver una con 2 moderadores distintos posteando | Ambos listados, sin duplicados, sin incluir al autor |
+| 11 | Resolver solicitudes con dos cuentas de staff | La tabla atribuye cada acción a quien pulsó el botón y desglosa el perfil correcto |
 
 ### 10.3 Casos de seguridad
 
@@ -501,9 +481,8 @@ hardcodeado en vez de leerse del mapa.
 
 1. revisar diff completo;
 2. ejecutar `php -l` sobre los 3 archivos nuevos y `git diff --check`;
-3. respaldar la plantilla `header` de producción antes de activar el
-   plugin (el reemplazo de línea es idempotente, pero un respaldo no
-   cuesta nada);
+3. sincronizar manualmente la línea de Solicitudes de `header.html` y
+   respaldar la plantilla de producción antes del cambio;
 4. confirmar los 15 FIDs contra la base de producción una vez más
    inmediatamente antes de desplegar (ya fueron confirmados por el dueño
    del proyecto, pero son la pieza más frágil de todo el plan si cambian
@@ -513,18 +492,19 @@ hardcodeado en vez de leerse del mapa.
 
 1. subir plugin y `functions.php`;
 2. subir página y plantilla;
-3. instalar y activar el plugin desde Admin CP (reemplaza la línea del
-   header automáticamente);
-4. probar la página con una cuenta de staff de prueba, sin depender
+3. sincronizar manualmente `header.html` con la entrada de Solicitudes;
+4. reactivar el plugin desde Admin CP; instala o actualiza la plantilla y
+   crea la tabla de auditoría, pero no modifica el header;
+5. probar la página con una cuenta de staff de prueba, sin depender
    todavía del contador del header;
-5. verificar que el contador del header aparece y coincide con la página;
-6. dejar `tecnicas_creacion.php` accesible en paralelo un tiempo, por si
+6. verificar que el contador del header aparece y coincide con la página;
+7. dejar `tecnicas_creacion.php` accesible en paralelo un tiempo, por si
    hace falta comparar comportamiento — no se borra en este despliegue.
 
 ### 11.3 Rollback
 
-1. desactivar el plugin (revierte o vacía la línea del header, según lo
-   decidido en §4.2);
+1. desactivar el plugin; `header.html` permanece intacto y su entrada debe
+   revertirse manualmente si también se desea retirar el enlace;
 2. si se alcanzó a mover algún tema por error, corregir el `fid` a mano
    desde el ACP — no hay operación de deshacer automática (ver "Fuera de
    alcance" del diseño);
@@ -538,17 +518,17 @@ hardcodeado en vez de leerse del mapa.
 3. `Add /op/staff/solicitudes_creacion.php with pending list and poster names`
 4. `Add Completada/Cancelada actions with server-side destination resolution`
 5. `Add per-profile completed/cancelled statistics section`
+6. `Add moderator resolution audit and activity summary`
 
 Cada commit debe pasar `php -l` y dejar la página en un estado coherente.
-No mezclar la migración del contador del header con cambios visuales de
-la plantilla.
 
 ## 13. Definición de terminado por fase
 
 ### Fase 1: plugin y contador de header
 
 - plugin instalable, activable, desactivable;
-- línea del header migrada sin duplicarse;
+- plantilla `staff_solicitudes_creacion` instalada por el plugin;
+- línea del header mantenida manualmente, sin mutaciones del plugin;
 - contador correcto sobre los 5 FIDs, verificado contra el bug del
   contador viejo (§10.4).
 
@@ -556,9 +536,10 @@ la plantilla.
 
 - 3 grupos generalizados a los 5 perfiles;
 - filtro por perfil;
-- Completada/Cancelada/Abandonar con validación de pertenencia al mapa de
+- Completada/Cancelada con validación de pertenencia al mapa de
   perfiles;
-- usable sin JavaScript, Post/Redirect/Get completo.
+- acciones principales utilizables sin JavaScript mediante Post/Redirect/Get;
+  los selectores visuales y el panel de actividad usan JavaScript nativo.
 
 ### Fase 3: moderadores por petición
 
@@ -569,3 +550,9 @@ la plantilla.
 
 - tabla de completadas/canceladas por perfil, coincidiendo con
   `COUNT(*)` manual.
+
+### Fase 5: actividad de moderadores
+
+- tabla de auditoría creada por el plugin;
+- cada resolución guarda el UID del moderador;
+- tabla desplegable con acciones y perfiles desglosados.

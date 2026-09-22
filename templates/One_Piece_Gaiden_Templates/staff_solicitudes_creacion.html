@@ -1,0 +1,254 @@
+<html>
+<head>
+    <title>Solicitudes de creación</title>
+    {$headerinclude}
+    <style>
+    .sc-page .thirdBackground {
+        width: 100%; max-width: 1100px; gap: var(--opg-espacio-6); text-align: left;
+    }
+    .sc-cabecera {
+        display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-4);
+        padding: var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: 8px;
+        background: var(--opg-textura-trama), var(--opg-naranja); box-shadow: var(--opg-sombra-offset);
+    }
+    .sc-cabecera h1 {
+        margin: 0; color: #fff; font: 26px var(--opg-fuente-titular); letter-spacing: 0;
+        text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000, 2px 2px 0 #000;
+    }
+    .sc-cabecera p { margin: 4px 0 0; color: var(--opg-ciruela); font: 13px/1.4 var(--opg-fuente-cuerpo); }
+    .sc-cabecera__resumen { display: flex; flex: 0 0 auto; border: 2px solid var(--opg-tinta); border-radius: 8px; overflow: hidden; background: var(--opg-crema-clara); }
+    .sc-resumen-item { min-width: 105px; padding: 8px 12px; text-align: center; }
+    .sc-resumen-item + .sc-resumen-item { border-left: 2px solid var(--opg-tinta); }
+    .sc-resumen-item strong { display: block; font: 22px var(--opg-fuente-titular); color: var(--opg-morado-texto); }
+    .sc-resumen-item span { display: block; font: 11px var(--opg-fuente-cuerpo); color: var(--opg-gris-texto); }
+
+    .sc-toolbar {
+        display: flex; align-items: end; justify-content: space-between; gap: var(--opg-espacio-4);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4); border: 2px solid var(--opg-tinta);
+        border-radius: 8px; background: var(--opg-crema-dorada);
+    }
+    .sc-toolbar form { display: flex; align-items: end; gap: var(--opg-espacio-2); margin: 0; }
+    .sc-toolbar .af-field { min-width: 240px; }
+    .sc-toolbar__lateral { display: flex; align-items: center; justify-content: flex-end; gap: var(--opg-espacio-3); }
+    .sc-toolbar__nota { margin: 0; max-width: 480px; font: 12px/1.5 var(--opg-fuente-cuerpo); color: var(--opg-marron); }
+    .sc-vista { display: inline-flex; flex: 0 0 auto; overflow: hidden; border: 2px solid var(--opg-tinta); border-radius: 6px; background: var(--opg-crema-clara); }
+    .sc-vista__boton {
+        min-height: 34px; padding: 6px 10px; border: 0; background: transparent; color: var(--opg-marron);
+        font: 11px var(--opg-fuente-cuerpo); letter-spacing: 0; cursor: pointer;
+    }
+    .sc-vista__boton + .sc-vista__boton { border-left: 2px solid var(--opg-tinta); }
+    .sc-vista__boton[aria-pressed="true"] { background: var(--opg-morado-cta); color: #fff; }
+    .sc-vista__boton:focus-visible { position: relative; z-index: 1; outline: 3px solid var(--opg-naranja); outline-offset: -3px; }
+    .sc-vista__boton i { margin-right: 5px; }
+    .sc-actividad-toggle[aria-expanded="true"] { background: var(--opg-verde-exito); }
+    .sc-actividad-toggle .fa-chevron-down { margin-left: 5px; transition: transform var(--opg-rapido); }
+    .sc-actividad-toggle[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+
+    .sc-seccion { --sc-acento: var(--opg-naranja); }
+    .sc-seccion--reabiertas { --sc-acento: var(--opg-morado); }
+    .sc-seccion--esperando-usuario { --sc-acento: var(--opg-azul); }
+    .sc-seccion__cabecera { display: flex; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-4); }
+    .sc-seccion__icono {
+        display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px;
+        border: 2px solid var(--opg-tinta); border-radius: 8px; background: var(--sc-acento);
+        color: #fff; font-size: 18px; text-shadow: var(--opg-sombra-titular);
+    }
+    .sc-seccion__cabecera h2 { margin: 0; color: var(--opg-ciruela); font: 19px var(--opg-fuente-titular); letter-spacing: 0; }
+    .sc-seccion__cabecera h2 span {
+        display: inline-block; min-width: 22px; margin-left: 6px; padding: 1px 6px; text-align: center;
+        border: 2px solid var(--opg-tinta); border-radius: 999px; background: var(--sc-acento); color: #fff;
+        font-size: 12px; text-shadow: var(--opg-sombra-titular); vertical-align: 2px;
+    }
+    .sc-seccion__cabecera p { margin: 3px 0 0; color: var(--opg-gris-texto); font: 12px/1.4 var(--opg-fuente-cuerpo); }
+    .sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-4); }
+
+    .sc-card {
+        min-width: 0; overflow: hidden; border: 2px solid var(--opg-tinta); border-radius: 8px;
+        background: var(--opg-textura-trama), var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta);
+    }
+    .sc-card__cinta {
+        display: flex; justify-content: space-between; gap: var(--opg-espacio-2); padding: 6px 10px;
+        border-bottom: 2px solid var(--opg-tinta); background: var(--sc-acento); color: #fff;
+        font: 11px var(--opg-fuente-cuerpo); text-shadow: 1px 1px 1px #000;
+    }
+    .sc-perfil { font-family: var(--opg-fuente-titular); }
+    .sc-card__cuerpo { padding: var(--opg-espacio-4); }
+    .sc-card h3 { margin: 0 0 var(--opg-espacio-3); font: 18px/1.25 var(--opg-fuente-titular); letter-spacing: 0; overflow-wrap: anywhere; }
+    .sc-card h3 a { color: var(--opg-morado-texto); text-decoration: none; transition: color var(--opg-rapido); }
+    .sc-card h3 a:hover { color: var(--opg-naranja-hover); }
+    .sc-card__datos { margin: 0; display: grid; gap: 7px; }
+    .sc-card__datos > div { display: grid; grid-template-columns: 125px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+    .sc-card__datos dt { color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .sc-card__datos dd { min-width: 0; margin: 0; color: var(--opg-marron); font: 12px/1.4 var(--opg-fuente-cuerpo); overflow-wrap: anywhere; }
+    .sc-card__datos a, .sc-card__moderadores a { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    .sc-card__datos a:hover, .sc-card__moderadores a:hover { color: var(--opg-naranja-hover); text-decoration: underline; }
+    .sc-card__moderadores { margin-top: var(--opg-espacio-3); padding-top: var(--opg-espacio-3); border-top: 1px solid rgba(0, 0, 0, .2); }
+    .sc-card__moderadores strong { color: var(--opg-ciruela); font: 12px var(--opg-fuente-titular); }
+    .sc-card__moderadores ul { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 7px 0 0; padding: 0; list-style: none; }
+    .sc-card__moderadores li { font: 12px var(--opg-fuente-cuerpo); }
+    .sc-card__sin-respuestas { color: var(--opg-gris-texto); font-style: italic !important; }
+    .sc-card__acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin-top: var(--opg-espacio-4); }
+    .sc-card__acciones form { margin: 0; }
+    .sc-card__acciones .btn-op { letter-spacing: 0; }
+    .sc-vacio { grid-column: 1 / -1; margin: 0; }
+
+    .sc-page--compacta .sc-grid { grid-template-columns: 1fr; gap: 7px; }
+    .sc-page--compacta .sc-card { display: grid; grid-template-columns: 125px minmax(0, 1fr); box-shadow: 2px 2px 0 var(--opg-tinta); }
+    .sc-page--compacta .sc-card__cinta {
+        flex-direction: column; justify-content: center; border-right: 2px solid var(--opg-tinta); border-bottom: 0;
+    }
+    .sc-page--compacta .sc-card__cuerpo {
+        display: grid; grid-template-columns: minmax(190px, 1.35fr) minmax(210px, 1fr) minmax(145px, .8fr) auto;
+        align-items: center; gap: 12px; padding: 9px 11px;
+    }
+    .sc-page--compacta .sc-card h3 { margin: 0; font-size: 14px; }
+    .sc-page--compacta .sc-card__datos { gap: 3px; }
+    .sc-page--compacta .sc-card__datos > div { grid-template-columns: 88px minmax(0, 1fr); gap: 5px; }
+    .sc-page--compacta .sc-card__datos dt { font-size: 9px; }
+    .sc-page--compacta .sc-card__datos dd { font-size: 10px; }
+    .sc-page--compacta .sc-card__moderadores { min-width: 0; margin: 0; padding: 0; border-top: 0; }
+    .sc-page--compacta .sc-card__moderadores strong { font-size: 10px; }
+    .sc-page--compacta .sc-card__moderadores ul { display: block; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sc-page--compacta .sc-card__moderadores li { display: inline; font-size: 10px; }
+    .sc-page--compacta .sc-card__moderadores li + li::before { content: " · "; color: var(--opg-gris-texto); }
+    .sc-page--compacta .sc-card__acciones { flex-direction: column; align-items: stretch; margin: 0; gap: 4px; }
+    .sc-page--compacta .sc-card__acciones .btn-op { width: 100%; padding: 5px 8px; font-size: 9px; white-space: nowrap; }
+
+    .sc-actividad, .sc-distribucion, .sc-estadisticas { border-top: 4px solid var(--opg-tinta); padding-top: var(--opg-espacio-5); }
+    .sc-actividad[hidden] { display: none; }
+    .sc-actividad > h2, .sc-distribucion > h2, .sc-estadisticas > h2 { margin: 0 0 4px; color: var(--opg-ciruela); font: 21px var(--opg-fuente-titular); letter-spacing: 0; }
+    .sc-actividad > p, .sc-distribucion > p, .sc-estadisticas > p { margin: 0 0 var(--opg-espacio-4); color: var(--opg-gris-texto); font: 12px/1.5 var(--opg-fuente-cuerpo); }
+    .sc-tabla-wrap { overflow-x: auto; border: 2px solid var(--opg-tinta); border-radius: 8px; }
+    .sc-tabla { width: 100%; border-collapse: collapse; background: var(--opg-crema-clara); font: 13px var(--opg-fuente-cuerpo); }
+    .sc-tabla th, .sc-tabla td { padding: 10px 12px; border-bottom: 1px solid rgba(0, 0, 0, .2); text-align: center; }
+    .sc-tabla th:first-child { text-align: left; }
+    .sc-tabla thead th { background: var(--opg-morado-cta); color: #fff; font-family: var(--opg-fuente-titular); text-shadow: var(--opg-sombra-titular); }
+    .sc-tabla tbody tr:nth-child(even) { background: var(--opg-crema-dorada); }
+    .sc-tabla tfoot th, .sc-tabla tfoot td { border-bottom: 0; background: var(--opg-naranja); color: #fff; font-family: var(--opg-fuente-titular); text-shadow: var(--opg-sombra-titular); }
+    .sc-tabla--actividad { min-width: 980px; }
+    .sc-tabla--actividad tbody th { text-align: left; }
+    .sc-tabla--actividad tbody a { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    .sc-tabla--actividad tbody a:hover { color: var(--opg-naranja-hover); text-decoration: underline; }
+
+    @media (max-width: 780px) {
+        .sc-cabecera { align-items: stretch; flex-direction: column; }
+        .sc-cabecera__resumen { width: 100%; }
+        .sc-resumen-item { flex: 1 1 50%; min-width: 0; }
+        .sc-toolbar { align-items: stretch; flex-direction: column; }
+        .sc-toolbar form { align-items: stretch; }
+        .sc-toolbar .af-field { min-width: 0; }
+        .sc-toolbar__lateral { align-items: stretch; flex-direction: column; }
+        .sc-vista { align-self: flex-start; }
+        .sc-grid { grid-template-columns: 1fr; }
+        .sc-page--compacta .sc-card { grid-template-columns: 105px minmax(0, 1fr); }
+        .sc-page--compacta .sc-card__cuerpo { grid-template-columns: minmax(0, 1fr) auto; }
+        .sc-page--compacta .sc-card h3, .sc-page--compacta .sc-card__moderadores { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+        .sc-page .secondBackground, .sc-page .thirdBackground { padding: 8px; }
+        .sc-toolbar form { flex-direction: column; }
+        .sc-card__datos > div { grid-template-columns: 1fr; gap: 2px; }
+        .sc-card__acciones form, .sc-card__acciones .btn-op { width: 100%; }
+        .sc-page--compacta .sc-card { display: block; }
+        .sc-page--compacta .sc-card__cinta { flex-direction: row; border-right: 0; border-bottom: 2px solid var(--opg-tinta); }
+        .sc-page--compacta .sc-card__cuerpo { grid-template-columns: 1fr; }
+        .sc-page--compacta .sc-card h3, .sc-page--compacta .sc-card__moderadores { grid-column: auto; }
+        .sc-page--compacta .sc-card__acciones { flex-direction: row; }
+    }
+    </style>
+</head>
+<body>
+    {$header}
+    <div class="indice sc-page"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <header class="sc-cabecera">
+            <div><h1>Solicitudes de creación</h1><p>Moderación de Técnicas, Akuma no Mi, Estilos, Objetos y Mascotas.</p></div>
+            <div class="sc-cabecera__resumen" aria-label="Resumen de solicitudes">
+                <div class="sc-resumen-item"><strong>{$sc_total_moderar}</strong><span>por moderar</span></div>
+                <div class="sc-resumen-item"><strong>{$sc_total_esperando}</strong><span>esperando usuario</span></div>
+            </div>
+        </header>
+
+        {$sc_aviso}
+
+        <section class="sc-toolbar" aria-label="Filtros">
+            <form method="get" action="/op/staff/solicitudes_creacion.php">
+                <div class="af-field"><label for="sc-perfil">Perfil</label><select id="sc-perfil" name="perfil">{$sc_filtro_options}</select></div>
+                <button type="submit" class="btn-op btn-op--primario"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrar</button>
+            </form>
+            <div class="sc-toolbar__lateral">
+                <p class="sc-toolbar__nota">Completar y cancelar están disponibles en cualquiera de los tres estados.</p>
+                <button class="btn-op btn-op--secundario sc-actividad-toggle" type="button" data-sc-actividad-toggle aria-expanded="false" aria-controls="sc-actividad-moderadores"><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Actividad del equipo <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                <div class="sc-vista" role="group" aria-label="Modo de visualización">
+                    <button class="sc-vista__boton" type="button" data-sc-vista="tarjetas" aria-pressed="true" title="Vista de tarjetas"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>Tarjetas</button>
+                    <button class="sc-vista__boton" type="button" data-sc-vista="compacta" aria-pressed="false" title="Vista compacta"><i class="fa-solid fa-list" aria-hidden="true"></i>Compacta</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="sc-actividad" id="sc-actividad-moderadores" hidden>
+            <h2>Resoluciones por moderador</h2>
+            <p>Actividad registrada desde la habilitación del historial, ordenada por cantidad y desglosada por resultado y perfil.</p>
+            {$sc_actividad_moderadores}
+        </section>
+
+        <section class="sc-distribucion">
+            <h2>Moderaciones pendientes por perfil</h2>
+            <p>Solicitudes que requieren respuesta del staff. Esta distribución siempre incluye los cinco perfiles.</p>
+            {$sc_distribucion}
+        </section>
+
+        {$sc_sin_respuesta}
+        {$sc_reabiertas}
+        {$sc_esperando_usuario}
+
+        <section class="sc-estadisticas">
+            <h2>Histórico por perfil</h2>
+            <p>Solicitudes archivadas en los subforos de Completadas y Canceladas.</p>
+            {$sc_estadisticas}
+        </section>
+    </div></div></div></div>
+    {$footer}
+    <script>
+    (function () {
+        var page = document.querySelector('.sc-page');
+        var buttons = document.querySelectorAll('[data-sc-vista]');
+        var activityButton = document.querySelector('[data-sc-actividad-toggle]');
+        var activityPanel = document.getElementById('sc-actividad-moderadores');
+        var storageKey = 'opg_solicitudes_creacion_vista';
+        if (!page || !buttons.length) return;
+
+        function applyView(view) {
+            var compact = view === 'compacta';
+            page.classList.toggle('sc-page--compacta', compact);
+            buttons.forEach(function (button) {
+                button.setAttribute('aria-pressed', button.getAttribute('data-sc-vista') === view ? 'true' : 'false');
+            });
+        }
+
+        var savedView = 'tarjetas';
+        try {
+            savedView = localStorage.getItem(storageKey) === 'compacta' ? 'compacta' : 'tarjetas';
+        } catch (error) {}
+        applyView(savedView);
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                var view = button.getAttribute('data-sc-vista');
+                applyView(view);
+                try { localStorage.setItem(storageKey, view); } catch (error) {}
+            });
+        });
+
+        if (activityButton && activityPanel) {
+            activityButton.addEventListener('click', function () {
+                var open = activityButton.getAttribute('aria-expanded') !== 'true';
+                activityButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+                activityPanel.hidden = !open;
+            });
+        }
+    }());
+    </script>
+</body>
+</html>

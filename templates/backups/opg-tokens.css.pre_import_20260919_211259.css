@@ -1,0 +1,433 @@
+@charset "UTF-8";
+/**
+ * OPG — Tokens de diseño (para código nuevo)
+ * ============================================
+ * Fuente: docs/style.md §7. Son los mismos hex "canónicos" que ya documentaba
+ * la guía — esto no cambia ningún color, solo les pone nombre para dejar de
+ * copiarlos a mano en cada plantilla nueva.
+ *
+ * Dónde vive de verdad
+ * --------------------
+ * Este archivo (`templates/One_Piece_Gaiden_Templates/stylesheets/opg-tokens.css`)
+ * es la copia en git — la fuente real es una hoja de estilo del tema (tid=3)
+ * en `mybb_themestylesheets`. `inc/plugins/opg_stylesheet_sync.php` mantiene
+ * las dos sincronizadas en los dos sentidos (editar acá y subir por FTP, o
+ * editar desde Admin CP) — ver docs/css-sync-design.md. Ya NO es un archivo
+ * estático en `/jscripts/`: no lleva `?ver=N` ni necesita purgarse de ningún
+ * lado, porque Cloudflare no cachea las rutas de `cache/themes/` (confirmado;
+ * sí cachea `/jscripts/*`, que es de donde se sacó este archivo).
+ *
+ * Cómo usarlo
+ * -----------
+ * Ya lo carga `{$stylesheets}` en `headerinclude.html` (una sola vez, para
+ * todo el foro, junto con `op_global.css`/`global.css`) — no hace falta un
+ * `<link>` propio en tu página. Si algún día hace falta una página que NO
+ * pase por `$headerinclude` (hoy no hay ninguna así), enlazar directo al
+ * archivo ya compilado:
+ *
+ *      <link rel="stylesheet" href="/cache/themes/theme3/opg-tokens.css">
+ *
+ * 1. Usar las variables en vez de hex sueltos: `color: var(--opg-naranja)`
+ *    en vez de `color: #ff8900`.
+ * 2. Para botones, usar `.btn-op` (ver abajo) en vez de inventar otra clase;
+ *    para tarjetas de listado, `.opg-card` / `.opg-chip`.
+ *
+ * Ya no es opt-in: se carga en cada página, del foro y de /op/. Las
+ * plantillas viejas no lo usan porque no referencian sus variables/clases,
+ * no porque el archivo no llegue — ver docs/style.md §6.
+ *
+ * No declara @font-face: moonGetHeavy/Inter ya los carga {$headerinclude}
+ * en las páginas del foro.
+ */
+
+:root {
+  /* ── Naranja (marca / primario) ──────────────────────────────────────── */
+  --opg-naranja: #ff8900;
+  --opg-naranja-hover: #dc822a;
+  --opg-naranja-borde: #ff7b00;       /* variantes de borde/relleno fuerte (#ff7e00 es legacy de esta misma familia) */
+  --opg-naranja-degradado-inicio: #faa500;
+  --opg-naranja-degradado-fin: #ff7019;
+  --opg-naranja-accion: #d26500;      /* botón de acción sobre páginas con barras ya naranjas (.realDraw) */
+  --opg-naranja-accion-hover: #ff9b00;
+
+  /* ── Morado (secundario / realce) ────────────────────────────────────── */
+  --opg-morado: #9664e0;               /* 3.52:1 sobre crema: NO para texto de cuerpo, solo bordes/acentos/texto grande — usar --opg-morado-texto para texto */
+  --opg-morado-borde: #8f59f7;
+  --opg-morado-apagado: #6e67d1;
+  --opg-morado-neon: #cf44ff;
+  --opg-morado-claro: #e0d2fd;
+  --opg-morado-seleccion: #e8d9ff;
+  --opg-morado-cta: #460c6e;          /* llamada a la acción grande, p. ej. "ENTREGAR"/"SUBIR" (.testDraw) */
+  --opg-morado-cta-hover: #7e20bf;
+  --opg-morado-texto: #6c10ab;        /* texto/enlaces morado oscuro sobre crema */
+  --opg-morado-claro-degradado-fin: #d7b5ff;  /* pareja de --opg-morado-claro: linear-gradient(135deg, var(--opg-morado-claro), var(--opg-morado-claro-degradado-fin)) — 5 plantillas */
+
+  /* ── Naranja quemado (degradado, distinto del naranja de marca) ────────── */
+  /* Regla de la casa para degradados (ver docs/style.md §7 "Degradados"): siempre
+     dentro de la misma familia de color — más oscuro/claro del mismo tono, nunca
+     un cambio de matiz (nada de naranja-a-morado) — y siempre a 135deg, que es el
+     ángulo que ya usa el foro en los 3 pares de abajo. */
+  --opg-naranja-quemado-degradado-inicio: #7e3a00;
+  --opg-naranja-quemado-degradado-fin: #ff7e00;   /* 5 plantillas: linear-gradient(135deg, var(--opg-naranja-quemado-degradado-inicio), var(--opg-naranja-quemado-degradado-fin)) */
+
+  /* ── Crema / pergamino (fondos) ──────────────────────────────────────── */
+  --opg-crema: #ffedd2;
+  --opg-crema-dorada: #ffe59b;
+  --opg-crema-cuerpo: #ffe3a0;
+  --opg-crema-boton: #fcecd2;
+  --opg-crema-degradado-inicio: #fff3e0;
+  --opg-crema-degradado-fin: #ffe8c2;
+  --opg-crema-clara: #fff3e0;         /* mismo hex que el inicio del degradado: fondo de tarjetas sobre el marco crema */
+  --opg-crema-oscura-degradado-inicio: #ffe8c2;  /* crema un paso más oscuro que el de arriba — 7 plantillas */
+  --opg-crema-oscura-degradado-fin: #ffdca3;
+
+  /* ── Tinta / oscuros ──────────────────────────────────────────────────── */
+  --opg-tinta: #000000;
+  --opg-ciruela: #1a1423;
+  --opg-marron: #3b1300;
+
+  /* ── Acentos y semánticos ─────────────────────────────────────────────── */
+  --opg-dorado: #ffd700;
+  --opg-azul: #0055bb;
+  --opg-rojo-faccion: #a13838;
+  --opg-rojo-error: #dc3545;
+  --opg-rojo-error-hover: #e74c3c;
+  --opg-verde-exito: #27ae60;
+  --opg-verde-exito-hover: #2ecc71;
+  --opg-gris-bloqueado: #71706f;
+  --opg-gris-texto: #5e5e5e;
+
+  /* ── Foco (accesibilidad — no existía antes) ─────────────────────────── */
+  --opg-foco: 0 0 0 3px rgba(255, 215, 0, .65);   /* halo dorado, visible sobre crema y sobre oscuro */
+
+  /* ── Radios ───────────────────────────────────────────────────────────── */
+  --opg-radio-sm: 6px;   /* inputs, chips, botones pequeños */
+  --opg-radio-md: 10px;  /* tarjetas, barras, botones normales */
+  --opg-radio-lg: 18px;  /* paneles grandes, botón hero */
+
+  /* ── Sombras ──────────────────────────────────────────────────────────── */
+  --opg-sombra-dura: 0 0 10px black;             /* el "glow" de tinta — el más usado del foro */
+  --opg-sombra-suave: 0 4px 8px rgba(0, 0, 0, .3);
+  --opg-sombra-titular: 1px 1px 1px black;       /* text-shadow por defecto de moonGetHeavy */
+  --opg-sombra-offset: 4px 4px 0 var(--opg-tinta);        /* sombra dura de viñeta de cómic (.opg-card) */
+  --opg-sombra-offset-hover: 6px 6px 0 var(--opg-tinta);
+
+  /* ── Movimiento ───────────────────────────────────────────────────────── */
+  --opg-rapido: .2s ease-out;  /* hover de botones/iconos/miniaturas */
+  --opg-lento: .35s ease;      /* paneles, expansiones, apariciones */
+
+  /* ── Espaciado (grid de 4px) ──────────────────────────────────────────── */
+  --opg-espacio-1: 4px;
+  --opg-espacio-2: 8px;
+  --opg-espacio-3: 12px;
+  --opg-espacio-4: 16px;
+  --opg-espacio-5: 20px;
+  --opg-espacio-6: 24px;
+
+  /* ── Tipografía ───────────────────────────────────────────────────────── */
+  --opg-fuente-titular: moonGetHeavy, Arial, sans-serif;
+  --opg-fuente-cuerpo: InterRegular, sans-serif;
+
+  /* ── Texturas ─────────────────────────────────────────────────────────── */
+  /* Trama de puntos (halftone): se combina con el fondo propio de cada
+     componente, no reemplaza el color. Ej.: background: var(--opg-textura-trama), var(--opg-crema-clara);
+     Dos capas de puntos intercaladas (como el medio tono real de una imprenta,
+     no una grilla recta de lunares) y bien tenue (7%, no 14%): tiene que leerse
+     como textura de papel al pasar de largo, no como decoración que se nota. */
+  --opg-textura-trama:
+    radial-gradient(circle, rgba(0, 0, 0, .07) 1.1px, transparent 1.1px) 0 0 / 10px 10px,
+    radial-gradient(circle, rgba(0, 0, 0, .07) 1.1px, transparent 1.1px) 5px 5px / 10px 10px;
+  /* Grano de papel, puro CSS (sin filtro SVG): a diferencia de .opg-grano (pensado
+     para 1-2 paneles destacados nada más, ver más abajo), esta variable SÍ está
+     pensada para ir en la base de un componente que se repite en cada página —
+     op_global.css la usa en .secondBackground/.thirdBackground, así que llega a
+     todo /op/ sin que cada plantilla tenga que agregar la clase .opg-grano a mano.
+     Cinco capas de puntos con tamaños de mosaico que no coinciden entre sí
+     (11/13/14/15/16px) para que no se note la repetición del patrón, más tenue
+     que la trama de arriba (4.5-5%, no 7%) porque acá el contenido real (texto,
+     inputs) se apoya encima. */
+  --opg-textura-grano:
+    radial-gradient(circle at 15% 30%, rgba(0, 0, 0, .05) 0.6px, transparent 0.6px) 0 0 / 14px 14px,
+    radial-gradient(circle at 60% 10%, rgba(0, 0, 0, .045) 0.5px, transparent 0.5px) 0 0 / 11px 11px,
+    radial-gradient(circle at 80% 70%, rgba(0, 0, 0, .05) 0.7px, transparent 0.7px) 0 0 / 16px 16px,
+    radial-gradient(circle at 30% 80%, rgba(0, 0, 0, .045) 0.5px, transparent 0.5px) 0 0 / 13px 13px,
+    radial-gradient(circle at 45% 50%, rgba(0, 0, 0, .05) 0.6px, transparent 0.6px) 0 0 / 15px 15px;
+  /* Borde rasgado, para 1-2 paneles destacados como mucho — no para todo. */
+  --opg-recorte-rasgado: polygon(0% 8%, 4% 2%, 9% 6%, 14% 1%, 20% 5%, 26% 0%, 33% 4%, 40% 0%, 47% 5%, 54% 1%,
+    61% 6%, 68% 2%, 75% 6%, 82% 1%, 89% 5%, 95% 0%, 100% 6%, 100% 100%, 0% 100%);
+}
+
+/**
+ * Botón único (para código nuevo)
+ * --------------------------------
+ * Converge los tres sistemas de botón que hay hoy en el foro (.btn canónico,
+ * .testDraw/.realDraw/.blockedDraw, y el .btn-op que salió de op/staff/banners.php)
+ * en uno solo, con tamaño y color como modificadores en vez de una clase nueva
+ * por página. Ver docs/style.md §7.
+ *
+ * Tamaño:  .btn-op (por defecto) · .btn-op--sm · .btn-op--hero
+ * Color:   --primario (naranja) · --secundario (morado cta) · --exito · --peligro
+ * Estado:  .btn-op:disabled / [aria-disabled="true"] → gris bloqueado
+ *
+ * <button class="btn-op btn-op--primario">Guardar</button>
+ * <button class="btn-op btn-op--hero btn-op--secundario">ENTREGAR</button>
+ */
+.btn-op {
+  display: inline-block;
+  font-family: var(--opg-fuente-titular);
+  color: #fff;
+  text-shadow: var(--opg-sombra-titular);
+  letter-spacing: 1px;
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-sm);
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--opg-rapido);
+  background: var(--opg-naranja);
+}
+.btn-op:hover { background: var(--opg-naranja-hover); transform: scale(1.05); }
+
+.btn-op--sm { padding: 4px 10px; font-size: 12px; border-radius: var(--opg-radio-sm); }
+
+.btn-op--hero {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  border-radius: var(--opg-radio-lg);
+  filter: drop-shadow(0 0 4px black);
+  transition: all .5s ease-out;
+}
+
+/* Contraste real (blanco sobre el fondo, WCAG AA = 4.5 texto normal / 3.0 texto grande):
+ * --primario (naranja) 2.38:1 y --exito (verde) 2.87:1 FALLAN los dos umbrales en frío.
+ * Legibles en la práctica solo por el borde + text-shadow negro de .btn-op — eso no es
+ * decorativo acá, sostiene la lectura. Si se agrega una variante de color nueva, mantener
+ * ese borde y esa sombra; no sacarlo "para simplificar". Ver docs/style.md §7 §Contraste. */
+.btn-op--primario   { background: var(--opg-naranja); }
+.btn-op--primario:hover   { background: var(--opg-naranja-hover); }
+.btn-op--secundario { background: var(--opg-morado-cta); }
+.btn-op--secundario:hover { background: var(--opg-morado-cta-hover); }
+.btn-op--exito       { background: var(--opg-verde-exito); }
+.btn-op--exito:hover       { background: var(--opg-verde-exito-hover); }
+.btn-op--peligro     { background: var(--opg-rojo-error); }
+.btn-op--peligro:hover     { background: var(--opg-rojo-error-hover); }
+
+.btn-op:disabled,
+.btn-op[aria-disabled="true"] {
+  background: var(--opg-gris-bloqueado);
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-op:disabled:hover,
+.btn-op[aria-disabled="true"]:hover { background: var(--opg-gris-bloqueado); transform: none; }
+
+/**
+ * Tarjeta viñeta (para código nuevo)
+ * -----------------------------------
+ * Caja crema con borde de tinta y sombra dura desplazada, como una viñeta de
+ * cómic. Si es un enlace (<a class="opg-card">) o lleva --interactiva, se
+ * "levanta" al pasar el ratón. El color de acento (franja superior e icono)
+ * se cambia con la variable --opg-card-acento en la propia tarjeta o en un
+ * contenedor: style="--opg-card-acento: var(--opg-morado)".
+ *
+ * <a class="opg-card" href="…">
+ *   <span class="opg-card__icono"><i class="fa-solid fa-gift"></i></span>
+ *   <span class="opg-card__titulo">Recompensas</span>
+ *   <span class="opg-card__desc">Temas terminados.</span>
+ * </a>
+ */
+.opg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--opg-espacio-2);
+  min-width: 0;
+  padding: calc(var(--opg-espacio-4) + 6px) var(--opg-espacio-4) var(--opg-espacio-4);
+  /* Franja superior en degradado (izq→der, mismo tono aclarado con color-mix):
+     funciona con cualquier --opg-card-acento sin que cada página tenga que dar
+     también un "acento-claro" a mano — un solo valor entra, el degradado sale. */
+  background:
+    linear-gradient(90deg,
+      var(--opg-card-acento, var(--opg-naranja)),
+      color-mix(in srgb, var(--opg-card-acento, var(--opg-naranja)) 70%, white)
+    ) top / 100% 6px no-repeat,
+    var(--opg-crema-clara);
+  color: var(--opg-marron);
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-md);
+  box-shadow: var(--opg-sombra-offset);
+  text-decoration: none;
+  transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+}
+a.opg-card, a.opg-card:link, a.opg-card:visited { color: var(--opg-marron); text-decoration: none; }
+a.opg-card:hover, .opg-card--interactiva:hover {
+  /* Un poco de rotación además del desplazamiento: se siente una tarjeta
+     física levantada de la mesa, no solo un elemento que se corre. */
+  transform: translate(-1px, -2px);
+  box-shadow: var(--opg-sombra-offset-hover);
+}
+.opg-card__cabecera { display: flex; align-items: center; gap: var(--opg-espacio-3); }
+.opg-card__icono {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--opg-card-acento, var(--opg-naranja));
+  color: var(--opg-card-acento-texto, #fff);
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-sm);
+  font-size: 16px;
+}
+/* Titular oscuro sin contorno: sobre fondo claro el contorno negro sobra (ver style.md §7) */
+.opg-card__titulo { font-family: var(--opg-fuente-titular); font-size: 16px; letter-spacing: .5px; color: var(--opg-ciruela); line-height: 1.2; }
+.opg-card__desc { font-family: var(--opg-fuente-cuerpo); font-size: 13px; line-height: 1.45; color: var(--opg-marron); margin: 0; }
+
+/**
+ * Tarjeta viñeta — variante para grillas de medios (miniaturas, archivos)
+ * -------------------------------------------------------------------------
+ * `.opg-card` asume icono + título + descripción con un padding uniforme; una
+ * miniatura necesita ir a sangre en el borde superior, sin ese padding. Esta
+ * variante da solo el marco (borde, radio, sombra dura desplazada, hover) y
+ * deja que el contenido decida su propio padding interno. El acento (franja
+ * de color) es opcional: se agrega igual que en `.opg-card`, con un
+ * `linear-gradient` propio en la página (ver ejemplo real más abajo).
+ *
+ * Ejemplo real: op_upload (galería de subidas), clase `.subida` — hecha antes
+ * de que existiera esta variante, por eso no la usa literalmente todavía.
+ *
+ * <div class="opg-card--media">
+ *   <img src="…" style="aspect-ratio: 4/3; object-fit: cover;">
+ *   <div style="padding: var(--opg-espacio-2);">Nombre del archivo</div>
+ * </div>
+ */
+.opg-card--media {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--opg-crema-clara);
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-md);
+  overflow: hidden;
+  box-shadow: var(--opg-sombra-offset);
+  transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+}
+.opg-card--media:hover {
+  transform: translate(-3px, -5px) rotate(-1.2deg);
+  box-shadow: var(--opg-sombra-offset-hover);
+}
+
+/**
+ * Chip: acción secundaria compacta, en Inter (no moonGetHeavy), para filas de
+ * enlaces dentro de una tarjeta. Para la acción principal de una página, .btn-op.
+ *
+ * Regla para elegir entre `.btn-op` y `.opg-chip`: es una cuestión de
+ * jerarquía, no de si navega o no. `.btn-op` es LA acción por la que existe
+ * esta página (subir, guardar, entregar) — como mucho una o dos por página.
+ * `.opg-chip` es todo lo demás: enlaces a otras herramientas, copiar,
+ * paginar, activar/desactivar — aunque técnicamente naveguen a otra URL. Ver
+ * `staff_consola_mod` (chips que navegan a herramientas) y `op_upload`
+ * (chips que copian, sin navegar) para los dos casos.
+ */
+.opg-chip, a.opg-chip:link, a.opg-chip:visited {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: InterMedium, var(--opg-fuente-cuerpo);
+  font-size: 12px;
+  color: var(--opg-ciruela);
+  background: #fff;
+  border: 2px solid var(--opg-tinta);
+  border-radius: 999px;
+  padding: 3px 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--opg-rapido), color var(--opg-rapido);
+}
+/* button.opg-chip: sin esto hereda el estilo de botón nativo del navegador */
+button.opg-chip { font: inherit; font-family: InterMedium, var(--opg-fuente-cuerpo); }
+a.opg-chip:hover, button.opg-chip:hover { background: var(--opg-naranja); color: #fff; }
+
+/**
+ * Enlace "← Volver" a la herramienta/página contenedora. Nace de banners.php
+ * (con moonGetHeavy, ya desactualizado) y op_upload (ya en Inter); usar esta
+ * clase en vez de reescribirla una tercera vez.
+ */
+.opg-volver, a.opg-volver:link, a.opg-volver:visited {
+  font-family: InterMedium, var(--opg-fuente-cuerpo);
+  color: var(--opg-morado-texto);
+  text-decoration: none;
+  letter-spacing: 1px;
+  font-size: 13px;
+}
+a.opg-volver:hover { color: var(--opg-morado-borde); }
+
+/**
+ * Estado vacío: para cuando un listado/galería no tiene nada que mostrar
+ * todavía ("No hay banners activos", "Todavía no hay imágenes subidas"…).
+ * Nace de `.vacio` en op_upload; usar esta clase en vez de reescribirla.
+ */
+.opg-vacio {
+  font-family: var(--opg-fuente-cuerpo);
+  color: var(--opg-gris-texto);
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
+/**
+ * Grano de papel: filtro SVG externo (jscripts/opg-grano.svg), no inline —
+ * así funciona sin pegar un <svg> oculto en cada página. El elemento con esta
+ * clase necesita `position: relative` (o `absolute`/`fixed`); el filtro se
+ * pinta como una capa encima de su contenido, así que sumale `overflow: hidden`
+ * si el elemento tiene esquinas redondeadas. Muy sutil a propósito.
+ *
+ * <div class="opg-card opg-grano" style="position: relative; overflow: hidden;">…</div>
+ */
+.opg-grano::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  filter: url('/jscripts/opg-grano.svg#opg-grano');
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/**
+ * "En curso": borde punteado animado ("marching ants"), para lo que se está
+ * siguiendo activamente (un reset de build pendiente, un log procesándose) —
+ * no es un estado de error ni de éxito, es "todavía en marcha".
+ */
+@keyframes opg-marcha {
+  to { background-position: 16px 0, -16px 0, 0 16px, 0 -16px; }
+}
+.opg-en-curso {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--opg-tinta) 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(90deg, var(--opg-tinta) 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(0deg, var(--opg-tinta) 0 8px, transparent 8px 16px),
+    repeating-linear-gradient(0deg, var(--opg-tinta) 0 8px, transparent 8px 16px);
+  background-size: 16px 2px, 16px 2px, 2px 16px, 2px 16px;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-origin: border-box;
+  animation: opg-marcha .6s linear infinite;
+}
+
+/**
+ * Foco de teclado (accesibilidad — no existía en el foro hasta ahora)
+ * El foro tiene :focus en 25 plantillas pero son efectos de click, no de
+ * teclado. Esto es aditivo: solo se ve al navegar con Tab.
+ */
+.btn-op:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--opg-foco);
+}

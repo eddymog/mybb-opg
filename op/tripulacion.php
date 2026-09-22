@@ -103,6 +103,26 @@ if (!$tripulacion) {
     exit;
 }
 
+// ── Typeahead: personajes sin tripulación, para "agregar miembro" ──────────
+
+if ($mybb->get_input('buscar_personaje', MyBB::INPUT_STRING) !== '') {
+    header('Content-Type: application/json; charset=utf-8');
+    $q = trim($mybb->get_input('buscar_personaje', MyBB::INPUT_STRING));
+    $like = $db->escape_string(addcslashes($q, '%_'));
+    $resultados = array();
+    $query = $db->query("
+        SELECT f.fid, f.nombre FROM `mybb_op_fichas` f
+        LEFT JOIN `mybb_op_tripulaciones_miembros` m ON m.fid = f.fid
+        WHERE f.aprobada_por != 'sin_aprobar' AND m.id IS NULL AND f.nombre LIKE '%{$like}%'
+        ORDER BY f.nombre LIMIT 20
+    ");
+    while ($r = $db->fetch_array($query)) {
+        $resultados[] = array('fid' => (int) $r['fid'], 'nombre' => $r['nombre']);
+    }
+    echo json_encode($resultados, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 // ── POST: acciones ───────────────────────────────────────────────────────
 
 if ($mybb->request_method == 'post') {
@@ -344,13 +364,18 @@ $miembros_html = '<ul class="tr-lista-miembros">' . $miembros_html . '</ul>';
 
 $agregar_html = '';
 if ($es_capitan_o_vice) {
-    $agregar_html = '<form method="post" class="tr-agregar">'
+    $agregar_html = '<div class="tr-agregar">'
+        . '<span class="opg-buscar-caja">'
+        . '<input type="text" id="tr-buscar" autocomplete="off" placeholder="Buscar personaje para agregar…">'
+        . '<div class="opg-resultados" id="tr-resultados" hidden></div>'
+        . '</span>'
+        . '<form method="post" id="tr-agregar-form">'
         . $id_hidden
         . '<input type="hidden" name="my_post_key" value="' . $post_key_html . '">'
         . '<input type="hidden" name="accion" value="agregar_miembro">'
-        . '<input type="number" name="fid" min="1" required placeholder="FID del personaje a agregar">'
-        . '<button type="submit" class="btn-op btn-op--sm btn-op--primario">Agregar</button>'
-        . '</form>';
+        . '<input type="hidden" name="fid" id="tr-agregar-fid">'
+        . '</form>'
+        . '</div>';
 }
 
 eval("\$page = \"" . $templates->get("op_tripulacion") . "\";");

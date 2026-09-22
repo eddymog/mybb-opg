@@ -77,7 +77,7 @@ Las tablas nuevas solo almacenan la decision personal de seguir un tema, el
 punto de inicio de la ronda, los overrides y los participantes esperados. No se
 copiaran titulos, nombres, fechas ni estados de MyBB.
 
-### 3.3 Sin tabla historica de rondas
+### 3.3 Sin copia historica completa de rondas
 
 La primera version solo necesita conocer la ronda actual. Se guarda el PID que
 la inicia y se consulta si cada participante esperado tiene al menos un post
@@ -85,6 +85,11 @@ visible posterior. No se crea una fila por ronda ni una copia de cada post.
 
 Esto reduce escrituras, evita desincronizaciones y permite que eliminar o
 desmoderar un post corrija el estado en la siguiente lectura.
+
+Una ampliacion posterior puede guardar un historial ligero de acciones de la
+Bitacora. Ese registro solo conserva eventos relevantes para explicar cambios
+(inicio de ronda, ajuste manual y narrador), no una fila por cada post ni una
+copia del contenido de MyBB.
 
 ## 4. Modelo de datos
 
@@ -246,7 +251,7 @@ El personaje tambien puede terminar la espera en cualquier momento usando
 
 El personaje selecciona un `narrador_uid` mediante el mismo typeahead de
 fichas. El narrador se incorpora a participantes si todavia no estaba. Mientras
-este configurado, `op_bitacora_resolver_estado()` sustituye la condicion de
+este configurado, `op_temas_resolver_estado()` sustituye la condicion de
 "todos respondieron" por `narrador_respondio`.
 
 Para presentar el progreso se obtiene el mayor PID visible del narrador
@@ -643,7 +648,155 @@ sincronizadas del tema para evitar que un ciclo archivo-DB revierta cambios.
 - sumar trackers de personajes vinculados;
 - sustituir suscripciones o alertas nativas de MyBB;
 - imponer un orden entre participantes dentro de una ronda;
-- historial o estadisticas de rondas completadas;
+- estadisticas completas de rondas terminadas o copia historica de cada post;
 - notificaciones push, correo o Discord;
 - administracion de trackers ajenos por Staff;
 - limpieza automatica de seguimientos huerfanos en la primera version.
+
+## 17. Ampliacion: tiempo de estado y orden
+
+`op_temas_seguidos` incorpora:
+
+```sql
+estado_grupo VARCHAR(12) NOT NULL DEFAULT '',
+estado_desde INT UNSIGNED NOT NULL DEFAULT 0
+```
+
+`estado_grupo` conserva unicamente el grupo visible (`turno` o `al_dia`), no
+el detalle automatico/manual. `estado_desde` se modifica cuando cambia ese
+grupo. Los seguimientos anteriores se inicializan usando la fecha reconstruida
+de la ronda y, cuando no existe, `actualizado_en`.
+
+Las tarjetas muestran `threads.replies + 1`, la fecha absoluta y relativa del
+ultimo post y la antiguedad del grupo actual. Incluyen `data-lastpost` para que
+el control Mas recientes/Mas antiguos reordene las dos listas en el navegador,
+sin consultas ni recargas. La eleccion se conserva en `localStorage` y se
+reaplica despues de reemplazos HTMX.
+
+## 18. Diseno de mejoras pendientes
+
+### 18.1 Checklist y orden recomendado
+
+- [x] Prioridad visual basada en la antiguedad del estado.
+- [x] Accion principal `Responder` o `Ver ultimo post`.
+- [x] Modo compacto persistente.
+- [x] Estados vacios especificos por pestana.
+- [x] Ultima actividad en el header.
+- [x] Historial corto de eventos por tema.
+
+Las cinco primeras mejoras pueden construirse sobre el modelo actual. El
+historial debe implementarse al final porque introduce persistencia, hooks y
+una migracion nueva.
+
+### 18.2 Antiguedad y prioridad visual
+
+La clasificacion usa la diferencia entre `TIME_NOW` y `estado_desde`. Los
+umbrales iniciales recomendados son constantes configurables:
+
+```php
+define('OP_BITACORA_ATENCION_DIAS', 3);
+define('OP_BITACORA_ANTIGUO_DIAS', 7);
+```
+
+- menos de 3 dias: presentacion normal;
+- entre 3 y 6 dias: etiqueta textual `Pendiente desde hace X` y acento suave;
+- 7 dias o mas: etiqueta `Pendiente antiguo` con mayor contraste.
+
+La prioridad fuerte solo se aplica a `Tu turno`. En `Al dia` se conserva la
+fecha, pero no se responsabiliza visualmente al propietario por la demora de
+otra persona. Color, texto e icono deben comunicar juntos el nivel.
+
+### 18.3 Accion principal y modo compacto
+
+La tarjeta incorpora un enlace propio, sin heredar el componente global
+`.btn-op`. `Responder` abre `/newreply.php?tid={tid}`; `Ver ultimo post` abre
+`/showthread.php?tid={tid}&action=lastpost`. Ambos usan `target="_blank"` y
+`rel="noopener"`, colores de enlace explicitos y dejan que MyBB valide permisos
+y cierre en el destino.
+
+El selector de densidad usa Alpine y `localStorage` con la clave
+`opBitacoraVista`. La opcion `compacta` reduce espacios y oculta progreso,
+participantes, historial y metadatos secundarios. Conserva titulo, antiguedad,
+estado, cantidad de posts, actividad relativa, accion principal y acceso a la
+configuracion. HTMX debe restaurar la clase de densidad despues de cada
+intercambio.
+
+La Bitacora muestra `op_fichas.nombre` sin concatenar `apodo`; `username` solo
+se utiliza como fallback cuando falta el nombre.
+
+### 18.4 Estados vacios
+
+Los vacios se renderizan en servidor para funcionar sin JavaScript:
+
+- `Tu turno` vacio: mensaje positivo solicitado y acceso a `Al dia`;
+- `Al dia` vacio con pendientes: mensaje que indica que toda la actividad esta
+  en `Tu turno`;
+- Bitacora completamente vacia: invitacion a agregar un TID y explicacion breve
+  de la incorporacion automatica al publicar.
+
+No se usa el mensaje de felicitacion cuando no existe ningun seguimiento, ya
+que podria interpretarse como un calculo realizado sobre actividad inexistente.
+
+### 18.5 Ultima actividad del header
+
+`op_bitacora_resumen()` debe devolver, ademas de los conteos, el maximo de:
+
+```text
+threads.lastpost
+op_temas_seguidos.actualizado_en
+op_temas_seguidos.estado_desde
+```
+
+solo para seguimientos visibles del personaje activo. El header lo presenta
+como `Actualizado hace X`. No se usa `TIME_NOW` como fecha de actividad ni se
+realiza una consulta por tema. El texto se recalcula al renderizar una pagina;
+no necesita un temporizador en vivo.
+
+### 18.6 Historial corto
+
+Se anade una tabla de eventos ligeros:
+
+```sql
+CREATE TABLE mybb_op_bitacora_eventos (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  seguimiento_id INT UNSIGNED NOT NULL,
+  tipo VARCHAR(40) NOT NULL,
+  actor_uid INT UNSIGNED NOT NULL DEFAULT 0,
+  relacionado_uid INT UNSIGNED NOT NULL DEFAULT 0,
+  pid INT UNSIGNED NULL,
+  datos TEXT NULL,
+  creado_en INT UNSIGNED NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY evento_post (seguimiento_id, tipo, pid),
+  KEY seguimiento_fecha (seguimiento_id, creado_en)
+);
+```
+
+`pid` es `NULL` para acciones manuales, permitiendo multiples eventos del mismo
+tipo. Para eventos originados por un post, la clave unica evita duplicados si
+un hook se procesa mas de una vez. `datos` guarda JSON pequeno solo cuando sea
+necesario conservar valores anterior y nuevo.
+
+Tipos iniciales: `narrador_asignado`, `narrador_cambiado`,
+`narrador_retirado`, `manual_turno`, `manual_al_dia`,
+`ronda_normal_iniciada` y `ronda_narrada_iniciada`.
+
+La consulta de listado obtiene como maximo los cinco eventos mas recientes por
+seguimiento en una sola consulta para todos los IDs visibles. Para mantener
+compatibilidad con MySQL sin funciones de ventana, puede usar un self-join que
+cuente los eventos posteriores y conserve los que tengan menos de cinco, con
+`(seguimiento_id, creado_en)` como indice de apoyo. Nunca debe ejecutarse una
+consulta por tarjeta ni cargar un historial sin limite para recortarlo en PHP.
+Los eventos empiezan a registrarse desde el despliegue; no hay backfill
+especulativo. En Modo vista son de solo lectura y siguen los permisos del tema
+asociado. Al dejar de seguir un tema, sus eventos se eliminan explicitamente.
+
+### 18.7 Pruebas de diseno
+
+- [ ] Los nombres largos no rompen el titulo ni la accion principal.
+- [ ] Los umbrales cambian exactamente al comenzar los dias 3 y 7.
+- [ ] Vista detallada y compacta funcionan a 390, 1024 y 1440 px.
+- [ ] Los tres vacios posibles muestran mensajes diferentes.
+- [ ] La ultima actividad coincide entre pagina y header.
+- [ ] Reprocesar un PID no duplica el evento automatico.
+- [ ] Cargar 20 temas no genera consultas N+1 para el historial.

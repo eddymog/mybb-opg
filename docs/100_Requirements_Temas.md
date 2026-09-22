@@ -449,3 +449,73 @@ La interfaz debe seguir `docs/style.md`:
     narrador ni retirada, y ninguna peticion puede modificar el tracker ajeno.
 32. El selector de personaje empieza a buscar tras tres caracteres o acepta un
     FID numerico, y cada resultado navega a `modo_vista=<FID>`.
+
+## 16. Ampliacion: actividad y antiguedad del estado
+
+Cada tarjeta debe mostrar la cantidad total de posts visibles del tema, la
+fecha exacta y el tiempo transcurrido desde el ultimo post, y cuanto tiempo
+lleva el seguimiento en el grupo visible `Tu turno` o `Al dia`.
+
+El tiempo del estado solo se reinicia cuando cambia entre `Tu turno` y
+`Al dia`. Editar participantes, narrador u otra configuracion sin cambiar el
+grupo visible no debe reiniciarlo.
+
+La pantalla ofrece un control para ordenar independientemente ambas pestanas
+por actividad mas reciente o mas antigua. El orden predeterminado es mas
+reciente y la preferencia se conserva en el navegador.
+
+## 17. Checklist de mejoras pendientes
+
+Estas mejoras amplian la Bitacora sin modificar las reglas que deciden el
+turno. Deben reutilizar el estado calculado por el motor y no crear una segunda
+interpretacion de las rondas en la capa de presentacion.
+
+### 17.1 Mejoras principales
+
+- [x] **Destacar los temas que llevan mas tiempo en su estado.**
+  La antiguedad se calcula con `estado_desde`, no con la fecha del ultimo post.
+  La interfaz debe facilitar encontrar los temas mas antiguos sin depender
+  solo del color. Los temas en `Tu turno` pueden adquirir una prioridad visual
+  gradual; los de `Al dia` muestran su antiguedad de forma neutral para evitar
+  convertir la espera de terceros en una alerta del usuario.
+- [x] **Hacer mas visible la accion principal.**
+  Las tarjetas abiertas deben ofrecer una accion reconocible. En `Tu turno` se
+  etiqueta `Responder` y abre `newreply.php`; en `Al dia`, `Ver ultimo post` y
+  abre `showthread.php?action=lastpost`. El titulo continua siendo enlace y los
+  controles de configuracion o retirada permanecen como acciones secundarias.
+
+### 17.2 Mejoras secundarias
+
+- [x] **Agregar un modo compacto.**
+  El usuario puede alternar entre vista detallada y compacta sin perder
+  estados, acciones ni accesibilidad. La vista compacta oculta progreso,
+  participantes, historial y metadatos secundarios hasta que el usuario abra
+  la configuracion. La preferencia se conserva en el navegador y no requiere
+  cambios en la base de datos.
+- [x] **Cuidar los estados vacios.**
+  Si `Tu turno` no contiene temas se muestra: `Todo al dia. No tienes respuestas
+  pendientes. Eres increible!`. Si la Bitacora completa esta vacia, el mensaje
+  debe explicar como agregar un TID en lugar de afirmar que existe actividad al
+  dia. La pestana `Al dia` utiliza un mensaje propio cuando no tiene resultados.
+- [x] **Mostrar `Actualizado hace X` en el header.**
+  El tiempo representa la ultima actividad real de cualquiera de los temas
+  seguidos, no la hora en que se renderizo el header. Debe calcularse a partir
+  de las fechas ya cargadas y omitir la linea cuando no haya seguimientos.
+- [x] **Incorporar un historial corto por tema.**
+  Debe registrar desde su despliegue cambios de narrador, ajustes manuales y
+  comienzos de ronda. No se intentara inventar ni importar eventos anteriores.
+  La tarjeta mostrara como maximo los eventos recientes dentro de una seccion
+  contraible; el historial no sustituye el calculo actual basado en MyBB.
+
+### 17.3 Criterios de aceptacion de la ampliacion
+
+- [ ] Los umbrales visuales usan `estado_desde` y mantienen una etiqueta textual.
+- [ ] `Responder` apunta a `newreply.php`; `Ver ultimo post` apunta a
+  `action=lastpost`. Ambos usan `target="_blank"` y no desplazan las acciones
+  administrativas.
+- [ ] El modo compacto persiste tras recargar y tras un reemplazo HTMX.
+- [ ] Cada pestana presenta un estado vacio apropiado y legible en movil.
+- [ ] El header no muestra `Actualizado ahora` solo por visitar otra pagina.
+- [ ] Los eventos automaticos son idempotentes y un mismo post no crea dos
+  comienzos de ronda.
+- [ ] El modo vista puede leer razones e historial, pero nunca modificarlos.

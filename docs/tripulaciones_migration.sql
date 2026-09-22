@@ -89,29 +89,3 @@ ALTER TABLE `mybb_op_tripulaciones_solicitudes`
 
 ALTER TABLE `mybb_op_tripulaciones_solicitudes`
   ADD `detalles_staff` text COLLATE utf8_unicode_ci AFTER `detalles`;
-
--- =====================================================================
--- Página 3 (Página de la Tripulación): roster de miembros.
---
--- Alcance de esta tanda: identidad (nombre/logo) + miembros + reputación
--- total. El baúl, los barcos y el historial de auditoría del diseño
--- original (docs/200_Design_Tripulacion.md) todavía no se implementan —
--- se agregan cuando se construyan esas partes.
--- =====================================================================
-
-CREATE TABLE IF NOT EXISTS `mybb_op_tripulaciones_miembros` (
-  `id` int(11) NOT NULL,
-  `tripulacion_id` int(11) NOT NULL,
-  `fid` int(11) NOT NULL,
-  `rango` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0=Miembro, 1=Vicecapitan, 2=Capitan',
-  `rol_decorativo` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `fecha_ingreso` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
-ALTER TABLE `mybb_op_tripulaciones_miembros`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `fid` (`fid`),
-  ADD KEY `tripulacion_id` (`tripulacion_id`);
-
-ALTER TABLE `mybb_op_tripulaciones_miembros`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
