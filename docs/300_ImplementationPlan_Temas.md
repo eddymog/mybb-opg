@@ -1,4 +1,4 @@
-# Tracker de temas de rol: plan de implementacion
+# Bitacora de rol: plan de implementacion
 
 > Requisitos: [100_Requirements_Temas.md](100_Requirements_Temas.md)
 >
@@ -14,7 +14,7 @@ La implementacion se considera terminada cuando:
 
 - publicar en una zona de rol crea o actualiza el seguimiento;
 - las rondas se calculan con todos los participantes esperados;
-- la pagina `/op/temas.php` permite administrar el tracker completo;
+- la pagina `/op/bitacora.php` permite administrar el tracker completo;
 - los temas cerrados permanecen visibles hasta su retirada manual;
 - los temas inaccesibles o fuera de rol no aparecen;
 - el header muestra los dos conteos activos del personaje actual;
@@ -27,14 +27,15 @@ La implementacion se considera terminada cuando:
 
 | Archivo | Responsabilidad |
 |---|---|
-| `inc/plugins/op_temas_tracker.php` | Ciclo de vida del plugin, hooks y header |
-| `inc/plugins/op_temas_tracker/functions.php` | Motor de seguimiento y rondas |
-| `op/temas.php` | Controlador de pagina, acciones y fragmentos HTMX |
-| `docs/temas_tracker_migration.sql` | Creacion manual e idempotente de las tablas del tracker |
-| `templates/One_Piece_Gaiden_Templates/op_temas.html` | Pagina completa |
-| `templates/One_Piece_Gaiden_Templates/op_temas_tracker.html` | Region HTMX con resumen, pestanas y listas |
-| `templates/One_Piece_Gaiden_Templates/op_temas_header.html` | Barra compacta del header |
-| `templates/One_Piece_Gaiden_Templates/stylesheets/op_temas_tracker.css` | Estilos especificos |
+| `inc/plugins/op_bitacora.php` | Ciclo de vida del plugin, hooks y header |
+| `inc/plugins/op_bitacora/functions.php` | Motor de seguimiento y rondas |
+| `op/bitacora.php` | Controlador de pagina, acciones y fragmentos HTMX |
+| `op/temas.php` | Redireccion compatible para enlaces antiguos |
+| `docs/bitacora_migration.sql` | Creacion manual e idempotente de las tablas del tracker |
+| `templates/One_Piece_Gaiden_Templates/op_bitacora.html` | Pagina completa |
+| `templates/One_Piece_Gaiden_Templates/op_bitacora_contenido.html` | Region HTMX con resumen, pestanas y listas |
+| `templates/One_Piece_Gaiden_Templates/op_bitacora_header.html` | Barra compacta del header |
+| `templates/One_Piece_Gaiden_Templates/stylesheets/op_bitacora.css` | Estilos especificos |
 
 ### 2.2 Modificar
 
@@ -47,7 +48,7 @@ No se modifican `global.php`, `mybb_posts`, `mybb_threads`,
 
 ## 3. Convenciones de implementacion
 
-- Prefijo PHP: `op_temas_`.
+- Prefijo PHP: `op_bitacora_`.
 - Tablas pasadas a `$db`: `op_temas_seguidos` y
   `op_temas_participantes`, sin prefijo hardcodeado.
 - Identidad del personaje: `(int)$mybb->user['uid']`.
@@ -73,7 +74,7 @@ define('OP_TEMAS_ROLE_PARENT', '10,%');
 
 ## 4. Tarea 1: esqueleto y ciclo de vida del plugin
 
-**Archivo:** `inc/plugins/op_temas_tracker.php`
+**Archivo:** `inc/plugins/op_bitacora.php`
 
 ### 4.1 Registro
 
@@ -89,12 +90,12 @@ $plugins->add_hook('global_intermediate', 'op_temas_hook_header');
 
 Funciones de ciclo de vida:
 
-- `op_temas_tracker_info()`;
-- `op_temas_tracker_is_installed()`;
-- `op_temas_tracker_install()`;
-- `op_temas_tracker_uninstall()`;
-- `op_temas_tracker_activate()`;
-- `op_temas_tracker_deactivate()`.
+- `op_bitacora_info()`;
+- `op_bitacora_is_installed()`;
+- `op_bitacora_install()`;
+- `op_bitacora_uninstall()`;
+- `op_bitacora_activate()`;
+- `op_bitacora_deactivate()`.
 
 `is_installed()` debe exigir las dos tablas, no solo una.
 
@@ -139,13 +140,13 @@ No agregar claves foraneas hacia tablas core MyISAM.
 
 ### 4.3 Plantillas y stylesheet
 
-Crear una funcion `op_temas_template_definitions()` con el mapa de nombres y
+Crear una funcion `op_bitacora_template_definitions()` con el mapa de nombres y
 rutas fuente. Durante la instalacion:
 
 1. leer las plantillas versionadas;
 2. registrar una copia maestra `sid = -2` si no existe;
 3. registrar o actualizar la copia del template set OPG;
-4. leer `op_temas_tracker.css`;
+4. leer `op_bitacora.css`;
 5. insertar o actualizar su fila para `tid = 3`;
 6. ejecutar `cache_stylesheet()` y `update_theme_stylesheet_list()`.
 
@@ -171,8 +172,8 @@ unica operacion destructiva; `deactivate()` conserva los datos.
 ### 4.5 Verificacion
 
 ```bash
-php -l inc/plugins/op_temas_tracker.php
-php -l inc/plugins/op_temas_tracker/functions.php
+php -l inc/plugins/op_bitacora.php
+php -l inc/plugins/op_bitacora/functions.php
 ```
 
 En MyBB:
@@ -185,20 +186,20 @@ En MyBB:
 
 ## 5. Tarea 2: utilidades y contratos del motor
 
-**Archivo:** `inc/plugins/op_temas_tracker/functions.php`
+**Archivo:** `inc/plugins/op_bitacora/functions.php`
 
 Implementar primero helpers sin efectos laterales:
 
 ```php
-op_temas_escape($value): string
-op_temas_override_valido($value): bool
-op_temas_es_cerrado($closed): bool
-op_temas_es_redirect($closed): bool
-op_temas_resolver_estado(array $seguimiento): string
-op_temas_agrupar_por_estado(array $seguimientos): array
+op_bitacora_escape($value): string
+op_bitacora_override_valido($value): bool
+op_bitacora_es_cerrado($closed): bool
+op_bitacora_es_redirect($closed): bool
+op_bitacora_resolver_estado(array $seguimiento): string
+op_bitacora_agrupar_por_estado(array $seguimientos): array
 ```
 
-`op_temas_resolver_estado()` recibe como minimo:
+`op_bitacora_resolver_estado()` recibe como minimo:
 
 ```php
 array(
@@ -231,16 +232,16 @@ Reglas importantes:
 Agregar helpers de infraestructura:
 
 ```php
-op_temas_tablas_listas(): bool
-op_temas_personaje_tiene_ficha(int $uid): bool
-op_temas_cargar_tema(int $tid): ?array
-op_temas_es_foro_rol(int $fid): bool
-op_temas_puede_ver_foro(int $fid): bool
-op_temas_cargar_seguimiento(int $id, int $ownerUid): ?array
+op_bitacora_tablas_listas(): bool
+op_bitacora_personaje_tiene_ficha(int $uid): bool
+op_bitacora_cargar_tema(int $tid): ?array
+op_bitacora_es_foro_rol(int $fid): bool
+op_bitacora_puede_ver_foro(int $fid): bool
+op_bitacora_cargar_seguimiento(int $id, int $ownerUid): ?array
 ```
 
-`op_temas_es_cerrado()` debe distinguir un cierre real de un redirect
-`moved|...`. `op_temas_es_redirect()` identifica esos redirects y la lectura
+`op_bitacora_es_cerrado()` debe distinguir un cierre real de un redirect
+`moved|...`. `op_bitacora_es_redirect()` identifica esos redirects y la lectura
 los trata como ocultos, no como temas activos ni cerrados.
 
 ### Verificacion
@@ -271,7 +272,7 @@ No devuelven HTML ni llaman `redirect()`.
 Funcion principal:
 
 ```php
-op_temas_procesar_post(int $pid): void
+op_bitacora_procesar_post(int $pid): void
 ```
 
 Debe releer el post desde base de datos. No depender de nombres internos del
@@ -298,7 +299,7 @@ ronda mas reciente o consuma un override posterior. El upsert debe apoyarse en
 ### 6.2 Sembrar participantes
 
 ```php
-op_temas_sembrar_participantes(int $seguimientoId, int $tid, int $ownerUid): void
+op_bitacora_sembrar_participantes(int $seguimientoId, int $tid, int $ownerUid): void
 ```
 
 Consulta autores distintos con posts visibles, ficha existente y UID distinto
@@ -309,7 +310,7 @@ No usar `op_thread_personaje`: la participacion real sale de `posts`.
 ### 6.3 Propagar un participante nuevo
 
 ```php
-op_temas_propagar_participante(int $tid, int $autorUid): void
+op_bitacora_propagar_participante(int $tid, int $autorUid): void
 ```
 
 Inserta al autor en todos los seguimientos del TID cuyo propietario sea otro
@@ -319,7 +320,7 @@ ronda y contara como respuesta.
 ### 6.4 Agregar tema manualmente
 
 ```php
-op_temas_agregar_tema(int $ownerUid, int $tid, string $estadoInicial): array
+op_bitacora_agregar_tema(int $ownerUid, int $tid, string $estadoInicial): array
 ```
 
 Validar existencia, rol, visibilidad y permisos antes de insertar. Despues:
@@ -336,7 +337,7 @@ Un duplicado devuelve `ya_seguido` sin alterar la ronda existente.
 ### 6.5 Dejar de seguir
 
 ```php
-op_temas_dejar_seguir(int $ownerUid, int $seguimientoId): array
+op_bitacora_dejar_seguir(int $ownerUid, int $seguimientoId): array
 ```
 
 Cargar por `id + personaje_uid`, iniciar transaccion, eliminar participantes y
@@ -346,8 +347,8 @@ vez.
 ### 6.6 Overrides
 
 ```php
-op_temas_marcar_me_toca(int $ownerUid, int $seguimientoId): array
-op_temas_marcar_no_me_toca(int $ownerUid, int $seguimientoId): array
+op_bitacora_marcar_me_toca(int $ownerUid, int $seguimientoId): array
+op_bitacora_marcar_no_me_toca(int $ownerUid, int $seguimientoId): array
 ```
 
 `me_toca` cambia solo el override y timestamp.
@@ -361,13 +362,13 @@ Los overrides no se aplican a temas cerrados, ocultos o fuera de rol.
 ### 6.7 Administrar participantes
 
 ```php
-op_temas_agregar_participante(
+op_bitacora_agregar_participante(
     int $ownerUid,
     int $seguimientoId,
     int $participanteUid
 ): array
 
-op_temas_retirar_participante(
+op_bitacora_retirar_participante(
     int $ownerUid,
     int $seguimientoId,
     int $participanteUid
@@ -387,8 +388,8 @@ seguimiento indicado.
 ### 6.8 Configurar narrador
 
 ```php
-op_temas_establecer_narrador(int $ownerUid, int $seguimientoId, int $narradorUid): array
-op_temas_quitar_narrador(int $ownerUid, int $seguimientoId): array
+op_bitacora_establecer_narrador(int $ownerUid, int $seguimientoId, int $narradorUid): array
+op_bitacora_quitar_narrador(int $ownerUid, int $seguimientoId): array
 ```
 
 Seleccionar valida propiedad, tema administrable y ficha, incorpora al
@@ -406,16 +407,16 @@ debe convertirse en error de usuario si el estado final ya es correcto.
 
 ## 7. Tarea 4: hooks de publicacion y aprobacion
 
-**Archivo:** `inc/plugins/op_temas_tracker.php`
+**Archivo:** `inc/plugins/op_bitacora.php`
 
 Implementar un unico callback para ambos hooks:
 
 ```php
-function op_temas_hook_post(&$handler)
+function op_bitacora_hook_post(&$handler)
 {
     $pid = (int)($handler->return_values['pid'] ?? 0);
     if ($pid > 0) {
-        op_temas_procesar_post($pid);
+        op_bitacora_procesar_post($pid);
     }
 }
 ```
@@ -426,13 +427,13 @@ duplicar validaciones y funciona igual para thread y reply.
 Agregar tambien:
 
 ```php
-function op_temas_hook_approve_posts($pids)
-function op_temas_hook_approve_threads($tids)
+function op_bitacora_hook_approve_posts($pids)
+function op_bitacora_hook_approve_threads($tids)
 ```
 
 `class_moderation_approve_posts` se ejecuta despues de que MyBB marque los
 posts como visibles. El callback normaliza los IDs, los ordena por PID y llama
-`op_temas_procesar_post()` para cada uno.
+`op_bitacora_procesar_post()` para cada uno.
 
 `class_moderation_approve_threads` recibe TID. El callback consulta todos sus
 posts visibles, ordenados por PID ascendente, y los procesa. Asi quedan
@@ -457,12 +458,12 @@ tardia rebobine una ronda posterior.
 
 ## 8. Tarea 5: lectura en bloque y motor de vista
 
-**Archivo:** `inc/plugins/op_temas_tracker/functions.php`
+**Archivo:** `inc/plugins/op_bitacora/functions.php`
 
 ### 8.1 Consulta base
 
 ```php
-op_temas_listar(int $ownerUid): array
+op_bitacora_listar(int $ownerUid): array
 ```
 
 Primera consulta:
@@ -534,11 +535,9 @@ Ordenar cada grupo por `threads.lastpost DESC` y devolver:
 array(
     'debes_responder' => array(),
     'esperando' => array(),
-    'cerrados' => array(),
     'conteos' => array(
         'debes_responder' => 0,
         'esperando' => 0,
-        'cerrados' => 0,
     ),
 )
 ```
@@ -549,15 +548,15 @@ Si una fila tiene `override_estado = no_me_toca` pero todos respondieron, el
 estado efectivo es `debes_responder`. No escribir durante una lectura. La
 normalizacion a `auto` puede ocurrir en la siguiente mutacion del seguimiento.
 
-## 9. Tarea 6: controlador `/op/temas.php`
+## 9. Tarea 6: controlador `/op/bitacora.php`
 
 ### 9.1 Bootstrap
 
 ```php
 define('IN_MYBB', 1);
-define('THIS_SCRIPT', 'temas.php');
+define('THIS_SCRIPT', 'bitacora.php');
 require_once './../global.php';
-require_once MYBB_ROOT . 'inc/plugins/op_temas_tracker/functions.php';
+require_once MYBB_ROOT . 'inc/plugins/op_bitacora/functions.php';
 ```
 
 Antes de procesar acciones:
@@ -596,14 +595,14 @@ Todo POST ejecuta `verify_post_check()` antes de llamar al motor.
 Para una request tradicional:
 
 1. ejecutar mutacion;
-2. redirigir a `/op/temas.php?resultado={codigo}`;
+2. redirigir a `/op/bitacora.php?resultado={codigo}`;
 3. traducir solo codigos incluidos en una lista blanca.
 
 Para `HX-Request: true`:
 
 1. ejecutar la misma mutacion;
 2. reconstruir el tracker completo;
-3. devolver `op_temas_tracker`;
+3. devolver `op_bitacora_contenido`;
 4. usar un mensaje `aria-live` dentro del fragmento.
 
 No aceptar texto de mensajes desde query string.
@@ -612,30 +611,37 @@ No aceptar texto de mensajes desde query string.
 
 `buscar_personajes`:
 
-- minimo tres caracteres, salvo ID numerico;
-- busca `op_fichas.fid`, `nombre` y `apodo`;
+- minimo tres caracteres, incluido un FID numerico;
+- busca `op_fichas.fid` y `nombre`;
 - excluye el propietario;
 - limita a 12 resultados;
-- devuelve botones construidos por `op_temas_render_resultado_busqueda()` con
+- devuelve botones construidos por `op_bitacora_render_resultado_busqueda()` con
   UID y etiqueta escapada;
 - no agrega nada por GET; la eleccion rellena un campo oculto y el alta real
   sigue siendo POST.
 
+Los typeaheads de configuracion usan `fetch()` con un debounce de 220 ms y un
+`AbortController` por input. Cada cambio limpia inmediatamente la lista,
+cancela tanto el temporizador como la consulta anterior y solo programa otra
+peticion cuando el termino conserva al menos tres caracteres. Los resultados
+se posicionan de forma absoluta y el CSS del tracker no depende de hojas de
+estilo compartidas para construir el dropdown.
+
 ### 9.5 Render principal
 
-Agregar breadcrumb `Mis temas de rol`, preparar variables y ejecutar:
+Agregar breadcrumb `Bitácora de rol`, preparar variables y ejecutar:
 
 ```php
-eval("\$page = \"".$templates->get('op_temas')."\";");
+eval("\$page = \"".$templates->get('op_bitacora')."\";");
 output_page($page);
 ```
 
 El template completo incluye `$headerinclude`, `$header`, `$footer`, scripts
-locales de HTMX/Alpine y el fragmento `$op_temas_tracker`.
+locales de HTMX/Alpine y el fragmento `$op_bitacora_contenido`.
 
 ## 10. Tarea 7: plantillas
 
-### 10.1 `op_temas.html`
+### 10.1 `op_bitacora.html`
 
 Contiene el documento MyBB y un unico `main`. No incluye CSS inline. Carga:
 
@@ -644,7 +650,7 @@ Contiene el documento MyBB y un unico `main`. No incluye CSS inline. Carga:
 <script defer src="/jscripts/vendor/alpinejs-3.17.3.min.js"></script>
 ```
 
-### 10.2 `op_temas_tracker.html`
+### 10.2 `op_bitacora_contenido.html`
 
 Debe ser reemplazable como una sola unidad por HTMX y contener:
 
@@ -661,14 +667,14 @@ HTMX, no mediante datos globales del servidor.
 
 ### 10.3 Fragmentos repetidos desde PHP
 
-`op/temas.php` implementa helpers de presentacion equivalentes al patron usado
+`op/bitacora.php` implementa helpers de presentacion equivalentes al patron usado
 en `op/aventuras_personaje.php`:
 
 ```php
-op_temas_render_tarjeta(array $tema): string
-op_temas_render_participante(array $participante, array $tema): string
-op_temas_render_configuracion(array $tema): string
-op_temas_render_resultado_busqueda(array $ficha): string
+op_bitacora_render_tarjeta(array $tema): string
+op_bitacora_render_participante(array $participante, array $tema): string
+op_bitacora_render_configuracion(array $tema): string
+op_bitacora_render_resultado_busqueda(array $ficha): string
 ```
 
 Estos helpers reciben datos ya autorizados y escapados en el punto de salida.
@@ -686,19 +692,21 @@ Cada participante enlaza a:
 
 Los avatares usan `loading="lazy"` y `decoding="async"`.
 
-Los strings resultantes se agrupan en variables como
-`$op_temas_lista_debes`, `$op_temas_lista_esperando` y
-`$op_temas_lista_cerrados`, consumidas por `op_temas_tracker.html`.
+Los strings resultantes se agrupan en `$op_temas_lista_debes` y
+`$op_temas_lista_esperando`, consumidas por `op_bitacora_contenido.html`. La
+interfaz los presenta como `Tu turno` y `Al dia`; los temas cerrados se
+renderizan dentro de Al dia con su etiqueta propia.
 
 ### 10.4 Header
 
-`op_temas_header` contiene un enlace unico a `/op/temas.php` y dos cifras. Si
-ambas son cero, muestra un mensaje positivo. No muestra el total de cerrados.
+`op_temas_header` contiene un enlace unico a `/op/bitacora.php` y dos cifras. Si
+ambas son cero, muestra un mensaje positivo. Los cerrados se incluyen en la
+cifra de Esperando.
 
 ## 11. Tarea 8: CSS y comportamiento visual
 
 **Archivo:**
-`templates/One_Piece_Gaiden_Templates/stylesheets/op_temas_tracker.css`
+`templates/One_Piece_Gaiden_Templates/stylesheets/op_bitacora.css`
 
 Reutilizar tokens y componentes de `opg-tokens.css` y `opg-components.css`.
 Agregar solo clases `op-temas-*` especificas.
@@ -707,7 +715,7 @@ Agregar solo clases `op-temas-*` especificas.
 
 - ancho contenido consistente con herramientas `/op/`;
 - dos bandas activas claramente diferenciadas;
-- cerrados en una tercera vista neutral;
+- cerrados dentro de Esperando con una banda de estado neutral;
 - tarjetas con radio maximo de 8px;
 - bordes negros y sombra offset OPG;
 - controles compactos y escaneables;
@@ -751,7 +759,7 @@ Esta tarea se implementa despues de que la pagina y el motor sean estables.
 ### 12.1 Hook
 
 ```php
-function op_temas_hook_header()
+function op_bitacora_hook_header()
 ```
 
 Flujo de salida temprana:
@@ -761,10 +769,10 @@ Flujo de salida temprana:
 3. salir si faltan tablas;
 4. salir si el UID activo no tiene ficha;
 5. obtener resumen del personaje;
-6. renderizar `op_temas_header`.
+6. renderizar `op_bitacora_header`.
 
-El resumen reutiliza `op_temas_listar()` en modo ligero o una funcion
-`op_temas_resumen()` que comparta la misma consulta y resolver. No debe existir
+El resumen reutiliza `op_bitacora_listar()` en modo ligero o una funcion
+`op_bitacora_resumen()` que comparta la misma consulta y resolver. No debe existir
 una segunda implementacion de las reglas de estado.
 
 ### 12.2 Rendimiento
@@ -775,7 +783,7 @@ Antes de activar globalmente:
   prueba;
 - ejecutar `EXPLAIN` sobre participantes/posts;
 - confirmar que los permisos se calculan una vez por FID distinto;
-- comparar conteos del header con los de `/op/temas.php`.
+- comparar conteos del header con los de `/op/bitacora.php`.
 
 No introducir cache en la primera entrega. Si la medicion lo exige, disenar la
 invalidacion en un cambio separado.
@@ -785,9 +793,9 @@ invalidacion en un cambio separado.
 ### 13.1 Comprobaciones estaticas
 
 ```bash
-php -l inc/plugins/op_temas_tracker.php
-php -l inc/plugins/op_temas_tracker/functions.php
-php -l op/temas.php
+php -l inc/plugins/op_bitacora.php
+php -l inc/plugins/op_bitacora/functions.php
+php -l op/bitacora.php
 git diff --check
 ```
 
@@ -795,9 +803,9 @@ Buscar accidentalmente:
 
 ```bash
 rg -n "mybb_op_temas|personaje_uid.*input|uid.*INPUT_INT" \
-  inc/plugins/op_temas_tracker.php \
-  inc/plugins/op_temas_tracker/functions.php \
-  op/temas.php
+  inc/plugins/op_bitacora.php \
+  inc/plugins/op_bitacora/functions.php \
+  op/bitacora.php
 ```
 
 Revisar manualmente cualquier prefijo hardcodeado y cualquier UID recibido del
@@ -819,7 +827,7 @@ Usar tres personajes con ficha: A, B y C.
 | 8 | A publica | Override consumido, nueva ronda |
 | 9 | A retira a C | C deja de condicionar a A |
 | 10 | C vuelve a publicar | C se reincorpora automaticamente |
-| 11 | Cierre del tema | Aparece en Cerrados, sin contador activo |
+| 11 | Cierre del tema | Aparece en Esperando con la etiqueta Tema cerrado |
 | 12 | A deja de seguir | Desaparece del tracker de A |
 
 ### 13.3 Casos de seguridad
@@ -892,7 +900,7 @@ Rollback no destructivo:
 
 1. poner `OP_TEMAS_HEADER_ENABLED` en `false`;
 2. desactivar el plugin;
-3. retirar el enlace o acceso a `/op/temas.php` si se hubiese publicado;
+3. retirar el enlace o acceso a `/op/bitacora.php` si se hubiese publicado;
 4. conservar tablas para diagnostico y reactivacion.
 
 No usar `uninstall()` como rollback ordinario porque elimina seguimientos.

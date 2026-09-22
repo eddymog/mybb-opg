@@ -1,6 +1,6 @@
 <?php
 /**
- * OPG - Tracker de temas de rol: motor compartido.
+ * OPG - Bitacora de rol: motor compartido.
  */
 
 if (!defined('IN_MYBB')) {
@@ -13,44 +13,42 @@ if (!defined('OP_TEMAS_OVERRIDE_AUTO')) {
     define('OP_TEMAS_OVERRIDE_WAIT', 'no_me_toca');
 }
 
-function op_temas_escape($value)
+function op_bitacora_escape($value)
 {
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function op_temas_template_definitions()
+function op_bitacora_template_definitions()
 {
     return array(
-        'op_temas' => 'op_temas.html',
-        'op_temas_tracker' => 'op_temas_tracker.html',
-        'op_temas_header' => 'op_temas_header.html',
+        'op_bitacora' => 'op_bitacora.html',
+        'op_bitacora_contenido' => 'op_bitacora_contenido.html',
+        'op_bitacora_header' => 'op_bitacora_header.html',
     );
 }
 
-function op_temas_cargar_plantilla($title)
+function op_bitacora_cargar_plantilla($title)
 {
     global $templates;
 
-    $definitions = op_temas_template_definitions();
+    $definitions = op_bitacora_template_definitions();
     if (!isset($definitions[$title])) {
         return '';
     }
 
-    $template = $templates->get($title, 1, 0);
-    if (trim($template) !== '') {
-        return $template;
-    }
-
     $path = MYBB_ROOT . 'templates/One_Piece_Gaiden_Templates/' . $definitions[$title];
-    if (!is_file($path)) {
-        return '';
+    if (is_file($path)) {
+        $source = (string)file_get_contents($path);
+        if (trim($source) !== '') {
+            return str_replace("\\'", "'", addslashes($source));
+        }
     }
 
-    $source = (string)file_get_contents($path);
-    return str_replace("\\'", "'", addslashes($source));
+    $template = $templates->get($title, 1, 0);
+    return trim($template) !== '' ? $template : '';
 }
 
-function op_temas_override_valido($value)
+function op_bitacora_override_valido($value)
 {
     return in_array($value, array(
         OP_TEMAS_OVERRIDE_AUTO,
@@ -59,25 +57,25 @@ function op_temas_override_valido($value)
     ), true);
 }
 
-function op_temas_es_redirect($closed)
+function op_bitacora_es_redirect($closed)
 {
     return strpos((string)$closed, 'moved|') === 0;
 }
 
-function op_temas_es_cerrado($closed)
+function op_bitacora_es_cerrado($closed)
 {
     $closed = (string)$closed;
-    return $closed !== '' && $closed !== '0' && !op_temas_es_redirect($closed);
+    return $closed !== '' && $closed !== '0' && !op_bitacora_es_redirect($closed);
 }
 
-function op_temas_tablas_listas()
+function op_bitacora_tablas_listas()
 {
     global $db;
     return $db->table_exists('op_temas_seguidos')
         && $db->table_exists('op_temas_participantes');
 }
 
-function op_temas_actualizar_esquema()
+function op_bitacora_actualizar_esquema()
 {
     global $db;
     if ($db->table_exists('op_temas_seguidos')
@@ -90,7 +88,7 @@ function op_temas_actualizar_esquema()
     }
 }
 
-function op_temas_personaje_tiene_ficha($uid)
+function op_bitacora_personaje_tiene_ficha($uid)
 {
     global $db;
     $uid = (int)$uid;
@@ -102,7 +100,7 @@ function op_temas_personaje_tiene_ficha($uid)
     return (int)$db->fetch_field($query, 'fid') === $uid;
 }
 
-function op_temas_es_foro_rol($fid)
+function op_bitacora_es_foro_rol($fid)
 {
     global $db;
     $fid = (int)$fid;
@@ -115,7 +113,7 @@ function op_temas_es_foro_rol($fid)
     return strpos($parentlist, '10,') === 0;
 }
 
-function op_temas_puede_ver_foro($fid)
+function op_bitacora_puede_ver_foro($fid)
 {
     $permissions = forum_permissions((int)$fid);
     return is_array($permissions)
@@ -123,7 +121,7 @@ function op_temas_puede_ver_foro($fid)
         && !empty($permissions['canviewthreads']);
 }
 
-function op_temas_cargar_tema($tid, $comprobarPermisos = true)
+function op_bitacora_cargar_tema($tid, $comprobarPermisos = true)
 {
     global $db;
     $tid = (int)$tid;
@@ -143,17 +141,17 @@ function op_temas_cargar_tema($tid, $comprobarPermisos = true)
     if (!$thread || (int)$thread['visible'] !== 1 || strpos((string)$thread['parentlist'], '10,') !== 0) {
         return false;
     }
-    if (op_temas_es_redirect($thread['closed'])) {
+    if (op_bitacora_es_redirect($thread['closed'])) {
         return false;
     }
-    if ($comprobarPermisos && !op_temas_puede_ver_foro((int)$thread['fid'])) {
+    if ($comprobarPermisos && !op_bitacora_puede_ver_foro((int)$thread['fid'])) {
         return false;
     }
 
     return $thread;
 }
 
-function op_temas_cargar_seguimiento($id, $ownerUid)
+function op_bitacora_cargar_seguimiento($id, $ownerUid)
 {
     global $db;
     $id = (int)$id;
@@ -171,7 +169,7 @@ function op_temas_cargar_seguimiento($id, $ownerUid)
     return $db->fetch_array($query);
 }
 
-function op_temas_resolver_estado($seguimiento)
+function op_bitacora_resolver_estado($seguimiento)
 {
     if (empty($seguimiento['visible_tracker'])) {
         return 'oculto';
@@ -200,7 +198,7 @@ function op_temas_resolver_estado($seguimiento)
     return 'esperando';
 }
 
-function op_temas_clasificar_participantes($seguimiento)
+function op_bitacora_clasificar_participantes($seguimiento)
 {
     $seguimiento['respondieron_lista'] = array();
     $seguimiento['pendientes'] = array();
@@ -247,23 +245,21 @@ function op_temas_clasificar_participantes($seguimiento)
     return $seguimiento;
 }
 
-function op_temas_agrupar_por_estado($seguimientos)
+function op_bitacora_agrupar_por_estado($seguimientos)
 {
     $resultado = array(
         'debes_responder' => array(),
         'esperando' => array(),
-        'cerrados' => array(),
         'conteos' => array(
             'debes_responder' => 0,
             'esperando' => 0,
-            'cerrados' => 0,
         ),
     );
 
     foreach ($seguimientos as $seguimiento) {
         $estado = (string)$seguimiento['estado'];
         if ($estado === 'cerrado') {
-            $grupo = 'cerrados';
+            $grupo = 'esperando';
         } elseif ($estado === 'debes_responder' || $estado === 'debes_responder_manual') {
             $grupo = 'debes_responder';
         } elseif ($estado === 'esperando' || $estado === 'esperando_manual') {
@@ -275,7 +271,7 @@ function op_temas_agrupar_por_estado($seguimientos)
         $resultado['conteos'][$grupo]++;
     }
 
-    foreach (array('debes_responder', 'esperando', 'cerrados') as $grupo) {
+    foreach (array('debes_responder', 'esperando') as $grupo) {
         usort($resultado[$grupo], function ($a, $b) {
             return (int)$b['lastpost'] <=> (int)$a['lastpost'];
         });
@@ -284,7 +280,7 @@ function op_temas_agrupar_por_estado($seguimientos)
     return $resultado;
 }
 
-function op_temas_sembrar_participantes($seguimientoId, $tid, $ownerUid)
+function op_bitacora_sembrar_participantes($seguimientoId, $tid, $ownerUid)
 {
     global $db;
     $seguimientoId = (int)$seguimientoId;
@@ -309,7 +305,7 @@ function op_temas_sembrar_participantes($seguimientoId, $tid, $ownerUid)
         GROUP BY p.uid");
 }
 
-function op_temas_propagar_participante($tid, $autorUid)
+function op_bitacora_propagar_participante($tid, $autorUid)
 {
     global $db;
     $tid = (int)$tid;
@@ -328,11 +324,11 @@ function op_temas_propagar_participante($tid, $autorUid)
           AND s.personaje_uid != {$autorUid}");
 }
 
-function op_temas_procesar_post($pid)
+function op_bitacora_procesar_post($pid)
 {
     global $db;
     $pid = (int)$pid;
-    if ($pid <= 0 || !op_temas_tablas_listas()) {
+    if ($pid <= 0 || !op_bitacora_tablas_listas()) {
         return;
     }
 
@@ -352,7 +348,7 @@ function op_temas_procesar_post($pid)
 
     if (!$post || (int)$post['visible'] !== 1 || (int)$post['thread_visible'] !== 1
         || (int)$post['uid'] <= 0 || strpos((string)$post['parentlist'], '10,') !== 0
-        || op_temas_es_redirect($post['closed'])) {
+        || op_bitacora_es_redirect($post['closed'])) {
         return;
     }
 
@@ -399,27 +395,27 @@ function op_temas_procesar_post($pid)
     }
 
     if ($esAlta) {
-        op_temas_sembrar_participantes($seguimientoId, $tid, $uid);
+        op_bitacora_sembrar_participantes($seguimientoId, $tid, $uid);
     }
-    op_temas_propagar_participante($tid, $uid);
+    op_bitacora_propagar_participante($tid, $uid);
 
     $db->write_query('COMMIT');
 }
 
-function op_temas_agregar_tema($ownerUid, $tid, $estadoInicial)
+function op_bitacora_agregar_tema($ownerUid, $tid, $estadoInicial)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
     $tid = (int)$tid;
     $estadoInicial = (string)$estadoInicial;
 
-    if ($ownerUid <= 0 || !op_temas_personaje_tiene_ficha($ownerUid)) {
+    if ($ownerUid <= 0 || !op_bitacora_personaje_tiene_ficha($ownerUid)) {
         return array('ok' => false, 'code' => 'sin_ficha');
     }
-    if (!op_temas_override_valido($estadoInicial)) {
+    if (!op_bitacora_override_valido($estadoInicial)) {
         return array('ok' => false, 'code' => 'estado_invalido');
     }
-    $thread = op_temas_cargar_tema($tid, true);
+    $thread = op_bitacora_cargar_tema($tid, true);
     if (!$thread) {
         return array('ok' => false, 'code' => 'tema_no_disponible');
     }
@@ -463,16 +459,16 @@ function op_temas_agregar_tema($ownerUid, $tid, $estadoInicial)
         return array('ok' => false, 'code' => 'ya_seguido');
     }
     $seguimientoId = (int)$db->insert_id();
-    op_temas_sembrar_participantes($seguimientoId, $tid, $ownerUid);
+    op_bitacora_sembrar_participantes($seguimientoId, $tid, $ownerUid);
     $db->write_query('COMMIT');
 
     return array('ok' => true, 'code' => 'tema_agregado', 'id' => $seguimientoId);
 }
 
-function op_temas_dejar_seguir($ownerUid, $seguimientoId)
+function op_bitacora_dejar_seguir($ownerUid, $seguimientoId)
 {
     global $db;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
     if (!$seguimiento) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
@@ -486,20 +482,20 @@ function op_temas_dejar_seguir($ownerUid, $seguimientoId)
     return array('ok' => true, 'code' => 'tema_retirado');
 }
 
-function op_temas_seguimiento_administrable($seguimiento)
+function op_bitacora_seguimiento_administrable($seguimiento)
 {
     if (!$seguimiento) {
         return false;
     }
-    $thread = op_temas_cargar_tema((int)$seguimiento['tid'], true);
-    return $thread && !op_temas_es_cerrado($thread['closed']);
+    $thread = op_bitacora_cargar_tema((int)$seguimiento['tid'], true);
+    return $thread && !op_bitacora_es_cerrado($thread['closed']);
 }
 
-function op_temas_marcar_me_toca($ownerUid, $seguimientoId)
+function op_bitacora_marcar_me_toca($ownerUid, $seguimientoId)
 {
     global $db;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
 
@@ -511,11 +507,11 @@ function op_temas_marcar_me_toca($ownerUid, $seguimientoId)
     return array('ok' => true, 'code' => 'turno_actualizado');
 }
 
-function op_temas_marcar_no_me_toca($ownerUid, $seguimientoId)
+function op_bitacora_marcar_no_me_toca($ownerUid, $seguimientoId)
 {
     global $db;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
 
@@ -535,17 +531,17 @@ function op_temas_marcar_no_me_toca($ownerUid, $seguimientoId)
     return array('ok' => true, 'code' => 'turno_actualizado');
 }
 
-function op_temas_agregar_participante($ownerUid, $seguimientoId, $participanteUid)
+function op_bitacora_agregar_participante($ownerUid, $seguimientoId, $participanteUid)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
     $participanteUid = (int)$participanteUid;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
     if ($participanteUid <= 0 || $participanteUid === $ownerUid
-        || !op_temas_personaje_tiene_ficha($participanteUid)) {
+        || !op_bitacora_personaje_tiene_ficha($participanteUid)) {
         return array('ok' => false, 'code' => 'participante_invalido');
     }
 
@@ -559,13 +555,13 @@ function op_temas_agregar_participante($ownerUid, $seguimientoId, $participanteU
     return array('ok' => true, 'code' => 'participante_agregado');
 }
 
-function op_temas_retirar_participante($ownerUid, $seguimientoId, $participanteUid)
+function op_bitacora_retirar_participante($ownerUid, $seguimientoId, $participanteUid)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
     $participanteUid = (int)$participanteUid;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
 
@@ -585,17 +581,17 @@ function op_temas_retirar_participante($ownerUid, $seguimientoId, $participanteU
     return array('ok' => true, 'code' => 'participante_retirado');
 }
 
-function op_temas_establecer_narrador($ownerUid, $seguimientoId, $narradorUid)
+function op_bitacora_establecer_narrador($ownerUid, $seguimientoId, $narradorUid)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
     $narradorUid = (int)$narradorUid;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
     if ($narradorUid <= 0 || $narradorUid === $ownerUid
-        || !op_temas_personaje_tiene_ficha($narradorUid)) {
+        || !op_bitacora_personaje_tiene_ficha($narradorUid)) {
         return array('ok' => false, 'code' => 'narrador_invalido');
     }
 
@@ -614,11 +610,11 @@ function op_temas_establecer_narrador($ownerUid, $seguimientoId, $narradorUid)
     return array('ok' => true, 'code' => 'narrador_actualizado');
 }
 
-function op_temas_quitar_narrador($ownerUid, $seguimientoId)
+function op_bitacora_quitar_narrador($ownerUid, $seguimientoId)
 {
     global $db;
-    $seguimiento = op_temas_cargar_seguimiento($seguimientoId, $ownerUid);
-    if (!op_temas_seguimiento_administrable($seguimiento)) {
+    $seguimiento = op_bitacora_cargar_seguimiento($seguimientoId, $ownerUid);
+    if (!op_bitacora_seguimiento_administrable($seguimiento)) {
         return array('ok' => false, 'code' => 'seguimiento_no_disponible');
     }
 
@@ -631,12 +627,12 @@ function op_temas_quitar_narrador($ownerUid, $seguimientoId)
     return array('ok' => true, 'code' => 'narrador_quitado');
 }
 
-function op_temas_listar($ownerUid)
+function op_bitacora_listar($ownerUid)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
-    if ($ownerUid <= 0 || !op_temas_tablas_listas()) {
-        return op_temas_agrupar_por_estado(array());
+    if ($ownerUid <= 0 || !op_bitacora_tablas_listas()) {
+        return op_bitacora_agrupar_por_estado(array());
     }
 
     $seguidos = $db->table_prefix . 'op_temas_seguidos';
@@ -645,7 +641,7 @@ function op_temas_listar($ownerUid)
     $users = $db->table_prefix . 'users';
     $fichas = $db->table_prefix . 'op_fichas';
 
-    $query = $db->query("SELECT s.*, t.fid, t.subject, t.lastpost, t.lastposteruid,
+    $query = $db->query("SELECT s.*, t.fid, t.subject, t.prefix, t.lastpost, t.lastposteruid,
             t.closed, t.visible AS thread_visible, f.name AS forum_name,
             f.parentlist, u.username AS last_username,
             ficha.nombre AS last_nombre, ficha.apodo AS last_apodo
@@ -664,11 +660,11 @@ function op_temas_listar($ownerUid)
         $fid = (int)($row['fid'] ?? 0);
         $visible = (int)($row['thread_visible'] ?? 0) === 1
             && strpos((string)($row['parentlist'] ?? ''), '10,') === 0
-            && !op_temas_es_redirect($row['closed'] ?? '');
+            && !op_bitacora_es_redirect($row['closed'] ?? '');
 
         if ($visible) {
             if (!array_key_exists($fid, $permisosForo)) {
-                $permisosForo[$fid] = op_temas_puede_ver_foro($fid);
+                $permisosForo[$fid] = op_bitacora_puede_ver_foro($fid);
             }
             $visible = $permisosForo[$fid];
         }
@@ -678,7 +674,7 @@ function op_temas_listar($ownerUid)
 
         $id = (int)$row['id'];
         $row['visible_tracker'] = true;
-        $row['cerrado'] = op_temas_es_cerrado($row['closed']);
+        $row['cerrado'] = op_bitacora_es_cerrado($row['closed']);
         $row['participantes'] = array();
         $row['respondieron_lista'] = array();
         $row['pendientes'] = array();
@@ -722,8 +718,8 @@ function op_temas_listar($ownerUid)
     }
 
     foreach ($seguimientos as &$seguimiento) {
-        $seguimiento = op_temas_clasificar_participantes($seguimiento);
-        $seguimiento['estado'] = op_temas_resolver_estado($seguimiento);
+        $seguimiento = op_bitacora_clasificar_participantes($seguimiento);
+        $seguimiento['estado'] = op_bitacora_resolver_estado($seguimiento);
         $seguimiento['estado_es_manual'] = in_array(
             $seguimiento['estado'],
             array('debes_responder_manual', 'esperando_manual'),
@@ -732,16 +728,16 @@ function op_temas_listar($ownerUid)
     }
     unset($seguimiento);
 
-    return op_temas_agrupar_por_estado(array_values($seguimientos));
+    return op_bitacora_agrupar_por_estado(array_values($seguimientos));
 }
 
-function op_temas_resumen($ownerUid)
+function op_bitacora_resumen($ownerUid)
 {
-    $listado = op_temas_listar((int)$ownerUid);
+    $listado = op_bitacora_listar((int)$ownerUid);
     return $listado['conteos'];
 }
 
-function op_temas_render_header($ownerUid, $conteos = null)
+function op_bitacora_render_header($ownerUid, $conteos = null)
 {
     global $templates, $mybb;
 
@@ -751,19 +747,19 @@ function op_temas_render_header($ownerUid, $conteos = null)
     }
 
     if (!is_array($conteos)) {
-        if (!op_temas_tablas_listas() || !op_temas_personaje_tiene_ficha($ownerUid)) {
+        if (!op_bitacora_tablas_listas() || !op_bitacora_personaje_tiene_ficha($ownerUid)) {
             return '';
         }
-        $conteos = op_temas_resumen($ownerUid);
+        $conteos = op_bitacora_resumen($ownerUid);
     }
     $op_temas_header_debes = (int)$conteos['debes_responder'];
     $op_temas_header_esperando = (int)$conteos['esperando'];
     $op_temas_header_clase = $op_temas_header_debes > 0 ? ' op-temas-header--pendiente' : '';
     $op_temas_header_texto = ($op_temas_header_debes === 0 && $op_temas_header_esperando === 0)
-        ? 'Temas: Todo al dia. No debes ninguna respuesta.'
-        : 'Temas: Debes responder: ' . $op_temas_header_debes
-            . ' | Esperando respuesta: ' . $op_temas_header_esperando;
+        ? 'Bitácora: Todo al día. No debes ninguna respuesta.'
+        : 'Bitácora: Tu turno: ' . $op_temas_header_debes
+            . ' | Al día: ' . $op_temas_header_esperando;
 
-    eval("\$html = \"" . op_temas_cargar_plantilla('op_temas_header') . "\";");
+    eval("\$html = \"" . op_bitacora_cargar_plantilla('op_bitacora_header') . "\";");
     return $html;
 }

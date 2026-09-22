@@ -1,8 +1,8 @@
 -- =====================================================================
--- Migracion: tracker de temas y rondas de rol (One Piece Gaiden)
+-- Migracion: bitacora de temas y rondas de rol (One Piece Gaiden)
 -- Ver docs/100_Requirements_Temas.md y docs/200_DesignPlan_Temas.md.
 --
--- El plugin op_temas_tracker.php crea estas tablas automaticamente al
+-- El plugin op_bitacora.php crea estas tablas automaticamente al
 -- instalarse. Este archivo permite crearlas manualmente desde phpMyAdmin
 -- o la CLI. Si la instalacion usa otro prefijo, sustituir `mybb_`.
 --

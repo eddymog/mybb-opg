@@ -1,0 +1,1 @@
+Quiero crear una pagina basada en el Registro de Narraciones. Inspirada en la guia localizada en /docs/guia_aventuras.md

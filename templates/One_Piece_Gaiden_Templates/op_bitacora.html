@@ -23,17 +23,19 @@
             <section id="op-temas-selector-vista" class="op-temas-selector" x-show="selectorVista" x-cloak>
                 <div>
                     <h2>Buscar personaje</h2>
-                    <p>Consulta sus temas por nombre, apodo o FID.</p>
+                    <p>Consulta sus temas por nombre o FID.</p>
                 </div>
                 <div class="op-temas-selector__buscador opg-buscar-caja">
-                    <label class="sr-only" for="op-temas-buscar-vista">Nombre, apodo o FID</label>
+                    <label class="sr-only" for="op-temas-buscar-vista">Nombre o FID</label>
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                     <input type="search" id="op-temas-buscar-vista" name="q" autocomplete="off"
-                        placeholder="Nombre, apodo o FID" aria-autocomplete="list"
+                        placeholder="Nombre o FID" aria-autocomplete="list"
                         aria-controls="op-temas-vista-resultados"
-                        hx-get="/op/temas.php" hx-trigger="keyup changed delay:250ms"
+                        hx-get="/op/bitacora.php" hx-trigger="keyup changed delay:250ms"
                         hx-target="#op-temas-vista-resultados"
+                        hx-sync="this:replace"
                         hx-vals='{"action":"buscar_modo_vista","modo_vista":"{$op_temas_vista_uid}"}'>
+                    <small class="op-temas-buscador__ayuda">Nombre desde 3 letras &middot; FID directo</small>
                     <div id="op-temas-vista-resultados" class="op-temas-resultados opg-resultados" role="listbox"></div>
                 </div>
                 <button type="button" class="op-temas-icono" title="Cerrar buscador" aria-label="Cerrar buscador"
@@ -41,17 +43,78 @@
                     <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </section>
-            {$op_temas_tracker}
+            {$op_bitacora_contenido}
         </main>
     </div></div></div></div>
     {$footer}
     <script>
     (function () {
+        var typeaheadStates = new WeakMap();
+
+        function cancelTypeahead(input) {
+            var state = typeaheadStates.get(input);
+            if (!state) return;
+            if (state.timer) window.clearTimeout(state.timer);
+            if (state.controller) state.controller.abort();
+            typeaheadStates.delete(input);
+        }
+
+        document.addEventListener('toggle', function (event) {
+            if (event.target.matches('.op-temas-config') && !event.target.open) {
+                event.target.querySelectorAll('[data-op-temas-typeahead]').forEach(function (input) {
+                    cancelTypeahead(input);
+                });
+                event.target.querySelectorAll('.op-temas-resultados').forEach(function (results) {
+                    results.innerHTML = '';
+                });
+                return;
+            }
+            if (!event.target.matches('.op-temas-narrador, .op-temas-agregar-control')) return;
+            var input = event.target.querySelector('input[type="search"]');
+            if (!input) return;
+            if (event.target.open) {
+                window.requestAnimationFrame(function () { input.focus(); });
+                return;
+            }
+            cancelTypeahead(input);
+            var results = event.target.querySelector('.op-temas-resultados');
+            if (results) results.innerHTML = '';
+        }, true);
+
         document.addEventListener('input', function (event) {
-            if (!event.target.matches('.op-temas-buscador input[type="search"]')) return;
+            if (!event.target.matches('[data-op-temas-typeahead]')) return;
+            var input = event.target;
             var form = event.target.closest('form');
             var hidden = form ? form.querySelector('.op-temas-participante-uid') : null;
             if (hidden) hidden.value = '';
+            var results = document.getElementById(input.getAttribute('data-results-id'));
+            cancelTypeahead(input);
+            if (results) results.innerHTML = '';
+
+            var query = input.value.trim();
+            if (query.length < 3 || !results) return;
+
+            var state = { timer: null, controller: null };
+            state.timer = window.setTimeout(function () {
+                state.timer = null;
+                state.controller = new AbortController();
+                results.innerHTML = '<p class="opg-resultado-vacio">Buscando...</p>';
+
+                fetch('/op/bitacora.php?action=buscar_personajes&q=' + encodeURIComponent(query), {
+                    credentials: 'same-origin',
+                    signal: state.controller.signal
+                }).then(function (response) {
+                    if (!response.ok) throw new Error('search_failed');
+                    return response.text();
+                }).then(function (html) {
+                    if (input.value.trim() !== query) return;
+                    results.innerHTML = html;
+                }).catch(function (error) {
+                    if (error.name === 'AbortError' || input.value.trim() !== query) return;
+                    results.innerHTML = '<p class="opg-resultado-vacio">No se pudo completar la búsqueda.</p>';
+                });
+            }, 220);
+            typeaheadStates.set(input, state);
         });
 
         document.addEventListener('click', function (event) {

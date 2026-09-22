@@ -161,8 +161,9 @@ Un tema se considera finalizado cuando esta cerrado en MyBB. En ese momento
 debe permanecer visible en el tracker con un aviso claro de que esta cerrado.
 El personaje es responsable de dejar de seguirlo manualmente.
 
-Los temas cerrados deben mostrarse en una seccion propia y no formar parte de
-los conteos activos de `Debes responder` y `Esperando respuesta`.
+Los temas cerrados deben mostrarse dentro de `Esperando respuesta`, con una
+etiqueta `Tema cerrado`. Forman parte de ese conteo hasta que el personaje los
+retire manualmente.
 
 ### 7.5 Fuera de la zona de rol
 
@@ -180,11 +181,11 @@ conteos.
 
 Debe existir una pagina propia accesible para personajes con sesion iniciada.
 
-La pagina debe mostrar tres grupos principales:
+La pagina debe mostrar dos grupos principales:
 
-1. `Debes responder`;
-2. `Esperando respuesta`;
-3. `Cerrados`, mientras el personaje no los retire manualmente.
+1. `Tu turno`;
+2. `Al dia`, que tambien contiene los temas cerrados mientras el
+   personaje no los retire manualmente.
 
 Cada tema debe mostrar, como minimo:
 
@@ -201,7 +202,8 @@ Cada tema debe mostrar, como minimo:
 La pagina debe incluir:
 
 - formulario para agregar un TID;
-- conteo de los dos estados activos y de los temas cerrados;
+- conteo de `Tu turno` y `Al dia`, incluyendo los cerrados en este
+  ultimo;
 - estado vacio comprensible para cada grupo;
 - confirmacion visible despues de agregar o retirar un tema;
 - orden por actividad mas reciente de forma predeterminada.
@@ -337,7 +339,7 @@ desmoderar el post del narrador recalcula el estado en la siguiente lectura.
 - Cualquier visitante puede consultar el tracker de un personaje mediante
   `modo_vista=<FID>`. Esta modalidad es exclusivamente de lectura.
 - La pagina debe ofrecer un selector publico para localizar otra ficha por
-  nombre, apodo o FID y abrir directamente su Modo vista.
+  nombre o FID y abrir directamente su Modo vista.
 - No se debe agregar ni consultar mediante el tracker un tema sin permisos de
   lectura. La vista publica solo muestra los temas que el visitante actual
   puede ver segun los permisos de MyBB.
@@ -409,8 +411,8 @@ La interfaz debe seguir `docs/style.md`:
 11. Los estados se recalculan si se elimina o desmodera un post que contaba en
     la ronda actual.
 12. La herramienta no altera las suscripciones nativas de MyBB.
-13. Un tema cerrado o finalizado permanece en una seccion propia del tracker
-    hasta que el personaje lo retire manualmente. No cuenta como turno activo.
+13. Un tema cerrado o finalizado permanece en `Esperando`, identificado con la
+    etiqueta `Tema cerrado`, hasta que el personaje lo retire manualmente.
 14. No se importan automaticamente participaciones anteriores al lanzamiento.
 15. Narradores y NPC con ficha usan las mismas reglas de seguimiento.
 16. El personaje puede declarar `No me toca responder` aunque las condiciones

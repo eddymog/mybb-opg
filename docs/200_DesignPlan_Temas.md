@@ -1,4 +1,4 @@
-# Tracker de temas de rol: plan de diseno
+# Bitacora de rol: plan de diseno
 
 > Depende de: [100_Requirements_Temas.md](100_Requirements_Temas.md)
 
@@ -15,7 +15,7 @@ La primera entrega incluye:
 - calculo de rondas por participantes esperados;
 - overrides `Me toca responder` y `No me toca responder`;
 - gestion de participantes por tema;
-- pagina privada `/op/temas.php`;
+- pagina privada `/op/bitacora.php`;
 - resumen compacto en el header, como ultima fase.
 
 El tracker usa el personaje activo de MyBB. Account Switcher ya cambia
@@ -46,22 +46,23 @@ Se crearan estos componentes:
 
 | Componente | Responsabilidad |
 |---|---|
-| `inc/plugins/op_temas_tracker.php` | Registro del plugin, instalacion, hooks y variable del header |
-| `inc/plugins/op_temas_tracker/functions.php` | Acceso a datos, validaciones y calculo de estados |
-| `op/temas.php` | Pagina, acciones POST y fragmentos HTMX |
-| Tres plantillas `op_temas_*` | Pagina completa, fragmento HTMX y header |
-| `op_temas_tracker.css` | Presentacion OPG responsive |
+| `inc/plugins/op_bitacora.php` | Registro del plugin, instalacion, hooks y variable del header |
+| `inc/plugins/op_bitacora/functions.php` | Acceso a datos, validaciones y calculo de estados |
+| `op/bitacora.php` | Pagina, acciones POST y fragmentos HTMX |
+| `op/temas.php` | Redireccion de compatibilidad hacia la nueva URL |
+| Tres plantillas `op_bitacora*` | Pagina completa, fragmento HTMX y header |
+| `op_bitacora.css` | Presentacion OPG responsive |
 
 La logica de negocio debe permanecer en `functions.php`. La pagina y los hooks
-solo validan la entrada y llaman al servicio. `op/temas.php` construye el HTML
+solo validan la entrada y llaman al servicio. `op/bitacora.php` construye el HTML
 repetido de tarjetas, participantes y resultados del typeahead, siguiendo el
 patron existente en `op/aventuras_personaje.php`.
 
 Solo se persisten tres plantillas MyBB:
 
-- `op_temas`: documento completo;
-- `op_temas_tracker`: region reemplazable mediante HTMX;
-- `op_temas_header`: barra compacta global.
+- `op_bitacora`: documento completo;
+- `op_bitacora_contenido`: region reemplazable mediante HTMX;
+- `op_bitacora_header`: barra compacta global.
 
 ### 3.2 Fuente de verdad
 
@@ -245,7 +246,7 @@ El personaje tambien puede terminar la espera en cualquier momento usando
 
 El personaje selecciona un `narrador_uid` mediante el mismo typeahead de
 fichas. El narrador se incorpora a participantes si todavia no estaba. Mientras
-este configurado, `op_temas_resolver_estado()` sustituye la condicion de
+este configurado, `op_bitacora_resolver_estado()` sustituye la condicion de
 "todos respondieron" por `narrador_respondio`.
 
 Para presentar el progreso se obtiene el mayor PID visible del narrador
@@ -345,9 +346,10 @@ El header pide el mismo resumen, pero no carga las tarjetas. Devuelve solo:
 - total `Debes responder`;
 - total `Esperando respuesta`.
 
-Los cerrados y ocultos no cuentan. La primera version no necesita cache: cada
-request realiza una consulta acotada para un unico personaje. Se medira con
-datos reales antes de introducir invalidacion o tareas programadas.
+Los cerrados cuentan dentro de `Esperando respuesta`; los ocultos no cuentan.
+La primera version no necesita cache: cada request realiza una consulta
+acotada para un unico personaje. Se medira con datos reales antes de introducir
+invalidacion o tareas programadas.
 
 ### 7.3 Indices
 
@@ -359,7 +361,7 @@ No se modifica inicialmente la tabla core `posts`. Si `EXPLAIN` muestra un
 coste relevante con datos de produccion, la optimizacion candidata es un
 indice compuesto `(tid, uid, visible, pid)`.
 
-## 8. Pagina `/op/temas.php`
+## 8. Pagina `/op/bitacora.php`
 
 ### 8.1 Acceso
 
@@ -376,14 +378,14 @@ indice compuesto `(tid, uid, visible, pid)`.
 
 La pantalla se organiza en este orden:
 
-1. encabezado compacto `Mis temas de rol`;
-2. selector colapsable para buscar otro personaje por nombre, apodo o FID;
+1. encabezado compacto `Bitácora de rol`;
+2. selector colapsable para buscar otro personaje por nombre o FID;
 3. guia colapsable y autosuficiente sobre alta automatica, estados, rondas,
    participantes, narradores, correcciones y casos especiales;
 4. aviso de Modo vista, cuando corresponda;
-5. resumen con los tres conteos;
+5. resumen con los dos conteos;
 6. formulario `Agregar tema` por TID;
-7. pestanas `Me toca`, `Esperando` y `Cerrados`;
+7. pestanas `Tu turno` y `Al dia`;
 8. lista de tarjetas compactas del estado seleccionado;
 9. panel de configuracion de ronda del tema elegido.
 
@@ -407,10 +409,19 @@ El panel muestra dos grupos:
 - `Ya respondieron`;
 - `Pendientes`.
 
+El selector de narrador permanece oculto dentro de un control colapsable
+`Modo de ronda`. Al abrirlo recibe foco y muestra sus coincidencias en un
+dropdown flotante, sin aumentar la altura del panel de configuracion.
+`Agregar participante` sigue el mismo patron: permanece cerrado inicialmente,
+recibe foco al abrirse y comparte el motor cancelable de busqueda y el dropdown
+absoluto del selector de narrador.
+
 Cada participante tiene enlace a `/op/personaje.php?uid={uid}` y una accion de
-retirada. Un typeahead permite agregar personajes con ficha por nombre, apodo
-o ID; empieza a consultar despues de tres caracteres, salvo que el termino sea
-un ID numerico.
+retirada. Un typeahead permite agregar personajes con ficha por nombre o FID;
+solo consulta al servidor cuando el termino tiene al menos tres caracteres.
+Cada instancia usa un destino de resultados unico, envia exclusivamente el
+termino de busqueda y sustituye las consultas anteriores para impedir cruces o
+respuestas obsoletas.
 
 Las acciones principales son:
 
@@ -489,24 +500,24 @@ Un error de existencia, visibilidad o permisos usa el mismo mensaje generico:
 
 ## 11. Instalacion y ciclo de vida
 
-`op_temas_tracker_install()`:
+`op_bitacora_install()`:
 
 - crea las dos tablas con `$db->table_prefix` y el collation disponible;
-- registra las plantillas maestras `op_temas_*`;
-- registra `op_temas_tracker.css` para el tema OPG;
+- registra las plantillas maestras `op_bitacora*`;
+- registra `op_bitacora.css` para el tema OPG;
 - no importa posts historicos.
 
-`op_temas_tracker_activate()`:
+`op_bitacora_activate()`:
 
 - inserta `{$op_temas_header}` una sola vez en la plantilla del header;
 - habilita los hooks sin alterar datos existentes.
 
-`op_temas_tracker_deactivate()`:
+`op_bitacora_deactivate()`:
 
 - retira la variable del header;
 - conserva tablas y seguimientos.
 
-`op_temas_tracker_uninstall()`:
+`op_bitacora_uninstall()`:
 
 - elimina tablas, plantillas y stylesheet mediante el flujo de desinstalacion
   confirmado del Admin CP.
@@ -538,7 +549,8 @@ sincronizadas del tema para evitar que un ciclo archivo-DB revierta cambios.
 - **Participante retirado que vuelve:** se agrega automaticamente otra vez.
 - **Post relevante desmoderado o eliminado:** deja de contar en la siguiente
   lectura.
-- **Tema cerrado:** aparece en `Cerrados` hasta retirada manual.
+- **Tema cerrado:** aparece en `Esperando` con una etiqueta propia hasta su
+  retirada manual.
 - **Tema reabierto:** vuelve al estado calculado de su ronda conservada.
 - **Tema movido fuera de rol:** queda oculto y sin contar; reaparece si vuelve.
 - **Tema eliminado:** la fila puede quedar huerfana e invisible; una limpieza
@@ -577,7 +589,7 @@ sincronizadas del tema para evitar que un ciclo archivo-DB revierta cambios.
 
 - cerrar, reabrir, mover fuera y devolver a la zona de rol;
 - ocultar, moderar y eliminar un tema;
-- confirmar que los cerrados no entran en los dos conteos activos;
+- confirmar que los cerrados entran en `Esperando` y conservan su etiqueta;
 - confirmar que lo inaccesible no filtra titulo ni existencia.
 
 ### 14.5 Interfaz
@@ -606,7 +618,7 @@ sincronizadas del tema para evitar que un ciclo archivo-DB revierta cambios.
 
 ### Fase 2: Pagina funcional
 
-- `/op/temas.php` renderizada en servidor;
+- `/op/bitacora.php` renderizada en servidor;
 - alta y retirada;
 - overrides;
 - gestion de participantes;
