@@ -1004,15 +1004,16 @@ mezclar el motor de rondas con cambios visuales no relacionados.
 - [x] Usar literalmente `Todo al dia. No tienes respuestas pendientes. Eres
   increible!` cuando la pestana `Tu turno` este vacia.
 
-### 18.4 Ultima actividad del header
+### 18.4 Ultima novedad del header
 
-- [x] Extender el resumen con `ultima_actividad`, calculada durante la misma
-  lectura en bloque mediante el maximo de `lastpost`, `actualizado_en` y
-  `estado_desde`.
+- [x] Crear una consulta agrupada por FID que localice el ultimo evento
+  `post_publicado` ajeno posterior al cursor y respete visibilidad y permisos.
 - [x] Crear un helper comun para formato relativo y evitar una segunda version
   distinta entre tarjeta y header.
 - [x] Anadir `{$op_temas_header_actualizado}` a `op_bitacora_header.html` solo
-  cuando exista al menos un seguimiento visible.
+  cuando exista una novedad ajena pendiente de revision.
+- [x] Invalidar el valor tras `Marcar como revisado` y reemplazar el header
+  inmediatamente mediante HTMX OOB.
 - [x] Confirmar por inspeccion que recargar una pagina no modifica por si mismo
   la fecha; queda pendiente la prueba integrada.
 - [ ] Medir de nuevo el hook global y verificar que no aparece una consulta
@@ -1054,3 +1055,228 @@ mezclar el motor de rondas con cambios visuales no relacionados.
 - [ ] Comparar conteos y ultima actividad entre la pagina y el header.
 - [ ] Ejecutar `EXPLAIN` y confirmar que resumen e historial no
   introducen consultas N+1.
+
+## 19. Plan de implementacion: novedades e historial global
+
+### 19.1 Esquema y ciclo de vida
+
+- [x] Anadir `mybb_op_bitacora_lecturas` a `op_bitacora_install()` y a
+  `op_bitacora_actualizar_esquema()` mediante `CREATE TABLE IF NOT EXISTS`.
+- [x] Incorporar la misma tabla a `docs/bitacora_migration.sql` usando el
+  prefijo documentado `mybb_`.
+- [x] Eliminar `op_bitacora_lecturas` en `uninstall()` antes de las tablas de
+  seguimientos; `deactivate()` debe conservarla.
+- [x] Mantener `op_bitacora_is_installed()` compatible con instalaciones
+  anteriores y permitir que la activacion complete el esquema.
+- [x] Incrementar la version del plugin despues de validar la migracion.
+
+### 19.2 Registro de publicaciones
+
+- [x] Crear `op_bitacora_registrar_actividad_post($tid, $autorUid, $pid,
+  $fecha)` en `functions.php`.
+- [x] Insertar un evento `post_publicado` para todos los seguimientos del TID
+  salvo el perteneciente al autor.
+- [x] Reutilizar `op_bitacora_registrar_evento()` y el PID para obtener
+  idempotencia mediante la clave unica existente.
+- [x] Llamar al helper desde `op_bitacora_procesar_post()` despues de validar
+  ficha, visibilidad, zona de rol y thread.
+- [x] No crear actividad historica al instalar ni al agregar manualmente un TID.
+
+### 19.3 Moderacion y restauracion
+
+- [x] Registrar hooks para `class_moderation_unapprove_posts`,
+  `class_moderation_soft_delete_posts` y `class_moderation_delete_post`.
+- [x] Registrar `class_moderation_restore_posts` y reutilizar el procesamiento
+  de PID visible usado por aprobacion.
+- [x] Cubrir `class_moderation_unapprove_threads`,
+  `class_moderation_soft_delete_threads`, `class_moderation_delete_thread` y
+  `class_moderation_restore_threads` en bloque.
+- [x] Crear helpers de limpieza por PID y TID que retiren `post_publicado` y los
+  eventos de ronda asociados al contenido que deja de ser visible.
+- [x] Retirar los eventos al ocultar el contenido para que una aprobacion o
+  restauracion posterior pueda insertar un ID posterior al cursor.
+- [x] Confirmar que dos llamadas consecutivas sobre un post que continua visible
+  no generan dos eventos.
+
+### 19.4 Servicio de novedades
+
+- [x] Crear `op_bitacora_cargar_cursor($ownerUid)` con fallback cero.
+- [x] Crear `op_bitacora_novedades($ownerUid, $limiteTemas = 5)`.
+- [x] Unir eventos, seguimientos, posts, threads, forums, fichas y users en una
+  cantidad acotada de consultas.
+- [x] Filtrar `tipo='post_publicado'`, `e.id > ultimo_evento_id`, autor distinto
+  del propietario y contenido visible/accesible.
+- [x] Agrupar por seguimiento en PHP o SQL y devolver:
+  `total_posts`, `total_temas`, autores, ultimo PID, ultima fecha y cinco grupos.
+- [x] Mostrar solo nombres de ficha, con username como fallback y sin apodos.
+- [x] Reutilizar permisos una vez por FID y no revelar eventos filtrados en los
+  totales.
+
+### 19.5 Marcar como revisado
+
+- [x] Crear `op_bitacora_marcar_novedades_revisadas($ownerUid)`.
+- [x] Obtener dentro de una transaccion el mayor ID elegible de
+  `post_publicado`; no confiar en un ID maximo enviado por el navegador.
+- [x] Hacer upsert de `personaje_uid`, `ultimo_evento_id` y `actualizado_en`.
+- [x] Agregar la accion POST `marcar_novedades_revisadas` al router de
+  `/op/bitacora.php`, protegida por `post_key` y bloqueada en Modo vista.
+- [x] Responder con el panel actualizado mediante HTMX y usar PRG sin HTMX.
+- [x] No modificar el cursor al cargar, recargar, ordenar o cambiar de pestana.
+
+### 19.6 Historial global
+
+- [x] Crear `op_bitacora_historial_global($ownerUid, $pagina, $porPagina = 20)`.
+- [x] Cargar solo eventos de seguimientos visibles y autorizados, ordenados por
+  `creado_en DESC, id DESC`.
+- [x] Implementar paginacion server-side estable y limitar `pagina` a enteros
+  positivos con maximo calculado.
+- [x] Combinar por PID `post_publicado` y `ronda_narrada_iniciada` durante el
+  ensamblado para evitar filas duplicadas.
+- [x] Reutilizar los textos del historial corto donde corresponda y agregar
+  textos singular/plural para publicaciones.
+- [x] Mantener el historial independiente del cursor: marcar revisado no elimina
+  ni oculta eventos historicos.
+
+### 19.7 Render y comportamiento
+
+- [x] Crear helpers PHP para renderizar el panel, cada grupo y el historial sin
+  agregar nuevas plantillas MyBB.
+- [x] Insertar `{$op_temas_novedades}` despues de la guia/Modo vista y antes del
+  resumen `Tu turno / Al dia` en `op_bitacora_contenido.html`.
+- [x] Mostrar titulo, total de posts/temas, hasta cinco grupos, tiempo relativo,
+  `Marcar como revisado` y `Ver historial de actividad`.
+- [x] En cero novedades, renderizar una sola banda positiva y compacta.
+- [x] Omitir por completo el panel en `modo_vista`.
+- [x] Usar enlaces a `showthread.php?tid={tid}&action=lastpost` con
+  `target="_blank"` y `rel="noopener"`.
+- [x] Anadir CSS OPG compacto, responsive y sin cards anidadas.
+- [x] Usar `details` nativo para abrir/cerrar el historial y HTMX para marcado
+  y paginacion; mantener fallback sin JavaScript.
+
+### 19.8 Rendimiento
+
+- [x] No cargar el resumen agrupado ni el historial desde el header; consultar
+  unicamente la fecha de la ultima novedad pendiente mediante una query por FID.
+- [x] Evitar una consulta por tema, autor o evento.
+- [x] Limitar la pagina de historial a 20 y el resumen visible a cinco temas.
+- [ ] Ejecutar `EXPLAIN` con volumen representativo sobre eventos posteriores al
+  cursor y agregar un indice solo si la medicion lo justifica.
+- [ ] Comparar tiempo y numero de consultas de `/op/bitacora.php` antes y despues.
+
+### 19.9 Pruebas funcionales
+
+- [ ] Un autor/una publicacion y un autor/varias publicaciones.
+- [ ] Varios autores y varios temas con singular/plural correcto.
+- [ ] Post propio excluido y post de narrador incluido.
+- [ ] Recarga y HTMX conservan novedades hasta el marcado explicito.
+- [ ] Marcar revisado vacia el resumen y conserva el historial.
+- [ ] Account Switcher mantiene cursores independientes.
+- [ ] Modo vista no muestra resumen, cursor ni controles privados.
+- [ ] Desaprobar, borrar y restaurar posts y threads actualiza la actividad.
+- [ ] Reprocesar aprobaciones no duplica eventos.
+- [ ] Permisos y movimientos fuera de rol ocultan actividad sin filtrar datos.
+- [ ] Paginacion del historial funciona con fechas empatadas y paginas limite.
+
+### 19.10 Despliegue
+
+- [ ] Respaldar `op_bitacora_eventos` y `op_temas_seguidos`.
+- [ ] Aplicar primero la migracion idempotente de `op_bitacora_lecturas`.
+- [ ] Subir plugin y funciones antes del controlador y los recursos visuales.
+- [ ] Sincronizar plantilla y stylesheet.
+- [ ] Probar con dos personajes y un moderador antes de habilitarlo para todos.
+- [ ] Revisar errores PHP, consultas lentas y crecimiento de eventos tras las
+  primeras publicaciones.
+
+## 20. Plan de implementacion: cache del header
+
+### 20.1 Esquema y ciclo de vida
+
+- [x] Crear `mybb_op_bitacora_header_cache` en `op_bitacora_install()` y
+  `op_bitacora_actualizar_esquema()` con clave primaria por `personaje_uid`.
+- [x] Incorporar la tabla a `docs/bitacora_migration.sql` con el prefijo
+  documentado `mybb_` y `KEY expira_en (expira_en)`.
+- [x] Mantener la tabla al desactivar el plugin y eliminarla antes de
+  `op_temas_seguidos` durante `uninstall()`.
+- [x] Mantener compatibilidad durante despliegues escalonados: si la tabla aun
+  no existe, calcular y renderizar el header sin cache.
+- [x] Definir `OP_BITACORA_HEADER_CACHE_TTL` con valor predeterminado `300`.
+- [x] Incrementar la version del plugin despues de validar la migracion.
+
+### 20.2 Helpers de cache
+
+- [x] Crear `op_bitacora_leer_cache_header($ownerUid)` con una unica lectura por
+  clave primaria.
+- [x] Validar tipos, campos requeridos y `expira_en > TIME_NOW`; una fila
+  incompleta se trata como miss.
+- [x] Crear `op_bitacora_guardar_cache_header($ownerUid, $conteos,
+  $ultimaNovedad, $ttl = 300)` mediante upsert.
+- [x] Crear `op_bitacora_invalidar_cache_header_uid($ownerUid)` usando
+  `UPDATE expira_en=0`, sin borrar datos.
+- [x] Crear `op_bitacora_invalidar_cache_header_tids($tids, $autorUid = 0)` que
+  resuelva propietarios en bloque y ejecute un unico `UPDATE ... IN (...)`.
+- [x] Crear `op_bitacora_obtener_resumen_header($ownerUid, $forzar = false)` que
+  encapsule hit, miss, regeneracion y fallback sin cache.
+- [x] Guardar solo datos escalares; no serializar HTML ni objetos MyBB.
+
+### 20.3 Integracion del render
+
+- [x] Sustituir la llamada directa de `op_bitacora_render_header()` a
+  `op_bitacora_resumen()` por `op_bitacora_obtener_resumen_header()`.
+- [x] Conservar `op_bitacora_listar()` como fuente de la pagina completa, no del
+  camino normal del header durante un hit.
+- [x] Si una respuesta HTMX ya dispone de conteos actuales, permitir que el
+  render fuerce/actualice la fila sin volver a cargar el listado.
+- [x] Tras `Marcar como revisado`, invalidar despues del COMMIT, regenerar y
+  enviar `op_bitacora_header` mediante OOB en la misma respuesta.
+- [x] Mantener las entradas separadas por personaje activo para Account
+  Switcher.
+
+### 20.4 Matriz de invalidacion
+
+- [x] Invalidar autor y seguidores del TID en post nuevo, aprobacion y
+  restauracion.
+- [x] Invalidar autor y seguidores antes o despues de ocultar, desmoderar o
+  eliminar posts, conservando el TID disponible para la busqueda.
+- [x] Invalidar seguidores al cerrar, reabrir, mover, ocultar, restaurar o
+  eliminar un thread.
+- [x] Invalidar al propietario al agregar o retirar un seguimiento.
+- [x] Invalidar al propietario al agregar/retirar participantes, establecer o
+  quitar narrador y aplicar cualquiera de los overrides manuales.
+- [x] Invalidar al propietario al marcar novedades como revisadas.
+- [x] No invalidar por visitar paginas, cambiar pestana, ordenar o alternar la
+  densidad visual.
+
+### 20.5 Concurrencia y limpieza
+
+- [x] Hacer idempotentes los upserts e invalidaciones para que hooks repetidos
+  no produzcan errores ni extiendan incorrectamente el TTL.
+- [x] Aceptar dos regeneraciones simultaneas equivalentes sin bloquear la
+  peticion; medir antes de agregar locks.
+- [ ] Agregar una limpieza opcional de filas vencidas de personajes sin ficha o
+  sin actividad prolongada, fuera del camino de lectura del header.
+- [x] No ejecutar una purga completa en cada request.
+
+### 20.6 Pruebas funcionales
+
+- [ ] Primer acceso crea una fila con `expira_en = generado_en + 300`.
+- [ ] Segundo acceso dentro del TTL es un hit y no llama a
+  `op_bitacora_listar()`.
+- [ ] Acceso posterior a 300 segundos regenera y actualiza ambos timestamps.
+- [ ] Post propio y post ajeno invalidan exactamente los personajes afectados.
+- [ ] Cambios de narrador, participantes y override invalidan al propietario.
+- [ ] Marcar como revisado elimina `Actualizado hace...` en la respuesta HTMX.
+- [ ] Account Switcher usa filas independientes sin cruzar conteos.
+- [ ] Tabla ausente o fallo de escritura conserva un header funcional.
+- [ ] Invitados y personajes sin ficha no crean filas.
+
+### 20.7 Medicion y despliegue
+
+- [ ] Registrar temporalmente hits, misses, tiempo y numero de consultas del
+  hook global sin incluir datos personales en logs.
+- [ ] Comparar TTFB y consultas en cache hit, cache miss y cache invalidado.
+- [ ] Ejecutar `EXPLAIN` para la lectura por PK y la invalidacion por TID.
+- [ ] Aplicar primero la migracion, despues helpers/plugin y finalmente los
+  hooks de invalidacion.
+- [ ] Probar con dos seguidores del mismo tema, Account Switcher y moderacion.
+- [ ] Observar durante 24 horas el ratio de hits, errores PHP y crecimiento de
+  la tabla antes de retirar la instrumentacion.

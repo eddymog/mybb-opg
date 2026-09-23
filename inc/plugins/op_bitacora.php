@@ -20,6 +20,23 @@ $plugins->add_hook('datahandler_post_insert_post_end', 'op_bitacora_hook_post');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'op_bitacora_hook_post');
 $plugins->add_hook('class_moderation_approve_posts', 'op_bitacora_hook_approve_posts');
 $plugins->add_hook('class_moderation_approve_threads', 'op_bitacora_hook_approve_threads');
+$plugins->add_hook('class_moderation_restore_posts', 'op_bitacora_hook_approve_posts');
+$plugins->add_hook('class_moderation_restore_threads', 'op_bitacora_hook_approve_threads');
+$plugins->add_hook('class_moderation_unapprove_posts', 'op_bitacora_hook_ocultar_posts');
+$plugins->add_hook('class_moderation_soft_delete_posts', 'op_bitacora_hook_ocultar_posts');
+$plugins->add_hook('class_moderation_delete_post_start', 'op_bitacora_hook_eliminar_post_inicio');
+$plugins->add_hook('class_moderation_delete_post', 'op_bitacora_hook_ocultar_posts');
+$plugins->add_hook('class_moderation_unapprove_threads', 'op_bitacora_hook_ocultar_threads');
+$plugins->add_hook('class_moderation_soft_delete_threads', 'op_bitacora_hook_ocultar_threads');
+$plugins->add_hook('class_moderation_delete_thread_start', 'op_bitacora_hook_eliminar_thread_inicio');
+$plugins->add_hook('class_moderation_delete_thread', 'op_bitacora_hook_eliminar_thread');
+$plugins->add_hook('class_moderation_close_threads', 'op_bitacora_hook_invalidar_threads');
+$plugins->add_hook('class_moderation_open_threads', 'op_bitacora_hook_invalidar_threads');
+$plugins->add_hook('class_moderation_move_simple', 'op_bitacora_hook_mover_threads');
+$plugins->add_hook('class_moderation_move_thread_redirect', 'op_bitacora_hook_mover_threads');
+$plugins->add_hook('class_moderation_move_threads', 'op_bitacora_hook_mover_threads');
+$plugins->add_hook('class_moderation_merge_threads', 'op_bitacora_hook_mover_threads');
+$plugins->add_hook('class_moderation_split_posts', 'op_bitacora_hook_mover_threads');
 $plugins->add_hook('global_intermediate', 'op_bitacora_hook_header');
 
 function op_bitacora_info()
@@ -30,7 +47,7 @@ function op_bitacora_info()
         'website' => '',
         'author' => 'OPG',
         'authorsite' => '',
-        'version' => '1.2',
+        'version' => '1.4',
         'compatibility' => '18*',
     );
 }
@@ -209,6 +226,30 @@ function op_bitacora_install()
         ) ENGINE=InnoDB {$collation}");
     }
 
+    if (!$db->table_exists('op_bitacora_lecturas')) {
+        $table = $db->table_prefix . 'op_bitacora_lecturas';
+        $db->write_query("CREATE TABLE `{$table}` (
+            personaje_uid INT UNSIGNED NOT NULL,
+            ultimo_evento_id INT UNSIGNED NOT NULL DEFAULT 0,
+            actualizado_en INT UNSIGNED NOT NULL,
+            PRIMARY KEY (personaje_uid)
+        ) ENGINE=InnoDB {$collation}");
+    }
+
+    if (!$db->table_exists('op_bitacora_header_cache')) {
+        $table = $db->table_prefix . 'op_bitacora_header_cache';
+        $db->write_query("CREATE TABLE `{$table}` (
+            personaje_uid INT UNSIGNED NOT NULL,
+            conteo_turno INT UNSIGNED NOT NULL DEFAULT 0,
+            conteo_al_dia INT UNSIGNED NOT NULL DEFAULT 0,
+            ultima_novedad_en INT UNSIGNED NOT NULL DEFAULT 0,
+            generado_en INT UNSIGNED NOT NULL,
+            expira_en INT UNSIGNED NOT NULL,
+            PRIMARY KEY (personaje_uid),
+            KEY expira_en (expira_en)
+        ) ENGINE=InnoDB {$collation}");
+    }
+
     op_bitacora_actualizar_esquema();
 
     op_bitacora_instalar_plantillas();
@@ -256,6 +297,12 @@ function op_bitacora_deactivate()
 function op_bitacora_uninstall()
 {
     global $db;
+    if ($db->table_exists('op_bitacora_header_cache')) {
+        $db->drop_table('op_bitacora_header_cache');
+    }
+    if ($db->table_exists('op_bitacora_lecturas')) {
+        $db->drop_table('op_bitacora_lecturas');
+    }
     if ($db->table_exists('op_bitacora_eventos')) {
         $db->drop_table('op_bitacora_eventos');
     }
@@ -297,7 +344,7 @@ function op_bitacora_hook_approve_posts($pids)
     $pids = array_values(array_unique(array_filter(array_map('intval', $pids))));
     sort($pids, SORT_NUMERIC);
     foreach ($pids as $pid) {
-        op_bitacora_procesar_post($pid);
+        op_bitacora_procesar_post($pid, TIME_NOW);
     }
 }
 
@@ -319,8 +366,65 @@ function op_bitacora_hook_approve_threads($tids)
         array('order_by' => 'pid', 'order_dir' => 'ASC')
     );
     while ($pid = $db->fetch_field($query, 'pid')) {
-        op_bitacora_procesar_post((int)$pid);
+        op_bitacora_procesar_post((int)$pid, TIME_NOW);
     }
+}
+
+function op_bitacora_hook_ocultar_posts($pids)
+{
+    if (!is_array($pids)) {
+        $pids = array($pids);
+    }
+    op_bitacora_invalidar_cache_header_pids($pids);
+    op_bitacora_eliminar_eventos_pids($pids);
+}
+
+function op_bitacora_hook_eliminar_post_inicio($pid)
+{
+    op_bitacora_invalidar_cache_header_pids(array($pid));
+    return $pid;
+}
+
+function op_bitacora_hook_ocultar_threads($tids)
+{
+    if (!is_array($tids)) {
+        $tids = array($tids);
+    }
+    op_bitacora_invalidar_cache_header_tids($tids);
+    op_bitacora_eliminar_eventos_tids($tids, false);
+}
+
+function op_bitacora_hook_eliminar_thread_inicio($tid)
+{
+    op_bitacora_invalidar_cache_header_tids(array($tid));
+}
+
+function op_bitacora_hook_eliminar_thread($tid)
+{
+    op_bitacora_invalidar_cache_header_tids(array($tid));
+    op_bitacora_eliminar_eventos_tids(array($tid), true);
+}
+
+function op_bitacora_hook_invalidar_threads($tids)
+{
+    op_bitacora_invalidar_cache_header_tids($tids);
+}
+
+function op_bitacora_hook_mover_threads($arguments)
+{
+    if (!is_array($arguments)) {
+        return;
+    }
+    $tids = array();
+    foreach (array('tid', 'mergetid', 'destination_tid') as $key) {
+        if (!empty($arguments[$key])) {
+            $tids[] = (int)$arguments[$key];
+        }
+    }
+    if (!empty($arguments['tids'])) {
+        $tids = array_merge($tids, (array)$arguments['tids']);
+    }
+    op_bitacora_invalidar_cache_header_tids($tids);
 }
 
 function op_bitacora_hook_header()

@@ -1,8 +1,22 @@
 <div id="op-temas-header" class="op-temas-header{$op_temas_header_clase}"
     hx-swap-oob="outerHTML:#op-temas-header">
     <a href="{$mybb->settings['bburl']}/op/bitacora.php">
-        <i class="fa-solid fa-book-open" aria-hidden="true"></i>
-        <span>{$op_temas_header_texto}</span>
-        {$op_temas_header_actualizado}
+        <span class="op-temas-header__marca">
+            <span class="op-temas-header__icono"><i class="fa-solid {$op_temas_header_icono}" aria-hidden="true"></i></span>
+            <strong>Bitácora</strong>
+            <small>{$op_temas_header_estado}</small>
+        </span>
+        <span class="op-temas-header__conteos" aria-label="Estado de tus temas de rol">
+            <span class="op-temas-header__contador op-temas-header__contador--turno">
+                <small>Tu turno</small><b>{$op_temas_header_debes}</b>
+            </span>
+            <span class="op-temas-header__contador op-temas-header__contador--aldia">
+                <small>Al día</small><b>{$op_temas_header_esperando}</b>
+            </span>
+        </span>
+        <span class="op-temas-header__meta">
+            {$op_temas_header_actualizado}
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </span>
     </a>
 </div>

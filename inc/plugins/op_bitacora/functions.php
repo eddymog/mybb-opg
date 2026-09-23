@@ -18,6 +18,9 @@ if (!defined('OP_BITACORA_ATENCION_DIAS')) {
 if (!defined('OP_BITACORA_ANTIGUO_DIAS')) {
     define('OP_BITACORA_ANTIGUO_DIAS', 7);
 }
+if (!defined('OP_BITACORA_HEADER_CACHE_TTL')) {
+    define('OP_BITACORA_HEADER_CACHE_TTL', 300);
+}
 
 function op_bitacora_escape($value)
 {
@@ -127,6 +130,30 @@ function op_bitacora_actualizar_esquema()
             KEY seguimiento_fecha (seguimiento_id, creado_en)
         ) ENGINE=InnoDB {$collation}");
     }
+    if (!$db->table_exists('op_bitacora_lecturas')) {
+        $table = $db->table_prefix . 'op_bitacora_lecturas';
+        $collation = $db->build_create_table_collation();
+        $db->write_query("CREATE TABLE `{$table}` (
+            personaje_uid INT UNSIGNED NOT NULL,
+            ultimo_evento_id INT UNSIGNED NOT NULL DEFAULT 0,
+            actualizado_en INT UNSIGNED NOT NULL,
+            PRIMARY KEY (personaje_uid)
+        ) ENGINE=InnoDB {$collation}");
+    }
+    if (!$db->table_exists('op_bitacora_header_cache')) {
+        $table = $db->table_prefix . 'op_bitacora_header_cache';
+        $collation = $db->build_create_table_collation();
+        $db->write_query("CREATE TABLE `{$table}` (
+            personaje_uid INT UNSIGNED NOT NULL,
+            conteo_turno INT UNSIGNED NOT NULL DEFAULT 0,
+            conteo_al_dia INT UNSIGNED NOT NULL DEFAULT 0,
+            ultima_novedad_en INT UNSIGNED NOT NULL DEFAULT 0,
+            generado_en INT UNSIGNED NOT NULL,
+            expira_en INT UNSIGNED NOT NULL,
+            PRIMARY KEY (personaje_uid),
+            KEY expira_en (expira_en)
+        ) ENGINE=InnoDB {$collation}");
+    }
     if ($db->table_exists('op_temas_seguidos')
         && !$db->field_exists('narrador_uid', 'op_temas_seguidos')) {
         $db->add_column(
@@ -199,6 +226,517 @@ function op_bitacora_registrar_rondas_narradas($tid, $narradorUid, $pid, $fecha)
             $fecha
         );
     }
+}
+
+function op_bitacora_registrar_actividad_post($tid, $autorUid, $pid, $fecha = null)
+{
+    global $db;
+    $tid = (int)$tid;
+    $autorUid = (int)$autorUid;
+    $pid = (int)$pid;
+    $fecha = $fecha === null ? TIME_NOW : (int)$fecha;
+    if ($tid <= 0 || $autorUid <= 0 || $pid <= 0 || !$db->table_exists('op_bitacora_eventos')) {
+        return;
+    }
+
+    $query = $db->simple_select(
+        'op_temas_seguidos',
+        'id',
+        "tid='{$tid}' AND personaje_uid!='{$autorUid}'"
+    );
+    while ($seguimientoId = $db->fetch_field($query, 'id')) {
+        op_bitacora_registrar_evento(
+            (int)$seguimientoId,
+            'post_publicado',
+            $autorUid,
+            $autorUid,
+            $pid,
+            null,
+            $fecha
+        );
+    }
+}
+
+function op_bitacora_normalizar_ids($ids)
+{
+    if (!is_array($ids)) {
+        $ids = array($ids);
+    }
+    $ids = array_map('intval', $ids);
+    $ids = array_filter($ids, function ($id) {
+        return $id > 0;
+    });
+    return array_values(array_unique($ids));
+}
+
+function op_bitacora_cache_header_disponible()
+{
+    global $db;
+    static $disponible = null;
+    if ($disponible === null) {
+        $disponible = $db->table_exists('op_bitacora_header_cache');
+    }
+    return $disponible;
+}
+
+function op_bitacora_leer_cache_header($ownerUid)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    if ($ownerUid <= 0 || !op_bitacora_cache_header_disponible()) {
+        return null;
+    }
+    $query = $db->simple_select(
+        'op_bitacora_header_cache',
+        'conteo_turno,conteo_al_dia,ultima_novedad_en,generado_en,expira_en',
+        "personaje_uid='{$ownerUid}'",
+        array('limit' => 1)
+    );
+    $fila = $db->fetch_array($query);
+    $camposRequeridos = array(
+        'conteo_turno',
+        'conteo_al_dia',
+        'ultima_novedad_en',
+        'generado_en',
+        'expira_en',
+    );
+    if (!$fila || count(array_intersect($camposRequeridos, array_keys($fila))) !== count($camposRequeridos)
+        || (int)$fila['expira_en'] <= TIME_NOW) {
+        return null;
+    }
+    return array(
+        'debes_responder' => max(0, (int)$fila['conteo_turno']),
+        'esperando' => max(0, (int)$fila['conteo_al_dia']),
+        'ultima_novedad_en' => max(0, (int)$fila['ultima_novedad_en']),
+        'generado_en' => max(0, (int)$fila['generado_en']),
+        'expira_en' => (int)$fila['expira_en'],
+    );
+}
+
+function op_bitacora_guardar_cache_header($ownerUid, $conteos, $ultimaNovedad, $ttl = null)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    if ($ownerUid <= 0 || !op_bitacora_cache_header_disponible()) {
+        return false;
+    }
+    $ttl = $ttl === null ? OP_BITACORA_HEADER_CACHE_TTL : max(1, (int)$ttl);
+    $db->replace_query('op_bitacora_header_cache', array(
+        'personaje_uid' => $ownerUid,
+        'conteo_turno' => max(0, (int)($conteos['debes_responder'] ?? 0)),
+        'conteo_al_dia' => max(0, (int)($conteos['esperando'] ?? 0)),
+        'ultima_novedad_en' => max(0, (int)$ultimaNovedad),
+        'generado_en' => TIME_NOW,
+        'expira_en' => TIME_NOW + $ttl,
+    ), '', false);
+    return true;
+}
+
+function op_bitacora_invalidar_cache_header_uids($ownerUids)
+{
+    global $db;
+    $ownerUids = op_bitacora_normalizar_ids($ownerUids);
+    if (empty($ownerUids)) {
+        return;
+    }
+    foreach ($ownerUids as $ownerUid) {
+        op_bitacora_ultima_novedad_pendiente($ownerUid, true);
+    }
+    if (!op_bitacora_cache_header_disponible()) {
+        return;
+    }
+    $db->update_query(
+        'op_bitacora_header_cache',
+        array('expira_en' => 0),
+        'personaje_uid IN (' . implode(',', $ownerUids) . ')'
+    );
+}
+
+function op_bitacora_invalidar_cache_header_uid($ownerUid)
+{
+    op_bitacora_invalidar_cache_header_uids(array($ownerUid));
+}
+
+function op_bitacora_invalidar_cache_header_tids($tids, $autorUid = 0)
+{
+    global $db;
+    $tids = op_bitacora_normalizar_ids($tids);
+    $uids = op_bitacora_normalizar_ids(is_array($autorUid) ? $autorUid : array($autorUid));
+    if (!empty($tids) && $db->table_exists('op_temas_seguidos')) {
+        $query = $db->simple_select(
+            'op_temas_seguidos',
+            'DISTINCT personaje_uid',
+            'tid IN (' . implode(',', $tids) . ')'
+        );
+        while ($uid = $db->fetch_field($query, 'personaje_uid')) {
+            $uids[] = (int)$uid;
+        }
+    }
+    op_bitacora_invalidar_cache_header_uids($uids);
+}
+
+function op_bitacora_invalidar_cache_header_pids($pids)
+{
+    global $db;
+    $pids = op_bitacora_normalizar_ids($pids);
+    if (empty($pids)) {
+        return;
+    }
+    $tids = array();
+    $uids = array();
+    $query = $db->simple_select(
+        'posts',
+        'tid,uid',
+        'pid IN (' . implode(',', $pids) . ')'
+    );
+    while ($post = $db->fetch_array($query)) {
+        $tids[] = (int)$post['tid'];
+        $uids[] = (int)$post['uid'];
+    }
+    op_bitacora_invalidar_cache_header_tids($tids, $uids);
+}
+
+function op_bitacora_eliminar_eventos_pids($pids)
+{
+    global $db;
+    $pids = op_bitacora_normalizar_ids($pids);
+    if (empty($pids) || !$db->table_exists('op_bitacora_eventos')) {
+        return;
+    }
+    $db->delete_query(
+        'op_bitacora_eventos',
+        'pid IN (' . implode(',', $pids) . ") AND tipo IN ('post_publicado','ronda_normal_iniciada','ronda_narrada_iniciada')"
+    );
+}
+
+function op_bitacora_eliminar_eventos_tids($tids, $eliminarTodo = false)
+{
+    global $db;
+    $tids = op_bitacora_normalizar_ids($tids);
+    if (empty($tids) || !$db->table_exists('op_bitacora_eventos')
+        || !$db->table_exists('op_temas_seguidos')) {
+        return;
+    }
+
+    $seguidos = $db->table_prefix . 'op_temas_seguidos';
+    $eventos = $db->table_prefix . 'op_bitacora_eventos';
+    $tipos = $eliminarTodo
+        ? ''
+        : " AND e.tipo IN ('post_publicado','ronda_normal_iniciada','ronda_narrada_iniciada')";
+    $db->write_query("DELETE e FROM `{$eventos}` e
+        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
+        WHERE s.tid IN (" . implode(',', $tids) . "){$tipos}");
+}
+
+function op_bitacora_cargar_cursor($ownerUid)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_lecturas')) {
+        return 0;
+    }
+    $query = $db->simple_select(
+        'op_bitacora_lecturas',
+        'ultimo_evento_id',
+        "personaje_uid='{$ownerUid}'",
+        array('limit' => 1)
+    );
+    return (int)$db->fetch_field($query, 'ultimo_evento_id');
+}
+
+function op_bitacora_nombre_ficha($row, $uid = 0)
+{
+    $nombre = trim((string)($row['nombre'] ?? ''));
+    if ($nombre === '') {
+        $nombre = trim((string)($row['username'] ?? ''));
+    }
+    return $nombre !== '' ? $nombre : 'Personaje #' . (int)$uid;
+}
+
+function op_bitacora_novedades($ownerUid, $limiteTemas = 5)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    $limiteTemas = max(1, (int)$limiteTemas);
+    $resultado = array(
+        'cursor' => 0,
+        'max_evento_id' => 0,
+        'total_posts' => 0,
+        'total_temas' => 0,
+        'grupos' => array(),
+    );
+    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_eventos')
+        || !$db->table_exists('op_bitacora_lecturas')) {
+        return $resultado;
+    }
+
+    $cursor = op_bitacora_cargar_cursor($ownerUid);
+    $resultado['cursor'] = $cursor;
+    $eventos = $db->table_prefix . 'op_bitacora_eventos';
+    $seguidos = $db->table_prefix . 'op_temas_seguidos';
+    $posts = $db->table_prefix . 'posts';
+    $threads = $db->table_prefix . 'threads';
+    $forums = $db->table_prefix . 'forums';
+    $fichas = $db->table_prefix . 'op_fichas';
+    $users = $db->table_prefix . 'users';
+
+    $query = $db->query("SELECT s.id AS seguimiento_id, s.tid, t.subject, t.fid,
+            f.parentlist, p.uid AS autor_uid, ficha.nombre, u.username,
+            COUNT(e.id) AS total_posts, MAX(e.creado_en) AS ultima_fecha,
+            MAX(e.id) AS max_evento_id
+        FROM `{$eventos}` e
+        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
+        INNER JOIN `{$posts}` p ON p.pid = e.pid AND p.visible = 1
+        INNER JOIN `{$threads}` t ON t.tid = s.tid AND t.visible = 1
+        INNER JOIN `{$forums}` f ON f.fid = t.fid
+        LEFT JOIN `{$fichas}` ficha ON ficha.fid = p.uid
+        LEFT JOIN `{$users}` u ON u.uid = p.uid
+        WHERE s.personaje_uid = {$ownerUid}
+          AND e.tipo = 'post_publicado'
+          AND e.id > {$cursor}
+          AND p.uid != {$ownerUid}
+          AND f.parentlist LIKE '10,%'
+        GROUP BY s.id, s.tid, t.subject, t.fid, f.parentlist,
+                 p.uid, ficha.nombre, u.username
+        ORDER BY ultima_fecha DESC, max_evento_id DESC");
+
+    $grupos = array();
+    $permisos = array();
+    while ($row = $db->fetch_array($query)) {
+        $fid = (int)$row['fid'];
+        if (!array_key_exists($fid, $permisos)) {
+            $permisos[$fid] = op_bitacora_puede_ver_foro($fid);
+        }
+        if (!$permisos[$fid]) {
+            continue;
+        }
+
+        $seguimientoId = (int)$row['seguimiento_id'];
+        if (!isset($grupos[$seguimientoId])) {
+            $grupos[$seguimientoId] = array(
+                'seguimiento_id' => $seguimientoId,
+                'tid' => (int)$row['tid'],
+                'subject' => (string)$row['subject'],
+                'total_posts' => 0,
+                'ultima_fecha' => 0,
+                'max_evento_id' => 0,
+                'autores' => array(),
+            );
+        }
+        $postsAutor = (int)$row['total_posts'];
+        $autorUid = (int)$row['autor_uid'];
+        $grupos[$seguimientoId]['total_posts'] += $postsAutor;
+        $grupos[$seguimientoId]['ultima_fecha'] = max(
+            $grupos[$seguimientoId]['ultima_fecha'],
+            (int)$row['ultima_fecha']
+        );
+        $grupos[$seguimientoId]['max_evento_id'] = max(
+            $grupos[$seguimientoId]['max_evento_id'],
+            (int)$row['max_evento_id']
+        );
+        $grupos[$seguimientoId]['autores'][$autorUid] = array(
+            'uid' => $autorUid,
+            'nombre' => op_bitacora_nombre_ficha($row, $autorUid),
+            'posts' => $postsAutor,
+        );
+    }
+
+    $grupos = array_values($grupos);
+    usort($grupos, function ($a, $b) {
+        if ((int)$a['ultima_fecha'] === (int)$b['ultima_fecha']) {
+            return (int)$b['max_evento_id'] <=> (int)$a['max_evento_id'];
+        }
+        return (int)$b['ultima_fecha'] <=> (int)$a['ultima_fecha'];
+    });
+    foreach ($grupos as $grupo) {
+        $resultado['total_posts'] += (int)$grupo['total_posts'];
+        $resultado['max_evento_id'] = max(
+            $resultado['max_evento_id'],
+            (int)$grupo['max_evento_id']
+        );
+    }
+    $resultado['total_temas'] = count($grupos);
+    $resultado['grupos'] = array_slice($grupos, 0, $limiteTemas);
+    return $resultado;
+}
+
+function op_bitacora_ultima_novedad_pendiente($ownerUid, $invalidar = false)
+{
+    global $db;
+    static $cache = array();
+
+    $ownerUid = (int)$ownerUid;
+    if ($invalidar) {
+        unset($cache[$ownerUid]);
+        return 0;
+    }
+    if (array_key_exists($ownerUid, $cache)) {
+        return $cache[$ownerUid];
+    }
+    $cache[$ownerUid] = 0;
+    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_eventos')
+        || !$db->table_exists('op_bitacora_lecturas')) {
+        return 0;
+    }
+
+    $cursor = op_bitacora_cargar_cursor($ownerUid);
+    $eventos = $db->table_prefix . 'op_bitacora_eventos';
+    $seguidos = $db->table_prefix . 'op_temas_seguidos';
+    $posts = $db->table_prefix . 'posts';
+    $threads = $db->table_prefix . 'threads';
+    $forums = $db->table_prefix . 'forums';
+    $query = $db->query("SELECT t.fid, MAX(e.creado_en) AS ultima_fecha,
+            MAX(e.id) AS ultimo_evento_id
+        FROM `{$eventos}` e
+        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
+        INNER JOIN `{$posts}` p ON p.pid = e.pid AND p.visible = 1
+        INNER JOIN `{$threads}` t ON t.tid = s.tid AND t.visible = 1
+        INNER JOIN `{$forums}` f ON f.fid = t.fid
+        WHERE s.personaje_uid = {$ownerUid}
+          AND e.tipo = 'post_publicado'
+          AND e.id > {$cursor}
+          AND p.uid != {$ownerUid}
+          AND f.parentlist LIKE '10,%'
+        GROUP BY t.fid
+        ORDER BY ultimo_evento_id DESC");
+    while ($row = $db->fetch_array($query)) {
+        if (op_bitacora_puede_ver_foro((int)$row['fid'])) {
+            $cache[$ownerUid] = max($cache[$ownerUid], (int)$row['ultima_fecha']);
+        }
+    }
+    return $cache[$ownerUid];
+}
+
+function op_bitacora_marcar_novedades_revisadas($ownerUid)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_lecturas')) {
+        return array('ok' => false, 'code' => 'seguimiento_no_disponible');
+    }
+
+    $db->write_query('START TRANSACTION');
+    $novedades = op_bitacora_novedades($ownerUid, 1);
+    $maxEventoId = max((int)$novedades['cursor'], (int)$novedades['max_evento_id']);
+    $query = $db->simple_select(
+        'op_bitacora_lecturas',
+        'personaje_uid',
+        "personaje_uid='{$ownerUid}'",
+        array('limit' => 1)
+    );
+    if ((int)$db->fetch_field($query, 'personaje_uid') > 0) {
+        $db->update_query('op_bitacora_lecturas', array(
+            'ultimo_evento_id' => $maxEventoId,
+            'actualizado_en' => TIME_NOW,
+        ), "personaje_uid='{$ownerUid}'");
+    } else {
+        $db->insert_query('op_bitacora_lecturas', array(
+            'personaje_uid' => $ownerUid,
+            'ultimo_evento_id' => $maxEventoId,
+            'actualizado_en' => TIME_NOW,
+        ));
+    }
+    $db->write_query('COMMIT');
+    op_bitacora_invalidar_cache_header_uid($ownerUid);
+    return array('ok' => true, 'code' => 'novedades_revisadas');
+}
+
+function op_bitacora_fids_visibles($ownerUid)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    $resultado = array();
+    if ($ownerUid <= 0) {
+        return $resultado;
+    }
+    $seguidos = $db->table_prefix . 'op_temas_seguidos';
+    $threads = $db->table_prefix . 'threads';
+    $forums = $db->table_prefix . 'forums';
+    $query = $db->query("SELECT DISTINCT t.fid
+        FROM `{$seguidos}` s
+        INNER JOIN `{$threads}` t ON t.tid = s.tid AND t.visible = 1
+        INNER JOIN `{$forums}` f ON f.fid = t.fid
+        WHERE s.personaje_uid = {$ownerUid}
+          AND f.parentlist LIKE '10,%'");
+    while ($fid = $db->fetch_field($query, 'fid')) {
+        $fid = (int)$fid;
+        if ($fid > 0 && op_bitacora_puede_ver_foro($fid)) {
+            $resultado[] = $fid;
+        }
+    }
+    return array_values(array_unique($resultado));
+}
+
+function op_bitacora_historial_global($ownerUid, $pagina = 1, $porPagina = 20)
+{
+    global $db;
+    $ownerUid = (int)$ownerUid;
+    $pagina = max(1, (int)$pagina);
+    $porPagina = max(1, min(50, (int)$porPagina));
+    $vacio = array('eventos' => array(), 'pagina' => 1, 'paginas' => 1, 'total' => 0);
+    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_eventos')) {
+        return $vacio;
+    }
+    $fids = op_bitacora_fids_visibles($ownerUid);
+    if (empty($fids)) {
+        return $vacio;
+    }
+
+    $eventos = $db->table_prefix . 'op_bitacora_eventos';
+    $seguidos = $db->table_prefix . 'op_temas_seguidos';
+    $threads = $db->table_prefix . 'threads';
+    $posts = $db->table_prefix . 'posts';
+    $fichas = $db->table_prefix . 'op_fichas';
+    $users = $db->table_prefix . 'users';
+    $fidsSql = implode(',', array_map('intval', $fids));
+    $baseWhere = "s.personaje_uid = {$ownerUid}
+        AND t.visible = 1
+        AND t.fid IN ({$fidsSql})
+        AND (e.pid IS NULL OR p.visible = 1)
+        AND e.tipo != 'ronda_normal_iniciada'
+        AND NOT (e.tipo = 'ronda_narrada_iniciada' AND EXISTS (
+            SELECT 1 FROM `{$eventos}` ep
+            WHERE ep.seguimiento_id = e.seguimiento_id
+              AND ep.pid = e.pid AND ep.tipo = 'post_publicado'
+        ))";
+
+    $query = $db->query("SELECT COUNT(*) AS total
+        FROM `{$eventos}` e
+        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
+        INNER JOIN `{$threads}` t ON t.tid = s.tid
+        LEFT JOIN `{$posts}` p ON p.pid = e.pid
+        WHERE {$baseWhere}");
+    $total = (int)$db->fetch_field($query, 'total');
+    $paginas = max(1, (int)ceil($total / $porPagina));
+    $pagina = min($pagina, $paginas);
+    $offset = ($pagina - 1) * $porPagina;
+
+    $query = $db->query("SELECT e.*, s.tid, t.subject, t.fid,
+            ficha.nombre AS relacionado_nombre, u.username AS relacionado_username,
+            EXISTS (
+                SELECT 1 FROM `{$eventos}` rn
+                WHERE rn.seguimiento_id = e.seguimiento_id
+                  AND rn.pid = e.pid AND rn.tipo = 'ronda_narrada_iniciada'
+            ) AS inicio_narrado
+        FROM `{$eventos}` e
+        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
+        INNER JOIN `{$threads}` t ON t.tid = s.tid
+        LEFT JOIN `{$posts}` p ON p.pid = e.pid
+        LEFT JOIN `{$fichas}` ficha ON ficha.fid = e.relacionado_uid
+        LEFT JOIN `{$users}` u ON u.uid = e.relacionado_uid
+        WHERE {$baseWhere}
+        ORDER BY e.creado_en DESC, e.id DESC
+        LIMIT {$offset}, {$porPagina}");
+    $filas = array();
+    while ($row = $db->fetch_array($query)) {
+        $filas[] = $row;
+    }
+    return array(
+        'eventos' => $filas,
+        'pagina' => $pagina,
+        'paginas' => $paginas,
+        'total' => $total,
+    );
 }
 
 function op_bitacora_estado_persistente_disponible()
@@ -559,7 +1097,7 @@ function op_bitacora_propagar_participante($tid, $autorUid)
           AND s.personaje_uid != {$autorUid}");
 }
 
-function op_bitacora_procesar_post($pid)
+function op_bitacora_procesar_post($pid, $fechaActividad = null)
 {
     global $db;
     $pid = (int)$pid;
@@ -589,7 +1127,9 @@ function op_bitacora_procesar_post($pid)
 
     $uid = (int)$post['uid'];
     $tid = (int)$post['tid'];
-    $postFecha = (int)$post['dateline'] > 0 ? (int)$post['dateline'] : TIME_NOW;
+    $postFecha = $fechaActividad === null
+        ? ((int)$post['dateline'] > 0 ? (int)$post['dateline'] : TIME_NOW)
+        : max(1, (int)$fechaActividad);
     $db->write_query('START TRANSACTION');
 
     $query = $db->simple_select(
@@ -651,9 +1191,11 @@ function op_bitacora_procesar_post($pid)
         );
     }
     op_bitacora_propagar_participante($tid, $uid);
+    op_bitacora_registrar_actividad_post($tid, $uid, $pid, $postFecha);
     op_bitacora_registrar_rondas_narradas($tid, $uid, $pid, $postFecha);
 
     $db->write_query('COMMIT');
+    op_bitacora_invalidar_cache_header_tids(array($tid), $uid);
 }
 
 function op_bitacora_agregar_tema($ownerUid, $tid, $estadoInicial)
@@ -1018,10 +1560,12 @@ function op_bitacora_listar($ownerUid, $incluirHistorial = true)
                 LEFT JOIN `{$fichas}` ficha ON ficha.fid = e.relacionado_uid
                 LEFT JOIN `{$users}` u ON u.uid = e.relacionado_uid
                 WHERE e.seguimiento_id IN ({$idsSql})
+                  AND e.tipo NOT IN ('post_publicado','ronda_normal_iniciada')
                   AND (
                     SELECT COUNT(*)
                     FROM `{$eventos}` posteriores
                     WHERE posteriores.seguimiento_id = e.seguimiento_id
+                      AND posteriores.tipo NOT IN ('post_publicado','ronda_normal_iniciada')
                       AND (posteriores.creado_en > e.creado_en
                         OR (posteriores.creado_en = e.creado_en AND posteriores.id > e.id))
                   ) < 5
@@ -1057,6 +1601,39 @@ function op_bitacora_resumen($ownerUid)
     return $listado['conteos'];
 }
 
+function op_bitacora_obtener_resumen_header($ownerUid, $forzar = false, $conteos = null)
+{
+    $ownerUid = (int)$ownerUid;
+    if ($ownerUid <= 0) {
+        return null;
+    }
+    if (!$forzar) {
+        $cache = op_bitacora_leer_cache_header($ownerUid);
+        if (is_array($cache)) {
+            return $cache;
+        }
+    }
+    if (!op_bitacora_tablas_listas()) {
+        return null;
+    }
+    if (!is_array($conteos)) {
+        if (!op_bitacora_personaje_tiene_ficha($ownerUid)) {
+            return null;
+        }
+        $conteos = op_bitacora_resumen($ownerUid);
+    }
+    $ultimaNovedad = op_bitacora_ultima_novedad_pendiente($ownerUid);
+    $resultado = array(
+        'debes_responder' => max(0, (int)($conteos['debes_responder'] ?? 0)),
+        'esperando' => max(0, (int)($conteos['esperando'] ?? 0)),
+        'ultima_novedad_en' => max(0, (int)$ultimaNovedad),
+        'generado_en' => TIME_NOW,
+        'expira_en' => TIME_NOW + OP_BITACORA_HEADER_CACHE_TTL,
+    );
+    op_bitacora_guardar_cache_header($ownerUid, $resultado, $ultimaNovedad);
+    return $resultado;
+}
+
 function op_bitacora_render_header($ownerUid, $conteos = null)
 {
     global $templates, $mybb;
@@ -1066,23 +1643,25 @@ function op_bitacora_render_header($ownerUid, $conteos = null)
         return '';
     }
 
-    if (!is_array($conteos)) {
-        if (!op_bitacora_tablas_listas() || !op_bitacora_personaje_tiene_ficha($ownerUid)) {
-            return '';
-        }
-        $conteos = op_bitacora_resumen($ownerUid);
+    $resumenHeader = op_bitacora_obtener_resumen_header(
+        $ownerUid,
+        is_array($conteos),
+        $conteos
+    );
+    if (!is_array($resumenHeader)) {
+        return '';
     }
-    $op_temas_header_debes = (int)$conteos['debes_responder'];
-    $op_temas_header_esperando = (int)$conteos['esperando'];
-    $ultimaActividad = (int)($conteos['ultima_actividad'] ?? 0);
-    $op_temas_header_actualizado = $ultimaActividad > 0
-        ? '<small>Actualizado hace ' . op_bitacora_escape(op_bitacora_tiempo_transcurrido($ultimaActividad)) . '</small>'
+    $op_temas_header_debes = (int)$resumenHeader['debes_responder'];
+    $op_temas_header_esperando = (int)$resumenHeader['esperando'];
+    $ultimaNovedad = (int)$resumenHeader['ultima_novedad_en'];
+    $op_temas_header_actualizado = $ultimaNovedad > 0
+        ? '<small>Actualizado hace ' . op_bitacora_escape(op_bitacora_tiempo_transcurrido($ultimaNovedad)) . '</small>'
         : '';
     $op_temas_header_clase = $op_temas_header_debes > 0 ? ' op-temas-header--pendiente' : '';
-    $op_temas_header_texto = ($op_temas_header_debes === 0 && $op_temas_header_esperando === 0)
-        ? 'Bitácora: Todo al día. No debes ninguna respuesta.'
-        : 'Bitácora: Tu turno: ' . $op_temas_header_debes
-            . ' | Al día: ' . $op_temas_header_esperando;
+    $op_temas_header_estado = $op_temas_header_debes > 0
+        ? 'Tienes respuestas pendientes'
+        : 'Todo al día';
+    $op_temas_header_icono = $op_temas_header_debes > 0 ? 'fa-book-open' : 'fa-circle-check';
 
     eval("\$html = \"" . op_bitacora_cargar_plantilla('op_bitacora_header') . "\";");
     return $html;

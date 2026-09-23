@@ -532,7 +532,7 @@ while ($q = $db->fetch_array($g_ultimos_post_query)) {
 	$up_forum_name = $q['name'];
 	$up_lastpost = intval($q['lastpost']) + (3600 * 8);
 
-	$up_thread_url = "/showthread.php?tid=$up_tid";
+	$up_thread_url = "/showthread.php?tid=$up_tid&action=lastpost";
 	$up_user_profile = "/member.php?action=profile&uid=$up_uid";
 	$up_forum = "/forumdisplay.php?fid=$up_fid";
 	$timestamp = "1696037165";

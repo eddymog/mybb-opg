@@ -737,20 +737,16 @@ Los vacios se renderizan en servidor para funcionar sin JavaScript:
 No se usa el mensaje de felicitacion cuando no existe ningun seguimiento, ya
 que podria interpretarse como un calculo realizado sobre actividad inexistente.
 
-### 18.5 Ultima actividad del header
+### 18.5 Ultima novedad del header
 
-`op_bitacora_resumen()` debe devolver, ademas de los conteos, el maximo de:
+El header presenta `Actualizado hace X` solo cuando existe al menos un evento
+`post_publicado` posterior al cursor de revision, escrito por otro personaje y
+todavia visible en una zona de rol accesible. Una consulta agrupada por FID
+evita consultas por tema y permite reutilizar la comprobacion de permisos.
 
-```text
-threads.lastpost
-op_temas_seguidos.actualizado_en
-op_temas_seguidos.estado_desde
-```
-
-solo para seguimientos visibles del personaje activo. El header lo presenta
-como `Actualizado hace X`. No se usa `TIME_NOW` como fecha de actividad ni se
-realiza una consulta por tema. El texto se recalcula al renderizar una pagina;
-no necesita un temporizador en vivo.
+Al marcar las novedades como revisadas se invalida el valor calculado y se
+reemplaza el header mediante HTMX OOB. Las publicaciones propias, los ajustes
+manuales y los eventos ya revisados nunca muestran esa linea.
 
 ### 18.6 Historial corto
 
@@ -800,3 +796,275 @@ asociado. Al dejar de seguir un tema, sus eventos se eliminan explicitamente.
 - [ ] La ultima actividad coincide entre pagina y header.
 - [ ] Reprocesar un PID no duplica el evento automatico.
 - [ ] Cargar 20 temas no genera consultas N+1 para el historial.
+
+## 19. Novedades desde la ultima revision
+
+### 19.1 Enfoque
+
+La fuente de verdad del contenido sigue siendo `mybb_posts`. La tabla de
+eventos registra que un post visible genero actividad para un seguimiento
+concreto, pero no copia su mensaje. Esto permite un cursor personal, evita
+importar todo el historial de posts y conserva la relacion con el tema que el
+personaje seguia cuando ocurrio la publicacion.
+
+Se usa el concepto `ultima revision`, confirmado por el usuario, en lugar de
+marcar automaticamente al visitar. Una recarga accidental no debe consumir las
+novedades.
+
+### 19.2 Modelo de datos
+
+`mybb_op_bitacora_eventos` incorpora el tipo `post_publicado`:
+
+```text
+seguimiento_id = seguimiento que recibe la novedad
+tipo = post_publicado
+actor_uid = autor del post
+relacionado_uid = autor del post
+pid = post visible
+creado_en = fecha efectiva del post o de su aprobacion/restauracion
+```
+
+La clave `UNIQUE (seguimiento_id, tipo, pid)` mantiene idempotentes los hooks.
+El contenido, titulo y visibilidad se leen desde las tablas core.
+
+Se anade una tabla para el cursor de lectura:
+
+```sql
+CREATE TABLE mybb_op_bitacora_lecturas (
+  personaje_uid INT UNSIGNED NOT NULL,
+  ultimo_evento_id INT UNSIGNED NOT NULL DEFAULT 0,
+  actualizado_en INT UNSIGNED NOT NULL,
+  PRIMARY KEY (personaje_uid)
+);
+```
+
+No necesita una fila por tema. El cursor es personal para el personaje activo y
+avanza hasta el mayor evento elegible cuando se ejecuta `Marcar como revisado`.
+No se crean foreign keys para mantener la convencion y compatibilidad del
+plugin; la limpieza se realiza desde sus operaciones de escritura.
+
+### 19.3 Registro y moderacion
+
+Al procesar un post visible se insertara `post_publicado` para cada seguimiento
+del mismo TID cuyo propietario sea distinto del autor. No se crea una novedad
+para el seguimiento del autor.
+
+La moderacion debe conservar estas reglas:
+
+- `class_moderation_approve_posts` y `class_moderation_restore_posts` vuelven a
+  procesar los PID visibles;
+- `class_moderation_unapprove_posts`, `class_moderation_soft_delete_posts` y
+  `class_moderation_delete_post` retiran los eventos asociados al PID;
+- las variantes de threads hacen la misma limpieza o reconstruccion en bloque;
+- al restaurar o aprobar se inserta un evento nuevo, con ID posterior al cursor,
+  para que la publicacion vuelva a aparecer como novedad;
+- la limpieza tambien cubre los eventos de ronda asociados al PID para que el
+  historial no describa una ronda iniciada por un post inexistente.
+
+Eliminar primero el evento cuando un post deja de ser visible permite que la
+clave unica acepte su reinsercion posterior. Reprocesar un post que nunca perdio
+visibilidad continua siendo inocuo mediante `INSERT IGNORE`.
+
+### 19.4 Consulta del resumen
+
+El servicio `op_bitacora_novedades($ownerUid)` debe:
+
+1. obtener `ultimo_evento_id`;
+2. seleccionar eventos `post_publicado` posteriores al cursor;
+3. unir seguimiento, thread, post, ficha del autor y foro;
+4. exigir post/thread visibles, zona de rol y permisos MyBB;
+5. agrupar por seguimiento/TID;
+6. calcular posts, autores distintos, ultimo PID y fecha mas reciente;
+7. devolver los cinco temas mas recientes y los totales globales.
+
+Los nombres de autores se resuelven en bloque. Se muestra solo
+`op_fichas.nombre`, con `username` como fallback, sin apodos. No se ejecuta una
+consulta por tema ni por autor.
+
+El enlace de cada novedad apunta a `showthread.php?tid={tid}&action=lastpost`.
+El historial global usa paginacion server-side de 20 eventos y un parametro de
+pagina entero limitado. El hook del header no ejecuta esta consulta completa:
+usa exclusivamente la consulta agrupada de ultima novedad pendiente.
+
+### 19.5 Marcado como revisado
+
+La accion POST `marcar_novedades_revisadas` reutiliza `post_key` y toma el UID
+exclusivamente de la sesion. Dentro de una transaccion obtiene el mayor ID de
+evento `post_publicado` actualmente elegible para ese personaje y realiza un
+upsert en `op_bitacora_lecturas`.
+
+No se acepta un `personaje_uid` del formulario. Con HTMX se reemplaza el panel
+de novedades y se muestra el estado vacio; sin JavaScript se usa PRG hacia
+`/op/bitacora.php`.
+
+### 19.6 Interfaz
+
+El panel se coloca despues de la guia y del aviso de Modo vista, antes de los
+conteos `Tu turno / Al dia`:
+
+```text
+Desde tu ultima revision
+7 posts nuevos en 3 temas                         [Marcar como revisado]
+
+Key y Revan postearon 4 veces en Equipo de Rescate    Hace 35 minutos
+Maximus posteó en El rescate                          Hace 1 día
+
+[Ver historial de actividad]
+```
+
+Se renderiza en servidor y funciona sin JavaScript. HTMX solo mejora el marcado
+y la paginacion. Alpine puede controlar el despliegue del historial, pero no
+mantiene el cursor ni decide que es nuevo.
+
+Cuando no hay novedades, el panel se reduce a una linea positiva. En Modo vista
+no se renderiza el panel, su estado vacio ni sus controles. En el historial, un
+`post_publicado` y un `ronda_narrada_iniciada` con el mismo PID se presentan
+como una sola actividad combinada.
+
+### 19.7 Historial global y retencion
+
+El historial global mezcla `post_publicado` con cambios de narrador, overrides
+y comienzos de ronda. Se ordena por `creado_en DESC, id DESC`, muestra 20
+actividades y conserva enlaces al tema o personaje cuando sigan disponibles.
+
+En la primera entrega no se establece una purga temporal: los eventos ya se
+eliminan al dejar de seguir. Si el volumen real lo requiere, la retencion se
+disenara despues de medirla y nunca afectara posts ni threads de MyBB.
+
+### 19.8 Seguridad, privacidad y rendimiento
+
+- El cursor solo puede consultarlo y modificarlo su propietario autenticado.
+- Modo vista no revela cuando otro personaje reviso su actividad.
+- Los permisos se comprueban por FID y se reutilizan durante la request.
+- Titulos y nombres se escapan al renderizar.
+- El resumen y el historial no se calculan en paginas globales ni en el header;
+  solo se consulta la fecha de la ultima novedad pendiente.
+- Los indices existentes por seguimiento/fecha y evento/post apoyan la lectura;
+  antes del despliegue se validaran las consultas con `EXPLAIN`.
+
+### 19.9 Casos limite
+
+- Primera visita tras desplegar: muestra solo eventos creados desde el
+  despliegue, sin backfill.
+- Sin fila de lectura: el cursor equivale a cero.
+- Recarga antes de revisar: las novedades permanecen.
+- Post propio: puede iniciar ronda, pero no aparece como novedad propia.
+- Post desmoderado despues de mostrarse: desaparece del resumen y del historial.
+- Post restaurado: recibe un evento nuevo y vuelve a aparecer.
+- Tema retirado: elimina sus eventos; volver a publicar crea un seguimiento y
+  una historia nuevos.
+- Tema movido o sin permisos: no se filtra titulo ni actividad.
+- Cambio de personaje: cambia cursor, resumen e historial personal.
+
+### 19.10 Pruebas de diseno
+
+- [ ] Agrupacion con uno y varios autores/posts en un mismo tema.
+- [ ] Persistencia hasta marcar, con recargas y swaps HTMX.
+- [ ] Aprobacion, desmoderacion, borrado y restauracion de posts y threads.
+- [ ] Ausencia de novedades propias y de temas no autorizados.
+- [ ] Cursores independientes para personajes enlazados.
+- [ ] Historial combinado sin duplicar narracion y post por el mismo PID.
+- [ ] Paginacion estable cuando dos eventos comparten fecha.
+- [ ] `EXPLAIN` sin consultas N+1 con 20 o mas seguimientos.
+
+## 20. Cache de cinco minutos para el header
+
+### 20.1 Objetivo y alcance
+
+El cache protege todas las paginas globales del coste de reconstruir el resumen
+de la Bitacora. Solo interviene en `op_bitacora_render_header()`; el listado, el
+resumen de novedades y el historial de `/op/bitacora.php` continuan leyendo la
+fuente de verdad.
+
+La primera version puede reutilizar el calculador actual en un cache miss. Esto
+reduce de inmediato la repeticion del trabajo. La posterior sustitucion del
+generador por una consulta ligera basada en `estado_grupo` es compatible con el
+mismo contrato y no cambia la tabla ni el render.
+
+No se usara una entrada de `mybb_datacache` por personaje. Con el handler de
+base de datos, MyBB carga esa tabla completa al iniciar cada request; cientos de
+claves personales aumentarian memoria, serializacion y contencion. Se usara una
+tabla dedicada con lectura por clave primaria.
+
+### 20.2 Modelo de datos
+
+```sql
+CREATE TABLE mybb_op_bitacora_header_cache (
+  personaje_uid INT UNSIGNED NOT NULL,
+  conteo_turno INT UNSIGNED NOT NULL DEFAULT 0,
+  conteo_al_dia INT UNSIGNED NOT NULL DEFAULT 0,
+  ultima_novedad_en INT UNSIGNED NOT NULL DEFAULT 0,
+  generado_en INT UNSIGNED NOT NULL,
+  expira_en INT UNSIGNED NOT NULL,
+  PRIMARY KEY (personaje_uid),
+  KEY expira_en (expira_en)
+) ENGINE=InnoDB;
+```
+
+Los conteos y la fecha son datos, no HTML. La plantilla, URL, idioma y estilos
+se aplican en cada render, por lo que un cambio visual no exige vaciar el cache.
+`personaje_uid` coincide con el personaje activo y mantiene aisladas las
+cuentas enlazadas mediante Account Switcher.
+
+### 20.3 Lectura y regeneracion
+
+`op_bitacora_obtener_resumen_header($ownerUid)` sigue este flujo:
+
+1. leer por `PRIMARY KEY`;
+2. devolver la fila si `expira_en > TIME_NOW`;
+3. calcular conteos y ultima novedad si falta o vencio;
+4. hacer upsert con `generado_en=TIME_NOW` y `expira_en=TIME_NOW+300`;
+5. devolver los datos regenerados al renderizador.
+
+El cache se valida en servidor. No se aceptan conteos, UID ni fechas enviados
+por el navegador. Una entrada corrupta o incompleta se considera vencida.
+
+No se introduce un bloqueo distribuido en la primera version: la clave por
+personaje limita la colision y dos regeneraciones simultaneas producen el mismo
+resultado. Si las mediciones muestran estampidas reales, se anadira un lock
+corto o stale-while-revalidate sin cambiar el contrato publico.
+
+### 20.4 Invalidacion dirigida
+
+Se definen dos helpers:
+
+```php
+op_bitacora_invalidar_cache_header_uid($ownerUid);
+op_bitacora_invalidar_cache_header_tids($tids, $incluirAutorUid = 0);
+```
+
+Invalidar significa establecer `expira_en=0`; no hace falta borrar la fila. La
+invalidacion por TID obtiene en bloque los propietarios de los seguimientos y
+actualiza todas sus filas con un solo `UPDATE ... WHERE personaje_uid IN (...)`.
+
+| Evento | Entradas afectadas |
+|---|---|
+| Post nuevo, aprobado o restaurado | Autor y seguidores del TID |
+| Post oculto o eliminado | Autor y seguidores del TID |
+| Tema cerrado, movido, oculto, restaurado o eliminado | Seguidores del TID |
+| Alta o retirada de tema | Propietario |
+| Participantes, narrador u override | Propietario |
+| Marcar como revisado | Propietario, con regeneracion inmediata |
+
+La expiracion de 300 segundos cubre cambios externos sin hook, como ciertos
+ajustes de permisos. La invalidacion nunca modifica seguimientos, eventos ni el
+cursor de revision.
+
+### 20.5 Integracion HTMX y fallos
+
+Las respuestas HTMX que ya devuelven el header por OOB usan datos recien
+calculados y actualizan la fila de cache. `Marcar como revisado` invalida despues
+de mover el cursor y antes de volver a renderizar, por lo que
+`Actualizado hace...` desaparece en la misma respuesta.
+
+Si la tabla no existe durante un despliegue escalonado, el header continua
+funcionando sin cache y muestra el resumen calculado. Desactivar el plugin
+conserva la tabla; desinstalarlo la elimina de forma explicita.
+
+### 20.6 Rendimiento esperado
+
+Un cache hit agrega una sola lectura indexada y evita las uniones de temas,
+participantes y posts. Un cache miss conserva temporalmente el coste actual,
+pero solo una vez por personaje cada cinco minutos o despues de una accion que
+lo afecte. Se mediran tiempo, consultas y ratio de hits antes de introducir mas
+indices o una segunda capa de cache.

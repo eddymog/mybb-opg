@@ -498,9 +498,9 @@ interpretacion de las rondas en la capa de presentacion.
   debe explicar como agregar un TID en lugar de afirmar que existe actividad al
   dia. La pestana `Al dia` utiliza un mensaje propio cuando no tiene resultados.
 - [x] **Mostrar `Actualizado hace X` en el header.**
-  El tiempo representa la ultima actividad real de cualquiera de los temas
-  seguidos, no la hora en que se renderizo el header. Debe calcularse a partir
-  de las fechas ya cargadas y omitir la linea cuando no haya seguimientos.
+  El tiempo representa la ultima publicacion ajena que todavia no fue marcada
+  como revisada. Debe desaparecer al revisar las novedades y no reactivarse
+  por publicaciones propias ni por simples cambios de configuracion.
 - [x] **Incorporar un historial corto por tema.**
   Debe registrar desde su despliegue cambios de narrador, ajustes manuales y
   comienzos de ronda. No se intentara inventar ni importar eventos anteriores.
@@ -518,4 +518,153 @@ interpretacion de las rondas en la capa de presentacion.
 - [ ] El header no muestra `Actualizado ahora` solo por visitar otra pagina.
 - [ ] Los eventos automaticos son idempotentes y un mismo post no crea dos
   comienzos de ronda.
-- [ ] El modo vista puede leer razones e historial, pero nunca modificarlos.
+- [ ] El modo vista puede leer el historial corto permitido, pero nunca
+  modificarlo ni consultar el estado privado de revision.
+
+## 18. Resumen de novedades e historial global
+
+Al entrar en la Bitacora, el propietario debe encontrar un resumen de las
+publicaciones realizadas en sus temas desde su ultima revision. El objetivo es
+que pueda conocer la actividad reciente sin abrir cada tema.
+
+Ejemplos de salida:
+
+```text
+Key posteó 2 veces en Equipo de Rescate. Última hace 35 minutos.
+Revan posteó en Sombras de Briss. Hace 3 horas.
+Maximus posteó e inició una ronda narrada en El rescate. Hace 1 día.
+```
+
+### 18.1 Que se considera una novedad
+
+- Una publicacion visible realizada por otro personaje en un tema seguido.
+- La publicacion debe pertenecer a la zona de rol y continuar siendo accesible
+  para el visitante actual.
+- Las publicaciones del propietario no se incluyen en sus propias novedades.
+- Un post procesado o aprobado mas de una vez solo puede producir una novedad.
+- Un post eliminado, desmoderado o perteneciente a un tema inaccesible no debe
+  aparecer. Si se restaura o aprueba posteriormente, debe volver a poder
+  notificarse como actividad nueva.
+- No se importan publicaciones anteriores al despliegue de esta ampliacion.
+
+### 18.2 Presentacion del resumen
+
+- [x] La seccion `Desde tu ultima revision` aparece antes de las pestanas de
+  temas y solo para el propietario de la Bitacora.
+- [x] Muestra el total de posts nuevos y la cantidad de temas afectados.
+- [x] Agrupa las novedades por tema, evitando una fila independiente por post.
+- [x] Cada fila muestra titulo enlazado, autores, cantidad de posts y tiempo
+  transcurrido desde la publicacion mas reciente del grupo.
+- [x] Si un unico autor publica una vez, usa `X posteó en Tema` y enlaza su
+  nombre a la ficha.
+- [x] Si existen varios posts o autores, usa una frase plural breve.
+- [x] La vista inicial muestra como maximo cinco temas y permite abrir el
+  historial completo.
+- [x] Si no hay novedades, muestra un estado positivo y compacto sin ocupar el
+  espacio de una lista vacia grande.
+
+### 18.3 Revision y persistencia
+
+Las novedades no se consideran revisadas solo por cargar o recargar la pagina.
+Permanecen visibles hasta que el propietario pulse `Marcar como revisado`.
+
+- [x] La accion requiere POST, `post_key` y el UID de la sesion; no acepta un
+  propietario enviado por el cliente.
+- [x] Marcar como revisado actualiza un cursor del personaje activo y no borra
+  el historial.
+- [x] Cambiar de personaje mediante Account Switcher cambia tambien el cursor y
+  las novedades.
+- [x] La operacion funciona con HTMX y con navegacion tradicional.
+- [x] Una recarga, un cambio de pestana o un ordenamiento no marcan novedades.
+
+### 18.4 Historial global
+
+- [x] Debe existir un panel `Historial de actividad` con las publicaciones y
+  eventos recientes de todos los temas seguidos.
+- [x] Incluye publicaciones, comienzos de ronda, cambios de narrador y ajustes
+  manuales, ordenados del mas reciente al mas antiguo.
+- [x] Cuando una publicacion tambien inicia una ronda narrada, la interfaz debe
+  combinar ambas descripciones para no mostrar dos filas repetidas.
+- [x] El historial se pagina en bloques de 20 y no se carga completo de una vez.
+- [x] Dejar de seguir un tema elimina sus eventos personales, como ocurre con el
+  historial corto actual.
+
+### 18.5 Privacidad y alcance
+
+- El resumen pendiente y la fecha de ultima revision son privados.
+- `modo_vista=<FID>` no muestra novedades pendientes, cursores ni el boton para
+  marcarlas como revisadas.
+- Modo vista puede conservar el historial corto de cada tema porque solo
+  contiene actividad perteneciente a temas que el visitante puede leer.
+- La ampliacion no modifica alertas, suscripciones, mensajes privados ni el
+  contador del header en su primera version.
+
+### 18.6 Criterios de aceptacion
+
+- [ ] Dos posts nuevos en un mismo tema producen una entrada agrupada con
+  contador 2.
+- [ ] Las novedades permanecen despues de recargar hasta pulsar el boton.
+- [ ] Marcar como revisado vacia el resumen, pero no el historial completo.
+- [ ] Un post propio nunca incrementa las novedades del mismo personaje.
+- [ ] Aprobar o restaurar un post vuelve a generar una novedad; desmoderarlo o
+  eliminarlo la retira.
+- [ ] Reprocesar el mismo hook no duplica el post.
+- [ ] Los permisos del foro se respetan tanto en el resumen como en el historial.
+- [ ] El resumen del personaje A no cambia el cursor del personaje B.
+
+## 19. Cache del resumen global
+
+La barra de la Bitacora aparece en todas las paginas para personajes
+autenticados, pero navegar por el foro no debe reconstruir en cada request las
+rondas, participantes y posts de todos sus temas. El resumen del header debe
+conservarse durante cinco minutos por personaje activo.
+
+El cache guarda exclusivamente datos derivados del header:
+
+- cantidad de temas en `Tu turno`;
+- cantidad de temas `Al dia`;
+- fecha de la ultima novedad ajena sin revisar;
+- momento de generacion y expiracion.
+
+No guarda HTML, permisos, posts ni contenido de los temas. Cambiar de personaje
+mediante Account Switcher debe seleccionar una entrada distinta.
+
+### 19.1 Vigencia e invalidacion
+
+- La vigencia normal es de 300 segundos.
+- Mientras la entrada siga vigente, visitar otras paginas reutiliza sus datos y
+  no ejecuta el calculo completo de la Bitacora.
+- Al vencer, la primera peticion regenera la entrada y las siguientes vuelven a
+  reutilizarla.
+- El TTL es un limite de seguridad: las acciones conocidas deben invalidar el
+  cache inmediatamente, sin esperar cinco minutos.
+- Un fallo aislado de invalidacion nunca puede dejar datos obsoletos durante
+  mas de cinco minutos.
+
+### 19.2 Acciones que invalidan
+
+- Publicar, aprobar, restaurar, ocultar o eliminar un post invalida al autor y
+  a todos los personajes que siguen el tema.
+- Cerrar, reabrir, mover, ocultar, restaurar o eliminar un tema invalida a sus
+  seguidores.
+- Agregar o retirar un tema, participante o narrador invalida al propietario
+  del seguimiento.
+- Usar `Me toca responder` o `No me toca` invalida al propietario.
+- `Marcar como revisado` invalida y regenera el resumen inmediatamente para
+  retirar `Actualizado hace...` mediante HTMX OOB.
+- Los cambios de permisos que no disparen un hook especifico quedan cubiertos
+  por la expiracion maxima de cinco minutos.
+
+### 19.3 Criterios de aceptacion
+
+- [ ] Dos paginas consecutivas dentro de cinco minutos reutilizan la misma
+  entrada y no llaman a `op_bitacora_listar()` por segunda vez.
+- [ ] Cada personaje de Account Switcher conserva conteos independientes.
+- [ ] Un post ajeno invalida a todos los seguidores afectados y la siguiente
+  pagina muestra el nuevo estado.
+- [ ] Un ajuste manual invalida solo el resumen de su propietario.
+- [ ] Marcar como revisado elimina inmediatamente la fecha pendiente del
+  header.
+- [ ] Una entrada vencida se regenera en la siguiente peticion.
+- [ ] La pagina `/op/bitacora.php` sigue mostrando datos actuales y no depende
+  del cache del header.

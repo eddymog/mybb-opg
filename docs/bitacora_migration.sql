@@ -99,7 +99,27 @@ CREATE TABLE IF NOT EXISTS `mybb_op_bitacora_eventos` (
   KEY `seguimiento_fecha` (`seguimiento_id`, `creado_en`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `mybb_op_bitacora_lecturas` (
+  `personaje_uid` int unsigned NOT NULL,
+  `ultimo_evento_id` int unsigned NOT NULL DEFAULT '0',
+  `actualizado_en` int unsigned NOT NULL,
+  PRIMARY KEY (`personaje_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `mybb_op_bitacora_header_cache` (
+  `personaje_uid` int unsigned NOT NULL,
+  `conteo_turno` int unsigned NOT NULL DEFAULT '0',
+  `conteo_al_dia` int unsigned NOT NULL DEFAULT '0',
+  `ultima_novedad_en` int unsigned NOT NULL DEFAULT '0',
+  `generado_en` int unsigned NOT NULL,
+  `expira_en` int unsigned NOT NULL,
+  PRIMARY KEY (`personaje_uid`),
+  KEY `expira_en` (`expira_en`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Rollback manual, solo si se desea borrar todos los seguimientos:
+-- DROP TABLE IF EXISTS `mybb_op_bitacora_header_cache`;
+-- DROP TABLE IF EXISTS `mybb_op_bitacora_lecturas`;
 -- DROP TABLE IF EXISTS `mybb_op_bitacora_eventos`;
 -- DROP TABLE IF EXISTS `mybb_op_temas_participantes`;
 -- DROP TABLE IF EXISTS `mybb_op_temas_seguidos`;

@@ -47,6 +47,16 @@ function op_bitacora_nombre_personaje($row)
     return $nombre;
 }
 
+function op_bitacora_enlace_personaje($uid, $nombre)
+{
+    $uid = (int)$uid;
+    $nombre = op_bitacora_escape($nombre);
+    if ($uid <= 0) {
+        return $nombre;
+    }
+    return '<a href="/op/personaje.php?uid=' . $uid . '">' . $nombre . '</a>';
+}
+
 function op_bitacora_mensaje_resultado($code)
 {
     $mensajes = array(
@@ -57,6 +67,7 @@ function op_bitacora_mensaje_resultado($code)
         'participante_retirado' => array('ok', 'El participante se retiro de la ronda.'),
         'narrador_actualizado' => array('ok', 'El narrador de la ronda se actualizo.'),
         'narrador_quitado' => array('ok', 'El tema volvio al modo de ronda entre personajes.'),
+        'novedades_revisadas' => array('ok', 'Las novedades se marcaron como revisadas.'),
         'ya_seguido' => array('err', 'Ese tema ya está en tu bitácora.'),
         'tema_no_disponible' => array('err', 'No se pudo agregar ese tema.'),
         'estado_inicial_requerido' => array('err', 'Indica si te toca responder para iniciar el seguimiento.'),
@@ -242,7 +253,10 @@ function op_bitacora_render_historial($tema, $soloLectura = false)
             'nombre' => $evento['relacionado_nombre'] ?? '',
             'username' => $evento['relacionado_username'] ?? '',
         ));
-        $relacionado = op_bitacora_escape($relacionado);
+        $relacionado = op_bitacora_enlace_personaje(
+            (int)($evento['relacionado_uid'] ?? 0),
+            $relacionado
+        );
         switch ((string)$evento['tipo']) {
             case 'narrador_asignado':
                 $texto = $relacionado . ' fue establecido como narrador.';
@@ -264,12 +278,7 @@ function op_bitacora_render_historial($tema, $soloLectura = false)
                     : 'Marcaste manualmente que no te toca responder.';
                 break;
             case 'ronda_narrada_iniciada':
-                $texto = $relacionado . ' inicio una ronda narrada.';
-                break;
-            case 'ronda_normal_iniciada':
-                $texto = $soloLectura
-                    ? 'Una publicacion del personaje inicio una nueva ronda.'
-                    : 'Tu publicacion inicio una nueva ronda.';
+                $texto = $relacionado . ' inició una ronda narrada.';
                 break;
             default:
                 continue 2;
@@ -283,6 +292,159 @@ function op_bitacora_render_historial($tema, $soloLectura = false)
     }
     return '<details class="op-temas-historial"><summary><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> '
         . 'Actividad reciente</summary><ol>' . $items . '</ol></details>';
+}
+
+function op_bitacora_nombres_actividad($autores, $limite = 3)
+{
+    $nombres = array();
+    foreach ((array)$autores as $autor) {
+        $uid = (int)($autor['uid'] ?? 0);
+        $nombres[] = op_bitacora_enlace_personaje(
+            $uid,
+            $autor['nombre'] ?? ('Personaje #' . $uid)
+        );
+    }
+    $total = count($nombres);
+    $visibles = array_slice($nombres, 0, max(1, (int)$limite));
+    if ($total > count($visibles)) {
+        $visibles[] = ($total - count($visibles)) . ' mas';
+    }
+    if (count($visibles) <= 1) {
+        return $visibles[0] ?? 'Otro personaje';
+    }
+    $ultimo = array_pop($visibles);
+    return implode(', ', $visibles) . ' y ' . $ultimo;
+}
+
+function op_bitacora_render_historial_global($historial)
+{
+    $items = '';
+    foreach ((array)$historial['eventos'] as $evento) {
+        $nombre = op_bitacora_nombre_personaje(array(
+            'participante_uid' => (int)($evento['relacionado_uid'] ?? 0),
+            'nombre' => $evento['relacionado_nombre'] ?? '',
+            'username' => $evento['relacionado_username'] ?? '',
+        ));
+        $nombre = op_bitacora_enlace_personaje((int)($evento['relacionado_uid'] ?? 0), $nombre);
+        switch ((string)$evento['tipo']) {
+            case 'post_publicado':
+                $texto = $nombre . ' posteó'
+                    . (!empty($evento['inicio_narrado']) ? ' e inició una ronda narrada' : '');
+                break;
+            case 'ronda_narrada_iniciada':
+                $texto = $nombre . ' inició una ronda narrada';
+                break;
+            case 'narrador_asignado':
+                $texto = $nombre . ' fue establecido como narrador';
+                break;
+            case 'narrador_cambiado':
+                $texto = 'El narrador se cambio a ' . $nombre;
+                break;
+            case 'narrador_retirado':
+                $texto = 'Se retiro a ' . $nombre . ' como narrador';
+                break;
+            case 'manual_turno':
+                $texto = 'Marcaste manualmente que debes responder';
+                break;
+            case 'manual_al_dia':
+                $texto = 'Marcaste manualmente que no te toca responder';
+                break;
+            default:
+                continue 2;
+        }
+        $tid = (int)$evento['tid'];
+        $url = '/showthread.php?tid=' . $tid . '&action=lastpost';
+        $fecha = (int)$evento['creado_en'];
+        $items .= '<li><span>' . $texto . ' en <a href="' . $url . '" target="_blank" rel="noopener">'
+            . op_bitacora_escape($evento['subject']) . '</a></span><time datetime="'
+            . op_bitacora_escape(date('c', $fecha)) . '">Hace '
+            . op_bitacora_escape(op_bitacora_tiempo_transcurrido($fecha)) . '</time></li>';
+    }
+    if ($items === '') {
+        $items = '<li class="op-bitacora-actividad__vacio">Todavia no hay actividad registrada.</li>';
+    }
+
+    $paginacion = '';
+    $pagina = (int)$historial['pagina'];
+    $paginas = (int)$historial['paginas'];
+    if ($paginas > 1) {
+        $paginacion = '<nav class="op-bitacora-actividad__paginas" aria-label="Paginas del historial">';
+        if ($pagina > 1) {
+            $paginacion .= '<a href="/op/bitacora.php?actividad_pagina=' . ($pagina - 1)
+                . '#op-bitacora-historial" hx-get="/op/bitacora.php?fragmento=novedades&amp;actividad_pagina=' . ($pagina - 1)
+                . '" hx-target="#op-bitacora-novedades" hx-swap="outerHTML"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior</a>';
+        }
+        $paginacion .= '<span>Pagina ' . $pagina . ' de ' . $paginas . '</span>';
+        if ($pagina < $paginas) {
+            $paginacion .= '<a href="/op/bitacora.php?actividad_pagina=' . ($pagina + 1)
+                . '#op-bitacora-historial" hx-get="/op/bitacora.php?fragmento=novedades&amp;actividad_pagina=' . ($pagina + 1)
+                . '" hx-target="#op-bitacora-novedades" hx-swap="outerHTML">Siguiente <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>';
+        }
+        $paginacion .= '</nav>';
+    }
+
+    return '<details id="op-bitacora-historial" class="op-bitacora-historial"'
+        . ($pagina > 1 ? ' open' : '') . '><summary><span><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> '
+        . 'Ver historial de actividad</span><small>' . (int)$historial['total'] . ' eventos</small></summary>'
+        . '<ol>' . $items . '</ol>' . $paginacion . '</details>';
+}
+
+function op_bitacora_render_novedades_panel($ownerUid, $paginaHistorial = 1, $resultadoCode = '')
+{
+    $ownerUid = (int)$ownerUid;
+    $novedades = op_bitacora_novedades($ownerUid, 5);
+    $historial = op_bitacora_historial_global($ownerUid, $paginaHistorial, 20);
+    $totalPosts = (int)$novedades['total_posts'];
+    $totalTemas = (int)$novedades['total_temas'];
+    $contenido = '';
+    $aviso = '';
+    if ($resultadoCode !== '' && $resultadoCode !== 'novedades_revisadas') {
+        $mensaje = op_bitacora_mensaje_resultado($resultadoCode);
+        if ($mensaje) {
+            $aviso = '<p class="aviso ' . $mensaje[0] . '" role="status">'
+                . op_bitacora_escape($mensaje[1]) . '</p>';
+        }
+    }
+
+    foreach ((array)$novedades['grupos'] as $grupo) {
+        $autores = op_bitacora_nombres_actividad($grupo['autores']);
+        $autoresTotal = count($grupo['autores']);
+        $posts = (int)$grupo['total_posts'];
+        if ($autoresTotal === 1 && $posts === 1) {
+            $frase = $autores . ' posteó en';
+        } elseif ($autoresTotal === 1) {
+            $frase = $autores . ' posteó ' . $posts . ' veces en';
+        } else {
+            $frase = $autores . ' postearon ' . $posts . ' veces en';
+        }
+        $tid = (int)$grupo['tid'];
+        $contenido .= '<li><span>' . $frase . ' <a href="/showthread.php?tid=' . $tid
+            . '&action=lastpost" target="_blank" rel="noopener">'
+            . op_bitacora_escape($grupo['subject']) . '</a></span><time>Hace '
+            . op_bitacora_escape(op_bitacora_tiempo_transcurrido((int)$grupo['ultima_fecha'])) . '</time></li>';
+    }
+
+    if ($totalPosts > 0) {
+        $resumen = $totalPosts . ($totalPosts === 1 ? ' post nuevo' : ' posts nuevos')
+            . ' en ' . $totalTemas . ($totalTemas === 1 ? ' tema' : ' temas');
+        $formulario = '<form method="post" action="/op/bitacora.php" hx-post="/op/bitacora.php"'
+            . ' hx-target="#op-bitacora-novedades" hx-swap="outerHTML">'
+            . op_bitacora_hidden_base('marcar_novedades_revisadas')
+            . '<button type="submit" class="op-bitacora-novedades__revisar"><i class="fa-solid fa-check-double" aria-hidden="true"></i> '
+            . 'Marcar como revisado</button></form>';
+        $lista = '<ul class="op-bitacora-novedades__lista">' . $contenido . '</ul>';
+        $clase = ' op-bitacora-novedades--pendientes';
+    } else {
+        $resumen = 'No hay publicaciones nuevas desde tu ultima revision.';
+        $formulario = '';
+        $lista = '';
+        $clase = '';
+    }
+
+    return '<section id="op-bitacora-novedades" class="op-bitacora-novedades' . $clase . '">'
+        . '<header><span><i class="fa-solid fa-bell" aria-hidden="true"></i><span><strong>Desde tu ultima revision</strong>'
+        . '<small>' . $resumen . '</small></span></span>' . $formulario . '</header>'
+        . $aviso . $lista . op_bitacora_render_historial_global($historial) . '</section>';
 }
 
 function op_bitacora_render_tarjeta($tema, $soloLectura = false)
@@ -442,7 +604,8 @@ function op_bitacora_render_tracker(
     $soloLectura = false,
     $vistaUid = 0,
     $vistaNombre = '',
-    $mostrarMisTemas = false
+    $mostrarMisTemas = false,
+    $paginaHistorial = 1
 )
 {
     global $templates, $mybb;
@@ -497,6 +660,9 @@ function op_bitacora_render_tracker(
             . '<strong>Modo vista</strong> Bitácora de <a href="/op/personaje.php?uid=' . (int)$vistaUid . '">'
             . op_bitacora_escape($vistaNombre) . '</a></span></span>' . $volver . '</aside>';
     }
+    $op_temas_novedades = $soloLectura
+        ? ''
+        : op_bitacora_render_novedades_panel($vistaUid, $paginaHistorial);
     $op_temas_alta = $soloLectura ? '' : op_bitacora_render_alta();
     $op_temas_post_key = op_bitacora_escape($mybb->post_code);
     eval("\$html = \"" . op_bitacora_cargar_plantilla('op_bitacora_contenido') . "\";");
@@ -619,13 +785,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'quitar_narrador':
                 $resultado = op_bitacora_quitar_narrador($opTemasOwnerUid, $seguimientoId);
                 break;
+            case 'marcar_novedades_revisadas':
+                $resultado = op_bitacora_marcar_novedades_revisadas($opTemasOwnerUid);
+                break;
             default:
                 $resultado = array('ok' => false, 'code' => 'seguimiento_no_disponible');
         }
     }
 
     $resultadoCode = (string)$resultado['code'];
+    if (!empty($resultado['ok'])) {
+        op_bitacora_invalidar_cache_header_uid($opTemasOwnerUid);
+    }
     if (!empty($_SERVER['HTTP_HX_REQUEST'])) {
+        if ($action === 'marcar_novedades_revisadas') {
+            $conteosActualizados = op_bitacora_resumen($opTemasOwnerUid);
+            header('Content-Type: text/html; charset=utf-8');
+            echo op_bitacora_render_novedades_panel($opTemasOwnerUid, 1, $resultadoCode);
+            echo op_bitacora_render_header($opTemasOwnerUid, $conteosActualizados);
+            exit;
+        }
         $listadoActualizado = op_bitacora_listar($opTemasOwnerUid);
         header('Content-Type: text/html; charset=utf-8');
         echo op_bitacora_render_tracker($listadoActualizado, $resultadoCode);
@@ -636,6 +815,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+if ($mybb->get_input('fragmento', MyBB::INPUT_STRING) === 'novedades' && !$opTemasSoloLectura) {
+    $pagina = max(1, $mybb->get_input('actividad_pagina', MyBB::INPUT_INT));
+    header('Content-Type: text/html; charset=utf-8');
+    echo op_bitacora_render_novedades_panel($opTemasOwnerUid, $pagina);
+    exit;
+}
+
 $listado = op_bitacora_listar($opTemasOwnerUid);
 $opTemasVistaNombre = op_bitacora_nombre_personaje(array(
     'participante_uid' => $opTemasOwnerUid,
@@ -643,13 +829,15 @@ $opTemasVistaNombre = op_bitacora_nombre_personaje(array(
 ));
 $opTemasMostrarMisTemas = $opTemasSessionUid > 0
     && op_bitacora_personaje_tiene_ficha($opTemasSessionUid);
+$opTemasActividadPagina = max(1, $mybb->get_input('actividad_pagina', MyBB::INPUT_INT));
 $op_bitacora_contenido = op_bitacora_render_tracker(
     $listado,
     $opTemasSoloLectura ? '' : $resultadoCode,
     $opTemasSoloLectura,
     $opTemasOwnerUid,
     $opTemasVistaNombre,
-    $opTemasMostrarMisTemas
+    $opTemasMostrarMisTemas,
+    $opTemasActividadPagina
 );
 
 if ($mybb->get_input('fragmento', MyBB::INPUT_STRING) === 'tracker') {
