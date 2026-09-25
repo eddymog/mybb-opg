@@ -625,7 +625,7 @@ function checkUnreadMessages() {
                                 <span><i class="fa fa-dice"></i> Prensa</span>
                             </div>
                             <div class="trow1">
-                                <a href="https://onepiecegaiden.com/op/periodico.php"><i class="fa fa-newspaper-o fa_xtra blue"></i> Periódico</a>
+                                <a href="https://onepiecegaiden.com/op/periodico.php"><i class="fa-regular fa-newspaper fa_xtra blue"></i> Periódico</a>
                             </div>
                             <div class="trow1">
                                 <a href="https://onepiecegaiden.com/op/prensarosa.php"><i class="fa fa-heart fa_xtra red"></i> Prensa Rosa</a>
@@ -668,11 +668,11 @@ function checkUnreadMessages() {
                                 <span><i class="fa fa-dice"></i> Tiradas</span>
                             </div>
                             <div class="trow1">
-                                <a href="{$mybb->settings['bburl']}/opg/tirada_akuma.php"><i class="fa fa-apple fa_xtra blue"></i> Tirada de Akumas</a>
+                                <a href="{$mybb->settings['bburl']}/opg/tirada_akuma.php"><i class="fa-solid fa-apple-whole fa_xtra blue"></i> Tirada de Akumas</a>
                             </div>
                             <if $g_tiene_ficha == true then>
                             <div class="trow1">
-                                <a href="{$mybb->settings['bburl']}/opg/tirada_rey.php"><i class="fa fa-flash fa_xtra orange"></i> Tirada de Haki del Rey</a>
+                                <a href="{$mybb->settings['bburl']}/opg/tirada_rey.php"><i class="fa-solid fa-crown fa_xtra orange"></i> Tirada de Haki del Rey</a>
                             </div>
                             <div class="trow1">
                                 <a href="{$mybb->settings['bburl']}/opg/tirada_haki.php"><i class="fa fa-eye fa_xtra blue"></i> Tirada Despertar de Haki</a>
@@ -809,7 +809,7 @@ function checkUnreadMessages() {
                                 <a href="{$mybb->settings['bburl']}/usercp.php"><i class="fa fa-user fa_xtra white"></i> Panel de Usuario</a>
                             </div>
                             <div class="trow1">
-                                <a href="{$mybb->settings['bburl']}/usercp.php?action=drafts"><i class="fa fa-file-code-o fa_xtra grey"></i> Borradores de Posts</a>
+                                <a href="{$mybb->settings['bburl']}/usercp.php?action=drafts"><i class="fa-solid fa-file-pen fa_xtra grey"></i> Borradores de Posts</a>
                             </div>
                             <div class="trow1">
                                 <a href="{$mybb->settings['bburl']}/usercp.php?action=subscriptions"><i class="fa fa-bookmark fa_xtra green"></i> Temas Suscritos</a>
@@ -907,7 +907,7 @@ function checkUnreadMessages() {
                                         <a href="{$mybb->settings['bburl']}/usercp.php?action=subscriptions"><i class="fa fa-check-circle fa_xtra lgreen"></i> Temas Suscritos</a>
                                     </div>
                                     <div class="trow1">
-                                        <a href="{$mybb->settings['bburl']}/usercp.php?action=drafts"><i class="fa fa-file-code-o fa_xtra white"></i> Borradores</a>
+                                        <a href="{$mybb->settings['bburl']}/usercp.php?action=drafts"><i class="fa-solid fa-file-pen fa_xtra white"></i> Borradores</a>
                                     </div>
                                     <div class="trow1">
                                         <a href="{$mybb->settings['bburl']}/usercp.php?action=usergroups"><i class="fa fa-user-secret fa_xtra blue"></i> Grupos de Usuario</a>
@@ -997,6 +997,7 @@ function checkUnreadMessages() {
 			</span>
 		</div>
 	</if>
+  {$op_modo_espejo_banner}
   {$op_temas_header}
 
 	<!-- {op_temas_header} -->

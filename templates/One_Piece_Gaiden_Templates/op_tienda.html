@@ -184,7 +184,7 @@ for (let i = 0; i < objetos_array_json.length; i++) {
 	let objeto = objetos_json[objetoId][0];
 	objeto.categoria = objeto.categoria.toLowerCase();
 	
-	if (objeto.categoria == 'materiales' && (objeto.subcategoria == oficio1 || objeto.subcategoria == oficio2)) {
+	if (objeto.categoria == 'materiales' && (objeto.subcategoria.toUpperCase() == oficio1.toUpperCase() || objeto.subcategoria.toUpperCase() == oficio2.toUpperCase())) {
 		objeto.categoria = 'utensilios';
 	}
 	

@@ -5,9 +5,11 @@
  * 
  * Solo muestra el contenido a:
  * - El autor del post
- * - Staff (moderadores/admins)
  * - Cuando el thread está cerrado
- * - Cuando el usuario ha clickeado "Mostrar Hide"
+ * - Cuando alguien ya clickeó "Mostrar Contenido Oculto" (queda revelado para todos)
+ *
+ * Staff no tiene ningún acceso especial: ven el hide en las mismas
+ * condiciones que cualquier otro usuario que no sea el autor.
  */
 
 if (!defined("IN_MYBB")) {
@@ -63,10 +65,7 @@ function BBCustom_hide_run(&$post)
     
     // Verificar si el usuario es el autor
     $is_author = ($user_uid == $post_uid);
-    
-    // Verificar si es staff
-    $is_staff = ($mybb->usergroup['gid'] == 4);
-    
+
     // Parser para el contenido
     $parser = new postParser;
     $parser_options = array(
@@ -101,24 +100,27 @@ function BBCustom_hide_run(&$post)
         $show_hide = $hide['show_hide'];
         
         // Determinar si el usuario puede ver el contenido
-        $can_see = ($is_author || $is_staff || $is_closed);
-        
+        $can_see = ($is_author || $is_closed || $show_hide);
+
         if (!$can_see) {
             // Si el usuario NO tiene permiso, eliminar el hide completamente incluyendo <br> alrededor
             $message = preg_replace('#(<br\s*/?>)*\s*\[hide=' . preg_quote($hide_counter, '#') . '\]\s*(<br\s*/?>)*#si', '', $message, 1);
             continue;
         }
-        
+
         // El usuario tiene permiso - generar el contenido
-        $content_visible = ($is_closed || $show_hide || $is_staff);
+        $content_visible = ($is_closed || $show_hide);
         
         if ($content_visible) {
             // Mostrar el contenido directamente
             $contenido = $parser->parse_message($hide_content, $parser_options);
         } else {
-            // Mostrar botón para revelar
+            // Mostrar botón para revelar — pide confirmación porque es
+            // irreversible: una vez revelado queda visible para siempre,
+            // para cualquier usuario que lo vea despues.
+            $confirm_msg = '¿Revelar este contenido oculto? Esta acción es irreversible: quedará visible para todos los usuarios de forma permanente.';
             $hide_button = '<div style="text-align: center; margin: 10px 0;">
-                <button class="hide-button" onclick="javascript: document.getElementById(\'hideform'.$hide_id.'\').submit()" 
+                <button class="hide-button" onclick="javascript: if (confirm(\''.$confirm_msg.'\')) { document.getElementById(\'hideform'.$hide_id.'\').submit(); }"
                         style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                     🔓 Mostrar Contenido Oculto
                 </button>
@@ -135,9 +137,27 @@ function BBCustom_hide_run(&$post)
             $contenido = $hidden_form . $hide_button . '<hr />' . $parser->parse_message($hide_content, $parser_options);
         }
         
+        // Para el autor, el titulo del spoiler indica si el hide ya fue
+        // descubierto (show_hide) o sigue oculto para el resto. Un no-autor
+        // solo llega a ver el bloque cuando ya esta revelado (can_see y
+        // content_visible usan la misma formula para el, sin el termino de
+        // autor) — para el, siempre esta ya revelado cuando lo ve.
+        if ($is_author) {
+            if ($show_hide) {
+                $spoiler_title = "Contenido Descubierto";
+                $spoiler_icon = '🔓';
+            } else {
+                $spoiler_title = "Contenido Oculto";
+                $spoiler_icon = '🔒';
+            }
+        } else {
+            $spoiler_title = "Contenido Revelado";
+            $spoiler_icon = '🔓';
+        }
+
         // Generar spoiler usando la librería nueva
-        $spoiler_html = create_custom_spoiler("Contenido Oculto", $contenido, array(
-            'icon' => '🔒',
+        $spoiler_html = create_custom_spoiler($spoiler_title, $contenido, array(
+            'icon' => $spoiler_icon,
             'bg_color' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             'text_color' => 'white',
             'open' => $content_visible  // Abrir automáticamente si ya es visible

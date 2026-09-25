@@ -77,7 +77,7 @@ define('FICHA_ATRIBUTOS_MSG_COOKIE', 'ficha_atributos2_msg');
 // JSON), akuma_origen (valor restringido a una lista fija).
 $CAMPOS_SIMPLES = array(
     'nombre', 'edad', 'altura', 'peso', 'fisico_de_pj', 'origen_de_pj',
-    'cronologia', 'fx', 'akuma', 'akuma_subnombre', 'nivelnarrador',
+    'cronologia', 'akuma', 'akuma_subnombre', 'nivelnarrador',
     'rango', 'rango_inframundo', 'fama', 'sexo', 'temporada', 'dia',
     'camino', 'ranuras', 'secret1', 'raza', 'implantes',
     'equipamiento_espacio', 'equipamiento', 'oficio1', 'oficio2',
@@ -243,6 +243,21 @@ if ($mybb->request_method == 'post') {
             $db->query("UPDATE `mybb_op_fichas` SET " . implode(', ', $set_parts) . " WHERE `fid`='" . $db->escape_string($ficha_id) . "'");
         }
 
+        // secret1: si se activa la identidad secreta y todavía no existe su
+        // fila en mybb_op_fichas_secret, crearla — mismo INSERT que ya usa
+        // ficha_crear.php al otorgar la virtud V034. Sin esto, la ficha
+        // queda con el flag en 1 pero sin datos, y el panel "TOP SECRET" de
+        // personaje.php crashea al abrir los modales (historia/apariencia/
+        // personalidad/extra quedan null).
+        if (($cambiados['secret1'] ?? null) === '1') {
+            $existe_secret1 = $db->fetch_array($db->query(
+                "SELECT fid FROM `mybb_op_fichas_secret` WHERE fid='" . $db->escape_string($ficha_id) . "' AND secret_number='1' LIMIT 1"
+            ));
+            if (!$existe_secret1) {
+                $db->query("INSERT INTO `mybb_op_fichas_secret` (`fid`) VALUES ('" . $db->escape_string($ficha_id) . "')");
+            }
+        }
+
         // puntos_experiencia: vive en mybb_users.newpoints, no en la ficha.
         $puntos_experiencia = trim($mybb->get_input('puntos_experiencia', MyBB::INPUT_STRING));
         $experiencia_actual = (string) ($u_var['newpoints'] ?? '');
@@ -302,7 +317,7 @@ function fa_e($v)
 
 $campos_mostrar = array(
     'nombre', 'berries', 'nika', 'kuro', 'puntos_oficio', 'edad', 'altura', 'peso',
-    'fisico_de_pj', 'origen_de_pj', 'cronologia', 'fx', 'como_nos_conociste',
+    'fisico_de_pj', 'origen_de_pj', 'cronologia', 'como_nos_conociste',
     'akuma', 'akuma_subnombre', 'akuma_origen', 'dominio_akuma',
     'sexo', 'faccion', 'temporada', 'dia', 'camino', 'ranuras', 'secret1', 'raza',
     'implantes', 'equipamiento', 'equipamiento_espacio',

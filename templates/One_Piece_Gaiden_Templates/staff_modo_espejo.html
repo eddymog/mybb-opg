@@ -1,0 +1,76 @@
+<html>
+
+<head>
+    <title>Modo espejo</title>
+    {$headerinclude}
+    <style>
+    .modo-espejo-staff .thirdBackground { width: 100%; max-width: 640px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .me-titulo { padding: var(--opg-espacio-2); }
+    .me-titulo .barra-texto-op { font-size: 22px; letter-spacing: 1px; text-shadow: 2px 2px 0 black; }
+    .me-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.ok  { background: var(--opg-verde-exito); }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    .me-panel-cuerpo { padding: var(--opg-espacio-3) var(--opg-espacio-4); display: flex; flex-direction: column; gap: var(--opg-espacio-3); }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice modo-espejo-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox me-titulo"><span class="barra-texto-op">Modo espejo</span></div>
+            <div class="barra-espacio-op bbox me-descripcion">
+                Refleja la sesión de cualquier usuario para debug, sin tocar su contraseña. Exclusivo de esta cuenta.
+                Expira sola a las 2 horas si no se pulsa "Volver a tu cuenta".
+            </div>
+        </div>
+
+        <if $me_error_esc != '' then><p class="aviso err">{$me_error_esc}</p></if>
+
+        <if $ya_activo == 1 then>
+        <div>
+            <div class="barra-op bbox" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Modo espejo activo</span></div>
+            <div class="barra-espacio-op bbox me-panel-cuerpo">
+                <p class="me-descripcion" style="padding:0;">Estás reflejando a: <strong>{$me_objetivo_actual_esc}</strong></p>
+                <form method="post" action="/op/staff/modo_espejo.php">
+                    <input type="hidden" name="my_post_key" value="{$post_key}">
+                    <input type="hidden" name="accion" value="volver">
+                    <button type="submit" class="btn-op btn-op--primario">Volver a tu cuenta</button>
+                </form>
+            </div>
+        </div>
+        <else />
+        <div>
+            <div class="barra-op bbox" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Activar modo espejo</span></div>
+            <div class="barra-espacio-op bbox me-panel-cuerpo">
+                <form method="post" action="/op/staff/modo_espejo.php" onsubmit="return confirm('¿Activar el modo espejo sobre este FID? Tu sesión pasará a ser la de esa cuenta durante hasta 2 horas.');">
+                    <input type="hidden" name="my_post_key" value="{$post_key}">
+                    <input type="hidden" name="accion" value="activar">
+                    <div class="af-field"><label for="objetivo_fid">FID del usuario objetivo</label><input type="number" min="1" required id="objetivo_fid" name="objetivo_fid"></div>
+                    <div style="text-align: center; margin-top: var(--opg-espacio-3);"><button type="submit" class="btn-op btn-op--primario">Activar modo espejo</button></div>
+                </form>
+            </div>
+        </div>
+        </if>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+</body>
+
+</html>

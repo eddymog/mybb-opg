@@ -48,6 +48,32 @@
 
     .fa2-equipamiento-row { display: flex; gap: var(--opg-espacio-2); align-items: flex-start; }
     .fa2-equipamiento-row .af-field { flex: 1; }
+
+    /* Ayuda por campo: reemplaza al acordeón "Guía de campos" — un "?" al
+       lado del label que muestra el detalle al pasar el mouse (o al
+       enfocarlo con teclado, para que no dependa solo del mouse). */
+    .af-ayuda {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 15px; height: 15px; margin-left: 4px; flex: 0 0 auto;
+        border-radius: 50%; background: var(--opg-morado); color: #fff;
+        font-family: var(--opg-fuente-titular); font-size: 10px; line-height: 1;
+        cursor: help; position: relative; vertical-align: middle;
+    }
+    .af-ayuda-texto {
+        visibility: hidden; opacity: 0; pointer-events: none;
+        position: absolute; z-index: 30; bottom: 130%; left: 50%; transform: translateX(-50%);
+        width: 260px; padding: 8px 10px; border-radius: 6px;
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta);
+        color: var(--opg-marron); font-family: var(--opg-fuente-cuerpo); font-weight: normal;
+        font-size: 11px; line-height: 1.5; text-align: left; text-transform: none;
+        letter-spacing: normal; box-shadow: var(--opg-sombra-offset);
+        transition: opacity var(--opg-rapido);
+    }
+    .af-ayuda-texto code {
+        background: var(--opg-crema-dorada); border-radius: 4px; padding: 0 4px; font-size: 10px;
+    }
+    .af-ayuda:hover .af-ayuda-texto,
+    .af-ayuda:focus .af-ayuda-texto { visibility: visible; opacity: 1; }
     </style>
 </head>
 
@@ -60,7 +86,7 @@
 
         <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
 
-        <div class="barra-op bbox fa2-titulo"><span class="barra-texto-op">Atributos de ficha</span></div>
+        <div class="barra-op bbox fa2-titulo"><span class="barra-texto-op">Atributos de ficha!</span></div>
 
         <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
         <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
@@ -109,21 +135,29 @@
                         <div class="af-field"><label for="origen_de_pj">Origen de PJ</label><input type="text" id="origen_de_pj" name="origen_de_pj" value="{$ficha_esc['origen_de_pj']}"></div>
                     </div>
                     <div class="fa2-row">
-                        <div class="af-field"><label for="cronologia">Cronología (ID del tema)</label><input type="text" id="cronologia" name="cronologia" value="{$ficha_esc['cronologia']}"></div>
-                        <div class="af-field"><label for="fx">FX</label><input type="text" id="fx" name="fx" value="{$ficha_esc['fx']}"></div>
-                        <div class="af-field"><label for="como_nos_conociste">Cómo nos conociste</label><input type="text" id="como_nos_conociste" disabled value="{$ficha_esc['como_nos_conociste']}"><small>No se modifica desde acá.</small></div>
+                        <div class="af-field">
+                            <label for="cronologia">Cronología (ID del tema)<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Guarda el ID del tema de cronología del personaje. El único consumidor encontrado es la API (<code>api/ficha.php</code>), que lo expone tal cual — no alimenta ninguna lógica interna del foro.</span></span></label>
+                            <input type="text" id="cronologia" name="cronologia" value="{$ficha_esc['cronologia']}">
+                        </div>
+                        <div class="af-field">
+                            <label for="como_nos_conociste">Cómo nos conociste<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Respuesta de encuesta capturada una sola vez al crear el personaje (<code>op/ficha_crear.php</code>). Este panel solo la muestra; no hay forma de reescribirla desde acá.</span></span></label>
+                            <input type="text" id="como_nos_conociste" disabled value="{$ficha_esc['como_nos_conociste']}"><small>No se modifica desde acá.</small>
+                        </div>
                     </div>
                     <div class="fa2-row">
                         <div class="af-field"><label for="akuma">Akuma</label><input type="text" id="akuma" name="akuma" value="{$ficha_esc['akuma']}"></div>
                         <div class="af-field"><label for="akuma_subnombre">Akuma subnombre</label><input type="text" id="akuma_subnombre" name="akuma_subnombre" value="{$ficha_esc['akuma_subnombre']}"></div>
                         <div class="af-field">
-                            <label for="akuma_origen">Origen akuma</label>
+                            <label for="akuma_origen">Origen akuma<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Solo admite vacío o <code>aventura</code>. Con <code>aventura</code>, el propio jugador puede renombrar su fruta/subnombre desde el panel de reset de stats (<code>op/personaje.php</code>); si no, el nombre queda fijo (asignado por staff o gacha).</span></span></label>
                             <select id="akuma_origen" name="akuma_origen">
                                 <option value="" <if $ficha_esc['akuma_origen'] == '' then>selected</if>>Sin especificar</option>
                                 <option value="aventura" <if $ficha_esc['akuma_origen'] == 'aventura' then>selected</if>>Aventura</option>
                             </select>
                         </div>
-                        <div class="af-field"><label for="dominio_akuma">Dominio akuma (0-6)</label><input type="text" id="dominio_akuma" name="dominio_akuma" value="{$ficha_esc['dominio_akuma']}"></div>
+                        <div class="af-field">
+                            <label for="dominio_akuma">Dominio akuma (0-6)<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Contador 0-6 del nivel de dominio de la fruta del diablo. Se sube pagando nika desde <code>op/mejoras.php</code> (el costo cambia según si el personaje tiene el camino Akuma) y desbloquea las pasivas de cada nivel.</span></span></label>
+                            <input type="text" id="dominio_akuma" name="dominio_akuma" value="{$ficha_esc['dominio_akuma']}">
+                        </div>
                         <div class="af-field">
                             <label for="nivelnarrador">Nivel de narrador</label>
                             <select id="nivelnarrador" name="nivelnarrador">{$fa_nivelnarrador_opciones}</select>
@@ -167,8 +201,14 @@
                                 <option value="Akuma" <if $ficha_esc['camino'] == 'Akuma' then>selected</if>>Herencia del Árbol Prohibido</option>
                             </select>
                         </div>
-                        <div class="af-field"><label for="ranuras">Ranuras</label><input type="text" id="ranuras" name="ranuras" placeholder="0 / 6" value="{$ficha_esc['ranuras']}"></div>
-                        <div class="af-field"><label for="secret1">Identidad secreta 1 (1 = sí, 0 = no)</label><input type="text" id="secret1" name="secret1" value="{$ficha_esc['secret1']}"></div>
+                        <div class="af-field">
+                            <label for="ranuras">Ranuras<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Cupos de implantes, formato <code>usados / máximo</code>. Arranca en <code>0 / 6</code> al crear el personaje, y algunas virtudes/defectos lo cambian (Iron Heart → <code>0 / 9</code>, Cuerpo Puro → <code>0 / 0</code>, Incompatible → <code>0 / 3</code>). La API lo expone como <code>ranuras_implantes</code>.</span></span></label>
+                            <input type="text" id="ranuras" name="ranuras" placeholder="0 / 6" value="{$ficha_esc['ranuras']}">
+                        </div>
+                        <div class="af-field">
+                            <label for="secret1">ID Secreta 1 (1 = sí, 0 = no)<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Marca que el personaje tiene una identidad secreta desbloqueada (normalmente vía la virtud V034). Al ponerlo en 1 acá, este panel crea automáticamente la fila en <code>mybb_op_fichas_secret</code> si todavía no existe. Los campos "Reputación (doble vida)" de más abajo son los de esa identidad alterna.</span></span></label>
+                            <input type="text" id="secret1" name="secret1" value="{$ficha_esc['secret1']}">
+                        </div>
                         <div class="af-field">
                             <label for="raza">Raza</label>
                             <select id="raza" name="raza">{$fa_raza_opciones}</select>
@@ -264,7 +304,10 @@
                             <label for="rango_inframundo">Rango de inframundo</label>
                             <select id="rango_inframundo" name="rango_inframundo">{$fa_rango_inframundo_opciones}</select>
                         </div>
-                        <div class="af-field"><label for="movidoInframundo">Dinero movido inframundo</label><input type="number" id="movidoInframundo" name="movidoInframundo" min="0" value="{$ficha_esc['movidoInframundo']}"></div>
+                        <div class="af-field">
+                            <label for="movidoInframundo">Dinero movido inframundo<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Total acumulado de berries movidos en el mercado negro — se suma en cada venta desde <code>op/mercado_negro.php</code>. Solo se muestra formateado en la ficha; la virtud V019 le suma +50.000.000 al total mostrado.</span></span></label>
+                            <input type="number" id="movidoInframundo" name="movidoInframundo" min="0" value="{$ficha_esc['movidoInframundo']}">
+                        </div>
                         <div class="af-field">
                             <label for="fama">Fama</label>
                             <select id="fama" name="fama">{$fa_fama_opciones}</select>
@@ -283,8 +326,14 @@
                         <div class="af-field"><label for="reputacion_negativa">Reputación negativa</label><input type="number" id="reputacion_negativa" name="reputacion_negativa" max="5000" value="{$ficha_esc['reputacion_negativa']}"></div>
                     </div>
                     <div class="fa2-row">
-                        <div class="af-field"><label for="wanted_repu">Wanted reputación</label><input type="number" id="wanted_repu" name="wanted_repu" max="5000" value="{$ficha_esc['wanted_repu']}"></div>
-                        <div class="af-field"><label for="wantedGuardado">Wanted guardado (auto)</label><input type="number" id="wantedGuardado" name="wantedGuardado" min="0" value="{$ficha_esc['wantedGuardado']}"></div>
+                        <div class="af-field">
+                            <label for="wanted_repu">Wanted reputación<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Campo legado: el cálculo de wanted en vivo (<code>calcular_wanted()</code> en <code>op/wanted.php</code>) ya no lo lee. Ver "Wanted guardado" para el que sí se usa.</span></span></label>
+                            <input type="number" id="wanted_repu" name="wanted_repu" max="5000" value="{$ficha_esc['wanted_repu']}">
+                        </div>
+                        <div class="af-field">
+                            <label for="wantedGuardado">Wanted guardado (auto)<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Monto que se muestra en el tablón de más buscados (<code>op/wanted.php</code>). Se recalcula solo a partir de la reputación positiva/negativa (más bonos de virtudes) con <code>calcular_wanted()</code> y queda cacheado acá. El flag "Wanted" (más abajo) decide si el personaje aparece ahí.</span></span></label>
+                            <input type="number" id="wantedGuardado" name="wantedGuardado" min="0" value="{$ficha_esc['wantedGuardado']}">
+                        </div>
                         <div class="af-field"><label for="reputacion2">Reputación (doble vida)</label><input type="number" id="reputacion2" name="reputacion2" max="5000" value="{$ficha_esc['reputacion2']}"></div>
                         <div class="af-field"><label for="reputacion_positiva2">Rep. positiva (doble vida)</label><input type="number" id="reputacion_positiva2" name="reputacion_positiva2" max="5000" value="{$ficha_esc['reputacion_positiva2']}"></div>
                         <div class="af-field"><label for="reputacion_negativa2">Rep. negativa (doble vida)</label><input type="number" id="reputacion_negativa2" name="reputacion_negativa2" max="5000" value="{$ficha_esc['reputacion_negativa2']}"></div>
@@ -302,16 +351,25 @@
                         <div class="af-field"><label for="hao_chance">Lanzadas haki del rey</label><input type="text" id="hao_chance" name="hao_chance" value="{$ficha_esc['hao_chance']}"><small>0 = No tiene.</small></div>
                     </div>
                     <div class="fa2-row">
-                        <div class="af-field"><label for="wanted">Wanted</label><input type="text" id="wanted" name="wanted" value="{$ficha_esc['wanted']}"><small>0 = No tiene.</small></div>
+                        <div class="af-field">
+                            <label for="wanted">Wanted<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Flag (0/1) que decide si el personaje aparece en el tablón de más buscados (<code>op/wanted.php</code>, <code>WHERE wanted='1'</code>). El monto que se muestra ahí es "Wanted guardado", no este campo.</span></span></label>
+                            <input type="text" id="wanted" name="wanted" value="{$ficha_esc['wanted']}"><small>0 = No tiene.</small>
+                        </div>
                         <div class="af-field"><label for="muerto">Muerto</label><input type="text" id="muerto" name="muerto" value="{$ficha_esc['muerto']}"><small>0 = No muerto, 1 = Muerto.</small></div>
-                        <div class="af-field"><label for="puntos_estadistica">Puntos estadística</label><input type="text" id="puntos_estadistica" name="puntos_estadistica" value="{$ficha_esc['puntos_estadistica']}"></div>
-                        <div class="af-field"><label for="nivel">Nivel</label><input type="text" id="nivel" name="nivel" value="{$ficha_esc['nivel']}"></div>
+                        <div class="af-field">
+                            <label for="puntos_estadistica">Puntos estadística<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Puntos sin repartir en las estadísticas principales, gastables desde <code>op/ficha_estadisticas.php</code>. No es una estadística en sí — se otorgan automáticamente al subir de nivel.</span></span></label>
+                            <input type="text" id="puntos_estadistica" name="puntos_estadistica" value="{$ficha_esc['puntos_estadistica']}">
+                        </div>
+                        <div class="af-field">
+                            <label for="nivel">Nivel<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Gate central de casi todo el sistema (crafteo, entrenamiento, viajes, combate, mercado negro...). Tocarlo a mano puede saltarse la lógica de subida de nivel de <code>op/personaje.php</code>, que también reparte "Puntos estadística" al subir.</span></span></label>
+                            <input type="text" id="nivel" name="nivel" value="{$ficha_esc['nivel']}">
+                        </div>
                     </div>
                 </div>
             </details>
 
             <details class="fa2-seccion">
-                <summary class="opg-guia-barra">Estadísticas principales</summary>
+                <summary class="opg-guia-barra">Estadísticas principales<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">El valor de combate real es la suma de la principal más su pasiva correspondiente (p. ej. <code>fuerza_completa = fuerza + fuerza_pasiva</code>, ver <code>op/belico_data.php</code> / <code>op/api_combate.php</code>). Ver la sección "Estadísticas pasivas" más abajo.</span></span></summary>
                 <div class="fa2-cuerpo">
                     <div class="fa2-row">
                         <div class="af-field"><label for="fuerza">Fuerza</label><input type="text" id="fuerza" name="fuerza" value="{$ficha_esc['fuerza']}"></div>
@@ -340,7 +398,7 @@
             </details>
 
             <details class="fa2-seccion">
-                <summary class="opg-guia-barra">Estadísticas pasivas — atributos</summary>
+                <summary class="opg-guia-barra">Estadísticas pasivas — atributos<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">Cada pasiva se suma a su principal para el valor real de combate (ver "Estadísticas principales" más arriba). También alimentan vitalidad y energía extra, cada una con su propio multiplicador (<code>op/ficha2.php</code>).</span></span></summary>
                 <div class="fa2-cuerpo">
                     <div class="fa2-row">
                         <div class="af-field"><label for="fuerza_pasiva">Fuerza pasiva</label><input type="text" id="fuerza_pasiva" name="fuerza_pasiva" value="{$ficha_esc['fuerza_pasiva']}"></div>
@@ -353,7 +411,10 @@
                         <div class="af-field"><label for="agilidad_pasiva">Agilidad pasiva</label><input type="text" id="agilidad_pasiva" name="agilidad_pasiva" value="{$ficha_esc['agilidad_pasiva']}"></div>
                         <div class="af-field"><label for="reflejos_pasiva">Reflejos pasiva</label><input type="text" id="reflejos_pasiva" name="reflejos_pasiva" value="{$ficha_esc['reflejos_pasiva']}"></div>
                         <div class="af-field"><label for="control_akuma_pasiva">Control akuma pasiva</label><input type="text" id="control_akuma_pasiva" name="control_akuma_pasiva" value="{$ficha_esc['control_akuma_pasiva']}"></div>
-                        <div class="af-field"><label for="espacios">Espacios</label><input type="text" id="espacios" name="espacios" value="{$ficha_esc['espacios']}"></div>
+                        <div class="af-field">
+                            <label for="espacios">Espacios<span class="af-ayuda" tabindex="0">?<span class="af-ayuda-texto">No se encontró ningún consumidor activo de esta columna en <code>mybb_op_fichas</code>. No confundir con la columna <code>espacios</code> de barcos u objetos — son tablas y sistemas totalmente distintos.</span></span></label>
+                            <input type="text" id="espacios" name="espacios" value="{$ficha_esc['espacios']}">
+                        </div>
                     </div>
                 </div>
             </details>

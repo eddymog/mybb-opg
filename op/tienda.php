@@ -54,7 +54,8 @@ while ($q = $db->fetch_array($query_pobre1)) { $has_pobre1 = true; }
 while ($q = $db->fetch_array($query_pobre2)) { $has_pobre2 = true; }
 while ($q = $db->fetch_array($query_pobre3)) { $has_pobre3 = true; }    
 
-$query_objetos = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE exclusivo='0' AND custom='0' ORDER BY categoria, subcategoria, tier, nombre");
+$query_objetos = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE exclusivo='0' AND custom='0' AND tier <= 3 ORDER BY categoria, subcategoria, tier, nombre");
+
 $objetos = array();
 $objetos_array = array();
 
