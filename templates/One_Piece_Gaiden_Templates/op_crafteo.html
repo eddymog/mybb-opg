@@ -570,19 +570,32 @@ function renderItems() {
 				'Periodista': 'Investigador',
 				'Arqueólogo': 'Investigador',
 				'Comerciante': 'Mercader',
-				'Contrabandista': 'Mercader'
+				'Contrabandista': 'Mercader',
+				'Cartógrafo': 'Navegante',
+				'Timonel': 'Navegante',
+				'Cazador': 'Aventurero',
+				'Domador': 'Aventurero'
 			};
-			return mapeo[oficio] || oficio;
+			// Comparación sin tildes ni mayúsculas (ej: Cartografo == Cartógrafo)
+			const clave = normalizarOficio(oficio);
+			for (const k in mapeo) { if (normalizarOficio(k) === clave) return mapeo[k]; }
+			return oficio;
+		}
+		function normalizarOficio(t) {
+			return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 		}
 		
 		// Buscar kits disponibles para este oficio (incluyendo oficio base si es especialización)
 		let kitsDisponibles = [];
 		let oficioParaBuscar = getOficioBaseParaKit(objeto.oficio);
 		
+		let kitsVistos = {};
 		for (let j = 0; j < materiales_array_json.length; j++) {
 			let materialId = materiales_array_json[j];
+			if (kitsVistos[materialId]) { continue; }
 			let material = materiales_json[materialId] ? materiales_json[materialId][0] : null;
-			if (material && (material.subcategoria.toLowerCase() === objeto.oficio.toLowerCase() || material.subcategoria.toLowerCase() === oficioParaBuscar.toLowerCase())) {
+			if (material && (normalizarOficio(material.subcategoria) === normalizarOficio(objeto.oficio) || normalizarOficio(material.subcategoria) === normalizarOficio(oficioParaBuscar))) {
+				kitsVistos[materialId] = true;
 				kitsDisponibles.push({
 					id: materialId,
 					nombre: material.nombre,
