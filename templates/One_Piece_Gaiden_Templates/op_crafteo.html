@@ -935,7 +935,12 @@ function getTiempoCreacionVirtud() {
 	
 let oficiosCount = Object.keys(oficios).length;
 	
-function getCantidadMaximaCrafteo() {
+function getCantidadMaximaCrafteo(objetoId) {
+	// Solo las recetas de Recolector, Agreste y Mayorista permiten craftear varias unidades
+	let objetoCantidad = (objetos_json[objetoId] && objetos_json[objetoId][0]) ? objetos_json[objetoId][0] : null;
+	if (!objetoCantidad || ['Recolector', 'Agreste', 'Mayorista'].indexOf(objetoCantidad.oficio) === -1) {
+		return 1;
+	}
 	let recolectorNivel = 0;
 	let agresteNivel = 0;
 	
@@ -963,7 +968,7 @@ function getCantidadMaximaCrafteo() {
 }
 
 function craftearItem(objetoId) {
-	let cantidadMax = getCantidadMaximaCrafteo();
+	let cantidadMax = getCantidadMaximaCrafteo(objetoId);
 	
 	if (cantidadMax > 1) {
 		let cantidad = prompt('¿Cuántas unidades quieres craftear? (Máximo: ' + cantidadMax + ')', cantidadMax);
@@ -990,7 +995,7 @@ function craftearItem(objetoId) {
 }
 	
 function craftearItem2(objetoId, materialId, materialNombre, materialTier) {
-	let cantidadMax = getCantidadMaximaCrafteo();
+	let cantidadMax = getCantidadMaximaCrafteo(objetoId);
 	
 	if (cantidadMax > 1) {
 		let cantidad = prompt('¿Cuántas unidades quieres craftear? (Máximo: ' + cantidadMax + ')\nGastarías el material ' + materialNombre + '.', cantidadMax);

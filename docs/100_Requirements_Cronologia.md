@@ -25,7 +25,7 @@ La fecha in-game vive en tres columnas custom de `mybb_threads`:
 
 | Columna | Tipo actual | Contenido |
 |---|---|---|
-| `year` | `varchar(255)`, default `'0'` | Año (>= 725) |
+| `year` | `varchar(255)`, default `'0'` | Año (>= 700) |
 | `estacion` | `varchar(255)`, default `'0'` | `Primavera`, `Verano`, `Otoño` o `Invierno` |
 | `day` | `varchar(255)`, default `'0'` | Día de la estación, 1 a 90 |
 
@@ -38,17 +38,15 @@ valores vacíos, `'0'`, texto libre o fuera de rango. Ver sección 8.
 
 ### 2.2 Calendario ya implementado
 
-`op/cronologia.php` (+ plantilla `op_cronologia`) ya dibuja un calendario
-vacío de una estación:
+`op/cronologia.php` (+ plantilla `op_cronologia`) es código legado: dibuja un
+calendario vacío de una estación, con semanas de 7 días calculadas desde una
+época (Primavera, año 725, día 1), sin ningún dato. No lo enlaza ninguna otra
+página.
 
-- época: Primavera, año 725, día 1;
-- 4 estaciones de 90 días, año de 360 días;
-- semanas de 7 días, con día de la semana calculado desde la época;
-- navegación anterior/siguiente y selector año + estación;
-- cada celda tiene un contenedor `.gc-events` vacío, previsto para eventos.
-
-Esta funcionalidad **extiende esa página**, no crea una nueva. Debe conservar
-el modelo de calendario existente y rellenar las celdas con los temas.
+Esta funcionalidad **rehace esa página desde cero** en la misma ruta
+(`/op/cronologia.php`). Del calendario legado solo se conserva el modelo de
+tiempo: 4 estaciones de 90 días y años de 360 días. Se abandonan la época y
+los días de la semana (ver 5.2 y 5.4).
 
 ### 2.3 Participación
 
@@ -70,15 +68,18 @@ La página debe permitir:
 - ver los temas del personaje ubicados en el calendario según su fecha;
 - navegar por estación y año, y saltar a una fecha concreta;
 - ver una vista de año completo (4 estaciones) para localizar actividad;
+- ver una vista de lista de la estación, con todos los temas y sus títulos
+  completos;
 - abrir un tema desde el calendario;
-- ver qué temas no tienen fecha asignada.
 
 Fuera de alcance de esta versión:
 
 - editar la fecha de un tema desde el calendario (sigue en `editar_tema.php`);
 - crear temas o eventos desde el calendario;
 - cronología de facciones, islas o tripulaciones (`mybb_op_isla_eventos` ya
-  cubre eventos de isla y no se mezcla aquí);
+  cubre eventos de isla y no se mezcla aquí; tampoco se superpone como capa
+  en esta versión);
+- comparar la cronología de dos personajes;
 - notificaciones.
 
 ## 4. Definiciones
@@ -105,42 +106,113 @@ no se muestran.
 ### 4.3 Tema fechado
 
 Un tema es fechado cuando `year`, `estacion` y `day` son válidos según la
-sección 8. Solo los temas fechados se ubican en el calendario. El resto se
-lista aparte como "sin fecha".
+sección 8. Solo los temas fechados aparecen en la cronología. Los temas sin
+fecha válida se **omiten** sin mostrarse en ninguna lista: corresponden a
+temas anteriores a que existieran las fechas, y todo tema actual de la zona
+de rol está fechado.
 
 ### 4.4 Rango de un tema
 
-Un tema ocurre en **una fecha** (un día). Un tema no abarca varios días en el
-modelo actual. Si más adelante se requiere duración, se añadirá una columna de
-fecha final y este requisito se revisará.
+Un tema ocurre en **una fecha** (un día). Confirmado: por ahora no existen
+temas que abarquen varios días, por lo que no se necesita fecha final. Si más
+adelante se requiere duración, se añadirá una columna de fecha final y este
+requisito se revisará.
 
 ## 5. Requisitos funcionales
 
 ### 5.1 Selección de personaje
 
+- Acceso restringido: solo pueden abrir la cronología los usuarios con sesión
+  iniciada **y ficha propia** (fila en `mybb_op_fichas`). Los
+  visitantes y los usuarios sin ficha no tienen acceso.
 - Por defecto se muestra la cronología del personaje del usuario conectado.
-- Cualquier usuario con permiso para ver fichas puede consultar la cronología
-  de otro personaje mediante UID (`?uid=`), del mismo modo que se consulta su
-  ficha.
-- Solo se aceptan UID de personajes con ficha aprobada
-  (`does_ficha_exist($uid)`).
-- Los invitados no acceden a la herramienta.
+- Un usuario con ficha puede consultar la de cualquier otro personaje
+  mediante UID (`?uid=`), sin restricción por dueño.
+- La página incluye un **buscador de personajes** dentro de la cabecera, por
+  nombre, apodo o ID (mínimo 3 caracteres, o un número). Al elegir un
+  resultado se abre la cronología de ese personaje con los filtros
+  **reiniciados** (sin tipo, sin ocultar cerrados, vista de estación) y en la
+  estación de su último tema.
+- Si se está viendo la cronología de otro personaje, la cabecera ofrece un
+  acceso "Ver mi cronología".
+- El buscador aplica las mismas reglas que la página: solo personajes con
+  ficha y las fichas de la facción `Staff` solo aparecen para el staff.
+- Solo se aceptan UID de personajes con ficha, es decir, con una fila en
+  `mybb_op_fichas` (`fid` = UID). No se distingue el estado de aprobación.
+- Las fichas de la facción `Staff` solo las ve el staff, igual que en
+  `op/personaje.php`; para el resto de usuarios, ese personaje se trata como
+  inexistente.
+- La cronología se calcula solo a partir de la ficha del personaje y su UID.
+  No distingue publicaciones hechas con personaje secreto: cuentan igual.
+- La ficha del personaje (`op/personaje.php`, plantilla `op_personaje`)
+  incluye un enlace a su cronología. `op/ficha.php` es código legado y no se
+  toca.
+- El acceso a la cronología no anula la visibilidad de los temas (sección 6):
+  cada usuario ve solo los temas que puede abrir.
 
 ### 5.2 Vista de estación (principal)
 
-Es la vista actual de `op/cronologia.php`: rejilla de 90 días en semanas de 7.
+Rejilla fija de **5 columnas × 18 filas** (90 días). El día 1 siempre queda
+arriba a la izquierda y no hay huecos. Reemplaza las semanas de 7 días del
+calendario actual: desaparecen los encabezados de día de la semana y el
+cálculo de época.
 
 Cada día con temas debe mostrar:
 
 - un indicador visual de actividad;
-- el título del tema (truncado si es largo) o un contador cuando haya más de
-  los que caben (`+2 más`);
-- un enlace directo al tema.
+- el título del tema, que se parte en hasta 2 líneas en vez de recortarse en
+  una, o un contador cuando haya más de los que caben (`+2 más`);
+- un enlace directo al tema;
+- cuando el filtro de tipo es "Todos", el **tipo de tema** como etiqueta de
+  color antes del título, para identificarlo de un vistazo. Con un tipo
+  concreto la etiqueta no se muestra, porque todos los temas son de ese tipo.
 
-Al pulsar un día con varios temas, debe poder verse la lista completa (panel,
-popover o modal, a definir en el diseño).
+Cada tipo tiene un color propio (de la paleta de [style.md](style.md)),
+consistente en la casilla, el overlay y la vista de lista.
 
-Los días sin temas se muestran vacíos, como hoy.
+Al pasar el ratón (o enfocar con teclado) una casilla con temas, aparece un
+**overlay centrado en la pantalla** con la fecha y todos los temas del día
+(título completo, tipo, estado, posts del personaje y otros participantes).
+El overlay de hover es solo informativo. Al hacer clic (o Enter, o un toque en
+pantalla táctil) el overlay queda **fijado**: se puede pulsar sus enlaces y se
+cierra con un botón, con Escape o pulsando fuera. El día fijado queda
+resaltado.
+
+Cuando un día tiene varios temas, se ordenan por fecha real de creación del
+tema (`dateline`), del más antiguo al más reciente.
+
+Los días sin temas se muestran vacíos.
+
+### 5.2.1 Vista de lista
+
+Muestra todos los temas de la estación seleccionada, ordenados por día (y por
+fecha de creación dentro del día), con título completo enlazado, día, tipo,
+estado, posts del personaje y otros participantes (hasta 5 y `+N`). Respeta los
+mismos filtros y la misma navegación por estación y año que la vista de
+estación. Si la estación no tiene temas, muestra "Sin temas en esta
+estación."
+
+### 5.2.2 Modo lista global
+
+Dentro de la vista de lista, una opción "Todo el historial" (frente a "Esta
+estación") muestra en una sola lista **todos los temas fechados del personaje
+de todos los años y estaciones**.
+
+- **Agrupación:** una barra por cada año y estación ("Verano 725 · 12 temas",
+  con el total de temas de esa estación). Si una página corta una estación por
+  la mitad, la barra se repite al inicio de la página siguiente.
+- **Orden:** por defecto, del tiempo más reciente al más antiguo. Un botón
+  alterna al orden inverso (del más antiguo al más reciente). Dentro de un día,
+  el orden es por fecha de creación en el mismo sentido.
+- **Paginación:** páginas de **100 temas**, con controles anterior/siguiente,
+  números de página y un texto "Temas 101–200 de 537", arriba y abajo. Una
+  página fuera de rango se corrige al límite.
+- **Filas:** las mismas de la lista de estación (día, título completo, isla,
+  tipo, estado, posts y otros participantes).
+- **Filtros:** respeta tipo y "Ocultar cerrados". Los temas sin fecha válida
+  siguen omitidos.
+- En este modo no se muestran la navegación anterior/siguiente por estación ni
+  el selector de año y estación, que no aplican.
 
 ### 5.3 Vista de año
 
@@ -150,10 +222,12 @@ estuvo activo. Al pulsar una estación, se abre la vista de estación.
 
 ### 5.4 Navegación
 
-- Estación anterior / siguiente, como ahora.
-- Selector de año y estación, como ahora.
-- Acceso rápido a la fecha del **último tema** del personaje.
-- El año mínimo es 725; no se navega antes de la época.
+- Estación anterior / siguiente.
+- Selector de año y estación.
+- Sin `y` ni `t` en la URL, la vista abre en la estación del **último tema**
+  fechado del personaje (o en Primavera 725 si no tiene ninguno).
+- Acceso rápido a esa misma fecha desde cualquier otra estación.
+- El año mínimo es 700; no se navega antes.
 - La URL debe reflejar personaje, año y estación (`?uid=&y=&t=`) para poder
   compartir el enlace.
 
@@ -163,38 +237,44 @@ Cada tema mostrado debe indicar:
 
 - título, con enlace al tema;
 - fecha in-game (año, estación, día);
+- **isla** donde ocurre (nombre, enlazado a `/op/isla.php?isla_id=`), ver 5.5.1;
 - tipo de tema, derivado de `mybb_threads.prefix`
-  (3=Aventura, 10=MT, 1=Común, 6=Evento, 9=Autonarrada, 14=Requerimiento);
-- estado del tema (abierto/cerrado), si el dato está disponible;
+  (3=Aventura, 1=Común, 6=Evento, 9=Autonarrada y Diario; los temas con
+  prefijo MT (10) o Requerimiento (14) siguen mostrando su nombre);
+- estado del tema (abierto o cerrado, según `threads.closed`);
 - número de posts del personaje en el tema;
-- otros personajes participantes.
+- otros personajes participantes, hasta un máximo de 5 (nombre), seguidos
+  de "+N" si hay más.
+
+### 5.5.1 Isla del tema
+
+Todo tema debe indicar en qué isla ocurre. La isla no está en el tema, sino
+en la estructura de foros: un foro es una isla cuando `mybb_forums.isla_rol`
+es 1, y sus subforos (zonas) llevan `subisla = 1` y `parent_isla` con el FID
+de la isla. La isla de un tema es la del foro donde está publicado:
+
+1. el foro del tema o el ancestro más cercano (según `parentlist`) que sea
+   isla (`isla_rol = 1`);
+2. si no hay ninguno, la isla indicada por `parent_isla`;
+3. si tampoco, se muestra el nombre del propio foro del tema como lugar, sin
+   enlace, para que ningún tema quede sin ubicación.
+
+La isla se ve en el overlay del día, en la vista de lista y en el tooltip de
+la casilla. No se añade un filtro por isla en esta versión.
 
 ### 5.6 Filtros
 
-- Por tipo de tema (prefijo). Por defecto, todos.
+- Por tipo de tema (prefijo): Aventura, Común, Evento, Autonarrada y Diario.
+  MT y Requerimiento no se ofrecen como filtro. Por defecto, todos.
 - Opción de incluir/excluir temas cerrados.
 
 Los filtros se aplican a ambas vistas y se reflejan en la URL.
 
-### 5.7 Temas sin fecha
-
-Debajo del calendario (o en una pestaña) se lista los temas participados que
-no tienen fecha válida, con enlace al tema.
-
-Esta lista sirve para que el jugador o el staff detecte temas por corregir. El
-staff puede llevar desde ahí a `op/staff/editar_tema.php?tid=`.
-
-### 5.8 Coincidencias de fecha
+### 5.7 Coincidencias de fecha
 
 Si el personaje tiene dos o más temas en el mismo día, el calendario debe
 señalarlo visualmente (por ejemplo, un marcador de "coincidencia"). Es
 informativo: no bloquea nada.
-
-### 5.9 Cronología contra otro personaje (opcional)
-
-Permitir seleccionar un segundo personaje y resaltar solo los temas que
-comparten. Se marca como **opcional**; se decide en el diseño si entra en la
-primera versión.
 
 ## 6. Requisitos de permisos y privacidad
 
@@ -203,27 +283,29 @@ primera versión.
   títulos de temas de foros restringidos.
 - Los temas de foros ocultos o de acceso restringido se omiten sin dejar
   huella (no cuentan en contadores ni en el resumen de año).
-- Un personaje no debe poder ver, por medio de la cronología de otro, temas
-  que su cuenta no podría abrir directamente.
-- El staff (`is_staff`) ve los temas sin fecha con acceso a edición.
+- Nadie debe poder ver, por medio de la cronología de un personaje, temas que
+  su cuenta no podría abrir directamente.
 - Los parámetros de URL se validan y se escapan; las consultas deben usar
   enteros forzados o `escape_string` (el proyecto interpola SQL).
 
 ## 7. Requisitos no funcionales
 
-- **Rendimiento:** una consulta por carga de página, agrupada por tema, con
-  los temas del personaje para la ventana pedida (estación o año). No debe
-  hacerse una consulta por celda.
-- **Índices:** se debe revisar el plan de ejecución de la consulta base
-  (`posts.uid`, `posts.tid`, `threads.year/estacion/day`). Si es necesario, se
-  propone un índice en el diseño. Crear índices requiere aprobación previa.
-- **Caché:** no obligatoria en la primera versión. Se evalúa si la consulta
-  de vista de año resulta pesada para personajes con muchos posts.
+- **Rendimiento:** una consulta principal por carga de página, agrupada por
+  tema. No debe hacerse una consulta por celda. La vista por defecto es la
+  última estación con temas; las demás se calculan solo cuando el usuario las
+  pide. Se asume que un personaje no supera unos 100 temas por estación, por
+  lo que no se exige optimización adicional.
+- **Caché:** no se usa caché. Un cambio de fecha hecho por el staff (por
+  ejemplo desde `editar_tema.php`) debe verse de inmediato en la cronología.
 - **Compatibilidad:** PHP y MySQL del proyecto; sin dependencias nuevas de
-  JS/CSS más allá de jQuery y las clases `gc-*` existentes.
-- **Responsive:** el calendario debe ser usable en móvil (7 columnas
-  compactas; la lista de temas del día como panel).
+  JS/CSS más allá de jQuery.
+- **Responsive:** el calendario debe ser usable en móvil (5 columnas, con solo
+  el número de día y un indicador de actividad; los temas del día en el
+  overlay al tocar la casilla).
 - **Idioma:** interfaz en español.
+- **Estilo visual:** la página sigue [style.md](style.md): marco de tres
+  fondos, borde negro, tipografía `moonGetHeavy` solo en títulos y variables
+  de `opg-tokens.css`, sin colores ni botones inventados.
 - **Plantilla:** la maquetación se mantiene en `op_cronologia.html`, siguiendo
   el patrón de eval de plantillas del proyecto.
 
@@ -233,22 +315,19 @@ Como `year`, `estacion` y `day` son `varchar`, deben normalizarse al leer:
 
 | Campo | Válido si | Tratamiento si no |
 |---|---|---|
-| `year` | entero >= 725 | El tema pasa a "sin fecha" |
-| `estacion` | coincide (sin distinguir mayúsculas ni acentos) con una de las 4 estaciones | Sin fecha |
-| `day` | entero de 1 a 90 | Sin fecha |
+| `year` | entero >= 700 | El tema se omite |
+| `estacion` | coincide (sin distinguir mayúsculas ni acentos) con una de las 4 estaciones | Se omite |
+| `day` | entero de 1 a 90 | Se omite |
 
 Casos que deben tratarse:
 
-- valor por defecto `'0'` en cualquier campo → sin fecha;
+- valor por defecto `'0'` en cualquier campo → se omite;
 - `Otoño` escrito como `Otono` u `otoño` → se acepta y se normaliza;
 - espacios sobrantes → se recortan;
-- año anterior a 725 → sin fecha.
+- año anterior a 700 → se omite.
 
-Si la mayoría de las fechas existentes incumple estas reglas, el diseño debe
-proponer una limpieza previa (script SQL de revisión). Antes de definir
-cualquier normalización definitiva, se debe medir la calidad real de los datos
-con una consulta de diagnóstico (temas de rol totales, fechados, sin fecha y
-con valores inválidos).
+No se hace limpieza de datos históricos: los temas sin fecha válida
+simplemente no se muestran.
 
 Además, `newthread.php` no valida estos campos en servidor. Endurecer esa
 validación queda como mejora recomendada, pero no es parte de esta entrega.
@@ -259,32 +338,45 @@ validación queda como mejora recomendada, pero no es parte de esta entrega.
    estación y año correspondientes.
 2. Un tema fechado con el personaje sin posts visibles no aparece.
 3. Un tema fuera de la zona de rol no aparece.
-4. Un tema con fecha inválida aparece en "sin fecha" y no en el calendario.
+4. Un tema con fecha inválida o sin fecha no aparece en ninguna vista.
 5. Un día con 3 temas muestra el contador y permite ver los 3.
 6. La navegación entre estaciones cruza correctamente el año
-   (Invierno 725 → Primavera 726) y no baja de Primavera 725.
+   (Invierno 725 → Primavera 726) y no baja de Primavera 700.
 7. Un usuario sin permiso sobre un foro no ve en la cronología los temas de
    ese foro.
 8. La vista de año marca los mismos días que la suma de las 4 vistas de
    estación.
-9. Un invitado no puede abrir la página.
+9. Un visitante sin sesión o un usuario sin ficha no puede abrir la
+   cronología.
 10. La URL con `uid`, `y`, `t` y filtros reproduce exactamente la misma
     vista.
+11. Tras cambiar la fecha de un tema desde `op/staff/editar_tema.php`, la
+    cronología muestra el tema en la nueva fecha en la carga siguiente, sin
+    esperar ni vaciar ninguna caché.
+12. Con varios temas el mismo día, aparecen ordenados por fecha de creación.
 
-## 10. Preguntas abiertas
+## 10. Decisiones tomadas
 
-1. ¿La cronología de un personaje es pública para todos los usuarios con
-   sesión, o solo para su dueño y el staff?
-2. ¿Un tema cuenta si el personaje solo fue mencionado o tiene `[ficha]` sin
-   haber publicado? Este documento propone que **no**, solo cuenta publicar.
-3. ¿Hay temas que abarquen varios días (aventuras largas)? Si es así, se
-   necesita una fecha final y un cambio en `newthread.php` y
-   `editar_tema.php`.
-4. ¿Deben aparecer los eventos de `mybb_op_isla_eventos` en la misma línea
-   de tiempo, como una capa opcional?
-5. ¿La cronología cruzada entre dos personajes (5.9) entra en la primera
-   versión?
-6. ¿Se muestra el día de la semana en el calendario como hoy, o se puede
-   retirar? (Se conserva por defecto.)
-7. ¿Se hace limpieza de datos históricos antes del lanzamiento o se muestran
-   como "sin fecha" hasta que el staff los corrija?
+1. La cronología requiere sesión y ficha propia; con eso se puede consultar
+   la de cualquier personaje (ver 5.1).
+2. No existen temas de varios días; cada tema tiene una sola fecha.
+3. Los eventos de `mybb_op_isla_eventos` no se incluyen por ahora.
+4. La comparación entre dos personajes queda fuera de la primera versión.
+5. Un tema cuenta solo si el personaje publicó en él (no por ser mencionado ni
+   por tener `[ficha]` sin publicar).
+6. No se limpian los datos históricos. Los temas sin fecha válida se omiten
+   y no hay lista de "sin fecha" (ver 4.3 y sección 8).
+7. La estación se dibuja en rejilla fija de 5 × 18, sin días de la semana.
+8. El año mínimo es 700 (valor del formulario de crear tema). En la práctica
+   casi nadie tiene temas antes del 724, por lo que la vista inicial no debe
+   abrirse en el año mínimo sino en el del último tema del personaje.
+9. Los temas de un día se muestran en un overlay centrado al pasar el ratón
+   (fijable con clic), no en un panel bajo el calendario.
+10. La vista de año entra en la primera versión.
+11. Se añade una vista de lista de la estación, con títulos completos.
+12. Modo lista global: todo el historial, recientes primero por defecto con
+    botón para invertir, páginas de 100 temas.
+
+## 11. Preguntas abiertas
+
+Ninguna por ahora.

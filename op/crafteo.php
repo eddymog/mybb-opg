@@ -1221,6 +1221,12 @@ if ($ficha_existe == true && $ficha_aprobada == true && $has_sin_oficio == false
     // Si hay crafteo en curso y no estamos en modo_vista, mostrar la página de progreso (la craft más cercana a terminar)
     if ($en_curso && !$modo_vista && $display) {
         $cantidad_crafteo = $display['cantidad'];
+        if ($display['type'] === 'user') {
+            // Contar todas las unidades de la misma tanda (mismo objeto y mismo timestamp_end)
+            $q_cant = $db->query(" SELECT COUNT(*) AS total FROM mybb_op_crafteo_usuarios WHERE uid='$uid' AND objeto_id='".$db->escape_string($display['objeto_id'])."' AND timestamp_end='".intval($display['timestamp_end'])."' ");
+            $r_cant = $db->fetch_array($q_cant);
+            if ($r_cant && intval($r_cant['total']) > 0) { $cantidad_crafteo = intval($r_cant['total']); }
+        }
         $nombre_objeto = $display['nombre'];
         $objeto_id = $display['objeto_id'];
         $duracion = $display['duracion'];

@@ -1,65 +1,240 @@
-<style>
-/* Estilo tipo Google Calendar (inspirado, no copiado). Tonos suaves, grid claro */
-.gc-wrap { --gc-bg:#fff; --gc-line:#e6e6e6; --gc-accent:#1a73e8; --gc-muted:#6b7280; --gc-today:#e8f0fe; --gc-text:#111827; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif; color:var(--gc-text); background:var(--gc-bg); }
-.gc-container { max-width: 1100px; margin: 1.25rem auto; padding: 0 1rem; }
-
-.gc-toolbar { display:flex; align-items:center; gap:.5rem; border-bottom:1px solid var(--gc-line); padding:.5rem 0; }
-.gc-title { font-weight:600; font-size:1.125rem; margin-left:.25rem; flex:1; }
-.gc-btn { display:inline-flex; align-items:center; justify-content:center; height:32px; padding:0 .75rem; font-size:.875rem; border-radius:6px; background:#f3f4f6; color:#111827; text-decoration:none; }
-.gc-btn:hover { background:#e5e7eb; }
-.gc-todaybtn { background:var(--gc-accent); color:#fff; }
-.gc-todaybtn:hover { filter:brightness(0.95); }
-
-.gc-weekdays { display:grid; grid-template-columns: repeat(7, 1fr); gap:0; color:var(--gc-muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; padding:.5rem 0 .25rem; }
-.gc-weekday { text-align:right; padding: .25rem .5rem; }
-
-.gc-grid { display:grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(110px, 1fr); border-top:1px solid var(--gc-line); border-left:1px solid var(--gc-line); }
-.gc-cell { position:relative; border-right:1px solid var(--gc-line); border-bottom:1px solid var(--gc-line); padding:.5rem; overflow:hidden; background:#fff; }
-.gc-cell:hover { background:#fafafa; }
-.gc-today { background:var(--gc-today); }
-.gc-daynum { position:absolute; top:.35rem; right:.5rem; font-size:.875rem; color:var(--gc-muted); }
-.gc-events { margin-top:1.5rem; display:flex; flex-direction:column; gap:.25rem; }
-
-/* “Evento” tipo píldora (si luego agregas datos) */
-.gc-event { display:inline-block; max-width:100%; padding:.125rem .375rem; border-radius:999px; font-size:.75rem; line-height:1.2; color:#fff; background:var(--gc-accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* Responsive */
-@media (max-width: 900px) {
-  .gc-grid { grid-auto-rows: 90px; }
-}
-@media (max-width: 640px) {
-  .gc-weekdays { display:none; }
-  .gc-grid { grid-auto-rows: 80px; }
-  .gc-daynum { font-size:.75rem; }
-}
-
-/* Acentos por temporada */
-:root { --gc-accent:#1a73e8; }
-.gc-wrap.season-primavera { --gc-accent:#22c55e; } /* verde */
-.gc-wrap.season-verano    { --gc-accent:#f59e0b; } /* ámbar */
-.gc-wrap.season-otono     { --gc-accent:#ef4444; } /* rojo */
-.gc-wrap.season-invierno  { --gc-accent:#3b82f6; } /* azul */
-
-.gc-grid {
-  margin-top: .5rem; /* separa un poco de la toolbar */
-}
-	
-</style>
 <html>
 <head>
     <title>Cronología</title>
     {$headerinclude}
-    <link rel="stylesheet" href="cache/themes/cronologia.css?v=1">
+    <!-- opg-tokens.css y opg-components.css ya los carga headerinclude (ver docs/style.md §7) -->
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <style>
+    /* ── Marco de la página ─────────────────────────────────────────────────── */
+    /* Marco de tres fondos con ancho fluido en vez de 1030px fijos; el body del tema centra el texto */
+    .cron .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; box-sizing: border-box; }
+
+    /* Un color de acento por estación (style.md §7) */
+    .cron { --cron-acento: var(--opg-naranja); }
+    .cron.season-primavera { --cron-acento: var(--opg-verde-exito); }
+    .cron.season-verano    { --cron-acento: var(--opg-naranja); }
+    .cron.season-otono     { --cron-acento: var(--opg-rojo-faccion); }
+    .cron.season-invierno  { --cron-acento: var(--opg-azul); }
+
+    /* ── Componentes compartidos, ajustados para esta página ───────────────── */
+    a.btn-op:link, a.btn-op:visited { color: #fff; text-decoration: none; }
+    .cron .btn-op { display: inline-flex; align-items: center; justify-content: center; }
+    .cron .af-field select, .cron .af-field input { min-width: 0; }
+
+    /* ── Cabecera: título de la página sobre naranja con trama ─────────────── */
+    .cron-cabecera {
+        background: var(--opg-textura-trama), var(--opg-naranja);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset);
+        padding: var(--opg-espacio-3) var(--opg-espacio-4);
+        display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2) var(--opg-espacio-4);
+    }
+    .cron-titulo {
+        margin: 0; font-family: var(--opg-fuente-titular); font-weight: normal; font-size: 22px; letter-spacing: 1px; color: #fff;
+        text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black, 2px 2px 0 black;
+    }
+    .cron-cabecera-links { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); }
+    .cron-volver, a.cron-volver:link, a.cron-volver:visited {
+        padding: 3px 10px; background: #fff; border: 2px solid var(--opg-tinta); border-radius: 999px;
+    }
+
+    /* Buscador de personajes dentro de la cabecera (typeahead htmx) */
+    .cron-buscar { flex: 1 1 220px; max-width: 320px; display: block; }
+    .cron-buscar input {
+        width: 100%; box-sizing: border-box; font-family: var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-marron);
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px;
+    }
+    .cron-buscar input::placeholder { color: var(--opg-gris-texto); }
+    .cron-buscar input:focus-visible { outline: 0; box-shadow: var(--opg-foco); }
+    .cron-resultados:empty { display: none; }
+    .cron-buscar.htmx-request .cron-resultados { opacity: .55; }
+    .cron-opcion { width: 100%; text-align: left; }
+
+    /* ── Controles: navegación, vistas y filtros ───────────────────────────── */
+    .cron-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); }
+    .cron-nav { display: flex; align-items: center; gap: var(--opg-espacio-3); }
+    .cron-periodo { margin: 0; font-family: var(--opg-fuente-titular); font-weight: normal; font-size: 20px; letter-spacing: 1px; color: var(--opg-ciruela); min-width: 9rem; text-align: center; }
+    .cron-vistas { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); }
+    a.cron-chip--on:link, a.cron-chip--on:visited, .cron-chip--on { background: var(--opg-naranja); color: #fff; }
+
+    .cron-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--opg-espacio-3); }
+    .cron-filtros .cron-campo-corto { flex: 0 1 110px; }
+    .cron-check { display: inline-flex; align-items: center; gap: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); padding-bottom: 8px; }
+
+    /* ── Cuadro del calendario: barra de acento + cuerpo crema (style.md §3) ── */
+    .cron-cuadro { display: flex; flex-direction: column; }
+    .cron-barra {
+        background: var(--cron-acento); color: #fff; font-family: var(--opg-fuente-titular); font-size: 14px; letter-spacing: 1px;
+        text-transform: uppercase; text-shadow: var(--opg-sombra-titular), -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md) var(--opg-radio-md) 0 0; padding: 6px var(--opg-espacio-4);
+    }
+    .cron-cuerpo { background: var(--opg-crema); border: 2px solid var(--opg-tinta); border-top: 0; padding: var(--opg-espacio-3); }
+
+    /* Estación: 90 viñetas en rejilla fija de 5 x 18 */
+    .cron-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+    .cron-dia {
+        position: relative; min-height: 76px; box-sizing: border-box; padding: 4px 5px; overflow: hidden;
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    }
+    .cron-dia-num { position: absolute; top: 3px; right: 5px; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+    .cron-dia--con {
+        background: var(--opg-crema-dorada); cursor: pointer; box-shadow: 2px 2px 0 var(--opg-tinta);
+        transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+    }
+    .cron-dia--con .cron-dia-num { color: var(--opg-ciruela); font-weight: bold; }
+    .cron-dia--con:hover { transform: scale(1.05); box-shadow: 3px 3px 0 var(--opg-tinta); z-index: 1; }
+    .cron-dia--con:focus-visible { outline: 0; box-shadow: var(--opg-foco), 2px 2px 0 var(--opg-tinta); }
+    .cron-dia--sel, .cron-dia--sel:hover { background: var(--opg-morado-seleccion); border-color: var(--cron-acento); box-shadow: 3px 3px 0 var(--cron-acento); }
+    .cron-eventos { display: flex; flex-direction: column; gap: 3px; margin-top: 16px; }
+    a.cron-evento:link, a.cron-evento:visited {
+        display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; line-height: 1.3; text-decoration: none;
+        color: var(--opg-morado-texto); background: var(--opg-morado-claro); border: 1px solid var(--opg-tinta); border-radius: 8px;
+        padding: 2px 7px; overflow-wrap: anywhere;
+    }
+    a.cron-evento:hover { background: var(--opg-naranja); color: #fff; }
+    .cron-mas { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-marron); }
+    .cron-badge {
+        position: absolute; top: 2px; left: 3px; min-width: 16px; padding: 0 4px; box-sizing: border-box; text-align: center;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; line-height: 14px; color: #fff;
+        background: var(--opg-ciruela); border: 1px solid var(--opg-tinta); border-radius: 999px;
+    }
+    .cron-punto { display: none; }
+
+    /* Overlay del día: tarjeta viñeta centrada en la pantalla. Hover = informativo; fijado = interactivo */
+    .cron-overlay {
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
+        width: min(520px, 92vw); max-height: 80vh; overflow-y: auto; display: flex; flex-direction: column;
+        border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset);
+        pointer-events: none;
+    }
+    .cron-overlay[hidden] { display: none; }
+    /* Fijado: acepta ratón y oscurece el fondo */
+    .cron-overlay--fijo { pointer-events: auto; box-shadow: var(--opg-sombra-offset), 0 0 0 100vmax rgba(26, 20, 35, .35); }
+    .cron-overlay-barra { display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); }
+    .cron-overlay-cerrar {
+        font-family: var(--opg-fuente-titular); font-size: 18px; line-height: 1; color: #fff; text-shadow: var(--opg-sombra-titular);
+        background: var(--opg-ciruela); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 0 8px; cursor: pointer;
+        transition: transform var(--opg-rapido);
+    }
+    .cron-overlay-cerrar:hover { transform: scale(1.1); }
+    .cron-overlay-cerrar:focus-visible { outline: 0; box-shadow: var(--opg-foco); }
+    .cron-lista { padding: 0; }
+    .cron-lista-vacia { padding: var(--opg-espacio-4); }
+    .cron-tema { padding: var(--opg-espacio-3) var(--opg-espacio-4); background: var(--opg-crema-dorada); }
+    .cron-tema:nth-child(even) { background: var(--opg-crema); }
+    a.cron-tema-titulo:link, a.cron-tema-titulo:visited { font-family: var(--opg-fuente-titular); font-size: 16px; letter-spacing: .5px; color: var(--opg-ciruela); text-decoration: none; }
+    a.cron-tema-titulo:hover { color: var(--opg-morado-texto); }
+    .cron-tema-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); margin-top: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
+    .cron-tag {
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-ciruela);
+        background: #fff; border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 1px 9px;
+    }
+    /* Tipo de tema: un color por tipo, de la paleta del foro (style.md §2). Borde negro + sombra de texto sostienen el contraste */
+    .cron-tipo {
+        --tipo-fondo: var(--opg-ciruela); --tipo-texto: #fff;
+        background: var(--tipo-fondo); color: var(--tipo-texto); border: 1px solid var(--opg-tinta); border-radius: 4px;
+        text-shadow: var(--opg-sombra-titular);
+    }
+    .cron-tag.cron-tipo { border-width: 2px; border-radius: 999px; }
+    .cron-tipo--aventura    { --tipo-fondo: var(--opg-naranja); }
+    .cron-tipo--comun       { --tipo-fondo: var(--opg-gris-bloqueado); }
+    .cron-tipo--evento      { --tipo-fondo: var(--opg-dorado); --tipo-texto: var(--opg-ciruela); text-shadow: none; }
+    .cron-tipo--autonarrada { --tipo-fondo: var(--opg-morado); }
+    .cron-tipo--diario      { --tipo-fondo: var(--opg-azul); }
+    .cron-evento .cron-tipo {
+        display: inline-block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 9px; line-height: 1.2;
+        text-transform: uppercase; letter-spacing: .3px; padding: 0 4px; margin-right: 2px; vertical-align: 1px;
+    }
+    a.cron-isla:link, a.cron-isla:visited, span.cron-isla {
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-decoration: none;
+        color: var(--opg-morado-texto); background: var(--opg-morado-claro); border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 1px 9px;
+    }
+    a.cron-isla:hover { background: var(--opg-naranja); color: #fff; }
+    .cron-tag--abierto { background: var(--opg-verde-exito); color: #fff; text-shadow: var(--opg-sombra-titular); }
+    .cron-tag--cerrado { background: var(--opg-gris-bloqueado); color: #fff; text-shadow: var(--opg-sombra-titular); }
+    /* Modo lista global: barras por año y estación entre las filas, y paginación */
+    .cron-subvistas { margin-top: calc(var(--opg-espacio-2) * -1); }
+    .cron-grupo {
+        --cron-acento: var(--opg-naranja);
+        background: var(--cron-acento); color: #fff; font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+        text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+        border-top: 2px solid var(--opg-tinta); border-bottom: 2px solid var(--opg-tinta); padding: 4px var(--opg-espacio-4);
+    }
+    .cron-grupo:first-child { border-top: 0; }
+    .cron-grupo small { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: none; letter-spacing: 0; margin-left: var(--opg-espacio-2); }
+    .cron-grupo.season-primavera { --cron-acento: var(--opg-verde-exito); }
+    .cron-grupo.season-verano    { --cron-acento: var(--opg-naranja); }
+    .cron-grupo.season-otono     { --cron-acento: var(--opg-rojo-faccion); }
+    .cron-grupo.season-invierno  { --cron-acento: var(--opg-azul); }
+    .cron-paginacion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--opg-espacio-2); }
+    .cron-pag-texto { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
+    .cron-pag-botones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-1); }
+    .cron-pag-puntos { font-family: var(--opg-fuente-cuerpo); color: var(--opg-gris-texto); }
+    .cron-chip--off { opacity: .45; cursor: default; }
+
+    /* Vista de lista: una fila por tema, con el día a la izquierda */
+    .cron-fila { display: flex; align-items: flex-start; gap: var(--opg-espacio-3); }
+    .cron-fila-dia {
+        flex: 0 0 auto; min-width: 58px; text-align: center; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: #fff;
+        background: var(--cron-acento); border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 1px 8px; text-shadow: var(--opg-sombra-titular);
+    }
+    .cron-fila-cuerpo { flex: 1 1 auto; min-width: 0; }
+    .cron-tema-otros { margin-top: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); }
+
+    /* Año: cuatro tarjetas viñeta con franja de acento */
+    .cron-anio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-5); }
+    a.cron-estacion:link, a.cron-estacion:visited {
+        --cron-acento: var(--opg-naranja);
+        display: flex; flex-direction: column; gap: var(--opg-espacio-2); text-decoration: none; color: var(--opg-marron);
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-top: 8px solid var(--cron-acento);
+        border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-3) var(--opg-espacio-4);
+        transition: transform var(--opg-rapido), box-shadow var(--opg-rapido);
+    }
+    a.cron-estacion:hover { transform: translate(-2px, -3px) rotate(-.6deg); box-shadow: var(--opg-sombra-offset-hover); }
+    a.cron-estacion.season-primavera { --cron-acento: var(--opg-verde-exito); }
+    a.cron-estacion.season-verano    { --cron-acento: var(--opg-naranja); }
+    a.cron-estacion.season-otono     { --cron-acento: var(--opg-rojo-faccion); }
+    a.cron-estacion.season-invierno  { --cron-acento: var(--opg-azul); }
+    .cron-estacion-titulo { font-family: var(--opg-fuente-titular); font-size: 18px; letter-spacing: 1px; color: var(--opg-ciruela); }
+    .cron-estacion-total { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); }
+    .cron-minigrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+    .cron-mini { aspect-ratio: 3.4 / 1; background: var(--opg-crema); border: 1px solid var(--opg-gris-texto); border-radius: 2px; }
+    .cron-mini--on { background: var(--cron-acento); border-color: var(--opg-tinta); }
+    .cron-mini--multi { background: var(--opg-ciruela); border-color: var(--opg-tinta); }
+
+    /* ── @media ─────────────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+        .cron-dia { min-height: 68px; }
+    }
+    @media (max-width: 700px) {
+        .cron .secondBackground, .cron .thirdBackground { padding: 10px; }
+        .cron-cabecera-links { margin-left: 0; }
+        .cron-buscar { max-width: none; flex-basis: 100%; }
+        .cron-nav { width: 100%; justify-content: space-between; }
+        .cron-grid { gap: 3px; }
+        .cron-dia { min-height: 44px; padding: 2px; }
+        .cron-dia-num { position: static; display: block; text-align: center; font-size: 10px; }
+        .cron-eventos, .cron-mas { display: none; }
+        .cron-dia--con .cron-punto { display: block; width: 6px; height: 6px; margin: 2px auto 0; border-radius: 50%; background: var(--cron-acento); border: 1px solid var(--opg-tinta); }
+        .cron-badge { top: 0; left: 0; }
+        .cron-anio { grid-template-columns: minmax(0, 1fr); }
+        .cron-fila { flex-direction: column; gap: var(--opg-espacio-2); }
+    }
+    </style>
 </head>
 <body>
     {$header}
-    <div class="container">
-        <div class="cronologia-page">
-            <div class="gc-container">
-                {$calendar_html}
+    <div class="indice cron {$cron_clase}">
+        <div class="mainBackground">
+            <div class="secondBackground">
+                <div class="thirdBackground">
+                    {$calendar_html}
+                </div>
             </div>
         </div>
     </div>
     {$footer}
+    {$cronologia_script}
 </body>
 </html>
