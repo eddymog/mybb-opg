@@ -19,11 +19,18 @@ La primera entrega incluye:
 - filtros por tipo de tema y por estado (abierto/cerrado);
 - marcador de días con más de un tema;
 - acceso restringido a usuarios con sesión y ficha;
-- buscador de personajes en la cabecera (sección 7.5).
+- buscador de personajes en la cabecera (sección 7.5);
+- rol del usuario en cada tema (personaje o narrador), pestaña de edición,
+  filtro por rol y aviso de narrador visible entre cronologías (sección 6.5
+  y 7.3.3);
+- enlace desde `op/personaje.php`: el ícono que antes abría el modal de
+  texto libre "cronología" (`mybb_op_fichas.cronologia`, un workaround previo
+  para pegar la URL de una cronología externa) ahora enlaza directamente a
+  `/op/cronologia.php?uid={$ficha['fid']}` (sección 2).
 
-No incluye: enlace desde `op/personaje.php` (se decide cuando la página esté
-validada), lista de temas sin fecha, eventos de isla, comparación entre
-personajes ni caché.
+No incluye: lista de temas sin fecha, eventos de isla, comparación entre
+personajes, caché, ni sustituir la convención de texto `[narrador]` de
+`op/staff/recompensasAventuras.php`.
 
 ## 2. Estado actual relevante
 
@@ -35,9 +42,14 @@ personajes ni caché.
   comentario "DEPURACIÓN TEMPORAL". Se retiran en esta entrega.
 - No existe otro código que llame a `cronologia.php` ni hay enlaces a ella
   desde el header.
-- `mybb_op_fichas.cronologia` y el icono/ventana "Cronología" de
-  `op/personaje.php` son un texto libre del jugador, sin relación con esta
-  página. No se tocan.
+- `mybb_op_fichas.cronologia` era un texto libre del jugador (URL de una
+  cronología externa, ej. un Google Doc), sin relación con esta página. El
+  ícono de `op/personaje.php` que abría su modal (`openCronologiaModal()`,
+  `templates/One_Piece_Gaiden_Templates/op_personaje.html`) ahora enlaza a
+  `/op/cronologia.php?uid={$ficha['fid']}` en su lugar (decisión tomada,
+  ver 1). El campo `cronologia` y el modal (`#cronologiaModal`,
+  `jscripts/ficha_script2.js` / `jscripts/ficha/modales.js`) quedan sin usar
+  pero no se borran: no es parte de esta entrega.
 - Una ficha existe si hay una fila en `mybb_op_fichas` con `fid` = UID. Esta
   página no distingue el estado de aprobación (`aprobada_por`) y tampoco
   depende de `does_ficha_exist()`: consulta la tabla directamente.
@@ -53,10 +65,10 @@ personajes ni caché.
 
 | Archivo | Cambio |
 |---|---|
-| `op/cronologia.php` | Reescritura: acceso, consulta, normalización, construcción de HTML y JSON |
-| `templates/One_Piece_Gaiden_Templates/op_cronologia.html` | Nuevo CSS de rejilla 5 × 18 y estructura de la página |
-| Sin base de datos | No hay tablas, columnas ni índices nuevos |
-| Sin plugin | No se necesitan hooks: solo lectura |
+| `op/cronologia.php` | Reescritura: acceso, consulta, normalización, construcción de HTML y JSON, rol del tema (6.5, 7.3.3) |
+| `templates/One_Piece_Gaiden_Templates/op_cronologia.html` | Nuevo CSS de rejilla 5 × 18, estructura de la página y estilos de la pestaña "Marcar roles" |
+| Base de datos | Tabla nueva `mybb_op_thread_roles` (uid, tid, rol), creada de forma perezosa desde `cronologia.php` (ver 3.4) |
+| Sin plugin | No se necesitan hooks: solo lectura, salvo el guardado de roles (POST propio de la página) |
 
 ### 3.2 Fuente de verdad
 
@@ -64,6 +76,8 @@ personajes ni caché.
 - Fecha del tema: `mybb_threads.year/estacion/day`.
 - Zona de rol: `mybb_forums.parentlist LIKE '10,%'`.
 - Nombre del personaje: `mybb_op_fichas.nombre`.
+- Rol del usuario en un tema: `mybb_op_thread_roles` (ver 3.4). Ausencia de
+  fila = rol `personaje`.
 
 No se copia ni se cachea nada; un cambio de fecha desde `editar_tema.php` se
 refleja en la siguiente carga.
@@ -79,6 +93,38 @@ los mismos datos.
 Se acepta traer todos los temas del personaje (cientos como máximo) a cambio
 de simplicidad. Si resultara lento con datos reales, el diseño lo revisará
 (sección 12).
+
+### 3.4 Tabla `mybb_op_thread_roles`
+
+Tabla nueva y **global** (no exclusiva de la cronología, sin prefijo `cron_`
+en su nombre, para que otras herramientas la reutilicen, p. ej. recompensas):
+
+```sql
+CREATE TABLE IF NOT EXISTS `mybb_op_thread_roles` (
+  `uid` INT UNSIGNED NOT NULL,
+  `tid` INT UNSIGNED NOT NULL,
+  `rol` ENUM('personaje','narrador') NOT NULL DEFAULT 'personaje',
+  `dateline` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`uid`, `tid`),
+  KEY `idx_tid_rol` (`tid`, `rol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+```
+
+- Se crea de forma perezosa (`CREATE TABLE IF NOT EXISTS`, con un flag
+  estático para no repetir la sentencia en cada request), igual que hacen
+  otras páginas de `/op/` (ej. `op/barco_cofre.php`). No requiere plugin ni
+  migración manual, pero la misma sentencia se deja también en
+  `docs/cronologia_thread_roles_migration.sql` por si se prefiere crearla a
+  mano (mismo patrón que `docs/bitacora_migration.sql`).
+- **Almacenamiento disperso:** solo se escribe una fila cuando alguien guarda
+  un cambio desde la pestaña "Marcar roles" (ver 7.3.3); no se inserta nada
+  al postear en un tema. Sin fila, el rol efectivo es `personaje`
+  (`COALESCE` en las consultas).
+- **Varios narradores por tema:** al ser la clave `(uid, tid)`, distintos
+  usuarios pueden tener `rol = 'narrador'` en el mismo `tid` sin conflicto
+  (co-narración, o narrador que cambia a mitad de tema).
+- `idx_tid_rol` sirve para la consulta de "quién narra este tema" (7.3.3 y
+  6.5), que filtra por `tid IN (...) AND rol = 'narrador'`.
 
 ## 4. Acceso
 
@@ -99,6 +145,17 @@ Los usuarios `is_staff` sin ficha propia quedan fuera, según el requisito
 5.1. Si el staff necesitara acceso sin ficha, se añade una excepción explícita
 en este punto.
 
+### 4.1 Acceso a "Marcar roles" y al guardado
+
+- Ver la pestaña `vista=roles`: mismo acceso que el resto de la página
+  (sesión + ficha propia); no hay restricción adicional para *ver* el
+  formulario de un personaje ajeno (igual que hoy se puede ver su
+  cronología completa).
+- Guardar cambios (`action=guardar_roles`, ver 6.5.2): si el `uid` del
+  formulario no es el del usuario conectado, se exige `is_staff($viewer_uid)`;
+  si no, `error_no_permission()`. Esto se comprueba en servidor, no en el
+  cliente.
+
 ## 5. Parámetros de URL
 
 | Parámetro | Valores | Por defecto |
@@ -106,13 +163,14 @@ en este punto.
 | `uid` | entero > 0 | usuario conectado |
 | `y` | entero 700 a 9999 | año del último tema (o 725) |
 | `t` | `primavera`, `verano`, `otono`, `invierno` | estación del último tema (o `primavera`) |
-| `vista` | `estacion`, `lista`, `anio` | `estacion` |
+| `vista` | `estacion`, `lista`, `anio`, `roles` | `estacion` |
 | `tipo` | id de prefijo (3, 1, 6, 9 o el de Diario) o 0 | 0 (todos) |
+| `rol` | `personaje`, `narrador` (filtro; no aplica en `vista=roles`) | (todos) |
 | `cerrados` | `0` para ocultar temas cerrados | mostrar todos |
 | `alcance` | `estacion`, `global` (solo con `vista=lista`) | `estacion` |
 | `orden` | `desc` (recientes primero), `asc` (solo en modo global) | `desc` |
-| `pagina` | entero ≥ 1 (solo en modo global) | 1 |
-| `action` | `buscar_personajes` (con `q`): devuelve las opciones del buscador | página normal |
+| `pagina` | entero ≥ 1 (modo global o `vista=roles`) | 1 |
+| `action` | `buscar_personajes` (con `q`) o `guardar_roles` (POST, ver 6.5.2) | página normal |
 
 Valores fuera de rango se corrigen al valor por defecto o al límite más
 cercano; no se muestran errores. Todos los parámetros se reflejan en los
@@ -200,6 +258,65 @@ WHERE p.tid IN ({$tids}) AND p.uid <> {$uid} AND p.visible = 1
 `{$tids}` son enteros ya validados. En PHP se limita a 5 nombres por tema y se
 añade `+N` con el resto. Junto con la de 6.3.1, son las únicas consultas por carga.
 
+### 6.5 Rol del tema (personaje / narrador)
+
+#### 6.5.1 Lectura: rol propio y narradores del tema
+
+Dos consultas más sobre `mybb_op_thread_roles`, ambas acotadas a los `tid` ya
+cargados en la vista actual (mismo patrón que 6.3.1 y 6.4: nunca una consulta
+por celda):
+
+```sql
+-- Rol del personaje mostrado en sus propios temas (para el filtro "Rol"
+-- y para preseleccionar la pestaña "Marcar roles")
+SELECT tid, rol FROM mybb_op_thread_roles WHERE uid = {$uid} AND tid IN ({$tids})
+
+-- Quién narra cada tema (para "Narra: ..."), sin importar de quién es
+-- la cronología que se está viendo
+SELECT r.tid, COALESCE(fi.nombre, r.uid) AS nombre
+FROM mybb_op_thread_roles r
+LEFT JOIN mybb_op_fichas fi ON fi.fid = r.uid
+WHERE r.tid IN ({$tids}) AND r.rol = 'narrador'
+ORDER BY r.tid, nombre
+```
+
+- Rol efectivo de cada tema del personaje mostrado: `personaje` si no
+  aparece en la primera consulta.
+- La segunda consulta puede devolver varias filas por `tid` (varios
+  narradores); se agrupan igual que "otros participantes" (6.4), sin límite
+  de 5 porque no se espera que haya muchos narradores por tema.
+- El filtro `rol` (sección 5) se aplica sobre `$temas` junto con `tipo` y
+  `cerrados`, antes de construir los índices por día (igual que 6.3).
+- "Narra: ..." se añade al lado de "Con: ..." en el overlay (7.3) y en la
+  vista de lista (7.3.1), para **cualquier** cronología donde aparezca ese
+  tema, no solo la de quien narra. No se añade a la casilla del día, igual
+  que "otros participantes".
+
+#### 6.5.2 Guardado: pestaña "Marcar roles"
+
+`action=guardar_roles`, POST, desde el formulario de 7.3.3:
+
+1. `verify_post_check($mybb->get_input('post_code'), true)`; si falla, error
+   estándar del proyecto.
+2. Si `uid` del formulario ≠ `$viewer_uid`, exigir `is_staff($viewer_uid)`
+   (ver 4.1).
+3. Recalcular en servidor los `tid` válidos para ese `uid`: los mismos que
+   arma la consulta principal (6.1), filtrados a prefijo Aventura (3) o
+   Evento (6). **No se confía en la lista de `tid` que manda el formulario**:
+   solo se procesan los que también salen de este recálculo.
+4. El formulario manda el radio de **todas** las filas de la página, se
+   hayan tocado o no (así funcionan los grupos de radio en HTML). Por eso,
+   por cada `tid` válido presente en el POST con un valor `personaje` o
+   `narrador` (cualquier otro valor se ignora), se compara contra el rol ya
+   cargado en el recálculo del punto 3: si es igual, se descarta sin
+   escribir; si cambió, `INSERT INTO mybb_op_thread_roles (uid, tid, rol,
+   dateline) VALUES (...) ON DUPLICATE KEY UPDATE rol = VALUES(rol),
+   dateline = VALUES(dateline)`. Evita escribir (y generar ruido en
+   `dateline`) en las filas que nadie tocó.
+5. Redirige (o, con htmx, refresca `#cron-raiz`) a `vista=roles` del mismo
+   `uid`, con un aviso breve de guardado solo si al menos un `tid` cambió de
+   rol.
+
 ## 7. Vistas
 
 ### 7.1 Vista de estación
@@ -211,9 +328,12 @@ huecos.
 Cada celda muestra:
 
 - número de día;
-- hasta 2 títulos de tema con, si el filtro es "Todos", una etiqueta de tipo en
-  línea antes del título (color por tipo, ver 9.1), cada uno en hasta 2 líneas (`line-clamp: 2`) y
-  con el título completo en `title` (un enlace cada uno);
+- hasta 2 temas, cada uno un enlace con, en línea y en este orden: la etiqueta
+  de tipo (solo si el filtro de tipo es "Todos", color por tipo, ver 9.1), la
+  etiqueta de rol (solo si el filtro de rol es "Todos" y el tema es Aventura
+  o Evento, color por rol, ver 9.1), su `#tid` y el título en hasta 2 líneas
+  (`line-clamp: 2`); el `title` lleva tipo, rol (si aplica), `#tid`, título
+  completo e isla;
 - `+N más` si hay más de 2;
 - un marcador de coincidencia (esquina de la celda) si hay ≥ 2 temas.
 
@@ -236,13 +356,17 @@ Tarjeta centrada en el viewport (`position: fixed`), rellenada en el cliente
 sin recargar la página. Muestra, por cada tema del día ordenado por `dateline`
 ascendente:
 
-- título (enlace a `get_thread_link($tid)`);
+- título (enlace a `get_thread_link($tid)`) y su ID (`#tid`) en monoespaciado;
 - fecha in-game (año, estación, día);
 - tipo (nombre del prefijo);
+- rol, con color, si el filtro de rol es "Todos" y el tema es Aventura o
+  Evento (9.1);
 - isla (chip enlazado a `/op/isla.php?isla_id=` si es isla);
 - estado (Abierto / Cerrado);
 - número de posts del personaje;
-- otros participantes (hasta 5 y `+N`).
+- otros participantes (hasta 5 y `+N`);
+- si hay uno o más narradores marcados (6.5.1), "Narra: <nombre(s)>", debajo
+  de "Con: ...".
 
 Estados:
 
@@ -261,10 +385,12 @@ el overlay no aparece.
 
 `vista=lista`: barra de acento con el título de la estación y, debajo, una fila
 por tema (orden: día, `dateline`, `tid`) con chip de día, título completo
-enlazado, isla, tipo, estado, posts del personaje y otros participantes (hasta 5 y
-`+N`). Filas alternas como el overlay. Sin temas: `.opg-vacio` con "Sin temas
-en esta estación." Usa los mismos datos que la vista de estación (`$por_dia` y
-segunda consulta de participantes), así que no añade consultas.
+enlazado, isla, tipo, rol (con color, si aplica, ver 9.1), estado, posts del
+personaje, otros participantes (hasta 5 y `+N`) y, si aplica, "Narra:
+<nombre(s)>" (6.5.1). Filas alternas como el overlay. Sin temas: `.opg-vacio`
+con "Sin temas en esta estación." Usa los mismos datos que la vista de
+estación (`$por_dia`, la segunda consulta de participantes y la de
+narradores), así que no añade consultas nuevas.
 
 ### 7.3.2 Modo lista global
 
@@ -288,11 +414,45 @@ principal (todos los años), así que no añade consultas de datos.
    vista de lista y un chip para invertir el orden. Se ocultan la navegación por
    estación, el selector de año y estación y "Último tema".
 
+### 7.3.3 Vista "Marcar roles"
+
+`vista=roles`. Cuarta pestaña, junto a Estación / Lista / Año (7.4). Solo
+accesible si `uid === viewer_uid` o `is_staff(viewer_uid)` (4.1); si no,
+mismo tratamiento que un acceso indebido a `uid` (`error_no_permission()`).
+
+- **Contenido:** de `$temas_todos` (sin filtrar por `tipo`/`cerrados`/`rol`
+  de la sesión actual) se toman solo los de prefijo Aventura (3) o Evento
+  (6), sin agrupar por día ni estación, ordenados por fecha in-game
+  descendente (más reciente primero).
+- **Paginación:** de 100 en 100, igual que el modo lista global (7.3.2):
+  parámetro `pagina` (reutilizado, ver sección 5), controles arriba y abajo
+  con `cron_paginacion_html()` y texto "Temas a–b de total". Cada página es
+  un lote independiente: el botón "Guardar cambios" de una página solo
+  envía los `tid` que están en esa página.
+- **Fila:** `#tid`, título (enlace normal `hx-boost="false"`, no se edita
+  desde aquí), fecha in-game, y un grupo de dos botones de radio
+  Personaje/Narrador (`name="roles[<tid>]"`), marcado según el rol efectivo
+  (6.5.1).
+- **Formulario:** un único `<form method="post">` por página, que envuelve
+  las filas de esa página, con `post_code` (CSRF), `uid` y `pagina` ocultos,
+  y un botón "Guardar cambios" arriba y abajo. Al enviar, POST a
+  `cronologia.php?action=guardar_roles` (6.5.2); la respuesta vuelve a la
+  misma página de `vista=roles` con un aviso de guardado.
+- Sin temas de Aventura/Evento: `.opg-vacio` con "Este personaje no tiene
+  temas de Aventura o Evento para marcar."
+- Esta vista no participa de la navegación por estación/año ni de los
+  filtros de tipo/cerrados/rol (7.4): son conceptos de las otras tres
+  vistas.
+
 ### 7.4 Navegación y filtros
 
 - Toolbar: anterior, título ("Verano 725"), siguiente, selector año +
-  estación, botones "Estación" / "Lista" / "Año", botón "Ir al último tema".
-- Formulario de filtros: selector de tipo y casilla "Ocultar cerrados".
+  estación, botones "Estación" / "Lista" / "Año" / "Marcar roles", botón "Ir
+  al último tema". El botón "Marcar roles" solo aparece si `uid ===
+  viewer_uid` o `is_staff(viewer_uid)` (4.1).
+- Formulario de filtros: selector de tipo, selector de rol (Todos /
+  Personaje / Narrador) y casilla "Ocultar cerrados". El filtro de rol no se
+  muestra en `vista=roles`.
 - Anterior/siguiente cruzan el año (Invierno 725 → Primavera 726). "Anterior"
   no baja de Primavera 700.
 - Se reutiliza la función de navegación actual, ajustada al mínimo 700.
@@ -324,9 +484,10 @@ propio de la página, `.opg-buscar-caja` y `.opg-resultados`.
 
 El panel necesita los datos de los temas de la estación mostrada. PHP genera
 un objeto JSON `{ "<dia>": [ {tema}, ... ] }` con los campos de 7.3 ya
-escapados y lo coloca en un atributo `data-dias` del contenedor del
-calendario. El JS lo lee con `JSON.parse`. No se usa `eval` ni se interpola
-JSON en un script inline.
+escapados (incluidos `otros`, `narradores` si aplica (6.5.1), y `rolMostrar`/
+`rol`/`rolTexto` para la etiqueta de color del rol, ver 9.1) y lo coloca
+en un atributo `data-dias` del contenedor del calendario. El JS lo lee con
+`JSON.parse`. No se usa `eval` ni se interpola JSON en un script inline.
 
 ## 9. Plantilla y JavaScript
 
@@ -374,12 +535,64 @@ carga `{$headerinclude}`.
   Evento dorado con texto ciruela, Autonarrada morado, Diario azul; MT,
   Requerimiento y sin tipo, ciruela. La clase se deriva del nombre del tipo
   (`cron-tipo--aventura`, `--comun`...), sin depender del ID del prefijo.
+- **Color por rol** (mismo patrón que el de tipo: solo con el filtro de rol
+  en "Todos", en la casilla, el overlay y la lista, solo en temas de
+  Aventura o Evento): Personaje azul (`--opg-azul`), Narrador ciruela
+  (`--opg-ciruela`, texto blanco). Se reutilizan tokens ya usados en la
+  página en vez de sumar colores nuevos: azul es el mismo de "Diario" y
+  ciruela es el mismo de la etiqueta "Narra: ...", lo que refuerza la
+  asociación en vez de generar un color más que aprender. Clases
+  `cron-rol--personaje` / `cron-rol--narrador`.
+- **"Marcar roles":** filas como las de la vista de lista, sin barra de
+  acento por estación; el selector Personaje/Narrador como un `.opg-chip`
+  de dos estados (segmented control), botón "Guardar cambios" como
+  `.btn-op--primario`. La etiqueta "Narra: ..." usa el mismo estilo que "Con:
+  ...", en un tono distinguible (ciruela, como el resto de etiquetas sin tipo
+  propio) para no confundirse con "Con:".
 - **Vacío:** `.opg-vacio`.
 - **Tipografía:** `moonGetHeavy` solo en títulos; el resto en Inter.
 - **Móvil (≤ 700 px):** días de 40 px con número y punto; los títulos pasan al
   panel; la vista de año a una columna.
 - **Sin iconos:** no se usa Font Awesome, así que no hay riesgo con los
   shims v4 del header.
+
+### 9.1.1 Guía "Cómo funciona la cronología"
+
+`<details class="cron-guia" id="cron-guia" hx-preserve="true">` entre la
+cabecera y los controles, con el patrón de `op_bitacora_contenido.html`
+(`op-temas-guia`): barra morada (`--opg-morado-cta`) con icono de ayuda y
+flecha, introducción con borde naranja, cinco secciones numeradas en dos
+columnas (una en móvil) y nota final con bombilla. Sus estilos son propios
+(`cron-guia*`) porque `op_bitacora.css` no se garantiza en esta página. El HTML
+es estático, generado en PHP (nowdoc), y `hx-preserve` mantiene su estado al
+cambiar de vista. Los iconos son Font Awesome 6 (`fa-solid`), que ya carga
+`{$headerinclude}`.
+
+### 9.2 Navegación sin recarga (htmx, `hx-boost`)
+
+El contenedor `#cron-raiz` (la raíz de la cronología, incluida su clase de
+estación) lleva `hx-boost="true"`, `hx-target="#cron-raiz"`,
+`hx-select="#cron-raiz"`, `hx-swap="outerHTML show:top"` y
+`hx-indicator="#cron-raiz"`. Los enlaces y el formulario de filtros pasan a
+cargarse por AJAX; el servidor responde con la página completa (sin cambios
+de PHP) y htmx toma solo `#cron-raiz`. La URL se actualiza (`hx-push-url`) y
+Atrás funciona; sin JavaScript se comporta como enlaces normales.
+
+- **Enlaces que salen de la página** (temas, islas, "Ver ficha"): llevan
+  `hx-boost="false"` para navegar de forma normal.
+- **Buscador de personajes:** su campo redefine los atributos heredados
+  (`hx-select="unset"`, `hx-swap="innerHTML"`, `hx-push-url="false"`,
+  `hx-indicator="closest .cron-buscar"`). Elegir un resultado sigue siendo una
+  navegación completa.
+- **JavaScript:** el overlay y el buscador usan delegación de eventos sobre
+  `document` (el script está fuera de `#cron-raiz`, siempre presente), porque
+  sus elementos se reemplazan en cada cambio. Al terminar un cambio se cierra
+  el overlay, se anula su estado y se enfoca el título del período.
+- **Errores:** si la respuesta no contiene `#cron-raiz` (sesión caducada, error
+  de MyBB), se cancela el cambio y se navega de forma normal a esa URL, para
+  no dejar la página en blanco.
+- **Indicador de carga:** la clase `htmx-request` de `#cron-raiz` atenúa el
+  contenido mientras carga.
 
 ## 10. Seguridad
 
@@ -388,8 +601,13 @@ carga `{$headerinclude}`.
 - Salida escapada con `htmlspecialchars_uni`, incluyendo títulos, nombres y
   los valores del JSON.
 - Permisos de foro respetados mediante `get_unviewable_forums(true)`.
-- Sin acciones de escritura: no requiere token CSRF.
 - Se retira `display_errors`/`error_reporting` de la página.
+- **Guardado de roles (6.5.2):** única acción de escritura de la página, por
+  eso requiere token CSRF (`post_code`, `verify_post_check`). El servidor
+  recalcula los `tid` válidos para el `uid` del formulario (Aventura/Evento
+  donde participó) en vez de confiar en la lista enviada, y exige
+  `is_staff($viewer_uid)` cuando el `uid` del formulario no es el del
+  usuario conectado.
 
 ## 11. Casos límite
 
@@ -406,10 +624,17 @@ carga `{$headerinclude}`.
 | Título con HTML o comillas | Escapado en HTML y en JSON |
 | Más de 2 temas en un día | `+N más` en la celda y lista completa en el overlay |
 | Año > 9999 o < 700 | Se ajusta al límite |
+| Tema sin fila en `mybb_op_thread_roles` | Rol efectivo `personaje` |
+| Tema con varios narradores | Todos aparecen en "Narra: ..." |
+| Usuario no staff intenta guardar el rol de otro `uid` (formulario manipulado) | `error_no_permission()`, nada se guarda |
+| `tid` ajeno a Aventura/Evento o que el `uid` no participó, enviado en el POST | Se ignora (recálculo server-side, 6.5.2) |
+| Personaje sin temas de Aventura ni Evento, en `vista=roles` | Mensaje de vacío (7.3.3) |
 
 ## 12. Rendimiento
 
-- Dos consultas por carga (6.1 y 6.4). No hay consultas por celda.
+- Hasta cuatro consultas por carga (6.1, 6.3.1, 6.4 y, si el tema lo
+  requiere, 6.5.1). No hay consultas por celda; las de 6.5.1 se saltan si la
+  vista no tiene temas de Aventura/Evento.
 - No se añaden índices. La consulta filtra por `posts.uid`; se confirma con
   `EXPLAIN` sobre datos reales antes de considerarla lista. Si resultara
   lenta, se propone un índice y se pide aprobación, tal como indica el
@@ -437,6 +662,13 @@ Pruebas manuales, según acordado:
 9. Cambio de fecha desde `editar_tema.php`: se refleja al recargar.
 10. Móvil (≤ 700 px): rejilla usable y overlay al tocar.
 11. URL con todos los parámetros reproduce la misma vista.
+12. Marcar un tema propio como narrador desde "Marcar roles" y guardar: pasa
+    a aparecer en el filtro "Narrador" y como "Narra: ..." en la cronología
+    de otro personaje que también está en ese tema.
+13. Como staff, corregir el rol de otro `uid`: se guarda correctamente.
+14. Como usuario normal, enviar por POST un `uid` ajeno: `error_no_permission()`.
+15. Enviar un `tid` fuera de Aventura/Evento o ajeno al `uid`: se ignora sin
+    error visible.
 
 ## 14. Fases de implementación
 
@@ -447,6 +679,8 @@ Pruebas manuales, según acordado:
 4. **Vista de año y vista de lista.**
 5. **Plantilla y CSS finales**, retirada del bloque de depuración y
    sincronización de la plantilla con la base de datos.
+6. **Rol del tema:** tabla `mybb_op_thread_roles`, lectura (6.5.1), pestaña
+   "Marcar roles" (7.3.3), guardado (6.5.2) y filtro por rol.
 
 ## 15. Riesgos y pendientes
 
@@ -456,3 +690,9 @@ Pruebas manuales, según acordado:
   cronología se basa solo en el UID y la ficha del personaje.
 - Sin enlace desde el header ni desde la ficha: la página solo es accesible
   por URL hasta que se decida dónde enlazarla.
+- `mybb_op_thread_roles` es una tabla nueva y global: si en el futuro otra
+  herramienta (por ejemplo, recompensas) también escribe en ella, conviene
+  extraer su acceso a una función compartida en
+  `op/functions/op_functions.php` en vez de duplicar el `CREATE TABLE IF NOT
+  EXISTS` en cada página consumidora. No se hace en esta entrega porque
+  `cronologia.php` es su único consumidor (YAGNI).

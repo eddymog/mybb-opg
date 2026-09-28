@@ -49,9 +49,9 @@
 						{$op_ficha_reset_panel}
 						<if $ficha['secret1'] == '1' && $ficha_secret1 && (($g_is_staff || $is_owner) || $ficha_secret1['es_invisible1'] == 1) then>{$op_ficha_secreto}</if>
 
-						<div style="position: absolute; bottom: -50px; right: 270px; z-index: 10; cursor: pointer;" onclick="openCronologiaModal()">
+						<a href="/op/cronologia.php?uid={$ficha['fid']}" title="Cronología" style="position: absolute; bottom: -50px; right: 270px; z-index: 10; cursor: pointer; display: block;">
 							<img src="https://cdn-icons-png.flaticon.com/512/1067/1067374.png" style="width: 45px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
-						</div>
+						</a>
 						<div style="position: absolute; bottom: -50px; right: 15px; z-index: 10; cursor: pointer;" onclick="openBandaSonoraModal()">
 							<img src="/images/op/uploads/BandaSonora_One_Piece_Gaiden_Foro_Rol.webp" style="width: 250px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
 						</div>

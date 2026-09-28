@@ -21,6 +21,10 @@
     .cron .btn-op { display: inline-flex; align-items: center; justify-content: center; }
     .cron .af-field select, .cron .af-field input { min-width: 0; }
 
+    /* Carga por htmx (hx-boost): el contenido se atenúa mientras llega la respuesta */
+    #cron-raiz.htmx-request .cron-cuadro, #cron-raiz.htmx-request .cron-anio, #cron-raiz.htmx-request .cron-paginacion { opacity: .5; transition: opacity var(--opg-rapido); }
+    .cron-periodo:focus { outline: 0; }
+
     /* ── Cabecera: título de la página sobre naranja con trama ─────────────── */
     .cron-cabecera {
         background: var(--opg-textura-trama), var(--opg-naranja);
@@ -49,6 +53,40 @@
     .cron-resultados:empty { display: none; }
     .cron-buscar.htmx-request .cron-resultados { opacity: .55; }
     .cron-opcion { width: 100%; text-align: left; }
+
+    /* ── Guía plegable "Cómo funciona la cronología" (mismo formato que la Bitácora) ── */
+    .cron-guia {
+        overflow: hidden; border: 2px solid var(--opg-tinta); border-radius: 8px;
+        background: var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta);
+    }
+    .cron-guia > summary {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        min-height: 42px; padding: 8px 12px; color: #fff; background: var(--opg-morado-cta);
+        font: 13px var(--opg-fuente-titular); letter-spacing: 0; cursor: pointer; list-style: none;
+        text-shadow: var(--opg-sombra-titular);
+    }
+    .cron-guia > summary::-webkit-details-marker { display: none; }
+    .cron-guia > summary span { display: inline-flex; align-items: center; gap: 8px; }
+    .cron-guia__flecha { flex: 0 0 auto; transition: transform var(--opg-rapido); }
+    .cron-guia[open] .cron-guia__flecha { transform: rotate(180deg); }
+    .cron-guia__contenido { padding: 14px; color: var(--opg-marron); font: 12px/1.55 var(--opg-fuente-cuerpo); }
+    .cron-guia__contenido > p { margin: 0 0 12px; }
+    .cron-guia__intro { padding: 10px 12px; border-left: 6px solid var(--opg-naranja-accion); background: var(--opg-crema-dorada); }
+    .cron-guia__secciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; border-bottom: 1px solid rgba(0, 0, 0, .18); }
+    .cron-guia__secciones section { min-width: 0; padding: 14px 0; border-top: 1px solid rgba(0, 0, 0, .18); }
+    .cron-guia__secciones h3 {
+        display: flex; align-items: center; gap: 8px; margin: 0 0 8px;
+        color: var(--opg-morado-texto); font: 12px var(--opg-fuente-titular); letter-spacing: 0;
+    }
+    .cron-guia__secciones h3 span {
+        display: inline-grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px;
+        border: 2px solid var(--opg-tinta); border-radius: 4px; color: #fff; background: var(--opg-naranja-accion);
+        box-shadow: 2px 2px 0 var(--opg-tinta); font-size: 10px;
+    }
+    .cron-guia__secciones ul { margin: 0; padding-left: 20px; }
+    .cron-guia__secciones li + li { margin-top: 5px; }
+    .cron-guia__nota { margin: 14px 0 0 !important; padding: 9px 10px; border-left: 5px solid var(--opg-dorado); background: var(--opg-crema-dorada); }
+    .cron-guia__nota > i { margin-right: 5px; color: var(--opg-naranja-accion); }
 
     /* ── Controles: navegación, vistas y filtros ───────────────────────────── */
     .cron-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); }
@@ -142,10 +180,22 @@
     .cron-tipo--evento      { --tipo-fondo: var(--opg-dorado); --tipo-texto: var(--opg-ciruela); text-shadow: none; }
     .cron-tipo--autonarrada { --tipo-fondo: var(--opg-morado); }
     .cron-tipo--diario      { --tipo-fondo: var(--opg-azul); }
+    /* Rol (personaje/narrador): solo visible con el filtro de Rol en "Todos" (style.md: reusar tokens, no inventar colores) */
+    .cron-rol { border: 1px solid var(--opg-tinta); border-radius: 4px; color: #fff; text-shadow: var(--opg-sombra-titular); }
+    .cron-tag.cron-rol { border-width: 2px; border-radius: 999px; }
+    .cron-evento .cron-rol {
+        display: inline-block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 9px; line-height: 1.2;
+        text-transform: uppercase; letter-spacing: .3px; padding: 0 4px; margin-right: 2px; vertical-align: 1px;
+    }
+    .cron-rol--personaje { background: var(--opg-azul); }
+    .cron-rol--narrador  { background: var(--opg-ciruela); }
     .cron-evento .cron-tipo {
         display: inline-block; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 9px; line-height: 1.2;
         text-transform: uppercase; letter-spacing: .3px; padding: 0 4px; margin-right: 2px; vertical-align: 1px;
     }
+    /* ID del tema (tid): discreto, en monoespaciado */
+    .cron-tid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--opg-gris-texto); }
+    .cron-evento .cron-tid { font-size: 9px; margin-right: 2px; }
     a.cron-isla:link, a.cron-isla:visited, span.cron-isla {
         font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-decoration: none;
         color: var(--opg-morado-texto); background: var(--opg-morado-claro); border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 1px 9px;
@@ -181,6 +231,20 @@
     }
     .cron-fila-cuerpo { flex: 1 1 auto; min-width: 0; }
     .cron-tema-otros { margin-top: 6px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); }
+    /* Narrador(es) del tema: mismo patrón que "Con: ...", en ciruela para distinguirse */
+    .cron-tema-narra { margin-top: 4px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-ciruela); font-weight: bold; }
+
+    /* ── Pestaña "Marcar roles" ─────────────────────────────────────────────── */
+    .cron-roles-aviso {
+        margin: 0 0 var(--opg-espacio-3); padding: 8px 12px; border-left: 5px solid var(--opg-verde-exito);
+        background: var(--opg-crema-dorada); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .cron-roles-guardar { display: flex; justify-content: flex-end; margin: 0 0 var(--opg-espacio-2); }
+    .cron-roles-guardar:last-child { margin: var(--opg-espacio-2) 0 0; }
+    .cron-fila-rol { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); }
+    .cron-fila-rol-info { min-width: 0; }
+    .cron-rol-selector { display: flex; flex: 0 0 auto; gap: var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .cron-rol-selector label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 
     /* Año: cuatro tarjetas viñeta con franja de acento */
     .cron-anio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-5); }
@@ -219,13 +283,15 @@
         .cron-dia--con .cron-punto { display: block; width: 6px; height: 6px; margin: 2px auto 0; border-radius: 50%; background: var(--cron-acento); border: 1px solid var(--opg-tinta); }
         .cron-badge { top: 0; left: 0; }
         .cron-anio { grid-template-columns: minmax(0, 1fr); }
+        .cron-guia__secciones { grid-template-columns: minmax(0, 1fr); }
         .cron-fila { flex-direction: column; gap: var(--opg-espacio-2); }
+        .cron-fila-rol { flex-direction: column; align-items: flex-start; }
     }
     </style>
 </head>
 <body>
     {$header}
-    <div class="indice cron {$cron_clase}">
+    <div class="indice cron {$cron_clase}" id="cron-raiz" hx-boost="true" hx-target="#cron-raiz" hx-select="#cron-raiz" hx-swap="outerHTML show:#cron-raiz:top" hx-indicator="#cron-raiz">
         <div class="mainBackground">
             <div class="secondBackground">
                 <div class="thirdBackground">

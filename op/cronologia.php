@@ -42,6 +42,30 @@ if ($prefijo_diario > 0) {
     $CRON_TIPOS[$prefijo_diario] = 'Diario';
 }
 
+// Tipos donde existe la figura del narrador (5.8 / diseño 6.5)
+const CRON_TIPOS_NARRABLES = [3, 6]; // Aventura, Evento
+
+// Crea la tabla de roles si hace falta. Es global (sin prefijo cron_): la
+// pensó para que otras herramientas la reutilicen (diseño 200 §3.4).
+function cron_asegurar_tabla_roles()
+{
+    static $hecho = false;
+    if ($hecho) {
+        return;
+    }
+    $hecho = true;
+    global $db;
+    $db->write_query("CREATE TABLE IF NOT EXISTS `mybb_op_thread_roles` (
+        `uid` INT UNSIGNED NOT NULL,
+        `tid` INT UNSIGNED NOT NULL,
+        `rol` ENUM('personaje','narrador') NOT NULL DEFAULT 'personaje',
+        `dateline` INT UNSIGNED NOT NULL,
+        PRIMARY KEY (`uid`, `tid`),
+        KEY `idx_tid_rol` (`tid`, `rol`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci");
+}
+cron_asegurar_tabla_roles();
+
 // Nombre mostrado de cada tipo. MT y Requerimiento ya no se ofrecen como filtro,
 // pero los temas que los tengan siguen apareciendo con su nombre.
 $CRON_ETIQUETAS = $CRON_TIPOS + [10 => 'MT', 14 => 'Requerimiento'];
@@ -54,6 +78,19 @@ function cron_tipo_clase($prefijo)
         return 'otro';
     }
     return strtr(mb_strtolower($CRON_ETIQUETAS[$prefijo], 'UTF-8'), ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u']);
+}
+
+// Etiqueta de rol (Personaje/Narrador): igual que la de tipo, solo con el filtro
+// de rol en "Todos" y solo en temas donde el rol tiene sentido (Aventura/Evento).
+function cron_rol_mostrar($prefijo)
+{
+    global $rol_filtro;
+    return $rol_filtro === '' && in_array($prefijo, CRON_TIPOS_NARRABLES, true);
+}
+
+function cron_rol_texto($rol)
+{
+    return $rol === 'narrador' ? 'Narrador' : 'Personaje';
 }
 
 // ─── Acceso: sesión + ficha propia ───────────────────────────────────────────
@@ -115,10 +152,12 @@ if ($ficha === null || ($ficha['faccion'] === 'Staff' && !is_staff($viewer_uid))
     error('Personaje no encontrado.');
 }
 $nombre_personaje = htmlspecialchars_uni($ficha['nombre']);
+// "Marcar roles" (5.8/4.1): el propio usuario sobre su ficha, o cualquier staff sobre otra
+$puede_editar_roles = ($uid === $viewer_uid) || is_staff($viewer_uid);
 
 // ─── Parámetros ──────────────────────────────────────────────────────────────
 $vista_input = $mybb->get_input('vista');
-$vista = in_array($vista_input, ['anio', 'lista'], true) ? $vista_input : 'estacion';
+$vista = in_array($vista_input, ['anio', 'lista', 'roles'], true) ? $vista_input : 'estacion';
 // Modo lista global: todo el historial, recientes primero por defecto
 $alcance_global = ($vista === 'lista' && $mybb->get_input('alcance') === 'global');
 $orden_asc = ($mybb->get_input('orden') === 'asc');
@@ -128,7 +167,15 @@ $tipo = $mybb->get_input('tipo', MyBB::INPUT_INT);
 if (!isset($CRON_TIPOS[$tipo])) {
     $tipo = 0;
 }
+$rol_filtro = $mybb->get_input('rol');
+if (!in_array($rol_filtro, ['personaje', 'narrador'], true)) {
+    $rol_filtro = '';
+}
 $ocultar_cerrados = $mybb->get_input('cerrados') === '0';
+
+if ($vista === 'roles' && !$puede_editar_roles) {
+    error_no_permission();
+}
 
 $y_input = $mybb->get_input('y', MyBB::INPUT_INT);
 $t_input = strtolower((string)$mybb->get_input('t'));
@@ -177,7 +224,10 @@ $query = $db->query("
     GROUP BY t.tid, t.subject, t.year, t.estacion, t.day, t.prefix, t.closed, t.dateline, t.fid, f.parentlist, f.parent_isla
 ");
 
-$temas = [];
+// $temas_todos: todo tema fechado y de la zona de rol, SIN aplicar todavía
+// los filtros de cerrados/tipo/rol (los necesita tal cual la pestaña "Marcar
+// roles" y el recálculo de tids válidos al guardar, diseño 6.5).
+$temas_todos = [];
 $hay_temas_fechados = false;
 while ($row = $db->fetch_array($query)) {
     $fecha = cron_normalizar_fecha($row['year'], $row['estacion'], $row['day']);
@@ -185,28 +235,99 @@ while ($row = $db->fetch_array($query)) {
         continue; // sin fecha válida: se omite
     }
     $hay_temas_fechados = true;
-    $cerrado = ((string)$row['closed'] === '1');
-    if ($ocultar_cerrados && $cerrado) {
-        continue;
-    }
-    $prefijo = (int)$row['prefix'];
-    if ($tipo !== 0 && $prefijo !== $tipo) {
-        continue;
-    }
-    $temas[] = [
+    $temas_todos[] = [
         'tid'      => (int)$row['tid'],
         'titulo'   => (string)$row['subject'],
         'year'     => $fecha[0],
         'estacion' => $fecha[1],
         'dia'      => $fecha[2],
-        'prefijo'  => $prefijo,
-        'cerrado'  => $cerrado,
+        'prefijo'  => (int)$row['prefix'],
+        'cerrado'  => ((string)$row['closed'] === '1'),
         'posts'    => (int)$row['posts'],
         'dateline' => (int)$row['dateline'],
         'fid'      => (int)$row['fid'],
         'parentlist' => (string)$row['parentlist'],
         'parent_isla' => (int)$row['parent_isla'],
+        'rol'      => 'personaje',
     ];
+}
+
+// ─── Rol propio (personaje/narrador) en cada tema ─────────────────────────────
+// Sin fila en la tabla, el rol efectivo es 'personaje' (diseño 6.5.1).
+if ($temas_todos) {
+    $tids_propios = implode(',', array_column($temas_todos, 'tid'));
+    $q = $db->query("SELECT tid, rol FROM mybb_op_thread_roles WHERE uid = {$uid} AND tid IN ({$tids_propios})");
+    $mapa_rol_propio = [];
+    while ($r = $db->fetch_array($q)) {
+        $mapa_rol_propio[(int)$r['tid']] = (string)$r['rol'];
+    }
+    foreach ($temas_todos as $i => $tm) {
+        if (isset($mapa_rol_propio[$tm['tid']])) {
+            $temas_todos[$i]['rol'] = $mapa_rol_propio[$tm['tid']];
+        }
+    }
+    unset($mapa_rol_propio);
+}
+
+// ─── Guardado de roles (pestaña "Marcar roles", diseño 6.5.2) ─────────────────
+$roles_guardados = false;
+if ($mybb->request_method === 'post' && $mybb->get_input('action') === 'guardar_roles') {
+    if (!$puede_editar_roles) {
+        error_no_permission();
+    }
+    if (!verify_post_check($mybb->get_input('my_post_key', MyBB::INPUT_STRING), true)) {
+        error_no_permission();
+    }
+    // Recalcular en servidor los tid válidos (Aventura/Evento donde este uid participó)
+    // y su rol actual: nunca se confía en la lista de tid que manda el formulario. El
+    // formulario manda el radio de cada fila aunque no se haya tocado, así que se
+    // compara contra el rol ya guardado para no escribir lo que no cambió.
+    $tids_validos = [];
+    foreach ($temas_todos as $tm) {
+        if (in_array($tm['prefijo'], CRON_TIPOS_NARRABLES, true)) {
+            $tids_validos[$tm['tid']] = $tm['rol'];
+        }
+    }
+    $roles_post = $mybb->get_input('roles', MyBB::INPUT_ARRAY);
+    if ($roles_post && $tids_validos) {
+        $algo_cambio = false;
+        foreach ($roles_post as $tid_post => $rol_post) {
+            $tid_post = (int)$tid_post;
+            if (!isset($tids_validos[$tid_post]) || !in_array($rol_post, ['personaje', 'narrador'], true)) {
+                continue;
+            }
+            if ($tids_validos[$tid_post] === $rol_post) {
+                continue; // sin cambios: no hace falta escribir
+            }
+            $db->write_query("
+                INSERT INTO mybb_op_thread_roles (uid, tid, rol, dateline)
+                VALUES ({$uid}, {$tid_post}, '{$rol_post}', " . TIME_NOW . ")
+                ON DUPLICATE KEY UPDATE rol = VALUES(rol), dateline = VALUES(dateline)
+            ");
+            foreach ($temas_todos as $i => $tm) {
+                if ($tm['tid'] === $tid_post) {
+                    $temas_todos[$i]['rol'] = $rol_post;
+                }
+            }
+            $algo_cambio = true;
+        }
+        $roles_guardados = $algo_cambio;
+    }
+}
+
+// ─── Filtros de estación/lista/año: cerrados, tipo y rol ──────────────────────
+$temas = [];
+foreach ($temas_todos as $tm) {
+    if ($ocultar_cerrados && $tm['cerrado']) {
+        continue;
+    }
+    if ($tipo !== 0 && $tm['prefijo'] !== $tipo) {
+        continue;
+    }
+    if ($rol_filtro !== '' && $tm['rol'] !== $rol_filtro) {
+        continue;
+    }
+    $temas[] = $tm;
 }
 
 // ─── Isla de cada tema (a partir de la estructura de foros) ──────────────────
@@ -276,7 +397,7 @@ $si = $indice_estacion[$t];
 // ─── URLs ────────────────────────────────────────────────────────────────────
 function cron_url(array $extra = [])
 {
-    global $uid, $viewer_uid, $vista, $tipo, $ocultar_cerrados, $alcance_global, $orden_asc;
+    global $uid, $viewer_uid, $vista, $tipo, $rol_filtro, $ocultar_cerrados, $alcance_global, $orden_asc;
     $params = [];
     if ($uid !== $viewer_uid) {
         $params['uid'] = $uid;
@@ -292,6 +413,9 @@ function cron_url(array $extra = [])
     }
     if ($tipo !== 0) {
         $params['tipo'] = $tipo;
+    }
+    if ($rol_filtro !== '') {
+        $params['rol'] = $rol_filtro;
     }
     if ($ocultar_cerrados) {
         $params['cerrados'] = 0;
@@ -353,8 +477,32 @@ function cron_cargar_otros(array $tids)
     return $otros;
 }
 
+// ─── Narrador(es) marcados de cada tema (diseño 6.5.1) ────────────────────────
+// Global: se muestra igual en la cronología de cualquiera que también esté en el tema.
+function cron_cargar_narradores(array $tids)
+{
+    global $db;
+    $narradores = [];
+    if (!$tids) {
+        return $narradores;
+    }
+    $tids_sql = implode(',', array_map('intval', $tids));
+    $q = $db->query("
+        SELECT r.tid, COALESCE(fi.nombre, r.uid) AS nombre
+        FROM mybb_op_thread_roles r
+        LEFT JOIN mybb_op_fichas fi ON fi.fid = r.uid
+        WHERE r.tid IN ({$tids_sql}) AND r.rol = 'narrador'
+        ORDER BY r.tid, nombre
+    ");
+    while ($r = $db->fetch_array($q)) {
+        $narradores[(int)$r['tid']][] = $r['nombre'];
+    }
+    return $narradores;
+}
+
 // Estación y lista de estación: temas de la estación mostrada. La lista global carga los suyos por página.
 $otros = [];
+$narradores = [];
 if ($por_dia && ($vista === 'estacion' || ($vista === 'lista' && !$alcance_global))) {
     $tids = [];
     foreach ($por_dia as $lista) {
@@ -363,6 +511,7 @@ if ($por_dia && ($vista === 'estacion' || ($vista === 'lista' && !$alcance_globa
         }
     }
     $otros = cron_cargar_otros($tids);
+    $narradores = cron_cargar_narradores($tids);
 }
 
 // ─── Título y navegación ─────────────────────────────────────────────────────
@@ -382,7 +531,9 @@ if ($si < 3) {
 }
 
 // En la vista de año, anterior/siguiente mueven de año completo.
-if ($vista === 'anio') {
+if ($vista === 'roles') {
+    $titulo = 'Marcar roles';
+} elseif ($vista === 'anio') {
     $prev = $y > CRON_ANO_MIN ? [$y - 1, $t] : null;
     $next = $y < CRON_ANO_MAX ? [$y + 1, $t] : null;
     $titulo = 'Año ' . $y;
@@ -411,7 +562,10 @@ foreach ($CRON_TIPOS as $id => $label) {
 $chip_estacion = '<a class="opg-chip cron-chip' . ($vista === 'estacion' ? ' cron-chip--on' : '') . '" href="' . cron_url(['vista' => null, 'alcance' => null, 'orden' => null, 'y' => $y, 't' => $t]) . '">Estación</a>';
 $chip_lista    = '<a class="opg-chip cron-chip' . ($vista === 'lista' ? ' cron-chip--on' : '') . '" href="' . cron_url(['vista' => 'lista', 'alcance' => null, 'orden' => null, 'y' => $y, 't' => $t]) . '">Lista</a>';
 $chip_anio     = '<a class="opg-chip cron-chip' . ($vista === 'anio' ? ' cron-chip--on' : '') . '" href="' . cron_url(['vista' => 'anio', 'alcance' => null, 'orden' => null, 'y' => $y, 't' => $t]) . '">Año</a>';
-$chip_ultimo   = ($ultimo && !$alcance_global)
+$chip_roles    = $puede_editar_roles
+    ? '<a class="opg-chip cron-chip' . ($vista === 'roles' ? ' cron-chip--on' : '') . '" href="' . cron_url(['vista' => 'roles', 'alcance' => null, 'orden' => null, 'tipo' => null, 'rol' => null, 'cerrados' => null]) . '">Marcar roles</a>'
+    : '';
+$chip_ultimo   = ($ultimo && !$alcance_global && $vista !== 'roles')
     ? '<a class="opg-chip cron-chip" href="' . cron_url(['y' => $ultimo['year'], 't' => $ultimo['estacion']]) . '">Ir al último tema</a>'
     : '';
 
@@ -441,20 +595,34 @@ $campos_fecha = $alcance_global ? '' : '
         <input id="cron-y" name="y" type="number" min="' . CRON_ANO_MIN . '" max="' . CRON_ANO_MAX . '" value="' . $y . '"></div>
     <div class="af-field"><label for="cron-t">Estación</label>
         <select id="cron-t" name="t">' . $opciones_t . '</select></div>';
+$opciones_rol = '<option value="">Todos</option>'
+    . '<option value="personaje"' . ($rol_filtro === 'personaje' ? ' selected' : '') . '>Personaje</option>'
+    . '<option value="narrador"' . ($rol_filtro === 'narrador' ? ' selected' : '') . '>Narrador</option>';
 
-$controles = '
+// "Marcar roles" no participa de la navegación por estación/año ni de los filtros (diseño 7.3.3)
+if ($vista === 'roles') {
+    $controles = '
+<div class="cron-controles">
+    <div class="cron-nav"><h2 class="cron-periodo">' . htmlspecialchars_uni($titulo) . '</h2></div>
+    <div class="cron-vistas">' . $chip_estacion . $chip_lista . $chip_anio . $chip_roles . '</div>
+</div>';
+} else {
+    $controles = '
 <div class="cron-controles">
     ' . $nav_html . '
-    <div class="cron-vistas">' . $chip_estacion . $chip_lista . $chip_anio . $chip_ultimo . '</div>
+    <div class="cron-vistas">' . $chip_estacion . $chip_lista . $chip_anio . $chip_roles . $chip_ultimo . '</div>
 </div>
 ' . $subvistas . '
 <form method="get" action="cronologia.php" class="cron-filtros">
     ' . $hidden_uid . $hidden_vista . $campos_fecha . '
     <div class="af-field"><label for="cron-tipo">Tipo de tema</label>
         <select id="cron-tipo" name="tipo">' . $opciones_tipo . '</select></div>
+    <div class="af-field"><label for="cron-rol">Rol</label>
+        <select id="cron-rol" name="rol">' . $opciones_rol . '</select></div>
     <label class="cron-check"><input type="checkbox" name="cerrados" value="0"' . ($ocultar_cerrados ? ' checked' : '') . '> Ocultar cerrados</label>
     <button class="btn-op btn-op--sm btn-op--primario" type="submit">Aplicar</button>
 </form>';
+}
 
 // ─── Vista de estación ───────────────────────────────────────────────────────
 function cron_fecha_texto($dia, $t, $y)
@@ -478,12 +646,18 @@ if ($vista === 'estacion') {
         $eventos = '';
         foreach (array_slice($lista, 0, 2) as $tema) {
             $nombre_tipo = $CRON_ETIQUETAS[$tema['prefijo']] ?? 'Sin tipo';
-            // Con el filtro en "Todos" el tipo no es evidente: se antepone al título
+            $mostrar_rol = cron_rol_mostrar($tema['prefijo']);
+            // Con el filtro en "Todos" el tipo (y, si aplica, el rol) no son evidentes: se anteponen al título
             $etiqueta_tipo = $tipo === 0
                 ? '<span class="cron-tipo cron-tipo--' . cron_tipo_clase($tema['prefijo']) . '">' . htmlspecialchars_uni($nombre_tipo) . '</span> '
                 : '';
-            $eventos .= '<a class="cron-evento" href="' . htmlspecialchars(cron_url_tema($tema['tid']), ENT_QUOTES, 'UTF-8')
-                . '" title="' . htmlspecialchars_uni($nombre_tipo . ' · ' . $tema['titulo'] . ($tema['isla'] !== '' ? ' — ' . $tema['isla'] : '')) . '">'
+            $etiqueta_tipo .= $mostrar_rol
+                ? '<span class="cron-rol cron-rol--' . $tema['rol'] . '">' . cron_rol_texto($tema['rol']) . '</span> '
+                : '';
+            $etiqueta_tipo .= '<span class="cron-tid">#' . $tema['tid'] . '</span> ';
+            $titulo_extra = $mostrar_rol ? ' · ' . cron_rol_texto($tema['rol']) : '';
+            $eventos .= '<a class="cron-evento" hx-boost="false" href="' . htmlspecialchars(cron_url_tema($tema['tid']), ENT_QUOTES, 'UTF-8')
+                . '" title="' . htmlspecialchars_uni($nombre_tipo . $titulo_extra . ' · #' . $tema['tid'] . ' · ' . $tema['titulo'] . ($tema['isla'] !== '' ? ' — ' . $tema['isla'] : '')) . '">'
                 . $etiqueta_tipo . htmlspecialchars_uni($tema['titulo']) . '</a>';
         }
         if ($n > 2) {
@@ -501,6 +675,7 @@ if ($vista === 'estacion') {
         foreach ($lista as $tema) {
             $lista_otros = $otros[$tema['tid']] ?? [];
             $json_dias[$d][] = [
+                'tid'      => $tema['tid'],
                 'titulo'   => $tema['titulo'],
                 'url'      => cron_url_tema($tema['tid']),
                 'isla'     => $tema['isla'],
@@ -511,6 +686,10 @@ if ($vista === 'estacion') {
                 'posts'    => $tema['posts'],
                 'otros'    => array_slice($lista_otros, 0, CRON_MAX_OTROS),
                 'masOtros' => max(0, count($lista_otros) - CRON_MAX_OTROS),
+                'narradores' => $narradores[$tema['tid']] ?? [],
+                'rolMostrar' => cron_rol_mostrar($tema['prefijo']),
+                'rol'      => $tema['rol'],
+                'rolTexto' => cron_rol_texto($tema['rol']),
             ];
         }
     }
@@ -532,12 +711,12 @@ function cron_isla_html($nombre, $url)
     }
     $n = htmlspecialchars_uni($nombre);
     return $url !== ''
-        ? '<a class="cron-isla" href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '">' . $n . '</a>'
+        ? '<a class="cron-isla" hx-boost="false" href="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '">' . $n . '</a>'
         : '<span class="cron-isla">' . $n . '</span>';
 }
 
 // Una fila de la vista de lista (estación y global)
-function cron_fila_html(array $tema, array $otros)
+function cron_fila_html(array $tema, array $otros, array $narradores = [])
 {
     global $CRON_ETIQUETAS;
     $lista_otros = $otros[$tema['tid']] ?? [];
@@ -546,13 +725,21 @@ function cron_fila_html(array $tema, array $otros)
         $otros_html = '<div class="cron-tema-otros">Con: ' . htmlspecialchars_uni(implode(', ', array_slice($lista_otros, 0, CRON_MAX_OTROS)))
             . (count($lista_otros) > CRON_MAX_OTROS ? ' +' . (count($lista_otros) - CRON_MAX_OTROS) : '') . '</div>';
     }
+    $lista_narradores = $narradores[$tema['tid']] ?? [];
+    $narradores_html = $lista_narradores
+        ? '<div class="cron-tema-narra">Narra: ' . htmlspecialchars_uni(implode(', ', $lista_narradores)) . '</div>'
+        : '';
+    $rol_html = cron_rol_mostrar($tema['prefijo'])
+        ? '<span class="cron-tag cron-rol cron-rol--' . $tema['rol'] . '">' . cron_rol_texto($tema['rol']) . '</span>'
+        : '';
     return '<div class="cron-tema cron-fila"><span class="cron-fila-dia">Día ' . $tema['dia'] . '</span><div class="cron-fila-cuerpo">'
-        . '<a class="cron-tema-titulo" href="' . htmlspecialchars(cron_url_tema($tema['tid']), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars_uni($tema['titulo']) . '</a>'
-        . '<div class="cron-tema-meta">' . cron_isla_html($tema['isla'], $tema['isla_url'])
+        . '<a class="cron-tema-titulo" hx-boost="false" href="' . htmlspecialchars(cron_url_tema($tema['tid']), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars_uni($tema['titulo']) . '</a>'
+        . '<div class="cron-tema-meta"><span class="cron-tid">#' . $tema['tid'] . '</span>' . cron_isla_html($tema['isla'], $tema['isla_url'])
         . '<span class="cron-tag cron-tipo cron-tipo--' . cron_tipo_clase($tema['prefijo']) . '">' . htmlspecialchars_uni($CRON_ETIQUETAS[$tema['prefijo']] ?? 'Sin tipo') . '</span>'
+        . $rol_html
         . '<span class="cron-tag ' . ($tema['cerrado'] ? 'cron-tag--cerrado' : 'cron-tag--abierto') . '">' . ($tema['cerrado'] ? 'Cerrado' : 'Abierto') . '</span>'
         . '<span class="cron-tema-posts">' . $tema['posts'] . ($tema['posts'] === 1 ? ' post' : ' posts') . '</span></div>'
-        . $otros_html . '</div></div>';
+        . $otros_html . $narradores_html . '</div></div>';
 }
 
 // Números de página con "…" en los rangos largos
@@ -594,7 +781,7 @@ if ($vista === 'lista' && !$alcance_global) {
     $filas = '';
     foreach ($por_dia as $lista) {
         foreach ($lista as $tema) {
-            $filas .= cron_fila_html($tema, $otros);
+            $filas .= cron_fila_html($tema, $otros, $narradores);
         }
     }
     $vista_html = '<div class="cron-cuadro"><div class="cron-barra">' . htmlspecialchars_uni($titulo) . '</div>'
@@ -629,6 +816,7 @@ if ($alcance_global) {
         }
 
         $otros = cron_cargar_otros(array_column($tramo, 'tid'));
+        $narradores = cron_cargar_narradores(array_column($tramo, 'tid'));
 
         $filas = '';
         $clave_actual = '';
@@ -640,7 +828,7 @@ if ($alcance_global) {
                 $filas .= '<div class="cron-grupo season-' . $tema['estacion'] . '">' . $CRON_ESTACIONES[$tema['estacion']] . ' ' . $tema['year']
                     . ' <small>' . $n . ($n === 1 ? ' tema' : ' temas') . '</small></div>';
             }
-            $filas .= cron_fila_html($tema, $otros);
+            $filas .= cron_fila_html($tema, $otros, $narradores);
         }
 
         $pag = cron_paginacion_html($pagina, $paginas, $desde, $hasta, $total);
@@ -669,9 +857,58 @@ if ($vista === 'anio') {
     $vista_html .= '</div>';
 }
 
+// ─── Vista "Marcar roles" (diseño 7.3.3) ──────────────────────────────────────
+if ($vista === 'roles') {
+    $temas_editables = array_values(array_filter($temas_todos, function ($tm) {
+        return in_array($tm['prefijo'], CRON_TIPOS_NARRABLES, true);
+    }));
+    usort($temas_editables, function ($a, $b) use ($indice_estacion) {
+        return [$b['year'], $indice_estacion[$b['estacion']], $b['dia'], $b['dateline']]
+            <=> [$a['year'], $indice_estacion[$a['estacion']], $a['dia'], $a['dateline']];
+    });
+
+    $aviso_guardado = $roles_guardados ? '<p class="cron-roles-aviso">Cambios guardados.</p>' : '';
+
+    if (!$temas_editables) {
+        $vista_html = $aviso_guardado . '<p class="opg-vacio">Este personaje no tiene temas de Aventura o Evento para marcar.</p>';
+    } else {
+        // Paginación de 100 en 100, igual que el modo lista global (diseño 7.3.2)
+        $total_editables = count($temas_editables);
+        $paginas_editables = max(1, (int)ceil($total_editables / CRON_POR_PAGINA));
+        $pagina = min($pagina, $paginas_editables);
+        $tramo_editables = array_slice($temas_editables, ($pagina - 1) * CRON_POR_PAGINA, CRON_POR_PAGINA);
+        $desde_editables = ($pagina - 1) * CRON_POR_PAGINA + 1;
+        $hasta_editables = $desde_editables + count($tramo_editables) - 1;
+
+        $filas_roles = '';
+        foreach ($tramo_editables as $tm) {
+            $es_narrador = $tm['rol'] === 'narrador';
+            $filas_roles .= '<div class="cron-tema cron-fila-rol"><div class="cron-fila-rol-info">'
+                . '<a class="cron-tema-titulo" hx-boost="false" href="' . htmlspecialchars(cron_url_tema($tm['tid']), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars_uni($tm['titulo']) . '</a>'
+                . '<div class="cron-tema-meta"><span class="cron-tid">#' . $tm['tid'] . '</span>'
+                . '<span>' . htmlspecialchars_uni(cron_fecha_texto($tm['dia'], $tm['estacion'], $tm['year'])) . '</span></div></div>'
+                . '<div class="cron-rol-selector">'
+                . '<label><input type="radio" name="roles[' . $tm['tid'] . ']" value="personaje"' . (!$es_narrador ? ' checked' : '') . '> Personaje</label>'
+                . '<label><input type="radio" name="roles[' . $tm['tid'] . ']" value="narrador"' . ($es_narrador ? ' checked' : '') . '> Narrador</label>'
+                . '</div></div>';
+        }
+        $pag_roles = cron_paginacion_html($pagina, $paginas_editables, $desde_editables, $hasta_editables, $total_editables);
+        $vista_html = $aviso_guardado . $pag_roles . '<form method="post" hx-boost="false" action="'
+            . cron_url(['vista' => 'roles', 'tipo' => null, 'rol' => null, 'cerrados' => null, 'pagina' => $pagina > 1 ? $pagina : null]) . '" class="cron-roles-form">'
+            . '<input type="hidden" name="action" value="guardar_roles">'
+            . '<input type="hidden" name="my_post_key" value="' . htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8') . '">'
+            . $hidden_uid
+            . '<div class="cron-roles-guardar"><button class="btn-op btn-op--sm btn-op--primario" type="submit">Guardar cambios</button></div>'
+            . '<div class="cron-cuadro"><div class="cron-barra">' . htmlspecialchars_uni($titulo) . '</div>'
+            . '<div class="cron-cuerpo cron-lista">' . $filas_roles . '</div></div>'
+            . '<div class="cron-roles-guardar"><button class="btn-op btn-op--sm btn-op--primario" type="submit">Guardar cambios</button></div>'
+            . '</form>' . $pag_roles;
+    }
+}
+
 // ─── Mensaje si no hay temas que mostrar ─────────────────────────────────────
 $mensaje_vacio = '';
-if (!$temas) {
+if ($vista !== 'roles' && !$temas) {
     $mensaje_vacio = $hay_temas_fechados
         ? '<p class="opg-vacio">Ningún tema coincide con los filtros.</p>'
         : '<p class="opg-vacio">Sin temas registrados para este personaje.</p>';
@@ -681,64 +918,89 @@ $chip_mia = $uid !== $viewer_uid
     ? '<a class="opg-chip cron-chip" href="cronologia.php">Ver mi cronología</a>'
     : '';
 
+// ─── Guía plegable "Cómo funciona la cronología" (mismo formato que la Bitácora) ─
+// id + hx-preserve: htmx conserva el bloque (y si está abierto o cerrado) al cambiar de vista.
+$cron_guia = <<<'HTML'
+<details class="cron-guia" id="cron-guia" hx-preserve="true">
+    <summary>
+        <span><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Cómo funciona la cronología</span>
+        <i class="fa-solid fa-chevron-down cron-guia__flecha" aria-hidden="true"></i>
+    </summary>
+    <div class="cron-guia__contenido">
+        <p class="cron-guia__intro"><strong>La Cronología ubica en un calendario los temas de rol de un personaje,</strong> según su fecha (año, estación, día). Abre en la estación de su último tema; te movés por el tiempo sin recargar.</p>
+
+        <div class="cron-guia__secciones">
+            <section>
+                <h3><span>1</span> Qué aparece</h3>
+                <ul>
+                    <li>Temas de la zona de rol donde el personaje publicó, con fecha válida (año ≥ 700, día 1-90). Sin fecha, no aparece.</li>
+                    <li>Solo ves los que tu cuenta puede abrir en el foro.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3><span>2</span> El calendario</h3>
+                <ul>
+                    <li>90 días por estación, 4 estaciones por año. Sin semanas.</li>
+                    <li>Los días con temas se resaltan; con varios, un contador y orden por fecha de creación.</li>
+                    <li>La fecha la pone quien crea el tema; el staff la corrige si hace falta.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3><span>3</span> Las vistas</h3>
+                <ul>
+                    <li><strong>Estación:</strong> los 90 días. <strong>Año:</strong> las 4 estaciones de un vistazo.</li>
+                    <li><strong>Lista:</strong> títulos completos, de esta estación o de todo el historial (por año y estación, paginado de 100, orden invertible).</li>
+                    <li><strong>Marcar roles:</strong> en tus Aventuras/Evento, marca si participaste con tu personaje o como narrador (el staff puede corregir el de otros).</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3><span>4</span> Ventana del día</h3>
+                <ul>
+                    <li>Hover o clic en un día con temas los muestra; clic lo fija con enlaces activos. Se cierra con la X, Escape o clic afuera.</li>
+                    <li>Cada tema: <strong>#tid</strong>, isla, tipo, estado, posts, otros participantes y, si hay narrador, quién narra.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3><span>5</span> Filtros y personajes</h3>
+                <ul>
+                    <li>Filtra por <strong>tipo</strong>, por <strong>rol</strong> (con "Todos" se ve el color de cada uno) y oculta cerrados.</li>
+                    <li>El buscador de la cabecera abre la cronología de otro personaje por nombre, apodo o ID.</li>
+                    <li><strong>Ver mi cronología</strong> vuelve a la tuya; <strong>Ver ficha</strong> abre la del personaje.</li>
+                </ul>
+            </section>
+        </div>
+
+        <p class="cron-guia__nota"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> <strong>En resumen:</strong> se arma sola con tus temas y su fecha; nada que configurar. Si un tema no aparece, revisa que tenga fecha válida.</p>
+    </div>
+</details>
+HTML;
+
 $calendar_html = '
 <header class="cron-cabecera">
     <h1 class="cron-titulo">Cronología de ' . $nombre_personaje . '</h1>
     <div class="cron-buscar opg-buscar-caja">
         <input type="search" id="cron-buscar" name="q" autocomplete="off" placeholder="Buscar otro personaje" aria-label="Buscar otro personaje"
             aria-autocomplete="list" aria-controls="cron-resultados"
-            hx-get="cronologia.php" hx-trigger="keyup changed delay:250ms" hx-target="#cron-resultados" hx-vals=\'{"action":"buscar_personajes"}\'>
+            hx-get="cronologia.php" hx-trigger="keyup changed delay:250ms" hx-target="#cron-resultados" hx-select="unset" hx-swap="innerHTML" hx-push-url="false" hx-indicator="closest .cron-buscar" hx-vals=\'{"action":"buscar_personajes"}\'>
         <div class="opg-resultados cron-resultados" id="cron-resultados" role="listbox"></div>
     </div>
-    <div class="cron-cabecera-links">' . $chip_mia . '<a class="opg-volver cron-volver" href="personaje.php?uid=' . $uid . '">&larr; Ver ficha</a></div>
+    <div class="cron-cabecera-links">' . $chip_mia . '<a class="opg-volver cron-volver" hx-boost="false" href="personaje.php?uid=' . $uid . '">&larr; Ver ficha</a></div>
 </header>
-' . $controles . $mensaje_vacio . $vista_html;
+' . $cron_guia . $controles . $mensaje_vacio . $vista_html;
 
 // En el modo global no hay una estación única: acento neutro (naranja) para la barra y los chips de día
 $cron_clase = $alcance_global ? '' : 'season-' . $t;
 
+// Un solo script, siempre presente y fuera de #cron-raiz: usa delegación de eventos
+// sobre document porque htmx reemplaza los elementos de la cronología en cada cambio.
 $cronologia_script = '<script>' . <<<'JS'
 (function () {
-    var campo = document.getElementById('cron-buscar');
-    var lista = document.getElementById('cron-resultados');
-    if (!campo || !lista) { return; }
-
-    function ir(fid) { window.location.href = 'cronologia.php?uid=' + encodeURIComponent(fid); }
-
-    lista.addEventListener('click', function (e) {
-        var op = e.target.closest('.cron-opcion');
-        if (op) { ir(op.getAttribute('data-fid')); }
-    });
-    campo.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            var primera = lista.querySelector('.cron-opcion');
-            if (primera) { ir(primera.getAttribute('data-fid')); }
-        } else if (e.key === 'Escape') {
-            lista.textContent = '';
-        }
-    });
-    campo.addEventListener('input', function () {
-        if (campo.value.trim().length < 3) { lista.textContent = ''; }
-    });
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.cron-buscar')) { lista.textContent = ''; }
-    });
-})();
-JS
-    . '</script>';
-
-if ($vista === 'estacion') {
-    $cronologia_script .= '<script>' . <<<'JS'
-(function () {
-    var grid = document.getElementById('cron-grid');
-    var overlay = document.getElementById('cron-overlay');
-    if (!grid || !overlay) { return; }
-    var datos;
-    try { datos = JSON.parse(grid.getAttribute('data-dias')); } catch (e) { return; }
-
-    var fijado = null;     // celda fijada con clic
-    var temporizador = null;
+    var fijado = null;        // casilla fijada con clic
+    var temporizador = null;  // retraso del hover
 
     function el(tag, clase, texto) {
         var n = document.createElement(tag);
@@ -746,35 +1008,48 @@ if ($vista === 'estacion') {
         if (texto !== undefined) { n.textContent = texto; }
         return n;
     }
+    function cerca(e, selector) { return e.target && e.target.closest ? e.target.closest(selector) : null; }
+    function overlay() { return document.getElementById('cron-overlay'); }
+    function datos() {
+        var g = document.getElementById('cron-grid');
+        if (!g) { return null; }
+        try { return JSON.parse(g.getAttribute('data-dias')); } catch (e) { return null; }
+    }
 
+    // ── Overlay del día ─────────────────────────────────────────────────────
     function pintar(dia, conBoton) {
-        var temas = datos.temas[dia];
-        if (!temas) { return false; }
-        overlay.textContent = '';
+        var d = datos(), ov = overlay();
+        if (!d || !ov || !d.temas[dia]) { return false; }
+        ov.textContent = '';
         var barra = el('div', 'cron-barra cron-overlay-barra');
-        barra.appendChild(el('span', '', datos.fechas[dia]));
+        barra.appendChild(el('span', '', d.fechas[dia]));
         if (conBoton) {
             var cerrar = el('button', 'cron-overlay-cerrar', '×');
             cerrar.type = 'button';
             cerrar.setAttribute('aria-label', 'Cerrar');
             barra.appendChild(cerrar);
         }
-        overlay.appendChild(barra);
+        ov.appendChild(barra);
 
         var cuerpo = el('div', 'cron-cuerpo cron-lista');
-        temas.forEach(function (t) {
+        d.temas[dia].forEach(function (t) {
             var fila = el('div', 'cron-tema');
             var enlace = el('a', 'cron-tema-titulo', t.titulo);
             enlace.href = t.url;
+            enlace.setAttribute('hx-boost', 'false');
             fila.appendChild(enlace);
 
             var meta = el('div', 'cron-tema-meta');
+            meta.appendChild(el('span', 'cron-tid', '#' + t.tid));
             if (t.isla) {
                 var isla = el(t.islaUrl ? 'a' : 'span', 'cron-isla', t.isla);
-                if (t.islaUrl) { isla.href = t.islaUrl; }
+                if (t.islaUrl) { isla.href = t.islaUrl; isla.setAttribute('hx-boost', 'false'); }
                 meta.appendChild(isla);
             }
             meta.appendChild(el('span', 'cron-tag cron-tipo cron-tipo--' + t.tipoClase, t.tipo));
+            if (t.rolMostrar) {
+                meta.appendChild(el('span', 'cron-tag cron-rol cron-rol--' + t.rol, t.rolTexto));
+            }
             meta.appendChild(el('span', 'cron-tag ' + (t.cerrado ? 'cron-tag--cerrado' : 'cron-tag--abierto'), t.cerrado ? 'Cerrado' : 'Abierto'));
             meta.appendChild(el('span', 'cron-tema-posts', t.posts + (t.posts === 1 ? ' post' : ' posts')));
             fila.appendChild(meta);
@@ -782,82 +1057,126 @@ if ($vista === 'estacion') {
             if (t.otros.length) {
                 fila.appendChild(el('div', 'cron-tema-otros', 'Con: ' + t.otros.join(', ') + (t.masOtros ? ' +' + t.masOtros : '')));
             }
+            if (t.narradores && t.narradores.length) {
+                fila.appendChild(el('div', 'cron-tema-narra', 'Narra: ' + t.narradores.join(', ')));
+            }
             cuerpo.appendChild(fila);
         });
-        overlay.appendChild(cuerpo);
+        ov.appendChild(cuerpo);
         return true;
     }
 
     function ocultar() {
         clearTimeout(temporizador);
-        overlay.hidden = true;
-        overlay.classList.remove('cron-overlay--fijo');
+        var ov = overlay();
+        if (ov) { ov.hidden = true; ov.classList.remove('cron-overlay--fijo'); }
     }
-
     function soltar() {
         if (fijado) { fijado.classList.remove('cron-dia--sel'); }
         fijado = null;
         ocultar();
     }
-
     function mostrarHover(celda) {
         if (fijado) { return; }
         clearTimeout(temporizador);
         temporizador = setTimeout(function () {
-            if (pintar(celda.getAttribute('data-dia'), false)) { overlay.hidden = false; }
+            var ov = overlay();
+            if (ov && pintar(celda.getAttribute('data-dia'), false)) { ov.hidden = false; }
         }, 150);
     }
-
     function fijar(celda) {
         clearTimeout(temporizador);
         if (fijado) { fijado.classList.remove('cron-dia--sel'); }
-        if (!pintar(celda.getAttribute('data-dia'), true)) { return; }
+        var ov = overlay();
+        if (!ov || !pintar(celda.getAttribute('data-dia'), true)) { return; }
         fijado = celda;
         celda.classList.add('cron-dia--sel');
-        overlay.classList.add('cron-overlay--fijo');
-        overlay.hidden = false;
+        ov.classList.add('cron-overlay--fijo');
+        ov.hidden = false;
     }
 
-    grid.addEventListener('mouseover', function (e) {
-        var celda = e.target.closest('.cron-dia--con');
-        if (celda) { mostrarHover(celda); }
+    document.addEventListener('mouseover', function (e) {
+        var c = cerca(e, '.cron-dia--con');
+        if (c) { mostrarHover(c); }
     });
-    grid.addEventListener('mouseout', function (e) {
-        var celda = e.target.closest('.cron-dia--con');
-        if (!celda || fijado) { return; }
-        if (e.relatedTarget && celda.contains(e.relatedTarget)) { return; }
+    document.addEventListener('mouseout', function (e) {
+        var c = cerca(e, '.cron-dia--con');
+        if (!c || fijado) { return; }
+        if (e.relatedTarget && c.contains(e.relatedTarget)) { return; }
         ocultar();
     });
-    grid.addEventListener('focusin', function (e) {
-        var celda = e.target.closest('.cron-dia--con');
-        if (celda) { mostrarHover(celda); }
+    document.addEventListener('focusin', function (e) {
+        var c = cerca(e, '.cron-dia--con');
+        if (c) { mostrarHover(c); }
     });
-    grid.addEventListener('focusout', function () { if (!fijado) { ocultar(); } });
-
-    grid.addEventListener('click', function (e) {
-        if (e.target.closest('a')) { return; }
-        var celda = e.target.closest('.cron-dia--con');
-        if (celda) { fijar(celda); }
-    });
-    grid.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter' && e.key !== ' ') { return; }
-        var celda = e.target.closest('.cron-dia--con');
-        if (celda) { e.preventDefault(); fijar(celda); }
+    document.addEventListener('focusout', function (e) {
+        if (!fijado && cerca(e, '.cron-dia--con')) { ocultar(); }
     });
 
-    overlay.addEventListener('click', function (e) {
-        if (e.target.closest('.cron-overlay-cerrar')) { soltar(); }
-    });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { soltar(); } });
+    // ── Clics y teclado (overlay y buscador) ────────────────────────────────
+    function ir(fid) { window.location.href = 'cronologia.php?uid=' + encodeURIComponent(fid); }
+
     document.addEventListener('click', function (e) {
-        if (!fijado) { return; }
-        if (e.target.closest('#cron-overlay') || e.target.closest('.cron-dia--con')) { return; }
-        soltar();
+        var op = cerca(e, '.cron-opcion');
+        if (op) { ir(op.getAttribute('data-fid')); return; }
+
+        if (cerca(e, '.cron-overlay-cerrar')) { soltar(); return; }
+        if (cerca(e, 'a')) { return; }
+        var c = cerca(e, '.cron-dia--con');
+        if (c) { fijar(c); return; }
+
+        if (fijado && !cerca(e, '#cron-overlay')) { soltar(); }
+        var lista = document.getElementById('cron-resultados');
+        if (lista && !cerca(e, '.cron-buscar')) { lista.textContent = ''; }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            soltar();
+            var l = document.getElementById('cron-resultados');
+            if (l) { l.textContent = ''; }
+            return;
+        }
+        if (e.target && e.target.id === 'cron-buscar' && e.key === 'Enter') {
+            e.preventDefault();
+            var primera = document.querySelector('#cron-resultados .cron-opcion');
+            if (primera) { ir(primera.getAttribute('data-fid')); }
+            return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+            var c = cerca(e, '.cron-dia--con');
+            if (c) { e.preventDefault(); fijar(c); }
+        }
+    });
+
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.id === 'cron-buscar' && e.target.value.trim().length < 3) {
+            var l = document.getElementById('cron-resultados');
+            if (l) { l.textContent = ''; }
+        }
+    });
+
+    // ── htmx: cambios de contenido sin recargar la página ───────────────────
+    document.addEventListener('htmx:beforeSwap', function (e) {
+        var d = e.detail;
+        if (!d || !d.target || d.target.id !== 'cron-raiz') { return; }
+        // Sin #cron-raiz en la respuesta (sesión caducada, error de MyBB): navegación normal
+        if (typeof d.serverResponse === 'string' && d.serverResponse.indexOf('id="cron-raiz"') === -1) {
+            d.shouldSwap = false;
+            window.location.href = d.pathInfo.finalRequestPath || d.pathInfo.requestPath;
+        }
+    });
+    document.addEventListener('htmx:afterSettle', function (e) {
+        var d = e.detail;
+        if (!d || !d.target || d.target.id !== 'cron-raiz') { return; }   // no para el typeahead
+        clearTimeout(temporizador);
+        fijado = null;
+        var t = document.querySelector('#cron-raiz .cron-periodo');
+        if (t) { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }
     });
 })();
 JS
     . '</script>';
-}
 
 add_breadcrumb('Cronología', 'cronologia.php');
 

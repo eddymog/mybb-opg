@@ -1,0 +1,388 @@
+<html>
+
+<head>
+    <title>Operador Den Den Mushi!!</title>
+    {$headerinclude}
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <style>
+    /* Página completa: se pisa el ancho fijo de .thirdBackground (1030px por
+       defecto en op_global.css) por 100%, para que el chat use todo el ancho
+       disponible en vez de quedar en una columna angosta — pedido explícito. */
+    .punkrecords-den .thirdBackground { width: 100%; gap: var(--opg-espacio-4); }
+
+    .pr-titulo { padding: var(--opg-espacio-2); }
+    .pr-titulo .barra-texto-op { font-size: 22px; letter-spacing: 1px; text-shadow: 2px 2px 0 black; }
+    .pr-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+
+    .aviso {
+        font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); padding: 10px 14px;
+    }
+    .aviso.err { background: var(--opg-rojo-error); }
+
+    /* Panel de chat: mensajes con scroll propio arriba, form fijo abajo — se
+       siente como una app de mensajería, no como un formulario de una sola
+       pregunta/respuesta que recarga la página. */
+    /* Alto pensado para ocupar gran parte de la pantalla (pedido explícito):
+       .pr-chat fija el alto total del panel según el viewport, y
+       .pr-mensajes crece con flex:1 para llenar todo lo que sobra arriba
+       del formulario — así el chat domina la página en vez de quedar como
+       una cajita chica. min-height:0 es necesario para que un hijo flex con
+       overflow-y:auto pueda encogerse y scrollear en vez de desbordar. */
+    .pr-chat { display: flex; flex-direction: column; height: 78vh; min-height: 480px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-boton, #fcecd2); overflow: hidden; }
+
+    /* Cabecera fija con quién contesta — antes solo aparecía una vez, en el
+       párrafo de arriba de todo, y se perdía de vista al scrollear una
+       conversación larga. Al ser un hijo más de .pr-chat (flex column) y no
+       parte de #pr-mensajes (que es la única parte que scrollea), queda
+       fijo sin necesidad de position:sticky. */
+    .pr-chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--pr-color-faccion, #fff); border-bottom: 2px solid var(--opg-tinta); font-family: var(--opg-fuente-cuerpo); }
+    .pr-chat-header__punto { width: 8px; height: 8px; border-radius: 50%; background: var(--opg-verde-exito, #4caf50); flex-shrink: 0; }
+    .pr-chat-header__nombre { font-weight: bold; font-size: 13px; }
+
+    .pr-mensajes {
+        display: flex; flex-direction: column; gap: var(--opg-espacio-3);
+        padding: var(--opg-espacio-4); flex: 1; min-height: 0; overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+    .pr-mensajes:empty::before {
+        /* attr() en vez de texto fijo: cada facción tiene su propio mensaje
+           de bienvenida (ver pr_obtener_placeholder_vacio() en
+           punkrecords_rag.php), puesto en data-placeholder más abajo. */
+        content: attr(data-placeholder);
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); opacity: .8;
+        display: block; text-align: center; margin: auto;
+    }
+
+    .pr-turno { display: flex; flex-direction: column; gap: var(--opg-espacio-2); animation: pr-aparecer .25s ease-out; }
+    @keyframes pr-aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* .pr-fila envuelve avatar + burbuja; el orden de los dos hijos en el
+       HTML (avatar antes o después de la burbuja) más flex-direction acá
+       define de qué lado queda el avatar. El align-self que antes tenía la
+       burbuja se mueve a la fila, que es ahora el hijo directo de .pr-turno. */
+    .pr-fila { display: flex; align-items: flex-end; gap: 8px; }
+    .pr-fila--usuario { align-self: flex-end; flex-direction: row-reverse; }
+    .pr-fila--operador { align-self: flex-start; flex-direction: row; }
+    .pr-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--opg-tinta); object-fit: cover; flex-shrink: 0; background: #fff; }
+    .pr-avatar--generica { display: flex; align-items: center; justify-content: center; color: var(--opg-marron); font-size: 14px; background: var(--opg-crema-cuerpo, #ffe3a0); }
+
+    /* position:relative para poder anclar la "colita" (::before/::after) en
+       la esquina achatada de cada burbuja (border-bottom-*-radius: 2px más
+       abajo) — el mismo truco de borde transparente que usa cualquier UI de
+       chat (WhatsApp, iMessage) para simular el triangulito. */
+    .pr-burbuja { position: relative; max-width: min(720px, 88%); padding: 10px 14px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.6; }
+    .pr-burbuja--usuario { background: var(--opg-naranja, #ff8900); color: #fff; border-bottom-right-radius: 2px; }
+    .pr-burbuja--usuario::after {
+        content: ""; position: absolute; right: -9px; bottom: 0;
+        border: 9px solid transparent; border-left-color: var(--opg-naranja, #ff8900); border-bottom: 0; border-right: 0;
+    }
+    /* --pr-color-faccion: tinte suave según la facción del jugador (ver
+       pr_obtener_color_faccion() en punkrecords_rag.php) — blanco si no
+       tiene facción reconocida. Se define una vez en .pr-chat (ver más
+       abajo) y la heredan la burbuja y la cabecera del chat. */
+    .pr-burbuja--operador { background: var(--pr-color-faccion, #fff); border-bottom-left-radius: 2px; }
+    .pr-burbuja--operador::before {
+        content: ""; position: absolute; left: -9px; bottom: 0;
+        border: 9px solid transparent; border-right-color: var(--pr-color-faccion, #fff); border-bottom: 0; border-left: 0;
+    }
+    /* Error: antes era un rectángulo rojo sólido — se suaviza a un tinte
+       claro con borde y texto rojo, más "aviso" que "alarma", con un ícono
+       de advertencia antes del nombre del autor. */
+    .pr-burbuja--error { background: #fdeceb; color: var(--opg-tinta, #2a1a12); border-color: var(--opg-rojo-error); }
+    .pr-burbuja--error::before { border-right-color: #fdeceb; }
+    .pr-burbuja--error .pr-burbuja__autor { color: var(--opg-rojo-error); opacity: 1; }
+    .pr-burbuja--error .pr-burbuja__autor::before { content: "⚠ "; }
+    .pr-reintentar { margin-top: 8px; background: #fff; color: var(--opg-rojo-error); border: 1px solid var(--opg-rojo-error); border-radius: var(--opg-radio-md); padding: 4px 10px; font-size: 12px; cursor: pointer; }
+    .pr-reintentar:hover { background: var(--opg-rojo-error); color: #fff; }
+    .pr-burbuja__autor { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; opacity: .65; margin-bottom: 3px; }
+    .pr-burbuja__texto :first-child { margin-top: 0; }
+    /* Frase de sugerencia al final de la respuesta (pr_renderizar_sugerencia_fuentes()
+       en punkrecords_rag.php) — "Visita la Guía X en la sección de..." en vez
+       de una lista de notas al pie: se siente más a que el personaje te
+       recomienda dónde leer más, no a un documento con referencias numeradas. */
+    .pr-sugerencia-fuente { margin: 2px 0 0; font-size: 12px; color: var(--opg-marron); }
+    .pr-sugerencia-fuente:first-of-type { margin-top: var(--opg-espacio-2); padding-top: var(--opg-espacio-2); border-top: 1px dashed rgba(0, 0, 0, .15); }
+    .pr-sugerencia-fuente a { color: inherit; font-weight: bold; }
+
+    /* "Está escribiendo..." — misma forma de burbuja que una respuesta del
+       operador, para que la espera se sienta parte de la conversación y no
+       un spinner genérico aparte. htmx agrega/quita la clase htmx-request
+       automáticamente durante el POST; htmx.js ya trae el fundido de
+       .htmx-indicator, acá solo se define el layout y los puntitos. */
+    .pr-typing { display: none; align-items: center; gap: 8px; padding: 8px 14px var(--opg-espacio-2); font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); }
+    .pr-typing .pr-avatar { width: 20px; height: 20px; }
+    .htmx-request.pr-typing, .htmx-request .pr-typing { display: flex; }
+    .pr-typing__autor { font-weight: bold; opacity: .7; }
+    .pr-typing__dots { display: inline-flex; gap: 3px; }
+    .pr-typing__dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--opg-marron, #7a5230); display: inline-block; animation: pr-rebote 1s infinite ease-in-out; }
+    .pr-typing__dots i:nth-child(2) { animation-delay: .15s; }
+    .pr-typing__dots i:nth-child(3) { animation-delay: .3s; }
+    @keyframes pr-rebote { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-4px); opacity: 1; } }
+
+    .pr-form { padding: var(--opg-espacio-3) var(--opg-espacio-4); border-top: 2px solid var(--opg-tinta); display: flex; flex-direction: column; gap: var(--opg-espacio-2); background: var(--opg-crema-cuerpo, #ffe3a0); }
+    .pr-form-fila { display: flex; gap: var(--opg-espacio-2); align-items: flex-end; }
+    textarea#pr_pregunta { flex: 1; min-height: 64px; max-height: 200px; font-family: var(--opg-fuente-cuerpo); font-size: 14px; padding: 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); resize: vertical; }
+    textarea#pr_pregunta:disabled { opacity: .6; }
+    .pr-form-fila button { white-space: nowrap; }
+    /* Cambio de texto del botón durante el envío, sin JS: htmx agrega
+       htmx-request al formulario mismo (está listado dos veces en
+       hx-indicator, ver el form) mientras espera la respuesta. */
+    .pr-boton-enviando { display: none; }
+    .htmx-request .pr-boton-normal { display: none; }
+    .htmx-request .pr-boton-enviando { display: inline; }
+    .pr-contador { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); text-align: right; }
+
+    .pr-chat-barra { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-1); }
+    /* Barra de progreso en vez de solo texto (mejora de diseño): se escanea
+       de un vistazo, y se pone roja cuando queda poco en vez de que el
+       jugador se entere recién al toparse con el límite. */
+    .pr-cuota-texto { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); opacity: .85; }
+    .pr-cuota-barra { width: 140px; height: 6px; background: rgba(0, 0, 0, .12); border-radius: 3px; overflow: hidden; margin-top: 3px; }
+    .pr-cuota-barra__relleno { height: 100%; background: var(--opg-verde-exito, #4caf50); border-radius: 3px; transition: width .3s ease; }
+    .pr-cuota-barra__relleno--baja { background: var(--opg-rojo-error); }
+    .pr-reiniciar { background: none; border: none; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); cursor: pointer; text-decoration: underline; padding: 2px 4px; }
+    .pr-reiniciar:hover { opacity: .75; }
+    .pr-reiniciar:disabled { opacity: .4; cursor: default; text-decoration: none; }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice punkrecords-den">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div>
+            <div class="barra-op bbox pr-titulo"><span class="barra-texto-op">Operador Den Den Mushi</span></div>
+            <div class="barra-espacio-op bbox pr-descripcion">
+                Has marcado el Den Den Mushi de tu facción y del otro lado contesta {$operador_esc}, listo para resolver tus dudas sobre las guías y técnicas del foro. Puede equivocarse: cuando cite una guía, te va a decir cuál visitar.
+                Las preguntas se envían a un proveedor externo (Google); no incluyas datos personales.
+            </div>
+        </div>
+
+        <if $error_esc != '' then><p class="aviso err">{$error_esc}</p></if>
+
+        <div class="pr-chat-barra">
+            {$cuota_html}
+            <button type="button" id="pr_reiniciar" class="pr-reiniciar"><i class="fa fa-refresh" aria-hidden="true"></i> Reiniciar conversación</button>
+        </div>
+
+        <div class="pr-chat" style="--pr-color-faccion: {$color_faccion_esc};">
+            <div class="pr-chat-header">
+                <span class="pr-chat-header__punto"></span>
+                <span class="pr-chat-header__nombre">{$operador_esc}</span>
+            </div>
+            <div id="pr-mensajes" class="pr-mensajes" data-placeholder="{$placeholder_vacio_esc}" data-avatar-usuario="{$avatar_usuario_url_esc}">{$turno_inicial_html}</div>
+
+            <div id="pr-typing" class="pr-typing htmx-indicator">
+                {$avatar_operador_html}
+                <span class="pr-typing__autor">{$operador_esc}</span>
+                <span class="pr-typing__dots"><i></i><i></i><i></i></span>
+            </div>
+
+            <form method="post" action="/op/punkrecords.php" id="pr_form"
+                hx-post="/op/punkrecords.php" hx-target="#pr-mensajes" hx-swap="beforeend"
+                hx-indicator="#pr-typing, #pr_form"
+                hx-disabled-elt="#pr_pregunta, #pr_boton, #pr_reiniciar"
+                class="pr-form">
+                <input type="hidden" name="my_post_key" value="{$post_key}">
+                <input type="hidden" name="historial" id="pr_historial" value="[]">
+                <div class="pr-form-fila">
+                    <textarea id="pr_pregunta" name="pregunta" minlength="5" maxlength="500" required
+                        placeholder="Escribe tu pregunta sobre las guías..."></textarea>
+                    <button type="submit" id="pr_boton" class="btn-op btn-op--primario" disabled>
+                        <span class="pr-boton-normal">Preguntar</span>
+                        <span class="pr-boton-enviando">Enviando…</span>
+                    </button>
+                </div>
+                <div class="pr-contador"><span id="pr_contador_actual">0</span>/500</div>
+            </form>
+        </div>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var ta = document.getElementById('pr_pregunta');
+        var contador = document.getElementById('pr_contador_actual');
+        var boton = document.getElementById('pr_boton');
+        var form = document.getElementById('pr_form');
+        var mensajes = document.getElementById('pr-mensajes');
+        var historialCampo = document.getElementById('pr_historial');
+        var reiniciarBtn = document.getElementById('pr_reiniciar');
+
+        // Memoria de conversación: vive solo en esta variable de JS mientras
+        // la pestaña esté abierta — un refresh o cerrar la pestaña la borra
+        // (nunca se guarda en el servidor ni en localStorage a propósito).
+        // Se manda de vuelta al servidor en cada pregunta vía el input oculto
+        // "historial"; el límite de turnos acá es solo para no mandar un
+        // payload enorme — el servidor igual vuelve a acotarlo por su cuenta
+        // (pr_parsear_historial(), nunca confía en lo que mande el cliente).
+        var HISTORIAL_MAX = 3;
+        var historial = [];
+
+        function actualizar() {
+            contador.textContent = ta.value.length;
+            boton.disabled = ta.value.trim().length < 5;
+        }
+        ta.addEventListener('input', actualizar);
+        actualizar();
+
+        // Enter envía la pregunta (como en cualquier chat); Shift+Enter deja
+        // hacer un salto de línea normal, sin enviar. requestSubmit() dispara
+        // el 'submit' real del form (a diferencia de form.submit()), así que
+        // htmx lo sigue interceptando igual que un clic en "Preguntar".
+        ta.addEventListener('keydown', function (evento) {
+            if (evento.key === 'Enter' && !evento.shiftKey) {
+                evento.preventDefault();
+                if (!boton.disabled) {
+                    form.requestSubmit();
+                }
+            }
+        });
+
+        // Burbuja "optimista": se muestra la pregunta del jugador de
+        // inmediato en el chat, sin esperar la respuesta del servidor (que
+        // puede tardar unos segundos por la llamada a Gemini). Se arma con
+        // el DOM (textContent, no innerHTML) para que el texto del jugador
+        // nunca pueda inyectar HTML. Cuando llega la respuesta real (que
+        // trae su propia burbuja de usuario), esta se saca — por eso NO
+        // lleva la clase que usa el selector de memoria de conversación
+        // (.pr-turno[data-pregunta]), así nunca se confunde con un turno real.
+        function agregarBurbujaPendiente(texto) {
+            quitarBurbujaPendiente();
+
+            var turno = document.createElement('div');
+            turno.className = 'pr-turno';
+            turno.id = 'pr-pendiente';
+
+            var fila = document.createElement('div');
+            fila.className = 'pr-fila pr-fila--usuario';
+
+            var burbuja = document.createElement('div');
+            burbuja.className = 'pr-burbuja pr-burbuja--usuario';
+            var textoDiv = document.createElement('div');
+            textoDiv.className = 'pr-burbuja__texto';
+            textoDiv.textContent = texto;
+            burbuja.appendChild(textoDiv);
+            fila.appendChild(burbuja);
+
+            // Avatar del jugador: viene en data-avatar-usuario de #pr-mensajes
+            // (ya armado por format_avatar() de MyBB del lado del servidor,
+            // no cambia entre preguntas de la misma conversación).
+            var avatarUrl = mensajes.getAttribute('data-avatar-usuario');
+            if (avatarUrl) {
+                var avatarImg = document.createElement('img');
+                avatarImg.className = 'pr-avatar';
+                avatarImg.src = avatarUrl;
+                avatarImg.alt = '';
+                fila.appendChild(avatarImg);
+            }
+
+            turno.appendChild(fila);
+            mensajes.appendChild(turno);
+            mensajes.scrollTop = mensajes.scrollHeight;
+        }
+
+        function quitarBurbujaPendiente() {
+            var pendiente = document.getElementById('pr-pendiente');
+            if (pendiente) {
+                pendiente.remove();
+            }
+        }
+
+        // Auto-scroll de la respuesta: si el jugador subió a releer algo
+        // anterior mientras esperaba, que no lo saquen de ahí de un tirón —
+        // solo se baja solo si ya estaba cerca del final. El envío de la
+        // PROPIA pregunta (agregarBurbujaPendiente) sí siempre hace scroll:
+        // es la acción del jugador, se espera ver lo que acaba de mandar.
+        function cercaDelFinal() {
+            return mensajes.scrollHeight - mensajes.scrollTop - mensajes.clientHeight < 80;
+        }
+        var estabaAbajoAntesDeSwap = true;
+        mensajes.addEventListener('htmx:beforeSwap', function () {
+            estabaAbajoAntesDeSwap = cercaDelFinal();
+        });
+
+        // "Reintentar" en un turno con error (ver pr_renderizar_turno() en
+        // punkrecords_limites.php) — delegado en #pr-mensajes porque el
+        // botón llega dinámicamente con cada turno, no existe de entrada.
+        mensajes.addEventListener('click', function (evento) {
+            var btn = evento.target.closest('.pr-reintentar');
+            if (!btn) {
+                return;
+            }
+            ta.value = btn.getAttribute('data-pregunta') || '';
+            actualizar();
+            form.requestSubmit();
+        });
+
+        // Reiniciar conversación: solo borra el chat y la memoria de esta
+        // pestaña — no hay nada que limpiar del lado del servidor, la
+        // memoria nunca vivió ahí.
+        reiniciarBtn.addEventListener('click', function () {
+            mensajes.innerHTML = '';
+            historial = [];
+            historialCampo.value = '[]';
+            ta.value = '';
+            actualizar();
+            ta.focus();
+        });
+
+        // htmx:configRequest se dispara justo después de armar los
+        // parámetros del POST (evt.detail.parameters), así que la pregunta
+        // ya quedó capturada para enviarse aunque el campo se vacíe
+        // visualmente de inmediato.
+        form.addEventListener('htmx:configRequest', function () {
+            agregarBurbujaPendiente(ta.value.trim());
+            ta.value = '';
+            actualizar();
+        });
+
+        form.addEventListener('htmx:afterRequest', function () {
+            ta.focus();
+        });
+
+        // Si la petición ni siquiera llegó a completarse (sin conexión,
+        // servidor caído) htmx:afterSwap nunca se dispara — sin esto, la
+        // burbuja pendiente se quedaría fantasma para siempre.
+        form.addEventListener('htmx:sendError', quitarBurbujaPendiente);
+        form.addEventListener('htmx:responseError', quitarBurbujaPendiente);
+
+        // Después de agregar el turno nuevo al chat: sacar la burbuja
+        // pendiente (el turno real ya trae su propia burbuja de usuario),
+        // hacer scroll al final, y si el turno trae data-pregunta/data-respuesta
+        // (ver pr_renderizar_turno() — los turnos de error no los traen),
+        // guardarlo en la memoria de conversación para las próximas preguntas.
+        mensajes.addEventListener('htmx:afterSwap', function () {
+            quitarBurbujaPendiente();
+            if (estabaAbajoAntesDeSwap) {
+                mensajes.scrollTop = mensajes.scrollHeight;
+            }
+
+            var turnos = mensajes.querySelectorAll('.pr-turno[data-pregunta]');
+            var ultimo = turnos[turnos.length - 1];
+            if (!ultimo) {
+                return;
+            }
+
+            historial.push({
+                pregunta: ultimo.getAttribute('data-pregunta'),
+                respuesta: ultimo.getAttribute('data-respuesta'),
+            });
+            if (historial.length > HISTORIAL_MAX) {
+                historial = historial.slice(-HISTORIAL_MAX);
+            }
+            historialCampo.value = JSON.stringify(historial);
+        });
+    })();
+    </script>
+</body>
+
+</html>

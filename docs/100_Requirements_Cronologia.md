@@ -60,6 +60,16 @@ relacionadas, con distinto propósito:
 - `mybb_op_thread_personaje`: snapshot de estadísticas por tema (combates).
   Solo existe en temas que lo usan.
 
+### 2.4 Convención de texto `[narrador]`
+
+Existe desde antes una convención de texto, sin relación con esta
+funcionalidad: quien narra un tema escribe literalmente `[narrador]` en su
+mensaje. La herramienta de staff `op/staff/recompensasAventuras.php` busca
+esa cadena (`stripos`) en los posts de un tema para calcular recompensas.
+No es un BBCode registrado (no hay `BBCustom_narrador.php`) ni se
+transforma visualmente. Esta funcionalidad **no sustituye ni modifica** esa
+convención: son dos sistemas independientes.
+
 ## 3. Alcance
 
 La página debe permitir:
@@ -71,11 +81,20 @@ La página debe permitir:
 - ver una vista de lista de la estación, con todos los temas y sus títulos
   completos;
 - abrir un tema desde el calendario;
+- marcar, en los temas de tipo Aventura o Evento donde ha participado, si lo
+  hizo como su **personaje** o como **narrador** (ver 5.8);
+- filtrar la cronología por ese rol;
+- ver, en cualquier tema con narrador marcado, quién narra, sin importar de
+  quién sea la cronología que se está viendo;
 
 Fuera de alcance de esta versión:
 
 - editar la fecha de un tema desde el calendario (sigue en `editar_tema.php`);
 - crear temas o eventos desde el calendario;
+- sustituir la convención de texto `[narrador]` de
+  `op/staff/recompensasAventuras.php` (ver 2.4);
+- mostrar el rol narrador/personaje en la casilla del día (solo en el
+  overlay y en la vista de lista, igual que "otros participantes");
 - cronología de facciones, islas o tripulaciones (`mybb_op_isla_eventos` ya
   cubre eventos de isla y no se mezcla aquí; tampoco se superpone como capa
   en esta versión);
@@ -118,6 +137,19 @@ temas que abarquen varios días, por lo que no se necesita fecha final. Si más
 adelante se requiere duración, se añadirá una columna de fecha final y este
 requisito se revisará.
 
+### 4.5 Rol en un tema: personaje o narrador
+
+Cada `(uid, tid)` tiene un rol: **personaje** (el usuario participó con su
+ficha, dentro de la trama) o **narrador** (el usuario dirigió el tema, sin
+que su ficha participe como personaje). Por defecto, todo tema participado
+es de rol personaje; el rol narrador se marca explícitamente. Es un dato
+**global**, no ligado al usuario que consulta la cronología: si alguien narra
+un tema, ese hecho se guarda y se muestra en la cronología de cualquiera que
+también participó en ese tema. Un mismo tema puede tener **varios
+narradores** (co-narración, o un narrador que releva a otro a mitad de
+tema). Solo tiene sentido marcarlo en temas de tipo **Aventura** o
+**Evento** (ver 5.8).
+
 ## 5. Requisitos funcionales
 
 ### 5.1 Selección de personaje
@@ -145,8 +177,12 @@ requisito se revisará.
 - La cronología se calcula solo a partir de la ficha del personaje y su UID.
   No distingue publicaciones hechas con personaje secreto: cuentan igual.
 - La ficha del personaje (`op/personaje.php`, plantilla `op_personaje`)
-  incluye un enlace a su cronología. `op/ficha.php` es código legado y no se
-  toca.
+  incluye un enlace a su cronología: el ícono que antes abría un modal de
+  texto libre para pegar la URL de una "cronología" externa
+  (`mybb_op_fichas.cronologia`, workaround previo a esta herramienta) ahora
+  enlaza directamente a `/op/cronologia.php?uid={$ficha['fid']}`. El campo
+  `cronologia` y su modal quedan sin usar, pero no se borran (fuera de
+  alcance). `op/ficha.php` es código legado y no se toca.
 - El acceso a la cronología no anula la visibilidad de los temas (sección 6):
   cada usuario ve solo los temas que puede abrir.
 
@@ -235,7 +271,8 @@ estuvo activo. Al pulsar una estación, se abre la vista de estación.
 
 Cada tema mostrado debe indicar:
 
-- título, con enlace al tema;
+- título, con enlace al tema, y su **ID (`#tid`)** en la casilla de la estación,
+  el overlay y la vista de lista;
 - fecha in-game (año, estación, día);
 - **isla** donde ocurre (nombre, enlazado a `/op/isla.php?isla_id=`), ver 5.5.1;
 - tipo de tema, derivado de `mybb_threads.prefix`
@@ -262,6 +299,14 @@ de la isla. La isla de un tema es la del foro donde está publicado:
 La isla se ve en el overlay del día, en la vista de lista y en el tooltip de
 la casilla. No se añade un filtro por isla en esta versión.
 
+### 5.5.2 Guía "Cómo funciona la cronología"
+
+La página incluye un bloque plegable (cerrado por defecto) "Cómo funciona la
+cronología", con el mismo formato que el de la Bitácora: una introducción, cinco
+secciones numeradas (qué temas aparecen, el calendario, las vistas, la ventana
+del día, filtros y otros personajes) y una nota final. Al navegar por la página
+sin recargar, el bloque conserva su estado abierto o cerrado.
+
 ### 5.6 Filtros
 
 - Por tipo de tema (prefijo): Aventura, Común, Evento, Autonarrada y Diario.
@@ -276,6 +321,36 @@ Si el personaje tiene dos o más temas en el mismo día, el calendario debe
 señalarlo visualmente (por ejemplo, un marcador de "coincidencia"). Es
 informativo: no bloquea nada.
 
+### 5.8 Rol del usuario en el tema (personaje o narrador)
+
+- **Pestaña "Marcar roles":** una cuarta vista, junto a Estación, Lista y
+  Año, con una lista simple de los temas de tipo Aventura o Evento donde el
+  personaje mostrado ha participado, cada uno con un selector de dos
+  opciones (Personaje / Narrador) con el valor actual (personaje si no se ha
+  marcado nada). Los cambios se acumulan y se guardan todos juntos con un
+  botón "Guardar cambios" (no al vuelo por fila).
+- **Quién puede marcar:** el propio usuario, solo sobre su personaje; el
+  staff, además, puede corregir el rol de cualquier otro personaje desde la
+  misma pestaña, viendo la cronología de ese personaje (igual que ya puede
+  ver la de cualquiera por `?uid=`).
+- Un usuario sin ficha propia (según 5.1) no tiene acceso a esta pestaña, ni
+  siquiera para verla.
+- **Filtro por rol:** en las vistas Estación, Lista y Año se añade un filtro
+  "Rol" (Todos / Personaje / Narrador), igual de disponible que el filtro de
+  tipo de tema (5.6). Un tema sin rol marcado cuenta como "Personaje".
+- **Color por rol con el filtro en "Todos":** igual que el tipo de tema
+  (5.2), cuando el filtro de rol está en "Todos" los temas de Aventura o
+  Evento muestran una etiqueta de color según su rol (personaje o narrador),
+  en la casilla del día, el overlay y la vista de lista. Con un rol concreto
+  filtrado, la etiqueta no se muestra porque ya es evidente.
+- **Visibilidad del narrador:** si uno o más usuarios están marcados como
+  narrador de un tema, ese dato se muestra junto a "Con: ..." (overlay del
+  día y vista de lista) como "Narra: <nombre(s)>", **en la cronología de
+  cualquier personaje que también aparezca en ese tema**, no solo en la de
+  quien narra. No se muestra en la casilla del día (igual que "otros
+  participantes" tampoco se muestra ahí).
+- No se ofrece el selector de rol en temas que no sean Aventura o Evento.
+
 ## 6. Requisitos de permisos y privacidad
 
 - La cronología solo muestra temas que el usuario que consulta puede ver.
@@ -287,6 +362,11 @@ informativo: no bloquea nada.
   su cuenta no podría abrir directamente.
 - Los parámetros de URL se validan y se escapan; las consultas deben usar
   enteros forzados o `escape_string` (el proyecto interpola SQL).
+- Solo el propio usuario puede marcar su rol; solo el staff puede corregir el
+  de otro usuario. El servidor recalcula siempre qué temas son válidos para
+  marcar (Aventura/Evento donde ese `uid` participó): no se confía en la
+  lista de temas que envía el formulario.
+- Guardar un rol requiere el token CSRF habitual del proyecto (`post_code`).
 
 ## 7. Requisitos no funcionales
 
@@ -303,6 +383,11 @@ informativo: no bloquea nada.
   el número de día y un indicador de actividad; los temas del día en el
   overlay al tocar la casilla).
 - **Idioma:** interfaz en español.
+- **Navegación sin recarga:** al moverse por la página (estaciones, años,
+  vistas, filtros, paginación, "Ver mi cronología") solo cambia el bloque de la
+  cronología, sin recargar la cabecera y el pie del foro. La URL se actualiza y
+  el botón Atrás funciona. Sin JavaScript, todo sigue funcionando con
+  recargas normales.
 - **Estilo visual:** la página sigue [style.md](style.md): marco de tres
   fondos, borde negro, tipografía `moonGetHeavy` solo en títulos y variables
   de `opg-tokens.css`, sin colores ni botones inventados.
@@ -354,6 +439,21 @@ validación queda como mejora recomendada, pero no es parte de esta entrega.
     cronología muestra el tema en la nueva fecha en la carga siguiente, sin
     esperar ni vaciar ninguna caché.
 12. Con varios temas el mismo día, aparecen ordenados por fecha de creación.
+13. Un tema de Aventura o Evento sin rol marcado se filtra como "Personaje".
+14. Marcar un tema como "Narrador" y guardar hace que aparezca en el filtro
+    "Narrador" y como "Narra: <nombre>" en la cronología de cualquier otro
+    personaje que también participó en ese tema.
+15. Un usuario sin permisos de staff no puede marcar el rol de otro usuario;
+    intentarlo (manipulando el formulario) no tiene efecto.
+16. Un tema de tipo Común, Autonarrada, Diario, MT o Requerimiento no ofrece
+    selector de rol en la pestaña "Marcar roles".
+17. Varios usuarios marcados como narrador del mismo tema aparecen todos en
+    "Narra: ...".
+18. Con el filtro de rol en "Todos", un tema de Aventura o Evento muestra su
+    etiqueta de rol con color; con el filtro en "Personaje" o "Narrador" no
+    se muestra.
+19. Un tema que no sea Aventura ni Evento nunca muestra etiqueta de rol,
+    aunque el filtro esté en "Todos".
 
 ## 10. Decisiones tomadas
 
@@ -376,6 +476,18 @@ validación queda como mejora recomendada, pero no es parte de esta entrega.
 11. Se añade una vista de lista de la estación, con títulos completos.
 12. Modo lista global: todo el historial, recientes primero por defecto con
     botón para invertir, páginas de 100 temas.
+13. El rol (personaje/narrador) se guarda en una tabla nueva y **global**,
+    `mybb_op_thread_roles` (uid, tid, rol), no ligada conceptualmente a la
+    cronología: cualquier otra herramienta futura (por ejemplo, recompensas)
+    puede consultarla igual. Por eso su nombre no lleva el prefijo `cron_`.
+14. Un tema puede tener varios narradores; se guarda una fila por `(uid,
+    tid)`, así que no hay límite de narradores por tema.
+15. El rol solo se puede marcar en temas de tipo Aventura y Evento, porque
+    son los únicos donde existe la figura del narrador.
+16. Esta funcionalidad no sustituye ni se relaciona con la convención de
+    texto `[narrador]` de `op/staff/recompensasAventuras.php` (ver 2.4).
+17. El guardado de roles es por lote (varios cambios + un botón "Guardar"),
+    no al vuelo por fila.
 
 ## 11. Preguntas abiertas
 
