@@ -1,9 +1,16 @@
 <html>
 
 <head>
-    <title>Operador Den Den Mushi!!</title>
+    <title>Operador Den Den Mushi</title>
     {$headerinclude}
     <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <!-- fontawesome.min.css + solid.min.css, NUNCA all.min.css (docs/style.md
+         §7): ese bundle trae los shims v4 y hace visibles los <i class="fa
+         fa-..."> heredados del header en esta página, dando un header
+         inconsistente según qué página cargó qué — ya pasó de verdad en
+         op_mercado_negro/staff_consola_mod. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
     <style>
     /* Página completa: se pisa el ancho fijo de .thirdBackground (1030px por
        defecto en op_global.css) por 100%, para que el chat use todo el ancho
@@ -13,6 +20,10 @@
     .pr-titulo { padding: var(--opg-espacio-2); }
     .pr-titulo .barra-texto-op { font-size: 22px; letter-spacing: 1px; text-shadow: 2px 2px 0 black; }
     .pr-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+    .pr-guia-lista { margin: 0; padding-left: 18px; }
+    .pr-guia-lista li { margin-bottom: 4px; }
+    .pr-guia-lista li:last-child { margin-bottom: 0; }
+    .pr-guia-lista strong { color: var(--pr-color-texto, var(--opg-marron)); }
 
     .aviso {
         font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
@@ -29,14 +40,31 @@
        del formulario — así el chat domina la página en vez de quedar como
        una cajita chica. min-height:0 es necesario para que un hijo flex con
        overflow-y:auto pueda encogerse y scrollear en vez de desbordar. */
-    .pr-chat { display: flex; flex-direction: column; height: 78vh; min-height: 480px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-boton, #fcecd2); overflow: hidden; }
+    /* --pr-color-suave: el color de acento de la facción (--pr-color-faccion,
+       puro, ver pr_obtener_color_faccion()) aclarado con color-mix() sobre
+       crema — mismo truco que ya usa .opg-card con --opg-card-acento (ver
+       docs/style.md §7), en vez de mandar un pastel inventado desde PHP.
+       --pr-color-texto es el mismo acento pero OSCURECIDO (mezclado con
+       tinta, no con crema) para usarlo como color de texto: algunos acentos
+       (ej. el dorado de Civil) son demasiado claros para leerse como texto
+       tal cual — mezclar con negro los mantiene identificables sin fallar
+       contraste, sin necesitar una variante "-texto" a mano por facción.
+       Las dos se calculan una sola vez acá y las heredan la cabecera y la
+       burbuja. */
+    .pr-chat {
+        display: flex; flex-direction: column; height: 78vh; min-height: 480px;
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        background: var(--opg-crema-boton, #fcecd2); overflow: hidden;
+        --pr-color-suave: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 14%, var(--opg-crema-clara, #fff));
+        --pr-color-texto: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 70%, var(--opg-tinta, #000));
+    }
 
     /* Cabecera fija con quién contesta — antes solo aparecía una vez, en el
        párrafo de arriba de todo, y se perdía de vista al scrollear una
        conversación larga. Al ser un hijo más de .pr-chat (flex column) y no
        parte de #pr-mensajes (que es la única parte que scrollea), queda
        fijo sin necesidad de position:sticky. */
-    .pr-chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--pr-color-faccion, #fff); border-bottom: 2px solid var(--opg-tinta); font-family: var(--opg-fuente-cuerpo); }
+    .pr-chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--pr-color-suave); border-bottom: 2px solid var(--opg-tinta); font-family: var(--opg-fuente-cuerpo); }
     .pr-chat-header__punto { width: 8px; height: 8px; border-radius: 50%; background: var(--opg-verde-exito, #4caf50); flex-shrink: 0; }
     .pr-chat-header__nombre { font-weight: bold; font-size: 13px; }
 
@@ -45,14 +73,11 @@
         padding: var(--opg-espacio-4); flex: 1; min-height: 0; overflow-y: auto;
         scroll-behavior: smooth;
     }
-    .pr-mensajes:empty::before {
-        /* attr() en vez de texto fijo: cada facción tiene su propio mensaje
-           de bienvenida (ver pr_obtener_placeholder_vacio() en
-           punkrecords_rag.php), puesto en data-placeholder más abajo. */
-        content: attr(data-placeholder);
-        font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); opacity: .8;
-        display: block; text-align: center; margin: auto;
-    }
+    /* .opg-vacio (docs/style.md — "listado sin nada que mostrar todavía") en
+       vez de un ::before con contenido a mano: mismo componente que usan
+       banners.php/op_upload. .pr-vacio-chat solo agrega el centrado vertical
+       que necesita este panel en particular. */
+    .pr-vacio-chat { margin: auto; font-size: 13px; }
 
     .pr-turno { display: flex; flex-direction: column; gap: var(--opg-espacio-2); animation: pr-aparecer .25s ease-out; }
     @keyframes pr-aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -62,29 +87,34 @@
        define de qué lado queda el avatar. El align-self que antes tenía la
        burbuja se mueve a la fila, que es ahora el hijo directo de .pr-turno. */
     .pr-fila { display: flex; align-items: flex-end; gap: 8px; }
-    .pr-fila--usuario { align-self: flex-end; flex-direction: row-reverse; }
-    .pr-fila--operador { align-self: flex-start; flex-direction: row; }
+    /* Sin flex-direction acá: el orden real de los hijos en el HTML ya pone
+       el avatar del lado correcto (burbuja, avatar para el usuario — el
+       avatar queda a la derecha; avatar, burbuja para el operador). Con
+       row-reverse el avatar del usuario terminaba a la izquierda, al revés
+       de lo esperado. */
+    .pr-fila--usuario { align-self: flex-end; }
+    .pr-fila--operador { align-self: flex-start; }
     .pr-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--opg-tinta); object-fit: cover; flex-shrink: 0; background: #fff; }
     .pr-avatar--generica { display: flex; align-items: center; justify-content: center; color: var(--opg-marron); font-size: 14px; background: var(--opg-crema-cuerpo, #ffe3a0); }
 
-    /* position:relative para poder anclar la "colita" (::before/::after) en
-       la esquina achatada de cada burbuja (border-bottom-*-radius: 2px más
-       abajo) — el mismo truco de borde transparente que usa cualquier UI de
-       chat (WhatsApp, iMessage) para simular el triangulito. */
-    .pr-burbuja { position: relative; max-width: min(720px, 88%); padding: 10px 14px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.6; }
+    /* position:relative para poder anclar la "colita" del operador (::before)
+       en la esquina achatada de la burbuja — el mismo truco de borde
+       transparente que usa cualquier UI de chat (WhatsApp, iMessage). El
+       lado del usuario no la lleva: con el avatar al lado ya queda claro de
+       quién es cada burbuja, la colita ahí era ruido de más. La sombra dura
+       (offset chico, 1px 1px, no el --opg-sombra-offset de 4px que usan las
+       tarjetas grandes — acá compite con burbujas chicas pegadas una a la
+       otra) es la firma de viñeta de cómic del sistema de diseño
+       (docs/style.md §3/§7, la misma que .opg-card). */
+    .pr-burbuja { position: relative; max-width: min(720px, 88%); padding: 10px 14px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.6; box-shadow: 1px 1px 0 var(--opg-tinta, #000); }
     .pr-burbuja--usuario { background: var(--opg-naranja, #ff8900); color: #fff; border-bottom-right-radius: 2px; }
-    .pr-burbuja--usuario::after {
-        content: ""; position: absolute; right: -9px; bottom: 0;
-        border: 9px solid transparent; border-left-color: var(--opg-naranja, #ff8900); border-bottom: 0; border-right: 0;
-    }
-    /* --pr-color-faccion: tinte suave según la facción del jugador (ver
-       pr_obtener_color_faccion() en punkrecords_rag.php) — blanco si no
-       tiene facción reconocida. Se define una vez en .pr-chat (ver más
-       abajo) y la heredan la burbuja y la cabecera del chat. */
-    .pr-burbuja--operador { background: var(--pr-color-faccion, #fff); border-bottom-left-radius: 2px; }
+    /* --pr-color-suave: tinte de facción ya aclarado, definido una vez en
+       .pr-chat (ver más arriba) a partir del color puro --pr-color-faccion
+       (pr_obtener_color_faccion() en punkrecords_rag.php). */
+    .pr-burbuja--operador { background: var(--pr-color-suave); border-bottom-left-radius: 2px; }
     .pr-burbuja--operador::before {
         content: ""; position: absolute; left: -9px; bottom: 0;
-        border: 9px solid transparent; border-right-color: var(--pr-color-faccion, #fff); border-bottom: 0; border-left: 0;
+        border: 9px solid transparent; border-right-color: var(--pr-color-suave); border-bottom: 0; border-left: 0;
     }
     /* Error: antes era un rectángulo rojo sólido — se suaviza a un tinte
        claro con borde y texto rojo, más "aviso" que "alarma", con un ícono
@@ -93,16 +123,24 @@
     .pr-burbuja--error::before { border-right-color: #fdeceb; }
     .pr-burbuja--error .pr-burbuja__autor { color: var(--opg-rojo-error); opacity: 1; }
     .pr-burbuja--error .pr-burbuja__autor::before { content: "⚠ "; }
-    .pr-reintentar { margin-top: 8px; background: #fff; color: var(--opg-rojo-error); border: 1px solid var(--opg-rojo-error); border-radius: var(--opg-radio-md); padding: 4px 10px; font-size: 12px; cursor: pointer; }
-    .pr-reintentar:hover { background: var(--opg-rojo-error); color: #fff; }
-    .pr-burbuja__autor { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; opacity: .65; margin-bottom: 3px; }
+    .pr-reintentar { margin-top: 8px; background: #fff; color: var(--opg-rojo-error); border: 1px solid var(--opg-rojo-error); border-radius: var(--opg-radio-md); padding: 4px 10px; font-size: 12px; cursor: pointer; transition: transform var(--opg-rapido, .2s) ease; }
+    .pr-reintentar:hover { background: var(--opg-rojo-error); color: #fff; transform: scale(1.05); }
+    .pr-burbuja__autor { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; color: var(--pr-color-texto); margin-bottom: 3px; }
     .pr-burbuja__texto :first-child { margin-top: 0; }
-    /* Frase de sugerencia al final de la respuesta (pr_renderizar_sugerencia_fuentes()
+    /* Caja de sugerencia al final de la respuesta (pr_renderizar_sugerencia_fuentes()
        en punkrecords_rag.php) — "Visita la Guía X en la sección de..." en vez
        de una lista de notas al pie: se siente más a que el personaje te
-       recomienda dónde leer más, no a un documento con referencias numeradas. */
-    .pr-sugerencia-fuente { margin: 2px 0 0; font-size: 12px; color: var(--opg-marron); }
-    .pr-sugerencia-fuente:first-of-type { margin-top: var(--opg-espacio-2); padding-top: var(--opg-espacio-2); border-top: 1px dashed rgba(0, 0, 0, .15); }
+       recomienda dónde leer más, no a un documento con referencias numeradas.
+       Franja de acento a la izquierda (mismo lenguaje que .opg-card, ver
+       docs/style.md §7) en vez del borde punteado de antes, a tamaño reducido
+       para vivir dentro de una burbuja sin competir con ella. */
+    .pr-fuentes-caja {
+        margin-top: var(--opg-espacio-2); padding: 6px 10px;
+        border-left: 3px solid var(--pr-color-faccion, var(--opg-naranja));
+        background: color-mix(in srgb, var(--pr-color-faccion, var(--opg-naranja)) 8%, var(--opg-crema-clara, #fff));
+        border-radius: 0 var(--opg-radio-sm, 6px) var(--opg-radio-sm, 6px) 0;
+    }
+    .pr-sugerencia-fuente { margin: 2px 0; font-size: 12px; color: var(--opg-marron); }
     .pr-sugerencia-fuente a { color: inherit; font-weight: bold; }
 
     /* "Está escribiendo..." — misma forma de burbuja que una respuesta del
@@ -141,9 +179,9 @@
     .pr-cuota-barra { width: 140px; height: 6px; background: rgba(0, 0, 0, .12); border-radius: 3px; overflow: hidden; margin-top: 3px; }
     .pr-cuota-barra__relleno { height: 100%; background: var(--opg-verde-exito, #4caf50); border-radius: 3px; transition: width .3s ease; }
     .pr-cuota-barra__relleno--baja { background: var(--opg-rojo-error); }
-    .pr-reiniciar { background: none; border: none; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); cursor: pointer; text-decoration: underline; padding: 2px 4px; }
-    .pr-reiniciar:hover { opacity: .75; }
-    .pr-reiniciar:disabled { opacity: .4; cursor: default; text-decoration: none; }
+    .pr-reiniciar { background: none; border: none; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); cursor: pointer; text-decoration: underline; padding: 2px 4px; transition: transform var(--opg-rapido, .2s) ease; }
+    .pr-reiniciar:hover { opacity: .75; transform: scale(1.05); }
+    .pr-reiniciar:disabled { opacity: .4; cursor: default; text-decoration: none; transform: none; }
     </style>
 </head>
 
@@ -155,10 +193,14 @@
     <div class="thirdBackground">
 
         <div>
-            <div class="barra-op bbox pr-titulo"><span class="barra-texto-op">Operador Den Den Mushi</span></div>
+            <div class="barra-op bbox pr-titulo"><span class="barra-texto-op">Guía del Operador Den Den Mushi</span></div>
             <div class="barra-espacio-op bbox pr-descripcion">
-                Has marcado el Den Den Mushi de tu facción y del otro lado contesta {$operador_esc}, listo para resolver tus dudas sobre las guías y técnicas del foro. Puede equivocarse: cuando cite una guía, te va a decir cuál visitar.
-                Las preguntas se envían a un proveedor externo (Google); no incluyas datos personales.
+                <ul class="pr-guia-lista">
+                    <li>Has marcado el Den Den Mushi de tu facción — del otro lado contesta <strong>{$operador_esc}</strong>, en personaje.</li>
+                    <li>Pregúntale sobre las guías y técnicas del foro; si menciona una guía, te dice cuál visitar.</li>
+                    <li>Recuerda los últimos mensajes mientras esta pestaña esté abierta, así que puedes seguir la conversación.</li>
+                    <li>Puede equivocarse: no incluyas datos personales, las preguntas se envían a un proveedor externo (Google).</li>
+                </ul>
             </div>
         </div>
 
@@ -166,7 +208,7 @@
 
         <div class="pr-chat-barra">
             {$cuota_html}
-            <button type="button" id="pr_reiniciar" class="pr-reiniciar"><i class="fa fa-refresh" aria-hidden="true"></i> Reiniciar conversación</button>
+            <button type="button" id="pr_reiniciar" class="pr-reiniciar"><i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i> Reiniciar conversación</button>
         </div>
 
         <div class="pr-chat" style="--pr-color-faccion: {$color_faccion_esc};">
@@ -174,7 +216,7 @@
                 <span class="pr-chat-header__punto"></span>
                 <span class="pr-chat-header__nombre">{$operador_esc}</span>
             </div>
-            <div id="pr-mensajes" class="pr-mensajes" data-placeholder="{$placeholder_vacio_esc}" data-avatar-usuario="{$avatar_usuario_url_esc}">{$turno_inicial_html}</div>
+            <div id="pr-mensajes" class="pr-mensajes" data-placeholder="{$placeholder_vacio_esc}" data-avatar-usuario="{$avatar_usuario_url_esc}">{$mensajes_inicial_html}</div>
 
             <div id="pr-typing" class="pr-typing htmx-indicator">
                 {$avatar_operador_html}
@@ -255,8 +297,26 @@
         // trae su propia burbuja de usuario), esta se saca — por eso NO
         // lleva la clase que usa el selector de memoria de conversación
         // (.pr-turno[data-pregunta]), así nunca se confunde con un turno real.
+        // .opg-vacio (docs/style.md) es ahora un elemento real en el DOM, no
+        // un truco de CSS — hay que sacarlo a mano apenas hay una pregunta
+        // real, y poder volver a ponerlo al reiniciar la conversación.
+        function quitarVacio() {
+            var vacio = document.getElementById('pr-vacio');
+            if (vacio) {
+                vacio.remove();
+            }
+        }
+        function mostrarVacio() {
+            var vacio = document.createElement('p');
+            vacio.className = 'opg-vacio pr-vacio-chat';
+            vacio.id = 'pr-vacio';
+            vacio.textContent = mensajes.getAttribute('data-placeholder') || '';
+            mensajes.appendChild(vacio);
+        }
+
         function agregarBurbujaPendiente(texto) {
             quitarBurbujaPendiente();
+            quitarVacio();
 
             var turno = document.createElement('div');
             turno.className = 'pr-turno';
@@ -328,6 +388,7 @@
         // memoria nunca vivió ahí.
         reiniciarBtn.addEventListener('click', function () {
             mensajes.innerHTML = '';
+            mostrarVacio();
             historial = [];
             historialCampo.value = '[]';
             ta.value = '';

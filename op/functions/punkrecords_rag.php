@@ -307,7 +307,7 @@ function pr_obtener_faccion($db, $uid)
  */
 function pr_obtener_operador($faccion = null)
 {
-    return PR_OPERADORES_POR_FACCION[$faccion] ?? PR_OPERADOR_NEUTRO;
+    return PR_OPERADORES_POR_FACCION[(string) $faccion] ?? PR_OPERADOR_NEUTRO;
 }
 
 /**
@@ -327,7 +327,7 @@ const PR_AVATARES_POR_FACCION = [
 
 function pr_obtener_avatar_faccion($faccion = null)
 {
-    return PR_AVATARES_POR_FACCION[$faccion] ?? null;
+    return PR_AVATARES_POR_FACCION[(string) $faccion] ?? null;
 }
 
 /**
@@ -353,34 +353,42 @@ const PR_PLACEHOLDER_NEUTRO = 'Aún no has preguntado nada — escribe abajo par
  */
 function pr_obtener_placeholder_vacio($faccion = null)
 {
-    return PR_PLACEHOLDER_POR_FACCION[$faccion] ?? PR_PLACEHOLDER_NEUTRO;
+    return PR_PLACEHOLDER_POR_FACCION[(string) $faccion] ?? PR_PLACEHOLDER_NEUTRO;
 }
 
 /**
- * Color de acento por facción — tinte suave de fondo para la burbuja del
- * operador y la cabecera del chat (mejora de diseño: antes la burbuja era
- * blanca sin importar quién contestara). Colores claros a propósito: son
- * fondo detrás de texto oscuro, no decoración saturada.
+ * Color de acento por facción — el color PURO (no aclarado), tomado de los
+ * hex canónicos de docs/style.md §2 en vez de inventar pasteles nuevos:
+ * Marina usa el azul ya documentado ahí como "marina / enlaces temáticos",
+ * CipherPol el morado apagado de bordes de paneles, Revolucionario el rojo
+ * de facción, Pirata el naranja quemado, Cazadores el gris de "bloqueado"
+ * (mercenario, neutro). El aclarado a tinte de fondo se hace en CSS con
+ * color-mix() sobre este valor (--pr-color-faccion), igual que ya hace
+ * .opg-card con --opg-card-acento — así el tinte de cada facción queda
+ * ligado a un color que el sistema de diseño ya reconoce, no a un hex suelto.
+ * Civil no tiene un hex de facción documentado en style.md: usa la crema
+ * dorada (el tono "cálido/cercano" ya es su rol en la paleta).
  */
 const PR_COLOR_POR_FACCION = [
-    'Pirata' => '#f6e6d3',
-    'Marina' => '#dce7f2',
-    'Civil' => '#fdeaea',
-    'CipherPol' => '#e6e6ec',
-    'Cazadores' => '#ece3d2',
-    'Revolucionario' => '#fbe0d9',
+    'Pirata' => '#ff7e00',
+    'Marina' => '#0055bb',
+    'Civil' => '#ffe59b',
+    'CipherPol' => '#6e67d1',
+    'Cazadores' => '#71706f',
+    'Revolucionario' => '#a3180b',
 ];
 
-const PR_COLOR_NEUTRO = '#ffffff';
+const PR_COLOR_NEUTRO = '#9b9b9b';
 
 /**
- * Color de acento para una facción dada (o blanco si no hay facción
- * reconocida) — se manda como variable CSS inline (--pr-color-faccion),
- * ver op_punkrecords.html.
+ * Color de acento (puro, sin aclarar) para una facción dada, o un gris
+ * neutro si no hay facción reconocida — se manda como variable CSS inline
+ * (--pr-color-faccion) y el propio CSS del template lo aclara con
+ * color-mix(), ver op_punkrecords.html.
  */
 function pr_obtener_color_faccion($faccion = null)
 {
-    return PR_COLOR_POR_FACCION[$faccion] ?? PR_COLOR_NEUTRO;
+    return PR_COLOR_POR_FACCION[(string) $faccion] ?? PR_COLOR_NEUTRO;
 }
 
 /**
@@ -389,7 +397,7 @@ function pr_obtener_color_faccion($faccion = null)
  */
 function pr_instrucciones_sistema($faccion = null)
 {
-    $tono = PR_TONOS_POR_FACCION[$faccion] ?? PR_TONO_NEUTRO;
+    $tono = PR_TONOS_POR_FACCION[(string) $faccion] ?? PR_TONO_NEUTRO;
     $operador = pr_obtener_operador($faccion);
 
     // Organizado en secciones (no un solo párrafo corrido) para que cada
@@ -705,16 +713,23 @@ function pr_renderizar_sugerencia_fuentes(array $fuentes_ordenadas)
         $nombre_esc = htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8');
         $url_esc = htmlspecialchars($f['url'], ENT_QUOTES, 'UTF-8');
         $link = '<a href="' . $url_esc . '" target="_blank" rel="noopener noreferrer">' . $nombre_esc . '</a>';
+        // fa-solid en vez del emoji 📖 de antes: ya cargamos Font Awesome en
+        // el template para el resto de los íconos, así que este usa el mismo
+        // sistema en vez de depender de que el emoji se renderice bien.
+        $icono = '<i class="fa-solid fa-book-open" aria-hidden="true"></i> ';
 
         if (!empty($niveles)) {
             $seccion_esc = htmlspecialchars(implode(' › ', $niveles), ENT_QUOTES, 'UTF-8');
-            $lineas .= '<p class="pr-sugerencia-fuente">📖 Visita ' . $link . ' en la sección de ' . $seccion_esc . '.</p>';
+            $lineas .= '<p class="pr-sugerencia-fuente">' . $icono . 'Visita ' . $link . ' en la sección de ' . $seccion_esc . '.</p>';
         } else {
-            $lineas .= '<p class="pr-sugerencia-fuente">📖 Visita ' . $link . ' para más detalles.</p>';
+            $lineas .= '<p class="pr-sugerencia-fuente">' . $icono . 'Visita ' . $link . ' para más detalles.</p>';
         }
     }
 
-    return $lineas;
+    // Franja de acento a la izquierda en vez del borde punteado de antes —
+    // mismo lenguaje visual que .opg-card (docs/style.md §7), a tamaño
+    // reducido para no competir con la burbuja que la contiene.
+    return '<div class="pr-fuentes-caja">' . $lineas . '</div>';
 }
 
 /**

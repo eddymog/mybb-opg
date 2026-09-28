@@ -213,5 +213,14 @@ $turno_inicial_html = $mostrar_respuesta
     ? pr_renderizar_turno($pregunta_esc, $respuesta_html, '', $operador_esc, $mostrar_fuentes, $fuentes_html, $avatar_operador_html, $avatar_usuario_html)
     : '';
 
+// Contenido inicial de #pr-mensajes: el turno de la recarga sin JS si hubo
+// uno, o si no, el estado vacío con la clase canónica del sistema de diseño
+// (.opg-vacio, docs/style.md — "para cuando un listado no tiene nada que
+// mostrar todavía"), con id para que el JS la saque apenas se manda la
+// primera pregunta.
+$mensajes_inicial_html = $turno_inicial_html !== ''
+    ? $turno_inicial_html
+    : '<p class="opg-vacio pr-vacio-chat" id="pr-vacio">' . $placeholder_vacio_esc . '</p>';
+
 eval('$page = "' . $templates->get('op_punkrecords') . '";');
 output_page($page);

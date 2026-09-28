@@ -192,7 +192,7 @@ function pr_registrar($db, $uid, $username, $pregunta, $resultado, $ms, array $f
 function pr_renderizar_avatar($url_esc, $alt_esc)
 {
     if ($url_esc === null || $url_esc === '') {
-        return '<span class="pr-avatar pr-avatar--generica" aria-hidden="true"><i class="fa fa-phone"></i></span>';
+        return '<span class="pr-avatar pr-avatar--generica" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>';
     }
     return '<img class="pr-avatar" src="' . $url_esc . '" alt="' . $alt_esc . '">';
 }
