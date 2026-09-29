@@ -19,7 +19,10 @@ require_once "./functions/punkrecords_rag.php";
 require_once "./functions/punkrecords_supabase.php";
 require_once "./functions/punkrecords_proveedores.php";
 
-if (!is_staff((int) $mybb->user['uid'])) {
+// Acceso acotado a un solo FID mientras esta herramienta siga siendo un
+// arnés de pruebas temporal — antes era "cualquier staff", a propósito se
+// restringe más todavía (fid == uid en este sistema, ver CLAUDE.md).
+if ((int) $mybb->user['uid'] !== 10) {
     die('No autorizado.');
 }
 
@@ -391,37 +394,70 @@ if ($accion === 'buscar') {
 <meta charset="utf-8">
 <title>Punk Records — Prueba Fase 2</title>
 <style>
-body { font-family: monospace; background: #111; color: #ddd; padding: 20px; }
-#log { white-space: pre-wrap; line-height: 1.5; }
-.ok { color: #6f6; }
-.err { color: #f66; }
-#pregunta { width: 400px; background: #222; color: #ddd; border: 1px solid #444; padding: 6px; font-family: monospace; }
+    :root { --fondo: #111; --panel: #1a1a1a; --borde: #333; --texto: #ddd; --tenue: #888; --ok: #6f6; --err: #f66; }
+    * { box-sizing: border-box; }
+    body { font-family: monospace; background: var(--fondo); color: var(--texto); padding: 24px; max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .subtitulo { color: var(--tenue); font-size: 12px; margin: 0 0 24px; }
+
+    section { background: var(--panel); border: 1px solid var(--borde); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+    section h2 { font-size: 14px; margin: 0 0 4px; color: #fff; }
+    section .ayuda { color: var(--tenue); font-size: 12px; margin: 0 0 12px; }
+
+    .fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .fila + .fila { margin-top: 8px; }
+
+    button { font-family: monospace; background: #262626; color: var(--texto); border: 1px solid #444; border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+    button:hover { background: #333; }
+    button:disabled { opacity: .5; cursor: default; }
+    button.primario { background: #2a4a2a; border-color: #3a6a3a; }
+    button.primario:hover { background: #345c34; }
+
+    input#pregunta { flex: 1; min-width: 220px; background: #222; color: var(--texto); border: 1px solid #444; border-radius: 4px; padding: 8px; font-family: monospace; }
+
+    #resultado_voyage { font-size: 13px; }
+    #log_pregunta, #log { white-space: pre-wrap; line-height: 1.5; font-size: 13px; margin-top: 12px; max-height: 50vh; overflow-y: auto; }
+    #log_pregunta:empty, #log:empty { margin-top: 0; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
 </style>
 </head>
 <body>
-<h2>Punk Records — Fase 2 (embeddings, resumible)</h2>
 
-<div>
-    <button id="btn_test_voyage">Probar Voyage (1 llamada mínima, sin tocar Supabase)</button>
-    <span id="test_voyage_resultado" style="margin-left:10px;"></span>
-</div>
+<h1>Punk Records — Fase 2</h1>
+<p class="subtitulo">Indexado por lotes (resumible) + pruebas de búsqueda y generación. Solo FID 10.</p>
 
-<hr style="border-color:#333;">
+<section>
+    <h2>1. Verificar Voyage</h2>
+    <p class="ayuda">Una sola llamada mínima, sin tocar Supabase — para confirmar la clave y el formato antes de indexar todo.</p>
+    <div class="fila">
+        <button id="btn_test_voyage">Probar Voyage</button>
+        <span id="resultado_voyage"></span>
+    </div>
+</section>
 
-<div>
-    <input type="text" id="pregunta" placeholder="Pregunta libre (ej. sobre una técnica)">
-    <button id="btn_texto">Buscar solo texto (gratis, sin Gemini)</button>
-    <button id="btn_generar_texto">Generar respuesta (solo texto, 1 petición)</button>
-    <button id="btn_pregunta">Buscar híbrido (1 petición)</button>
-    <button id="btn_generar">Generar respuesta completa (2 peticiones)</button>
-    <div style="color:#888; font-size:12px;">Usar con cuidado — quedan pocas peticiones hoy.</div>
-</div>
-<div id="log_pregunta" style="margin: 10px 0 20px;"></div>
+<section>
+    <h2>2. Indexado completo</h2>
+    <p class="ayuda">Procesa todos los lotes uno por uno (con reintento automático), limpia lo obsoleto y corre una búsqueda de prueba al final. No hace falta tocar nada más mientras corre.</p>
+    <button id="btn" class="primario">Iniciar indexado completo</button>
+    <div id="log"></div>
+</section>
 
-<hr style="border-color:#333;">
+<section>
+    <h2>3. Probar una pregunta</h2>
+    <p class="ayuda">Usar con cuidado — cada botón consume cuota real de Voyage/Gemini según lo que dice.</p>
+    <div class="fila">
+        <input type="text" id="pregunta" placeholder="Pregunta libre (ej. sobre una técnica)">
+    </div>
+    <div class="fila">
+        <button id="btn_texto">Buscar (solo texto, gratis)</button>
+        <button id="btn_pregunta">Buscar híbrido (1 petición)</button>
+        <button id="btn_generar_texto">Generar (solo texto, 1 petición)</button>
+        <button id="btn_generar">Generar completo (2 peticiones)</button>
+    </div>
+    <div id="log_pregunta"></div>
+</section>
 
-<button id="btn">Iniciar indexado completo (1.821 fragmentos)</button>
-<div id="log"></div>
 <script>
 const log = document.getElementById('log');
 function linea(texto, clase) {
@@ -433,7 +469,7 @@ function linea(texto, clase) {
 }
 
 document.getElementById('btn_test_voyage').addEventListener('click', async () => {
-    const span = document.getElementById('test_voyage_resultado');
+    const span = document.getElementById('resultado_voyage');
     span.textContent = 'Probando...';
     span.className = '';
     const r = await fetch('?accion=test_voyage');

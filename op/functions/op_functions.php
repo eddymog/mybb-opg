@@ -3,7 +3,7 @@
 function does_ficha_exist($uid) {
     global $db;
     $ficha = select_one_query_with_id('mybb_op_fichas', 'fid', $uid);
-    $moderada = $ficha['aprobado_por']!= 'sin_aprobar';
+    $moderada = $ficha['aprobada_por'] != 'sin_aprobar';
 
     return $ficha != null && $moderada;
 }

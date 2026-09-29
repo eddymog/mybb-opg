@@ -15,14 +15,27 @@
 // 429 pasa a ser responsabilidad de quien llama (ver punkrecords_test_fase2.php),
 // reintentando ese mismo lote en una petición HTTP nueva, no esperando
 // adentro de una sola petición larga.
+//
+// CURLOPT_TIMEOUT de 20s (antes 60s): en una pregunta real, esta función se
+// llama DOS veces en la misma petición (embedding + generación) — con 60s
+// de timeout y 1 reintento, el peor caso de UNA sola llamada ya rondaba los
+// ~123s, más que el límite de Cloudflare; con las dos llamadas en la misma
+// petición, un caso real llegó a tardar casi 2 minutos en avisarle al
+// jugador que había un error, dejándolo mirando "Enviando..." sin ninguna
+// señal. 20s es de sobra para una respuesta sana (Gemini/Voyage responden
+// en segundos en condiciones normales) y deja margen real para que el
+// jugador vea el error rápido en vez de tarde.
 const PR_GEMINI_REINTENTOS_MAX = 1;
-const PR_GEMINI_ESPERA_BASE_SEGUNDOS = 3;
+const PR_GEMINI_ESPERA_BASE_SEGUNDOS = 2;
 
 /**
  * Petición HTTP genérica a la API de Gemini. Reintenta con espera creciente
  * (backoff exponencial) cuando Gemini devuelve 429 (cuota por minuto
  * agotada) — el límite real por minuto de estos modelos es más bajo de lo
- * que documenta Google, así que un solo intento no basta para un lote.
+ * que documenta Google, así que un solo intento no basta para un lote — o
+ * 503/500 (modelo saturado o error interno del lado de Google, normalmente
+ * pasajero — visto en la práctica el 2026-09-28 afectando a la vez a
+ * gemini-flash-lite-latest, gemini-3.8-flash y gemma-4-31b-it).
  * Devuelve ['ok' => bool, 'data' => mixed, 'error' => string].
  */
 function pr_gemini_request($modelo, $metodo, array $body)
@@ -46,7 +59,7 @@ function pr_gemini_request($modelo, $metodo, array $body)
                 'x-goog-api-key: ' . $api_key,
             ],
             CURLOPT_POSTFIELDS => json_encode($body),
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 20,
         ]);
 
         $respuesta = curl_exec($ch);
@@ -58,15 +71,24 @@ function pr_gemini_request($modelo, $metodo, array $body)
             return ['ok' => false, 'data' => null, 'error' => 'Error de conexión con Gemini: ' . $curl_error];
         }
 
-        if ($http_code === 429) {
-            // Se guarda el mensaje real de Gemini (trae qué métrica exacta se
-            // agotó: por minuto, por día, tokens, etc. — no asumir cuál es).
-            $detalle_429 = substr((string) $respuesta, 0, 800);
+        // 429 (cuota por minuto agotada), 503 (modelo saturado del lado de
+        // Google, "high demand") y 500 (error interno genérico — confirmado
+        // por curl directo el 2026-09-28 que puede ser la variante de "estoy
+        // saturado" que le toca a algunos modelos durante el mismo tipo de
+        // incidente que causa el 503 en otros) se tratan igual: reintentar
+        // con espera creciente antes de darse por vencido.
+        if ($http_code === 429 || $http_code === 503 || $http_code === 500) {
+            // Se guarda el mensaje real de Gemini (para 429 trae qué métrica
+            // exacta se agotó: por minuto, por día, tokens, etc. — no asumir
+            // cuál es; para 503/500 suele ser el aviso de demanda alta o de
+            // error interno).
+            $detalle = substr((string) $respuesta, 0, 800);
             if ($intento < PR_GEMINI_REINTENTOS_MAX) {
                 sleep(PR_GEMINI_ESPERA_BASE_SEGUNDOS * (2 ** $intento));
                 continue;
             }
-            return ['ok' => false, 'data' => null, 'error' => 'Gemini alcanzó su cuota (tras ' . ($intento + 1) . ' intentos): ' . $detalle_429];
+            $motivo = $http_code === 429 ? 'Gemini alcanzó su cuota' : "Gemini está saturado ({$http_code})";
+            return ['ok' => false, 'data' => null, 'error' => "{$motivo} (tras " . ($intento + 1) . " intentos): {$detalle}"];
         }
 
         if ($http_code !== 200) {
@@ -80,7 +102,7 @@ function pr_gemini_request($modelo, $metodo, array $body)
 }
 
 const PR_VOYAGE_REINTENTOS_MAX = 1;
-const PR_VOYAGE_ESPERA_BASE_SEGUNDOS = 3;
+const PR_VOYAGE_ESPERA_BASE_SEGUNDOS = 2;
 
 /**
  * Petición HTTP genérica a la API de Voyage AI. Mismo motivo que
@@ -110,7 +132,7 @@ function pr_voyage_request(array $body)
                 'Authorization: Bearer ' . $api_key,
             ],
             CURLOPT_POSTFIELDS => json_encode($body),
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 20,
         ]);
 
         $respuesta = curl_exec($ch);
@@ -228,9 +250,13 @@ function pr_embeber_pregunta($pregunta)
  *
  * Devuelve ['ok' => bool, 'texto' => string, 'error' => string].
  */
-function pr_generar($pregunta, array $fragmentos, $faccion = null, array $historial = [])
+function pr_generar($pregunta, array $fragmentos, $faccion = null, array $historial = [], $estado_en_vivo = '')
 {
     $contexto = pr_construir_contexto_numerado($fragmentos);
+    // El estado en vivo va ANTES de los fragmentos numerados y fuera de su
+    // numeración — no es un [F#] citable, ver la sección "ESTADO EN VIVO"
+    // del prompt de sistema.
+    $contexto_completo = ($estado_en_vivo !== '' ? $estado_en_vivo . "\n\n" : '') . $contexto;
 
     $contents = [];
     foreach ($historial as $turno) {
@@ -239,7 +265,7 @@ function pr_generar($pregunta, array $fragmentos, $faccion = null, array $histor
     }
     $contents[] = [
         'role' => 'user',
-        'parts' => [['text' => $contexto . "\n\nPregunta del jugador: " . $pregunta]],
+        'parts' => [['text' => $contexto_completo . "\n\nPregunta del jugador: " . $pregunta]],
     ];
 
     $body = [
@@ -261,7 +287,19 @@ function pr_generar($pregunta, array $fragmentos, $faccion = null, array $histor
         return ['ok' => false, 'texto' => '', 'error' => $resultado['error']];
     }
 
-    $texto = $resultado['data']['candidates'][0]['content']['parts'][0]['text'] ?? null;
+    // Modelos con razonamiento (confirmado con gemma-4-26b-a4b-it via curl
+    // directo) devuelven varias partes en content.parts: las de
+    // razonamiento interno (thought: true, texto en inglés tipo borrador) y
+    // al final la respuesta real. parts[0] NO es siempre la respuesta —
+    // hay que recorrerlas y quedarse con la primera que no sea thought.
+    $partes = $resultado['data']['candidates'][0]['content']['parts'] ?? [];
+    $texto = null;
+    foreach ($partes as $parte) {
+        if (empty($parte['thought']) && isset($parte['text'])) {
+            $texto = $parte['text'];
+            break;
+        }
+    }
 
     if ($texto === null || trim($texto) === '') {
         return ['ok' => false, 'texto' => '', 'error' => 'Gemini no devolvió una respuesta.'];

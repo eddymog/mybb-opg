@@ -332,13 +332,13 @@ Un factor importante en las batallas, e incluso fuera de ellas, es como nuestro 
 
 #### Movimiento
 
-Esto medirá cuanto puede desplazarse un personaje dentro de un turno, cuanto mayor sea la cifra consideraremos que es más veloz o tiene más aguante corriendo narrativamente. Este movimiento lo mediremos con ["Agilidad/2"+"Resistencia/4"] metros, es decir que con 15 Agilidad y 15 Resistencia, podremos movernos 11 metros en un turno.
+Esto medirá cuanto puede desplazarse un personaje dentro de un turno, cuanto mayor sea la cifra consideraremos que es más veloz o tiene más aguante corriendo narrativamente. Este movimiento lo mediremos con `(Agilidad / 2) + (Resistencia / 4)` metros, es decir que con 15 Agilidad y 15 Resistencia, podremos movernos 11 metros en un turno.
 
 Nota: Los límites de metros por turno que podemos usar con "Movimiento" se aplicarán solo en los turnos de un combate bélico y en caso de que el narrador lo indique en una aventura u evento. En el resto de roleos podéis ignorarlos siendo un poco coherentes con vuestra cifra.
 
 #### Salto
 
-El salto se produce con un impulso rápido y fuerte que nos permite recorrer una cierta distancia en apenas un segundo, en caso de hacerlo verticalmente luego habrá un tiempo de caída. Los metros que podemos recorrer con un salto lo determinaremos con [1+(Fuerza+Agilidad)/5], es decir que con 30 Fuerza y 30 Agilidad podremos saltar 13 metros.
+El salto se produce con un impulso rápido y fuerte que nos permite recorrer una cierta distancia en apenas un segundo, en caso de hacerlo verticalmente luego habrá un tiempo de caída. Los metros que podemos recorrer con un salto se determinan con `1 + (Fuerza + Agilidad) / 5`, es decir que con 30 Fuerza y 30 Agilidad podremos saltar 13 metros.
 
 #### Trepar
 

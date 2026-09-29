@@ -66,8 +66,11 @@ $color_faccion_esc = htmlspecialchars(pr_obtener_color_faccion($faccion_jugador)
 // sola vez (no cambian entre preguntas de la misma conversación) y se
 // reusan en cada turno vía pr_renderizar_turno().
 $avatar_faccion_url = pr_obtener_avatar_faccion($faccion_jugador);
+$avatar_faccion_url_esc = $avatar_faccion_url !== null
+    ? htmlspecialchars($mybb->settings['bburl'] . $avatar_faccion_url, ENT_QUOTES, 'UTF-8')
+    : '';
 $avatar_operador_html = pr_renderizar_avatar(
-    $avatar_faccion_url !== null ? htmlspecialchars($mybb->settings['bburl'] . $avatar_faccion_url, ENT_QUOTES, 'UTF-8') : null,
+    $avatar_faccion_url_esc,
     $operador_esc
 );
 $avatar_usuario_info = format_avatar($mybb->user['avatar']);
@@ -121,11 +124,16 @@ if ($mybb->request_method === 'post') {
         $embedding_pregunta = pr_embeber_pregunta($pregunta);
 
         if ($embedding_pregunta === null) {
+            // Detalle real descartado antes (uid + causa real de Voyage, no
+            // solo "no está disponible") — necesario para diagnosticar sin
+            // adivinar la próxima vez que falle.
+            pr_log('embedding falló (uid ' . $uid . '): ' . ($GLOBALS['pr_embeber_ultimo_error'] ?? 'sin detalle'));
             $error = 'El asistente no está disponible en este momento. Inténtalo de nuevo en unos minutos.';
         } else {
             $resultado_busqueda = pr_supabase_buscar($pregunta, $embedding_pregunta);
 
             if (!$resultado_busqueda['ok']) {
+                pr_log('búsqueda Supabase falló (uid ' . $uid . '): ' . ($resultado_busqueda['error'] ?? 'sin detalle'));
                 $error = 'El asistente no está disponible en este momento. Inténtalo de nuevo en unos minutos.';
             } else {
                 // Filtra los fragmentos que solo ganaron el ranking por
@@ -137,12 +145,37 @@ if ($mybb->request_method === 'post') {
                 // operador, en vez de un texto robótico genérico.
                 $fragmentos = pr_filtrar_fragmentos_relevantes($resultado_busqueda['data'] ?? []);
 
+                // Estado en vivo (consulta directa a MySQL, no a Supabase —
+                // ver pr_obtener_estado_ficha()): siempre el propio, por si
+                // preguntan por sí mismos sin nombrarse, más el de cualquier
+                // ficha que ya haya aparecido entre los fragmentos
+                // recuperados (preguntaron por otro personaje y la búsqueda
+                // ya lo encontró).
+                $estados_en_vivo = [];
+                $estado_propio = pr_obtener_estado_ficha($db, $uid);
+                if ($estado_propio !== null) {
+                    $estados_en_vivo[$uid] = $estado_propio;
+                }
+                foreach ($fragmentos as $f) {
+                    if ($f['fuente'] === 'ficha') {
+                        $otro_fid = (int) $f['ref'];
+                        if (!isset($estados_en_vivo[$otro_fid])) {
+                            $estado_otro = pr_obtener_estado_ficha($db, $otro_fid);
+                            if ($estado_otro !== null) {
+                                $estados_en_vivo[$otro_fid] = $estado_otro;
+                            }
+                        }
+                    }
+                }
+                $estado_en_vivo = pr_renderizar_estado_en_vivo(array_values($estados_en_vivo));
+
                 if (!pr_reservar_llamada($db, 'gen')) {
                     $error = 'El asistente alcanzó su límite de preguntas por hoy. Vuelve mañana.';
                 } else {
-                    $resultado_generacion = pr_generar($pregunta, $fragmentos, $faccion, $historial);
+                    $resultado_generacion = pr_generar($pregunta, $fragmentos, $faccion, $historial, $estado_en_vivo);
 
                     if (!$resultado_generacion['ok']) {
+                        pr_log('generación Gemini falló (uid ' . $uid . '): ' . ($resultado_generacion['error'] ?? 'sin detalle'));
                         $error = 'El asistente tuvo un problema al responder. Inténtalo de nuevo.';
                     } else {
                         $texto_bruto = $resultado_generacion['texto'];

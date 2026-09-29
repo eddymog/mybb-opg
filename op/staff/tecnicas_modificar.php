@@ -84,7 +84,6 @@ if ($mybb->request_method == 'post') {
     elseif ($estilo === '') { $error = 'El estilo es obligatorio.'; }
     elseif (!in_array($clase, $TECNICAS_CLASES, true)) { $error = 'La clase debe ser una de: ' . implode(', ', $TECNICAS_CLASES) . '.'; }
     elseif (!in_array($tipo, $TECNICAS_TIPOS, true)) { $error = 'El tipo debe ser uno de: ' . implode(', ', $TECNICAS_TIPOS) . '.'; }
-    elseif ($descripcion === '') { $error = 'La descripción es obligatoria.'; }
 
     if ($error === '') {
         $campos = array('nombre' => $nombre, 'estilo' => $estilo, 'clase' => $clase, 'tipo' => $tipo, 'descripcion' => $descripcion);

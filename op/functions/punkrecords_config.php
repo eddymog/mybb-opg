@@ -137,7 +137,15 @@ const PR_LLAMADAS_POR_MINUTO_MAX = 10;
 const PR_PREGUNTAS_USUARIO_DIA = 100;
 const PR_PREGUNTAS_USUARIO_HORA = 30;
 
-const PR_MODELO_GENERACION = 'gemini-flash-lite-latest'; // sigue en Gemini: redactar respuestas no cambió
+// Se probó gemma-4-31b-it (500 consistente, confirmado con curl directo),
+// gemma-4-26b-a4b-it (funciona, pero es modelo con razonamiento: gasta
+// tokens/tiempo extra en un borrador interno antes de la respuesta real —
+// 16.6s medidos con un prompt real, muy cerca del timeout de 20s) y
+// gemini-3.1-flash-lite (funciona bien, 5.5s). Vuelto a gemini-3.5-flash-lite:
+// es el modelo del que hay cupo gratis diario confirmado en el panel de
+// AI Studio (500/día) — 'latest' podía apuntar a otra versión con cupo
+// distinto o sin confirmar.
+const PR_MODELO_GENERACION = 'gemini-3.5-flash-lite';
 const PR_MODELO_EMBEDDING = 'voyage-4'; // antes gemini-embedding-001; migrado por soporte de español documentado
 const PR_EMBEDDING_DIMENSIONES = 1024; // dimensión por defecto de voyage-4 (antes 768 con Gemini)
 
@@ -162,3 +170,20 @@ const PR_HISTORIAL_JSON_CHARS_MAX = 6000;
 // búsqueda por texto (no solo "entró en el top 20").
 const PR_SIMILITUD_MINIMA = 0.35;
 const PR_RANK_TEXTO_MAXIMO = 3;
+
+/**
+ * Log propio de Punk Records, aparte del error_log general de PHP (que
+ * depende de una configuración del hosting que no controlamos desde el
+ * código). Escribe directo al archivo con error_log($msg, 3, $archivo) —
+ * eso NO toca el ini_set('error_log', ...) global, así que no afecta
+ * ningún otro log del sitio en la misma petición.
+ *
+ * op/logs/ ya existe con un .htaccess "Deny from all" (no servible por
+ * web); esto agrega el primer archivo que efectivamente escribe ahí.
+ */
+function pr_log($mensaje)
+{
+    $archivo = __DIR__ . '/../logs/punkrecords.log';
+    $linea = '[' . date('Y-m-d H:i:s') . '] ' . $mensaje . "\n";
+    @error_log($linea, 3, $archivo);
+}

@@ -119,8 +119,8 @@ function pr_renderizar_cuota($restantes, $max, $oob = false)
     $oob_attr = $oob ? ' hx-swap-oob="true"' : '';
 
     return '<div id="pr-cuota"' . $oob_attr . '>'
-        . '<span class="pr-cuota-texto">Preguntas restantes hoy: ' . $restantes . '/' . $max . '</span>'
-        . '<div class="pr-cuota-barra"><div class="pr-cuota-barra__relleno' . $clase_baja . '" style="width: ' . $porcentaje . '%;"></div></div>'
+        . '<div class="pr-cuota-linea"><span>Preguntas disponibles</span><strong>' . $restantes . '/' . $max . '</strong></div>'
+        . '<div class="pr-cuota-barra" role="progressbar" aria-label="Preguntas disponibles hoy" aria-valuemin="0" aria-valuemax="' . $max . '" aria-valuenow="' . $restantes . '"><div class="pr-cuota-barra__relleno' . $clase_baja . '" style="width: ' . $porcentaje . '%;"></div></div>'
         . '</div>';
 }
 

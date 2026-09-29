@@ -12,18 +12,64 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
     <style>
-    /* Página completa: se pisa el ancho fijo de .thirdBackground (1030px por
-       defecto en op_global.css) por 100%, para que el chat use todo el ancho
-       disponible en vez de quedar en una columna angosta — pedido explícito. */
-    .punkrecords-den .thirdBackground { width: 100%; gap: var(--opg-espacio-4); }
+    /* Esta plantilla solo se carga en esta página, así que puede neutralizar
+       el mínimo global de 1100px sin alterar el resto del foro. */
+    #container { min-width: 0; }
+    #logo, #footer { width: 100% !important; max-width: 1100px; }
 
-    .pr-titulo { padding: var(--opg-espacio-2); }
-    .pr-titulo .barra-texto-op { font-size: 22px; letter-spacing: 1px; text-shadow: 2px 2px 0 black; }
-    .pr-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
-    .pr-guia-lista { margin: 0; padding-left: 18px; }
-    .pr-guia-lista li { margin-bottom: 4px; }
-    .pr-guia-lista li:last-child { margin-bottom: 0; }
-    .pr-guia-lista strong { color: var(--pr-color-texto, var(--opg-marron)); }
+    .punkrecords-den, .punkrecords-den * { box-sizing: border-box; }
+    .punkrecords-den .thirdBackground {
+        width: 100%; max-width: 1030px; gap: var(--opg-espacio-3);
+        --pr-color-suave: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 14%, var(--opg-crema-clara, #fff));
+        --pr-color-texto: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 70%, var(--opg-tinta, #000));
+    }
+
+    .pr-cabecera {
+        display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--opg-espacio-4);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        background: var(--opg-textura-trama), var(--opg-crema-clara);
+        box-shadow: var(--opg-sombra-offset); overflow: hidden;
+    }
+    .pr-identidad { display: flex; align-items: center; gap: var(--opg-espacio-4); min-width: 0; padding: 16px 18px; }
+    .pr-identidad-avatar { width: 68px; height: 68px; flex: 0 0 68px; }
+    .pr-identidad-avatar .pr-avatar { width: 100%; height: 100%; box-shadow: 3px 3px 0 var(--opg-tinta); }
+    .pr-identidad-texto { min-width: 0; }
+    .pr-sobretitulo { margin: 0 0 2px; color: var(--pr-color-texto); font: 700 11px/1.3 var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .pr-titulo { margin: 0; color: var(--opg-marron); font: 26px/1.05 var(--opg-fuente-titular); letter-spacing: 0; text-shadow: 2px 2px 0 rgba(255, 137, 0, .35); }
+    .pr-operador { margin: 5px 0 0; color: var(--opg-gris-texto); font: 13px/1.4 var(--opg-fuente-cuerpo); }
+    .pr-operador strong { color: var(--opg-marron); }
+
+    .pr-utilidades {
+        display: flex; flex-direction: column; justify-content: center; gap: 10px;
+        min-width: 220px; padding: 14px 16px; border-left: 2px solid var(--opg-tinta);
+        background: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 8%, var(--opg-crema-cuerpo));
+    }
+    #pr-cuota { width: 100%; }
+    .pr-cuota-linea { display: flex; justify-content: space-between; gap: 12px; color: var(--opg-marron); font: 11px/1.3 var(--opg-fuente-cuerpo); }
+    .pr-cuota-linea strong { font-family: InterBold, var(--opg-fuente-cuerpo); }
+    .pr-cuota-barra { width: 100%; height: 8px; margin-top: 5px; overflow: hidden; border: 1px solid rgba(0, 0, 0, .4); border-radius: 4px; background: rgba(0, 0, 0, .12); }
+    .pr-cuota-barra__relleno { height: 100%; background: var(--opg-verde-exito); transition: width .3s ease; }
+    .pr-cuota-barra__relleno--baja { background: var(--opg-rojo-error); }
+    .pr-reiniciar {
+        align-self: flex-start; padding: 0; border: 0; background: none; color: var(--opg-morado-texto);
+        font: 12px/1.4 var(--opg-fuente-cuerpo); cursor: pointer;
+    }
+    .pr-reiniciar:hover { color: var(--opg-morado-cta); text-decoration: underline; }
+    .pr-reiniciar:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+    .pr-reiniciar:disabled { opacity: .4; cursor: default; text-decoration: none; }
+
+    .pr-ayuda { grid-column: 1 / -1; border-top: 2px solid var(--opg-tinta); background: rgba(255, 255, 255, .35); }
+    .pr-ayuda summary {
+        padding: 8px 18px; color: var(--opg-marron); font: 12px/1.4 var(--opg-fuente-cuerpo);
+        cursor: pointer; list-style: none;
+    }
+    .pr-ayuda summary::-webkit-details-marker { display: none; }
+    .pr-ayuda summary::before { content: "\f05a"; margin-right: 7px; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--pr-color-texto); }
+    .pr-ayuda summary::after { content: "\f078"; float: right; font-family: "Font Awesome 6 Free"; font-weight: 900; transition: transform var(--opg-rapido); }
+    .pr-ayuda[open] summary::after { transform: rotate(180deg); }
+    .pr-guia-lista { margin: 0; padding: 0 34px 12px 50px; color: var(--opg-marron); font: 12px/1.5 var(--opg-fuente-cuerpo); }
+    .pr-guia-lista li + li { margin-top: 3px; }
+    .pr-guia-lista strong { color: var(--pr-color-texto); }
 
     .aviso {
         font-family: var(--opg-fuente-cuerpo); color: #fff; margin: 0;
@@ -31,32 +77,10 @@
     }
     .aviso.err { background: var(--opg-rojo-error); }
 
-    /* Panel de chat: mensajes con scroll propio arriba, form fijo abajo — se
-       siente como una app de mensajería, no como un formulario de una sola
-       pregunta/respuesta que recarga la página. */
-    /* Alto pensado para ocupar gran parte de la pantalla (pedido explícito):
-       .pr-chat fija el alto total del panel según el viewport, y
-       .pr-mensajes crece con flex:1 para llenar todo lo que sobra arriba
-       del formulario — así el chat domina la página en vez de quedar como
-       una cajita chica. min-height:0 es necesario para que un hijo flex con
-       overflow-y:auto pueda encogerse y scrollear en vez de desbordar. */
-    /* --pr-color-suave: el color de acento de la facción (--pr-color-faccion,
-       puro, ver pr_obtener_color_faccion()) aclarado con color-mix() sobre
-       crema — mismo truco que ya usa .opg-card con --opg-card-acento (ver
-       docs/style.md §7), en vez de mandar un pastel inventado desde PHP.
-       --pr-color-texto es el mismo acento pero OSCURECIDO (mezclado con
-       tinta, no con crema) para usarlo como color de texto: algunos acentos
-       (ej. el dorado de Civil) son demasiado claros para leerse como texto
-       tal cual — mezclar con negro los mantiene identificables sin fallar
-       contraste, sin necesitar una variante "-texto" a mano por facción.
-       Las dos se calculan una sola vez acá y las heredan la cabecera y la
-       burbuja. */
     .pr-chat {
-        display: flex; flex-direction: column; height: 78vh; min-height: 480px;
+        display: flex; flex-direction: column; height: clamp(520px, 68vh, 720px); min-height: 0;
         border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
-        background: var(--opg-crema-boton, #fcecd2); overflow: hidden;
-        --pr-color-suave: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 14%, var(--opg-crema-clara, #fff));
-        --pr-color-texto: color-mix(in srgb, var(--pr-color-faccion, #9b9b9b) 70%, var(--opg-tinta, #000));
+        background: var(--opg-crema-boton); box-shadow: 3px 3px 0 var(--opg-tinta); overflow: hidden;
     }
 
     /* Cabecera fija con quién contesta — antes solo aparecía una vez, en el
@@ -64,20 +88,37 @@
        conversación larga. Al ser un hijo más de .pr-chat (flex column) y no
        parte de #pr-mensajes (que es la única parte que scrollea), queda
        fijo sin necesidad de position:sticky. */
-    .pr-chat-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--pr-color-suave); border-bottom: 2px solid var(--opg-tinta); font-family: var(--opg-fuente-cuerpo); }
+    .pr-chat-header { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: var(--pr-color-suave); border-bottom: 2px solid var(--opg-tinta); font-family: var(--opg-fuente-cuerpo); }
     .pr-chat-header__punto { width: 8px; height: 8px; border-radius: 50%; background: var(--opg-verde-exito, #4caf50); flex-shrink: 0; }
-    .pr-chat-header__nombre { font-weight: bold; font-size: 13px; }
+    .pr-chat-header__etiqueta { color: var(--opg-gris-texto); font-size: 11px; }
+    .pr-chat-header__nombre { color: var(--opg-marron); font: 700 12px/1.3 var(--opg-fuente-cuerpo); }
 
     .pr-mensajes {
+        position: relative;
         display: flex; flex-direction: column; gap: var(--opg-espacio-3);
         padding: var(--opg-espacio-4); flex: 1; min-height: 0; overflow-y: auto;
+        background:
+            var(--opg-textura-grano),
+            linear-gradient(
+                135deg,
+                color-mix(in srgb, var(--pr-color-faccion) 6%, var(--opg-crema-boton)),
+                var(--opg-crema-boton) 55%,
+                color-mix(in srgb, var(--opg-naranja) 5%, var(--opg-crema-boton))
+            );
         scroll-behavior: smooth;
     }
     /* .opg-vacio (docs/style.md — "listado sin nada que mostrar todavía") en
        vez de un ::before con contenido a mano: mismo componente que usan
        banners.php/op_upload. .pr-vacio-chat solo agrega el centrado vertical
        que necesita este panel en particular. */
-    .pr-vacio-chat { margin: auto; font-size: 13px; }
+    .pr-vacio-chat { position: relative; z-index: 1; max-width: 390px; margin: auto; color: var(--opg-marron); font-size: 13px; line-height: 1.55; text-align: center; }
+    .pr-vacio-chat::before { content: "\f095"; display: block; width: 48px; height: 48px; margin: 0 auto 12px; border: 2px solid var(--opg-tinta); border-radius: 50%; background: var(--pr-color-suave); color: var(--pr-color-texto); font: 900 20px/44px "Font Awesome 6 Free"; box-shadow: 3px 3px 0 var(--opg-tinta); }
+    .pr-mensajes:has(.pr-vacio-chat)::after {
+        content: ""; position: absolute; top: 50%; left: 50%; width: min(300px, 62%); aspect-ratio: 1;
+        background: var(--pr-avatar-operador) center / contain no-repeat;
+        opacity: .045; filter: grayscale(1); transform: translate(-50%, -50%);
+        pointer-events: none;
+    }
 
     .pr-turno { display: flex; flex-direction: column; gap: var(--opg-espacio-2); animation: pr-aparecer .25s ease-out; }
     @keyframes pr-aparecer { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -97,36 +138,44 @@
     .pr-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--opg-tinta); object-fit: cover; flex-shrink: 0; background: #fff; }
     .pr-avatar--generica { display: flex; align-items: center; justify-content: center; color: var(--opg-marron); font-size: 14px; background: var(--opg-crema-cuerpo, #ffe3a0); }
 
-    /* position:relative para poder anclar la "colita" del operador (::before)
-       en la esquina achatada de la burbuja — el mismo truco de borde
-       transparente que usa cualquier UI de chat (WhatsApp, iMessage). El
-       lado del usuario no la lleva: con el avatar al lado ya queda claro de
-       quién es cada burbuja, la colita ahí era ruido de más. La sombra dura
-       (offset chico, 1px 1px, no el --opg-sombra-offset de 4px que usan las
-       tarjetas grandes — acá compite con burbujas chicas pegadas una a la
-       otra) es la firma de viñeta de cómic del sistema de diseño
-       (docs/style.md §3/§7, la misma que .opg-card). */
+    /* Ninguna de las dos burbujas lleva "colita" — con el avatar al lado ya
+       queda claro de quién es cada una, la colita era ruido de más. La
+       sombra dura (offset chico, 1px 1px, no el --opg-sombra-offset de 4px
+       que usan las tarjetas grandes — acá compite con burbujas chicas
+       pegadas una a la otra) es la firma de viñeta de cómic del sistema de
+       diseño (docs/style.md §3/§7, la misma que .opg-card). */
     .pr-burbuja { position: relative; max-width: min(720px, 88%); padding: 10px 14px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.6; box-shadow: 1px 1px 0 var(--opg-tinta, #000); }
-    .pr-burbuja--usuario { background: var(--opg-naranja, #ff8900); color: #fff; border-bottom-right-radius: 2px; }
+    .pr-burbuja--usuario { background: var(--opg-naranja, #ff8900); color: var(--opg-marron); border-bottom-right-radius: 2px; }
     /* --pr-color-suave: tinte de facción ya aclarado, definido una vez en
        .pr-chat (ver más arriba) a partir del color puro --pr-color-faccion
        (pr_obtener_color_faccion() en punkrecords_rag.php). */
     .pr-burbuja--operador { background: var(--pr-color-suave); border-bottom-left-radius: 2px; }
-    .pr-burbuja--operador::before {
-        content: ""; position: absolute; left: -9px; bottom: 0;
-        border: 9px solid transparent; border-right-color: var(--pr-color-suave); border-bottom: 0; border-left: 0;
-    }
     /* Error: antes era un rectángulo rojo sólido — se suaviza a un tinte
        claro con borde y texto rojo, más "aviso" que "alarma", con un ícono
        de advertencia antes del nombre del autor. */
     .pr-burbuja--error { background: #fdeceb; color: var(--opg-tinta, #2a1a12); border-color: var(--opg-rojo-error); }
-    .pr-burbuja--error::before { border-right-color: #fdeceb; }
     .pr-burbuja--error .pr-burbuja__autor { color: var(--opg-rojo-error); opacity: 1; }
     .pr-burbuja--error .pr-burbuja__autor::before { content: "⚠ "; }
     .pr-reintentar { margin-top: 8px; background: #fff; color: var(--opg-rojo-error); border: 1px solid var(--opg-rojo-error); border-radius: var(--opg-radio-md); padding: 4px 10px; font-size: 12px; cursor: pointer; transition: transform var(--opg-rapido, .2s) ease; }
     .pr-reintentar:hover { background: var(--opg-rojo-error); color: #fff; transform: scale(1.05); }
     .pr-burbuja__autor { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .5px; color: var(--pr-color-texto); margin-bottom: 3px; }
     .pr-burbuja__texto :first-child { margin-top: 0; }
+    .pr-burbuja__texto code { padding: 1px 5px; border: 1px solid rgba(0, 0, 0, .25); border-radius: 3px; background: rgba(255, 255, 255, .55); color: var(--opg-marron); font-family: monospace; font-size: .92em; }
+    .pr-burbuja--operador .pr-burbuja__texto > ul,
+    .pr-burbuja--operador .pr-burbuja__texto > ol { margin: 8px 0; padding: 0; list-style: none; }
+    .pr-burbuja--operador .pr-burbuja__texto > ul > li,
+    .pr-burbuja--operador .pr-burbuja__texto > ol > li { position: relative; margin: 5px 0; }
+    .pr-burbuja--operador .pr-burbuja__texto > ul > li { padding-left: 17px; }
+    .pr-burbuja--operador .pr-burbuja__texto > ul > li::before {
+        content: ""; position: absolute; top: .68em; left: 1px; width: 6px; height: 6px;
+        border: 1px solid var(--opg-tinta); background: var(--pr-color-faccion); transform: translateY(-50%);
+    }
+    .pr-burbuja--operador .pr-burbuja__texto > ol { counter-reset: pr-lista; }
+    .pr-burbuja--operador .pr-burbuja__texto > ol > li { padding-left: 25px; counter-increment: pr-lista; }
+    .pr-burbuja--operador .pr-burbuja__texto > ol > li::before {
+        content: counter(pr-lista) "."; position: absolute; top: 0; left: 0; width: 20px;
+        color: var(--pr-color-texto); font-weight: bold; text-align: right;
+    }
     /* Caja de sugerencia al final de la respuesta (pr_renderizar_sugerencia_fuentes()
        en punkrecords_rag.php) — "Visita la Guía X en la sección de..." en vez
        de una lista de notas al pie: se siente más a que el personaje te
@@ -158,30 +207,50 @@
     .pr-typing__dots i:nth-child(3) { animation-delay: .3s; }
     @keyframes pr-rebote { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-4px); opacity: 1; } }
 
-    .pr-form { padding: var(--opg-espacio-3) var(--opg-espacio-4); border-top: 2px solid var(--opg-tinta); display: flex; flex-direction: column; gap: var(--opg-espacio-2); background: var(--opg-crema-cuerpo, #ffe3a0); }
-    .pr-form-fila { display: flex; gap: var(--opg-espacio-2); align-items: flex-end; }
-    textarea#pr_pregunta { flex: 1; min-height: 64px; max-height: 200px; font-family: var(--opg-fuente-cuerpo); font-size: 14px; padding: 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); resize: vertical; }
+    .pr-form { padding: 12px 14px 9px; border-top: 2px solid var(--opg-tinta); display: flex; flex-direction: column; gap: 5px; background: var(--opg-crema-cuerpo); }
+    .pr-form-fila { display: flex; gap: var(--opg-espacio-2); align-items: stretch; }
+    textarea#pr_pregunta { flex: 1; min-width: 0; min-height: 50px; max-height: 150px; font-family: var(--opg-fuente-cuerpo); font-size: 14px; line-height: 1.45; padding: 9px 11px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); resize: vertical; background: #fffaf1; }
+    textarea#pr_pregunta:focus { outline: none; box-shadow: var(--opg-foco); }
     textarea#pr_pregunta:disabled { opacity: .6; }
-    .pr-form-fila button { white-space: nowrap; }
+    .pr-form-fila button { min-width: 112px; white-space: nowrap; }
     /* Cambio de texto del botón durante el envío, sin JS: htmx agrega
        htmx-request al formulario mismo (está listado dos veces en
        hx-indicator, ver el form) mientras espera la respuesta. */
     .pr-boton-enviando { display: none; }
     .htmx-request .pr-boton-normal { display: none; }
     .htmx-request .pr-boton-enviando { display: inline; }
-    .pr-contador { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); text-align: right; }
+    .pr-contador { padding-right: 2px; color: var(--opg-gris-texto); font: 11px/1.3 var(--opg-fuente-cuerpo); text-align: right; }
 
-    .pr-chat-barra { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-1); }
-    /* Barra de progreso en vez de solo texto (mejora de diseño): se escanea
-       de un vistazo, y se pone roja cuando queda poco en vez de que el
-       jugador se entere recién al toparse con el límite. */
-    .pr-cuota-texto { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); opacity: .85; }
-    .pr-cuota-barra { width: 140px; height: 6px; background: rgba(0, 0, 0, .12); border-radius: 3px; overflow: hidden; margin-top: 3px; }
-    .pr-cuota-barra__relleno { height: 100%; background: var(--opg-verde-exito, #4caf50); border-radius: 3px; transition: width .3s ease; }
-    .pr-cuota-barra__relleno--baja { background: var(--opg-rojo-error); }
-    .pr-reiniciar { background: none; border: none; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); cursor: pointer; text-decoration: underline; padding: 2px 4px; transition: transform var(--opg-rapido, .2s) ease; }
-    .pr-reiniciar:hover { opacity: .75; transform: scale(1.05); }
-    .pr-reiniciar:disabled { opacity: .4; cursor: default; text-decoration: none; transform: none; }
+    @media (max-width: 700px) {
+        .punkrecords-den .mainBackground { padding: 6px; }
+        .punkrecords-den .secondBackground, .punkrecords-den .thirdBackground { padding: 10px; }
+        .pr-cabecera { grid-template-columns: 1fr; gap: 0; box-shadow: 3px 3px 0 var(--opg-tinta); }
+        .pr-identidad { padding: 13px 14px; }
+        .pr-identidad-avatar { width: 54px; height: 54px; flex-basis: 54px; }
+        .pr-titulo { font-size: 22px; }
+        .pr-utilidades { min-width: 0; padding: 10px 14px; border-top: 2px solid var(--opg-tinta); border-left: 0; }
+        .pr-ayuda { grid-column: auto; }
+        .pr-chat { height: min(680px, 72dvh); min-height: 500px; }
+        .pr-mensajes { padding: 12px; }
+        .pr-burbuja { max-width: calc(100% - 42px); padding: 9px 11px; font-size: 13px; }
+        .pr-form-fila { flex-direction: column; }
+        .pr-form-fila button { width: 100%; min-height: 40px; }
+        .pr-form { padding: 10px; }
+        textarea#pr_pregunta { min-height: 68px; }
+    }
+
+    @media (max-width: 480px) {
+        .pr-identidad { align-items: flex-start; }
+        .pr-identidad-avatar { width: 46px; height: 46px; flex-basis: 46px; }
+        .pr-sobretitulo { font-size: 10px; }
+        .pr-titulo { font-size: 20px; }
+        .pr-operador { font-size: 12px; }
+        .pr-ayuda summary { padding-inline: 14px; }
+        .pr-guia-lista { padding: 0 24px 12px 36px; }
+        .pr-chat { min-height: 480px; }
+        .pr-avatar { width: 30px; height: 30px; }
+        .pr-burbuja { max-width: calc(100% - 38px); }
+    }
     </style>
 </head>
 
@@ -190,30 +259,41 @@
     <div class="indice punkrecords-den">
     <div class="mainBackground">
     <div class="secondBackground">
-    <div class="thirdBackground">
+    <div class="thirdBackground" style="--pr-color-faccion: {$color_faccion_esc}; --pr-avatar-operador: url(&quot;{$avatar_faccion_url_esc}&quot;);">
 
-        <div>
-            <div class="barra-op bbox pr-titulo"><span class="barra-texto-op">Guía del Operador Den Den Mushi</span></div>
-            <div class="barra-espacio-op bbox pr-descripcion">
+        <header class="pr-cabecera">
+            <div class="pr-identidad">
+                <div class="pr-identidad-avatar">{$avatar_operador_html}</div>
+                <div class="pr-identidad-texto">
+                    <p class="pr-sobretitulo">Línea de consultas</p>
+                    <h1 class="pr-titulo">Operador Den Den Mushi</h1>
+                    <p class="pr-operador">Línea directa con <strong>{$operador_esc}</strong></p>
+                </div>
+            </div>
+            <div class="pr-utilidades">
+                {$cuota_html}
+                <button type="button" id="pr_reiniciar" class="pr-reiniciar" title="Borrar los mensajes de esta pestaña">
+                    <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+                    <span>Nueva conversación</span>
+                </button>
+            </div>
+            <details class="pr-ayuda">
+                <summary>Guía de uso y privacidad</summary>
                 <ul class="pr-guia-lista">
                     <li>Has marcado el Den Den Mushi de tu facción — del otro lado contesta <strong>{$operador_esc}</strong>, en personaje.</li>
                     <li>Pregúntale sobre las guías y técnicas del foro; si menciona una guía, te dice cuál visitar.</li>
                     <li>Recuerda los últimos mensajes mientras esta pestaña esté abierta, así que puedes seguir la conversación.</li>
                     <li>Puede equivocarse: no incluyas datos personales, las preguntas se envían a un proveedor externo (Google).</li>
                 </ul>
-            </div>
-        </div>
+            </details>
+        </header>
 
         <if $error_esc != '' then><p class="aviso err">{$error_esc}</p></if>
 
-        <div class="pr-chat-barra">
-            {$cuota_html}
-            <button type="button" id="pr_reiniciar" class="pr-reiniciar"><i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i> Reiniciar conversación</button>
-        </div>
-
-        <div class="pr-chat" style="--pr-color-faccion: {$color_faccion_esc};">
+        <div class="pr-chat">
             <div class="pr-chat-header">
                 <span class="pr-chat-header__punto"></span>
+                <span class="pr-chat-header__etiqueta">Línea activa</span>
                 <span class="pr-chat-header__nombre">{$operador_esc}</span>
             </div>
             <div id="pr-mensajes" class="pr-mensajes" data-placeholder="{$placeholder_vacio_esc}" data-avatar-usuario="{$avatar_usuario_url_esc}">{$mensajes_inicial_html}</div>
@@ -235,7 +315,7 @@
                     <textarea id="pr_pregunta" name="pregunta" minlength="5" maxlength="500" required
                         placeholder="Escribe tu pregunta sobre las guías..."></textarea>
                     <button type="submit" id="pr_boton" class="btn-op btn-op--primario" disabled>
-                        <span class="pr-boton-normal">Preguntar</span>
+                        <span class="pr-boton-normal"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar</span>
                         <span class="pr-boton-enviando">Enviando…</span>
                     </button>
                 </div>
@@ -258,6 +338,47 @@
         var mensajes = document.getElementById('pr-mensajes');
         var historialCampo = document.getElementById('pr_historial');
         var reiniciarBtn = document.getElementById('pr_reiniciar');
+
+        // Un avatar ausente no debe dejar el ícono de imagen rota visible.
+        // El mismo reemplazo cubre los avatares iniciales, los que llegan por
+        // HTMX y la burbuja optimista creada en esta pestaña.
+        function reemplazarAvatarRoto(img) {
+            if (!img || !img.parentNode) {
+                return;
+            }
+            var fallback = document.createElement('span');
+            fallback.className = 'pr-avatar pr-avatar--generica';
+            fallback.setAttribute('aria-hidden', 'true');
+            var icono = document.createElement('i');
+            icono.className = 'fa-solid fa-phone';
+            fallback.appendChild(icono);
+            img.replaceWith(fallback);
+        }
+
+        function prepararAvatares(raiz) {
+            raiz.querySelectorAll('img.pr-avatar').forEach(function (img) {
+                img.addEventListener('error', function () {
+                    reemplazarAvatarRoto(img);
+                }, { once: true });
+                if (img.complete && img.naturalWidth === 0) {
+                    reemplazarAvatarRoto(img);
+                }
+            });
+        }
+
+        prepararAvatares(document);
+
+        // Espera dos frames para que HTMX alcance a mostrar el indicador de
+        // escritura y el navegador recalcule la altura disponible del chat.
+        // Sin esa espera, la pregunta se lleva al fondo demasiado pronto y
+        // el indicador vuelve a empujarla parcialmente fuera de la vista.
+        function desplazarAlFinal() {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    mensajes.scrollTop = mensajes.scrollHeight;
+                });
+            });
+        }
 
         // Memoria de conversación: vive solo en esta variable de JS mientras
         // la pestaña esté abierta — un refresh o cerrar la pestaña la borra
@@ -347,7 +468,8 @@
 
             turno.appendChild(fila);
             mensajes.appendChild(turno);
-            mensajes.scrollTop = mensajes.scrollHeight;
+            prepararAvatares(turno);
+            desplazarAlFinal();
         }
 
         function quitarBurbujaPendiente() {
@@ -406,6 +528,8 @@
             actualizar();
         });
 
+        form.addEventListener('htmx:beforeRequest', desplazarAlFinal);
+
         form.addEventListener('htmx:afterRequest', function () {
             ta.focus();
         });
@@ -423,6 +547,7 @@
         // guardarlo en la memoria de conversación para las próximas preguntas.
         mensajes.addEventListener('htmx:afterSwap', function () {
             quitarBurbujaPendiente();
+            prepararAvatares(mensajes);
             if (estabaAbajoAntesDeSwap) {
                 mensajes.scrollTop = mensajes.scrollHeight;
             }
