@@ -110,14 +110,13 @@ require_once "./functions/op_functions.php";
 ## Known Gotchas
 
 1. **`howl.php` is 360KB** — Extremely large single file, be careful with full reads
-2. **`jscripts/ficha_script2.js` is 252KB** — Very large JS file for character sheet builder
-3. **`member.php` is 98KB** — Heavily customized beyond standard MyBB
-4. **`op/crafteo.php` has `THIS_SCRIPT = 'viajes.php'`** — Copy-paste error in the define, does not affect functionality
-5. **SQL queries use string interpolation** — Not parameterized; be careful about SQL injection when modifying queries
-6. **Templates use `eval()`** — This is standard MyBB behavior, not a bug
-7. **JWT secret is `'test'`** in `/api/index.php` — Insecure, intended for development only
-8. **CORS allows all origins** in the API — No domain restriction
-9. **`op/db_extra.php`** connects to an external database at `bdopg.iceiy.com`
+2. **`member.php` is 98KB** — Heavily customized beyond standard MyBB
+3. **`op/crafteo.php` has `THIS_SCRIPT = 'viajes.php'`** — Copy-paste error in the define, does not affect functionality
+4. **SQL queries use string interpolation** — Not parameterized; be careful about SQL injection when modifying queries
+5. **Templates use `eval()`** — This is standard MyBB behavior, not a bug
+6. **JWT secret is `'test'`** in `/api/index.php` — Insecure, intended for development only
+7. **CORS allows all origins** in the API — No domain restriction
+8. **`op/db_extra.php`** connects to an external database at `bdopg.iceiy.com`
 
 ## Plugin System
 

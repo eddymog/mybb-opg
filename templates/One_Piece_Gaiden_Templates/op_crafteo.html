@@ -163,7 +163,18 @@
   .bloquear-button:hover {
 		background-color: #9151b5;
 	}
-		
+
+  /* Botón de desbloqueo con Receta de Oficio: mismo componente que
+	 .bloquear-button, pero con su propio color e hover en una clase aparte
+	 (en vez de background-color inline) para que el hover sí se note — un
+	 style inline siempre le gana a cualquier regla de la hoja, hover incluido. */
+  .bloquear-button-receta {
+		background-color: #5b3fa0; margin-top: 5px;
+	}
+  .bloquear-button-receta:hover {
+		background-color: #7e5bc9;
+	}
+
   </style>
 </head>
 
@@ -633,10 +644,23 @@ function renderItems() {
 		} else {
 			imagenGris = 'filter: grayscale(0.7);';
 			fondoGris = 'background-color: #817f7f; ';
+
+			// Alternativa a gastar puntos de oficio: una Receta de Oficio del
+			// inventario cuyo objeto_id empiece con MJR00<tier> (MJR001..MJR005
+			// para tier 1 a 5) -- objetos_recetas_array_json ya trae los MJR00%
+			// que tiene el jugador (armado server-side en crafteo.php). El
+			// servidor vuelve a validar todo esto igual al recibir el POST, esto
+			// es solo para decidir si mostrar el boton.
+			let recetaPrefijo = 'MJR00' + tier;
+			let tieneRecetaTier = objetos_recetas_array_json.some(function (id) { return id.indexOf(recetaPrefijo) === 0; });
+			let botonReceta = tieneRecetaTier
+				? `<div class="bloquear-button bloquear-button-receta" onclick="desbloquearRecetaItem('` + objetoId + `')"> Desbloquear con Receta de Oficio (Tier ` + tier + `) </div>`
+				: '';
+
 			if (puntos_oficio >= objeto.desbloquear) {
-				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" onclick="desbloquearItem('` + objetoId + `')"> Desbloquear por ` + objeto.desbloquear + ` puntos de oficio. </div> </div>`;
+				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" onclick="desbloquearItem('` + objetoId + `')"> Desbloquear por ` + objeto.desbloquear + ` puntos de oficio. </div> ` + botonReceta + ` </div>`;
 			} else {
-				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" style="` + fondoGris + `pointer: auto;"> Necesitas ` + objeto.desbloquear + ` puntos de oficio para desbloquear. </div> </div>`;
+				crafteo = `<div id="creacion" style=" text-align: center;border-top: 1px solid #5e5e5e;"> <div class="bloquear-button" style="` + fondoGris + `pointer: auto;"> Necesitas ` + objeto.desbloquear + ` puntos de oficio para desbloquear. </div> ` + botonReceta + ` </div>`;
 			}
 		}
 		if (modoVista == true) { crafteo = ''; }
@@ -1027,13 +1051,16 @@ function desbloquearItem(objetoId) {
 	} 
 }
 	
-function desbloquearRecetaItem(objetoId, recetaId) {
-	if (confirm('¿Estás seguro que quieres desbloquear este item con una receta?')) {
-		
-		let foundRecetaId = objetos_recetas_array_json.find(item => item.includes(recetaId));
-		console.log(foundRecetaId);
-		$.post("/op/crafteo.php", { accion: 'desbloquearReceta', objetoId: objetoId, recetaId: foundRecetaId }, function( data ) { alert('¡Objeto desbloqueado!'); location.reload(); });
-	} 
+function desbloquearRecetaItem(objetoId) {
+	// Ya no se manda recetaId: el servidor elige cuál Receta de Oficio
+	// gastar (cualquiera que matchee el tier del crafteo) y valida todo de
+	// nuevo — antes se confiaba ciegamente en lo que mandara el cliente acá.
+	if (confirm('¿Estás seguro que quieres desbloquear este item gastando una Receta de Oficio de tu inventario?')) {
+		$.post("/op/crafteo.php", { accion: 'desbloquearReceta', objetoId: objetoId }, function (resp) {
+			alert(resp && resp.mensaje ? resp.mensaje : 'No se pudo desbloquear el objeto.');
+			if (resp && resp.ok) { location.reload(); }
+		}, 'json');
+	}
 }
 
 </script>

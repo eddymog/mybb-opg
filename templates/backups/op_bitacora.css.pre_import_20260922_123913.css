@@ -468,7 +468,7 @@
 
 .op-temas-header {
   box-sizing: border-box; width: min(1100px, calc(100% - 20px)); height: 30px; margin: 0 auto;
-  overflow: hidden; border: 2px solid var(--opg-tinta); border-right: 0px; border-left: 0px; border-top: 3px solid var(--opg-verde-exito);
+  overflow: hidden; border: 2px solid var(--opg-tinta); border-right: 0px; border-left: 0px; 
   background: var(--opg-crema-clara); box-shadow: 0 2px 0 var(--opg-tinta);
 }
 .op-temas-header--pendiente { border-top-color: var(--opg-naranja-accion); }

@@ -177,12 +177,8 @@ tema). Solo tiene sentido marcarlo en temas de tipo **Aventura** o
 - La cronología se calcula solo a partir de la ficha del personaje y su UID.
   No distingue publicaciones hechas con personaje secreto: cuentan igual.
 - La ficha del personaje (`op/personaje.php`, plantilla `op_personaje`)
-  incluye un enlace a su cronología: el ícono que antes abría un modal de
-  texto libre para pegar la URL de una "cronología" externa
-  (`mybb_op_fichas.cronologia`, workaround previo a esta herramienta) ahora
-  enlaza directamente a `/op/cronologia.php?uid={$ficha['fid']}`. El campo
-  `cronologia` y su modal quedan sin usar, pero no se borran (fuera de
-  alcance). `op/ficha.php` es código legado y no se toca.
+  incluye un enlace a su cronología. `op/ficha.php` es código legado y no se
+  toca.
 - El acceso a la cronología no anula la visibilidad de los temas (sección 6):
   cada usuario ve solo los temas que puede abrir.
 
@@ -338,11 +334,6 @@ informativo: no bloquea nada.
 - **Filtro por rol:** en las vistas Estación, Lista y Año se añade un filtro
   "Rol" (Todos / Personaje / Narrador), igual de disponible que el filtro de
   tipo de tema (5.6). Un tema sin rol marcado cuenta como "Personaje".
-- **Color por rol con el filtro en "Todos":** igual que el tipo de tema
-  (5.2), cuando el filtro de rol está en "Todos" los temas de Aventura o
-  Evento muestran una etiqueta de color según su rol (personaje o narrador),
-  en la casilla del día, el overlay y la vista de lista. Con un rol concreto
-  filtrado, la etiqueta no se muestra porque ya es evidente.
 - **Visibilidad del narrador:** si uno o más usuarios están marcados como
   narrador de un tema, ese dato se muestra junto a "Con: ..." (overlay del
   día y vista de lista) como "Narra: <nombre(s)>", **en la cronología de
@@ -449,11 +440,6 @@ validación queda como mejora recomendada, pero no es parte de esta entrega.
     selector de rol en la pestaña "Marcar roles".
 17. Varios usuarios marcados como narrador del mismo tema aparecen todos en
     "Narra: ...".
-18. Con el filtro de rol en "Todos", un tema de Aventura o Evento muestra su
-    etiqueta de rol con color; con el filtro en "Personaje" o "Narrador" no
-    se muestra.
-19. Un tema que no sea Aventura ni Evento nunca muestra etiqueta de rol,
-    aunque el filtro esté en "Todos".
 
 ## 10. Decisiones tomadas
 

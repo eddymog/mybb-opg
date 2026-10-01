@@ -246,7 +246,6 @@ $db->query("CREATE TABLE IF NOT EXISTS `mybb_op_crafteo_npcs` (
 
 $accion = $_POST['accion'];
 $objetoIdPost = $_POST['objetoId'];
-$recetaIdPost = $_POST['recetaId'];
 
 $nikas = intval($ficha['nika']);
 $berries = intval($ficha['berries']);
@@ -926,16 +925,49 @@ if ($accion == 'desbloquear') {
 }
 
 if ($accion == 'desbloquearReceta') {
-    $query_objeto = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE objeto_id='$objetoIdPost' AND custom='0'; "); 
+    // Desbloqueo alternativo al de puntos de oficio: gastando una "Receta de
+    // Oficio" del inventario (objeto_id que empieza con MJR00<tier>, donde
+    // <tier> tiene que coincidir con el tier del crafteo — MJR001..MJR005
+    // para tier 1 a 5) en vez de puntos_oficio. El servidor elige CUÁL
+    // receta gastar (cualquiera que matchee el tier, ver 2 de la
+    // conversación de diseño) — antes se confiaba en un recetaId mandado
+    // por el cliente sin validar nada, lo que dejaba desbloquear cualquier
+    // cosa sin gastar de verdad ningún ítem.
+    header('Content-Type: application/json');
+    $resultado = array('ok' => false, 'mensaje' => 'No se pudo desbloquear el objeto.');
 
-    while ($q = $db->fetch_array($query_objeto)) { 
-
+    $query_objeto = $db->query(" SELECT * FROM `mybb_op_objetos` WHERE objeto_id='$objetoIdPost' AND custom='0'; ");
+    if ($q = $db->fetch_array($query_objeto)) {
         $id = $q['objeto_id'];
         $nombre = $q['nombre'];
-        quitarObjeto($recetaIdPost);
-        $db->query(" INSERT INTO `mybb_op_inventario_crafteo` (`objeto_id`, `nombre`, `uid`, `desbloqueado`) VALUES ('$id', '$nombre', '$uid', '1'); ");
+        $tierCrafteo = intval($q['tier']);
 
+        $ya_desbloqueado = (bool) $db->fetch_field(
+            $db->query("SELECT objeto_id FROM `mybb_op_inventario_crafteo` WHERE uid='$uid' AND objeto_id='" . $db->escape_string($id) . "' AND desbloqueado='1' LIMIT 1"),
+            'objeto_id'
+        );
+
+        if ($ya_desbloqueado) {
+            $resultado = array('ok' => false, 'mensaje' => 'Ese objeto ya estaba desbloqueado.');
+        } elseif ($tierCrafteo < 1 || $tierCrafteo > 5) {
+            $resultado = array('ok' => false, 'mensaje' => 'Este crafteo no tiene un tier válido para desbloquear con receta.');
+        } else {
+            $prefijo_receta = $db->escape_string('MJR00' . $tierCrafteo);
+            $query_receta = $db->query("SELECT objeto_id FROM `mybb_op_inventario` WHERE uid='$uid' AND objeto_id LIKE '{$prefijo_receta}%' LIMIT 1");
+            $receta = $db->fetch_array($query_receta);
+
+            if ($receta) {
+                quitarObjeto($receta['objeto_id']);
+                $db->query(" INSERT INTO `mybb_op_inventario_crafteo` (`objeto_id`, `nombre`, `uid`, `desbloqueado`) VALUES ('" . $db->escape_string($id) . "', '" . $db->escape_string($nombre) . "', '$uid', '1'); ");
+                $resultado = array('ok' => true, 'mensaje' => '¡Objeto desbloqueado con una Receta de Oficio!');
+            } else {
+                $resultado = array('ok' => false, 'mensaje' => "No tienes ninguna Receta de Oficio de Tier {$tierCrafteo} en tu inventario.");
+            }
+        }
     }
+
+    echo json_encode($resultado);
+    return;
 }
 
 // Filtro global: permitir si el UID está en la lista CSV (ignorando espacios)

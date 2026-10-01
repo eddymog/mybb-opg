@@ -1,0 +1,246 @@
+<html>
+
+<head>
+    <title>Gestión de Cofres</title>
+    {$headerinclude}
+    <!-- fontawesome.min.css + solid.min.css, NUNCA all.min.css (docs/style.md §7):
+         ese bundle trae los shims v4 y hace visibles los <i class="fa fa-..."> del
+         header en esta página, dando un header inconsistente según qué página
+         cargó qué (pasó de verdad en op_mercado_negro/staff_consola_mod). -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <!-- opg-tokens.css y opg-components.css ya los carga headerinclude (style.md §7) -->
+    <style>
+    /* Marco de la página */
+    .cofres-staff .thirdBackground { width: 100%; max-width: 1080px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .cf-hero {
+        position: relative; overflow: hidden;
+        display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--opg-espacio-5); align-items: center;
+        background: var(--opg-textura-trama), var(--opg-crema-clara);
+        border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-lg);
+        box-shadow: var(--opg-sombra-offset);
+        padding: var(--opg-espacio-5);
+    }
+    .cf-hero::before {
+        content: ""; position: absolute; inset: 0 auto 0 0; width: 10px;
+        background: var(--opg-naranja); border-right: 3px solid var(--opg-tinta);
+    }
+    .cf-hero__texto { position: relative; min-width: 0; padding-left: var(--opg-espacio-2); }
+    .cf-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-bottom: var(--opg-espacio-2); padding: 3px 10px;
+        background: var(--opg-morado); color: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .cf-titulo {
+        margin: 0; font-family: var(--opg-fuente-titular); font-size: 28px; line-height: 1.05;
+        color: #fff; letter-spacing: 1px; text-shadow: 2px 2px 0 var(--opg-tinta), -1px -1px 0 var(--opg-tinta), 1px -1px 0 var(--opg-tinta), -1px 1px 0 var(--opg-tinta);
+    }
+    .cf-descripcion { max-width: 720px; margin: var(--opg-espacio-3) 0 0; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); line-height: 1.55; }
+    .cf-hero__sello {
+        position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        width: 118px; min-height: 98px; padding: var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: 3px 3px 0 var(--opg-tinta); transform: rotate(2deg);
+        font-family: var(--opg-fuente-titular); color: var(--opg-morado-texto); text-align: center; letter-spacing: .5px;
+    }
+    .cf-hero__sello i { font-size: 25px; color: var(--opg-naranja); text-shadow: 1px 1px 0 var(--opg-tinta); margin-bottom: var(--opg-espacio-1); }
+    .cf-hero__sello span { font-size: 12px; line-height: 1.1; }
+
+    /* Específico de esta herramienta: alta de cofre nuevo + grilla de tarjetas */
+    .cf-panel {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-4);
+    }
+    .cf-panel__titulo {
+        display: flex; align-items: center; gap: var(--opg-espacio-2);
+        margin: 0 0 var(--opg-espacio-3);
+        font-family: var(--opg-fuente-titular); font-size: 17px; color: var(--opg-ciruela); letter-spacing: .5px;
+    }
+    .cf-panel__titulo i { color: var(--opg-naranja); text-shadow: 1px 1px 0 var(--opg-tinta); }
+    .cf-alta-cuerpo { display: flex; align-items: flex-end; gap: var(--opg-espacio-3); flex-wrap: wrap; }
+    .cf-alta-cuerpo .af-field { flex: 1 1 300px; max-width: 460px; }
+    .cf-alta-cuerpo .opg-buscar-caja, .cf-alta-cuerpo input[type=text] { width: 100%; }
+    .cofres-staff .thirdBackground.opg-dropdown-abierto { padding-bottom: 280px; }
+
+    .cf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: var(--opg-espacio-5); }
+    .cf-card-id {
+        display: inline-flex; align-items: center; align-self: flex-start;
+        padding: 2px 8px; background: var(--opg-crema-dorada); border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-marron);
+    }
+    .cf-card-metricas { display: flex; gap: var(--opg-espacio-2); flex-wrap: wrap; margin-top: var(--opg-espacio-1); }
+    .cf-card-metrica {
+        display: inline-flex; flex-direction: column; min-width: 78px;
+        padding: var(--opg-espacio-2); background: var(--opg-crema-dorada);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    }
+    .cf-card-metrica strong {
+        font-family: var(--opg-fuente-titular); font-size: 18px; line-height: 1; color: var(--opg-morado-texto);
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, .25);
+    }
+    .cf-card-metrica span { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; text-transform: uppercase; letter-spacing: .4px; color: var(--opg-gris-texto); }
+    .cf-card-acciones { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: var(--opg-espacio-2); }
+
+    @media (max-width: 700px) {
+        .cofres-staff .secondBackground, .cofres-staff .thirdBackground { padding: 10px; }
+        .cf-hero { grid-template-columns: 1fr; padding: var(--opg-espacio-4); }
+        .cf-hero__sello { width: auto; min-height: 0; flex-direction: row; gap: var(--opg-espacio-2); transform: none; }
+        .cf-titulo { font-size: 22px; }
+        .cf-alta-cuerpo .af-field { flex-basis: 100%; max-width: none; }
+    }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice cofres-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div class="cf-hero">
+            <div class="cf-hero__texto">
+                <span class="cf-eyebrow"><i class="fa-solid fa-dice" aria-hidden="true"></i> Loot tables</span>
+                <h1 class="cf-titulo">Gestión de Cofres</h1>
+                <p class="cf-descripcion">
+                    Loot tables de <code>mybb_op_cofres</code>. Un cofre es un ítem más del
+                    catálogo: aquí se administra qué puede salir al abrirlo y con qué
+                    probabilidad, no se crean ítems nuevos.
+                </p>
+            </div>
+            <div class="cf-hero__sello" aria-hidden="true">
+                <i class="fa-solid fa-box-open"></i>
+                <span>Gorosei</span>
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div class="cf-panel">
+            <h2 class="cf-panel__titulo"><i class="fa-solid fa-plus" aria-hidden="true"></i> Cofre nuevo</h2>
+            <form method="post" id="cf-alta-form" class="cf-alta-cuerpo">
+                <input type="hidden" name="my_post_key" value="{$post_key}">
+                <input type="hidden" name="accion" value="crear_cofre">
+                <div class="af-field">
+                    <label for="cf-buscar">Ítem del catálogo</label>
+                    <span class="opg-buscar-caja">
+                        <input type="text" id="cf-buscar" autocomplete="off" placeholder="Buscar por ID o nombre…">
+                        <input type="hidden" name="objeto_id" id="cf-objeto-id">
+                        <div class="opg-resultados" id="cf-resultados" hidden></div>
+                    </span>
+                </div>
+                <button type="submit" class="btn-op btn-op--sm btn-op--primario" id="cf-alta-boton" disabled>Crear loot table</button>
+            </form>
+        </div>
+
+        <div class="cf-grid">
+            {$tarjetas_html}
+        </div>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var input = document.getElementById('cf-buscar');
+        var hiddenId = document.getElementById('cf-objeto-id');
+        var boton = document.getElementById('cf-alta-boton');
+        var lista = document.getElementById('cf-resultados');
+        if (!input || !lista) { return; }
+        var caja = input.closest('.opg-buscar-caja');
+        var tercerFondo = document.querySelector('.cofres-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrar() {
+            lista.hidden = true;
+            lista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('opg-dropdown-abierto'); }
+        }
+
+        function marcarActivo() {
+            lista.querySelectorAll('.opg-resultado').forEach(function (it, i) {
+                it.classList.toggle('opg-activo', i === activo);
+            });
+        }
+
+        function pintar(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                lista.innerHTML = '<div class="opg-resultado-vacio">Sin resultados (o ya son todos cofres existentes).</div>';
+            } else {
+                lista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="opg-resultado" data-id="' + esc(r.id) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            lista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('opg-dropdown-abierto'); }
+        }
+
+        function elegir(id, nombre) {
+            input.value = nombre + ' (' + id + ')';
+            hiddenId.value = id;
+            boton.disabled = false;
+            cerrar();
+        }
+
+        input.addEventListener('input', function () {
+            hiddenId.value = '';
+            boton.disabled = true;
+            var q = input.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrar(); return; }
+            timer = setTimeout(function () {
+                fetch('cofres_gestion.php?buscar_objeto=' + encodeURIComponent(q) + '&excluir_cofres=1')
+                    .then(function (r) { return r.json(); })
+                    .then(pintar)
+                    .catch(cerrar);
+            }, 200);
+        });
+
+        lista.addEventListener('click', function (e) {
+            var b = e.target.closest('.opg-resultado');
+            if (!b) { return; }
+            elegir(b.getAttribute('data-id'), b.textContent);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            var items = lista.querySelectorAll('.opg-resultado');
+            if (lista.hidden || !items.length) { return; }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activo = Math.min(activo + 1, items.length - 1);
+                marcarActivo();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activo = Math.max(activo - 1, 0);
+                marcarActivo();
+            } else if (e.key === 'Enter' && activo >= 0) {
+                e.preventDefault();
+                items[activo].click();
+            } else if (e.key === 'Escape') {
+                cerrar();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!caja.contains(e.target)) { cerrar(); }
+        });
+    })();
+    </script>
+</body>
+
+</html>

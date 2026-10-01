@@ -49,11 +49,32 @@
 						{$op_ficha_reset_panel}
 						<if $ficha['secret1'] == '1' && $ficha_secret1 && (($g_is_staff || $is_owner) || $ficha_secret1['es_invisible1'] == 1) then>{$op_ficha_secreto}</if>
 
-						<a href="/op/cronologia.php?uid={$ficha['fid']}" title="Cronología" style="position: absolute; bottom: -50px; right: 270px; z-index: 10; cursor: pointer; display: block;">
-							<img src="https://cdn-icons-png.flaticon.com/512/1067/1067374.png" style="width: 45px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
-						</a>
-						<div style="position: absolute; bottom: -50px; right: 15px; z-index: 10; cursor: pointer;" onclick="openBandaSonoraModal()">
-							<img src="/images/op/uploads/BandaSonora_One_Piece_Gaiden_Foro_Rol.webp" style="width: 250px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
+						<!-- Cronología y banda sonora comparten UNA sola fila con un solo punto de
+						     anclaje (right: 15px acá abajo) — antes cada uno tenía su propio
+						     position:absolute con un "right" fijo distinto, y al ocultarse el logo
+						     de banda sonora para visitantes (250px menos de contenido) la fila se
+						     achicaba pero seguía anclada en el mismo lugar, lejos de Cronología. Con
+						     un solo contenedor, el espaciado entre los dos es siempre el mismo gap,
+						     con o sin el logo. -->
+						<div style="position: absolute; bottom: -50px; right: 15px; z-index: 10; display: flex; align-items: center; gap: 8px;">
+							<a href="/op/cronologia.php?uid={$ficha['fid']}" title="Cronología" style="cursor: pointer; display: block;">
+								<img src="https://cdn-icons-png.flaticon.com/512/1067/1067374.png" style="width: 45px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7));">
+							</a>
+							<!-- Reproductor de FONDO (oculto, solo audio) real de YouTube
+							     (jscripts/ficha/bandaSonora.js) — nunca display:none: algunos
+							     navegadores pausan un iframe de YouTube con display:none, por eso se
+							     saca de pantalla con posición absoluta en vez de ocultarlo.
+							     El div de ocultamiento tiene que ser un ENVOLTORIO aparte, no el mismo id
+							     que se le pasa a new YT.Player(): la API reemplaza ese elemento por un
+							     <iframe> nuevo que NO hereda el estilo inline (aparecía a tamaño completo
+							     de YouTube encima del ícono de Cronología, ahí sí chocaban). -->
+							<div style="position: absolute; width: 1px; height: 1px; overflow: hidden; left: -9999px;">
+								<div id="pr-banda-sonora-player"></div>
+							</div>
+							<!-- Un solo punto de entrada, para cualquier visitante — el modal
+							     (jscripts/ficha/modales.js: openBandaSonoraModal()) decide qué mostrar
+							     según sea el dueño/staff o un visitante cualquiera. -->
+							<img id="pr-banda-sonora-logo" src="/images/op/uploads/BandaSonora_One_Piece_Gaiden_Foro_Rol.webp" style="width: 250px; height: 50px; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.7)); cursor: pointer;" onclick="openBandaSonoraModal()">
 						</div>
 					</div>
 				</div>
@@ -197,6 +218,7 @@ window.OPG_CATALOGO_DISCIPLINAS = JSON.parse(`{$op_disciplinas_catalogo_json}`);
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/oficios.js?v={$fileVersion}"></script>
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/inventario.js?v={$fileVersion}"></script>
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/modales.js?v={$fileVersion}"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/bandaSonora.js?v={$fileVersion}"></script>
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/portada.js?v={$fileVersion}"></script>
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/ficha/init.js?v={$fileVersion}"></script>
 </body>

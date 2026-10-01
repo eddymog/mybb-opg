@@ -1,0 +1,409 @@
+<html>
+
+<head>
+    <title>Gestión de Cofres — {$cofre_nombre_esc}</title>
+    {$headerinclude}
+    <!-- Agregar/editar/eliminar una fila sin recargar la página — mismo htmx
+         vendorizado que ya usa op_punkrecords.html (nunca Alpine.js: ver
+         style.md §7 sobre $ sueltos en templates de MyBB). -->
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <!-- fontawesome.min.css + solid.min.css, NUNCA all.min.css (docs/style.md §7) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <style>
+    /* Marco de la página */
+    .cofres-staff .thirdBackground { width: 100%; max-width: 1080px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .cf-hero {
+        position: relative; overflow: hidden;
+        display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--opg-espacio-5); align-items: center;
+        background: var(--opg-textura-trama), var(--opg-crema-clara);
+        border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-lg);
+        box-shadow: var(--opg-sombra-offset);
+        padding: var(--opg-espacio-5);
+    }
+    .cf-hero::before {
+        content: ""; position: absolute; inset: 0 auto 0 0; width: 10px;
+        background: var(--opg-morado); border-right: 3px solid var(--opg-tinta);
+    }
+    .cf-hero__texto { position: relative; min-width: 0; padding-left: var(--opg-espacio-2); }
+    .cf-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-bottom: var(--opg-espacio-2); padding: 3px 10px;
+        background: var(--opg-naranja); color: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+        text-shadow: 1px 1px 0 var(--opg-tinta);
+    }
+    .cf-titulo {
+        margin: 0; font-family: var(--opg-fuente-titular); font-size: 26px; line-height: 1.08;
+        color: #fff; letter-spacing: 1px; text-shadow: 2px 2px 0 var(--opg-tinta), -1px -1px 0 var(--opg-tinta), 1px -1px 0 var(--opg-tinta), -1px 1px 0 var(--opg-tinta);
+    }
+    .cf-subtitulo { margin: var(--opg-espacio-2) 0 0; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .cf-hero__sello {
+        display: inline-flex; align-items: center; gap: var(--opg-espacio-2);
+        padding: var(--opg-espacio-2) var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: 3px 3px 0 var(--opg-tinta); transform: rotate(2deg);
+        font-family: InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-marron); font-size: 12px;
+    }
+    .cf-hero__sello strong { font-family: var(--opg-fuente-titular); color: var(--opg-morado-texto); font-size: 15px; letter-spacing: .5px; }
+    .cf-hero__sello i { color: var(--opg-naranja); text-shadow: 1px 1px 0 var(--opg-tinta); }
+
+    /* Específico de esta herramienta: filas de recompensa existentes */
+    .cf-panel {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-4);
+    }
+    .cf-panel__titulo {
+        display: flex; align-items: center; gap: var(--opg-espacio-2);
+        margin: 0 0 var(--opg-espacio-3);
+        font-family: var(--opg-fuente-titular); font-size: 17px; color: var(--opg-ciruela); letter-spacing: .5px;
+    }
+    .cf-panel__titulo i { color: var(--opg-naranja); text-shadow: 1px 1px 0 var(--opg-tinta); }
+    .cf-resumen-peso {
+        display: inline-flex; align-items: center; gap: var(--opg-espacio-2);
+        align-self: flex-start; margin: 0 0 var(--opg-espacio-2);
+        padding: 5px 10px; background: var(--opg-crema-dorada);
+        border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron);
+    }
+    .cf-resumen-peso strong { font-family: var(--opg-fuente-titular); font-size: 16px; color: var(--opg-morado-texto); line-height: 1; }
+    .cf-filas { display: flex; flex-direction: column; gap: var(--opg-espacio-3); }
+    .cf-fila {
+        display: grid; grid-template-columns: auto minmax(180px, 1fr) auto auto auto; align-items: center; gap: var(--opg-espacio-3);
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        padding: var(--opg-espacio-3);
+        box-shadow: 3px 3px 0 var(--opg-tinta);
+    }
+    .cf-fila-tipo {
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+        color: #fff; border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 2px 10px;
+        text-shadow: 1px 1px 0 var(--opg-tinta);
+    }
+    .cf-fila-tipo--Objeto  { background: var(--opg-azul); }
+    .cf-fila-tipo--Custom  { background: var(--opg-morado); }
+    .cf-fila-tipo--Jackpot { background: var(--opg-naranja-accion); }
+    .cf-fila-nombre { min-width: 0; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .cf-fila-peso, .cf-fila-prob {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 74px; padding: 4px 8px;
+        background: var(--opg-crema-dorada); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); white-space: nowrap;
+    }
+    .cf-fila-prob { font-family: var(--opg-fuente-titular); font-size: 16px; color: var(--opg-morado-texto); line-height: 1; }
+    .cf-fila-acciones { display: flex; gap: 6px; }
+
+    /* Formulario de agregar/editar recompensa */
+    .cf-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); align-items: flex-end; }
+    .cf-preview {
+        display: inline-flex; align-items: center; min-height: 36px;
+        padding: 0 10px; background: var(--opg-crema-dorada); border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-morado-texto);
+    }
+    .cf-campos-tipo { display: none; }
+    .cf-campos-tipo.cf-activo { display: flex; }
+    .cf-acciones-form { display: flex; align-items: center; gap: var(--opg-espacio-3); flex-wrap: wrap; }
+    .cf-cancelar { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); display: none; }
+    .cf-campos-jackpot .opg-vacio {
+        text-align: left; width: 100%; padding: var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 2px dashed var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    }
+    .cofres-staff .opg-buscar-caja, .cofres-staff .opg-buscar-caja input { width: 100%; }
+
+    .cofres-staff .thirdBackground.opg-dropdown-abierto { padding-bottom: 280px; }
+
+    @media (max-width: 700px) {
+        .cofres-staff .secondBackground, .cofres-staff .thirdBackground { padding: 10px; }
+        .cf-hero { grid-template-columns: 1fr; padding: var(--opg-espacio-4); }
+        .cf-hero__sello { transform: none; justify-content: center; }
+        .cf-titulo { font-size: 21px; }
+        .cf-fila { grid-template-columns: 1fr; align-items: stretch; }
+        .cf-fila-peso, .cf-fila-prob { justify-content: flex-start; }
+        .cf-fila-acciones { justify-content: flex-start; flex-wrap: wrap; }
+    }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice cofres-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/cofres_gestion.php">&larr; Todos los cofres</a></div>
+
+        <div class="cf-hero">
+            <div class="cf-hero__texto">
+                <span class="cf-eyebrow"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Editor de loot</span>
+                <h1 class="cf-titulo">{$cofre_nombre_esc}</h1>
+                <p class="cf-subtitulo">Ajusta las recompensas y pesos que usa la tirada de este cofre.</p>
+            </div>
+            <div class="cf-hero__sello">
+                <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+                <span>Peso <strong>vivo</strong></span>
+            </div>
+        </div>
+
+        <span id="cf-aviso">
+            <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+            <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+        </span>
+
+        <div class="cf-panel">
+            <h2 class="cf-panel__titulo"><i class="fa-solid fa-list-check" aria-hidden="true"></i> Recompensas configuradas</h2>
+            <div class="cf-filas" id="cf-filas">
+                {$filas_html}
+            </div>
+        </div>
+
+        <div class="cf-panel">
+            <h2 class="cf-panel__titulo"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i> Agregar / editar recompensa</h2>
+            <form method="post" id="cf-fila-form"
+                hx-post="cofres_gestion.php" hx-target="#cf-filas" hx-swap="innerHTML"
+                hx-indicator="#cf-fila-submit">
+                <input type="hidden" name="my_post_key" value="{$post_key}">
+                <input type="hidden" name="accion" id="cf-accion" value="agregar_fila">
+                <input type="hidden" name="cofre_id" value="{$cofre_id_esc}">
+                <input type="hidden" name="fila_id" id="cf-fila-id" value="0">
+
+                <div class="cf-row">
+                    <div class="af-field"><label for="cf-tipo">Tipo</label>
+                        <select id="cf-tipo" name="tipo">
+                            <option value="Objeto">Objeto</option>
+                            <option value="Custom">Custom (moneda/experiencia)</option>
+                            <option value="Jackpot">Jackpot (da todo lo demás del cofre)</option>
+                        </select>
+                    </div>
+                    <div class="af-field"><label for="cf-peso">Peso</label><input type="number" id="cf-peso" name="peso" min="1" value="1" required></div>
+                    <div class="af-field"><label for="cf-nombre">Nombre (opcional)</label><input type="text" id="cf-nombre" name="nombre" placeholder="Se autocompleta según el tipo"></div>
+                    <span class="cf-preview" id="cf-preview"></span>
+                </div>
+
+                <div class="cf-row cf-campos-tipo cf-campos-objeto">
+                    <div class="af-field"><label for="cf-obj-buscar">Ítem</label>
+                        <span class="opg-buscar-caja">
+                            <input type="text" id="cf-obj-buscar" autocomplete="off" placeholder="Buscar por ID o nombre…">
+                            <input type="hidden" name="objeto_id" id="cf-obj-id">
+                            <div class="opg-resultados" id="cf-obj-resultados" hidden></div>
+                        </span>
+                    </div>
+                    <div class="af-field"><label for="cf-cantidad">Cantidad</label><input type="number" id="cf-cantidad" name="cantidad" min="1" value="1"></div>
+                </div>
+
+                <div class="cf-row cf-campos-tipo cf-campos-custom">
+                    <div class="af-field"><label for="cf-c-nikas">Nikas</label><input type="number" id="cf-c-nikas" name="custom_nikas" min="0" value="0"></div>
+                    <div class="af-field"><label for="cf-c-berries">Berries</label><input type="number" id="cf-c-berries" name="custom_berries" min="0" value="0"></div>
+                    <div class="af-field"><label for="cf-c-exp">Experiencia</label><input type="number" id="cf-c-exp" name="custom_experiencia" min="0" value="0"></div>
+                    <div class="af-field"><label for="cf-c-oficio">Puntos de oficio</label><input type="number" id="cf-c-oficio" name="custom_puntos_oficio" min="0" value="0"></div>
+                    <div class="af-field"><label for="cf-c-bonus">Ítem bonus (opcional)</label><input type="text" id="cf-c-bonus" name="custom_objeto_bonus" placeholder="objeto_id exacto"></div>
+                    <div class="af-field"><label for="cf-c-bonus-cant">Cantidad del bonus</label><input type="number" id="cf-c-bonus-cant" name="custom_objeto_bonus_cantidad" min="1" value="1"></div>
+                </div>
+
+                <div class="cf-row cf-campos-tipo cf-campos-jackpot">
+                    <p class="opg-vacio">Esta recompensa da automáticamente todas las demás filas no-jackpot de este mismo cofre. Sin campos extra.</p>
+                </div>
+
+                <div class="cf-acciones-form">
+                    <button type="submit" class="btn-op btn-op--primario" id="cf-fila-submit">Agregar recompensa</button>
+                    <a href="#" class="cf-cancelar" id="cf-cancelar">Cancelar edición</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+
+    <script>
+    (function () {
+        var pesoInput = document.getElementById('cf-peso');
+        var preview = document.getElementById('cf-preview');
+        var tipoSelect = document.getElementById('cf-tipo');
+        var filaIdInput = document.getElementById('cf-fila-id');
+        var accionInput = document.getElementById('cf-accion');
+        var nombreInput = document.getElementById('cf-nombre');
+        var submitBtn = document.getElementById('cf-fila-submit');
+        var cancelarLink = document.getElementById('cf-cancelar');
+        var filasCont = document.getElementById('cf-filas');
+
+        var camposObjeto = document.querySelector('.cf-campos-objeto');
+        var camposCustom = document.querySelector('.cf-campos-custom');
+        var camposJackpot = document.querySelector('.cf-campos-jackpot');
+
+        function actualizarCamposPorTipo() {
+            camposObjeto.classList.remove('cf-activo');
+            camposCustom.classList.remove('cf-activo');
+            camposJackpot.classList.remove('cf-activo');
+            if (tipoSelect.value === 'Objeto') { camposObjeto.classList.add('cf-activo'); }
+            else if (tipoSelect.value === 'Custom') { camposCustom.classList.add('cf-activo'); }
+            else { camposJackpot.classList.add('cf-activo'); }
+        }
+        tipoSelect.addEventListener('change', actualizarCamposPorTipo);
+        actualizarCamposPorTipo();
+
+        // Peso total LEÍDO DEL DOM (no una variable fija): tras cada swap de
+        // htmx, #cf-filas trae filas nuevas con su propio data-peso — sumar
+        // en vivo evita que esto quede desactualizado después de guardar.
+        function pesoTotalActual() {
+            var total = 0;
+            filasCont.querySelectorAll('.cf-fila').forEach(function (el) {
+                total += parseInt(el.getAttribute('data-peso'), 10) || 0;
+            });
+            return total;
+        }
+
+        // Probabilidad en vivo: suma el peso que se está escribiendo contra el
+        // peso total guardado (restando el peso viejo de la fila si se está
+        // editando, para no contarlo dos veces).
+        var pesoViejoDeLaFilaEnEdicion = 0;
+        function actualizarPreview() {
+            var pesoNuevo = parseInt(pesoInput.value, 10) || 0;
+            var totalConCambio = pesoTotalActual() - pesoViejoDeLaFilaEnEdicion + pesoNuevo;
+            if (totalConCambio <= 0) { preview.textContent = ''; return; }
+            var pct = (pesoNuevo / totalConCambio * 100).toFixed(1);
+            preview.textContent = '≈ ' + pct + '% de probabilidad';
+        }
+        pesoInput.addEventListener('input', actualizarPreview);
+        actualizarPreview();
+
+        // Solo se limpia el formulario cuando el servidor confirma éxito
+        // (evento propio disparado vía la cabecera HX-Trigger, ver
+        // cofres_responder_htmx() en cofres_gestion.php) — en error, el
+        // admin no pierde lo que escribió.
+        document.body.addEventListener('cofres-guardado', function () {
+            limpiarFormulario();
+        });
+
+        function limpiarFormulario() {
+            accionInput.value = 'agregar_fila';
+            filaIdInput.value = '0';
+            pesoViejoDeLaFilaEnEdicion = 0;
+            pesoInput.value = 1;
+            nombreInput.value = '';
+            document.getElementById('cf-obj-buscar').value = '';
+            document.getElementById('cf-obj-id').value = '';
+            document.getElementById('cf-cantidad').value = 1;
+            document.getElementById('cf-c-nikas').value = 0;
+            document.getElementById('cf-c-berries').value = 0;
+            document.getElementById('cf-c-exp').value = 0;
+            document.getElementById('cf-c-oficio').value = 0;
+            document.getElementById('cf-c-bonus').value = '';
+            document.getElementById('cf-c-bonus-cant').value = 1;
+            tipoSelect.value = 'Objeto';
+            actualizarCamposPorTipo();
+            submitBtn.textContent = 'Agregar recompensa';
+            cancelarLink.style.display = 'none';
+            actualizarPreview();
+        }
+
+        cancelarLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            limpiarFormulario();
+        });
+
+        // Clic en "Editar" de una fila existente: precarga el formulario con
+        // los datos guardados en data-fila (JSON), sin volver a pedirle nada
+        // al servidor.
+        filasCont.addEventListener('click', function (e) {
+            var btn = e.target.closest('.cf-editar-fila');
+            if (!btn) { return; }
+            var filaEl = btn.closest('.cf-fila');
+            var datos = JSON.parse(filaEl.getAttribute('data-fila'));
+
+            accionInput.value = 'editar_fila';
+            filaIdInput.value = datos.id;
+            pesoViejoDeLaFilaEnEdicion = datos.peso;
+            pesoInput.value = datos.peso;
+            nombreInput.value = datos.nombre || '';
+            tipoSelect.value = datos.tipo;
+            actualizarCamposPorTipo();
+
+            if (datos.tipo === 'Objeto') {
+                document.getElementById('cf-obj-buscar').value = datos.objeto_id;
+                document.getElementById('cf-obj-id').value = datos.objeto_id;
+                document.getElementById('cf-cantidad').value = datos.cantidad || 1;
+            } else if (datos.tipo === 'Custom') {
+                var cd = datos.custom_data || {};
+                document.getElementById('cf-c-nikas').value = cd.nikas || 0;
+                document.getElementById('cf-c-berries').value = cd.berries || 0;
+                document.getElementById('cf-c-exp').value = cd.experiencia || 0;
+                document.getElementById('cf-c-oficio').value = cd.puntos_oficio || 0;
+                document.getElementById('cf-c-bonus').value = cd.objeto_bonus || '';
+                document.getElementById('cf-c-bonus-cant').value = cd.objeto_bonus_cantidad || 1;
+            }
+
+            submitBtn.textContent = 'Guardar cambios';
+            cancelarLink.style.display = 'inline';
+            actualizarPreview();
+            document.getElementById('cf-fila-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Typeahead del selector de ítem (tipo=Objeto) — sin excluir_cofres=1:
+        // cualquier ítem del catálogo es válido como recompensa (100_Requirements §4.4).
+        var objInput = document.getElementById('cf-obj-buscar');
+        var objHidden = document.getElementById('cf-obj-id');
+        var objLista = document.getElementById('cf-obj-resultados');
+        var objCaja = objInput.closest('.opg-buscar-caja');
+        var tercerFondo = document.querySelector('.cofres-staff .thirdBackground');
+        var timer = null;
+        var activo = -1;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+        function cerrarObj() {
+            objLista.hidden = true;
+            objLista.innerHTML = '';
+            activo = -1;
+            if (tercerFondo) { tercerFondo.classList.remove('opg-dropdown-abierto'); }
+        }
+
+        function pintarObj(resultados) {
+            activo = -1;
+            if (!resultados.length) {
+                objLista.innerHTML = '<div class="opg-resultado-vacio">Sin resultados.</div>';
+            } else {
+                objLista.innerHTML = resultados.map(function (r) {
+                    return '<button type="button" class="opg-resultado" data-id="' + esc(r.id) + '" data-nombre="' + esc(r.nombre) + '">'
+                        + esc(r.nombre) + '<span>' + esc(r.id) + '</span></button>';
+                }).join('');
+            }
+            objLista.hidden = false;
+            if (tercerFondo) { tercerFondo.classList.add('opg-dropdown-abierto'); }
+        }
+
+        objInput.addEventListener('input', function () {
+            objHidden.value = '';
+            var q = objInput.value.trim();
+            clearTimeout(timer);
+            if (q.length < 2) { cerrarObj(); return; }
+            timer = setTimeout(function () {
+                fetch('cofres_gestion.php?buscar_objeto=' + encodeURIComponent(q))
+                    .then(function (r) { return r.json(); })
+                    .then(pintarObj)
+                    .catch(cerrarObj);
+            }, 200);
+        });
+
+        objLista.addEventListener('click', function (e) {
+            var b = e.target.closest('.opg-resultado');
+            if (!b) { return; }
+            var id = b.getAttribute('data-id');
+            var nombre = b.getAttribute('data-nombre');
+            objInput.value = nombre + ' (' + id + ')';
+            objHidden.value = id;
+            if (!nombreInput.value) { nombreInput.value = nombre; }
+            cerrarObj();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!objCaja.contains(e.target)) { cerrarObj(); }
+        });
+    })();
+    </script>
+</body>
+
+</html>

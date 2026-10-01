@@ -1,0 +1,32 @@
+-- =====================================================================
+-- Migracion: columna custom_data (JSON) en mybb_op_cofres
+-- Ver docs/100_Requirements_Cofres.md (4.2) y docs/200_DesignPlan_Cofres.md (3.1).
+--
+-- Reemplaza el switch de PHP hardcodeado (procesarCustomRecompensa() en
+-- opg/tirada_cofre.php) para las filas con tipo='Custom'. Mismo patron que
+-- las columnas JSON ya existentes en mybb_op_fichas (oficios, belicas,
+-- estilos): se usa solo cuando tipo='Custom', queda NULL para 'Objeto' y
+-- 'Jackpot'.
+--
+-- Forma del JSON (todas las claves opcionales, ausencia = 0/ninguno):
+--   {
+--     "nikas": 5,
+--     "berries": 200000,
+--     "experiencia": 20,
+--     "puntos_oficio": 100,
+--     "objeto_bonus": "LLST001",
+--     "objeto_bonus_cantidad": 1
+--   }
+--
+-- Esta migracion solo agrega la columna. Las filas Custom existentes se
+-- migran aparte, con op/legacy/migrar_cofres_custom.php (una sola vez,
+-- antes de poner en produccion opg/tirada_cofre2.php).
+--
+-- Si la instalacion usa otro prefijo, sustituir `mybb_`.
+-- =====================================================================
+
+ALTER TABLE `mybb_op_cofres` ADD COLUMN `custom_data` JSON NULL;
+
+-- Rollback manual, solo si se desea revertir del todo (se pierde lo
+-- migrado por op/legacy/migrar_cofres_custom.php):
+-- ALTER TABLE `mybb_op_cofres` DROP COLUMN `custom_data`;

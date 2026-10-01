@@ -78,6 +78,10 @@ $consola_grupos = array(
         array('fa-map-location-dot', 'Islas', 'Datos de las islas del mapa.', array(
             array('Modificar', 'islas_modificar.php'),
         )),
+        array('fa-box-archive', 'Cofres', 'Loot tables de la tirada de cofres y reparto masivo.', array(
+            array('Gestionar', 'cofres_gestion.php', 'admin'),
+            array('Repartir', 'cofres_repartir.php', 'uid10'),
+        )),
     )),
     'Foro' => array('azul', array(
         array('fa-image', 'Banners del header', 'Rotación y banner fijo de la cabecera.', array(
@@ -120,6 +124,7 @@ function consola_puede($permiso)
     global $uid;
     if ($permiso === 'admin') return is_admin($uid);
     if ($permiso === 'staff') return is_staff($uid);
+    if ($permiso === 'uid10') return $uid === 10;
     return true; // ya pasó el control de acceso de la consola
 }
 

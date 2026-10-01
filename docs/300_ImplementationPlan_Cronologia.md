@@ -24,11 +24,9 @@ La implementación se considera terminada cuando:
   Aventura y Evento, y el staff puede corregir el de cualquier otro usuario;
   quien narra un tema se ve en la cronología de cualquiera que también
   participe en él;
-- no se modifica `global.php` ni `op/ficha.php`; en `op/personaje.php` el
-  único cambio es el ícono que enlaza a la cronología del personaje (Tarea
-  5.5); la única adición a la base de datos es la tabla nueva
-  `mybb_op_thread_roles` (creada de forma perezosa desde `cronologia.php`,
-  sin migración manual);
+- no se modifica `global.php`, `op/personaje.php` ni `op/ficha.php`; la
+  única adición a la base de datos es la tabla nueva `mybb_op_thread_roles`
+  (creada de forma perezosa desde `cronologia.php`, sin migración manual);
 - la plantilla `op_cronologia` queda sincronizada con la base de datos.
 
 ## 2. Punto de partida
@@ -52,13 +50,12 @@ manuales.
 | `op/cronologia.php` | Reescritura completa |
 | `templates/One_Piece_Gaiden_Templates/op_cronologia.html` | CSS de rejilla 5 × 18, overlay, vista de lista, vista de año; sin enlace a `cache/themes/cronologia.css` (no existe) |
 | `docs/cronologia_thread_roles_migration.sql` | Creación manual de `mybb_op_thread_roles` (la crea también, sola, `op/cronologia.php`); ejecución opcional, ver Tarea 5.4 |
-| `templates/One_Piece_Gaiden_Templates/op_personaje.html` | El ícono que abría el modal "cronología" (texto libre) ahora enlaza a `/op/cronologia.php?uid={$ficha['fid']}` (Tarea 5.5) |
 
 ### 3.2 No se toca
 
 - `global.php`, `inc/` (núcleo de MyBB) y cualquier plugin;
-- `op/ficha.php` (código legado) y `op/personaje.php` (salvo el ícono de la
-  Tarea 5.5: el resto de la página, incluida su lógica PHP, no cambia);
+- `op/ficha.php` (código legado) y `op/personaje.php` (el enlace desde la
+  ficha se decide más adelante);
 - `op/functions/op_functions.php`;
 - `header.html`: no hay enlace en el menú por ahora;
 - ninguna tabla existente, ni triggers: la única adición a la base de datos
@@ -174,14 +171,6 @@ isla muestra el nombre del foro sin enlace.
    un `<span class="cron-tipo cron-tipo--<clase>">`; el tipo con color también
    en el overlay (`tipoClase` en el JSON) y en la vista de lista. La clase sale
    de `cron_tipo_clase()` (nombre en minúsculas y sin tildes).
-7.1. Etiqueta de rol (diseño 9.1): `cron_rol_mostrar($prefijo)` (`rol_filtro
-   === ''` y prefijo Aventura/Evento) decide si se muestra; `cron_rol_texto()`
-   da el texto ("Personaje"/"Narrador"). Se antepone junto a la de tipo en
-   `cron-evento` (`<span class="cron-rol cron-rol--<rol>">`), en el `title` de
-   la casilla, en el JSON (`rolMostrar`, `rol`, `rolTexto`) para el overlay, y
-   en la vista de lista (`cron_fila_html`, con `cron-tag`). Clases
-   `cron-rol--personaje` (azul) y `cron-rol--narrador` (ciruela), mismos
-   tokens que "Diario" y "Narra: ..." respectivamente (sin colores nuevos).
 8. Overlay y JSON: incluir `isla` e `isla_url`; el overlay muestra la isla
    como chip (enlace si hay URL). El `title` de la casilla incluye la isla.
 9. Títulos en las celdas: hasta 2 líneas (`line-clamp: 2`), con el título
@@ -363,16 +352,12 @@ estación, vista o página conserva su estado; se ve bien en móvil.
    `uid` del formulario ≠ `$viewer_uid`, exigir `is_staff($viewer_uid)` o
    `error_no_permission()`; recalcular en servidor los `tid` válidos para
    ese `uid` (Aventura/Evento donde participó, de **todo** el historial, no
-   solo de la página mostrada) junto con su rol ya guardado, y procesar solo
-   esos, ignorando cualquier otro `tid` del POST. El formulario manda el
-   radio de todas las filas de la página aunque no se hayan tocado (así
-   funcionan los grupos de radio en HTML), así que por cada `tid` válido se
-   compara el valor recibido contra el rol ya cargado: si es igual se
-   descarta sin escribir; si cambió, `INSERT ... ON DUPLICATE KEY UPDATE`
-   con el valor `personaje` o `narrador`. El formulario de cada página solo
-   manda los `tid` de esa página, así que cada guardado es un lote
-   independiente; la respuesta vuelve a la misma página de `vista=roles` con
-   un aviso de guardado solo si algo cambió de verdad.
+   solo de la página mostrada) y procesar solo esos, ignorando cualquier
+   otro `tid` del POST; `INSERT ... ON DUPLICATE KEY UPDATE` por cada uno con
+   valor `personaje` o `narrador`. El formulario de cada página solo manda
+   los `tid` de esa página, así que cada guardado es un lote independiente;
+   la respuesta vuelve a la misma página de `vista=roles` con un aviso de
+   guardado.
 7. Botón "Marcar roles" en la toolbar (7.4), visible solo con el mismo
    criterio del punto 5; selector "Rol" en el formulario de filtros, oculto
    en `vista=roles`.
@@ -386,25 +371,6 @@ mismo tema; un usuario no staff que envía un `uid` ajeno por POST recibe
 `error_no_permission()` y no se guarda nada; un `tid` fuera de
 Aventura/Evento o ajeno al `uid` enviado en el POST se ignora; un tema con
 varios narradores los muestra a todos.
-
-### Tarea 5.5: enlace desde la ficha del personaje
-
-**Archivo:** `templates/One_Piece_Gaiden_Templates/op_personaje.html`
-
-1. El `<div onclick="openCronologiaModal()">` que envuelve el ícono
-   `https://cdn-icons-png.flaticon.com/512/1067/1067374.png` (dentro de
-   `.fondo-ficha`) pasa a ser un `<a href="/op/cronologia.php?uid={$ficha['fid']}"
-   title="Cronología">`, sin `onclick`, conservando el mismo posicionamiento
-   absoluto e imagen.
-2. El campo `mybb_op_fichas.cronologia`, el modal `#cronologiaModal` y las
-   funciones `openCronologiaModal()`/`closeCronologiaModal()`/
-   `cambiarCronologia()` (`jscripts/ficha_script2.js`,
-   `jscripts/ficha/modales.js`) se dejan tal cual, sin usar: no se borran en
-   esta entrega (decisión del usuario, no es limpieza pedida).
-
-**Verificación:** el ícono de la cronología en la ficha de cualquier
-personaje abre `/op/cronologia.php?uid=<fid>` en vez del modal; el resto de
-`op/personaje.php` no cambia de comportamiento.
 
 ### Tarea 6: pruebas
 
@@ -468,11 +434,6 @@ Primavera 700 y ambas vistas.
 | 32 | Tema con varios narradores marcados | Todos aparecen en "Narra: ..." |
 | 33 | Personaje sin temas de Aventura ni Evento, en "Marcar roles" | Mensaje de vacío, sin formulario |
 | 34 | Personaje con más de 100 Aventuras/Eventos en "Marcar roles" | Varias páginas de 100; guardar en una página no afecta las demás |
-| 35 | Guardar sin cambiar ningún radio | No se ejecuta ningún `INSERT`/`UPDATE`; sin aviso de "Cambios guardados" |
-| 36 | Filtro Rol = "Todos" con un tema de Aventura marcado como narrador | Etiqueta "Narrador" (ciruela) en casilla, overlay y lista; un tema de Aventura sin marcar muestra "Personaje" (azul) |
-| 37 | Filtro Rol = "Personaje" o "Narrador" (no "Todos") | La etiqueta de rol no se muestra (ya es evidente por el filtro) |
-| 38 | Filtro Rol = "Todos" en un tema Común/Diario/Autonarrada | Nunca muestra etiqueta de rol, aunque el filtro esté en "Todos" |
-| 39 | Ícono de cronología en `op/personaje.php` | Enlaza a `/op/cronologia.php?uid=<fid>`; ya no abre el modal de texto libre |
 
 ### 6.4 Rendimiento (manual)
 
@@ -515,9 +476,7 @@ No commit sin que el usuario lo pida.
 
 ## 9. Fuera de alcance
 
-- Enlace desde el header.
-- Borrar el campo `mybb_op_fichas.cronologia`, su modal o el JS asociado
-  (quedan sin usar tras la Tarea 5.5, pero no se limpian en esta entrega).
+- Enlace desde `op/personaje.php` o desde el header.
 - Lista de temas sin fecha, limpieza de datos históricos y validación de
   fechas en `newthread.php`.
 - Eventos de isla y comparación entre personajes.

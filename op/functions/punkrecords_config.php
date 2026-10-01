@@ -137,15 +137,14 @@ const PR_LLAMADAS_POR_MINUTO_MAX = 10;
 const PR_PREGUNTAS_USUARIO_DIA = 100;
 const PR_PREGUNTAS_USUARIO_HORA = 30;
 
-// Se probó gemma-4-31b-it (500 consistente, confirmado con curl directo),
+// Se probó gemma-4-31b-it (500 consistente, confirmado con curl directo) y
 // gemma-4-26b-a4b-it (funciona, pero es modelo con razonamiento: gasta
 // tokens/tiempo extra en un borrador interno antes de la respuesta real —
-// 16.6s medidos con un prompt real, muy cerca del timeout de 20s) y
-// gemini-3.1-flash-lite (funciona bien, 5.5s). Vuelto a gemini-3.5-flash-lite:
-// es el modelo del que hay cupo gratis diario confirmado en el panel de
-// AI Studio (500/día) — 'latest' podía apuntar a otra versión con cupo
-// distinto o sin confirmar.
-const PR_MODELO_GENERACION = 'gemini-3.5-flash-lite';
+// 16.6s medidos con un prompt real, muy cerca del timeout de 20s). Se
+// prueba ahora gemini-3.1-flash-lite: confirmado con curl directo que
+// existe (no preview) y responde en 5.5s con un prompt del mismo tamaño,
+// sin gasto de tokens en razonamiento oculto.
+const PR_MODELO_GENERACION = 'gemini-3.1-flash-lite';
 const PR_MODELO_EMBEDDING = 'voyage-4'; // antes gemini-embedding-001; migrado por soporte de español documentado
 const PR_EMBEDDING_DIMENSIONES = 1024; // dimensión por defecto de voyage-4 (antes 768 con Gemini)
 

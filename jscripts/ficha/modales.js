@@ -251,21 +251,59 @@
   // ── Banda sonora ──────────────────────────────────────────────
 
   function openBandaSonoraModal() {
-    if (!(is_owner || g_is_staff)) return;
+    // Ya no hay guardia de permisos acá: la abren TODOS (dueño, staff y
+    // visitantes). Lo que cambia según quién la abre es el CONTENIDO —
+    // el campo de URL + Guardar/Probar solo aparecen para dueño/staff (la
+    // protección real sigue siendo del servidor, esto es solo qué se
+    // ofrece en la interfaz). Mismo patrón que openCronologiaModal() más
+    // abajo.
+    var puedeEditar = is_owner || g_is_staff;
+    var tieneVideo  = !!(window.extraerYoutubeId && window.extraerYoutubeId(banda_sonora));
+    var volumenInicial  = (window.bandaSonora ? window.bandaSonora.volumenActual() : 70);
+    var autoplayInicial = (window.bandaSonora ? window.bandaSonora.autoplayHabilitado() : true);
+
+    // El contenedor de video SIEMPRE se renderiza (aunque no haya banda
+    // sonora guardada todavía): si el dueño escribe una URL nueva y le da
+    // "Probar", bandaSonora.js necesita un elemento ya existente para
+    // reemplazar por el reproductor real — más simple que armarlo recién en
+    // ese momento.
+    var videoHtml = `<div id="bandaSonoraModalVideo" style="margin-top:18px;width:480px;height:270px;background:#00000018;border:2px solid #000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;text-align:center;padding:14px;box-sizing:border-box;">`
+      + (tieneVideo ? '' : 'Esta ficha todavía no tiene banda sonora configurada.')
+      + `</div>`;
+
+    var edicionHtml = puedeEditar ? `
+      <hr style="width:100%;margin:18px 0;border:none;border-top:2px dashed #d8b06a;">
+      <div style="font-size:16px;text-align:justify;">Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.</div>
+      <input id="bandaSonoraURL" type="text" class="textbox" style="width:100%;margin-top:12px;box-sizing:border-box;font-size:15px;padding:8px;" placeholder="https://www.youtube.com/watch?v=..." value="${banda_sonora}">
+      <div style="margin-top:14px;display:flex;gap:12px;">
+        <button onclick="guardarBandaSonora();" style="width:120px;font-size:14px;padding:8px 0;">Guardar</button>
+        <button onclick="probarBandaSonora();" style="width:120px;font-size:14px;padding:8px 0;">Probar</button>
+      </div>
+      <div style="margin-top:10px;font-size:13px;text-align:center;font-style:italic;">Formatos aceptados: youtube.com/watch?v=ID o youtu.be/ID</div>
+    ` : '';
+
     $('#myModal').html(`
-      <div class="modal-content" style="background-color:#ffedd2;border:4px solid #ffe59b;border-radius:8px;height:300px;width:620px;">
-        <div class="modal-body" style="display:flex;flex-direction:column;">
-          <div style="font-size:20px;text-align:center;font-family:moonGetHeavy;color:black;margin-top:10px;">Editar Banda Sonora</div>
-          <div style="margin-top:10px;font-size:18px;text-align:justify;">Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.</div>
-          <input id="bandaSonoraURL" type="text" class="textbox" style="width:540px;margin:auto;margin-top:20px;" placeholder="https://www.youtube.com/watch?v=..." value="${banda_sonora}">
-          <div style="margin:auto;margin-top:15px;display:flex;gap:10px;">
-            <button onclick="cambiarBandaSonora();" style="width:100px;">Guardar</button>
-            <button onclick="probarSonido();" style="width:100px;">Probar</button>
+      <div class="modal-content" style="background-color:#ffedd2;border:4px solid #ffe59b;border-radius:8px;height:auto;max-height:90vh;overflow-y:auto;width:540px;box-sizing:border-box;padding-bottom:22px;">
+        <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;">
+          <div style="font-size:24px;text-align:center;font-family:moonGetHeavy;color:black;margin-top:14px;">Banda Sonora</div>
+          ${videoHtml}
+          <div style="margin-top:18px;display:flex;align-items:center;gap:14px;">
+            <button type="button" onclick="window.bandaSonora && window.bandaSonora.alternarModal();" style="width:130px;font-size:15px;padding:8px 0;">▶️ / ⏸</button>
+            <span style="font-size:16px;">🔉</span>
+            <input type="range" id="bandaSonoraVolumenModal" min="0" max="100" value="${volumenInicial}" oninput="window.bandaSonora && window.bandaSonora.cambiarVolumen(this.value);" style="width:200px;accent-color:#e85d04;">
           </div>
-          <div style="margin-top:15px;font-size:14px;text-align:center;font-style:italic;">Formatos aceptados: youtube.com/watch?v=ID o youtu.be/ID</div>
+          <label style="margin-top:18px;font-size:14px;display:flex;align-items:center;gap:8px;max-width:460px;text-align:left;">
+            <input type="checkbox" id="bandaSonoraAutoplayCheck" ${autoplayInicial ? 'checked' : ''} onchange="window.bandaSonora && window.bandaSonora.setAutoplayHabilitado(this.checked);">
+            Activar banda sonora automáticamente al entrar a una ficha
+          </label>
+          ${edicionHtml}
         </div>
       </div>`);
     modal.style.display = 'block';
+
+    if (tieneVideo && window.bandaSonora) {
+      window.bandaSonora.mostrarEnModal('bandaSonoraModalVideo');
+    }
   }
 
   // ── Cronología ────────────────────────────────────────────────
@@ -304,34 +342,21 @@
 
   // ── Banda sonora — acciones ───────────────────────────────────
 
-  function cambiarBandaSonora() {
+  function guardarBandaSonora() {
     var url = $('#bandaSonoraURL').val();
     FICHA.PendingQueue.addParams({ cambiar_banda_sonora: url });
-    modal.style.display = 'none';
+    modal.style.display = 'none'; // el observer de bandaSonora.js ve este cierre y limpia el reproductor del modal solo
   }
 
-  function probarSonido() {
+  function probarBandaSonora() {
     var url = $('#bandaSonoraURL').val();
     if (!url) { alert('Por favor, introduce un enlace de YouTube.'); return; }
-    var videoId = '';
-    var youtubeRegex = [
-      /youtube\.com\/watch\?v=([^&]+)/,
-      /youtu\.be\/([^?]+)/,
-      /youtube\.com\/embed\/([^?]+)/,
-      /youtube\.com\/v\/([^?]+)/
-    ];
-    for (var i = 0; i < youtubeRegex.length; i++) {
-      var m = url.match(youtubeRegex[i]);
-      if (m && m[1]) { videoId = m[1]; break; }
-    }
-    if (videoId && typeof player !== 'undefined') {
-      var currentVideoId = player.getVideoData().video_id;
-      player.loadVideoById({ videoId: videoId, startSeconds: 0 });
-      alert('Reproduciendo música de prueba. El video actual se restaurará al cerrar el modal.');
-      $(window).one('click', function (e) {
-        if (e.target == modal) player.loadVideoById({ videoId: currentVideoId, startSeconds: 0 });
-      });
-    } else {
+    // actualizarVideoModal() reemplaza lo que haya en #bandaSonoraModalVideo
+    // (el mensaje de "sin banda sonora" o un video anterior) por el video de
+    // prueba real — se ve y se escucha ahí mismo, sin tener que tocar el
+    // reproductor de fondo para nada.
+    var ok = window.bandaSonora ? window.bandaSonora.actualizarVideoModal('bandaSonoraModalVideo', url) : false;
+    if (!ok) {
       alert('No se pudo extraer un ID de YouTube válido del enlace proporcionado.');
     }
   }
@@ -406,8 +431,8 @@
   w.abrirCronologia        = abrirCronologia;
   w.closeCronologiaModal   = closeCronologiaModal;
   w.cambiarCronologia      = cambiarCronologia;
-  w.cambiarBandaSonora     = cambiarBandaSonora;
-  w.probarSonido           = probarSonido;
+  w.guardarBandaSonora     = guardarBandaSonora;
+  w.probarBandaSonora      = probarBandaSonora;
   w.cambiarAvatar1         = cambiarAvatar1;
   w.cambiarAvatar2         = cambiarAvatar2;
   w.cambiarAvatar3         = cambiarAvatar3;

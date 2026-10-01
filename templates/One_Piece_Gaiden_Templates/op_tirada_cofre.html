@@ -829,59 +829,6 @@
           height: 100%;
           object-fit: cover;
       }
-  /* Panel de distribución masiva (solo UID 850) */
-  .staff-masivo-panel {
-      display: none;
-      background: linear-gradient(135deg, #2d0545, #5a1a8a);
-      border: 2px solid #ff7e00;
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 12px;
-      color: white;
-  }
-  .staff-masivo-panel h3 {
-      margin: 0 0 10px;
-      font-family: moonGetHeavy;
-      font-size: 14px;
-      letter-spacing: 2px;
-      text-shadow: 1px 1px 3px black;
-      color: #ffcc00;
-  }
-  .staff-masivo-panel select {
-      width: 100%;
-      padding: 6px 10px;
-      border: 2px solid #ff7e00;
-      border-radius: 6px;
-      background: #1a0030;
-      color: white;
-      font-family: moonGetHeavy;
-      font-size: 13px;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-  }
-  .staff-masivo-btn {
-      width: 100%;
-      padding: 8px;
-      background: #d26500;
-      color: white;
-      font-family: moonGetHeavy;
-      font-size: 14px;
-      letter-spacing: 2px;
-      border: 2px solid black;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      text-shadow: 1px 1px 2px black;
-  }
-  .staff-masivo-btn:hover { background: #ff9b00; }
-  .staff-masivo-btn:disabled { background: #71706f; cursor: not-allowed; }
-  .staff-masivo-resultado {
-      margin-top: 8px;
-      font-size: 12px;
-      font-family: moonGetHeavy;
-      letter-spacing: 1px;
-      min-height: 16px;
-  }
   /* Buscador solo para staff */
   .staff-search {
       display: none;
@@ -1059,44 +1006,6 @@
                     
                     <!-- Aperturas Globales y Propias -->
                     <div class="resultados-container">
-                        <!-- Panel distribución masiva solo UID 850 -->
-                        <div class="staff-masivo-panel" id="staff-masivo-panel">
-                            <h3>⚙ DAR COFRE A TODOS (UID 850)</h3>
-                            <select id="staff-masivo-select">
-                                <option value="CFR001">CFR001 — Cofre Básico</option>
-                                <option value="CFR002">CFR002 — Cofre Decente</option>
-                                <option value="CFR003">CFR003 — Cofre Gigante</option>
-                                <option value="CFR004">CFR004 — Cofre Cobrizo</option>
-                                <option value="CFR005">CFR005 — Cofre Argenteo</option>
-                                <option value="CFR006">CFR006 — Cofre Aureo</option>
-                                <option value="CFR007">CFR007 — Cofre Épico</option>
-                                <option value="CFR008">CFR008 — Cofre Legendario</option>
-                                <option value="CFR009">CFR009 — Cofre Majestuoso</option>
-                                <option value="CFR010">CFR010 — Cofre Diamantino</option>
-                                <option value="CFF010">CFF010 — Cofre Básico (broma)</option>
-                                <option value="INV001">INV001 — Caja Artefacto T1</option>
-                                <option value="INV002">INV002 — Caja Artefacto T2</option>
-                                <option value="INV003">INV003 — Caja Artefacto T3</option>
-                                <option value="INV004">INV004 — Caja Artefacto T4</option>
-                                <option value="INV005">INV005 — Caja Artefacto T5</option>
-                                <option value="CFD002">CFD002 — Cofre Dial T2</option>
-                                <option value="CFD003">CFD003 — Cofre Dial T3</option>
-                                <option value="CFD004">CFD004 — Cofre Dial T4</option>
-                                <option value="CRM003">CRM003 — Cofre Crafteo T3</option>
-                                <option value="CFN002">CFN002 — Cofre Navidad T2</option>
-                                <option value="CFN003">CFN003 — Cofre Navidad T3</option>
-                                <option value="CFN004">CFN004 — Cofre Navidad T4</option>
-                                <option value="CFN005">CFN005 — Cofre Navidad T5</option>
-                                <option value="CFN006">CFN006 — Cofre Navidad T6</option>
-                                <option value="CFN007">CFN007 — Cofre Navidad T7</option>
-                                <option value="CFN008">CFN008 — Cofre Navidad T8</option>
-                                <option value="CFN009">CFN009 — Cofre Navidad T9</option>
-                                <option value="KTC001">KTC001 — Kuro Token Cofre</option>
-                            </select>
-                            <button class="staff-masivo-btn" id="staff-masivo-btn" onclick="darCofreMasivo()">Dar a todos los usuarios</button>
-                            <div class="staff-masivo-resultado" id="staff-masivo-resultado"></div>
-                        </div>
-
                         <!-- Campo de búsqueda solo visible para staff -->
                         <!-- IF {$mybb->usergroup['staff']} -->
                         <div class="staff-search">
@@ -1793,54 +1702,6 @@
         }
     });
     
-    // Panel distribucion masiva: solo UID 850 y 10
-    var currentUid = parseInt('{$uid}');
-    if (currentUid === 850 || currentUid === 10) {
-        var massivoPanel = document.getElementById('staff-masivo-panel');
-        if (massivoPanel) massivoPanel.style.display = 'block';
-    }
-
-    function darCofreMasivo() {
-        var select = document.getElementById('staff-masivo-select');
-        var btn    = document.getElementById('staff-masivo-btn');
-        var result = document.getElementById('staff-masivo-resultado');
-        if (!select || !btn) return;
-
-        var cofreId = select.value;
-        if (!cofreId) return;
-
-        if (!confirm('¿Dar 1x ' + cofreId + ' a TODOS los usuarios con ficha? Esta acción no se puede deshacer.')) return;
-
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
-        result.textContent = '';
-        result.style.color = 'white';
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/opg/tirada_cofre.php', true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                btn.disabled = false;
-                btn.textContent = 'Dar a todos los usuarios';
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    if (data.success) {
-                        result.style.color = '#7dff7d';
-                        result.textContent = '✓ Entregado ' + data.cofre + ' a ' + data.total + ' fichas.';
-                    } else {
-                        result.style.color = '#ff7d7d';
-                        result.textContent = '✗ ' + (data.mensaje || 'Error desconocido.');
-                    }
-                } catch(e) {
-                    result.style.color = '#ff7d7d';
-                    result.textContent = '✗ Error al procesar respuesta.';
-                }
-            }
-        };
-        xhr.send('action=dar_cofre_masivo&cofre_dar_id=' + encodeURIComponent(cofreId));
-    }
-
     // Funcionalidad de búsqueda para staff
     var isStaff = {$is_staff};
     

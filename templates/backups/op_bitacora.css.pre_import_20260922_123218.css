@@ -453,9 +453,6 @@
 .op-temas-historial[open] > summary:after { content: "-"; }
 .op-temas-historial ol { margin: 0; padding: 0 14px 10px 38px; }
 .op-temas-historial li { padding: 4px 0; color: var(--opg-marron); font: 10px/1.4 var(--opg-fuente-cuerpo); }
-.op-temas-historial li a {
-  color: var(--opg-morado-texto); font-weight: bold; text-decoration: underline; text-underline-offset: 2px;
-}
 .op-temas-historial li time { display: block; color: var(--opg-gris-texto); font-size: 9px; }
 .op-temas-vacio {
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -468,8 +465,8 @@
 
 .op-temas-header {
   box-sizing: border-box; width: min(1100px, calc(100% - 20px)); height: 30px; margin: 0 auto;
-  overflow: hidden; border: 2px solid var(--opg-tinta); border-right: 0px; border-left: 0px; border-top: 3px solid var(--opg-verde-exito);
-  background: var(--opg-crema-clara); box-shadow: 0 2px 0 var(--opg-tinta);
+  overflow: hidden; border: 2px solid var(--opg-tinta); border-top: 3px solid var(--opg-verde-exito);
+  border-radius: 0 0 5px 5px; background: var(--opg-crema-clara); box-shadow: 0 2px 0 var(--opg-tinta);
 }
 .op-temas-header--pendiente { border-top-color: var(--opg-naranja-accion); }
 .op-temas-header a {

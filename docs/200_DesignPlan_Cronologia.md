@@ -22,13 +22,10 @@ La primera entrega incluye:
 - buscador de personajes en la cabecera (sección 7.5);
 - rol del usuario en cada tema (personaje o narrador), pestaña de edición,
   filtro por rol y aviso de narrador visible entre cronologías (sección 6.5
-  y 7.3.3);
-- enlace desde `op/personaje.php`: el ícono que antes abría el modal de
-  texto libre "cronología" (`mybb_op_fichas.cronologia`, un workaround previo
-  para pegar la URL de una cronología externa) ahora enlaza directamente a
-  `/op/cronologia.php?uid={$ficha['fid']}` (sección 2).
+  y 7.3.3).
 
-No incluye: lista de temas sin fecha, eventos de isla, comparación entre
+No incluye: enlace desde `op/personaje.php` (se decide cuando la página esté
+validada), lista de temas sin fecha, eventos de isla, comparación entre
 personajes, caché, ni sustituir la convención de texto `[narrador]` de
 `op/staff/recompensasAventuras.php`.
 
@@ -42,14 +39,9 @@ personajes, caché, ni sustituir la convención de texto `[narrador]` de
   comentario "DEPURACIÓN TEMPORAL". Se retiran en esta entrega.
 - No existe otro código que llame a `cronologia.php` ni hay enlaces a ella
   desde el header.
-- `mybb_op_fichas.cronologia` era un texto libre del jugador (URL de una
-  cronología externa, ej. un Google Doc), sin relación con esta página. El
-  ícono de `op/personaje.php` que abría su modal (`openCronologiaModal()`,
-  `templates/One_Piece_Gaiden_Templates/op_personaje.html`) ahora enlaza a
-  `/op/cronologia.php?uid={$ficha['fid']}` en su lugar (decisión tomada,
-  ver 1). El campo `cronologia` y el modal (`#cronologiaModal`,
-  `jscripts/ficha_script2.js` / `jscripts/ficha/modales.js`) quedan sin usar
-  pero no se borran: no es parte de esta entrega.
+- `mybb_op_fichas.cronologia` y el icono/ventana "Cronología" de
+  `op/personaje.php` son un texto libre del jugador, sin relación con esta
+  página. No se tocan.
 - Una ficha existe si hay una fila en `mybb_op_fichas` con `fid` = UID. Esta
   página no distingue el estado de aprobación (`aprobada_por`) y tampoco
   depende de `does_ficha_exist()`: consulta la tabla directamente.
@@ -385,12 +377,11 @@ el overlay no aparece.
 
 `vista=lista`: barra de acento con el título de la estación y, debajo, una fila
 por tema (orden: día, `dateline`, `tid`) con chip de día, título completo
-enlazado, isla, tipo, rol (con color, si aplica, ver 9.1), estado, posts del
-personaje, otros participantes (hasta 5 y `+N`) y, si aplica, "Narra:
-<nombre(s)>" (6.5.1). Filas alternas como el overlay. Sin temas: `.opg-vacio`
-con "Sin temas en esta estación." Usa los mismos datos que la vista de
-estación (`$por_dia`, la segunda consulta de participantes y la de
-narradores), así que no añade consultas nuevas.
+enlazado, isla, tipo, estado, posts del personaje, otros participantes (hasta 5 y
+`+N`) y, si aplica, "Narra: <nombre(s)>" (6.5.1). Filas alternas como el
+overlay. Sin temas: `.opg-vacio` con "Sin temas en esta estación." Usa los
+mismos datos que la vista de estación (`$por_dia`, la segunda consulta de
+participantes y la de narradores), así que no añade consultas nuevas.
 
 ### 7.3.2 Modo lista global
 
@@ -484,8 +475,7 @@ propio de la página, `.opg-buscar-caja` y `.opg-resultados`.
 
 El panel necesita los datos de los temas de la estación mostrada. PHP genera
 un objeto JSON `{ "<dia>": [ {tema}, ... ] }` con los campos de 7.3 ya
-escapados (incluidos `otros`, `narradores` si aplica (6.5.1), y `rolMostrar`/
-`rol`/`rolTexto` para la etiqueta de color del rol, ver 9.1) y lo coloca
+escapados (incluidos `otros` y, si aplica, `narradores`, 6.5.1) y lo coloca
 en un atributo `data-dias` del contenedor del calendario. El JS lo lee con
 `JSON.parse`. No se usa `eval` ni se interpola JSON en un script inline.
 

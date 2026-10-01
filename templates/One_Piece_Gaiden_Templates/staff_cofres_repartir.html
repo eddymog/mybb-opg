@@ -1,0 +1,192 @@
+<html>
+
+<head>
+    <title>Repartir Cofre</title>
+    {$headerinclude}
+    <!-- fontawesome.min.css + solid.min.css, NUNCA all.min.css (docs/style.md §7) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+    <style>
+    .cofres-staff .thirdBackground { width: 100%; max-width: 860px; gap: var(--opg-espacio-5); text-align: left; }
+
+    .cf-hero {
+        position: relative; overflow: hidden;
+        display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--opg-espacio-5); align-items: center;
+        background: var(--opg-textura-trama), var(--opg-crema-clara);
+        border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-lg);
+        box-shadow: var(--opg-sombra-offset);
+        padding: var(--opg-espacio-5);
+    }
+    .cf-hero::before {
+        content: ""; position: absolute; inset: 0 auto 0 0; width: 10px;
+        background: var(--opg-rojo-error); border-right: 3px solid var(--opg-tinta);
+    }
+    .cf-hero__texto { position: relative; min-width: 0; padding-left: var(--opg-espacio-2); }
+    .cf-eyebrow {
+        display: inline-flex; align-items: center; gap: 6px;
+        margin-bottom: var(--opg-espacio-2); padding: 3px 10px;
+        background: var(--opg-rojo-error); color: #fff;
+        border: 2px solid var(--opg-tinta); border-radius: 999px;
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+        text-shadow: 1px 1px 0 var(--opg-tinta);
+    }
+    .cf-titulo {
+        margin: 0; font-family: var(--opg-fuente-titular); font-size: 28px; line-height: 1.05;
+        color: #fff; letter-spacing: 1px; text-shadow: 2px 2px 0 var(--opg-tinta), -1px -1px 0 var(--opg-tinta), 1px -1px 0 var(--opg-tinta), -1px 1px 0 var(--opg-tinta);
+    }
+    .cf-descripcion { max-width: 650px; margin: var(--opg-espacio-3) 0 0; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); line-height: 1.55; }
+    .cf-hero__sello {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        width: 118px; min-height: 98px; padding: var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: 3px 3px 0 var(--opg-tinta); transform: rotate(2deg);
+        font-family: var(--opg-fuente-titular); color: var(--opg-morado-texto); text-align: center; letter-spacing: .5px;
+    }
+    .cf-hero__sello i { font-size: 24px; color: var(--opg-rojo-error); text-shadow: 1px 1px 0 var(--opg-tinta); margin-bottom: var(--opg-espacio-1); }
+    .cf-hero__sello span { font-size: 12px; line-height: 1.1; }
+
+    .cf-panel {
+        background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md);
+        box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-4);
+    }
+    .cf-panel__titulo {
+        display: flex; align-items: center; gap: var(--opg-espacio-2);
+        margin: 0 0 var(--opg-espacio-3);
+        font-family: var(--opg-fuente-titular); font-size: 17px; color: var(--opg-ciruela); letter-spacing: .5px;
+    }
+    .cf-panel__titulo i { color: var(--opg-naranja); text-shadow: 1px 1px 0 var(--opg-tinta); }
+    .cf-impacto { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-4); }
+    .cf-impacto__dato {
+        display: flex; flex-direction: column; gap: 2px;
+        padding: var(--opg-espacio-3); background: var(--opg-crema-dorada);
+        border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+    }
+    .cf-impacto__dato strong {
+        font-family: var(--opg-fuente-titular); font-size: 24px; line-height: 1; color: var(--opg-morado-texto);
+        text-shadow: 1px 1px 0 rgba(0, 0, 0, .25);
+    }
+    .cf-impacto__dato span { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-gris-texto); }
+    .cf-alerta {
+        display: flex; align-items: flex-start; gap: var(--opg-espacio-2);
+        margin: 0 0 var(--opg-espacio-4); padding: var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 2px dashed var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        font-family: var(--opg-fuente-cuerpo); font-size: 13px; line-height: 1.45; color: var(--opg-marron);
+    }
+    .cf-alerta i { color: var(--opg-rojo-error); text-shadow: 1px 1px 0 var(--opg-tinta); margin-top: 2px; }
+    .cf-repartir-form { display: flex; flex-direction: column; gap: var(--opg-espacio-4); align-items: flex-start; }
+    .cf-repartir-form .af-field { width: 100%; max-width: 520px; }
+    .cf-repartir-preview {
+        display: none; max-width: 620px; margin: 0; padding: var(--opg-espacio-3);
+        background: var(--opg-crema-dorada); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm);
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron);
+    }
+    .cf-repartir-preview.cf-activo { display: block; }
+    .cf-repartir-preview strong { color: var(--opg-morado-texto); }
+
+    @media (max-width: 700px) {
+        .cofres-staff .secondBackground, .cofres-staff .thirdBackground { padding: 10px; }
+        .cf-hero { grid-template-columns: 1fr; padding: var(--opg-espacio-4); }
+        .cf-hero__sello { width: auto; min-height: 0; flex-direction: row; gap: var(--opg-espacio-2); transform: none; }
+        .cf-titulo { font-size: 22px; }
+        .cf-impacto { grid-template-columns: 1fr; }
+    }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice cofres-staff">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div class="cf-hero">
+            <div class="cf-hero__texto">
+                <span class="cf-eyebrow"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Acción masiva</span>
+                <h1 class="cf-titulo">Repartir Cofre</h1>
+                <p class="cf-descripcion">
+                    Entrega 1 unidad del cofre elegido a <strong>todas las fichas existentes</strong> del foro, de una vez.
+                    No se puede deshacer: confirma el cofre antes de repartir.
+                </p>
+            </div>
+            <div class="cf-hero__sello" aria-hidden="true">
+                <i class="fa-solid fa-gift"></i>
+                <span>Inventario global</span>
+            </div>
+        </div>
+
+        <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
+        <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
+
+        <div class="cf-panel">
+            <h2 class="cf-panel__titulo"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Cofre y alcance</h2>
+            <div class="cf-impacto">
+                <div class="cf-impacto__dato">
+                    <strong>{$total_fichas_esc}</strong>
+                    <span>fichas recibirán el cofre</span>
+                </div>
+                <div class="cf-impacto__dato">
+                    <strong>{$cofres_disponibles_esc}</strong>
+                    <span>cofres disponibles</span>
+                </div>
+            </div>
+            <p class="cf-alerta"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>Esta acción suma el cofre al inventario de cada ficha. Si una ficha ya lo tenía, aumenta su cantidad en 1.</span></p>
+
+            <form method="post" id="cf-repartir-form" class="cf-repartir-form">
+                <input type="hidden" name="my_post_key" value="{$post_key}">
+                <div class="af-field">
+                    <label for="cf-repartir-select">Cofre a repartir</label>
+                    <select id="cf-repartir-select" name="cofre_id" required>
+                        <option value="">— Elegir —</option>
+                        {$opciones_html}
+                    </select>
+                </div>
+                <p class="cf-repartir-preview" id="cf-repartir-preview"></p>
+                <button type="submit" class="btn-op btn-op--peligro" id="cf-repartir-boton">Repartir a todas las fichas</button>
+            </form>
+        </div>
+
+    </div>
+    </div>
+    </div>
+    </div>
+    {$footer}
+    <script>
+    (function () {
+        var form = document.getElementById('cf-repartir-form');
+        var select = document.getElementById('cf-repartir-select');
+        var preview = document.getElementById('cf-repartir-preview');
+        if (!form || !select || !preview) { return; }
+
+        function textoSeleccionado() {
+            var opcion = select.options[select.selectedIndex];
+            return opcion && opcion.value ? opcion.text : '';
+        }
+
+        function actualizarPreview() {
+            var cofre = textoSeleccionado();
+            if (!cofre) {
+                preview.classList.remove('cf-activo');
+                preview.textContent = '';
+                return;
+            }
+            preview.classList.add('cf-activo');
+            preview.innerHTML = 'Listo para entregar <strong>' + cofre.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</strong> a <strong>{$total_fichas_esc}</strong> ficha(s).';
+        }
+
+        select.addEventListener('change', actualizarPreview);
+        form.addEventListener('submit', function (e) {
+            var cofre = textoSeleccionado();
+            if (!cofre) { return; }
+            if (!confirm('¿Repartir ' + cofre + ' a TODAS las fichas del foro? No se puede deshacer.')) {
+                e.preventDefault();
+            }
+        });
+        actualizarPreview();
+    })();
+    </script>
+</body>
+
+</html>
