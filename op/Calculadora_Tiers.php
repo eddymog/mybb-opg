@@ -35,6 +35,7 @@ function is_ajax_request(): bool {
  * Prioriza coincidencia EXACTA por nombre y luego por apodo; si no, intenta LIKE.
  */
 function resolve_fid_by_name(string $nombre): int {
+    global $db;
     $nombre = trim($nombre);
     if ($nombre === '') return 0;
 
@@ -98,6 +99,27 @@ function json_response($payload, int $status = 200): void {
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+/**
+ * Exige sesión iniciada. Las acciones de usuario (guardar, narrar, ocultar...)
+ * no deben ejecutarse como invitado (uid 0).
+ */
+function require_session(int $uid): void {
+    if ($uid <= 0) {
+        json_response(['ok' => false, 'error' => 'Debes iniciar sesión'], 403);
+    }
+}
+
+/**
+ * Exige rol de gestión (mod, staff o narrador del staff) para las acciones de
+ * la consola que cambian el estado o las notas de una petición.
+ */
+function require_gestion(int $uid): void {
+    require_session($uid);
+    if (!(is_mod($uid) || is_staff($uid) || is_narra($uid))) {
+        json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
+    }
 }
 
 /**
@@ -344,10 +366,8 @@ function calcularDificultadPHP(int $nivelPromedioJugadores, int $numJugadores, a
 
 // ============== SAVE ENDPOINT (AJAX JSON) ==============
 if ($action === 'save') {
-    // Permisos
-    // if (!($uid && (is_mod($uid) || is_staff($uid) || is_narra($uid)))) {
-    //     json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
-    // }
+    // Cualquier usuario con sesión puede solicitar una aventura.
+    require_session($uid);
 
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
@@ -689,9 +709,8 @@ if ($action === 'get') {
 }
 
 if ($action === 'update_meta') {
-    // if (!($uid && (is_mod($uid) || is_staff($uid)))) {
-    //     json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
-    // }
+    // Cambia estado y notas: solo gestión (antes la comprobación estaba comentada).
+    require_gestion($uid);
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
     }
@@ -925,9 +944,8 @@ if ($action === 'update_meta') {
 }
 
 if ($action === 'claim_narrador') {
-    // if (!($uid && (is_mod($uid) || is_staff($uid) || is_narra($uid)))) {
-    //     json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
-    // }
+    // Cualquier usuario con ficha puede postularse como narrador; se exige sesión.
+    require_session($uid);
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
     }
@@ -996,9 +1014,8 @@ if ($action === 'claim_narrador') {
 }
 
 if ($action === 'update_enemigos') {
-    // if (!($uid && (is_mod($uid) || is_staff($uid) || is_narra($uid)))) {
-    //     json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
-    // }
+    // La autorización fina (staff o narrador asignado) se comprueba más abajo.
+    require_session($uid);
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
     }
@@ -1128,9 +1145,11 @@ if ($action === 'hide_request') {
 }
 
 if ($action === 'delete') {
-    // if (!($uid && (is_mod($uid) || is_staff($uid)))) {
-    //     json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
-    // }
+    // Borra una petición: solo mod o staff (antes la comprobación estaba comentada).
+    require_session($uid);
+    if (!(is_mod($uid) || is_staff($uid))) {
+        json_response(['ok' => false, 'error' => 'Sin permisos'], 403);
+    }
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
     }
@@ -1191,6 +1210,7 @@ if ($action === 'delete') {
 
 // Vincular aventura (URL) a petición aprobada, acción del narrador
 if ($action === 'vincular_aventura') {
+    require_session($uid);
     if (!is_ajax_request()) {
         json_response(['ok' => false, 'error' => 'Solicitud inválida'], 400);
     }

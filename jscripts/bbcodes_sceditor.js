@@ -831,11 +831,11 @@ $(function ($) {
 				'<div> <div style="text-align: center; padding: 0px 0 10px 0;"><b>Código de Dados</b></div>' +
 				'<div>' +
 				'<label for="mod1">¿Cuántos dados?:</label> ' +
-				'<input type="number" id="mod1" value="1" />' +
+				'<input type="number" id="mod1" value="1" min="1" max="20" />' +
 				'</div>' +
 				'<div>' +
 				'<label for="mod2">¿Cuántas caras?:</label> ' +
-				'<input type="number" id="mod2" value="6" />' +
+				'<input type="number" id="mod2" value="6" min="1" max="100000" />' +
 				'</div>' +
 				'<div>' +
 				'<input type="button" class="button" value="' + editor._('Insert') + '" />' +
@@ -849,7 +849,9 @@ $(function ($) {
 				var attrs = "";
 
 				if (mod1 !== undefined && mod1 !== "" && mod2 !== undefined && mod2 !== "") {
-					editor.insert(`[dado=${mod1}d${mod2}]`);
+					var cant = Math.min(20, Math.max(1, parseInt(mod1, 10) || 1));
+					var caras = Math.min(100000, Math.max(1, parseInt(mod2, 10) || 1));
+					editor.insert(`[${cant}d${caras}]`);
 				}
 
 				editor.closeDropDown(true);

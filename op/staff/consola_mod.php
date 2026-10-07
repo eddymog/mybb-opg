@@ -18,7 +18,7 @@ require_once "./../functions/op_functions.php";
 global $templates, $mybb, $db;
 $uid = $mybb->user['uid'];
 
-if (!is_mod($uid) && !is_staff($uid)) {
+if (!is_mod($uid) && !is_staff($uid) && !is_narra($uid)) {
     $mensaje_redireccion = "No tienes acceso para entrar a esta página. ¿Seguro no te perdiste?";
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);
@@ -32,9 +32,12 @@ if (!is_mod($uid) && !is_staff($uid)) {
 $consola_grupos = array(
     'Recompensas y pagos' => array('dorado', array(
         array('fa-gift', 'Recompensas', 'Entregar las recompensas de temas terminados.', array(
-            array('Autonarradas', 'entregar_recompensas.php'),
-            array('Aventuras', 'entregar_recompensas_aventuras.php'),
-            array('Narradores', 'entregar_recompensas_narradores.php'),
+            array('Autonarradas', 'entregar_recompensas.php', 'narra'),
+            array('Aventuras', 'entregar_recompensas_aventuras.php', 'narra'),
+            array('Narradores', 'entregar_recompensas_narradores.php', 'narra'),
+        )),
+        array('fa-scroll', 'Tablón de aventuras', 'Solicitudes de aventura, entregas de los narradores y ofertas de narrador.', array(
+            array('Consola', 'consola_aventuras.php', 'narra'),
         )),
         array('fa-coins', 'Salarios', 'Pagos periódicos a facciones y al staff.', array(
             array('Facciones', 'salario_faccion.php'),
@@ -72,11 +75,11 @@ $consola_grupos = array(
             array('Crear / modificar', 'virtudes_modificar.php'),
         )),
         array('fa-users', 'NPCs', 'Personajes no jugadores del mundo.', array(
-            array('Crear / modificar', 'npcs_modificar.php'),
-            array('Generador', 'generadorpj.php'),
+            array('Crear / modificar', 'npcs_modificar.php', 'narra'),
+            array('Generador', 'generadorpj.php', 'narra'),
         )),
         array('fa-map-location-dot', 'Islas', 'Datos de las islas del mapa.', array(
-            array('Modificar', 'islas_modificar.php'),
+            array('Modificar', 'islas_modificar.php', 'narra'),
         )),
         array('fa-box-archive', 'Cofres', 'Loot tables de la tirada de cofres y reparto masivo.', array(
             array('Gestionar', 'cofres_gestion.php', 'admin'),
@@ -84,6 +87,9 @@ $consola_grupos = array(
         )),
     )),
     'Foro' => array('azul', array(
+        array('fa-newspaper', 'Periódico', 'Crear, editar, publicar y archivar ediciones de El Gaviotazo.', array(
+            array('Gestionar', 'periodico.php', 'editorial'),
+        )),
         array('fa-image', 'Banners del header', 'Rotación y banner fijo de la cabecera.', array(
             array('Gestionar', 'banners.php', 'admin'),
         )),
@@ -105,7 +111,7 @@ $consola_grupos = array(
             array('Ver', 'log_consola_mod.php'),
         )),
         array('fa-receipt', 'Log de entregas', 'Recompensas entregadas.', array(
-            array('Ver', 'log_entregas.php'),
+            array('Ver', 'log_entregas.php', 'narra'),
         )),
     )),
 );
@@ -124,8 +130,11 @@ function consola_puede($permiso)
     global $uid;
     if ($permiso === 'admin') return is_admin($uid);
     if ($permiso === 'staff') return is_staff($uid);
+    if ($permiso === 'narra') return is_narra($uid) || is_staff($uid) || is_mod($uid);
+    if ($permiso === 'editorial') return is_narra($uid) || is_staff($uid);
     if ($permiso === 'uid10') return $uid === 10;
-    return true; // ya pasó el control de acceso de la consola
+    // Un narrador sin otro rol solo ve las herramientas marcadas para narración.
+    return !is_narra($uid) || is_staff($uid) || is_mod($uid);
 }
 
 function consola_e($texto)
@@ -141,7 +150,7 @@ function consola_icono($icono)
 // ── Render ──────────────────────────────────────────────────────────────────
 
 $consola_usuario = consola_e($mybb->user['username']);
-$consola_rol     = is_admin($uid) ? 'Admin' : (is_staff($uid) ? 'Staff' : 'Mod');
+$consola_rol     = is_admin($uid) ? 'Admin' : (is_staff($uid) ? 'Staff' : (is_narra($uid) ? 'Narrador' : 'Mod'));
 
 $consola_secciones = '';
 foreach ($consola_grupos as $grupo => $datos) {

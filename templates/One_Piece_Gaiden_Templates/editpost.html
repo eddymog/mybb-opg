@@ -2,6 +2,8 @@
 <head>
 <title>{$mybb->settings['bbname']} - {$lang->edit_post}</title>
 {$headerinclude}
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor-theme.css?ver=2" />
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=35" />
 {$post_javascript}
 <style>
 .post.classic{overflow:visible!important;margin-bottom:1px!important;margin-top:0!important;border-bottom:1px solid black!important;}
@@ -20,79 +22,90 @@
 .post.classic .post_date{margin-left:20px!important;}
 .post.classic .post_meta{margin-left:5px!important;}
 a.ficha-nombre-link:hover{color:rgba(255,255,255,0.65)!important;}
-#modoLectura.activo{background:rgba(255,200,50,0.85)!important;color:black!important;border-color:rgba(0,0,0,0.3)!important;}
-a.new_reply_button span{text-transform:uppercase;font-weight:900;}
 </style>
 </head>
 <body>
 {$header}
-<div style="display:flex;align-items:center;gap:8px;" class="float_right">
-	<div id="modoNoche" style="cursor:pointer;line-height:0;"></div>
-	<a id="modoLectura" onclick="toggleModoLectura();return false;" href="#" class="button new_reply_button bradius"><span>LECTURA</span></a>
-</div>
-{$preview}
 {$post_errors}
 {$attacherror}
 {$moderation_notice}
 <!-- {deletebox} -->
+<div class="indice newpost-pagina">
+<main class="mainBackground">
+{$preview}
+
+<header class="newpost-encabezado newpost-encabezado--simple">
+<h1 class="newpost-encabezado-titulo">{$lang->edit_post}</h1>
+</header>
+
 <form id="editpost" action="editpost.php?pid={$pid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
 <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
-<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
-<tr>
-<td class="thead" colspan="2"><strong>{$lang->edit_post}</strong></td>
-</tr>
-<!-- {loginbox} -->
-<tr>
-<!-- <td class="trow2"><strong>{lang->subject}</strong></td> -->
-<td class="trow2" colspan="2">
-	<if $prefixselect then><strong style=" margin-right: 114px; ">Prefijo:</strong></if><strong>Título:</strong><br> {$prefixselect}<input type="text" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" />
-	<div style="display: inline; float: right; margin-top: 8px;">
-		<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
-			<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
-		</div>
-		<strong>Palabras</strong>: <span id="palabras">0</span>
-	</div>
-</td>
-</tr>
-<!-- {posticons} -->
-<tr>
-<!-- <td class="trow2" valign="top"><strong>{$lang->your_message}</strong><br /><div style="text-align: center;">{$smilieinserter}</div></td> -->
-<td class="trow2" colspan="2"><strong>Mensaje:</strong><br>
+
+<div class="af-row af-row--titulo">
+<if $prefixselect then><div class="af-field af-field--tipo"><label for="threadprefix">Tipo de tema</label>{$prefixselect}</div></if>
+<div class="af-field af-field--titulo"><label for="subject">Título</label><input type="text" id="subject" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" /></div>
+</div>
+
+<div class="newpost-editor-cabecera">
+<label for="message" class="newpost-editor-titulo">Mensaje</label>
+<span class="newpost-recuento"><strong id="palabras">0</strong> palabras</span>
+</div>
+
+<div class="newpost-editor">
 <textarea name="message" id="message" rows="20" cols="70" tabindex="3">{$message}</textarea>
 {$codebuttons}
-</td>
-</tr>
-{$editreason}
-<!-- {postoptions}
-{subscriptionmethod}
-{pollbox} -->
-</table>
-<!-- {attachbox} -->
-<br />
-<div align="center"><input type="submit" class="button" name="submitbutton" value="{$lang->update_post}" tabindex="3" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="4" /></div>
+<script src="{$mybb->settings['bburl']}/jscripts/post_editor.js?ver=10"></script>
+</div>
+
+<div class="newpost-bbcodes" role="group" aria-label="Códigos de rol">
+<button type="button" class="opg-chip" data-bbcode="spoiler"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i> Spoiler</button>
+<button type="button" class="opg-chip" data-bbcode="dado"><i class="fa-solid fa-dice" aria-hidden="true"></i> Dado</button>
+<button type="button" class="opg-chip" data-bbcode="tecnica"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Técnica</button>
+<button type="button" class="opg-chip" data-bbcode="ficha"><i class="fa-solid fa-id-card" aria-hidden="true"></i> Ficha</button>
+<button type="button" class="opg-chip" data-bbcode="recursos"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Recursos</button>
+<button type="button" class="opg-chip" data-bbcode="objeto"><i class="fa-solid fa-cube" aria-hidden="true"></i> Objeto</button>
+<a class="newpost-guia-codigos" href="/showthread.php?tid=3753" target="_blank" rel="noopener noreferrer" title="Abrir en otra pestaña">Guía de códigos <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+</div>
+
+<div class="newpost-bbcode-panel" id="pe-bbcode-overlay" hidden>
+<div class="newpost-bbcode-campos">
+<h3 id="pe-bbcode-titulo"></h3>
+<button type="button" class="newpost-bbcode-cerrar" id="pe-bbcode-cerrar" aria-label="Cerrar">&times;</button>
+<div class="af-field pe-campo-dado"><label for="pe-dado-cantidad">Dados (1-20)</label><input type="number" id="pe-dado-cantidad" min="1" max="20" value="1" /></div>
+<div class="af-field pe-campo-dado"><label for="pe-dado-caras">Caras (1-100000)</label><input type="number" id="pe-dado-caras" min="1" max="100000" value="6" /></div>
+<div class="af-field pe-campo-tecnica"><label for="pe-tecnica-tid">ID de la técnica</label><input type="text" id="pe-tecnica-tid" /></div>
+<div class="af-field pe-campo-spoiler"><label for="pe-spoiler-titulo">Título del spoiler (opcional)</label><input type="text" id="pe-spoiler-titulo" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-vida">Vida actual</label><input type="number" id="pe-recursos-vida" min="0" step="1" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-energia">Energía actual</label><input type="number" id="pe-recursos-energia" min="0" step="1" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-haki">Haki actual</label><input type="number" id="pe-recursos-haki" min="0" step="1" /></div>
+<div class="af-field pe-campo-objeto"><label for="pe-objeto-id">ID del objeto</label><input type="text" id="pe-objeto-id" /></div>
+<div class="newpost-bbcode-acciones"><button type="button" class="btn-op btn-op--primario btn-op--sm" id="pe-bbcode-insertar">Insertar</button></div>
+</div>
+</div>
+
+<if $mybb->settings['alloweditreason'] == 1 then>
+<div class="af-field newpost-editreason">
+<label for="editreason">{$lang->editreason}</label>
+<input type="text" class="textbox" id="editreason" name="editreason" maxlength="150" value="{$reason}" tabindex="5" />
+</div>
+</if>
+
+<div class="newpost-acciones">
+<input type="submit" class="btn-op btn-op--primario" name="submitbutton" value="{$lang->update_post}" tabindex="3" accesskey="s" />
+<input type="submit" class="opg-chip" name="previewpost" value="{$lang->preview_post}" tabindex="4" />
+<button type="button" id="recuperar-post" class="opg-chip" title="Recuperar el último texto guardado">Recuperar</button>
+</div>
+
 <input type="hidden" name="action" value="do_editpost" />
 <input type="hidden" name="attachmentaid" value="" />
 <input type="hidden" name="attachmentact" value="" />
 </form>
-{$footer}
-<script>
-function sleep(ms) {
-	return new Promise(resolve => setTimeout(resolve, ms));
-}
 
-async function contarPalabras() {
-	await sleep(100);
-	$($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
-		before = $(this).html();
-	}).on('keyup', function() {
-		if (before != $(this).html()) { $(this).trigger('change'); }
-	});
-	$($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
-		const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
-		$('#palabras')[0].innerText = palabras;
-	});
-}
-contarPalabras();
+</main>
+</div>
+{$footer}
+
+<script>
 
 // ── Avatar tab switching ──────────────────────────────────────────────────────
 $(document).on('click', '.pestanas_avatar', function() {
@@ -288,70 +301,6 @@ function syncPostAuthorHeight() {
 	$('.post_author').css('height', '450px');
 }
 syncPostAuthorHeight();
-
-// ── Modo noche / modo lectura ─────────────────────────────────────────────────
-let modoLectura = localStorage.getItem('modoLectura');
-let modoNoche   = localStorage.getItem('modoNoche');
-
-function applyModoNoche(on) {
-	if (on) {
-		$('.post_body').css('color', '#d9d6d6');
-		$('.post_content,.post,.tfoot').css('background-color', '#1a1423');
-		$('.spoiler_content').css('background-color', '#2a203a');
-		$('.tecnica_spoiler_content').css('background-color', '#2a203a');
-		$('.tecnicaDes span').css('color', 'white');
-		$('.tecnicaId span').css({'color':'white','background':'#571caf','border':'#6e23dd'});
-		$('.tecnicaCost span').css('color', 'white');
-		$('blockquote.mycode_quote').css({'background-color':'#ffe0f0','color':'#4a1060','border-color':'#c870a0'});
-		$('blockquote.mycode_quote cite').css({'color':'#4a1060','border-bottom-color':'#c870a0'});
-		$('blockquote.mycode_quote cite > span').css('color', '#7a2080');
-		$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_dia" src="/images/op/misc/ModoDia_One_Piece_Gaiden_Foro_Rol.png">');
-	} else {
-		$('.post_body').css('color', 'black');
-		$('.post_content,.post,.tfoot').css('background-color', '#ffeed2');
-		$('.spoiler_content').css('background-color', '#ffe6bd');
-		$('.tecnica_spoiler_content').css('background-color', 'rgb(255 230 189)');
-		$('.tecnicaDes span').css('color', 'black');
-		$('.tecnicaId span').css({'color':'white','background':'#ff6d1d','border':'#843105'});
-		$('.tecnicaCost span').css('color', 'black');
-		$('blockquote.mycode_quote').css({'background-color':'#fff','color':'','border-color':'#ccc'});
-		$('blockquote.mycode_quote cite').css({'color':'','border-bottom-color':'#ccc'});
-		$('blockquote.mycode_quote cite > span').css('color', '#666');
-		$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_noche" src="/images/op/misc/ModoNoche_One_Piece_Gaiden_Foro_Rol.png">');
-	}
-}
-
-function applyModoLectura(on) {
-	if (on) {
-		$('.post_author').css('display', 'none');
-		$('.usuario-derecha').css('display', 'block');
-		$('.post_content').css('width', '1100px');
-		$('.post_body').css('font-size', '19px');
-		$('#modoLectura').addClass('activo');
-	} else {
-		$('.post_author').css('display', 'block');
-		$('.usuario-derecha').css('display', 'none');
-		$('.post_content').css('width', '');
-		$('.post_body').css('font-size', '15px');
-		$('#modoLectura').removeClass('activo');
-	}
-}
-
-applyModoNoche(modoNoche === 'true');
-applyModoLectura(modoLectura === 'true');
-
-window.toggleModoNoche = function() {
-	modoNoche = (modoNoche === 'true') ? 'false' : 'true';
-	localStorage.setItem('modoNoche', modoNoche);
-	applyModoNoche(modoNoche === 'true');
-};
-
-window.toggleModoLectura = function() {
-	modoLectura = (modoLectura === 'true') ? 'false' : 'true';
-	localStorage.setItem('modoLectura', modoLectura);
-	applyModoLectura(modoLectura === 'true');
-	syncPostAuthorHeight();
-};
 </script>
 </body>
 </html>

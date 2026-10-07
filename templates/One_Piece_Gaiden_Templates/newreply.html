@@ -2,91 +2,124 @@
 <head>
 <title>{$lang->post_reply_to}</title>
 {$headerinclude}
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor-theme.css?ver=2" />
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=35" />
 {$post_javascript}
 <script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
 <script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=24"></script>
 </head>
 <body>
 {$header}
-{$preview}
-{$maximageserror}
-{$attacherror}
-{$reply_errors}
-{$moderation_notice}
-<form action="newreply.php?tid={$tid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
-<input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
-<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
-<tr>
-<td class="thead" colspan="2"><strong>{$lang->post_new_reply}</strong></td>
-</tr>
-<tr>
-<td class="tcat" colspan="2"><span class="smalltext"><strong>{$lang->reply_to}</strong><a name="switch" id="switch"></a></span></td>
-</tr>
-<tr>
-<td class="trow2" colspan="2">
-	<div style="display: inline; float: right; margin-top: 4px;">
-		<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
-			<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
-		</div>
-		<strong>Palabras</strong>: <span id="palabras">0</span>
-	</div>
-	<strong>Mensaje:</strong><br>
-<textarea id="message" name="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
-{$codebuttons}
-{$multiquote_external}
-</td>
-</tr>
-{$captcha}
-</table>
-<div align="center">{$as_post}&nbsp;<input type="submit" class="button" name="submit" value="{$lang->post_reply}" tabindex="3" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="4" />{$savedraftbutton}
-<button id="recuperar-post" class="button">Recuperar post</button></div>
-<input type="hidden" name="action" value="do_newreply" />
-<input type="hidden" name="replyto" value="{$replyto}" />
-<input type="hidden" name="posthash" value="{$posthash}" />
-<input type="hidden" name="attachmentaid" value="" />
-<input type="hidden" name="attachmentact" value="" />
-<input type="hidden" name="quoted_ids" value="{$quoted_ids}" />
-<input type="hidden" name="tid" value="{$tid}" />
-{$editdraftpid}
-</form>
-{$forumrules}
-{$threadreview}
+<div class="indice newpost-pagina">
+  <main class="mainBackground">
+        {$preview}
+        {$maximageserror}
+        {$attacherror}
+        {$reply_errors}
+        {$moderation_notice}
+
+        <header class="newpost-encabezado">
+          <span class="newpost-encabezado-titulo">Respuesta</span>
+          <h1 class="newpost-hilo">{$thread['subject']}</h1>
+          <a name="switch" id="switch"></a>
+        </header>
+
+        <form class="newpost-form" action="newreply.php?tid={$tid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
+          <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+
+          <div class="newpost-editor-cabecera">
+            <label for="message" class="newpost-editor-titulo">Mensaje</label>
+            <span class="newpost-recuento"><strong id="palabras">0</strong> palabras</span>
+          </div>
+
+          <div class="newpost-editor">
+            <textarea id="message" name="message" rows="22" cols="70" tabindex="2">{$message}</textarea>
+            {$codebuttons}
+            <script src="{$mybb->settings['bburl']}/jscripts/post_editor.js?ver=10"></script>
+          </div>
+
+          <div class="newpost-editor-pie">{$multiquote_external}</div>
+
+          <div class="newpost-bbcodes" role="group" aria-label="Códigos de rol">
+            <button type="button" class="opg-chip" data-bbcode="spoiler"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i> Spoiler</button>
+            <button type="button" class="opg-chip" data-bbcode="dado"><i class="fa-solid fa-dice" aria-hidden="true"></i> Dado</button>
+            <button type="button" class="opg-chip" data-bbcode="tecnica"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Técnica</button>
+            <button type="button" class="opg-chip" data-bbcode="ficha"><i class="fa-solid fa-id-card" aria-hidden="true"></i> Ficha</button>
+            <button type="button" class="opg-chip" data-bbcode="hide"><i class="fa-solid fa-lock" aria-hidden="true"></i> Hide</button>
+            <button type="button" class="opg-chip" data-bbcode="recursos"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Recursos</button>
+            <button type="button" class="opg-chip" data-bbcode="objeto"><i class="fa-solid fa-cube" aria-hidden="true"></i> Objeto</button>
+            <button type="button" class="opg-chip" data-bbcode="consumir"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Consumir</button>
+            <a class="newpost-guia-codigos" href="/showthread.php?tid=3753" target="_blank" rel="noopener noreferrer" title="Abrir en otra pestaña">Guía de códigos <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+          </div>
+
+          <div class="newpost-bbcode-panel" id="pe-bbcode-overlay" hidden>
+            <div class="newpost-bbcode-campos">
+              <h3 id="pe-bbcode-titulo"></h3>
+              <button type="button" class="newpost-bbcode-cerrar" id="pe-bbcode-cerrar" aria-label="Cerrar">&times;</button>
+
+              <div class="af-field pe-campo-dado">
+                <label for="pe-dado-cantidad">Dados (1-20)</label>
+                <input type="number" id="pe-dado-cantidad" min="1" max="20" value="1" />
+              </div>
+              <div class="af-field pe-campo-dado">
+                <label for="pe-dado-caras">Caras (1-100000)</label>
+                <input type="number" id="pe-dado-caras" min="1" max="100000" value="6" />
+              </div>
+              <div class="af-field pe-campo-tecnica">
+                <label for="pe-tecnica-tid">ID de la técnica</label>
+                <input type="text" id="pe-tecnica-tid" />
+              </div>
+              <div class="af-field pe-campo-spoiler">
+                <label for="pe-spoiler-titulo">Título del spoiler (opcional)</label>
+                <input type="text" id="pe-spoiler-titulo" />
+              </div>
+              <div class="af-field pe-campo-recursos">
+                <label for="pe-recursos-vida">Vida actual</label>
+                <input type="number" id="pe-recursos-vida" min="0" step="1" />
+              </div>
+              <div class="af-field pe-campo-recursos">
+                <label for="pe-recursos-energia">Energía actual</label>
+                <input type="number" id="pe-recursos-energia" min="0" step="1" />
+              </div>
+              <div class="af-field pe-campo-recursos">
+                <label for="pe-recursos-haki">Haki actual</label>
+                <input type="number" id="pe-recursos-haki" min="0" step="1" />
+              </div>
+              <div class="af-field pe-campo-objeto">
+                <label for="pe-objeto-id">ID del objeto</label>
+                <input type="text" id="pe-objeto-id" />
+              </div>
+              <p class="pe-aviso-consumir">Al publicar, se consumirá una unidad del objeto.</p>
+
+              <div class="newpost-bbcode-acciones">
+                <button type="button" class="btn-op btn-op--primario btn-op--sm" id="pe-bbcode-insertar">Insertar</button>
+              </div>
+            </div>
+          </div>
+
+          <table class="newpost-opciones-tabla"><tbody>{$captcha}</tbody></table>
+
+          <div class="newpost-acciones">
+            <button type="submit" class="btn-op btn-op--primario" name="submit" value="{$lang->post_reply}" tabindex="3" accesskey="s">{$lang->post_reply}</button>
+            <input type="submit" class="opg-chip" name="previewpost" value="{$lang->preview_post}" tabindex="4" />
+            <if $mybb->user['uid'] then><input type="submit" class="opg-chip" name="savedraft" value="Guardar" title="Guardar como borrador" /></if>
+            <button type="button" id="recuperar-post" class="opg-chip" title="Recuperar el último texto guardado">Recuperar</button>
+          </div>
+
+          <input type="hidden" name="action" value="do_newreply" />
+          <input type="hidden" name="replyto" value="{$replyto}" />
+          <input type="hidden" name="posthash" value="{$posthash}" />
+          <input type="hidden" name="attachmentaid" value="" />
+          <input type="hidden" name="attachmentact" value="" />
+          <input type="hidden" name="quoted_ids" value="{$quoted_ids}" />
+          <input type="hidden" name="tid" value="{$tid}" />
+          {$editdraftpid}
+        </form>
+
+        {$forumrules}
+        {$threadreview}
+  </main>
+</div>
 {$footer}
-<script>
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-$('#recuperar-post').on('click', function(event) {
-    event.preventDefault();
-    if ($('.sceditor-button-source').hasClass('active')) {
-        alert('Sólo puedes recuperar lo último escrito en el post si el botón de "Ver código de Fuente (<>)" no está apretado/activo.');
-    } else {
-        if ($($('.sceditor-container')[0].children[1].contentDocument.body).html() == localStorage.getItem('user-post')) {
-            alert('El último texto guardado es idéntico al que está actual en la página. No hay nada que recuperar.');
-        } else {
-            $($('.sceditor-container')[0].children[1].contentDocument.body).html(localStorage.getItem('user-post'));
-        }
-    }
-});
-
-async function contarPalabras() {
-    await sleep(100);
-    $($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
-      before = $(this).html();
-    }).on('keyup', function() {
-      if (before != $(this).html()) { $(this).trigger('change'); }
-    });
-
-    $($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
-        const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
-        $('#palabras')[0].innerText = palabras;
-        if (parseInt(palabras) >= 10) {
-            localStorage.setItem('user-post', $($('.sceditor-container')[0].children[1].contentDocument.body).html());
-        }
-    });
-}
-contarPalabras();
-</script>
 </body>
 </html>

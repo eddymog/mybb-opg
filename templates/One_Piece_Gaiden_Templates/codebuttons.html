@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor/themes/{$theme['editortheme']}" type="text/css" media="all" />
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/sceditor/jquery.sceditor.bbcode.min.js?ver=1832"></script>
-<script type="text/javascript" src="{$mybb->asset_url}/jscripts/bbcodes_sceditor.js?ver=1832"></script>
+<script type="text/javascript" src="{$mybb->asset_url}/jscripts/bbcodes_sceditor.js?ver=1833"></script>
 <script type="text/javascript" src="{$mybb->asset_url}/jscripts/sceditor/plugins/undo.js?ver=1832"></script>
 
 
@@ -23,6 +23,7 @@ opt_editor = {
 	rtl: {$lang->settings['rtl']},
 	locale: "mybblang",
 	width: "100%",
+	height: document.querySelector('.newpost-pagina') ? 600 : null,
 	enablePasteFiltering: true,
 	autoUpdate: true,
 	emoticonsEnabled: {$emoticons_enabled},
@@ -41,13 +42,13 @@ opt_editor = {
 		}
 	},
 	emoticonsCompat: true,
-	toolbar: "{$basic1}{$align}{$font}{$size}{$color}{$removeformat}{$basic2}image,{$email}{$link},spoiler|video{$emoticon}|{$list}quote|maximize,source",
+	toolbar: "{$basic1}{$align}{$font}{$size}{$color}{$removeformat}{$basic2}image,{$link}|video{$emoticon}|{$list}quote|maximize,source",
 };
 {$editor_language}
 $(function() {
 	$("#{$bind}").sceditor(opt_editor);
 
 	MyBBEditor = $("#{$bind}").sceditor("instance");
-	{$sourcemode}
+	MyBBEditor.sourceMode(true);
 });
 </script>

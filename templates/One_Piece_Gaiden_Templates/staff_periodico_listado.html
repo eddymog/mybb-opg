@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>El Gaviotazo · Staff</title>
+    {$headerinclude}
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico_editor.css?v=9">
+</head>
+<body>
+{$header}
+<div class="indice periodico-staff">
+    <div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+        <header class="periodico-staff__cabecera">
+            <p>Redacción staff</p>
+            <h1>El Gaviotazo</h1>
+            <span>Ediciones, portadas y archivo del periódico.</span>
+        </header>
+        <details class="periodico-guia">
+            <summary>Guía del periódico</summary>
+            <div class="periodico-guia__contenido">
+                <section><h2>Nueva edición</h2><p>Asigná un número único y un titular. La dirección web es la parte corta de su URL; si la dejás vacía, se genera a partir del titular.</p></section>
+                <section><h2>Borrador</h2><p>Las ediciones nuevas nacen como borrador. Solo el staff puede abrirlas, editarlas o ver su previsualización.</p></section>
+                <section><h2>Publicar</h2><p>Desde el editor, Publicar convierte esa edición en la portada de El Gaviotazo y manda la publicación anterior al archivo.</p></section>
+                <section><h2>Archivo</h2><p>Las ediciones archivadas siguen disponibles para el público por número o dirección web, pero ya no aparecen como la edición actual.</p></section>
+                <section><h2>Edición histórica</h2><p>La herramienta de importación lee el periódico estático actual y crea un borrador con sus diez artículos. Revisalo antes de publicarlo.</p></section>
+                <section><h2>Registro</h2><p>Las creaciones, guardados, publicaciones y archivados quedan asociados al usuario real que realizó la acción.</p></section>
+            </div>
+        </details>
+        {$errores_html}
+        <section class="opg-card periodico-nueva">
+            <h2>Nueva edición</h2>
+            <form method="post" action="periodico.php" class="periodico-nueva__form">
+                <input type="hidden" name="my_post_key" value="{$post_key}">
+                <input type="hidden" name="accion" value="crear">
+                <label class="af-field"><span>Número</span><input type="number" name="numero" min="1" required></label>
+                <label class="af-field"><span>Titular</span><input type="text" name="titulo" maxlength="255" required></label>
+                <label class="af-field"><span>Dirección web</span><input type="text" name="slug" maxlength="100"></label>
+                <button class="btn-op btn-op--primario" type="submit">Crear edición</button>
+            </form>
+        </section>
+        <nav class="periodico-filtros" aria-label="Filtrar ediciones">
+            <a class="opg-chip" href="periodico.php">Todas</a>
+            <a class="opg-chip" href="periodico.php?estado=borrador">Borradores</a>
+            <a class="opg-chip" href="periodico.php?estado=publicado">Publicadas</a>
+            <a class="opg-chip" href="periodico.php?estado=archivado">Archivo</a>
+        </nav>
+        <section class="periodico-lista">{$filas}</section>
+    </div></div></div>
+</div>
+{$footer}
+</body>
+</html>

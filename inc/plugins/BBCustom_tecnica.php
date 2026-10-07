@@ -13,6 +13,7 @@ require_once MYBB_ROOT . "inc/plugins/lib/spoiler.php";
 
 // Hook para procesar DESPUÉS de que MyBB termine todo el procesamiento
 $plugins->add_hook("postbit", "BBCustom_tecnica_run");
+$plugins->add_hook("postbit_prev", "BBCustom_tecnica_run");
 
 function BBCustom_tecnica_info()
 {

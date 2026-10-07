@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>{$lang->post_reply_to}</title>
+{$headerinclude}
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor-theme.css?ver=1" />
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=2" />
+{$post_javascript}
+<script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
+<script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=24"></script>
+</head>
+<body>
+{$header}
+<div class="indice newpost-pagina">
+  <div class="mainBackground">
+    <div class="secondBackground">
+      <main class="thirdBackground">
+        {$preview}
+        {$maximageserror}
+        {$attacherror}
+        {$reply_errors}
+        {$moderation_notice}
+
+        <header class="newpost-encabezado">
+          <div class="barra-op bbox">
+            <span class="barra-texto-op">{$lang->post_new_reply}</span>
+          </div>
+          <div class="barra-espacio-op bbox">
+            <span class="newpost-hilo">{$lang->reply_to}</span>
+            <a name="switch" id="switch"></a>
+          </div>
+        </header>
+
+        <form class="newpost-form" action="newreply.php?tid={$tid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
+          <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
+
+          <div class="newpost-editor-cabecera">
+            <label for="message" class="newpost-editor-titulo">Mensaje</label>
+            <span class="newpost-recuento"><strong id="palabras">0</strong> palabras</span>
+          </div>
+
+          <div class="newpost-editor">
+            <textarea id="message" name="message" rows="22" cols="70" tabindex="2">{$message}</textarea>
+            {$codebuttons}
+            <script src="{$mybb->settings['bburl']}/jscripts/post_editor.js?ver=3"></script>
+          </div>
+
+          <div class="newpost-editor-pie">
+            <span>Post: 300 palabras <span aria-hidden="true">&middot;</span> Autonarradas: 800 <span aria-hidden="true">&middot;</span> Frutas: normativa</span>
+            {$multiquote_external}
+          </div>
+
+          <div class="newpost-bbcodes" role="group" aria-label="Insertar código de rol">
+            <button type="button" class="opg-chip" data-bbcode="spoiler"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i> Spoiler</button>
+            <button type="button" class="opg-chip" data-bbcode="dado"><i class="fa-solid fa-dice" aria-hidden="true"></i> Dado</button>
+            <button type="button" class="opg-chip" data-bbcode="tecnica"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Técnica</button>
+          </div>
+
+          <div class="newpost-bbcode-panel" id="pe-bbcode-overlay" hidden>
+            <div class="newpost-bbcode-campos">
+              <h3 id="pe-bbcode-titulo"></h3>
+              <button type="button" class="newpost-bbcode-cerrar" id="pe-bbcode-cerrar" aria-label="Cerrar">&times;</button>
+
+              <div class="af-field pe-campo-dado">
+                <label for="pe-dado-cantidad">Dados (1-20)</label>
+                <input type="number" id="pe-dado-cantidad" min="1" max="20" value="1" />
+              </div>
+              <div class="af-field pe-campo-dado">
+                <label for="pe-dado-caras">Caras (1-100000)</label>
+                <input type="number" id="pe-dado-caras" min="1" max="100000" value="6" />
+              </div>
+              <div class="af-field pe-campo-tecnica">
+                <label for="pe-tecnica-tid">ID de la técnica</label>
+                <input type="text" id="pe-tecnica-tid" />
+              </div>
+              <div class="af-field pe-campo-spoiler">
+                <label for="pe-spoiler-titulo">Título del spoiler (opcional)</label>
+                <input type="text" id="pe-spoiler-titulo" />
+              </div>
+
+              <button type="button" class="btn-op btn-op--primario btn-op--sm" id="pe-bbcode-insertar">Insertar</button>
+            </div>
+          </div>
+
+          {$captcha}
+          {$as_post}
+
+          <div class="newpost-acciones">
+            <input type="submit" class="btn-op btn-op--primario" name="submit" value="{$lang->post_reply}" tabindex="3" accesskey="s" />
+            <div class="newpost-acciones-secundarias">
+              <input type="submit" class="opg-chip" name="previewpost" value="{$lang->preview_post}" tabindex="4" />
+              {$savedraftbutton}
+              <button type="button" id="recuperar-post" class="opg-chip">Recuperar post</button>
+            </div>
+          </div>
+
+          <input type="hidden" name="action" value="do_newreply" />
+          <input type="hidden" name="replyto" value="{$replyto}" />
+          <input type="hidden" name="posthash" value="{$posthash}" />
+          <input type="hidden" name="attachmentaid" value="" />
+          <input type="hidden" name="attachmentact" value="" />
+          <input type="hidden" name="quoted_ids" value="{$quoted_ids}" />
+          <input type="hidden" name="tid" value="{$tid}" />
+          {$editdraftpid}
+        </form>
+
+        {$forumrules}
+        {$threadreview}
+      </main>
+    </div>
+  </div>
+</div>
+{$footer}
+</body>
+</html>

@@ -1,0 +1,22 @@
+html,
+body {
+  background: #fffdf9;
+}
+
+html,
+body,
+p,
+code:before,
+table {
+  font-size: 18px;
+}
+
+body {
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+blockquote,
+code {
+  background: #ffedd2;
+}

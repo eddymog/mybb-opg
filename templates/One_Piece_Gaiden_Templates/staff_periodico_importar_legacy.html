@@ -1,0 +1,26 @@
+<html>
+<head>
+    <title>Importar periódico histórico</title>
+    {$headerinclude}
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico_editor.css?v=2">
+</head>
+<body>
+{$header}
+<div class="indice periodico-staff"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+    <header class="periodico-staff__cabecera"><p>Herramienta de una sola ejecución</p><h1>Importar edición histórica</h1><span>Lee la copia local del periódico actual y crea un borrador para revisión.</span></header>
+    {$errores_html}
+    <section class="opg-card periodico-nueva">
+        <p class="periodico-editor__ayuda">{$resumen} No publica ni modifica el template estático.</p>
+        <form method="post" action="periodico_importar_legacy.php" class="periodico-nueva__form">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <label class="af-field"><span>Número histórico</span><input type="number" name="numero" min="1" value="{$numero}" required></label>
+            <label class="af-field"><span>Slug</span><input type="text" name="slug" value="{$slug_esc}" required></label>
+            <label class="af-field"><span>Titular</span><input type="text" name="titulo" value="{$titulo_esc}" required></label>
+            <label class="af-field"><span>Subtítulo</span><input type="text" name="subtitulo" value="{$subtitulo_esc}"></label>
+            <button class="btn-op btn-op--primario" type="submit">Importar como borrador</button>
+        </form>
+    </section>
+</div></div></div></div>
+{$footer}
+</body>
+</html>

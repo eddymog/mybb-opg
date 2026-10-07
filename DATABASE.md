@@ -744,11 +744,31 @@ PK: `id`
 | `estado` | int(10) | Status: 0=created, 1=approved, 2=denied, 3=finished, 4=pending narrator, 5=deletion request |
 | `aventura_url` | varchar(255) | Thread URL |
 | `inframundo` | tinyint(1) | Underworld adventure flag |
+| `isla_fid` | smallint(5) | Island (direct child forum of 15..18) |
+| `dia` | tinyint(3) | In-game day 1..90 (Verano 725) |
+| `motivo_denegacion` | varchar(500) | Reason for a denial (required to deny) |
+| `idea_narrador` | varchar(500) | Creator's idea when there is no narrator yet |
+| `motivo_renuncia` | varchar(500) | Reason the previous narrator left |
+| `editado_at` | int(10) | Last edit by the creator |
+
+Created by `op/tablon_de_aventuras.php`, managed in `op/staff/consola_aventuras.php`. `tier_seleccionado` (1..10) is chosen when the request is created. Migration: `docs/aventuras_migration.sql`.
 
 #### `mybb_op_peticionAventuras_meta` — Adventure request metadata
 PK: `peticion_id`
 
 Staff notes, public comments, approval status (`'pendiente'`, `'aprobada'`, `'denegada'`).
+
+#### `mybb_op_audit_aventuras` — Adventure request audit
+PK: `id`. `peticion_id` (0 for narrator-offer actions), `uid`, `accion`, `detalle_json` (`antes`/`despues`), `fecha`.
+
+#### `mybb_op_narradores_disponibles` — Narrator offers
+PK: `uid`. `discord`, `mensaje` (max 200), `created_at`, `updated_at`. The row is the offer; it expires 30 days after `updated_at`.
+
+#### `mybb_op_aventuras_entregas` — Narrator deliveries
+PK: `id`; UNIQUE `peticion_id` and `tid_activo`. One delivery per request: `tid`, `tema_nombre`, `resumen`, `reputacion`, `estado` (`pendiente`, `rechazada`, `entregada`), frozen `tier`/`infra`/`ajustes_json` once payment starts, `intentos`, review and claim columns (`procesando_por`, `procesando_at`).
+
+#### `mybb_op_aventuras_entregas_pagos` — Per-recipient payments
+PK: `id`; UNIQUE (`entrega_id`, `uid`) guarantees a single payment per recipient. `rol`, `porcentaje`, `detalle_json` (calculation), `aplicado_at`, `xp_cantidad`, `xp_estado` (`pendiente`, `aplicando`, `aplicado`, `dudoso`).
 
 #### `mybb_op_misiones_lista` — Mission catalog
 PK: `id`

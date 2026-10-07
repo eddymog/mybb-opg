@@ -767,6 +767,9 @@ plantilla o se copian entre sí sin querer.
 | `of-` | `staff_objetos_ficha` |
 | `gen-` | `staff_generadorpj` |
 | `g2-` | `staff_generadorpj2` |
+| `ta-` | `op_tablon_de_aventuras` (tablón de aventuras, jugadores) |
+| `ca-` | `staff_consola_aventuras` (consola de aventuras) |
+| `ar-` | `staff_aventuras_recompensas` (pago de una entrega de aventura) |
 
 **Esta tabla es temporal.** Existe solo porque hoy conviven clases genéricas
 (`.af-field`, `.aviso`, `.opg-guia-*`) con clases todavía prefijadas por

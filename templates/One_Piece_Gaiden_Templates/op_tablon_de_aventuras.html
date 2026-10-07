@@ -1,0 +1,216 @@
+<html>
+<head>
+<title>Tablón de aventuras — {$bbname_html}</title>
+{$headerinclude}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"selfRequestsOnly":true,"historyCacheSize":0,"defaultSwapStyle":"innerHTML","responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"409|422","swap":true,"error":false},{"code":"403|404|5..","swap":true,"target":"#ta-avisos","error":true}]}'>
+<style>
+/* ── Marco de la página ─────────────────────────────────────────────────── */
+/* text-align: el body del tema centra todo el texto (style.md, sección 7) */
+.ta-tablon .thirdBackground { width: 100%; max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+.ta-tablon .mainBackground { width: 100%; max-width: 1110px; box-sizing: border-box; margin-inline: auto; }
+.ta-tablon .secondBackground, .ta-tablon .thirdBackground { min-width: 0; box-sizing: border-box; }
+.ta-tablon * { letter-spacing: 0; }
+.ta-titulo-pagina { padding: var(--opg-espacio-2); }
+.ta-titulo-pagina .barra-texto-op { font-size: 26px; letter-spacing: 0; text-shadow: 2px 2px 0 black; }
+.ta-oculto { display: none !important; }
+.htmx-request { opacity: .75; }
+
+/* ── Pestañas ───────────────────────────────────────────────────────────── */
+.ta-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--opg-espacio-2); padding-bottom: 10px; border-bottom: 2px solid var(--opg-tinta); }
+.ta-tab, a.ta-tab:link, a.ta-tab:visited {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 14px; color: var(--opg-ciruela); text-decoration: none;
+    justify-content: center; text-align: center; min-height: 48px; box-sizing: border-box;
+    background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: 6px;
+    padding: 8px 10px; transition: background var(--opg-rapido);
+}
+.ta-tab:hover { background: #ffd48a; }
+.ta-tab-activa, a.ta-tab-activa:link, a.ta-tab-activa:visited { background: #ffa600; color: #fff; text-shadow: var(--opg-sombra-titular); }
+.ta-contador, .opg-chip.ta-contador { flex: 0 0 auto; white-space: nowrap; background: var(--opg-morado-cta); color: #fff; border-color: var(--opg-tinta); padding: 1px 8px; font-size: 11px; }
+
+/* ── Secciones y títulos ───────────────────────────────────────────────── */
+.ta-seccion { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+.ta-titulo { font-family: var(--opg-fuente-titular); font-size: 20px; letter-spacing: 0; color: var(--opg-ciruela); margin: 0; padding-bottom: 8px; border-bottom: 3px solid var(--opg-naranja); }
+.ta-rotulo { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; letter-spacing: 0; color: var(--opg-morado-texto); }
+.ta-ayuda { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+.ta-avisos, .ta-avisos-globales { display: flex; flex-direction: column; gap: var(--opg-espacio-2); }
+.ta-avisos:empty, .ta-avisos-globales:empty { display: none; }
+.ta-lista-avisos { margin: 0; padding-left: 18px; }
+
+/* ── Tarjetas ───────────────────────────────────────────────────────────── */
+.ta-tarjetas { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+.ta-grilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
+.ta-card { text-align: left; }
+.ta-cab { justify-content: space-between; flex-wrap: wrap; }
+.ta-estado {
+    font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-ciruela); background: #fff;
+    border: 2px solid var(--opg-tinta); border-radius: 999px; padding: 2px 10px;
+}
+.ta-estado-aprobado { background: #d7f3e1; }
+.ta-estado-denegado { background: #fadadd; }
+.ta-estado-pendiente-narrador { background: #e8d9ff; }
+.ta-estado-vencida { background: #e5e5e5; }
+.ta-meta { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-marron); margin: 0; }
+.ta-yo { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-morado-texto); margin: 0; }
+.ta-datos { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2) var(--opg-espacio-5); margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.ta-datos div { flex: 0 1 auto; }
+.ta-dato-ancho { flex-basis: 100% !important; }
+.ta-datos dt { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; letter-spacing: 0; color: var(--opg-morado-texto); }
+.ta-datos dd { margin: 0; }
+.ta-nota { border-left: 4px solid var(--opg-naranja); background: #fff; border-radius: 0 var(--opg-radio-sm) var(--opg-radio-sm) 0; padding: 6px 10px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.ta-nota b { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; letter-spacing: 0; color: var(--opg-morado-texto); }
+.ta-nota p { margin: 2px 0 0; line-height: 1.45; }
+.ta-nota-idea, .ta-nota-renuncia { border-left-color: var(--opg-morado); }
+.ta-nota-error { border-left-color: var(--opg-rojo-error); }
+.ta-enlace { margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; }
+.ta-enlace a:link, .ta-enlace a:visited { color: var(--opg-morado-texto); }
+.ta-entrega { margin: 0; }
+.ta-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); align-items: center; }
+.ta-resaltada { outline: 4px solid var(--opg-dorado); outline-offset: 2px; }
+.ta-inframundo { padding: 1px 8px; font-size: 11px; }
+.ta-discord { font-family: var(--opg-fuente-cuerpo); font-size: 13px; margin: 0; color: var(--opg-marron); }
+.ta-copiable { user-select: all; background: #fff; border: 1px solid var(--opg-tinta); border-radius: 4px; padding: 0 6px; }
+a.btn-op:link, a.btn-op:visited { color: #fff; text-decoration: none; }
+
+/* ── Bloque destacado: aventuras sin narrador ───────────────────────────── */
+.ta-sin-bloque { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+.ta-sin-cabecera { display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); border-bottom: 3px solid var(--opg-morado); padding-bottom: 8px; }
+.ta-sin-cabecera h2 { margin: 0; font-family: var(--opg-fuente-titular); font-size: 20px; letter-spacing: 0; color: var(--opg-ciruela); }
+.ta-sin-cifra { font-family: var(--opg-fuente-titular); font-size: 24px; line-height: 1; color: var(--opg-morado-texto); }
+.ta-sin-cuerpo { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+.ta-sin-intro { margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.ta-ver-mas { display: flex; justify-content: center; }
+
+/* ── Formularios ────────────────────────────────────────────────────────── */
+.ta-form { display: flex; flex-direction: column; gap: var(--opg-espacio-5); padding: 8px 0; }
+.ta-switch { display: flex; flex-direction: column; gap: var(--opg-espacio-5); }
+.ta-form > .ta-fila, .ta-form > .af-field { padding-top: var(--opg-espacio-4); border-top: 1px solid var(--opg-gris-bloqueado); }
+.ta-selector-busqueda { display: none; }
+.ta-selector-abierto .ta-selector-busqueda { display: block; }
+.ta-selector-abierto .ta-anadir { display: none; }
+.ta-switch:has(#ta-rol-n:checked):not(:has(.ta-participantes input)) .ta-selector-busqueda { display: block; }
+.ta-switch:has(#ta-rol-n:checked):not(:has(.ta-participantes input)) .ta-anadir { display: none; }
+.ta-chips > .ta-buscador { width: 100%; }
+.ta-fila { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); align-items: flex-start; }
+.ta-fila > * { flex: 1 1 220px; }
+.ta-isla { display: flex; flex-direction: column; gap: 8px; }
+.ta-isla > .ta-buscador { flex: 0 0 auto; }
+.ta-bloque { display: flex; flex-direction: column; gap: var(--opg-espacio-2); }
+.ta-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 8px; }
+.ta-chip { font-size: 13px; }
+.ta-chip small { opacity: .75; }
+.ta-quitar { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; color: var(--opg-rojo-error); }
+.ta-casilla { display: flex; align-items: center; gap: 8px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.ta-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.ta-grupo legend { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; letter-spacing: 0; color: var(--opg-morado-texto); padding: 0; width: 100%; margin-bottom: 4px; }
+.ta-radio { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ta-radio:checked + .ta-etiqueta-radio, .ta-filtro .ta-radio:checked + .opg-chip { background: var(--opg-morado-cta); color: #fff; }
+.ta-radio:focus-visible + .ta-etiqueta-radio, .ta-filtro .ta-radio:focus-visible + .opg-chip { box-shadow: var(--opg-foco); }
+.ta-filtro { cursor: pointer; }
+.ta-filtros { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-5); align-items: flex-end; padding-bottom: var(--opg-espacio-4); border-bottom: 1px solid var(--opg-gris-bloqueado); }
+.ta-filtro-busqueda { flex: 0 1 280px; min-width: min(100%, 220px); }
+.opg-resultados:empty { display: none; }
+.ta-buscador .opg-buscar-caja { display: block; }
+.ta-buscador input[type="search"] { width: 100%; }
+.ta-sin-narrador { flex-basis: 100%; }
+.ta-con-narrador { flex-basis: 100%; display: flex; flex-direction: column; gap: var(--opg-espacio-2); }
+/* Los dos bloques de "¿Tienes narrador?" se alternan sin JavaScript. */
+.ta-radio[value="0"]:checked ~ .ta-con-narrador { display: none; }
+.ta-radio[value="1"]:checked ~ .ta-sin-narrador { display: none; }
+/* Rol narrador: no hay selector de narrador ni chip del propio creador. */
+.ta-switch:has(#ta-rol-n:checked) .ta-solo-jugador,
+.ta-switch:has(#ta-rol-n:checked) .ta-chip-fijo { display: none; }
+.ta-activas { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--opg-espacio-4); }
+.ta-cifra { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+.ta-cifra b { font-family: var(--opg-fuente-titular); font-size: 18px; color: var(--opg-ciruela); }
+.ta-cifra-tope b { color: var(--opg-rojo-error); }
+.ta-paginador { display: flex; align-items: center; justify-content: center; gap: var(--opg-espacio-3); margin-top: var(--opg-espacio-4); }
+.ta-pagina { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); }
+
+/* Estadisticas y resumen personal */
+#ta-panel, .ta-mercado { display: flex; flex-direction: column; gap: var(--opg-espacio-5); min-width: 0; }
+.ta-estadisticas { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 16px; }
+.ta-estadisticas-estados, .ta-estadisticas-roles { display: grid; margin: 0; background: #fff; border-top: 2px solid var(--opg-tinta); border-bottom: 2px solid var(--opg-tinta); }
+.ta-estadisticas-estados { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ta-estadisticas-roles { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(2, 1fr); }
+.ta-estadistica { min-width: 0; padding: 12px 14px; border-left: 3px solid var(--opg-gris-bloqueado); }
+.ta-estadistica dt { font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); min-height: 18px; overflow-wrap: anywhere; }
+.ta-estadistica dd { margin: 6px 0 0; font-family: var(--opg-fuente-titular); font-size: 24px; color: var(--opg-ciruela); font-variant-numeric: tabular-nums; }
+.ta-estadistica-total, .ta-estadistica-estado_0 { border-left-color: var(--opg-naranja); }
+.ta-estadistica-estado_1 { border-left-color: var(--opg-verde-exito); }
+.ta-estadistica-estado_2 { border-left-color: var(--opg-rojo-error); }
+.ta-estadistica-estado_4, .ta-estadistica-narrador { border-left-color: var(--opg-morado); }
+.ta-estadistica-jugador { border-left-color: var(--opg-dorado); }
+.ta-mis-activas { padding: 0 0 var(--opg-espacio-4); border-bottom: 1px solid var(--opg-gris-bloqueado); }
+.ta-subtitulo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 12px; font-family: var(--opg-fuente-titular); font-size: 16px; color: var(--opg-ciruela); }
+.ta-subtitulo span { font-family: var(--opg-fuente-cuerpo); font-size: 13px; }
+.ta-activas-grupos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.ta-narradas-titulo { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--opg-gris-bloqueado); }
+.ta-narradas { grid-template-columns: minmax(0, 1fr); }
+.ta-activas-grupos h4 { margin: 0 0 8px; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-morado-texto); }
+.ta-activas-grupos h4 span { float: right; font-variant-numeric: tabular-nums; }
+.ta-activas-grupos ul { list-style: none; padding: 0; margin: 0; }
+.ta-activas-grupos li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 0; font-family: var(--opg-fuente-cuerpo); font-size: 12px; }
+.ta-activas-grupos a:link, .ta-activas-grupos a:visited { color: var(--opg-morado-texto); overflow-wrap: anywhere; }
+.ta-activa-identidad { display: flex; flex-direction: column; gap: 4px; flex: 1 1 160px; min-width: 0; }
+.ta-activa-fecha { font-size: 11px; color: var(--opg-gris-texto); overflow-wrap: anywhere; }
+.ta-activas-grupos li > .ta-estado { flex-shrink: 0; }
+.ta-resultados-total { margin: 0 0 12px; font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-gris-texto); }
+.ta-tablon :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--opg-morado); outline-offset: 3px; }
+.ta-tablon :is(.ta-chip, .opg-card__titulo, .ta-tab, .ta-nota p, .ta-datos dd) { overflow-wrap: anywhere; }
+.ta-card .opg-card__titulo { font-size: 16px; }
+.ta-card { border-radius: 8px; }
+
+/* ── Ventana de confirmación (sin JavaScript) ───────────────────────────── */
+.ta-modal-velo { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: var(--opg-espacio-4); background: rgba(26, 20, 35, .72); }
+.ta-velo-cerrar { position: absolute; inset: 0; border: 0; background: transparent; cursor: pointer; }
+.ta-modal { position: relative; z-index: 1; width: 100%; max-width: 560px; max-height: 90vh; overflow: auto; display: flex; flex-direction: column; gap: var(--opg-espacio-3); text-align: left;
+    background: var(--opg-crema-clara); border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); padding: var(--opg-espacio-5); }
+.ta-modal h3 { margin: 0; font-family: var(--opg-fuente-titular); font-size: 20px; color: var(--opg-ciruela); }
+.ta-modal p { margin: 0; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); line-height: 1.5; }
+
+@media (max-width: 700px) {
+    .ta-tablon .secondBackground, .ta-tablon .thirdBackground { padding: 10px; }
+    .ta-titulo-pagina .barra-texto-op { font-size: 20px; }
+    .ta-sin-cabecera h2 { font-size: 18px; }
+    .ta-tab, a.ta-tab:link, a.ta-tab:visited { padding: 8px 10px; font-size: 13px; }
+    .ta-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ta-estadisticas { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .ta-estadisticas-estados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ta-estadisticas-roles { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; }
+    .ta-activas-grupos { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .ta-tablon .thirdBackground { box-sizing: border-box; }
+    .ta-estadistica { padding: 10px; }
+    .ta-paginador { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body hx-headers='{"X-Post-Key":"{$post_key}"}'>
+{$header}
+<div class="indice ta-tablon">
+<div class="mainBackground">
+<div class="secondBackground">
+<div class="thirdBackground">
+
+    <div>
+        <div class="barra-op bbox ta-titulo-pagina"><span class="barra-texto-op">Tablón de aventuras</span></div>
+    </div>
+
+    <div class="ta-avisos-globales" id="ta-avisos" aria-live="polite"></div>
+
+    {$tabs_html}
+
+    <div id="ta-panel">{$panel_html}</div>
+
+    <div id="ta-modal"></div>
+
+</div>
+</div>
+</div>
+</div>
+<script src="{$htmx_url}" defer></script>
+{$footer}
+</body>
+</html>

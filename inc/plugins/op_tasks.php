@@ -41,7 +41,7 @@ if (defined('IN_ADMINCP')) {
                 'title'       => 'OPG: Resolver colas (worldtick)',
                 'description' => 'Resuelve entrenamientos de estadística, oficio y técnicas cuyo tiempo ya venció.',
                 'file'        => 'op_worldtick',
-                'minute'      => '*/5',
+                'minute'      => '0,5,10,15,20,25,30,35,40,45,50,55',
                 'hour'        => '*',
                 'day'         => '*',
                 'month'       => '*',

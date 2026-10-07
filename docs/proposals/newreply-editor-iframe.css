@@ -1,0 +1,30 @@
+/* Anexar al final de la hoja activa de contenido de SCEditor. */
+@font-face {
+  font-family: InterRegular;
+  src: url('/images/op/fonts/inter/Inter-Regular.woff2') format('woff2');
+}
+
+html,
+body {
+  background: #fff3e0;
+}
+
+body,
+p,
+li,
+td {
+  font-family: InterRegular, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1a1423;
+}
+
+body {
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+blockquote,
+code {
+  background: #ffedd2;
+}

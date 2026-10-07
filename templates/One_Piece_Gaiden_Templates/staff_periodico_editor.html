@@ -1,0 +1,47 @@
+<html>
+<head>
+    <title>Editar periódico</title>
+    {$headerinclude}
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico.css?v=3">
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico_editor.css?v=9">
+</head>
+<body>
+{$header}
+<div class="indice periodico-staff">
+    <div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+        <header class="periodico-staff__cabecera">
+            <p>Edición {$edicion['numero']}</p>
+            <h1>Constructor del periódico</h1>
+            <a class="opg-chip" href="periodico.php">Volver al listado</a>
+        </header>
+        <details class="periodico-guia">
+            <summary>Guía de edición</summary>
+            <div class="periodico-guia__contenido">
+                <section><h2>Datos de la edición</h2><p>El número y la dirección web son únicos. La dirección web es la parte corta de la URL de la edición. El titular y subtítulo aparecen en la cabecera pública; la firma visible es editorial y no reemplaza el registro real de auditoría.</p></section>
+                <section><h2>Páginas y orden</h2><p>Una edición puede tener varias páginas. Usa las pestañas para cambiar entre ellas y los botones Subir o Bajar para definir el orden en que se leerán.</p></section>
+                <section><h2>Bloques</h2><p><strong>Portada</strong> abre la primera página y debe ser única. <strong>Noticia</strong> sirve para artículos normales; <strong>Dos columnas</strong> para dos notas breves; <strong>Recuadro</strong> para contexto; <strong>Wanted</strong> congela un cartel histórico; <strong>Galería</strong> reúne imágenes y <strong>Separador</strong> corta una sección.</p></section>
+                <section><h2>Texto e imágenes</h2><p>El cuerpo admite BBCode de MyBB. Las imágenes pueden ser rutas de <code>/images/op/uploads/</code> o URLs HTTPS. El enlace relacionado acepta un ID de tema o una ruta interna.</p></section>
+                <section><h2>Guardar y publicar</h2><p>Guardar conserva el borrador sin hacerlo público. La vista previa abre los cambios actuales sin guardarlos. Publicar deja esta edición como portada y archiva la publicación anterior.</p></section>
+            </div>
+        </details>
+        {$errores_html}
+        <div class="periodico-validacion" id="periodico-validacion" role="alert" hidden></div>
+        <form method="post" action="periodico_editar.php?id={$edicion['id']}" id="periodico-editor-form">
+            <input type="hidden" name="my_post_key" value="{$post_key}">
+            <input type="hidden" name="edicion_json" id="periodico-edicion-json">
+            <input type="hidden" name="accion" id="periodico-accion" value="guardar">
+            <div id="periodico-editor" class="periodico-editor"></div>
+            <div class="periodico-editor__acciones">
+                <button type="submit" class="btn-op btn-op--secundario" data-accion="guardar">Guardar borrador</button>
+                <button type="submit" class="opg-chip" data-accion="preview" formtarget="_blank">Abrir vista previa</button>
+                <button type="submit" class="btn-op btn-op--primario" data-accion="publicar">Publicar</button>
+                <button type="submit" class="opg-chip chip-peligro" data-accion="archivar">Archivar</button>
+            </div>
+        </form>
+    </div></div></div>
+</div>
+<script>window.OPG_PERIODICO_EDITOR = {$periodico_editor_json};</script>
+<script src="{$mybb->asset_url}/jscripts/periodico_editor.js?v=5"></script>
+{$footer}
+</body>
+</html>

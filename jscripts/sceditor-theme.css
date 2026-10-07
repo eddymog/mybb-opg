@@ -1,0 +1,28 @@
+.sceditor-container {
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-sm);
+  background: var(--opg-crema-clara);
+}
+.sceditor-toolbar {
+  background: var(--opg-crema-clara);
+  border-bottom: 2px solid var(--opg-tinta);
+}
+.sceditor-button {
+  border-radius: var(--opg-radio-sm);
+  transition: transform var(--opg-rapido);
+}
+.sceditor-button:hover {
+  transform: scale(1.1);
+}
+.sceditor-button:focus-visible {
+  outline: none;
+  box-shadow: var(--opg-foco);
+}
+.sceditor-dropdown {
+  border: 2px solid var(--opg-tinta);
+  border-radius: var(--opg-radio-sm);
+  background: var(--opg-crema-clara);
+}
+
+#palabras.pe-cumple { color: var(--opg-verde-exito); font-weight: bold; }
+#palabras.pe-falta   { color: var(--opg-rojo-error); }

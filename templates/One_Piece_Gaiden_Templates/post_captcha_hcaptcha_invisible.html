@@ -20,7 +20,7 @@
 
 	var captchaOnloadCallback = function() {
 
-		captchaTarget = $('input[name="submit"], #quick_reply_submit').filter(function(){
+		captchaTarget = $('input[name="submit"], button[name="submit"], #quick_reply_submit').filter(function(){
 			return $(this).closest('#quick_login').length == 0
 		});
 

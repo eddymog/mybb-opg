@@ -16,12 +16,10 @@ require_once "./../functions/op_functions.php";
 global $templates, $mybb;
 $uid = $mybb->user['uid'];
 
-if (is_narra($uid)) { 
-    eval("\$page = \"".$templates->get("staff_consola_narras")."\";");
-    output_page($page);
+if (is_narra($uid) || is_staff($uid) || is_mod($uid)) {
+    redirect('consola_mod.php');
 } else {
     $mensaje_redireccion = "No tienes acceso para entrar a esta página. ¿Seguro no te perdiste?";
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);
 }
-

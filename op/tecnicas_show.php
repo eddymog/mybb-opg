@@ -13,10 +13,108 @@ define('THIS_SCRIPT', 'tecnicas_show.php');
 require_once "./../global.php";
 require "./../inc/config.php";
 require_once MYBB_ROOT."/inc/plugins/lib/spoiler.php";
+require_once MYBB_ROOT."/inc/plugins/lib/belico_calculos.php";
 global $templates;
 
-$estilo_banner = strtoupper($mybb->get_input('estilo')); 
+$estilo_banner = strtoupper($mybb->get_input('estilo'));
 $estilo = str_replace("_", " ", $estilo_banner);
+
+function tecnicas_contexto_nombre_arma($arma)
+{
+    if (!empty($arma['editado']) && !empty($arma['apodo'])) { return $arma['apodo']; }
+    return $arma['nombre'];
+}
+
+function tecnicas_contexto_resumen_efectos($efectos, $atributos, $golpe, $bloqueo)
+{
+    $resultados = opg_belico_calcular_efectos_contextuales($efectos, $atributos, $golpe, $bloqueo);
+    if (empty($resultados)) { return $efectos; }
+    foreach ($resultados as $resultado) {
+        $es_danio = !isset($resultado['es_danio']) || $resultado['es_danio'];
+        $valor = isset($resultado['valor_texto']) ? $resultado['valor_texto'] : (string) (int) $resultado['valor'];
+        if ($es_danio) {
+            if (!empty($resultado['base'])) {
+                $base = $resultado['base'] === 'bloqueo' ? $bloqueo : $golpe;
+                $nombre_base = $resultado['base'] === 'bloqueo' ? 'Bloqueo básico' : 'Golpe básico';
+                $pasos = array_merge(array($nombre_base . ' (' . $base['configuracion'] . '): ' . $base['valor'] . ' de ' . ($nombre_base === 'Bloqueo básico' ? 'mitigación' : 'daño ' . $base['tipo'])), $resultado['pasos'], array('Total: ' . $valor . ' de daño ' . $resultado['tipo']));
+            } else {
+                $pasos = array_merge($resultado['pasos'], array('Total: ' . $valor . ' de daño ' . $resultado['tipo']));
+            }
+            $etiqueta = $valor . ' de daño ' . $resultado['tipo'];
+        } else {
+            $pasos = array_merge($resultado['pasos'], array('Resultado: ' . $valor . ' de ' . $resultado['tipo']));
+            $etiqueta = $valor . ' de ' . $resultado['tipo'];
+        }
+        $detalle = htmlspecialchars(implode("\n", $pasos), ENT_QUOTES, 'UTF-8');
+        $calculo = '<span class="opg-calculo-en-linea"><button type="button" class="opg-tecnica-calculo" aria-label="Ver desglose de cálculo" data-opg-calculo="' . $detalle . '"><strong>' . htmlspecialchars($etiqueta, ENT_QUOTES, 'UTF-8') . '</strong><span aria-hidden="true">i</span></button></span>';
+        $codigo = '<span class="opg-codigo-formula">' . htmlspecialchars($resultado['codigo'], ENT_QUOTES, 'UTF-8') . '</span>';
+        $efectos = str_replace($resultado['codigo'], $codigo . $calculo, $efectos);
+    }
+    return $efectos;
+}
+
+function tecnicas_contexto_preparar_tecnica($tecnica, $atributos, $golpe, $bloqueo)
+{
+    if ($atributos && $golpe && $bloqueo) {
+        $tecnica['efectos'] = tecnicas_contexto_resumen_efectos($tecnica['efectos'], $atributos, $golpe, $bloqueo);
+        $tecnica['descripcion'] = tecnicas_contexto_resumen_efectos($tecnica['descripcion'], $atributos, $golpe, $bloqueo);
+    }
+    return $tecnica;
+}
+
+$tecnicas_contexto_html = '';
+$tecnicas_contexto_atributos = null;
+$tecnicas_contexto_golpe = null;
+$tecnicas_contexto_bloqueo = null;
+$tecnicas_contexto_uid = (int) $mybb->user['uid'];
+if ($tecnicas_contexto_uid > 0) {
+    $tecnicas_contexto_atributos = opg_belico_cargar_stats_actuales($db, $tecnicas_contexto_uid);
+    $tecnicas_contexto_armas = opg_belico_cargar_armas_usuario($db, $tecnicas_contexto_uid);
+    if ($tecnicas_contexto_atributos) {
+        $configuraciones = array('sin_arma', 'una_mano', 'dos_manos', 'dos_armas', 'tres_armas');
+        $tecnicas_contexto_config = $mybb->get_input('contexto_arma', MyBB::INPUT_STRING);
+        if (!in_array($tecnicas_contexto_config, $configuraciones, true)) { $tecnicas_contexto_config = 'sin_arma'; }
+        $arma_uno_id = $mybb->get_input('arma_uno', MyBB::INPUT_STRING);
+        $arma_dos_id = $mybb->get_input('arma_dos', MyBB::INPUT_STRING);
+        $arma_tres_id = $mybb->get_input('arma_tres', MyBB::INPUT_STRING);
+        $armas_elegidas = array();
+        $cantidad_requerida = $tecnicas_contexto_config === 'tres_armas' ? 3 : ($tecnicas_contexto_config === 'dos_armas' ? 2 : ($tecnicas_contexto_config === 'sin_arma' ? 0 : 1));
+        $ids_elegidos = array($arma_uno_id, $arma_dos_id, $arma_tres_id);
+        $conteo_ids = array();
+        for ($indice = 0; $indice < $cantidad_requerida; $indice++) {
+            $arma_id = $ids_elegidos[$indice];
+            if (!isset($tecnicas_contexto_armas[$arma_id])) { continue; }
+            $conteo_ids[$arma_id] = isset($conteo_ids[$arma_id]) ? $conteo_ids[$arma_id] + 1 : 1;
+            if ($conteo_ids[$arma_id] <= (int) $tecnicas_contexto_armas[$arma_id]['cantidad']) {
+                $armas_elegidas[] = $tecnicas_contexto_armas[$arma_id];
+            }
+        }
+        if ($tecnicas_contexto_config !== 'sin_arma' && empty($armas_elegidas)) { $tecnicas_contexto_config = 'sin_arma'; }
+        $tecnicas_contexto_golpe = opg_belico_calcular_golpe_basico($armas_elegidas, $tecnicas_contexto_atributos, $tecnicas_contexto_config);
+        $tecnicas_contexto_bloqueo = opg_belico_calcular_bloqueo_basico($armas_elegidas, $tecnicas_contexto_atributos, $tecnicas_contexto_config);
+
+        $opciones_uno = '<option value="">Selecciona un arma</option>';
+        $opciones_dos = '<option value="">Selecciona una segunda arma</option>';
+        $opciones_tres = '<option value="">Selecciona una tercera arma</option>';
+        foreach ($tecnicas_contexto_armas as $arma_id => $arma) {
+            $nombre = htmlspecialchars(tecnicas_contexto_nombre_arma($arma), ENT_QUOTES, 'UTF-8');
+            $id = htmlspecialchars($arma_id, ENT_QUOTES, 'UTF-8');
+            $opciones_uno .= '<option value="' . $id . '"' . ($arma_uno_id === $arma_id ? ' selected' : '') . '>' . $nombre . '</option>';
+            $opciones_dos .= '<option value="' . $id . '"' . ($arma_dos_id === $arma_id ? ' selected' : '') . '>' . $nombre . '</option>';
+            $opciones_tres .= '<option value="' . $id . '"' . ($arma_tres_id === $arma_id ? ' selected' : '') . '>' . $nombre . '</option>';
+        }
+        $detalle_golpe = htmlspecialchars(implode("\n", array_merge($tecnicas_contexto_golpe['pasos'], array('Total: ' . $tecnicas_contexto_golpe['valor'] . ' de daño ' . $tecnicas_contexto_golpe['tipo']))), ENT_QUOTES, 'UTF-8');
+        $detalle_bloqueo = htmlspecialchars(implode("\n", array_merge($tecnicas_contexto_bloqueo['pasos'], array('Total: ' . $tecnicas_contexto_bloqueo['valor'] . ' de mitigación'))), ENT_QUOTES, 'UTF-8');
+        $tecnicas_contexto_html = '<style>.opg-tecnicas-contexto{margin:0 0 20px;padding:16px;border:3px solid #111;border-radius:10px;background:#ffedd2;box-shadow:5px 5px 0 #111;font-family:Inter,Arial,sans-serif}.opg-tecnicas-contexto h2{margin:0 0 6px;color:#3b1300;font:22px/1.1 InterMedium,Arial,sans-serif}.opg-tecnicas-contexto p{margin:0;color:#5c5148}.opg-tecnicas-contexto-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:14px}.opg-tecnicas-contexto label{display:flex;flex:1 1 180px;flex-direction:column;gap:5px;color:#6c10ab;font-size:12px;font-weight:800;text-transform:uppercase}.opg-tecnicas-contexto-form label[hidden]{display:none!important}.opg-tecnicas-contexto select{min-height:40px;padding:7px;border:2px solid #111;border-radius:6px;background:#fff3e0;color:#3b1300;font:15px Inter,Arial,sans-serif}.opg-tecnicas-contexto button{min-height:40px;padding:8px 16px;border:2px solid #111;border-radius:6px;background:#ff8900;color:#111;font:800 14px Inter,Arial,sans-serif;cursor:pointer}.opg-tecnicas-resumen{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;padding-top:12px;border-top:2px solid #111}.opg-tecnicas-resumen strong{color:#6c10ab}.opg-tecnicas-golpe-detalle{position:relative;cursor:help;text-decoration:underline dotted #6c10ab;text-underline-offset:3px}.opg-tecnicas-golpe-detalle:focus-visible{outline:3px solid #ff8900;outline-offset:3px}.opg-tecnicas-golpe-detalle::after{content:attr(data-opg-calculo);position:absolute;z-index:30;left:0;bottom:calc(100% + 8px);width:max-content;max-width:290px;white-space:pre-line;padding:10px;border:2px solid #111;border-radius:6px;background:#fff3e0;box-shadow:4px 4px 0 #111;color:#3b1300;font:12px/1.45 Inter,Arial,sans-serif;opacity:0;pointer-events:none;transform:translateY(3px);transition:opacity .15s,transform .15s}.opg-tecnicas-golpe-detalle:hover::after,.opg-tecnicas-golpe-detalle:focus::after{opacity:1;transform:translateY(0)}.opg-tecnica-calculos{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}.opg-tecnica-calculo{position:relative;border:2px solid #111;border-radius:6px;background:#ffedd2;color:#3b1300;padding:7px 10px;text-align:left;cursor:help}.opg-tecnica-calculo strong,.opg-tecnica-calculo span{display:block}.opg-tecnica-calculo span{margin-top:2px;color:#6c10ab;font-size:11px}.opg-tecnica-calculo:focus-visible{outline:3px solid #ff8900;outline-offset:2px}.opg-tecnica-calculo::after{content:attr(data-opg-calculo);position:absolute;z-index:30;left:0;bottom:calc(100% + 8px);width:max-content;max-width:290px;white-space:pre-line;padding:10px;border:2px solid #111;border-radius:6px;background:#fff3e0;box-shadow:4px 4px 0 #111;color:#3b1300;font:12px/1.45 Inter,Arial,sans-serif;opacity:0;pointer-events:none;transform:translateY(3px);transition:opacity .15s,transform .15s}.opg-tecnica-calculo:hover::after,.opg-tecnica-calculo:focus::after{opacity:1;transform:translateY(0)}@media(max-width:700px){.opg-tecnicas-contexto{padding:12px}.opg-tecnicas-contexto-form label{flex-basis:100%}}</style>';
+        $tecnicas_contexto_html .= '<style>.opg-tecnica-calculos{margin:0 0 9px}.opg-tecnica-calculo{display:inline-flex;align-items:center;gap:6px;min-height:0;padding:5px 8px;border:1px solid #ffedd2;border-radius:5px;background:rgba(0,0,0,.14);color:#fff;font:600 14px/1.2 Inter,Arial,sans-serif}.opg-tecnica-calculo strong{display:inline;color:inherit}.opg-tecnica-calculo span{display:grid;place-items:center;width:15px;height:15px;margin:0;border:1px solid currentColor;border-radius:50%;color:#ffedd2;font:700 10px/1 Arial,sans-serif}.opg-tecnica-calculo:hover,.opg-tecnica-calculo:focus{background:#ffedd2;color:#3b1300}.opg-tecnica-calculo::after{color:#3b1300}</style>';
+        $tecnicas_contexto_html .= '<style>.opg-tecnicas-contexto .opg-tecnica-calculo{min-height:0;padding:5px 8px;border:1px solid #ffedd2;background:rgba(0,0,0,.14);color:#fff;font:600 14px/1.2 Inter,Arial,sans-serif}.opg-tecnicas-contexto .opg-tecnica-calculo:hover,.opg-tecnicas-contexto .opg-tecnica-calculo:focus{background:#ffedd2;color:#3b1300}</style>';
+        $tecnicas_contexto_html .= '<style>.opg-tecnicas-vista{display:inline-flex;gap:4px;margin-top:12px;padding:3px;border:2px solid #111;border-radius:7px;background:#fff3e0}.opg-tecnicas-contexto .opg-tecnicas-vista button{min-height:0;padding:6px 10px;border:0;border-radius:4px;background:transparent;color:#6c10ab;font:800 12px/1 Inter,Arial,sans-serif}.opg-tecnicas-contexto .opg-tecnicas-vista button[aria-pressed="true"]{background:#9664e0;color:#fff}.opg-calculo-en-linea{display:inline}.opg-modo-codigos .opg-calculo-en-linea{display:none}.opg-modo-calculos .opg-codigo-formula{display:none}</style>';
+        $tecnicas_contexto_html .= '<section class="opg-tecnicas-contexto" aria-label="Contexto de cálculo bélico"><h2>Calcula con tu personaje</h2><p>Nivel ' . (int) $tecnicas_contexto_atributos['NIV'] . ' · FUE ' . (int) $tecnicas_contexto_atributos['FUE'] . '. Elige cómo empuñas las armas de tu inventario.</p>';
+        $tecnicas_contexto_html .= '<form class="opg-tecnicas-contexto-form" method="get" action="tecnicas_show.php"><input type="hidden" name="estilo" value="' . htmlspecialchars($estilo_banner, ENT_QUOTES, 'UTF-8') . '"><label>Configuración<select id="opg-contexto-configuracion" name="contexto_arma"><option value="sin_arma"' . ($tecnicas_contexto_config === 'sin_arma' ? ' selected' : '') . '>Sin arma</option><option value="una_mano"' . ($tecnicas_contexto_config === 'una_mano' ? ' selected' : '') . '>Una arma</option><option value="dos_manos"' . ($tecnicas_contexto_config === 'dos_manos' ? ' selected' : '') . '>Una arma con ambas manos</option><option value="dos_armas"' . ($tecnicas_contexto_config === 'dos_armas' ? ' selected' : '') . '>Dos armas</option><option value="tres_armas"' . ($tecnicas_contexto_config === 'tres_armas' ? ' selected' : '') . '>Tres armas</option></select></label><label data-opg-arma-campo="1"' . ($cantidad_requerida < 1 ? ' hidden' : '') . '>Arma 1<select name="arma_uno">' . $opciones_uno . '</select></label><label data-opg-arma-campo="2"' . ($cantidad_requerida < 2 ? ' hidden' : '') . '>Arma 2<select name="arma_dos">' . $opciones_dos . '</select></label><label data-opg-arma-campo="3"' . ($cantidad_requerida < 3 ? ' hidden' : '') . '>Arma 3<select name="arma_tres">' . $opciones_tres . '</select></label><button type="submit">Actualizar cálculo</button></form><script>(function(){var selector=document.getElementById("opg-contexto-configuracion");if(!selector){return;}var actualizar=function(){var cantidad=selector.value==="tres_armas"?3:(selector.value==="dos_armas"?2:(selector.value==="sin_arma"?0:1));document.querySelectorAll("[data-opg-arma-campo]").forEach(function(campo){campo.hidden=Number(campo.dataset.opgArmaCampo)>cantidad;});};selector.addEventListener("change",actualizar);actualizar();}());</script>';
+        $tecnicas_contexto_html .= '<div class="opg-tecnicas-vista" role="group" aria-label="Vista de fórmulas"><button type="button" data-opg-vista="codigos" aria-pressed="true">Códigos</button><button type="button" data-opg-vista="calculos" aria-pressed="false">Cálculos</button></div><script>(function(){var botones=document.querySelectorAll("[data-opg-vista]");var activar=function(vista){document.body.classList.remove("opg-modo-codigos","opg-modo-calculos");document.body.classList.add("opg-modo-"+vista);botones.forEach(function(boton){boton.setAttribute("aria-pressed",boton.dataset.opgVista===vista?"true":"false");});};botones.forEach(function(boton){boton.addEventListener("click",function(){activar(boton.dataset.opgVista);});});activar("codigos");}());</script>';
+        $tecnicas_contexto_html .= '<div class="opg-tecnicas-resumen"><span><strong>Golpe básico:</strong> <span class="opg-tecnicas-golpe-detalle" tabindex="0" data-opg-calculo="' . $detalle_golpe . '">' . (int) $tecnicas_contexto_golpe['valor'] . ' de daño ' . htmlspecialchars($tecnicas_contexto_golpe['tipo'], ENT_QUOTES, 'UTF-8') . '</span></span><span><strong>Bloqueo básico:</strong> <span class="opg-tecnicas-golpe-detalle" tabindex="0" data-opg-calculo="' . $detalle_bloqueo . '">' . (int) $tecnicas_contexto_bloqueo['valor'] . ' de mitigación</span></span><span><strong>Configuración:</strong> ' . htmlspecialchars($tecnicas_contexto_golpe['configuracion'], ENT_QUOTES, 'UTF-8') . '</span></div></section>';
+    }
+}
 
 // $query_clan = $db->query("
 // SELECT * FROM mybb_op_clanes WHERE nombreClan='$estilo'
@@ -362,6 +460,7 @@ if ($estilo != '' && $estilo != 'HAKI') {
         $tecnica['descripcion'] = nl2br($tecnica['descripcion']);
         $tecnica['tid'] = strtoupper($tecnica['tid']);
         $tecnica['clase'] = strtoupper($tecnica['clase']);
+        $tecnica = tecnicas_contexto_preparar_tecnica($tecnica, $tecnicas_contexto_atributos, $tecnicas_contexto_golpe, $tecnicas_contexto_bloqueo);
         $tecnicas_content .= create_technique_card($tecnica, $is_staff);
     }
     $tecnicas_templ = create_custom_spoiler($estilo, $tecnicas_content, get_technique_container_style());
@@ -378,6 +477,7 @@ if ($estilo2 != '') {
         $tecnica['descripcion'] = nl2br($tecnica['descripcion']);
         $tecnica['tid'] = strtoupper($tecnica['tid']);
         $tecnica['clase'] = strtoupper($tecnica['clase']);
+        $tecnica = tecnicas_contexto_preparar_tecnica($tecnica, $tecnicas_contexto_atributos, $tecnicas_contexto_golpe, $tecnicas_contexto_bloqueo);
         $tecnicas_content2 .= create_technique_card($tecnica, $is_staff);
     }
     $tecnicas_templ2 = create_custom_spoiler($estilo2, $tecnicas_content2, get_technique_container_style());
@@ -394,6 +494,7 @@ if ($estilo3 != '') {
         $tecnica['descripcion'] = nl2br($tecnica['descripcion']);
         $tecnica['tid'] = strtoupper($tecnica['tid']);
         $tecnica['clase'] = strtoupper($tecnica['clase']);
+        $tecnica = tecnicas_contexto_preparar_tecnica($tecnica, $tecnicas_contexto_atributos, $tecnicas_contexto_golpe, $tecnicas_contexto_bloqueo);
         $tecnicas_content3 .= create_technique_card($tecnica, $is_staff);
     }
     $tecnicas_templ3 = create_custom_spoiler($estilo3, $tecnicas_content3, get_technique_container_style());
@@ -410,6 +511,7 @@ if ($estilo4 != '') {
         $tecnica['descripcion'] = nl2br($tecnica['descripcion']);
         $tecnica['tid'] = strtoupper($tecnica['tid']);
         $tecnica['clase'] = strtoupper($tecnica['clase']);
+        $tecnica = tecnicas_contexto_preparar_tecnica($tecnica, $tecnicas_contexto_atributos, $tecnicas_contexto_golpe, $tecnicas_contexto_bloqueo);
         $tecnicas_content4 .= create_technique_card($tecnica, $is_staff);
     }
     $tecnicas_templ4 = create_custom_spoiler($estilo4, $tecnicas_content4, get_technique_container_style());
@@ -418,5 +520,3 @@ if ($estilo4 != '') {
 
 eval("\$page = \"".$templates->get("op_tecnicas_show")."\";");
 output_page($page);
-
-

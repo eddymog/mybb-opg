@@ -371,10 +371,18 @@ function newpoints_add_setting($name, $plugin, $title, $description, $type, $val
  *
 */
 // ─── Evento temporal: XP x1.5 y límite semanal de newpoints a 200 ────────────
-// Del 04/09/2026 al 04/10/2026 (un mes). Pasado ese periodo vuelve solo al
+// Del 04/09/2026 al 12/10/2026 07:00 (hora de España) — extendido una semana
+// desde el corte original del 04/10/2026. Pasado ese periodo vuelve solo al
 // límite normal de 100 y multiplicador x1, no requiere revertir nada a mano.
+// FIN lleva "Europe/Madrid" explícito en el string: strtotime() sin huso
+// horario toma el huso por defecto del servidor, que MyBB fuerza a GMT si
+// `date.timezone` no está seteado en el php.ini (inc/init.php:42-44) — con
+// el huso explícito, 07:00 de España se resuelve bien sea cual sea esa
+// configuración del servidor (confirmado: da 05:00 UTC, el offset real de
+// CEST en octubre — el cambio a horario de invierno en España es recién el
+// 25/10/2026).
 define('NEWPOINTS_EVENTO_XP_INICIO', strtotime('2026-09-04 00:00:00'));
-define('NEWPOINTS_EVENTO_XP_FIN',    strtotime('2026-10-04 00:00:00'));
+define('NEWPOINTS_EVENTO_XP_FIN',    strtotime('2026-10-12 07:00:00 Europe/Madrid'));
 
 function newpoints_addpoints($uid, $points, $forumrate = 1, $grouprate = 1, $isstring = false, $immediate = false)
 {

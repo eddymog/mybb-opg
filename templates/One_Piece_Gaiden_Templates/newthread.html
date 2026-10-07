@@ -2,69 +2,105 @@
 <head>
 <title>{$lang->newthread_in}</title>
 {$headerinclude}
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor-theme.css?ver=2" />
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=35" />
 {$post_javascript}
 <script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
 <script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=20"></script>
 </head>
 <body>
 {$header}
+<div class="indice newpost-pagina">
+<main class="mainBackground">
+
 {$preview}
 {$thread_errors}
 {$attacherror}
 {$moderation_notice}
+
+<header class="newpost-encabezado newpost-encabezado--simple">
+<h1 class="newpost-encabezado-titulo">{$lang->post_new_thread}</h1>
+<a name="switch" id="switch"></a>
+</header>
+
 <form action="newthread.php?fid={$fid}&amp;processed=1" method="post" enctype="multipart/form-data" name="input">
 <input type="hidden" name="my_post_key" value="{$mybb->post_code}" />
-<table border="0" cellspacing="{$theme['borderwidth']}" cellpadding="{$theme['tablespace']}" class="tborder">
-<tr>
-<td class="thead" colspan="2"><strong>{$lang->post_new_thread}</strong><a name="switch" id="switch"></a></td>
-</tr>
-<!-- {loginbox} -->
-<tr>
-<!-- <td class="trow2" width="20%"><strong>{$lang->thread_subject}</strong></td> -->
-<td class="trow2"><strong>Prefijo:</strong><strong style=" margin-left: 114px; ">Título:</strong><br> {$prefixselect}<input type="text" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" /> 
-<div style=" display: inline; float: right; margin-top: 8px; ">
-	<div style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; font-size: 11px; color: #666;">
-		<strong>Mínimo de palabras</strong> - Post: 300 | Autonarradas: 800 | Frutas: Normativa
-	</div>
-	<strong>Palabras</strong>: <span id="palabras">0</span>
-</div></td>
-</tr>
-<!-- {posticons} -->
+
+<div class="af-row af-row--titulo">
+<if $prefixselect then><div class="af-field af-field--tipo"><label for="threadprefix">Tipo de tema</label>{$prefixselect}</div></if>
+<div class="af-field af-field--titulo"><label for="subject">Título</label><input type="text" id="subject" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" /></div>
+</div>
+
 <if $is_mundo_rol then>
-<tr>
-    <td class="trow2" colspan="2">
-        <strong>Fecha del tema<strong>*</strong>:</strong><br>
-        <strong>Estación:</strong><strong style=" margin-left: 72px; ">Día (1-90):</strong><strong style=" margin-left: 27px; ">Año:</strong><br>
-        <select name="estacion_input" id="estacion_input" required>
-            <option value="Verano">Verano</option>
-            <option value="Otoño">Otoño</option>
-            <option value="Invierno">Invierno</option>
-            <option value="Primavera">Primavera</option>
-        </select>
-        <input type="number" class="textbox" name="day_input" min="1" max="90" value="1" style="margin-right: 10px;width: 80px;margin-left: 11px;" required />
-        <input type="number" class="textbox" name="year_input" min="700" max="725" value="725" style=" width: 80px;" required />
-    </td>
-</tr>
+<div class="af-row">
+<div class="af-field">
+<label for="estacion_input">Estación</label>
+<select name="estacion_input" id="estacion_input" required>
+    <option value="Verano">Verano</option>
+    <option value="Otoño">Otoño</option>
+    <option value="Invierno">Invierno</option>
+    <option value="Primavera">Primavera</option>
+</select>
+</div>
+<div class="af-field"><label for="day_input">Día (1-90)</label><input type="number" id="day_input" class="textbox" name="day_input" min="1" max="90" value="1" required /></div>
+<div class="af-field"><label for="year_input">Año</label><input type="number" id="year_input" class="textbox" name="year_input" min="700" max="725" value="725" required /></div>
+</div>
 </if>
-<tr>
-<!-- <td class="trow2" valign="top"><strong>{$lang->your_message}</strong><br /><br /><strong>Palabras</strong>: <span id="palabras">0</span></td> -->
-<td class="trow2" colspan="2"><strong>Mensaje:</strong><br>
+
+<div class="newpost-editor-cabecera">
+<label for="message" class="newpost-editor-titulo">Mensaje</label>
+<span class="newpost-recuento"><strong id="palabras">0</strong> palabras</span>
+</div>
+
+<div class="newpost-editor">
 <textarea name="message" id="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
 {$codebuttons}
-{$multiquote_external}
-</td>
-</tr>
- {$postoptions}
-<!-- {modoptions}
-{subscriptionmethod}
-{pollbox} -->
-{$captcha}
-</table>
-<!-- {attachbox} -->
-<br />
-<div style="text-align:center"><input type="submit" class="button" name="submit" value="{$lang->post_thread}" tabindex="4" accesskey="s" />  <input type="submit" class="button" name="previewpost" value="{$lang->preview_post}" tabindex="5" />{$savedraftbutton}
-<button id="recuperar-post" class="button">Recuperar post</button>	
+<script src="{$mybb->settings['bburl']}/jscripts/post_editor.js?ver=10"></script>
 </div>
+
+<div class="newpost-editor-pie">{$multiquote_external}</div>
+
+<div class="newpost-bbcodes" role="group" aria-label="Códigos de rol">
+<button type="button" class="opg-chip" data-bbcode="spoiler"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i> Spoiler</button>
+<button type="button" class="opg-chip" data-bbcode="dado"><i class="fa-solid fa-dice" aria-hidden="true"></i> Dado</button>
+<button type="button" class="opg-chip" data-bbcode="tecnica"><i class="fa-solid fa-bolt" aria-hidden="true"></i> Técnica</button>
+<button type="button" class="opg-chip" data-bbcode="ficha"><i class="fa-solid fa-id-card" aria-hidden="true"></i> Ficha</button>
+<button type="button" class="opg-chip" data-bbcode="hide"><i class="fa-solid fa-lock" aria-hidden="true"></i> Hide</button>
+<button type="button" class="opg-chip" data-bbcode="recursos"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Recursos</button>
+<button type="button" class="opg-chip" data-bbcode="objeto"><i class="fa-solid fa-cube" aria-hidden="true"></i> Objeto</button>
+<button type="button" class="opg-chip" data-bbcode="consumir"><i class="fa-solid fa-box-open" aria-hidden="true"></i> Consumir</button>
+<a class="newpost-guia-codigos" href="/showthread.php?tid=3753" target="_blank" rel="noopener noreferrer" title="Abrir en otra pestaña">Guía de códigos <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+</div>
+
+<div class="newpost-bbcode-panel" id="pe-bbcode-overlay" hidden>
+<div class="newpost-bbcode-campos">
+<h3 id="pe-bbcode-titulo"></h3>
+<button type="button" class="newpost-bbcode-cerrar" id="pe-bbcode-cerrar" aria-label="Cerrar">&times;</button>
+<div class="af-field pe-campo-dado"><label for="pe-dado-cantidad">Dados (1-20)</label><input type="number" id="pe-dado-cantidad" min="1" max="20" value="1" /></div>
+<div class="af-field pe-campo-dado"><label for="pe-dado-caras">Caras (1-100000)</label><input type="number" id="pe-dado-caras" min="1" max="100000" value="6" /></div>
+<div class="af-field pe-campo-tecnica"><label for="pe-tecnica-tid">ID de la técnica</label><input type="text" id="pe-tecnica-tid" /></div>
+<div class="af-field pe-campo-spoiler"><label for="pe-spoiler-titulo">Título del spoiler (opcional)</label><input type="text" id="pe-spoiler-titulo" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-vida">Vida actual</label><input type="number" id="pe-recursos-vida" min="0" step="1" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-energia">Energía actual</label><input type="number" id="pe-recursos-energia" min="0" step="1" /></div>
+<div class="af-field pe-campo-recursos"><label for="pe-recursos-haki">Haki actual</label><input type="number" id="pe-recursos-haki" min="0" step="1" /></div>
+<div class="af-field pe-campo-objeto"><label for="pe-objeto-id">ID del objeto</label><input type="text" id="pe-objeto-id" /></div>
+<p class="pe-aviso-consumir">Al publicar, se consumirá una unidad del objeto.</p>
+<div class="newpost-bbcode-acciones"><button type="button" class="btn-op btn-op--primario btn-op--sm" id="pe-bbcode-insertar">Insertar</button></div>
+</div>
+</div>
+
+<table class="newpost-opciones-tabla"><tbody>
+{$postoptions}
+{$captcha}
+</tbody></table>
+
+<div class="newpost-acciones">
+<button type="submit" class="btn-op btn-op--primario" name="submit" value="{$lang->post_thread}" tabindex="4" accesskey="s">{$lang->post_thread}</button>
+<input type="submit" class="opg-chip" name="previewpost" value="{$lang->preview_post}" tabindex="5" />
+<if $mybb->user['uid'] then><input type="submit" class="opg-chip" name="savedraft" value="Guardar" title="Guardar como borrador" /></if>
+<button type="button" id="recuperar-post" class="opg-chip" title="Recuperar el último texto guardado">Recuperar</button>
+</div>
+
 <input type="hidden" name="action" value="do_newthread" />
 <input type="hidden" name="posthash" value="{$posthash}" />
 <input type="hidden" name="attachmentaid" value="" />
@@ -73,13 +109,13 @@
 <input type="hidden" name="tid" value="{$tid}" />
 {$editdraftpid}
 </form>
+
 {$forumrules}
-<br />
-<br />
-<br />
-<br />
-<br />
+
+</main>
+</div>
 {$footer}
+
 <script>
 // Función para generar un número aleatorio entre min y max (inclusivo)
 function getRandomInt(min, max) {
@@ -190,42 +226,6 @@ function tirarEncuentro(mar, conKairouseki = false) {
     };
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-    
-$('#recuperar-post').on('click', function(event) {
-    event.preventDefault();
-    if ($('.sceditor-button-source').hasClass('active')) {
-        alert('Sólo puedes recuperar lo último escrito en el post si el botón de "Ver código de Fuente (<>)" no está apretado/activo.');
-    } else {
-        if ($($('.sceditor-container')[0].children[1].contentDocument.body).html() == localStorage.getItem('user-post')) {
-            alert('El último texto guardado es idéntico al que está actual en la página. No hay nada que recuperar.');
-        } else {
-            $($('.sceditor-container')[0].children[1].contentDocument.body).html(localStorage.getItem('user-post'));
-        }
-    }
-});
-    
-async function contarPalabras() {
-    await sleep(100);
-    console.log('Contar palabras automáticamente.');
-    $($('.sceditor-container')[0].children[1].contentDocument.body).on('focus', function() {
-      before = $(this).html();
-    }).on('keyup', function() { 
-      if (before != $(this).html()) { $(this).trigger('change'); }
-    });
-
-    $($('.sceditor-container')[0].children[1].contentDocument.body).on('change', function() {
-        const palabras = $('.sceditor-container')[0].children[1].contentDocument.body.innerText.split('\n').filter(i => i != '').join(' ').split(' ').length;
-        // console.log(palabras);
-        $('#palabras')[0].innerText = palabras;
-        if (parseInt(palabras) >= 10) {
-            localStorage.setItem('user-post', $($('.sceditor-container')[0].children[1].contentDocument.body).html());
-        }
-    });
-}
-contarPalabras();
 </script>
     <script type="text/javascript">
     let pestana = null;
