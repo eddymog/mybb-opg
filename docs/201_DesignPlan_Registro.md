@@ -1,5 +1,418 @@
 # Registro de aventuras (Tablón de aventuras): plan de diseño
 
+## Diseño compacto de Narradores & Narrados (2026-10-08)
+
+Estado: **implementado y verificado localmente; pendiente de despliegue**.
+
+La revisión es de presentación y consulta agregada; no requiere una tabla nueva ni
+modifica el modelo de propuestas u ofertas.
+
+- El controlador calcula `propuestas_pendientes_usuario` por destinatario y estado.
+  Ese total alimenta la insignia de la pestaña y reemplaza el conteo anterior de
+  aventuras sin narrador. Con cero, la vista omite tanto insignia como sección.
+- Los conteos de ofertas vigentes y solicitudes en estado 4 se conservan por
+  separado y se inyectan en las cabeceras de sus secciones.
+- `opg_av_v_mi_oferta` genera una franja de gestión; el listado ajeno continúa
+  excluyendo al usuario conectado y se renderiza en una cuadrícula adaptable.
+- La fila de aventura sin narrador recibe una variante propia y horizontal. No se
+  reutiliza la tarjeta expandida de Mis aventuras. El nombre de respaldo pasa de
+  `Sin tema vinculado` a `Solicitud #ID`.
+- Los datos incompletos continúan disponibles para la gestión, pero el mercado no
+  los muestra ni los usa para bloquear candidaturas.
+- La respuesta HTMX mantiene los mismos IDs estables y eventos `ofertaCambiada` y
+  `aventuraCambiada`, por lo que los conteos y bloques se actualizan sin recargar.
+- No se incorporan parámetros de búsqueda o filtros en esta iteración.
+
+La prueba visual debe cubrir 375, 700, 1030 y 1440 px, cero y varias propuestas,
+una oferta propia larga, 1/3/20 narradores y aventuras con datos completos e
+incompletos.
+
+## Diseño de crónicas autonarradas (2026-10-08)
+
+Estado: **implementado en código; pendiente de aplicar la migración en producción**.
+
+Migraciones: `docs/aventuras_autonarradas_migration.sql` y, después,
+`docs/aventuras_autonarradas_entrega_migration.sql`. No realizan backfill
+automático: el informe comentado debe revisarse con staff antes de clasificar
+registros históricos.
+
+### Modelo persistente
+
+La solicitud conserva los estados comunes, pero deja de inferir su clase por
+narrador, jugadores o tier:
+
+```sql
+ALTER TABLE mybb_op_peticionAventuras
+  ADD COLUMN tipo ENUM('normal','autonarrada') NOT NULL DEFAULT 'normal',
+  ADD INDEX idx_tipo_estado (tipo, estado);
+```
+
+Los datos exclusivos viven en una relación uno a uno:
+
+```sql
+CREATE TABLE mybb_op_aventuras_autonarradas (
+  peticion_id INT UNSIGNED NOT NULL,
+  fid INT UNSIGNED NOT NULL,
+  semana_inicio INT UNSIGNED NOT NULL,
+  nivel_solicitud SMALLINT UNSIGNED NOT NULL,
+  tid INT UNSIGNED NULL,
+  publicada_at INT UNSIGNED NULL,
+  nivel_publicacion SMALLINT UNSIGNED NULL,
+  palabras INT UNSIGNED NULL,
+  reputacion ENUM('positiva','negativa') NULL,
+  entregada_at INT UNSIGNED NULL,
+  estado_pago ENUM('pendiente','aplicando','aplicado','dudoso')
+    NOT NULL DEFAULT 'pendiente',
+  xp_aplicada TINYINT(1) NOT NULL DEFAULT 0,
+  nikas_aplicadas TINYINT(1) NOT NULL DEFAULT 0,
+  reputacion_aplicada TINYINT(1) NOT NULL DEFAULT 0,
+  berries_aplicados TINYINT(1) NOT NULL DEFAULT 0,
+  pagada_por INT UNSIGNED NULL,
+  pagada_at INT UNSIGNED NULL,
+  PRIMARY KEY (peticion_id),
+  UNIQUE KEY uq_auto_fid_semana (fid, semana_inicio),
+  UNIQUE KEY uq_auto_tid (tid),
+  KEY idx_auto_pago (estado_pago, publicada_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+`semana_inicio` es el timestamp UTC del lunes a las 06:00 calculado mediante
+`DateTimeZone('Europe/Madrid')`. Se obtiene de `created_at` y nunca se recalcula
+por aprobación, publicación o pago.
+
+Los cuatro indicadores de aplicación permiten recuperar un pago interrumpido sin
+repetir componentes sobre tablas que no garanticen un rollback transaccional.
+
+### Migración de datos anteriores
+
+1. Generar primero un informe de candidatas con la heurística antigua: un
+   participante, ese participante igual a `narrador_fid` y tier 1 a 3.
+2. Revisar la lista con staff para evitar falsos positivos.
+3. Marcar solo las confirmadas con `tipo='autonarrada'` y crear su fila relacionada.
+4. No inventar semana, nivel o pago si la fuente histórica no permite conocerlos;
+   admitir valores migrados documentados o una marca de legado durante el backfill.
+5. Sustituir la heurística en `aventuras_personaje.php` y su versión de staff por
+   `tipo='autonarrada'`.
+
+### Dominio
+
+- `opg_av_semana_madrid($timestamp)` devuelve el inicio de semana vigente. Debe
+  cubrir horario estándar, horario de verano y exactamente lunes 05:59/06:00.
+- `opg_av_autonarrada_disponibilidad($fid)` devuelve nivel, semana, solicitud de
+  esa semana y solicitud aún no publicada.
+- Crear bloquea con `SELECT ... FOR UPDATE` la ficha y la fila semanal antes de
+  insertar, de modo que dos solicitudes simultáneas no ganen el mismo cupo.
+- La validación fuerza un participante, narrador igual a `fid`, estado inicial 0,
+  `tipo=autonarrada`, sin tier funcional, sin inframundo y sin propuesta.
+- Por compatibilidad con columnas antiguas no nulas, el almacenamiento puede usar
+  un valor técnico neutral en `tier_seleccionado`; ninguna regla, vista o pago lo
+  interpreta como tier de autonarrada.
+
+### Publicación
+
+- El buscador de aventuras de `newthread.php` incluye autonarradas aprobadas,
+  sin `tid`, propiedad del usuario y con nivel actual menor o igual a 15.
+- La acción de vínculo repite esas condiciones en servidor y valida foro, autor
+  y tema no usado. Ocultar la opción no constituye seguridad.
+- Al vincular se toma `dateline` del primer post, nivel actual y conteo preliminar
+  de palabras. El cupo continúa anclado a `semana_inicio`.
+- La validación final exige un único post visible, autor igual a `fid`, al menos
+  800 palabras Unicode tras retirar BBCode/HTML y nivel de publicación hasta 15.
+- Subir a nivel 16 después de publicar no invalida una autonarrada ya publicada.
+
+### Consultas y límites
+
+- Los conteos normales excluyen `tipo='autonarrada'` de solitarias, grupales,
+  jugador y narrador cuando esos valores representan cupos convencionales.
+- Mis aventuras obtiene las autonarradas con una consulta propia y las muestra en
+  su bloque separado.
+- Estadísticas globales pueden incluir un contador Autonarradas únicamente cuando
+  esté rotulado como tipo, nunca mezclado con `Como narrador`.
+- Otras aventuras, modo vista y páginas históricas usan el tipo persistido.
+
+### Consola y pago
+
+- Solicitudes reutiliza aprobación, denegación, notas e historial, adaptando la
+  tarjeta al tipo.
+- El autor entrega la autonarrada desde Mis aventuras y elige reputación positiva
+  o negativa. La fecha queda en `entregada_at`; vincular el tema no equivale a
+  entregarlo.
+- Entregas combina dos fuentes: entregas convencionales y autonarradas que ya
+  tienen `entregada_at`. Un filtro `tipo` conserva la URL y la paginación.
+- El análisis autonarrado es determinista: 30 XP, 2 Nikas, 5 reputación y 300.000
+  Berries, sin bonus ni multiplicadores. La orientación de reputación la declara
+  el autor y Staff la ve como dato de solo lectura.
+- El pago bloquea la fila autonarrada, reclama `estado_pago`, aplica cada componente
+  pendiente y marca su indicador. Al completar, audita, finaliza la solicitud y
+  cierra el tema.
+- Si se interrumpe, `estado_pago='dudoso'` muestra `Completar recompensa`; la
+  reanudación omite los indicadores ya aplicados.
+- `entregar_recompensas.php` no procesa POST. Sus GET redirigen a la consola y
+  traducen `fid`/`tid` a filtros cuando sea posible.
+
+### Seguridad y pruebas críticas
+
+- Nivel, autor, posts, palabras, semana y estado se calculan en servidor.
+- Restricciones únicas y bloqueo evitan dobles solicitudes y dobles pagos.
+- Probar lunes 05:59 y 06:00 en invierno y verano, dos solicitudes concurrentes,
+  nivel 15/16, 799/800 palabras, tema ajeno, dos posts, `tid` repetido, doble pago
+  y fallo después de cada componente de recompensa.
+
+## Consulta de activas por personaje (2026-10-08)
+
+- Reutilizar `opg_av_activas_listar()` para conservar una única definición de
+  aventura activa y de los papeles jugador/narrador.
+- Parametrizar el resumen compacto para cambiar el título y desactivar sus
+  refrescos HTMX en modo de solo lectura.
+- Resolver el personaje exclusivamente desde fichas aprobadas. El typeahead se
+  despliega desde un botón en la cabecera, acepta tres letras o un FID exacto y
+  navega a una URL recargable.
+- Renderizar Novedades solo si la pestaña activa es `mias`; los cambios HTMX de
+  pestaña actualizan su slot fuera de banda.
+- En `modo_vista`, sustituir el panel normal y dejar vacíos `tabs_html` y
+  `novedades_html`, sin exponer acciones de edición.
+- Construir el enlace al tema con el `tid` validado y el nombre filtrado por
+  visibilidad. Sin ambos datos, renderizar texto plano.
+
+## Revisión UX y relacional (2026-10-07)
+
+Esta revisión está **implementada y pendiente de despliegue**. Prevalece
+sobre los apartados posteriores que describen `jugadores_json` como única fuente,
+la asignación unilateral de narrador, estadísticas accionables o filtros sin URL.
+
+### Nuevas tablas
+
+#### `op_aventuras_participantes`
+
+```sql
+CREATE TABLE `{prefix}op_aventuras_participantes` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `peticion_id` INT UNSIGNED NOT NULL,
+  `uid` INT UNSIGNED NULL,
+  `nombre_snapshot` VARCHAR(255) NOT NULL DEFAULT '',
+  `orden` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_peticion_uid` (`peticion_id`, `uid`),
+  UNIQUE KEY `uq_peticion_orden` (`peticion_id`, `orden`),
+  KEY `idx_uid_peticion` (`uid`, `peticion_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+No se añaden claves foráneas porque las tablas MyBB relacionadas pueden usar
+motores distintos. El nombre es un snapshot histórico; los enlaces usan `uid`.
+MySQL permite varias filas con `NULL` en una clave única, por lo que participantes
+legacy sin UID no se pierden; `orden` los distingue dentro de una petición.
+
+#### `op_aventuras_propuestas_narrador`
+
+```sql
+CREATE TABLE `{prefix}op_aventuras_propuestas_narrador` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `peticion_id` INT UNSIGNED NOT NULL,
+  `narrador_uid` INT UNSIGNED NOT NULL,
+  `iniciada_por_uid` INT UNSIGNED NOT NULL,
+  `tipo` ENUM('invitacion','candidatura') NOT NULL,
+  `estado` ENUM('pendiente','aceptada','rechazada','retirada','cancelada','vencida') NOT NULL,
+  `mensaje` VARCHAR(500) NOT NULL DEFAULT '',
+  `created_at` INT UNSIGNED NOT NULL,
+  `expires_at` INT UNSIGNED NOT NULL,
+  `resolved_at` INT UNSIGNED NULL,
+  `resolved_by_uid` INT UNSIGNED NULL,
+  `pendiente_narrador_uid` INT UNSIGNED GENERATED ALWAYS AS
+    (CASE WHEN `estado` = 'pendiente' THEN `narrador_uid` ELSE NULL END) STORED,
+  PRIMARY KEY (`id`),
+  KEY `idx_peticion_estado` (`peticion_id`, `estado`),
+  KEY `idx_narrador_estado` (`narrador_uid`, `estado`),
+  UNIQUE KEY `uq_pendiente_par` (`peticion_id`, `pendiente_narrador_uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+La columna generada aprovecha que una clave única admite múltiples `NULL`: solo
+una propuesta pendiente por pareja, pero cualquier cantidad de filas históricas
+resueltas. MySQL 5.7 admite la columna generada almacenada. El dominio también
+bloquea la solicitud y comprueba el duplicado dentro de la transacción.
+
+#### `op_aventuras_notificaciones`
+
+```sql
+CREATE TABLE `{prefix}op_aventuras_notificaciones` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `clave_evento` VARCHAR(96) NOT NULL,
+  `peticion_id` INT UNSIGNED NOT NULL DEFAULT 0,
+  `uid` INT UNSIGNED NOT NULL,
+  `actor_uid` INT UNSIGNED NOT NULL DEFAULT 0,
+  `tipo` VARCHAR(40) NOT NULL,
+  `datos_json` TEXT NULL,
+  `created_at` INT UNSIGNED NOT NULL,
+  `read_at` INT UNSIGNED NULL,
+  `sent_at` INT UNSIGNED NULL,
+  `attempts` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_evento_destinatario` (`clave_evento`, `uid`),
+  KEY `idx_uid_read` (`uid`, `read_at`, `created_at`),
+  KEY `idx_envio` (`sent_at`, `attempts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+La fila es a la vez bandeja interna y outbox idempotente. `sent_at` representa
+el canal MyAlerts/MP opcional; `read_at` representa la lectura dentro del tablón.
+
+### Migración de participantes
+
+1. Crear la tabla sin cambiar lecturas.
+2. Recorrer solicitudes por lotes, decodificar `jugadores_json` válido e insertar
+   una fila por elemento, conservando el orden. UID ausente se guarda como NULL.
+3. Registrar IDs con JSON inválido, estructura no reconocida o UID positivo
+   repetido. No borrarlos ni inferir una ficha.
+4. Comparar por solicitud cantidad y conjunto de UIDs entre JSON y relación.
+5. Activar lectura preferente relacional con fallback a JSON solo para IDs
+   reportados como no migrados.
+6. Activar escritura dual dentro de la transacción de crear/editar.
+7. Añadir a las rutas legacy que todavía cambian `jugadores_json` una llamada
+   posterior a `opg_av_sincronizar_participantes($peticion_id)`. Un task repara
+   filas ausentes como segunda red de seguridad.
+8. Tras desactivar la escritura de la calculadora antigua, ejecutar un último
+   backfill y checksum. Solo entonces convertir la relación en fuente de verdad.
+   `jugadores_json` permanece como snapshot compatible hasta una retirada posterior.
+
+`opg_av_sql_participa()` deja de generar `JSON_CONTAINS` y pasa a `EXISTS` sobre
+la relación. Mis/Otras, estadísticas, límites, permisos y conflictos de interés
+usan la misma expresión relacional e índices.
+
+### Consultas de estadísticas y navegación
+
+- `opg_av_condiciones_listado` separa dimensiones: vista, estado, papel,
+  búsqueda y ámbito.
+- `opg_av_estadisticas` recibe las mismas condiciones validadas que el listado.
+  Los conteos respetan la vista, búsqueda, estado y papel seleccionados. La vista
+  determina qué estados se calculan y renderizan.
+- `vista=activas|historial|todas` se valida en servidor y se incorpora a todos los
+  enlaces y formularios.
+- Los filtros HTMX usan `hx-push-url` con una URL canónica. La página completa y
+  el fragmento producen el mismo resultado para los mismos parámetros.
+- El paginador recibe una ventana de hasta cinco páginas y conserva todos los
+  parámetros. Para ofertas de narrador se añade `pagina_narradores`; para cargas
+  sin narrador, `pagina_sin_narrador`.
+- El cambio de resultados devuelve un encabezado enfocable con `tabindex="-1"` y
+  una señal para desplazar solo el contenedor del listado. Si HTMX no está
+  disponible, los controles siguen siendo enlaces GET completos.
+
+### Cupos anticipados
+
+Se añade una consulta en lote `opg_av_cupos_participantes($uids, $candidato)` que
+devuelve solitarias, totales, máximo y motivo de bloqueo por UID. No se ejecuta
+una consulta por chip.
+
+La acción GET `validar_cupos` recibe papel, participantes y si la aventura es
+solitaria/grupal. Devuelve:
+
+- chips o metadatos de cupo;
+- aviso general de elegibilidad;
+- botón de envío habilitado o deshabilitado;
+- atributos OOB para actualizar las tres zonas sin reconstruir el formulario.
+
+Cambiar rol o participantes dispara esta validación. `opg_av_crear` conserva el
+bloqueo `FOR UPDATE` y vuelve a validar antes del INSERT.
+
+### Propuestas bilaterales
+
+Nuevas operaciones de dominio:
+
+- `opg_av_propuesta_crear_candidatura($peticion_id,$narrador_uid,$mensaje)`;
+- `opg_av_propuesta_crear_invitacion($peticion_id,$creador_uid,$narrador_uid,$mensaje)`;
+- `opg_av_propuesta_aceptar($id,$uid)`;
+- `opg_av_propuesta_rechazar($id,$uid)`;
+- `opg_av_propuesta_retirar($id,$uid)`;
+- `opg_av_propuestas_vencer($ahora)`.
+
+Una candidatura solo la acepta/rechaza el creador. Una invitación solo la
+acepta/rechaza el narrador invitado. Retirar corresponde a quien la inició.
+Aceptar inicia transacción, bloquea propuesta y solicitud, verifica estado 4 y
+ausencia de narrador, asigna UID/ficha/nombre, cambia a estado 0, acepta una y
+cancela las demás. Luego audita y encola notificaciones. Dos aceptaciones
+simultáneas no pueden asignar narradores distintos.
+
+Crear como narrador conserva la asignación inmediata propia. Crear como jugador
+con narrador crea solicitud estado 4 + invitación en la misma transacción.
+`postular_narrador` se reemplaza por candidatura; se mantiene temporalmente como
+alias incompatible solo durante la migración de rutas, sin asignar directamente.
+
+### Notificaciones fiables
+
+Las operaciones de dominio agregan filas a la outbox dentro de su transacción.
+El canal garantizado en esta entrega es la bandeja interna del tablón:
+
+1. Bandeja del tablón siempre disponible.
+2. MyAlerts puede añadirse cuando el plugin y su tipo estén confirmados en
+   producción.
+3. Mensaje privado queda como adaptador opcional; no se activa sin configuración
+   para evitar duplicar avisos a los usuarios.
+
+Un task periódico procesa vencimientos, backfill y avisos de oferta. El fallo de
+un canal externo futuro no revertirá una propuesta, transición ni pago.
+`clave_evento + uid` evita duplicados al reintentar peticiones o completar pagos.
+
+### Historial seguro
+
+`opg_av_historial_usuario($peticion_id,$uid)` exige que el UID sea creador,
+narrador actual/anterior auditado o participante. Mapea acciones de auditoría a
+un DTO permitido; nunca devuelve `detalle_json` crudo. Las vistas reciben
+etiqueta, fecha, actor visible y enlace, sin notas privadas.
+
+### Cambios de renderizado
+
+- `opg_av_v_tarjeta` recibe el nombre de tema en la consulta base o en un lote,
+  y genera enlaces de perfil con `member.php?action=profile&uid=N`.
+- La visibilidad de idea, narrador ausente y faltantes depende de estado/contexto.
+- Los estados conservan sus claves CSS, pero usan las etiquetas de jugador de
+  los requisitos.
+- `opg_av_v_estadisticas` produce indicadores estáticos; no genera controles GET,
+  estados `aria-pressed` ni efectos de selección.
+- `opg_av_v_paginador` sirve listas y narradores, con ventana numérica.
+- Nuevos fragmentos: propuestas recibidas/enviadas, panel persistente de
+  notificaciones e historial. Marcar una notificación reemplaza únicamente el
+  panel de novedades mediante HTMX.
+
+### Compatibilidad
+
+- Solicitudes existentes con narrador se consideran aceptadas de hecho.
+- No se fabrican propuestas históricas para ellas.
+- Las URLs antiguas sin `vista` abren el valor predeterminado de cada pestaña.
+- Los enlaces `?id=N` localizan la página correcta aunque la vista predeterminada
+  no contenga el estado; el router cambia a la vista adecuada y conserva `id`.
+- La consola de staff continúa usando los códigos 0..5 y recibe participantes
+  desde la relación normalizada sin cambiar sus permisos.
+- La calculadora antigua conserva su interfaz, pero sus escrituras de
+  participantes llaman al sincronizador relacional. Si ese puente falla, la fila
+  sigue disponible por JSON y queda marcada para el task de reparación.
+
+### Archivos adicionales previstos
+
+- `docs/aventuras_ux_migration.sql`: las tres tablas nuevas y sus índices.
+- `inc/plugins/lib/aventuras.php`: outbox, bandeja y adaptadores internos.
+- `inc/tasks/aventurasux.php`: backfill, vencimientos y avisos periódicos.
+- `inc/plugins/aventuras_alerts.php`: registro opcional del formatter MyAlerts.
+- `tests/aventuras/migracion_participantes.php`: backfill, paridad y reentrada.
+
+## Revisión visual (2026-10-06)
+
+El rediseño de lectura y operación se implementa siguiendo, en orden,
+[102_TablonDiseno.md](102_TablonDiseno.md): tarjetas y metadatos compactos,
+jerarquía de acciones, cabecera coherente con el foro, ofertas comparables,
+contador integrado, colores semánticos y selector de densidad.
+
+La vista concentra el cambio en `opg_av_v_tarjeta` y en el template del tablón.
+Los comentarios públicos usan un checkbox accesible para expandirse sin estado de
+servidor; el selector de densidad también es CSS y permanece fuera del fragmento
+HTMX que refresca el listado. La clase `ta-pagina-tablon` identifica la página,
+pero no oculta elementos ni añade espacio a la cabecera compartida.
+
+Las ofertas añaden `frecuencia`, `tiers` y `estilo` mediante una migración
+incremental. El dominio normaliza y valida los tiers 1 a 10 y acepta valores
+vacíos para filas antiguas. El orden de despliegue es: migración, PHP y nueva
+importación de `op_tablon_de_aventuras`.
+
 ## Revisión de interfaz (2026-10-05)
 
 El desglose de activas separa las del personaje (solitarias / 3 y total / 4)
@@ -14,13 +427,13 @@ narrador; su contador conserva `contar_sin_narrador`. `?id=N` ajeno en estado 4
 abre esta pestaña y localiza la solicitud, aunque esté más allá de las primeras 10.
 
 `opg_av_estadisticas($filtros)` agrega en SQL el total y estados 0..4 usando
-exactamente `opg_av_condiciones_listado`, sin LIMIT. Agrega conteos de narrador y
-jugador para el usuario actual en Mis o el UID filtrado en Otras (por defecto,
-usuario actual). `opg_av_v_estadisticas` renderiza una banda antes del encabezado.
+exactamente `opg_av_condiciones_listado`, sin LIMIT. Conserva internamente los
+conteos de narrador y jugador, pero `opg_av_v_estadisticas` solo los presenta en
+Mis aventuras; Otras aventuras muestra exclusivamente total y estados.
 `listar` actualiza esa banda fuera de banda y devuelve tarjetas y paginador.
-La banda separa dos listas de definición: seis contadores de estado a la izquierda
-(3 columnas) y roles a la derecha (1 columna). En móvil, estados en 2 columnas
-y roles en una franja aparte debajo, con separación visible entre ambos grupos.
+En Mis, la banda separa seis contadores de estado a la izquierda y roles a la
+derecha. En Otras, los seis estados ocupan todo el ancho. En móvil, estados se
+distribuyen en 2 columnas y los roles de Mis forman una franja aparte debajo.
 La paginación se mantiene en 20; las cifras nunca dependen de la página.
 
 Los filtros incluyen `q`: en Mis acepta únicamente `#N` o `N` para una solicitud;
@@ -52,6 +465,18 @@ nunca ambos, tanto al vincular como al entregar. `elegir_tema` devuelve solo
 el chip y `quitar_tema` restaura el buscador, revalidando el permiso. Esta acción
 solo cambia el formulario; el enlace guardado cambia al enviarlo.
 
+El formulario de solicitud se presenta en tres bandas sin contenedores anidados:
+Personas, Datos de la aventura y Descripción. Rol y disponibilidad de narrador
+comparten una cuadrícula en escritorio; participantes queda debajo. Comentario
+público precede a la propuesta condicional para narradores, controlada con
+`:has()` a partir de los radios existentes, sin JavaScript adicional.
+
+En Narradores & Narrados, `opg_av_narradores_disponibles` acepta un UID opcional
+que se excluye de la consulta. La página lo usa para evitar que la oferta propia
+se repita bajo su franja de gestión; las llamadas sin segundo argumento conservan
+el listado completo. El directorio usa `auto-fit` para ocupar el ancho disponible
+y las solicitudes sin narrador aplican la variante compacta de tarjeta.
+
 `opg_av_puede_vincular($av,$uid)` exige estado 1 y ser narrador asignado o
 participante, no basta ser creador. Se usa en tarjeta, formulario, typeahead y
 escritura. El UPDATE revalida estado y rol; la entrega conserva su permiso propio.
@@ -63,8 +488,9 @@ visible y lectura a 375/700/1030px. No se añade JS de aplicación.
 > Depende de: [101_Requirements_Registro.md](101_Requirements_Registro.md)
 > Sistema visual: [style.md](style.md)
 >
-> **Estado: por implementar.** `op/Calculadora_Tiers.php` sigue funcionando sin
-> cambios (salvo el arreglo de permisos de §10) hasta completar la migración.
+> **Estado: implementado, pendiente de despliegue.** `op/Calculadora_Tiers.php`
+> sigue funcionando sin cambios (salvo el arreglo de permisos de §10) hasta
+> completar la migración y validación con staff.
 
 ## 1. Objetivo
 
@@ -72,8 +498,8 @@ Reemplazar la calculadora de tiers como registro de solicitudes de aventura por
 dos páginas con una sola responsabilidad cada una:
 
 - `/op/tablon_de_aventuras.php`: lo que usan los jugadores. Cuatro pestañas,
-  en este orden: Mis aventuras, Otras aventuras, Solicitar aventura y
-  Narradores & Narrados. Sin cálculo de dificultad y sin gestión.
+  en este orden: Mis aventuras, Solicitar aventura, Narradores & Narrados y
+  Otras aventuras. Sin cálculo de dificultad y sin gestión.
 - `/op/staff/consola_aventuras.php`: lo que usan mods, narradores y staff.
   Listado de gestión, cambio de estado, notas, isla y día, y borrado.
 
@@ -179,6 +605,10 @@ participantes, porque otros módulos podrían leerla.
 
 ### 3.3 Índices
 
+> **Transición:** el bloque siguiente documentaba la primera versión basada en
+> JSON. La revisión 2026-10-07 añade los índices de
+> `op_aventuras_participantes` y sustituye estas lecturas después del backfill.
+
 ```sql
 ALTER TABLE mybb_op_peticionAventuras
   ADD INDEX idx_estado (estado),
@@ -187,13 +617,10 @@ ALTER TABLE mybb_op_peticionAventuras
   ADD INDEX idx_created_at (created_at);
 ```
 
-El filtro por jugador sigue usando `JSON_CONTAINS(jugadores_json, JSON_OBJECT(
-'uid', N))`, porque la calculadora actual escribe `jugadores_json` y una tabla
-auxiliar de participantes quedaría desincronizada mientras ambas páginas
-convivan. El coste está acotado: el conteo de límites siempre se restringe
-antes con `estado IN (0,1,4)` (usa `idx_estado`), y los filtros de Mis aventuras y Otras
-aventuras paginan con `LIMIT`. Si tras retirar la calculadora el rendimiento lo pide, se
-puede añadir una tabla `peticion_id, fid` en un cambio posterior.
+Durante el backfill, `JSON_CONTAINS` solo se conserva como fallback de filas no
+migradas. Las escrituras de la calculadora antigua sincronizan la relación y un
+task repara divergencias. Después del checksum final, el filtro por jugador usa
+el índice `(uid, peticion_id)` de `op_aventuras_participantes`.
 
 ### 3.4 Auditoría
 
@@ -252,6 +679,7 @@ CREATE TABLE mybb_op_aventuras_entregas (
   infra TINYINT(1) NULL,
   ajustes_json MEDIUMTEXT NULL,
   intentos SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+  narrador_uid INT UNSIGNED NOT NULL DEFAULT 0,
   enviado_por INT UNSIGNED NOT NULL,
   enviado_at INT UNSIGNED NOT NULL,
   revisado_por INT UNSIGNED NULL,
@@ -263,7 +691,8 @@ CREATE TABLE mybb_op_aventuras_entregas (
   PRIMARY KEY (id),
   UNIQUE KEY uq_peticion (peticion_id),
   UNIQUE KEY uq_tid_activo (tid_activo),
-  KEY idx_estado (estado, enviado_at)
+  KEY idx_estado (estado, enviado_at),
+  KEY idx_narrador_uid (narrador_uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE mybb_op_aventuras_entregas_pagos (
@@ -332,7 +761,7 @@ Funciones:
 // Permisos
 opg_av_puede_gestionar($uid)      // is_mod || is_staff || is_narra
 opg_av_puede_eliminar($uid)       // is_staff
-opg_av_puede_resolver($av, $uid)  // gestión Y no es creador, narrador ni participante
+opg_av_puede_resolver($av, $uid)  // cualquier usuario con permiso de gestión
 opg_av_puede_editar($av, $uid)    // creador y estado en OPG_AV_ESTADOS_EDITABLES
 
 // Estados y transiciones
@@ -495,17 +924,22 @@ copia a la solicitud.
 `opg_av_contar_activas($fid, $excluir_id)`:
 
 ```sql
-SELECT id, jugadores_json, narrador_fid
-FROM {tabla}
-WHERE estado IN (0,1,4)
-  AND id <> {excluir_id}
-  AND JSON_CONTAINS(jugadores_json, JSON_OBJECT('uid', {fid}))
+SELECT pa.id, COUNT(ap.id) AS num_jugadores
+FROM {tabla} pa
+JOIN {prefix}op_aventuras_participantes ap ON ap.peticion_id = pa.id
+WHERE pa.estado IN (0,1,4)
+  AND pa.id <> {excluir_id}
+  AND EXISTS (
+    SELECT 1 FROM {prefix}op_aventuras_participantes propio
+    WHERE propio.peticion_id = pa.id AND propio.uid = {uid}
+  )
+GROUP BY pa.id
 ```
 
-En PHP, para cada fila: se omite si `narrador_fid = fid`; se cuenta como
-solitaria si `jugadores_json` tiene exactamente un elemento, y como grupal en
-otro caso. Se decodifica con tolerancia: las entradas sin `uid` se ignoran al
-contar y un JSON inválido omite la fila.
+En PHP, una fila es solitaria cuando `num_jugadores = 1` y grupal en otro caso.
+Las entradas legacy con `uid=NULL` permanecen visibles, pero no coinciden con el
+`EXISTS` ni consumen cupo hasta que se resuelva su identidad. Durante la
+transición, solo las peticiones declaradas no migradas usan el fallback JSON.
 
 `opg_av_validar_limites($peticion)` recorre los participantes con `uid > 0` y
 para cada uno suma la solicitud que se aprueba:
@@ -529,10 +963,9 @@ deniega solicitudes existentes.
 transacción:
 
 1. `SELECT ... FOR UPDATE` de la fila (InnoDB; la tabla ya lo es).
-2. Comprueba permiso: para 1, 2 y 3, `opg_av_puede_resolver($av, $uid)`, que
-   exige permiso de gestión **y** que el usuario no sea creador, narrador ni
-   participante de esa solicitud (responde `403` con "No puedes resolver una
-   aventura en la que participas"); el creador para 5.
+2. Comprueba permiso: para 1, 2 y 3, `opg_av_puede_resolver($av, $uid)` exige
+   permiso de gestión. El gestor puede moderar solicitudes propias o en las que
+   participe; para 5 continúa exigiéndose ser el creador.
 3. `opg_av_transicion_valida($actual, $a)` según la tabla de requisitos §4.1:
    `0→1`, `0→2`, `4→2`, `1→2`, `1→3`, `4→0` (solo vía postulación),
    `cualquiera→5` (solo creador) y `5→borrado`.
@@ -623,8 +1056,10 @@ typeahead, un enlace pegado o un `tid` escrito, y los trata igual:
 3. **Guardar** `aventura_url = {bburl}/showthread.php?tid=N` (normalizada: es el
    formato que buscan `Calculadora_Tiers.php` y `recompensasAventuras.php` con
    `LIKE '%tid=N%'`), con `UPDATE ... WHERE id = N AND estado = 1 AND
-   (narrador_uid = U OR JSON_CONTAINS(jugadores_json, JSON_OBJECT('uid', U)))`.
-   El permiso se valida antes y en el UPDATE. Máximo 255 caracteres.
+   (narrador_uid = U OR {predicado de opg_av_sql_participa(U)})`. El helper
+   genera un `EXISTS` sobre `op_aventuras_participantes`; durante la transición
+   añade fallback solo para filas reportadas como no migradas. El permiso se
+   valida antes y en el UPDATE. Máximo 255 caracteres.
 4. Audita `vincular` con el `tid` y el nombre del tema.
 
 Al abrir el formulario de entrega, `opg_ent_form` lee `aventura_url`, extrae el
@@ -694,7 +1129,10 @@ narrador o participante.
 ```sql
 (pa.uid = U
  OR pa.narrador_uid = U
- OR JSON_CONTAINS(pa.jugadores_json, JSON_OBJECT('uid', U)))
+ OR EXISTS (
+   SELECT 1 FROM {prefix}op_aventuras_participantes ap
+   WHERE ap.peticion_id = pa.id AND ap.uid = U
+ ))
 ```
 
 Y de su negación (`$no_mia`), que cuida el `NULL` de `narrador_uid`: sin esa
@@ -704,7 +1142,10 @@ precaución, una solicitud sin narrador desaparecería de ambos lados porque
 ```sql
 (pa.uid <> U
  AND (pa.narrador_uid IS NULL OR pa.narrador_uid <> U)
- AND NOT JSON_CONTAINS(pa.jugadores_json, JSON_OBJECT('uid', U)))
+ AND NOT EXISTS (
+   SELECT 1 FROM {prefix}op_aventuras_participantes ap
+   WHERE ap.peticion_id = pa.id AND ap.uid = U
+ ))
 ```
 
 Las páginas de jugadores nunca muestran el estado 5.
@@ -731,8 +1172,8 @@ repetidos ni huecos.
 | `estado=denegado` | Mis y Otras | `estado = 2` |
 | `estado=finalizado` | Mis y Otras | `estado = 3` |
 | `rol=narrador` | Solo Mis | `narrador_uid = U` |
-| `rol=jugador` | Solo Mis | `JSON_CONTAINS(jugadores_json, JSON_OBJECT('uid', U))` |
-| `uid=N` | Solo Otras | `narrador_uid = N OR JSON_CONTAINS(jugadores_json, JSON_OBJECT('uid', N))` |
+| `rol=jugador` | Solo Mis | `EXISTS` en participantes para `uid = U` |
+| `uid=N` | Solo Otras | narrador `N` o `EXISTS` en participantes para `uid = N` |
 
 El servidor ignora `rol` en Otras y `uid` en Mis, y valida `estado` contra el
 catálogo (un valor desconocido se descarta, y `pendiente-narrador` se descarta en
@@ -780,13 +1221,10 @@ actualiza `mensaje` y `updated_at`), y audita `ofrecer_narrar`.
 `opg_av_oferta_retirar` borra la fila del propio `uid` (audita `retirar_oferta`);
 ninguna acepta un `uid` de la entrada, siempre el de la sesión.
 
-Rendimiento: el `JSON_CONTAINS` no usa índice, así que las consultas recorren
-`idx_created_at` en orden y se detienen al reunir las filas pedidas. Casi todas
-las filas cumplen en Otras y en el bloque de sin narrador, y terminan enseguida;
-en Mis, un usuario con pocas solicitudes obliga a recorrer más filas, que en esta
-tabla es aceptable. Si tras retirar la calculadora hiciera falta, la tabla
-auxiliar `peticion_id, fid` de §3.3 resuelve ambos casos con índice. El mercado
-de narradores es de decenas de filas como mucho.
+Rendimiento: el predicado `EXISTS` usa `idx_uid_peticion`; los listados conservan
+`idx_created_at` para orden y paginación. El fallback `JSON_CONTAINS` queda
+limitado a las excepciones registradas durante la migración y se retira tras el
+checksum final. El mercado de narradores mantiene su paginación independiente.
 
 La consola (`$es_consola = true`) no usa `ambito` ni excluye el estado 5: lista
 todo con los filtros de estado y UID de §5.3.
@@ -818,7 +1256,7 @@ const OPG_REC_UID_PUBLICACION = 5;          // usuario que publica el mensaje, c
 Funciones:
 
 ```php
-opg_rec_analizar_tema($tid)
+opg_rec_analizar_tema($tid, $narradores)
 opg_rec_porcentaje_base($validos, $esperados)
 opg_rec_calcular_porcentajes($analisis, $tier, $ajustes)
 opg_rec_minimos($analisis, $tier, $n_participantes)
@@ -831,12 +1269,12 @@ opg_rec_mensaje_resumen($datos)
 opg_rec_publicar_y_cerrar($tid, $mensaje)
 ```
 
-**Análisis (`opg_rec_analizar_tema`).** Lee todos los posts del tema por fecha. Un
-usuario es **narrador** si al menos uno de sus posts contiene `[narrador]`
-(sin distinguir mayúsculas). Para cada autor cuenta los posts totales y los
-**válidos**: `strlen(strip_tags(mensaje)) >= 300`. Devuelve también la lista de
-posts no válidos. Errores: el tema no tiene posts, o ningún post lleva
-`[narrador]` (en ese caso no se puede pagar y se explica).
+**Análisis (`opg_rec_analizar_tema`).** Lee todos los posts del tema por fecha y
+recibe el narrador explícito conservado por la entrega. Para cada autor cuenta los
+posts totales y los **válidos**: `strlen(strip_tags(mensaje)) >= 300`. El narrador
+mantiene ese rol aunque no haya escrito y, en tal caso, aparece con cero posts y
+una advertencia. Devuelve también la cantidad de posts no válidos. Un tema sin
+posts es un error. No se busca ni se interpreta la etiqueta `[Narrador]`.
 
 **Porcentajes.**
 
@@ -953,17 +1391,19 @@ tema) con un campo oculto `tid`; el nombre se toma de la base, nunca de la entra
 3. Valida el tema con `opg_av_tid_de_entrada` y `opg_ent_tema_valido`, `resumen`
    (`trim`, 1 a 2000 caracteres) y `reputacion` (`positiva` o `negativa`).
 4. Escribe `tid`, `tid_activo = tid`, `tema_nombre` (leído del tema), `resumen`,
-   `reputacion`, `estado = 'pendiente'`, `enviado_por`, `enviado_at`, y limpia
-   `motivo_rechazo`. Si el tema difiere del vinculado, actualiza `aventura_url` al
-   formato normalizado (§4.7).
+   `reputacion`, `estado = 'pendiente'`, `narrador_uid`, `enviado_por`,
+   `enviado_at`, y limpia `motivo_rechazo`. `narrador_uid` es la instantánea del
+   narrador asignado; `enviado_por` conserva al actor. Si el tema difiere del
+   vinculado, actualiza `aventura_url` al formato normalizado (§4.7).
 5. Audita `enviar_entrega` y hace `COMMIT`.
 
-Los participantes, el narrador y el tier no se guardan en la entrega: se leen de
-la solicitud al analizar y al pagar, de modo que la entrega no puede discrepar de
-ella.
+Los participantes y el tier se leen de la solicitud al analizar y pagar. El
+narrador sí se guarda en la entrega para que el rol recompensado no cambie si la
+asignación se modifica después del envío. Las filas antiguas se rellenan desde
+`enviado_por` y mantienen ese valor como fallback de lectura.
 
-**Rechazo (`opg_ent_rechazar`).** Exige `opg_av_puede_resolver` (gestión y no ser
-parte de la solicitud) y una entrega `pendiente`. `motivo` de 1 a 500 caracteres.
+**Rechazo (`opg_ent_rechazar`).** Exige `opg_av_puede_resolver` (permiso de
+gestión) y una entrega `pendiente`. `motivo` de 1 a 500 caracteres.
 Pone `estado = 'rechazada'`, `tid_activo = NULL`, `motivo_rechazo`, `revisado_por`
 y `revisado_at`, con `WHERE estado = 'pendiente'`. Audita `rechazar_entrega`.
 
@@ -981,8 +1421,8 @@ solicitud, `extra_jugadores` 0, `n_participantes` el detectado, y por destinatar
 destinatario (el nivel del narrador sale de `nivelnarrador`) y devuelve, por
 destinatario, su rol, posts totales y válidos, porcentaje y recompensas, más el
 mínimo de posts y las advertencias: usuarios que escribieron sin estar en la
-solicitud, usuarios de la solicitud sin posts, narrador asignado que no escribió
-`[narrador]`, destinatarios sin ficha, nivel de narrador desconocido y tema ya
+solicitud, usuarios de la solicitud sin posts, narrador de la entrega sin posts,
+destinatarios sin ficha, nivel de narrador desconocido y tema ya
 pagado. **No escribe nada.** Valida los ajustes (tier de 1 a 10, extra dentro de
 `OPG_REC_EXTRA_JUGADORES`, variación de -100 a 100, `rep` en `positiva`,
 `negativa` o `ninguna`) y descarta cualquier porcentaje enviado por el cliente.
@@ -992,8 +1432,9 @@ pagado. **No escribe nada.** Valida los ajustes (tier de 1 a 10, extra dentro de
 `ROLLBACK`. Por eso el pago va por destinatario, con un registro que garantiza el
 pago único y permite reanudar:
 
-1. **Permiso y condiciones.** `opg_av_puede_resolver` (no ser parte de la
-   solicitud); si hay narradores detectados; `opg_rec_tema_pagado` falso (con
+1. **Permiso y condiciones.** `opg_av_puede_resolver` (permiso de gestión,
+   aunque sea parte de la solicitud); si hay narradores detectados;
+   `opg_rec_tema_pagado` falso (con
    texto "El tema está cerrado o ya tiene el mensaje de recompensas: si lo pagó la
    herramienta antigua, rechaza esta entrega; si lo cerró otra persona, ábrelo");
    y, si no se cumplen los posts mínimos, `confirma_minimos` verdadero.
@@ -1212,13 +1653,14 @@ if (!opg_av_puede_gestionar($uid)) {
 
 | Acción | Método | Permiso | Respuesta |
 |---|---|---|---|
-| (sin acción) | GET | Gestión | Página completa. `?tab=solicitudes\|narradores` elige la sección (por defecto `solicitudes`). |
-| `listar` | GET | Gestión | Filas de la consola, paginador y chips de estado con su conteo. Sin filtro de estado, usa `creado`. Incluye nota de staff, idea, motivo de renuncia y `editado_at`. |
+| (sin acción) | GET | Gestión | Página completa. `?tab=solicitudes\|entregas\|narradores` elige la sección (por defecto `solicitudes`). |
+| `listar` | GET | Gestión | Filas compactas de la consola, resumen, paginador y filtros. Sin filtro de estado, usa `creado` y orden ascendente por antigüedad. Incluye nota de staff, idea, motivo de renuncia y `editado_at` en el detalle. |
+| `buscar_personas` | GET | Gestión | Typeahead de `#ID`, UID o nombre; devuelve coincidencias de creador, narrador y participante con identificadores estables. |
 | `form_denegar` | GET | Gestión | Formulario del motivo dentro de la fila. |
 | `cambiar_estado` | POST | Gestión | Devuelve la fila actualizada. `motivo` obligatorio al denegar. Rechaza (`403`) si quien actúa es parte de la solicitud. |
 | `form_editar` | GET | Gestión | Panel de edición de la fila. |
 | `actualizar_datos` | POST | Gestión | Nota de staff (200), comentario (1000), inframundo, isla y día. Devuelve la fila. |
-| `historial` | GET | Gestión | Historial de la solicitud (§4.9), dentro de la fila. |
+| `historial` | GET | Gestión | Historial de la solicitud (§4.9) como línea temporal en el panel accesible de historial. |
 | `narradores` | GET | Gestión | Filas de todas las ofertas, vigentes y vencidas, paginadas. |
 | `form_retirar_oferta` | GET | Gestión | Formulario del motivo (200, obligatorio) dentro de la fila de la oferta. |
 | `retirar_oferta` | POST | Gestión | Borra la oferta, audita `retirar_oferta_admin` y devuelve vacío para quitar la fila. |
@@ -1226,12 +1668,14 @@ if (!opg_av_puede_gestionar($uid)) {
 | `eliminar` | POST | `is_staff` | Solo estado 5. Devuelve vacío para quitar la fila. |
 
 El permiso "Gestión" es `opg_av_puede_gestionar` (mod, staff o `is_narra`). Los
-narradores usuarios sin esos permisos no entran. `opg_av_puede_resolver` añade la
-restricción de no ser parte de la solicitud para `cambiar_estado`; las demás
-acciones (editar datos, historial, moderación de ofertas) no la tienen.
+narradores usuarios sin esos permisos no entran. `opg_av_puede_resolver` aplica
+ese mismo permiso aunque el gestor sea creador, narrador o participante.
 
 El conteo por estado de `listar` sale de `opg_av_conteo_estados()`, una sola
 consulta `SELECT estado, COUNT(*) ... GROUP BY estado` que usa `idx_estado`.
+La respuesta completa construye un contexto `ca_resumen` con los conteos por estado
+y por entrega. `ca_panel()` y `opg_av_v_c_tabs()` reciben el mismo contexto; no se
+renderiza una banda general adicional ni se repite una consulta ya calculada.
 
 `actualizar_datos` acepta solo los campos presentes y valida cada uno con las
 mismas funciones que la creación. La nota de staff se guarda en
@@ -1252,6 +1696,55 @@ en el grupo que ya agrupa las herramientas de narración, con el permiso
 consola la renderiza solo si `opg_av_puede_eliminar($uid)`, y el servidor la
 vuelve a comprobar.
 
+#### 5.3.A Rediseño operativo de la consola
+
+Este diseño no requiere una tabla nueva. La búsqueda de participantes usa
+`op_aventuras_participantes` (`idx_uid_peticion`), las ofertas continúan en
+`op_narradores_disponibles` y las colas se derivan de los estados existentes.
+
+**Consulta y URL.** Solicitudes acepta `estado`, `orden`, `persona`, `q` y
+`pagina`. `q=#N` busca una solicitud exacta; `persona`
+es el UID elegido por el typeahead. La condición por persona incluye
+`pa.uid`, `pa.narrador_uid` y `EXISTS` sobre participantes. `orden=recientes` es
+el predeterminado para cualquier estado; `orden=antiguas` se elige explícitamente.
+Todos los controles se serializan en `HX-Push-Url` y el paginador conserva los
+parámetros.
+
+**Datos incompletos.** `opg_av_datos_faltantes($av)` devuelve claves estables de
+`isla`, `dia`, `tier`, `comentario`, `narrador` y `participantes`. Se usa para el
+filtro, el chip accesible y la acción principal. `opg_av_cambiar_estado`, dentro
+de la transacción y después del bloqueo de fila, rechaza aprobar con `422` si la
+lista no está vacía. La interfaz nunca es la única barrera.
+
+**Composición.** La página añade `body.ca-pagina-consola`, encabezado compacto
+con `h1` y `nav.ca-tabs` de tres columnas con iconos. Cada
+resultado es un `article`; el resumen visible ocupa una fila estable y Detalles
+contiene los textos largos. La acción primaria se calcula en la vista y las demás
+se agrupan en `<details class="ca-mas-acciones">` sin cambiar permisos.
+
+**Historial y foco.** El endpoint `historial` devuelve un diálogo/panel con
+`role="dialog"`, título asociado y línea temporal. El control de apertura conserva
+el elemento invocador; cerrar devuelve el foco. Tras filtros o paginación se enfoca
+`N resultados · Página X de Y`. Los avisos siguen en regiones `aria-live`.
+
+**Narradores.** `ca_panel('narradores')` pasa la página solicitada a
+`opg_av_ofertas_admin_listar($pagina, $filtros)`. La consulta incluye
+`frecuencia`, `tiers` y `estilo`; una consulta agrupada obtiene carga en curso y
+finalizadas. La vista añade búsqueda, vigencia y `opg_av_v_paginador`. No se
+ordena o pagina en PHP después de descartar filas.
+
+**CSS.** Crear una hoja compartida del sistema de aventuras con tokens y patrones
+de encabezado, pestañas, tarjetas, estados, chips, acciones, filtros, modal,
+vacío, foco y paginación. `op_tablon_de_aventuras`,
+`staff_consola_aventuras` y `staff_aventuras_recompensas` cargan esa hoja y
+mantienen solo composición propia. No se cambia `header.html` ni se oculta el
+banner global.
+
+**Responsive.** Los contenedores aplican `width:100%`, `max-width`, `min-width:0`
+y `box-sizing:border-box`. A 700 px las pestañas pueden formar dos filas, filtros
+y metadatos se apilan y el panel de historial ocupa el ancho. Se prueba también
+el ancho del documento (`scrollWidth <= clientWidth`), no solo una captura visual.
+
 ### 5.3.1 `op/staff/aventuras_recompensas.php`
 
 Página nueva de pago de una entrega, con la misma estructura que
@@ -1269,7 +1762,7 @@ Tablón de aventuras") con un enlace a la consola, y no ofrece pagar un tema sue
 | Acción | Método | Permiso | Respuesta |
 |---|---|---|---|
 | (sin acción) | GET | Gestión | Página completa: datos de la entrega, análisis con los valores por defecto y las acciones. |
-| `analizar` | GET | Gestión | `opg_ent_analizar`: análisis del tema y recompensas por destinatario con los ajustes enviados. No escribe nada. |
+| `analizar` | POST | Gestión | `opg_ent_analizar`: análisis del tema y recompensas por destinatario con los ajustes enviados. No escribe nada. |
 | `pagar` | POST | Gestión | `opg_ent_pagar` (§4.12). `403` si quien actúa es parte de la solicitud; `422` con las razones si no se puede pagar. |
 | `form_rechazar` | GET | Gestión | Formulario del motivo (500, obligatorio). |
 | `rechazar` | POST | Gestión | `opg_ent_rechazar`. Devuelve la página actualizada. |
@@ -1391,7 +1884,7 @@ respuesta. Una acción de esta página enviada a `consola_aventuras.php` o a
 6. En la consola, la sección Entregas (con un contador de pendientes) lista la
    entrega y el staff pulsa "Revisar y pagar", que abre
    `aventuras_recompensas.php?id=N`. La página pide el análisis (`analizar`, sin
-   ajustes): el servidor lee el tema, detecta quién narró por `[narrador]`, cuenta los posts
+   ajustes): el servidor lee el tema, usa el narrador guardado en la entrega, cuenta los posts
    válidos de cada usuario, calcula los porcentajes con el tier de la solicitud y
    las recompensas de cada destinatario, y muestra advertencias.
 7. Si hace falta, ajusta el tier (opcional), el extra por jugadores, la variación de
@@ -1440,19 +1933,19 @@ el texto, y padding reducido en `@media (max-width: 700px)`.
 
 | Elemento | Decisión |
 |---|---|
-| Título de la página | Un solo `.barra-op` de título, no el header con halftone (que es solo de `staff_consola_mod`). |
+| Título de la página | Encabezado compacto de herramienta con icono, un único `h1`, apoyo breve y línea naranja. El Tablón y la Consola comparten el patrón; no se usa una `.barra-op` pesada. |
 | Tipografía | `moonGetHeavy` solo en el título, títulos de sección y de tarjeta y cifras (contadores de activas). Todo lo demás en Inter. Contorno negro solo sobre fondos de color; sobre crema va en `--opg-ciruela` y sin contorno. |
 | Campos | `.af-field` agrupados en filas `display: flex; flex-wrap: wrap; gap: var(--opg-espacio-4)` (`.ta-row`), nunca en grilla de columnas fijas. El `textarea` del comentario lleva `flex-basis` mayor (260px). |
-| Acción principal | Un solo `.btn-op.btn-op--primario` por pantalla: "Enviar solicitud" en Solicitud, "Guardar" en el panel de edición de la consola. |
-| Acciones secundarias | `.opg-chip` (postularse, vincular, pedir borrado, aprobar, denegar, finalizar). Eliminar es `.opg-chip.chip-peligro`. |
-| Listado | `.opg-card` por solicitud, con acento por estado (§6.4). Sin tarjetas anidadas dentro de tarjetas. |
+| Acción principal | Un solo `.btn-op.btn-op--primario` por formulario o fila operativa: Enviar, Aprobar, Completar datos o Revisar y pagar según contexto. |
+| Acciones secundarias | `.opg-chip` dentro de `Más acciones`; denegar y eliminar usan tratamiento peligroso y confirmación cuando corresponda. |
+| Listado | `article` compacto por solicitud, entrega u oferta, con acento por estado (§6.4), resumen estable y detalle expandible. Sin tarjetas anidadas. |
 | Vacío | `.opg-vacio` ("No hay solicitudes con estos filtros"). |
 | Avisos | `.aviso.ok` / `.aviso.err` para el resultado de una acción. |
 | Typeahead | `.opg-buscar-caja`, `.opg-resultados`, `.opg-resultado`, `.opg-resultado-vacio`, y `.opg-dropdown-abierto` en `.thirdBackground` mientras el desplegable está abierto. |
 | Iconos | Font Awesome 6 con `fontawesome.min.css` y `solid.min.css` de cdnjs 6.4.0; nunca `all.min.css`. |
 | Enlaces | `a.clase:link, a.clase:visited` para los enlaces con estilo propio (por ejemplo "Ver aventura →"). |
 | Movimiento | `transition` con `var(--opg-rapido)`. Hover de `.opg-card` heredado de `opg-tokens.css`. |
-| Responsive | Una columna por debajo de 700px; las filas `.ta-row` se apilan solas por el `flex-wrap`. |
+| Responsive | Sin desbordamiento a 375, 700, 1030 y 1440 px. Contenedores con `min-width:0`; filas y pestañas cambian de composición, no solo reducen padding. |
 
 No se usan degradados que crucen de matiz, texto en degradado, sombras difusas
 ni `--opg-recorte-rasgado`. Las tarjetas usan la sombra desplazada
@@ -1485,12 +1978,11 @@ recorrer con el teclado.
 
 ### 6.3 `tablon_de_aventuras.php`: pestañas
 
-Cuatro pestañas: Mis aventuras, Otras aventuras, Solicitar aventura y
-Narradores & Narrados, en una barra
-de enlaces, en ese orden. Al abrir la página sin `?tab=` se muestra **Mis
-aventuras**. La pestaña activa se marca con el naranja `#ffa600` de `style.md` §3
-con borde negro de 2px y radio 6px; la inactiva usa
-el crema del panel. La pestaña Narradores & Narrados lleva junto a su título un
+Cuatro pestañas: Mis aventuras, Solicitar aventura, Narradores & Narrados y
+Otras aventuras, en una barra segmentada de enlaces con iconos, en ese orden. Al
+abrir la página sin `?tab=` se muestra **Mis aventuras**. La pestaña activa usa
+fondo blanco y subrayado naranja; la inactiva usa el crema del panel. La pestaña
+Narradores & Narrados lleva junto a su título un
 contador (`.opg-chip` pequeño, en `--opg-morado-cta` con texto blanco) con el
 número de aventuras sin narrador, que solo se muestra si es mayor que cero. No
 existe ningún marcado ni endpoint de Consola en este template.
@@ -1644,8 +2136,8 @@ defecto, y `?tab=narradores`, cargadas con `hx-get` y `hx-push-url`).
 **Solicitudes**
 
 - **Cola de revisión.** Fila de filtros con `.opg-chip` por estado, cada uno con
-  su conteo ("Creadas (3)", "Aprobadas (12)"...), incluido "Pendientes de
-  borrado", y un `.af-field` de UID. Se abre con "Creadas" marcado. Los conteos
+  su conteo ("En revisión (3)", "Aprobadas (12)"...), incluido "Pendientes de
+  borrado", y un `.af-field` de UID. Se abre con "En revisión" marcado. Los conteos
   se refrescan con `HX-Trigger` tras cada acción.
 - Una fila por solicitud, con las filas alternando `#ffe59b` y `#ffeed2` (patrón
   de listado de `style.md` §3), en vez de tarjetas, porque la consola es de
@@ -1655,11 +2147,8 @@ defecto, y `?tab=narradores`, cargadas con `hx-get` y `hx-push-url`).
   ..." en `--opg-morado-texto` (no solo color: lleva texto).
 - Acciones por fila con `.opg-chip`: Aprobar, Denegar, Finalizar, Editar datos,
   Historial y Eliminar (`.chip-peligro`, solo si `opg_av_puede_eliminar`).
-  Aprobar, Denegar y Finalizar se renderizan deshabilitadas
-  (`--opg-gris-bloqueado`, sin hover, `aria-disabled="true"`) cuando
-  `opg_av_puede_resolver` es falso, con el texto "No puedes resolver una aventura
-  en la que participas" visible junto a las acciones; el servidor lo comprueba
-  igualmente.
+  Aprobar, Denegar y Finalizar exigen `opg_av_puede_resolver`; ser creador,
+  narrador o participante no las deshabilita. El servidor comprueba el permiso.
 - **Denegar** pide `form_denegar`: un `.af-field` con un `textarea` de motivo
   (500 caracteres, obligatorio, `required`) y un `.btn-op--sm.btn-op--peligro`
   "Confirmar denegación". El servidor rechaza igualmente un motivo vacío.
@@ -1701,26 +2190,24 @@ defecto, y `?tab=narradores`, cargadas con `hx-get` y `hx-push-url`).
 
 ### 6.4.1 `aventuras_recompensas.php`
 
-Es una herramienta, no un menú: título en `.barra-op` con el número de petición y el
-nombre del tema, `.opg-volver` hacia la sección Entregas de la consola, marco de tres
+Es una herramienta, no un menú: cabecera compacta con el nombre del tema como
+título y los números de entrega y petición como metadatos, `.opg-volver` hacia la sección Entregas de la consola, marco de tres
 fondos con `width: 100%; max-width: 1030px; text-align: left`, prefijo de clases
 `ar-` (a añadir a la tabla de prefijos de `style.md`) y HTMX con la misma
 configuración de §5.1. Los bloques, de arriba abajo:
 
-1. **Datos de la entrega**, en una `.opg-card` con acento `--opg-naranja`: tema
+1. **Entrega**, sin tarjeta anidada y con acento `--opg-naranja`: tema
    (enlace), "Tier N" y la marca de inframundo como `.opg-chip`, el narrador con su
    nivel, los participantes, la reputación indicada por el narrador y el resumen en
    un bloque en Inter (escapado). Si es un reenvío, "Intento N" y, en un bloque con
    borde `--opg-rojo-error`, el motivo del rechazo anterior.
-2. **Resumen del análisis**: una fila de cifras en `moonGetHeavy` (posts totales,
-   posts válidos y mínimo requerido) con el estado "Cumple" o "No cumple" en texto,
-   y debajo las advertencias en `.aviso.err`.
-3. **Ajustes** (`.af-field` en filas `flex-wrap`): `<select>` de tier rotulado "Tier N
+2. **Criterios y actividad**: una cuadrícula compacta de ajustes (`.af-field`): `<select>` de tier rotulado "Tier N
    (M posts por participante)", con el de la solicitud marcado "por defecto";
    `<select>` de extra por jugadores (0 a 50); número de participantes para los
-   mínimos. Cada cambio hace `hx-get` a `analizar` con `hx-include` del bloque de
-   ajustes y `hx-target` del bloque 4.
-4. **Destinatarios y previsualización**: una fila por destinatario, narradores
+   mínimos. La misma sección muestra posts totales, válidos, mínimo requerido y
+   estado "Cumple" o "No cumple". Cada cambio actualiza automáticamente el panel
+   mediante HTMX; "Actualizar vista previa" queda como acción explícita.
+3. **Destinatarios y previsualización**: una fila por destinatario, narradores
    primero, con el patrón de filas alternas (`#ffe59b`, `#ffeed2`): casilla
    "Incluir", nombre de ficha, rol, posts válidos, porcentaje y recompensas
    calculadas (experiencia, nikas, berries, reputación, cofre, kuros por exceso).
@@ -1728,20 +2215,25 @@ configuración de §5.1. Los bloques, de arriba abajo:
    para jugadores, `<select>` de reputación (positiva, negativa, ninguna). Los
    avisos propios de una fila (sin ficha, nivel de narrador desconocido, escribió
    sin estar en la solicitud, sin posts) salen en la misma fila con texto.
-5. **Acciones**: si no se cumplen los posts mínimos, una casilla "Confirmo pagar
+4. **Validación y acciones**: advertencias y bloqueos aparecen en un único resumen,
+   indicando cuáles impiden pagar. Si no se cumplen los posts mínimos, una casilla "Confirmo pagar
    aunque no se cumplen los posts mínimos". El único `.btn-op--primario`: "Pagar"
-   (`hx-post` a `pagar`, con `hx-confirm` y `hx-disabled-elt`; deshabilitado, en
-   `--opg-gris-bloqueado` y sin hover, mientras falte la casilla). Un
+   abre un diálogo propio que resume la acción; la confirmación dentro del diálogo
+   ejecuta `pagar`. El botón queda deshabilitado, en `--opg-gris-bloqueado` y sin
+   hover, mientras existan bloqueos, y muestra el motivo al lado. Una barra de
+   acciones adherente mantiene visibles actualizar, pagar y rechazar. Un
    `.opg-chip.chip-peligro` "Rechazar" carga `form_rechazar` con un `textarea` de
    motivo (500, obligatorio) y un `.btn-op--sm.btn-op--peligro` "Confirmar rechazo".
-   Si quien consulta es parte de la solicitud, ambas se muestran deshabilitadas con
-   "No puedes resolver una aventura en la que participas".
+   El gestor puede usar ambas acciones aunque forme parte de la solicitud.
 6. **Entrega interrumpida**: la lista de destinatarios con "Pagado" o "Falta" (texto,
    no solo color), el botón "Completar entrega" (`completar`) y, si hay un pago con
    experiencia dudosa, las dos opciones "La experiencia ya se aplicó" y "Aplicar la
    experiencia" (`xp_dudosa`).
-7. **Entrega ya pagada**: lo recibido por cada destinatario, el tier y la fecha, sin
+6. **Entrega ya pagada**: lo recibido por cada destinatario, el tier y la fecha, sin
    acciones; los controles de los bloques 3 a 5 no se renderizan.
+
+Las etiquetas de campo usan mayúsculas normales, se reducen bordes anidados y, a
+700 px o menos, cada fila de destinatario se convierte en una tarjeta vertical.
 
 ### 6.5 Acento por estado
 
@@ -1786,8 +2278,9 @@ negros, que son los que hacen legible el texto blanco sobre naranja.
 - `listar` pagina con `LIMIT 20` y usa `idx_estado`, `idx_narrador_uid` e
   `idx_created_at`. Una sola consulta con `LEFT JOIN mybb_users` y
   `LEFT JOIN mybb_forums`, sin consultas en bucle.
-- El conteo de límites restringe primero por `estado IN (0,1,4)`; el
-  `JSON_CONTAINS` se evalúa sobre ese subconjunto.
+- El conteo de límites restringe primero por `estado IN (0,1,4)` y resuelve la
+  participación mediante `idx_uid_peticion`; las excepciones de migración usan
+  el fallback JSON de manera temporal y explícita.
 - No hay `CREATE TABLE` ni `ALTER TABLE` en tiempo de ejecución.
 - Los typeaheads limitan resultados (20 fichas, 30 islas), usan *debounce* de
   250 ms y cancelan la petición anterior (`hx-sync`).
@@ -1944,13 +2437,14 @@ staff antes de dar el arreglo por bueno.
    libera el tema, se corrige, se reenvía con `intentos` incrementado y vuelve a
    pendiente. Quien no es el narrador asignado recibe `403`.
 12. **Análisis y pago (consola).** Con un tema de prueba con posts de 299, 300 y
-   más caracteres, etiquetas HTML y `[narrador]`: se detecta el narrador, los
+   más caracteres y etiquetas HTML: el narrador se toma de la entrega, los
    posts válidos cuentan solo desde 300 caracteres sin etiquetas, y los
    porcentajes coinciden con la función `calcularPorcentajeBase` del template para
    los tiers 1 a 10 (con menos, igual y más posts de los esperados; límites de 150 y
-   de 200; extra por jugadores de 0 a 50; variación de posts de -100 a 100). El tier
+   de 200; extra por jugadores de 0 a 50; variación de posts de -100 a 100). La
+   etiqueta `[Narrador]`, si aparece en un mensaje antiguo, se ignora. El tier
    por defecto es el de la solicitud y se puede cambiar. El nivel del narrador sale
-   de su ficha. Sin narradores detectados no se puede pagar. Con posts mínimos sin
+   de su ficha. Con posts mínimos sin
    cumplir hace falta la confirmación, tanto en la interfaz como en el servidor.
    Excluir a un destinatario lo deja fuera del pago. Un porcentaje enviado por el
    cliente se ignora. La reputación por defecto es la del narrador y se puede
@@ -1972,16 +2466,16 @@ staff antes de dar el arreglo por bueno.
    repetir nikas, berries, cofres ni experiencia) y reintenta la publicación si faltó.
    Un pago con experiencia dudosa no se repite y obliga a elegir. La herramienta
    antigua rechaza un tema que la nueva pagó, y la nueva rechaza uno que la antigua
-   pagó. Quien participa en la aventura no puede pagar ni rechazar. Rechazar sin
-   motivo falla. Un usuario sin permisos no puede llamar a las acciones de entrega.
+   pagó. Un gestor puede pagar o rechazar aunque participe. Rechazar sin motivo
+   falla. Un usuario sin permisos no puede llamar a las acciones de entrega.
 15. **Ventana de postulación.** "Postularme como narrador" abre la ventana con los
    datos de la solicitud. Enviar sin la casilla (petición directa con
    `confirmo` ausente o distinto de 1) responde `422` y no cambia nada. Cancelar
    cierra la ventana sin cambios. Confirmar con la casilla marcada asigna al
    narrador y lleva la solicitud a estado 0. El usuario creador o participante
    no puede postularse. La ventana tiene `role="dialog"` y `aria-modal`.
-16. **Pestañas y vacío.** Las pestañas están en el orden Mis aventuras, Otras
-   aventuras, Solicitar aventura y Narradores & Narrados, y la página se abre en Mis aventuras. Un
+16. **Pestañas y vacío.** Las pestañas están en el orden Mis aventuras, Solicitar
+   aventura, Narradores & Narrados y Otras aventuras, y la página se abre en Mis aventuras. Un
    usuario sin ninguna aventura ve la recomendación con el botón hacia Solicitar
    aventura; un usuario con aventuras y filtros sin resultados ve solo la lista
    vacía. Con el estado 5 como única solicitud del usuario, se le recomienda

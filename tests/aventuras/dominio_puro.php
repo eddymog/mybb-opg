@@ -75,6 +75,11 @@ foreach (array(array(2, 0), array(2, 1), array(3, 1), array(3, 0), array(4, 1), 
 }
 prueba('clave de estado', opg_av_estado_desde_clave('pendiente-narrador'), 4);
 prueba('clave desconocida', opg_av_estado_desde_clave('x'), null);
+prueba('etiquetas estadísticas compartidas', opg_av_etiquetas_estadisticas(), array(
+    'total' => 'Total', 'creado' => 'En revisión', 'pendiente-narrador' => 'Buscando narrador',
+    'aprobado' => 'Aprobadas', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas',
+    'pendiente-borrado' => 'Pendientes de borrado',
+));
 
 // ── Utilidades ───────────────────────────────────────────────────────────────
 prueba('enteros únicos', opg_av_enteros(array('3', 3, '5', 'a', -1, 0, '5x', 7)), array(3, 5, 7));
@@ -181,7 +186,7 @@ prueba('narrador del staff puede gestionar', opg_av_puede_gestionar(60), true);
 prueba('mod puede gestionar', opg_av_puede_gestionar(1), true);
 prueba('usuario no puede gestionar', opg_av_puede_gestionar(99), false);
 prueba('invitado no puede gestionar', opg_av_puede_gestionar(0), false);
-prueba('staff parte no puede resolver', opg_av_puede_resolver($av, 5), false);
+prueba('staff parte puede resolver', opg_av_puede_resolver($av, 5), true);
 prueba('staff ajeno puede resolver', opg_av_puede_resolver($av, 50), true);
 prueba('narrador del staff ajeno puede resolver', opg_av_puede_resolver($av, 60), true);
 prueba('usuario ajeno no puede resolver', opg_av_puede_resolver($av, 99), false);

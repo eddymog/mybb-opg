@@ -37,6 +37,15 @@ $day_input = $mybb->get_input('day_input');
 $estacion_input = $mybb->get_input('estacion_input');
 $year_input = $mybb->get_input('year_input');
 
+// Aventura a vincular al tema (solo si el tipo de tema es Aventura). La etiqueta solo se usa para volver a pintar el campo.
+$aventura_input = $mybb->get_input('aventura_id', MyBB::INPUT_INT);
+$aventura_etiqueta_input = my_substr($mybb->get_input('aventura_etiqueta'), 0, 160);
+$aventura_texto_input = my_substr($mybb->get_input('aventura_texto'), 0, 60);
+$aviso_aventura = '';
+$aventura_texto_html = htmlspecialchars_uni($aventura_texto_input);
+$aventura_id_html = $aventura_input > 0 ? (string)$aventura_input : '';
+$aventura_etiqueta_html = htmlspecialchars_uni($aventura_etiqueta_input);
+
 $is_mundo_rol = false;
 
 
@@ -424,6 +433,36 @@ if($mybb->input['action'] == "do_newthread" && $mybb->request_method == "post")
 		$post_errors = $posthandler->get_friendly_errors();
 	}
 
+	// Aventura elegida (solo con el tipo de tema Aventura): si se pide, tiene que valer. Con el campo vacío no se comprueba nada.
+		$prefijo_aventura = $mybb->get_input('threadprefix', MyBB::INPUT_INT);
+		$aventura_vincular = ($mybb->user['uid'] && in_array($prefijo_aventura, array(3, 9), true) && $new_thread['savedraft'] != 1);
+	if($aventura_vincular)
+	{
+		$texto_aventura = ltrim(trim($aventura_texto_input), '#');
+		if($aventura_input <= 0 && $texto_aventura !== '')
+		{
+			if(ctype_digit($texto_aventura))
+			{
+				$aventura_input = (int)$texto_aventura;
+			}
+			else
+			{
+				$post_errors[] = "Elige una aventura de la lista o borra el campo de aventura.";
+			}
+		}
+		if($aventura_input > 0)
+		{
+			require_once MYBB_ROOT."inc/plugins/lib/aventuras.php";
+			require_once MYBB_ROOT."inc/plugins/lib/recompensas_aventura.php";
+			require_once MYBB_ROOT."inc/plugins/lib/aventuras_entregas.php";
+				foreach(opg_av_validar_para_tema($aventura_input, (int)$mybb->user['uid'], $forum['parentlist'], $prefijo_aventura) as $error_aventura)
+			{
+				$post_errors[] = htmlspecialchars_uni($error_aventura);
+			}
+		}
+		$aventura_id_html = $aventura_input > 0 ? (string)$aventura_input : '';
+	}
+
 	// Check captcha image
 	if($mybb->settings['captchaimage'] && !$mybb->user['uid'])
 	{
@@ -462,6 +501,25 @@ if($mybb->input['action'] == "do_newthread" && $mybb->request_method == "post")
 		$db->query(" 
 			UPDATE `mybb_threads` SET `year`='$year_input',`estacion`='$estacion_input',`day`='$day_input' WHERE tid='$tid'
 		");
+
+		// Vincular el tema a la aventura elegida. Si falla, el tema se crea igualmente y se avisa en la redirección.
+		if($aventura_vincular && $aventura_input > 0)
+		{
+			require_once MYBB_ROOT."inc/plugins/lib/aventuras.php";
+			require_once MYBB_ROOT."inc/plugins/lib/recompensas_aventura.php";
+			require_once MYBB_ROOT."inc/plugins/lib/aventuras_entregas.php";
+			$vinculo = opg_av_vincular($aventura_input, $tid, (int)$mybb->user['uid']);
+			if(!empty($vinculo['ok']))
+			{
+				$aviso_aventura = " Aventura #".$aventura_input." vinculada al tema.";
+			}
+			else
+			{
+				$motivos = !empty($vinculo['errores']) ? implode(' ', $vinculo['errores']) : 'No se pudo vincular.';
+				$aviso_aventura = " El tema se creó, pero no se pudo vincular a la aventura #".$aventura_input.": ".htmlspecialchars_uni($motivos)." Puedes vincularlo desde el tablón de aventuras.";
+				$force_redirect_aventura = true;
+			}
+		}
 
 		// Invalidate solved captcha
 		if($mybb->settings['captchaimage'] && !$mybb->user['uid'])
@@ -529,6 +587,12 @@ if($mybb->input['action'] == "do_newthread" && $mybb->request_method == "post")
 		}
 
 		$plugins->run_hooks("newthread_do_newthread_end");
+
+		$lang->redirect_newthread .= $aviso_aventura;
+		if(!empty($force_redirect_aventura))
+		{
+			$force_redirect = true;
+		}
 
 		// Hop to it! Send them to the next page.
 		if(!$mybb->get_input('postpoll', MyBB::INPUT_INT))

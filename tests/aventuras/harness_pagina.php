@@ -41,5 +41,6 @@ $fuente = preg_replace('/^require(_once)? "\.\/\.\.\/(\.\.\/)?global\.php";\s*$/
 $fuente = preg_replace('/^require "\.\/\.\.\/(\.\.\/)?inc\/config\.php";\s*$/m', '', $fuente);
 $fuente = preg_replace('/^require_once "\.\/(\.\.\/)?functions\/op_functions\.php";\s*$/m', '', $fuente);
 $fuente = preg_replace('/^require_once "\.\/\.\.\/functions\/op_functions\.php";\s*$/m', '', $fuente);
+$fuente = preg_replace('/^require_once "\.\/\.\.\/op\/functions\/op_functions\.php";\s*$/m', '', $fuente);
 $fuente = str_replace('header(', 'hdr_capturar(', $fuente);
 eval($fuente);

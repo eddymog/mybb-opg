@@ -33,14 +33,22 @@ function op_tasks_info()
 }
 
 if (defined('IN_ADMINCP')) {
-    function op_tasks_install()
+    function op_tasks_asegurar_tarea($file, $datos)
     {
         global $db;
-        if (!op_tasks_is_installed()) {
-            $new_task = array(
+        $query = $db->simple_select('tasks', 'tid', "file='" . $db->escape_string($file) . "'");
+        if (!$db->fetch_field($query, 'tid')) {
+            $datos['file'] = $file;
+            $datos['nextrun'] = 0;
+            $db->insert_query('tasks', $datos);
+        }
+    }
+
+    function op_tasks_install()
+    {
+        op_tasks_asegurar_tarea('op_worldtick', array(
                 'title'       => 'OPG: Resolver colas (worldtick)',
                 'description' => 'Resuelve entrenamientos de estadística, oficio y técnicas cuyo tiempo ya venció.',
-                'file'        => 'op_worldtick',
                 'minute'      => '0,5,10,15,20,25,30,35,40,45,50,55',
                 'hour'        => '*',
                 'day'         => '*',
@@ -48,10 +56,18 @@ if (defined('IN_ADMINCP')) {
                 'weekday'     => '*',
                 'enabled'     => 1,
                 'logging'     => 1,
-            );
-            $new_task['nextrun'] = 0;
-            $db->insert_query('tasks', $new_task);
-        }
+        ));
+        op_tasks_asegurar_tarea('aventurasux', array(
+            'title'       => 'OPG: Mantenimiento de aventuras',
+            'description' => 'Normaliza participantes y procesa vencimientos y avisos del tablón de aventuras.',
+            'minute'      => '15',
+            'hour'        => '*',
+            'day'         => '*',
+            'month'       => '*',
+            'weekday'     => '*',
+            'enabled'     => 1,
+            'logging'     => 1,
+        ));
     }
 
     function op_tasks_is_installed()
@@ -64,9 +80,9 @@ if (defined('IN_ADMINCP')) {
     function op_tasks_uninstall()
     {
         global $db;
-        $db->delete_query('tasks', "file='op_worldtick'");
+        $db->delete_query('tasks', "file IN ('op_worldtick','aventurasux')");
     }
 
-    function op_tasks_activate() {}
+    function op_tasks_activate() { op_tasks_install(); }
     function op_tasks_deactivate() {}
 }

@@ -25,17 +25,17 @@ limpiar();
 $S = ins(3, 8, 0, array(3, 5));
 prueba('invitado no puede aprobar', opg_av_cambiar_estado($S, 1, 0)['codigo'], 403);
 prueba('usuario normal no puede aprobar', opg_av_cambiar_estado($S, 1, 9)['codigo'], 403);
-prueba('el narrador usuario no puede aprobar su propia aventura', opg_av_cambiar_estado($S, 1, 8)['codigo'], 403);
+prueba('el narrador usuario sin permiso de gestión no puede aprobar', opg_av_cambiar_estado($S, 1, 8)['codigo'], 403);
 $GLOBALS['roles']['staff'][] = 3;   // el creador es staff
-prueba('el staff que es creador no puede aprobarla', opg_av_cambiar_estado($S, 1, 3)['codigo'], 403);
+prueba('el staff creador puede resolverla', opg_av_puede_resolver(opg_av_obtener($S), 3), true);
 $GLOBALS['roles']['narra'][] = 5;   // un participante es narrador del staff
-prueba('el narrador del staff que participa no puede aprobarla', opg_av_cambiar_estado($S, 1, 5)['codigo'], 403);
+prueba('el narrador del staff participante puede resolverla', opg_av_puede_resolver(opg_av_obtener($S), 5), true);
 prueba('un estado inválido se rechaza', opg_av_cambiar_estado($S, 9, 50)['codigo'], 422);
 prueba('no se puede finalizar una solicitud que no está aprobada', opg_av_cambiar_estado($S, 3, 50)['codigo'], 409);
-$r = opg_av_cambiar_estado($S, 1, 50);
-prueba('el staff ajeno aprueba', array($r['ok'], estado_de($S)), array(true, 1));
+$r = opg_av_cambiar_estado($S, 1, 3);
+prueba('el staff creador aprueba', array($r['ok'], estado_de($S)), array(true, 1));
 prueba('aprobar otra vez es un conflicto', opg_av_cambiar_estado($S, 1, 50)['codigo'], 409);
-prueba('el narrador del staff ajeno puede finalizar', array(opg_av_cambiar_estado($S, 3, 60)['ok'], estado_de($S)), array(true, 3));
+prueba('el narrador del staff participante puede finalizar', array(opg_av_cambiar_estado($S, 3, 5)['ok'], estado_de($S)), array(true, 3));
 prueba('una finalizada no vuelve a aprobarse', opg_av_cambiar_estado($S, 1, 50)['codigo'], 409);
 prueba('aprobar auditado', (int) una("SELECT COUNT(*) AS n FROM mybb_op_audit_aventuras WHERE accion='cambiar_estado' AND peticion_id = $S")['n'], 2);
 
@@ -79,15 +79,25 @@ prueba('no se elimina una que no está en estado 5', opg_av_eliminar($noB, 50)['
 // ── Postularse y salirse ─────────────────────────────────────────────────────
 limpiar();
 $sn = ins(3, null, 4, array(3, 5), array('idea_narrador' => 'Idea'));
-prueba('postularse sin confirmar', opg_av_postular_narrador($sn, 8, false)['codigo'], 422);
 prueba('postularse sin ficha', opg_av_postular_narrador($sn, 7, true)['codigo'], 403);
 prueba('el creador no se postula', opg_av_postular_narrador($sn, 3, true)['codigo'], 403);
 prueba('un participante no se postula', opg_av_postular_narrador($sn, 5, true)['codigo'], 403);
 prueba('postularse a una que no existe', opg_av_postular_narrador(99999, 8, true)['codigo'], 404);
 $r = opg_av_postular_narrador($sn, 8, true);
 $f = fila($sn);
-prueba('postularse', array($r['ok'], (int) $f['estado'], (int) $f['narrador_uid'], (int) $f['narrador_fid'], $f['narrador_nombre']), array(true, 0, 8, 8, 'Robin'));
-prueba('un segundo narrador no la toma', opg_av_postular_narrador($sn, 9, true)['codigo'], 409);
+prueba('postularse crea candidatura sin asignar', array($r['ok'], (int) $f['estado'], $f['narrador_uid']), array(true, 4, null));
+$notificacion = una("SELECT * FROM mybb_op_aventuras_notificaciones WHERE peticion_id = $sn AND uid = 3 AND tipo = 'candidatura_nueva'");
+prueba('la candidatura notifica al creador una sola vez', array((bool) $notificacion, opg_av_notificaciones_contar(3)), array(true, 1));
+prueba('otro usuario no puede marcar la notificación', opg_av_notificacion_leer($notificacion['id'], 5)['codigo'], 404);
+prueba('el destinatario puede marcarla y no repetir la acción', array(opg_av_notificacion_leer($notificacion['id'], 3)['ok'], opg_av_notificaciones_contar(3), opg_av_notificacion_leer($notificacion['id'], 3)['codigo']), array(true, 0, 404));
+$p8 = una("SELECT * FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $sn AND narrador_uid = 8");
+prueba('puede haber otra candidatura pendiente', opg_av_postular_narrador($sn, 9, true)['ok'], true);
+prueba('solo el creador acepta candidatura', opg_av_propuesta_aceptar($p8['id'], 5)['codigo'], 403);
+prueba('el creador acepta candidatura', opg_av_propuesta_aceptar($p8['id'], 3)['ok'], true);
+$f = fila($sn);
+prueba('aceptar candidatura asigna narrador', array((int) $f['estado'], (int) $f['narrador_uid'], $f['narrador_nombre']), array(0, 8, 'Robin'));
+prueba('las demás propuestas se cancelan', una("SELECT estado FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $sn AND narrador_uid = 9")['estado'], 'cancelada');
+prueba('el candidato descartado recibe una notificación', (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_notificaciones WHERE peticion_id = $sn AND uid = 9 AND tipo = 'propuesta_cancelada'")['n'], 1);
 prueba('postularse a una con narrador', opg_av_postular_narrador($sn, 10, true)['codigo'], 409);
 
 // Salirse
@@ -100,7 +110,9 @@ $f = fila($sn);
 prueba('salirse deja la solicitud en estado 4 sin narrador y con motivo', array($r['ok'], (int) $f['estado'], $f['narrador_uid'], $f['narrador_fid'], $f['narrador_nombre'], $f['motivo_renuncia']), array(true, 4, null, null, null, 'Me quedé sin tiempo'));
 prueba('conserva la idea', $f['idea_narrador'], 'Idea');
 prueba('el motivo de renuncia se expone en estado 4', opg_av_obtener($sn)['motivo_renuncia'], 'Me quedé sin tiempo');
-prueba('otro narrador puede postularse y el motivo se borra', array(opg_av_postular_narrador($sn, 9, true)['ok'], fila($sn)['motivo_renuncia']), array(true, null));
+prueba('otro narrador puede enviar candidatura', opg_av_postular_narrador($sn, 9, true)['ok'], true);
+$p9 = una("SELECT * FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $sn AND narrador_uid = 9 AND estado = 'pendiente'");
+prueba('aceptar al nuevo narrador borra el motivo', array(opg_av_propuesta_aceptar($p9['id'], 3)['ok'], fila($sn)['motivo_renuncia']), array(true, null));
 // Salirse de una aprobada con URL: pierde la aprobación y conserva la URL
 sql("UPDATE mybb_op_peticionAventuras SET estado = 1, aventura_url = 'https://onepiecegaiden.com/showthread.php?tid=555' WHERE id = $sn");
 $r = opg_av_renunciar_narrador($sn, 9, true, 'Otro motivo');
@@ -131,11 +143,13 @@ prueba('editar conserva el estado 4 sin narrador', (int) $f['estado'], 4);
 $aud = una("SELECT detalle_json FROM mybb_op_audit_aventuras WHERE accion='editar' AND peticion_id = $E ORDER BY id DESC LIMIT 1");
 $det = json_decode($aud['detalle_json'], true);
 prueba('la auditoría de editar guarda solo lo que cambió', array_keys($det['despues']) === array('participantes', 'idea_narrador', 'dia', 'tier', 'comentario_publico', 'inframundo') || count($det['despues']) >= 5, true);
-// Nombrar narrador: 4 -> 0 y se borra el motivo de renuncia
+// Nombrar narrador: crea invitación y se borra el motivo de renuncia
 sql("UPDATE mybb_op_peticionAventuras SET motivo_renuncia = 'Antiguo' WHERE id = $E");
 $r = opg_av_editar($E, entrada_b(array('participantes' => array(5, 6), 'tiene_narrador' => '1', 'narrador_fid' => 8)), 3);
 $f = fila($E);
-prueba('nombrar narrador al editar: pasa a 0, asigna y borra el motivo de renuncia', array($r['ok'], (int) $f['estado'], (int) $f['narrador_uid'], $f['motivo_renuncia'], $f['idea_narrador']), array(true, 0, 8, null, null));
+prueba('nombrar narrador al editar: invita sin asignar y borra el motivo', array($r['ok'], (int) $f['estado'], $f['narrador_uid'], $f['motivo_renuncia'], $f['idea_narrador']), array(true, 4, null, null, null));
+$pe = una("SELECT * FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $E AND estado = 'pendiente'");
+prueba('aceptar invitación editada asigna narrador', opg_av_propuesta_aceptar($pe['id'], 8)['ok'], true);
 // Quitar narrador: 0 -> 4
 $r = opg_av_editar($E, entrada_b(array('participantes' => array(5, 6), 'tiene_narrador' => '0', 'idea' => 'Vuelvo a buscar')), 3);
 $f = fila($E);

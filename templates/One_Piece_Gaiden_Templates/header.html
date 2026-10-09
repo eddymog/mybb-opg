@@ -990,11 +990,67 @@ function checkUnreadMessages() {
 			One Piece Gaiden actualmente está en un proceso de Reset. 
 		</span>
 	</div> -->
-	<if $g_is_staff then>
-		<div id="peticiones_staff" style="text-align: center;width: 1100px;margin: auto;height: 27px;background-color: #ff7e00;box-shadow: 0px 1px 2px black;background-image: linear-gradient(#ff7e00, #c66c0f);">
-			<span style="color: white !important;font-family: 'LemonMilkMedium';font-size: 21px;text-shadow: 1px 1px 1px black;position: relative;top: -3px;letter-spacing: 1px;">
-				<a href="https://onepiecegaiden.com/op/staff/fichas_en_cola.php">Fichas</a>: {$g_fichas_en_cola} | <a href="https://onepiecegaiden.com/op/staff/peticiones_admin.php">Peticiones</a>: {$g_peticiones} | <a href="https://onepiecegaiden.com/op/staff/peticiones_bugs.php">Bugs</a>: {$g_peticiones_bug} | <a href="/op/staff/solicitudes_creacion.php">Creaciones</a>: {$op_solicitudes_creacion_pendientes} | <a href="https://onepiecegaiden.com/op/staff/avisos.php">Avisos:</a> {$g_peticiones_avisos}
-			</span>
+	<if $g_is_staff || $g_is_narra then>
+		<style>
+		/* Barra de pendientes del staff (prefijo ps-): misma estructura que #op-temas-header (bitácora), pegada a lo que tenga debajo */
+		.ps-barra {
+			display: grid; grid-template-columns: minmax(170px, 1fr) auto minmax(170px, 1fr); align-items: stretch;
+			box-sizing: border-box; width: min(1100px, calc(100% - 20px)); height: 30px; margin: 0 auto; overflow: hidden;
+			border: 2px solid var(--opg-tinta); border-right: 0; border-left: 0; border-top: 3px solid var(--opg-naranja-accion);
+			background: var(--opg-crema-clara); box-shadow: 0 2px 0 var(--opg-tinta); text-align: left;
+		}
+		.ps-marca, .ps-meta { display: flex; align-items: center; min-width: 0; padding: 1px 8px; }
+		.ps-marca { gap: 6px; }
+		.ps-icono {
+			display: inline-grid; place-items: center; flex: 0 0 19px; width: 19px; height: 19px; margin-top: -4px;
+			border: 1px solid var(--opg-tinta); border-radius: 3px; color: #fff; background: var(--opg-morado-cta);
+			box-shadow: 1px 1px 0 var(--opg-tinta); font-size: 9px;
+		}
+		.ps-marca strong { color: var(--opg-morado-texto); font: 10px var(--opg-fuente-titular); letter-spacing: 0; }
+		.ps-marca > small { overflow: hidden; color: var(--opg-gris-texto); font: 8px InterMedium, var(--opg-fuente-cuerpo); text-overflow: ellipsis; white-space: nowrap; }
+		.ps-conteos { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(86px, 1fr); border-right: 2px solid var(--opg-tinta); border-left: 2px solid var(--opg-tinta); background: #fff; }
+		.ps-barra a.ps-cont:link, .ps-barra a.ps-cont:visited {
+			display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 5px; padding: 1px 7px;
+			color: var(--opg-marron) !important; text-decoration: none; transition: background var(--opg-rapido);
+		}
+		.ps-barra a.ps-cont + a.ps-cont { border-left: 1px solid rgba(0, 0, 0, .2); }
+		.ps-barra a.ps-cont:hover, .ps-barra a.ps-meta:hover { background: var(--opg-crema-dorada); }
+		.ps-cont small { font: 8px var(--opg-fuente-titular); letter-spacing: 0; text-transform: uppercase; }
+		.ps-cont b { color: var(--opg-gris-bloqueado); font: 15px var(--opg-fuente-titular); letter-spacing: 0; }
+		.ps-cont.ps-pendiente b { color: var(--opg-naranja-accion); }
+		.ps-barra a.ps-meta:link, .ps-barra a.ps-meta:visited { justify-content: flex-end; gap: 7px; color: var(--opg-gris-texto) !important; text-decoration: none; transition: background var(--opg-rapido); }
+		.ps-meta small { font: 8px InterMedium, var(--opg-fuente-cuerpo); white-space: nowrap; }
+		.ps-meta > i { color: var(--opg-morado-texto); font-size: 9px; transition: transform var(--opg-rapido); }
+		.ps-barra a.ps-meta:hover > i { transform: translateX(2px); }
+		.ps-barra a:focus-visible { outline: none; box-shadow: inset var(--opg-foco); }
+		@media (prefers-reduced-motion: reduce) { .ps-meta > i { transition: none; } }
+		@media (max-width: 700px) {
+			.ps-barra { grid-template-columns: auto 1fr; overflow-x: auto; }
+			.ps-marca > small, .ps-meta { display: none; }
+			.ps-conteos { grid-auto-columns: minmax(64px, 1fr); border-right: 0; }
+		}
+		</style>
+		<div id="peticiones_staff" class="ps-barra">
+			<div class="ps-marca">
+				<span class="ps-icono"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+				<strong><if $g_is_staff then>Staff<else>Narración</if></strong>
+				<small>Pendientes por resolver</small>
+			</div>
+			<nav class="ps-conteos" aria-label="Trabajo pendiente">
+				<if $g_is_staff then>
+				<a class="ps-cont<if $g_fichas_en_cola != 0 then> ps-pendiente</if>" href="https://onepiecegaiden.com/op/staff/fichas_en_cola.php"><small>Fichas</small><b>{$g_fichas_en_cola}</b></a>
+				<a class="ps-cont<if $g_peticiones != 0 then> ps-pendiente</if>" href="https://onepiecegaiden.com/op/staff/peticiones_admin.php"><small>Peticiones</small><b>{$g_peticiones}</b></a>
+				<a class="ps-cont<if $g_peticiones_bug != 0 then> ps-pendiente</if>" href="https://onepiecegaiden.com/op/staff/peticiones_bugs.php"><small>Bugs</small><b>{$g_peticiones_bug}</b></a>
+				<a class="ps-cont<if $op_solicitudes_creacion_pendientes != 0 then> ps-pendiente</if>" href="/op/staff/solicitudes_creacion.php"><small>Creaciones</small><b>{$op_solicitudes_creacion_pendientes}</b></a>
+				<a class="ps-cont<if $g_peticiones_avisos != 0 then> ps-pendiente</if>" href="https://onepiecegaiden.com/op/staff/avisos.php"><small>Avisos</small><b>{$g_peticiones_avisos}</b></a>
+				</if>
+				<a class="ps-cont<if $g_aventuras_pendientes != 0 then> ps-pendiente</if>" href="{$mybb->settings['bburl']}/op/staff/consola_aventuras.php?tab=solicitudes&amp;estado=creado" title="En revisión: {$g_aventuras_revision} · Entregas: {$g_aventuras_entregas}"><small>Aventuras</small><b>{$g_aventuras_pendientes}</b></a>
+			</nav>
+			<if $g_is_staff then>
+			<a class="ps-meta" href="/op/staff/consola_mod.php"><small>Consola de staff</small><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+			<else>
+			<a class="ps-meta" href="/op/staff/consola_aventuras.php"><small>Consola de aventuras</small><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></a>
+			</if>
 		</div>
 	</if>
   {$op_modo_espejo_banner}

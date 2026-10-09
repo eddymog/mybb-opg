@@ -21,7 +21,7 @@ function tema($tid, $nombre, $db)
     $db->query("SET SESSION sql_mode = ''", 1);
     sql("INSERT INTO mybb_threads (tid, fid, subject, prefix, closed, visible, dateline) VALUES ($tid, 40, '$nombre', 3, 0, 1, " . time() . ")");
     $pid = $tid * 1000;
-    foreach (array(array(8, 'Robin', '[narrador] ' . $msg), array(3, 'Eddy', $msg), array(5, 'Luffy', $msg)) as $p) {
+    foreach (array(array(8, 'Robin', $msg), array(3, 'Eddy', $msg), array(5, 'Luffy', $msg)) as $p) {
         for ($i = 0; $i < 6; $i++) { sql("INSERT INTO mybb_posts (pid, tid, uid, username, message, dateline) VALUES (" . (++$pid) . ", $tid, {$p[0]}, '{$p[1]}', '" . $db->escape_string($p[2]) . "', " . time() . ")"); }
     }
     $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'", 1);
@@ -69,9 +69,19 @@ prueba('cofre una sola vez', (int) una("SELECT cantidad FROM mybb_op_inventario 
 // ── 2. Postulaciones simultáneas ─────────────────────────────────────────────
 $P = ins(3, null, 4, array(3, 5));
 $res = lanzar(array(array('postular', $P, 8), array('postular', $P, 9), array('postular', $P, 10), array('postular', $P, 11)));
-prueba('4 narradores a la vez: solo uno se queda la aventura', count(array_filter($res, function ($r) { return $r['ok']; })), 1);
+prueba('4 narradores pueden postularse a la vez', count(array_filter($res, function ($r) { return $r['ok']; })), 4);
+prueba('quedan cuatro candidaturas pendientes', (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $P AND estado = 'pendiente'")['n'], 4);
+$propuestas = opg_av_todos("SELECT id FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $P ORDER BY id");
+$acciones = array();
+foreach ($propuestas as $propuesta) { $acciones[] = array('aceptar_propuesta', $propuesta['id'], 3); }
+$res = lanzar($acciones);
+prueba('4 aceptaciones simultáneas: solo una adjudica la aventura', count(array_filter($res, function ($r) { return $r['ok']; })), 1);
 $f = fila($P);
 prueba('queda en estado 0 con un único narrador', array((int) $f['estado'], in_array((int) $f['narrador_uid'], array(8, 9, 10, 11), true)), array(0, true));
+prueba('una propuesta queda aceptada y las demás canceladas', array(
+    (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $P AND estado = 'aceptada'")['n'],
+    (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = $P AND estado = 'cancelada'")['n'],
+), array(1, 3));
 
 // ── 3. Aprobaciones simultáneas ──────────────────────────────────────────────
 $A = ins(3, 8, 0, array(3, 5));

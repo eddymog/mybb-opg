@@ -11,6 +11,7 @@ $GLOBALS['roles'] = array('mod' => array(1), 'staff' => array(50), 'narra' => ar
 
 foreach (array(3 => 'Eddy', 5 => 'Luffy', 6 => 'Zoro', 8 => 'Robin', 9 => 'Nami', 12 => 'Franky', 50 => 'Staff', 60 => 'NarraStaff') as $u => $n) { crear_usuario($u, $n); }
 crear_usuario(20, '<img src=x onerror=alert(1)>Mal');
+crear_usuario(21, 'NivelDieciseis', array('nivel' => 16));
 crear_usuario(7, 'SinAprobar', array('aprobada_por' => 'sin_aprobar'));
 $db->query("SET SESSION sql_mode = ''", 1);
 foreach (array(15, 16, 17, 18) as $f) { sql("INSERT INTO mybb_forums (fid, name, pid, parentlist, active, disporder) VALUES ($f, 'Blue $f', 0, '$f', 1, $f)"); }
@@ -19,8 +20,8 @@ sql("INSERT INTO mybb_threads (tid, fid, subject, prefix, closed, visible, datel
 $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'", 1);
 
 $PAG = 'op/tablon_de_aventuras.php';
-$GET_ACC = array('tab', 'buscar_fichas', 'elegir_ficha', 'buscar_islas', 'elegir_isla', 'mis_activas', 'listar', 'sin_narrador', 'contar_sin_narrador', 'narradores_disponibles', 'form_oferta', 'ver', 'form_editar', 'form_postular', 'form_renunciar', 'form_vincular', 'form_entrega', 'buscar_temas', 'elegir_tema', 'quitar_chip', 'quitar_isla', 'cerrar_modal', 'form_participante', 'quitar_narrador');
-$POST_ACC = array('crear', 'editar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega', 'ofrecerme_narrador', 'renovar_oferta', 'retirar_oferta');
+$GET_ACC = array('tab', 'buscar_fichas', 'buscar_modo_vista', 'elegir_ficha', 'buscar_islas', 'elegir_isla', 'mis_activas', 'listar', 'sin_narrador', 'contar_propuestas', 'narradores_disponibles', 'form_oferta', 'ver', 'form_editar', 'form_postular', 'form_renunciar', 'form_vincular', 'form_entrega', 'buscar_temas', 'elegir_tema', 'quitar_chip', 'quitar_isla', 'cerrar_modal', 'form_participante', 'quitar_narrador', 'historial_usuario', 'notificaciones', 'validar_cupos');
+$POST_ACC = array('crear', 'editar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega', 'ofrecerme_narrador', 'renovar_oferta', 'retirar_oferta', 'aceptar_propuesta', 'rechazar_propuesta', 'retirar_propuesta', 'leer_notificacion');
 $todo_html = '';
 $GET_ACC[] = 'quitar_tema';
 function g($accion, $get = array(), $uid = 3) { global $PAG, $todo_html; $r = llamar($PAG, array_merge(array('action' => $accion), $get), array(), $uid, true, 'clave-valida', 'GET'); $todo_html .= $r['cuerpo']; return $r; }
@@ -32,15 +33,41 @@ $r = llamar($PAG, array(), array(), 0, false, null, 'GET');
 prueba('invitado: sin permiso', $r['cuerpo'], 'SIN_PERMISO');
 $r = llamar($PAG, array(), array(), 3, false, null, 'GET');
 prueba('página completa: estado 200 y pestañas', array($r['estado'], contiene($r, 'id="ta-tabs"'), contiene($r, 'Mis aventuras'), contiene($r, 'Otras aventuras'), contiene($r, 'Solicitar aventura')), array(200, true, true, true, true));
+prueba('página completa: guía plegable y concisa de los cuatro flujos', array(contiene($r, 'class="ta-guia"'), contiene($r, 'Cómo funciona el tablón'), contiene($r, 'Mis aventuras</h3>'), contiene($r, 'Solicitar aventura</h3>'), contiene($r, 'Narradores &amp; Narrados</h3>'), contiene($r, 'Consultar aventuras</h3>')), array(true, true, true, true, true, true));
+prueba('la guía aparece entre el encabezado y las pestañas', strpos($r['cuerpo'], 'class="ta-encabezado"') < strpos($r['cuerpo'], 'class="ta-guia"') && strpos($r['cuerpo'], 'class="ta-guia"') < strpos($r['cuerpo'], 'id="ta-tabs"'), true);
+prueba('pestañas con respuesta inmediata, indicador y caché en memoria', array(substr_count($r['cuerpo'], 'hx-indicator="#ta-panel-cargando"'), substr_count($r['cuerpo'], 'hx-sync="#ta-panel:replace"'), contiene($r, 'id="ta-panel-cargando"'), contiene($r, 'aria-label="Cargando sección"'), contiene($r, 'id="ta-panel" aria-busy="false"'), contiene($r, 'tablon_aventuras.js?v=6')), array(4, 4, true, true, true, true));
+$js_tabs = file_get_contents(MYBB_ROOT . 'jscripts/tablon_aventuras.js');
+prueba('caché revalidada se invalida al mutar aventuras', array(strpos($js_tabs, 'mostrarCache(destino)') !== false, strpos($js_tabs, "document.addEventListener('aventuraCreada', invalidarCache)") !== false, strpos($js_tabs, "document.addEventListener('aventuraCambiada', invalidarCache)") !== false, strpos($js_tabs, "config.verb.toLowerCase() !== 'get'") !== false), array(true, true, true, true));
+prueba('cambiar de pestaña no desplaza automáticamente la página', array(strpos($js_tabs, "target.id === 'ta-panel'") === false, strpos($js_tabs, 'scrollIntoView') === false), array(true, true));
+$orden_tabs = array(strpos($r['cuerpo'], '<span>Mis aventuras</span>'), strpos($r['cuerpo'], '<span>Solicitar aventura</span>'), strpos($r['cuerpo'], '<span>Narradores &amp; Narrados</span>'), strpos($r['cuerpo'], '<span>Otras aventuras</span>'));
+prueba('página completa: orden e iconos de las pestañas', array($orden_tabs[0] !== false && $orden_tabs[0] < $orden_tabs[1] && $orden_tabs[1] < $orden_tabs[2] && $orden_tabs[2] < $orden_tabs[3], contiene($r, 'fa-book-open'), contiene($r, 'fa-circle-plus'), contiene($r, 'fa-user-group')), array(true, true, true, true));
+prueba('página completa: encabezado compacto de herramienta', array(contiene($r, '<header class="ta-encabezado">'), contiene($r, '<h1>Tablón de aventuras</h1>')), array(true, true));
+prueba('página completa: novedades visibles en la página y no en un modal', array(contiene($r, 'id="ta-novedades"'), contiene($r, 'No tienes novedades pendientes.'), contiene($r, 'hx-target="#ta-modal" hx-swap="innerHTML"><i class="fa-solid fa-bell"')), array(true, true, false));
+prueba('página completa: las estadísticas son informativas y no botones de filtrado', array(contiene($r, '<div class="ta-estadistica ta-estadistica-total">'), contiene($r, '<button type="button" class="ta-estadistica'), contiene($r, 'ta-estadistica-total" aria-pressed=')), array(true, false, false));
 prueba('página completa: abre en Mis aventuras', contiene($r, 'ta-tab-activa" href="tablon_de_aventuras.php?tab=mias"'), true);
+prueba('la cabecera ofrece el selector de otro personaje', array(contiene($r, '<summary><i class="fa-solid fa-eye"'), contiene($r, 'Ver otro personaje'), contiene($r, 'id="ta-buscar-modo-vista"')), array(true, true, true));
+prueba('el buscador de personaje ocupa todo el desplegable', array(contiene($r, '.ta-selector-vista .opg-buscar-caja { position: relative; display: block; width: 100%; }'), contiene($r, '.ta-selector-vista input[type="search"]'), contiene($r, 'placeholder="Buscar por nombre o FID"')), array(true, true, true));
 prueba('página completa: carga HTMX con versión y envía el post_code', array(contiene($r, 'jscripts/htmx/htmx.min.js?v=2.0.4'), contiene($r, '{"X-Post-Key":"clave-valida"}')), array(true, true));
+prueba('página completa: identifica el body propio del tablón', contiene($r, '<body class="ta-pagina-tablon"'), true);
+prueba('página completa: el fondo de los modales no hereda el hover morado de los botones', array(contiene($r, '.ta-velo-cerrar:hover'), contiene($r, 'background: transparent !important;')), array(true, true));
+prueba('página completa: no oculta banners ni añade hueco artificial en la cabecera', array(contiene($r, 'body.ta-pagina-tablon #logo { display: none; }'), contiene($r, 'body.ta-pagina-tablon #content { padding-top: 62px; }')), array(false, false));
 prueba('página completa: configuración de HTMX sin eval', contiene($r, '"allowEval":false') && contiene($r, '"allowScriptTags":false'), true);
 prueba('página completa: no tiene la pestaña Consola', array(stripos($r['cuerpo'], 'consola') === false), array(true));
 prueba('usuario sin aventuras: recomendación de pedir una', array(contiene($r, 'Todavía no participas en ninguna aventura'), contiene($r, 'Solicitar una aventura')), array(true, true));
 $r = llamar($PAG, array('tab' => 'solicitud'), array(), 3, false, null, 'GET');
 prueba('?tab=solicitud muestra el formulario con tier y día', array(contiene($r, 'name="tier"'), contiene($r, 'name="dia"'), contiene($r, 'Tier 10 (12 posts por participante)')), array(true, true, true));
+prueba('una ficha elegible puede escoger entre aventura y crónica autonarrada',
+    array(contiene($r, 'Tipo de solicitud'), contiene($r, 'Crónica autonarrada')), array(true, true));
+$orden_form = array(strpos($r['cuerpo'], '> Personas</h3>'), strpos($r['cuerpo'], '> Datos de la aventura</h3>'), strpos($r['cuerpo'], '> Descripción</h3>'));
+prueba('solicitud agrupa y ordena el formulario', array($orden_form[0] !== false && $orden_form[0] < $orden_form[1] && $orden_form[1] < $orden_form[2], contiene($r, 'class="ta-propuesta af-field"'), strpos($r['cuerpo'], 'Comentario público') < strpos($r['cuerpo'], 'Propuesta para posibles narradores')), array(true, true, true));
+$r_nivel_16 = llamar($PAG, array('tab' => 'solicitud'), array(), 21, false, null, 'GET');
+prueba('nivel 16 recibe directamente la aventura normal sin mencionar autonarradas',
+    array(contiene($r_nivel_16, 'Tipo de solicitud'), contiene($r_nivel_16, 'Crónica autonarrada'),
+        contiene($r_nivel_16, 'name="tipo" value="normal"'), contiene($r_nivel_16, 'name="tier"')),
+    array(false, false, true, true));
 $r = llamar($PAG, array('tab' => 'otras'), array(), 3, false, null, 'GET');
-prueba('?tab=otras muestra solo listado y estadísticas', array(contiene($r, 'Aventuras sin narrador'), contiene($r, 'Narradores disponibles'), contiene($r, 'id="ta-lista-otras"'), contiene($r, 'id="ta-estadisticas-otras"')), array(false, false, true, true));
+prueba('?tab=otras muestra solo listado y estadísticas por estado', array(contiene($r, 'Aventuras sin narrador'), contiene($r, 'Narradores disponibles'), contiene($r, 'id="ta-lista-otras"'), contiene($r, 'id="ta-estadisticas-otras"'), contiene($r, 'Como narrador'), contiene($r, 'Como jugador')), array(false, false, true, true, false, false));
+prueba('Otras aventuras no muestra Novedades ni duplica el selector dentro del panel', array(contiene($r, 'id="ta-novedades"'), substr_count($r['cuerpo'], 'id="ta-buscar-modo-vista"')), array(false, 1));
 $r = llamar($PAG, array('tab' => 'narradores'), array(), 3, false, null, 'GET');
 prueba('nueva pestaña reúne ofertas y aventuras sin narrador', array(contiene($r, 'Narradores &amp; Narrados'), contiene($r, 'Narradores disponibles'), contiene($r, 'Aventuras sin narrador')), array(true, true, true));
 prueba('sin aventuras sin narrador: aviso vacío y no desaparece el bloque', contiene($r, 'Ahora mismo todas las aventuras tienen narrador.'), true);
@@ -63,10 +90,15 @@ prueba('POST con X-Post-Key inválida: 403', $r['estado'], 403);
 $r = g('tab', array('tab' => 'otras'));
 prueba('las respuestas no se guardan en caché', array(cabecera($r, 'Cache-Control'), cabecera($r, 'Vary')), array('no-store', 'HX-Request'));
 prueba('cambiar de pestaña devuelve el panel y la barra de pestañas fuera de banda', array(contiene($r, 'id="ta-tabs"'), contiene($r, 'hx-swap-oob="true"')), array(true, true));
+prueba('cambiar pestañas retira y recupera Novedades fuera de banda', array(contiene($r, 'id="ta-novedades-slot" hx-swap-oob="innerHTML"'), contiene($r, 'id="ta-novedades"'), contiene(g('tab', array('tab' => 'mias')), 'id="ta-novedades"')), array(true, false, true));
 $r = g('tab', array('tab' => 'otras'));
 prueba('Otras aventuras busca reactivo por ID o personaje', array(contiene($r, 'Buscar por ID o personaje'), contiene($r, 'placeholder="#850 o nombre del personaje"')), array(true, true));
 
 // ── Typeaheads ───────────────────────────────────────────────────────────────
+$r = g('buscar_modo_vista', array('q' => 'Zor'));
+prueba('buscar modo vista devuelve personajes enlazados por FID', array(contiene($r, 'Zoro'), contiene($r, '?modo_vista=6')), array(true, true));
+prueba('buscar modo vista admite FID directo', contiene(g('buscar_modo_vista', array('q' => '5')), 'Luffy'), true);
+prueba('buscar modo vista espera tres letras', g('buscar_modo_vista', array('q' => 'Zo'))['cuerpo'], '');
 $r = g('buscar_fichas', array('q' => 'Zo', 'destino' => 'participante'));
 prueba('buscar fichas: resultado con su acción de elegir', array(contiene($r, 'Zoro'), contiene($r, 'action=elegir_ficha&amp;fid=6&amp;destino=participante')), array(true, true));
 prueba('buscar fichas con 1 letra pide más', contiene(g('buscar_fichas', array('q' => 'Z', 'destino' => 'participante')), 'Escribe al menos 2 letras.'), true);
@@ -81,7 +113,8 @@ prueba('elegir narrador: campo narrador_fid', contiene(g('elegir_ficha', array('
 prueba('buscar islas: solo los hijos directos de los Blues', array(contiene(g('buscar_islas', array('q' => 'Isla')), 'Isla Alfa'), contiene(g('buscar_islas', array('q' => 'Blue')), 'Blue 15')), array(true, false));
 prueba('elegir isla válida oculta el buscador e inválida no deja campo', array(contiene(g('elegir_isla', array('fid' => 40)), 'name="isla_fid" value="40"'), contiene(g('elegir_isla', array('fid' => 40)), 'name="q"'), contiene(g('elegir_isla', array('fid' => 15)), 'name="isla_fid"')), array(true, false, false));
 prueba('quitar isla restaura el buscador', contiene(g('quitar_isla'), 'name="q"'), true);
-prueba('quitar chip y cerrar ventana devuelven vacío', array(g('quitar_chip')['cuerpo'], g('cerrar_modal')['cuerpo']), array('', ''));
+$r = g('quitar_chip');
+prueba('quitar chip actualiza cupos y el botón de envío fuera de banda', array(contiene($r, 'id="ta-estado-cupos"'), contiene($r, 'id="ta-enviar" hx-swap-oob="outerHTML"'), g('cerrar_modal')['cuerpo']), array(true, true, ''));
 
 // ── Solicitar ────────────────────────────────────────────────────────────────
 $valida = array('rol' => 'jugador', 'participantes' => array('5'), 'tiene_narrador' => '0', 'idea' => 'Una idea <b>fuerte</b>', 'isla_fid' => '40', 'dia' => '12', 'tier' => '3', 'comentario' => '<script>alert(1)</script>', 'inframundo' => '1');
@@ -104,23 +137,44 @@ prueba('Mis aventuras muestra la solicitud creada, con la idea y el comentario e
 prueba('tarjeta: acciones del creador (editar y pedir borrado)', array(contiene($r, 'action=form_editar&amp;id=1'), contiene($r, 'action=pedir_borrado&amp;id=1')), array(true, true));
 prueba('tarjeta: el creador no ve postularse', contiene($r, 'form_postular'), false);
 prueba('tarjeta: muestra día, tier e inframundo', array(contiene($r, 'Verano 725, día 12'), contiene($r, 'Tier 3'), contiene($r, 'Inframundo')), array(true, true, true));
+prueba('tarjeta compacta: descripción expandible, acción principal y menú secundario', array(contiene($r, 'ta-descripcion-control'), contiene($r, 'Ver descripción'), contiene($r, 'ta-accion-principal'), contiene($r, 'ta-mas-acciones')), array(true, true, true, true));
+prueba('Mis aventuras permite cambiar entre densidad compacta y expandida', array(contiene($r, 'ta-densidad-compacta'), contiene($r, 'ta-densidad-expandida')), array(true, true));
+$r = g('listar', array('ambito' => 'mias', 'densidad' => 'expandida', 'panel' => '1'));
+prueba('densidad expandida se conserva en el panel y la URL', array(contiene($r, 'ta-densidad-expandida" type="radio" name="densidad" value="expandida" checked'), strpos(cabecera($r, 'HX-Push-Url'), 'densidad=expandida') !== false, contiene($r, 'hx-include=".ta-densidad input:checked"')), array(true, true, true));
 $r = g('listar', array('ambito' => 'mias', 'estado' => 'aprobado'));
 prueba('listar con un filtro sin resultados', contiene($r, 'No hay aventuras con estos filtros.'), true);
 $r = g('tab', array('tab' => 'narradores'), 9);
-prueba('otra usuaria ve la solicitud pendiente en el bloque de sin narrador, con contador y botón de postularse', array(contiene($r, 'Aventuras sin narrador'), contiene($r, 'action=form_postular&amp;id=1'), contiene($r, '<span class="ta-sin-cifra" aria-label="1 esperando narrador">1</span>')), array(true, true, true));
-prueba('el contador de la pestaña', contiene(g('contar_sin_narrador', array(), 9), '>1</span>'), true);
-prueba('el creador no cuenta su propia solicitud', contiene(g('contar_sin_narrador', array(), 3), 'ta-oculto'), true);
+prueba('otra usuaria ve la solicitud pendiente como fila compacta y puede postularse', array(contiene($r, 'Aventuras sin narrador'), contiene($r, 'action=form_postular&amp;id=1'), contiene($r, 'aria-label="1 esperando narrador">1 esperando narrador</span>'), contiene($r, 'class="opg-card ta-sin-fila"'), contiene($r, 'Solicitud #1'), contiene($r, 'Sin tema vinculado')), array(true, true, true, true, true, false));
+prueba('sin propuestas por resolver, la pestaña no muestra insignia ni sección vacía', array(contiene(g('contar_propuestas', array(), 9), 'ta-oculto'), contiene($r, 'Propuestas para narrar')), array(true, false));
 prueba('ver una solicitud ajena en Otras no muestra la nota de staff', contiene(g('ver', array('id' => 1), 9), 'nota_staff'), false);
 
 // ── Postularse ───────────────────────────────────────────────────────────────
+sql("UPDATE mybb_op_peticionAventuras SET comentario_publico = 'Descripción extensa para comprobar que el texto se muestra una sola vez y puede expandirse sin duplicarlo. Esta segunda frase completa el contenido necesario para superar el límite del extracto y activar el control.' WHERE id = 1");
+$r = g('tab', array('tab' => 'narradores'), 9);
+prueba('la descripción larga se muestra una vez y puede expandirse sobre el mismo texto', array(contiene($r, 'Ver más...'), contiene($r, 'Ver menos'), substr_count($r['cuerpo'], 'Descripción extensa para comprobar') === 1, contiene($r, 'ta-sin-descripcion-control')), array(true, true, true, true));
+sql("UPDATE mybb_op_peticionAventuras SET comentario_publico = '' WHERE id = 1");
+$r = g('tab', array('tab' => 'narradores'), 9);
+prueba('una solicitud incompleta sigue admitiendo candidaturas sin mostrar alertas de datos', array(contiene($r, 'Falta comentario público'), contiene($r, 'disabled title="El creador debe completar la solicitud"'), contiene($r, 'action=form_postular&amp;id=1'), contiene(g('form_postular', array('id' => 1), 9), 'Enviar candidatura')), array(false, false, true, true));
+sql("UPDATE mybb_op_peticionAventuras SET comentario_publico = '<script>alert(1)</script>' WHERE id = 1");
 $r = g('form_postular', array('id' => 1), 9);
-prueba('ventana de postulación: diálogo accesible, casilla requerida y datos de la solicitud', array(contiene($r, 'role="dialog"'), contiene($r, 'aria-modal="true"'), contiene($r, 'name="confirmo"'), contiene($r, 'required'), contiene($r, 'Eddy')), array(true, true, true, true, true));
+prueba('ventana de candidatura: diálogo accesible, mensaje y datos de la solicitud', array(contiene($r, 'role="dialog"'), contiene($r, 'aria-modal="true"'), contiene($r, 'class="ta-velo-cerrar" tabindex="-1"'), contiene($r, 'name="mensaje"'), contiene($r, 'Enviar candidatura'), contiene($r, 'Eddy')), array(true, true, true, true, true, true));
 prueba('ventana de postulación: el creador no puede', contiene(g('form_postular', array('id' => 1), 3), 'No puedes postularte'), true);
-$r = p('postular_narrador', array(), 9, array('id' => 1));
-prueba('postular sin la casilla: 422 retarget al aviso de la ventana', array($r['estado'], cabecera($r, 'HX-Retarget')), array(422, '#aviso-modal'));
-$r = p('postular_narrador', array('confirmo' => '1'), 9, array('id' => 1));
-prueba('postular con confirmación: cierra la ventana, quita la tarjeta y avisa', array($r['estado'], contiene($r, 'id="av-1" hx-swap-oob="delete"'), contiene($r, 'Ahora narras la solicitud #1'), cabecera($r, 'HX-Trigger')), array(200, true, true, 'aventuraCambiada'));
-prueba('la solicitud pasó a estado 0 con la narradora', array((int) fila(1)['estado'], (int) fila(1)['narrador_uid']), array(0, 9));
+$r = p('postular_narrador', array('mensaje' => 'Puedo postear cada semana'), 9, array('id' => 1));
+prueba('enviar candidatura cierra la ventana y avisa', array($r['estado'], contiene($r, 'Candidatura enviada'), cabecera($r, 'HX-Trigger')), array(200, true, 'aventuraCambiada'));
+prueba('la candidatura no asigna narradora todavía', array((int) fila(1)['estado'], fila(1)['narrador_uid']), array(4, null));
+prueba('la candidatura alerta al creador pero no a quien la envió', array(contiene(g('contar_propuestas', array(), 3), '>1</span>'), contiene(g('contar_propuestas', array(), 9), 'ta-oculto')), array(true, true));
+$r_propuestas = g('tab', array('tab' => 'narradores'), 3);
+prueba('el creador ve y puede resolver la candidatura recibida', array(contiene($r_propuestas, 'Propuestas para narrar'), contiene($r_propuestas, '#1 · Candidatura'), contiene($r_propuestas, 'action=aceptar_propuesta')), array(true, true, true));
+$r = g('notificaciones', array(), 3);
+prueba('novedades: candidatura aparece en el panel persistente', array(contiene($r, 'id="ta-novedades"'), contiene($r, 'Nueva candidatura de narrador'), contiene($r, 'role="dialog"'), contiene($r, 'hx-target="#ta-novedades"')), array(true, true, false, true));
+$notificacion = una("SELECT id FROM mybb_op_aventuras_notificaciones WHERE uid = 3 AND tipo = 'candidatura_nueva' ORDER BY id DESC LIMIT 1");
+$r = p('leer_notificacion', array(), 3, array('notificacion_id' => $notificacion['id']));
+prueba('novedades: marcar leída actualiza el panel y conserva el historial', array(contiene($r, 'No tienes novedades pendientes.'), contiene($r, 'Historial reciente'), contiene($r, 'Nueva candidatura de narrador'), contiene($r, 'role="dialog"')), array(true, true, true, false));
+$prop = una("SELECT id FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = 1 AND narrador_uid = 9 AND estado = 'pendiente'");
+$r = p('aceptar_propuesta', array(), 3, array('propuesta_id' => $prop['id'], 'tab' => 'mias'));
+prueba('el creador acepta y asigna a la narradora', array($r['estado'], (int) fila(1)['estado'], (int) fila(1)['narrador_uid']), array(200, 0, 9));
+$r = g('tab', array('tab' => 'narradores'), 9);
+prueba('Narradores conserva la propuesta aceptada como historial no accionable', array(contiene($r, 'Aceptada'), contiene($r, '#1 · Candidatura'), contiene($r, 'action=retirar_propuesta')), array(true, true, false));
 prueba('otro intento: conflicto', p('postular_narrador', array('confirmo' => '1'), 12, array('id' => 1))['estado'], 409);
 
 // ── Salirse ──────────────────────────────────────────────────────────────────
@@ -146,20 +200,20 @@ prueba('editar ajena: 403', p('editar', $ed, 9, array('id' => 1))['estado'], 403
 // ── Pedir borrado y ver ──────────────────────────────────────────────────────
 $r = p('pedir_borrado', array(), 3, array('id' => 1));
 prueba('pedir borrado: quita la tarjeta (respuesta sin tarjeta) y avisa', array($r['estado'], contiene($r, 'Pediste el borrado'), contiene($r, 'id="av-1"')), array(200, true, false));
-prueba('estado 5: ya no sale en ninguna pestaña', contiene(g('tab', array('tab' => 'mias'), 3), '#1'), false);
+prueba('estado 5: ya no sale como tarjeta en ninguna pestaña', contiene(g('tab', array('tab' => 'mias'), 3), 'id="av-1"'), false);
 prueba('estado 5: el creador aún puede abrirla, otros no', array(g('ver', array('id' => 1), 3)['estado'], g('ver', array('id' => 1), 9)['estado']), array(200, 404));
 prueba('pedir borrado de una ajena: 403', p('pedir_borrado', array(), 9, array('id' => 1))['estado'], 403);
 
 // ── Mercado de narradores ────────────────────────────────────────────────────
 $r = g('form_oferta', array(), 8);
-prueba('formulario de la oferta', array(contiene($r, 'name="discord"'), contiene($r, 'name="mensaje"'), contiene($r, 'maxlength="64"'), contiene($r, 'maxlength="200"')), array(true, true, true, true));
+prueba('formulario de la oferta incluye campos comparables en una cuadrícula propia', array(contiene($r, 'name="discord"'), contiene($r, 'name="mensaje"'), contiene($r, 'name="frecuencia"'), contiene($r, 'name="tiers[]"'), contiene($r, 'name="estilo"'), contiene($r, 'class="ta-oferta-campos"'), contiene($r, 'class="af-field ta-oferta-mensaje"')), array(true, true, true, true, true, true, true));
 prueba('formulario de la oferta sin ficha: 403', g('form_oferta', array(), 7)['estado'], 403);
 $r = p('ofrecerme_narrador', array('discord' => '', 'mensaje' => 'x'), 8);
 prueba('ofrecerse sin Discord: 422 retarget al aviso de la oferta', array($r['estado'], cabecera($r, 'HX-Retarget')), array(422, '#aviso-oferta'));
-$r = p('ofrecerme_narrador', array('discord' => 'robin#1', 'mensaje' => 'Misterio <i>y</i> aventura'), 8);
-prueba('ofrecerse: devuelve el bloque con la oferta propia, el Discord y el mensaje escapado', array($r['estado'], contiene($r, 'id="ta-narradores"'), contiene($r, 'robin#1'), contiene($r, 'Misterio &lt;i&gt;y&lt;/i&gt; aventura'), contiene($r, 'Vigente')), array(200, true, true, true, true));
+$r = p('ofrecerme_narrador', array('discord' => 'robin#1', 'mensaje' => 'Misterio <i>y</i> aventura', 'frecuencia' => 'semanal', 'tiers' => array('2', '4'), 'estilo' => 'Misterio'), 8);
+prueba('ofrecerse: devuelve oferta propia compacta, sin botón de copiar ni duplicarla en el directorio', array($r['estado'], contiene($r, 'id="ta-narradores"'), substr_count($r['cuerpo'], '>robin#1</span>'), contiene($r, 'data-copiar-discord'), contiene($r, 'ta-mi-oferta-resumen'), contiene($r, 'Misterio &lt;i&gt;y&lt;/i&gt; aventura'), contiene($r, 'Semanal'), contiene($r, 'Tiers 2, 4'), contiene($r, 'Vigente')), array(200, true, 1, false, true, true, true, true, true));
 $r = g('narradores_disponibles', array(), 9);
-prueba('otra usuaria ve la oferta, sin botones de elegir ni de retirar la ajena', array(contiene($r, 'robin#1'), contiene($r, 'retirar_oferta'), contiene($r, 'Contactar'), contiene($r, 'elegir')), array(true, false, false, false));
+prueba('otra usuaria ve la oferta compacta, sin botones de elegir ni de retirar la ajena', array(contiene($r, 'robin#1'), contiene($r, 'ta-narrador-pie'), contiene($r, 'Desde '), contiene($r, 'retirar_oferta'), contiene($r, 'Contactar'), contiene($r, 'elegir')), array(true, true, true, false, false, false));
 prueba('renovar y retirar la propia', array(p('renovar_oferta', array(), 8)['estado'], contiene(p('retirar_oferta', array(), 8), 'Nadie se ha ofrecido como narrador todavía.')), array(200, true));
 prueba('retirar sin oferta: 404', p('retirar_oferta', array(), 8)['estado'], 404);
 
@@ -202,14 +256,36 @@ prueba('después de enviar no ofrece entregar y conserva vincular mientras está
 prueba('el resumen no se muestra a los jugadores en la tarjeta (solo el staff lo ve en la página de recompensas)', contiene(g('ver', array('id' => $A), 8), 'Todo salió bien'), false);
 prueba('segunda entrega: la tarjeta con aviso y conflicto', contiene(p('enviar_entrega', array('tema' => '100', 'resumen' => 'x', 'reputacion' => 'positiva'), 8, array('id' => $A)), 'Ya hay una entrega pendiente'), true);
 
+// ── Buscador de aventuras para newthread.php ────────────────────────────────
+$B1 = ins(3, 8, 1, array(3, 5), array('tier_seleccionado' => 3, 'isla_fid' => 40, 'dia' => 7));
+$B2 = ins(3, 8, 1, array(3), array('tier_seleccionado' => 2, 'isla_fid' => 40, 'aventura_url' => 'https://onepiecegaiden.com/showthread.php?tid=101'));
+$B3 = ins(3, 9, 1, array(3), array('tier_seleccionado' => 1, 'isla_fid' => 41));
+$B4 = ins(3, 8, 0, array(3), array('tier_seleccionado' => 1, 'isla_fid' => 40));
+$r = g('buscar_aventuras', array(), 8);
+prueba('buscar aventuras: solo aprobadas del narrador y sin tema', array($r['estado'], contiene($r, 'data-aventura="' . $B1 . '"'), contiene($r, 'data-aventura="' . $B2 . '"'), contiene($r, 'data-aventura="' . $B3 . '"'), contiene($r, 'data-aventura="' . $B4 . '"')), array(200, true, false, false, false));
+prueba('buscar aventuras: la etiqueta lleva isla, día, tier y participantes', contiene($r, 'data-etiqueta="#' . $B1 . ' · Isla Alfa · Verano 725, día 7 · Tier 3 · U3, U5"'), true);
+prueba('buscar aventuras por número, con y sin #', array(contiene(g('buscar_aventuras', array('q' => (string) $B1), 8), 'data-aventura="' . $B1 . '"'), contiene(g('buscar_aventuras', array('q' => '#' . $B1), 8), 'data-aventura="' . $B1 . '"'), contiene(g('buscar_aventuras', array('q' => (string) $B3), 8), 'data-aventura')), array(true, true, false));
+prueba('buscar aventuras por nombre de isla', array(contiene(g('buscar_aventuras', array('q' => 'alfa'), 8), 'data-aventura="' . $B1 . '"'), contiene(g('buscar_aventuras', array('q' => 'beta'), 8), 'data-aventura')), array(true, false));
+prueba('buscar aventuras sin resultados: aviso de que se puede crear igual', contiene(g('buscar_aventuras', array('q' => 'zzz'), 8), 'Puedes crear el tema igualmente.'), true);
+prueba('otro usuario no ve las aventuras del narrador', contiene(g('buscar_aventuras', array(), 5), 'data-aventura="' . $B1 . '"'), false);
+prueba('el narrador de otra solo ve la suya', array(contiene(g('buscar_aventuras', array(), 9), 'data-aventura="' . $B3 . '"'), contiene(g('buscar_aventuras', array(), 9), 'data-aventura="' . $B1 . '"')), array(true, false));
+prueba('buscar aventuras sin HX-Request: 404', llamar($PAG, array('action' => 'buscar_aventuras'), array(), 8, false, null, 'GET')['estado'], 404);
+sql("DELETE FROM mybb_op_peticionAventuras WHERE id IN ($B1, $B2, $B3, $B4)");   // no alteran las pruebas que siguen
+
 // ── Coherencia: toda acción enlazada existe en la lista blanca de la página ──
 $nar = ins(3, 3, 1, array(5), array('isla_fid' => 40, 'tier_seleccionado' => 2, 'dia' => 16));
 $r = g('mis_activas', array('detalle' => 1));
 prueba('activas separan personaje con cupo y narradas sin límite', array(contiene($r, 'Activas de mi personaje'), contiene($r, 'Aventuras que narro'), contiene($r, '1 activa · Sin límite'), contiene($r, '#'.$nar)), array(true, true, true, true));
+prueba('activas usan filas compactas y no repiten el contador Narrando', array(contiene($r, 'ta-activas-grupo-narradas'), contiene($r, '<h4>Narrando')), array(true, false));
 prueba('narrar no consume el cupo del personaje', opg_av_contar_activas(3), array(0, 1));
 sql('DELETE FROM mybb_op_peticionAventuras WHERE id = ' . (int) $nar);
+$sin_tema = ins(3, 8, 1, array(3), array('isla_fid' => 40, 'tier_seleccionado' => 2, 'dia' => 18));
 $r = g('mis_activas', array('detalle' => 1));
 prueba('activas muestran título vinculado, fecha de registro y fecha de rol', array(contiene($r, 'La aventura de Alfa'), contiene($r, 'Registrada: ' . date('d/m/Y', (int) fila($A)['created_at'])), contiene($r, 'Verano 725, día 5')), array(true, true, true));
+prueba('activas enlazan el tema en pestaña nueva y no enlazan solicitudes sin tema', array(contiene($r, 'showthread.php?tid=100" target="_blank" rel="noopener"'), contiene($r, 'href="tablon_de_aventuras.php?id='), contiene($r, 'class="ta-activa-titulo">#' . $sin_tema . ' · Sin tema vinculado')), array(true, false, true));
+$vista = llamar($PAG, array('modo_vista' => '5'), array(), 3, false, null, 'GET');
+prueba('modo vista es aislado y de solo lectura', array(contiene($vista, 'Aventuras de Luffy'), contiene($vista, 'Consulta de solo lectura'), contiene($vista, 'id="ta-tabs"'), contiene($vista, 'id="ta-novedades"'), contiene($vista, 'Mis aventuras</span>'), contiene($vista, 'id="ta-buscar-modo-vista"'), contiene($vista, 'class="ta-guia"')), array(true, true, false, false, false, true, false));
+sql('DELETE FROM mybb_op_peticionAventuras WHERE id = ' . (int) $sin_tema);
 sql("UPDATE mybb_threads SET subject = '<img src=x onerror=alert(1)> Aventura' WHERE tid = 100");
 $r = g('mis_activas', array('detalle' => 1));
 prueba('títulos de activas se escapan', array(contiene($r, '&lt;img src=x onerror=alert(1)&gt; Aventura'), contiene($r, '<img src=x')), array(true, false));
@@ -217,6 +293,7 @@ sql('UPDATE mybb_threads SET visible = 0 WHERE tid = 100');
 prueba('activas no exponen título de tema oculto', contiene(g('mis_activas', array('detalle' => 1)), 'onerror=alert'), false);
 sql("UPDATE mybb_threads SET visible = 1, subject = 'La aventura de Alfa' WHERE tid = 100");
 $base = opg_av_estadisticas(array('yo' => 3, 'ambito' => 'mias'));
+prueba('estadísticas indican si existe alguna aventura del personaje', $base['hay_alguna'], 1);
 for ($i = 0; $i < 25; $i++) {
     ins(12, 8, 0, $i % 2 ? array(3, 5) : array(3), array('isla_fid' => 40, 'tier_seleccionado' => 2, 'dia' => 15));
 }
@@ -233,9 +310,9 @@ prueba('Mis aventuras filtra por número de solicitud con #', array(contiene($r,
 $r = g('listar', array('ambito' => 'mias', 'q' => 'no-es-un-id'));
 prueba('Mis aventuras no interpreta texto como un número de solicitud', contiene($r, 'No hay aventuras con estos filtros.'), true);
 $otras = opg_av_estadisticas(array('yo' => 9, 'ambito' => 'otras', 'uid' => 3, 'estado' => 'creado'));
-prueba('estadísticas de Otras filtran por UID y estado en todo el conjunto', array($otras['total'], $otras['estado_0'], $otras['estado_1'], $otras['jugador'], $otras['narrador']), array(25, 25, 0, 25, 0));
+prueba('estadísticas de Otras son facetadas y omiten roles', array($otras['total'], $otras['estado_0'], $otras['estado_1'], $otras['jugador'], $otras['narrador']), array(26, 25, 1, 0, 0));
 $r = g('listar', array('ambito' => 'otras', 'uid' => 3, 'estado' => 'creado', 'pagina' => 2), 9);
-prueba('Otras pagina con los mismos filtros y estadísticas', array(contiene($r, 'Página 2 de 2'), contiene($r, 'uid=3'), contiene($r, 'id="ta-estadisticas-otras"')), array(true, true, true));
+prueba('Otras pagina con los mismos filtros y estadísticas solo por estado', array(contiene($r, 'Página 2 de 2'), contiene($r, 'uid=3'), contiene($r, 'id="ta-estadisticas-otras"'), contiene($r, 'Como narrador'), contiene($r, 'Como jugador')), array(true, true, true, false, false));
 $r = g('listar', array('ambito' => 'otras', 'q' => 'Eddy', 'estado' => 'creado'), 9);
 prueba('Otras aventuras filtra por nombre de personaje', array(contiene($r, '25 aventuras'), contiene($r, 'id="av-' . $A . '"')), array(true, false));
 $r = g('listar', array('ambito' => 'otras', 'q' => '#' . $A), 9);

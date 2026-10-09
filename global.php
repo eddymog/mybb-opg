@@ -618,6 +618,9 @@ $g_is_staff = false;
 $g_is_narra = false;
 $g_tiene_ficha = false;
 $g_ficha = null;
+$g_aventuras_revision = 0;
+$g_aventuras_entregas = 0;
+$g_aventuras_pendientes = 0;
 
 // InicializaciÃ³n de variables condicionales de seguimiento (evita warnings en templates)
 $g_crafteo_completo          = false;
@@ -841,6 +844,25 @@ if (is_narra($g_uid)) {
 
 if (is_staff($g_uid) || is_mod($g_uid) || is_user($g_uid)) {
 	$g_is_staff = true;
+}
+
+if ($g_is_staff || $g_is_narra) {
+	$g_query_aventuras_pendientes = $db->query("
+		SELECT
+			(SELECT COUNT(*) FROM `mybb_op_peticionAventuras` WHERE estado = 0) AS en_revision,
+			((SELECT COUNT(*) FROM `mybb_op_aventuras_entregas` WHERE estado = 'pendiente')
+			 + (SELECT COUNT(*) FROM `mybb_op_aventuras_autonarradas`
+			    WHERE entregada_at IS NOT NULL AND estado_pago <> 'aplicado')) AS entregas
+	");
+	$g_fila_aventuras_pendientes = $db->fetch_array($g_query_aventuras_pendientes);
+	if ($g_fila_aventuras_pendientes) {
+		$g_aventuras_revision = (int) $g_fila_aventuras_pendientes['en_revision'];
+		$g_aventuras_entregas = (int) $g_fila_aventuras_pendientes['entregas'];
+		$g_aventuras_pendientes = $g_aventuras_revision + $g_aventuras_entregas;
+	}
+}
+
+if ($g_is_staff) {
 	$g_query_peticiones = $db->query("
 		SELECT count(*) as numero_de_peticiones FROM `mybb_op_peticiones` WHERE resuelto=0 AND categoria != 'programacion'
 	");

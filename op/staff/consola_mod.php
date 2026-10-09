@@ -33,8 +33,6 @@ $consola_grupos = array(
     'Recompensas y pagos' => array('dorado', array(
         array('fa-gift', 'Recompensas', 'Entregar las recompensas de temas terminados.', array(
             array('Autonarradas', 'entregar_recompensas.php', 'narra'),
-            array('Aventuras', 'entregar_recompensas_aventuras.php', 'narra'),
-            array('Narradores', 'entregar_recompensas_narradores.php', 'narra'),
         )),
         array('fa-scroll', 'Tablón de aventuras', 'Solicitudes de aventura, entregas de los narradores y ofertas de narrador.', array(
             array('Consola', 'consola_aventuras.php', 'narra'),
@@ -49,7 +47,6 @@ $consola_grupos = array(
             array('Modificar', 'ficha_atributos2.php'),
         )),
         array('fa-box-open', 'Inventario y habilidades', 'Lo que tiene asignado un personaje concreto.', array(
-            array('Objetos', 'objetos_ficha.php'),
             array('Técnicas', 'tecnicas_ficha.php'),
             array('Virtudes', 'virtudes_ficha.php'),
         )),

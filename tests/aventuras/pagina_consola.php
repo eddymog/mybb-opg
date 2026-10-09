@@ -16,7 +16,8 @@ sql("INSERT INTO mybb_forums (fid, name, pid, parentlist, active, disporder) VAL
 $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'", 1);
 
 $PAG = 'op/staff/consola_aventuras.php';
-$GET_ACC = array('tab', 'listar', 'entregas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'form_retirar_oferta');
+$js_consola = file_get_contents(MYBB_ROOT . 'jscripts/consola_aventuras.js');
+$GET_ACC = array('tab', 'listar', 'entregas', 'narradores', 'buscar_personas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'form_retirar_oferta');
 $POST_ACC = array('cambiar_estado', 'actualizar_datos', 'eliminar', 'retirar_oferta');
 $todo_html = ''; $GLOBALS['respuestas'] = array();
 function g($accion, $get = array(), $uid = 60) { global $PAG, $todo_html; $r = llamar($PAG, array_merge(array('action' => $accion), $get), array(), $uid, true, 'clave-valida', 'GET'); $todo_html .= $r['cuerpo']; $GLOBALS['respuestas'][] = $r['cuerpo']; return $r; }
@@ -24,9 +25,9 @@ function p($accion, $post = array(), $uid = 60, $get = array()) { global $PAG, $
 function contiene($r, $texto) { return strpos($r['cuerpo'], $texto) !== false; }
 
 $A = ins(3, 0, 0, array(3, 5), array('tier_seleccionado' => 3, 'isla_fid' => 40, 'dia' => 5, 'narrador_nombre' => '', 'comentario_publico' => 'Comentario <b>x</b>'));
-$B = ins(3, 8, 0, array(3), array('tier_seleccionado' => 2, 'isla_fid' => 41, 'dia' => 9));
+$B = ins(3, 8, 0, array(3), array('tier_seleccionado' => 2, 'isla_fid' => 41, 'dia' => 9, 'comentario_publico' => 'Aventura completa'));
 $C = ins(5, 0, 4, array(5), array('tier_seleccionado' => 1));
-$D = ins(60, 8, 0, array(60), array('tier_seleccionado' => 1));   // del propio staff narra: no puede resolverla
+$D = ins(60, 8, 0, array(60), array('tier_seleccionado' => 1));   // solicitud propia del narrador de staff
 
 // ── Acceso ───────────────────────────────────────────────────────────────────
 $r = llamar($PAG, array(), array(), 3, false, null, 'GET');
@@ -40,11 +41,20 @@ foreach (array(1, 50, 60) as $u) {
 
 // ── Página completa ──────────────────────────────────────────────────────────
 $r = llamar($PAG, array(), array(), 60, false, null, 'GET');
-prueba('abre en Solicitudes con el filtro en Creadas y sus conteos', array(contiene($r, 'ca-tab-activa" href="consola_aventuras.php?tab=solicitudes"'), contiene($r, 'value="creado" checked'), contiene($r, 'Creadas (3)'), contiene($r, 'Pendientes de narrador (1)'), contiene($r, 'Todas (4)')), array(true, true, true, true, true));
+prueba('abre con las mismas etiquetas de estado que el tablón', array(contiene($r, 'ca-tab-activa" href="consola_aventuras.php?tab=solicitudes"'), contiene($r, 'ca-estados-grid'), contiene($r, 'ca-estado-metrica-creado'), contiene($r, 'value="creado" checked'), contiene($r, '<span class="ca-estado-etiqueta">En revisión</span><strong>3</strong>'), contiene($r, '<span class="ca-estado-etiqueta">Buscando narrador</span><strong>1</strong>'), contiene($r, '<span class="ca-estado-etiqueta">Total</span><strong>4</strong>')), array(true, true, true, true, true, true, true));
 prueba('lista las solicitudes creadas y no las pendientes de narrador', array(contiene($r, 'id="fila-' . $A . '"'), contiene($r, 'id="fila-' . $B . '"'), contiene($r, 'id="fila-' . $C . '"')), array(true, true, false));
+prueba('muestra el nombre del narrador y no solo su UID', contiene($r, 'Robin (8)'), true);
 prueba('muestra la nota de comentario escapada', array(contiene($r, 'Comentario &lt;b&gt;x&lt;/b&gt;'), contiene($r, 'Comentario <b>')), array(true, false));
 prueba('carga HTMX y la clave', array(contiene($r, 'htmx.min.js?v=2.0.4'), contiene($r, '{"X-Post-Key":"clave-valida"}'), contiene($r, '"allowEval":false')), array(true, true, true));
+prueba('página completa: guía plegable y concisa de los tres flujos', array(contiene($r, 'class="ca-guia"'), contiene($r, 'Cómo funciona la consola'), contiene($r, 'Solicitudes</h3>'), contiene($r, 'Entregas</h3>'), contiene($r, 'Narradores</h3>'), contiene($r, 'Flujo recomendado:')), array(true, true, true, true, true, true));
+prueba('la guía aparece entre el encabezado y las pestañas', strpos($r['cuerpo'], 'class="ca-encabezado"') < strpos($r['cuerpo'], 'class="ca-guia"') && strpos($r['cuerpo'], 'class="ca-guia"') < strpos($r['cuerpo'], 'id="ca-tabs"'), true);
+prueba('la guía conserva su presentación si el asset estático queda desactualizado', array(contiene($r, '.ca-consola .ca-guia {'), contiene($r, '.ca-guia > summary'), contiene($r, 'grid-template-columns: repeat(3, minmax(0, 1fr))'), contiene($r, 'aventuras.css?v=8')), array(true, true, true, true));
+prueba('cabecera y controles operativos sin resumen redundante', array(contiene($r, '<h1>Consola de aventuras</h1>'), contiene($r, 'aria-label="Trabajo pendiente"'), contiene($r, 'name="incompletas"'), contiene($r, 'name="resolubles"'), contiene($r, '>Limpiar</a>'), contiene($r, 'name="orden"'), contiene($r, 'value="recientes" selected'), contiene($r, 'placeholder="#850, UID o nombre"')), array(true, false, false, false, false, true, true, true));
+prueba('pestañas rápidas con indicador y cancelación de solicitudes antiguas', array(substr_count($r['cuerpo'], 'hx-indicator="#ca-panel-cargando"'), substr_count($r['cuerpo'], 'hx-sync="#ca-panel:replace"'), contiene($r, 'id="ca-panel-cargando"'), contiene($r, 'aria-label="Cargando sección"'), contiene($r, 'id="ca-panel" aria-busy="false"'), contiene($r, 'consola_aventuras.js?v=2')), array(3, 3, true, true, true, true));
+prueba('caché de pestañas se revalida e invalida al escribir', array(strpos($js_consola, 'mostrarCache(destino)') !== false, strpos($js_consola, "config.verb.toLowerCase() !== 'get'") !== false, strpos($js_consola, "document.addEventListener('solicitudCambiada', invalidarCache)") !== false, strpos($js_consola, 'focus({preventScroll: true})') !== false, strpos($js_consola, 'scrollIntoView') === false), array(true, true, true, true, true));
 prueba('contador de entregas oculto sin pendientes', contiene($r, 'ca-contador ca-oculto'), true);
+$resumen_consola = opg_av_resumen_consola();
+prueba('resumen consolidado conserva estados y entregas', array($resumen_consola['estados'], $resumen_consola['entregas'], $resumen_consola['autonarradas_pendientes']), array(opg_av_conteo_estados(), array('pendiente' => 0, 'rechazada' => 0, 'entregada' => 0), 0));
 $r = llamar($PAG, array('tab' => 'entregas'), array(), 60, false, null, 'GET');
 prueba('?tab=entregas', array(contiene($r, 'ca-tab-activa" href="consola_aventuras.php?tab=entregas"'), contiene($r, 'No hay entregas pendientes.')), array(true, true));
 $r = llamar($PAG, array('tab' => 'narradores'), array(), 60, false, null, 'GET');
@@ -52,6 +62,8 @@ prueba('?tab=narradores', contiene($r, 'No hay ofertas de narrador.'), true);
 
 // ── Contrato HTMX ────────────────────────────────────────────────────────────
 prueba('sin HX-Request: 404', llamar($PAG, array('action' => 'tab'), array(), 60, false, null, 'GET')['estado'], 404);
+$r = g('tab', array('tab' => 'entregas'));
+prueba('la respuesta HTMX cambia solo el panel y no duplica la guía', contiene($r, 'class="ca-guia"'), false);
 prueba('acción desconocida: 404', g('inventada')['estado'], 404);
 foreach (array('crear', 'editar', 'postular_narrador', 'elegir_ficha', 'form_postular', 'analizar', 'pagar') as $a) {
     prueba("la acción '$a' del tablón o de recompensas responde 404", array(llamar($PAG, array('action' => $a), array(), 50, true, 'clave-valida', 'GET')['estado'], llamar($PAG, array('action' => $a), array('id' => 1), 50, true, 'clave-valida', 'POST')['estado']), array(404, 404));
@@ -64,21 +76,24 @@ prueba('las respuestas no se guardan en caché', cabecera(g('listar'), 'Cache-Co
 // ── Listado y filtros ────────────────────────────────────────────────────────
 $r = g('listar', array('estado' => 'todas'));
 prueba('Todas: muestra las cuatro', array(contiene($r, 'id="fila-' . $C . '"'), contiene($r, 'id="fila-' . $A . '"')), array(true, true));
+prueba('filtros empujan una URL recargable sin action=listar', array(strpos(cabecera($r, 'HX-Push-Url'), 'tab=solicitudes') !== false, strpos(cabecera($r, 'HX-Push-Url'), 'action=') === false), array(true, true));
 $r = g('listar', array('estado' => 'pendiente-narrador'));
-prueba('Pendientes de narrador: una sola', array(contiene($r, 'id="fila-' . $C . '"'), contiene($r, 'id="fila-' . $A . '"')), array(true, false));
-prueba('estado inválido: cae en Creadas', array(contiene(g('listar', array('estado' => 'xx')), 'id="fila-' . $A . '"'), contiene(g('listar', array('estado' => 'xx')), 'id="fila-' . $C . '"')), array(true, false));
+prueba('Buscando narrador: una sola', array(contiene($r, 'id="fila-' . $C . '"'), contiene($r, 'id="fila-' . $A . '"')), array(true, false));
+prueba('estado inválido: cae en En revisión', array(contiene(g('listar', array('estado' => 'xx')), 'id="fila-' . $A . '"'), contiene(g('listar', array('estado' => 'xx')), 'id="fila-' . $C . '"')), array(true, false));
 $r = g('listar', array('estado' => 'todas', 'uid' => 8));
 prueba('filtro por UID del narrador', array(contiene($r, 'id="fila-' . $B . '"'), contiene($r, 'id="fila-' . $A . '"')), array(true, false));
 prueba('filtro por UID de un participante', array(contiene(g('listar', array('estado' => 'todas', 'uid' => 5)), 'id="fila-' . $A . '"'), contiene(g('listar', array('estado' => 'todas', 'uid' => 5)), 'id="fila-' . $B . '"')), array(true, false));
+prueba('búsqueda por número exacto', array(contiene(g('listar', array('estado' => 'todas', 'q' => '#' . $B)), 'id="fila-' . $B . '"'), contiene(g('listar', array('estado' => 'todas', 'q' => '#' . $B)), 'id="fila-' . $A . '"')), array(true, false));
+prueba('typeahead de personas', array(contiene(g('buscar_personas', array('q' => 'Robin')), 'name="persona" value="8"'), contiene(g('buscar_personas', array('q' => 'Robin')), 'UID 8')), array(true, true));
 prueba('Todas se conserva en la paginación (parámetro todas)', true, true);
 prueba('sin resultados', contiene(g('listar', array('estado' => 'denegado')), 'No hay solicitudes con estos filtros.'), true);
 
-// ── Restricción: nadie resuelve su propia aventura ──────────────────────────
+// ── El equipo puede moderar sus propias aventuras ───────────────────────────
 $r = g('listar', array('estado' => 'creado'), 60);
-prueba('el staff que participa ve los botones bloqueados y el aviso', array(contiene($r, 'No puedes resolver una aventura en la que participas.')), array(true));
-prueba('cambiar_estado de la propia: 403', p('cambiar_estado', array(), 60, array('id' => $D, 'a' => 1))['estado'], 403);
-prueba('form_denegar de la propia: 403', g('form_denegar', array('id' => $D), 60)['estado'], 403);
-prueba('la propia sigue en estado 0', (int) fila($D)['estado'], 0);
+prueba('la solicitud propia muestra sus acciones habilitadas', array(contiene($r, 'id="fila-' . $D . '"'), contiene($r, 'No puedes resolver una aventura en la que participas.')), array(true, false));
+prueba('form_denegar de la propia está permitido', g('form_denegar', array('id' => $D), 60)['estado'], 200);
+$r = p('cambiar_estado', array(), 60, array('id' => $D, 'a' => 1));
+prueba('el narrador de staff aprueba la propia', array($r['estado'], (int) fila($D)['estado']), array(200, 1));
 
 // ── Aprobar, denegar, finalizar ─────────────────────────────────────────────
 $r = p('cambiar_estado', array(), 60, array('id' => $A, 'a' => 1));
@@ -111,6 +126,7 @@ prueba('buscar islas y elegir', array(contiene(g('buscar_islas', array('id' => $
 // ── Historial ────────────────────────────────────────────────────────────────
 $r = g('historial', array('id' => $B));
 prueba('historial: acciones y quién', array(contiene($r, 'Historial de la solicitud #' . $B), contiene($r, 'NarraStaff'), contiene($r, 'Cambió de estado')), array(true, true, true));
+prueba('historial accesible en panel único', array(contiene($r, 'role="dialog"'), contiene($r, 'aria-modal="true"'), contiene($r, 'hx-target="#ca-overlay"'), contiene($r, 'ca-historial-lista')), array(true, true, true, true));
 $r = g('historial', array('id' => $A));
 prueba('historial: datos actualizados con antes y después', array(contiene($r, 'El staff actualizó datos'), contiene($r, 'dia: 5 &rarr; 30')), array(true, true));
 prueba('historial de una inexistente: 404', g('historial', array('id' => 9999))['estado'], 404);
@@ -128,15 +144,24 @@ $r = p('eliminar', array(), 50, array('id' => $F));
 prueba('eliminar: la fila desaparece y se borra', array($r['estado'], $r['cuerpo'], fila($F)), array(200, '', null));
 
 // ── Ofertas de narrador ──────────────────────────────────────────────────────
-sql("INSERT INTO mybb_op_narradores_disponibles (uid, discord, mensaje, created_at, updated_at) VALUES (8, 'robin#1', 'Misterio <i>y</i>', " . time() . ", " . time() . "), (9, 'nami#2', '', " . (time() - 90 * 86400) . ", " . (time() - 90 * 86400) . ")");
+sql("INSERT INTO mybb_op_narradores_disponibles (uid, discord, mensaje, frecuencia, tiers, estilo, created_at, updated_at) VALUES (8, 'robin#1', 'Misterio <i>y</i>', 'semanal', '2,3', 'Misterio', " . time() . ", " . time() . "), (9, 'nami#2', '', '', '', '', " . (time() - 90 * 86400) . ", " . (time() - 90 * 86400) . ")");
 $r = llamar($PAG, array('tab' => 'narradores'), array(), 60, false, null, 'GET');
 prueba('lista vigentes y vencidas con el Discord y el mensaje escapado', array(contiene($r, 'robin#1'), contiene($r, 'nami#2'), contiene($r, 'Vigente'), contiene($r, 'Vencida'), contiene($r, 'Misterio &lt;i&gt;y&lt;/i&gt;')), array(true, true, true, true, true));
+prueba('oferta con preferencias y carga', array(contiene($r, 'Semanal'), contiene($r, 'Tiers 2,3'), contiene($r, 'En curso:'), contiene($r, 'Finalizadas:')), array(true, true, true, true));
+prueba('filtros de narradores', array(contiene(g('narradores', array('vigencia' => 'vigentes')), 'robin#1'), contiene(g('narradores', array('vigencia' => 'vigentes')), 'nami#2'), contiene(g('narradores', array('q' => 'Nami')), 'nami#2')), array(true, false, true));
 prueba('formulario de retirada con motivo', contiene(g('form_retirar_oferta', array('uid' => 8)), 'name="motivo"'), true);
 $r = p('retirar_oferta', array('motivo' => ''), 60, array('uid' => 8));
 prueba('retirar sin motivo: 422 retarget', array($r['estado'], cabecera($r, 'HX-Retarget')), array(422, '#aviso-form-oferta-8'));
 $r = p('retirar_oferta', array('motivo' => 'Spam'), 60, array('uid' => 8));
 prueba('retirar con motivo: desaparece la fila y queda auditado', array($r['estado'], $r['cuerpo'], una("SELECT COUNT(*) n FROM mybb_op_narradores_disponibles WHERE uid = 8")['n'], una("SELECT COUNT(*) n FROM mybb_op_audit_aventuras WHERE accion = 'retirar_oferta_admin'")['n']), array(200, '', '0', '1'));
 prueba('retirar otra vez: 404', p('retirar_oferta', array('motivo' => 'x'), 60, array('uid' => 8))['estado'], 404);
+
+for ($u = 100; $u <= 120; $u++) {
+    crear_usuario($u, 'Narrador ' . $u);
+    sql("INSERT INTO mybb_op_narradores_disponibles (uid, discord, mensaje, frecuencia, tiers, estilo, created_at, updated_at) VALUES ($u, 'n$u', '', 'flexible', '1,2', 'Libre', " . (time() - $u) . ", " . (time() - $u) . ")");
+}
+$r = g('narradores', array('pagina' => 2));
+prueba('narradores pagina de veinte en veinte', array(contiene($r, '22 ofertas'), contiene($r, 'Página 2 de 2'), contiene($r, 'aria-current="page">2</button>'), strpos(cabecera($r, 'HX-Push-Url'), 'tab=narradores') !== false), array(true, true, true, true));
 
 // ── Entregas ─────────────────────────────────────────────────────────────────
 $G = ins(3, 8, 1, array(3, 5), array('tier_seleccionado' => 4, 'isla_fid' => 40));

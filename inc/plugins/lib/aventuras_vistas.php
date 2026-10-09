@@ -212,18 +212,25 @@ function opg_av_v_resultados_temas($temas, $mensaje, $id_peticion)
  * participantes[] y un botón para quitarlo. 'narrador': campo oculto narrador_fid.
  * $fijo = true para el creador (sin campo oculto ni botón: el servidor lo añade).
  */
-function opg_av_v_chip_ficha($ficha, $destino, $fijo = false, $id_peticion = 0)
+function opg_av_v_chip_ficha($ficha, $destino, $fijo = false, $id_peticion = 0, $cupo = null)
 {
     $nombre = opg_av_h($ficha['nombre']);
+    $estado_cupo = '';
+    if ($destino === 'participante' && is_array($cupo)) {
+        $estado_cupo = ' <small class="ta-chip-cupo' . (!empty($cupo['bloqueado']) ? ' ta-chip-cupo-lleno' : '') . '">'
+            . (int) $cupo['solitarias'] . '/' . OPG_AV_MAX_SOLITARIAS . ' solitarias · '
+            . (int) $cupo['total'] . '/' . OPG_AV_MAX_TOTAL . ' total</small>';
+    }
     if ($fijo) {
-        return '<span class="opg-chip ta-chip ta-chip-fijo">' . $nombre . ' (tú)</span>';
+        return '<span class="opg-chip ta-chip ta-chip-fijo">' . $nombre . ' (tú)' . $estado_cupo . '</span>';
     }
     $campo = $destino === 'narrador' ? 'narrador_fid' : 'participantes[]';
     $quitar = $destino === 'narrador'
         ? opg_av_hx('get', OPG_AV_URL, 'quitar_narrador', array('id' => (int) $id_peticion)) . ' hx-target="#ta-narrador-slot' . opg_av_sfx($id_peticion) . '" hx-swap="innerHTML"'
-        : opg_av_hx('get', OPG_AV_URL, 'quitar_chip') . ' hx-target="closest .ta-chip" hx-swap="outerHTML"';
+        : opg_av_hx('get', OPG_AV_URL, 'quitar_chip', array('fid' => (int) $ficha['fid'], 'id' => (int) $id_peticion))
+            . ' hx-target="closest .ta-chip" hx-swap="outerHTML" hx-include="closest form"';
     return '<span class="opg-chip ta-chip">'
-        . '<input type="hidden" name="' . $campo . '" value="' . (int) $ficha['fid'] . '">' . $nombre
+        . '<input type="hidden" name="' . $campo . '" value="' . (int) $ficha['fid'] . '">' . $nombre . $estado_cupo
         . ' <button type="button" class="ta-quitar" aria-label="Quitar a ' . $nombre . '" ' . $quitar . '>&times;</button></span>';
 }
 
@@ -295,8 +302,15 @@ function opg_av_v_form_solicitud($f, $modo = 'crear', $id_av = 0, $errores = arr
     $params = $edicion ? array('id' => $idn) : array();
     $nombre_yo = isset($yo['nombre']) ? $yo['nombre'] : '';
     $uid_yo = isset($yo['uid']) ? (int) $yo['uid'] : 0;
+    $tipo = isset($f['tipo']) && $f['tipo'] === OPG_AV_TIPO_AUTONARRADA ? OPG_AV_TIPO_AUTONARRADA : OPG_AV_TIPO_NORMAL;
+    $disp_auto = isset($f['autonarrada_disponibilidad']) ? $f['autonarrada_disponibilidad'] : null;
+    $puede_elegir_auto = !$edicion && $disp_auto && !empty($disp_auto['disponible']);
+    if (!$edicion && !$puede_elegir_auto) {
+        $tipo = OPG_AV_TIPO_NORMAL;
+    }
 
-    $html = '<form class="ta-form" id="' . $id_form . '" ' . opg_av_hx('post', OPG_AV_URL, $accion, $params)
+    $clase_tipo = $tipo === OPG_AV_TIPO_AUTONARRADA ? ' ta-es-auto' : '';
+    $html = '<form class="ta-form' . $clase_tipo . '" id="' . $id_form . '" ' . opg_av_hx('post', OPG_AV_URL, $accion, $params)
         . ' hx-target="#' . $id_form . '" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]" style="--opg-card-acento: var(--opg-naranja)">';
     if ($edicion) {
         $html .= '<div class="opg-card__cabecera"><span class="opg-card__titulo">Editar la solicitud #' . $idn . '</span></div>';
@@ -304,38 +318,68 @@ function opg_av_v_form_solicitud($f, $modo = 'crear', $id_av = 0, $errores = arr
     $html .= '<div class="ta-avisos" id="aviso-form-' . ($edicion ? $idn : 'crear') . '" aria-live="polite">'
         . ($errores ? opg_av_v_aviso('err', $errores) : '') . '</div>';
 
-    $html .= '<div class="ta-switch">';
+    if ($edicion) {
+        $html .= '<input type="hidden" name="tipo" value="' . opg_av_h($tipo) . '">';
+    } elseif ($puede_elegir_auto) {
+        $html .= '<fieldset class="ta-grupo ta-tipo-solicitud"><legend>Tipo de solicitud</legend>'
+            . '<input class="ta-radio" type="radio" name="tipo" id="ta-tipo-normal" value="normal"' . ($tipo === OPG_AV_TIPO_NORMAL ? ' checked' : '') . '>'
+            . '<label class="opg-chip ta-etiqueta-radio" for="ta-tipo-normal"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Aventura</label>'
+            . '<input class="ta-radio" type="radio" name="tipo" id="ta-tipo-auto" value="autonarrada"' . ($tipo === OPG_AV_TIPO_AUTONARRADA ? ' checked' : '') . '>'
+            . '<label class="opg-chip ta-etiqueta-radio" for="ta-tipo-auto"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Crónica autonarrada</label>'
+            . '</fieldset>';
+    } else {
+        $html .= '<input type="hidden" name="tipo" value="normal">';
+    }
+
+    if ($puede_elegir_auto || ($edicion && $tipo === OPG_AV_TIPO_AUTONARRADA)) {
+        $html .= '<div class="ta-auto-reglas"><strong>Crónica autonarrada</strong><span>Un único post propio de al menos '
+            . OPG_AV_AUTO_PALABRAS_MIN . ' palabras. Un cupo por semana. Recompensa fija: ' . OPG_AV_AUTO_XP . ' XP, '
+            . OPG_AV_AUTO_NIKAS . ' Nikas, ' . OPG_AV_AUTO_REPUTACION . ' de reputación y '
+            . number_format(OPG_AV_AUTO_BERRIES, 0, ',', '.') . ' Berries.</span></div>';
+    }
+
+    $rol_html = '';
     if ($edicion) {
         $html .= '<input type="hidden" name="rol" value="' . $rol . '">';
     } else {
-        $html .= '<fieldset class="ta-grupo"><legend>¿Cuál es tu papel?</legend>'
+        $rol_html = '<fieldset class="ta-grupo ta-campo-rol"><legend>¿Cuál es tu papel?</legend>'
             . '<input class="ta-radio" type="radio" name="rol" id="ta-rol-j" value="jugador"' . ($rol === 'jugador' ? ' checked' : '') . '>'
             . '<label class="opg-chip ta-etiqueta-radio" for="ta-rol-j">Soy jugador</label>'
             . '<input class="ta-radio" type="radio" name="rol" id="ta-rol-n" value="narrador"' . ($rol === 'narrador' ? ' checked' : '') . '>'
             . '<label class="opg-chip ta-etiqueta-radio" for="ta-rol-n">Soy el narrador</label></fieldset>';
     }
 
-    // Participantes
+    // Participantes y cupos anticipados.
+    $uids_cupo = array();
+    if ($rol === 'jugador' && $uid_yo > 0) { $uids_cupo[] = $uid_yo; }
+    foreach ($f['participantes'] as $p) { $uids_cupo[] = (int) $p['uid']; }
+    $uids_cupo = array_values(array_unique(array_filter($uids_cupo)));
+    $cupos = opg_av_cupos_participantes($uids_cupo, count($uids_cupo), $idn);
+    $bloqueado = false;
+    foreach ($cupos as $cupo) { if (!empty($cupo['bloqueado'])) { $bloqueado = true; break; } }
+
     $chips = '';
     if (!$edicion || $rol === 'jugador') {
-        $chips .= opg_av_v_chip_ficha(array('fid' => 0, 'nombre' => $nombre_yo), 'participante', true);
+        $chips .= opg_av_v_chip_ficha(array('fid' => $uid_yo, 'nombre' => $nombre_yo), 'participante', true, $idn, isset($cupos[$uid_yo]) ? $cupos[$uid_yo] : null);
     }
     foreach ($f['participantes'] as $p) {
         if ($rol === 'jugador' && $uid_yo > 0 && (int) $p['uid'] === $uid_yo) {
             continue;
         }
-        $chips .= opg_av_v_chip_ficha(array('fid' => $p['uid'], 'nombre' => $p['nombre']), 'participante', false, $idn);
+        $chips .= opg_av_v_chip_ficha(array('fid' => $p['uid'], 'nombre' => $p['nombre']), 'participante', false, $idn, isset($cupos[$p['uid']]) ? $cupos[$p['uid']] : null);
     }
-    $html .= '<div class="ta-bloque">'
+    $participantes_html = '<div class="ta-bloque ta-campo-participantes">'
         . '<span class="ta-rotulo">Participantes</span>'
         . '<div class="ta-chips ta-participantes" id="ta-participantes' . $sfx . '">' . $chips . '</div>'
         . opg_av_v_selector_participante($idn, $edicion && $rol === 'narrador' && !$f['participantes'])
         . '</div>';
 
     // Narrador (solo el rol jugador)
-    if (!$edicion || $rol === 'jugador') {
+    $narrador_html = '';
+    $puede_buscar_narrador = !$edicion || $rol === 'jugador';
+    if ($puede_buscar_narrador) {
         $tiene = !empty($f['tiene_narrador']);
-        $html .= '<div class="ta-solo-jugador">'
+        $narrador_html = '<div class="ta-solo-jugador ta-campo-narrador">'
             . '<fieldset class="ta-grupo"><legend>¿Tienes narrador?</legend>'
             . '<input class="ta-radio" type="radio" name="tiene_narrador" id="ta-tn-1' . $sfx . '" value="1"' . ($tiene ? ' checked' : '') . '>'
             . '<label class="opg-chip ta-etiqueta-radio" for="ta-tn-1' . $sfx . '">Tengo narrador</label>'
@@ -345,41 +389,78 @@ function opg_av_v_form_solicitud($f, $modo = 'crear', $id_av = 0, $errores = arr
             . ($f['narrador'] ? opg_av_v_chip_ficha(array('fid' => $f['narrador']['uid'], 'nombre' => $f['narrador']['nombre']), 'narrador', false, $idn) : opg_av_v_buscador_std('narrador', $idn))
             . '</div>'
             . '</div>'
-            . '<div class="ta-sin-narrador af-field"><label for="ta-idea' . $sfx . '">Vende tu idea a los posibles narradores</label>'
-            . '<textarea id="ta-idea' . $sfx . '" name="idea" maxlength="' . OPG_AV_MAX_IDEA . '" placeholder="¿Cómo quieres que te narren? ¿Qué te gustaría que pasara? ¿Qué tipo de narración o narrador buscas? ¿Con qué frecuencia piensas postear?">'
-            . opg_av_h($f['idea']) . '</textarea></div>'
             . '</fieldset></div>';
     }
-    $html .= '</div>';   // .ta-switch
+
+    $html .= '<div class="ta-normal-only"><section class="ta-form-seccion ta-form-personas" aria-labelledby="ta-form-personas' . $sfx . '">'
+        . '<h3 id="ta-form-personas' . $sfx . '"><i class="fa-solid fa-user-group" aria-hidden="true"></i> Personas</h3>'
+        . '<div class="ta-switch"><div class="ta-personas-grid">' . $rol_html . $narrador_html . '</div>' . $participantes_html . '</div></section></div>';
 
     // Isla, día y tier
-    $html .= '<div class="ta-fila">'
+    $html .= '<section class="ta-form-seccion ta-form-datos" aria-labelledby="ta-form-datos' . $sfx . '">'
+        . '<h3 id="ta-form-datos' . $sfx . '"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Datos de la aventura</h3>'
+        . '<div class="ta-fila">'
         . opg_av_v_campo_isla($f['isla'], $idn)
         . '<div class="af-field"><label for="ta-dia' . $sfx . '">Día (' . opg_av_h(OPG_AV_ESTACION . ' ' . OPG_AV_ANO) . ')</label>'
         . '<input type="number" id="ta-dia' . $sfx . '" name="dia" min="1" max="' . OPG_AV_DIAS . '" placeholder="1-90" required value="' . opg_av_h($f['dia']) . '"></div>'
-        . opg_av_v_select_tier($f['tier'], 'ta-tier' . $sfx)
-        . '</div>';
+        . '<div class="ta-normal-only">' . opg_av_v_select_tier($f['tier'], 'ta-tier' . $sfx) . '</div>'
+        . '</div>'
+        . '<label class="ta-casilla ta-normal-only"><input type="checkbox" name="inframundo" value="1"' . (!empty($f['inframundo']) ? ' checked' : '') . '> Requerimiento de inframundo</label></section>';
 
-    $html .= '<div class="af-field af-field--ancho-completo"><label for="ta-comentario' . $sfx . '">Comentario público</label>'
+    $html .= '<section class="ta-form-seccion ta-form-descripcion" aria-labelledby="ta-form-descripcion' . $sfx . '">'
+        . '<h3 id="ta-form-descripcion' . $sfx . '"><i class="fa-solid fa-align-left" aria-hidden="true"></i> Descripción</h3>'
+        . '<div class="af-field af-field--ancho-completo"><label for="ta-comentario' . $sfx . '">Comentario público</label>'
         . '<textarea id="ta-comentario' . $sfx . '" name="comentario" required maxlength="' . OPG_AV_MAX_COMENTARIO . '" placeholder="Describe brevemente de qué trata la aventura (hasta ' . OPG_AV_MAX_COMENTARIO . ' caracteres).">'
         . opg_av_h($f['comentario']) . '</textarea></div>';
-    $html .= '<label class="ta-casilla"><input type="checkbox" name="inframundo" value="1"' . (!empty($f['inframundo']) ? ' checked' : '') . '> Requerimiento de inframundo</label>';
+    if ($puede_buscar_narrador) {
+        $html .= '<div class="ta-normal-only"><div class="ta-propuesta af-field"><label for="ta-idea' . $sfx . '">Propuesta para posibles narradores</label>'
+            . '<textarea id="ta-idea' . $sfx . '" name="idea" maxlength="' . OPG_AV_MAX_IDEA . '" placeholder="¿Cómo quieres que te narren? ¿Qué te gustaría que pasara? ¿Qué tipo de narración o narrador buscas? ¿Con qué frecuencia piensas postear?">'
+            . opg_av_h($f['idea']) . '</textarea></div></div>';
+    }
+    $html .= '</section>';
 
-    $html .= '<div class="ta-acciones">';
+    $html .= '<div class="ta-normal-only">' . opg_av_v_estado_cupos($cupos, $rol, $idn, $bloqueado) . '</div>';
+    $html .= '<div class="ta-acciones ta-form-pie">';
     if ($edicion) {
-        $html .= '<button type="submit" class="btn-op btn-op--primario">Guardar cambios</button>'
+        $html .= '<button type="submit" class="btn-op btn-op--primario" id="ta-enviar' . $sfx . '"' . ($bloqueado && $rol === 'jugador' ? ' disabled' : '') . '>Guardar cambios</button>'
             . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'ver', array('id' => $idn)) . ' hx-target="#' . $id_form . '" hx-swap="outerHTML">Cancelar</button>';
     } else {
-        $html .= '<button type="submit" class="btn-op btn-op--primario" id="ta-enviar">Enviar solicitud</button>';
+        $html .= '<button type="submit" class="btn-op btn-op--primario" id="ta-enviar"' . ($bloqueado && $rol === 'jugador' ? ' disabled' : '') . '>Enviar solicitud</button>';
     }
     $html .= '</div></form>';
+    return $html;
+}
+
+function opg_av_v_estado_cupos($cupos, $rol, $id_peticion = 0, $bloqueado = null, $oob = false)
+{
+    if ($rol === 'narrador') {
+        $texto = 'Narrar no consume el límite de tu personaje.';
+        $tipo = '';
+        $bloqueado = false;
+    } else {
+        $nombres = array();
+        foreach ((array) $cupos as $cupo) {
+            if (!empty($cupo['bloqueado'])) { $nombres[] = $cupo['motivo']; }
+        }
+        $bloqueado = $bloqueado === null ? (bool) $nombres : $bloqueado;
+        $texto = $bloqueado ? implode(' ', array_unique($nombres)) : 'Todos los participantes tienen cupo para esta aventura.';
+        $tipo = $bloqueado ? ' ta-cupos-bloqueados' : '';
+    }
+    $sfx = opg_av_sfx($id_peticion);
+    $html = '<div class="ta-estado-cupos' . $tipo . '" id="ta-estado-cupos' . $sfx . '" aria-live="polite"'
+        . ($oob ? ' hx-swap-oob="true"' : '') . '>' . opg_av_h($texto) . '</div>';
+    if ($oob) {
+        $html .= '<button type="submit" class="btn-op btn-op--primario" id="ta-enviar' . $sfx
+            . '" hx-swap-oob="outerHTML"' . ($bloqueado ? ' disabled' : '') . '>'
+            . ($id_peticion ? 'Guardar cambios' : 'Enviar solicitud') . '</button>';
+    }
     return $html;
 }
 
 /** Datos vacíos de un formulario de solicitud. */
 function opg_av_form_vacio()
 {
-    return array('rol' => 'jugador', 'participantes' => array(), 'tiene_narrador' => false, 'narrador' => null, 'idea' => '',
+    return array('tipo' => OPG_AV_TIPO_NORMAL, 'rol' => 'jugador', 'participantes' => array(), 'tiene_narrador' => false, 'narrador' => null, 'idea' => '',
         'isla' => null, 'dia' => '', 'tier' => '', 'comentario' => '', 'inframundo' => false);
 }
 
@@ -387,6 +468,7 @@ function opg_av_form_vacio()
 function opg_av_form_desde_entrada($entrada, $uid)
 {
     $f = opg_av_form_vacio();
+    $f['tipo'] = isset($entrada['tipo']) && $entrada['tipo'] === OPG_AV_TIPO_AUTONARRADA ? OPG_AV_TIPO_AUTONARRADA : OPG_AV_TIPO_NORMAL;
     $f['rol'] = isset($entrada['rol']) && $entrada['rol'] === 'narrador' ? 'narrador' : 'jugador';
     $f['participantes'] = array();
     $uids = opg_av_enteros(isset($entrada['participantes']) && is_array($entrada['participantes']) ? $entrada['participantes'] : array());
@@ -412,6 +494,7 @@ function opg_av_form_desde_entrada($entrada, $uid)
 function opg_av_form_desde_av($av)
 {
     $f = opg_av_form_vacio();
+    $f['tipo'] = isset($av['tipo']) ? $av['tipo'] : OPG_AV_TIPO_NORMAL;
     $f['rol'] = ($av['narrador_uid'] === $av['uid']) ? 'narrador' : 'jugador';
     foreach ($av['jugadores'] as $j) {
         if ($j['uid'] !== null) {
@@ -452,31 +535,137 @@ function opg_av_v_indicador_activas($solitarias, $total)
 
 // ── Pestañas ─────────────────────────────────────────────────────────────────
 
-/** Contador de aventuras sin narrador junto a la pestaña Otras aventuras. */
+/** Guía plegable y breve de los flujos principales del tablón. */
+function opg_av_v_guia()
+{
+    $secciones = array(
+        array('fa-book-open', 'Mis aventuras', 'Tus aventuras como jugador y las que narras. Se abre en Activas; Historial reúne las denegadas y finalizadas.', array(
+            'Solo su creador puede editar una solicitud, y solo mientras esté En revisión o Buscando narrador.',
+            'Una vez aprobada, el narrador crea el tema (tipo Aventura, en el foro de la isla) y lo vincula; al terminar lo entrega con un resumen para que el staff pague las recompensas.',
+            'Novedades te avisa de propuestas, aprobaciones, denegaciones y entregas. El Historial de cada solicitud muestra qué pasó y cuándo.',
+        )),
+        array('fa-circle-plus', 'Solicitar aventura', 'Elige tu papel (jugador o narrador), participantes, isla, día, tier y un comentario público.', array(
+            'Cada personaje puede tener como máximo 3 aventuras solitarias y 4 en total activas. Narrar no cuenta para ese límite.',
+            'Si ya acordaste narrador, elígelo: recibirá una invitación y debe aceptarla. Si no, la solicitud queda en Buscando narrador con tu propuesta. Si tú narras, te asignas tú.',
+            'El staff revisa cada solicitud antes de aprobarla. Si la deniega, verás el motivo y podrás enviar otra.',
+            'Los personajes de nivel 1 a 15 pueden pedir además una crónica autonarrada: una por semana, un único post de al menos 800 palabras y recompensa fija de 30 XP, 2 Nikas, 5 de reputación y 300.000 Berries.',
+        )),
+        array('fa-user-group', 'Narradores &amp; Narrados', 'El punto de encuentro entre jugadores y narradores.', array(
+            'Nadie queda como narrador sin aceptarlo: las invitaciones y candidaturas se aceptan o rechazan, y vencen a los 7 días.',
+            'Narradores: publica tu oferta (Discord, tiers, frecuencia y estilo; dura 30 días y se renueva) o pulsa Me interesa narrar en una solicitud sin narrador.',
+            'Jugadores: contacta a un narrador por Discord y pon su nombre al solicitar, o deja la solicitud sin narrador para recibir candidaturas.',
+            'Un narrador puede dejar una aventura con un motivo; la solicitud vuelve a Buscando narrador.',
+        )),
+        array('fa-compass', 'Consultar aventuras', 'En Otras aventuras puedes buscar solicitudes por ID o personaje, con vistas Actuales e Historial.', array(
+            '<strong>Ver otro personaje</strong> muestra sus aventuras activas en modo de solo lectura.',
+            'Las solicitudes sin narrador aparecen en Narradores &amp; Narrados, donde puedes ofrecerte a narrarlas.',
+        )),
+    );
+    $html = '<details class="ta-guia"><summary><span><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Cómo funciona el tablón</span>'
+        . '<i class="fa-solid fa-chevron-down ta-guia-flecha" aria-hidden="true"></i></summary>'
+        . '<div class="ta-guia-contenido"><p class="ta-guia-intro"><strong>Aquí solicitas aventuras, sigues las tuyas y encuentras narrador o jugadores.</strong> Cada pestaña corresponde a una tarea distinta.</p>'
+        . '<div class="ta-guia-secciones">';
+    foreach ($secciones as $sec) {
+        $html .= '<section><h3><i class="fa-solid ' . $sec[0] . '" aria-hidden="true"></i> ' . $sec[1] . '</h3><p>' . $sec[2] . '</p><ul>';
+        foreach ($sec[3] as $punto) {
+            $html .= '<li>' . $punto . '</li>';
+        }
+        $html .= '</ul></section>';
+    }
+    return $html . '</div><p class="ta-guia-estados"><strong>Estados:</strong> En revisión espera al staff · Buscando narrador admite propuestas · Aprobada puede comenzar · Denegada indica el motivo · Finalizada ya fue cerrada y recompensada.</p>'
+        . '</div></details>';
+}
+
+/** Contador de propuestas que requieren una decisión del usuario. */
 function opg_av_v_contador($n)
 {
     return '<span class="opg-chip ta-contador' . ($n > 0 ? '' : ' ta-oculto') . '" id="ta-contador" '
-        . opg_av_hx('get', OPG_AV_URL, 'contar_sin_narrador')
+        . opg_av_hx('get', OPG_AV_URL, 'contar_propuestas')
         . ' hx-trigger="aventuraCambiada from:body, aventuraCreada from:body" hx-target="this" hx-swap="outerHTML"'
-        . ' aria-label="' . (int) $n . ' aventuras sin narrador">' . (int) $n . '</span>';
+        . ' aria-label="' . (int) $n . ' propuestas pendientes">' . (int) $n . '</span>';
 }
 
 /** Barra de pestañas. $oob = true para enviarla como actualización fuera de banda. */
 function opg_av_v_tabs($activa, $n_sin_narrador, $oob = false)
 {
-    $tabs = array('mias' => 'Mis aventuras', 'otras' => 'Otras aventuras', 'solicitud' => 'Solicitar aventura', 'narradores' => 'Narradores & Narrados');
+    $tabs = array(
+        'mias' => array('Mis aventuras', 'fa-book-open'),
+        'solicitud' => array('Solicitar aventura', 'fa-circle-plus'),
+        'narradores' => array('Narradores & Narrados', 'fa-user-group'),
+        'otras' => array('Otras aventuras', 'fa-compass'),
+    );
     $html = '<nav class="ta-tabs" id="ta-tabs" aria-label="Secciones"' . ($oob ? ' hx-swap-oob="true"' : '') . '>';
-    foreach ($tabs as $clave => $titulo) {
+    foreach ($tabs as $clave => $tab) {
+        list($titulo, $icono) = $tab;
         $href = OPG_AV_URL . '?tab=' . $clave;
         $html .= '<a class="ta-tab' . ($activa === $clave ? ' ta-tab-activa' : '') . '" href="' . opg_av_h($href) . '" '
             . opg_av_hx('get', OPG_AV_URL, 'tab', array('tab' => $clave)) . ' hx-target="#ta-panel" hx-swap="innerHTML"'
-            . ' hx-push-url="' . opg_av_h($href) . '"' . ($activa === $clave ? ' aria-current="page"' : '') . '>' . opg_av_h($titulo);
+            . ' hx-indicator="#ta-panel-cargando" hx-sync="#ta-panel:replace" hx-push-url="' . opg_av_h($href) . '" aria-controls="ta-panel"'
+            . ($activa === $clave ? ' aria-current="page"' : '') . '>'
+            . '<i class="fa-solid ' . opg_av_h($icono) . '" aria-hidden="true"></i><span>' . opg_av_h($titulo) . '</span>';
         if ($clave === 'narradores') {
             $html .= ' ' . opg_av_v_contador($n_sin_narrador);
         }
         $html .= '</a>';
     }
     return $html . '</nav>';
+}
+
+function opg_av_v_novedad_fila($n, $permitir_leer)
+{
+    $etiquetas = array(
+        'invitacion_nueva' => 'Te invitaron a narrar', 'candidatura_nueva' => 'Nueva candidatura de narrador',
+        'propuesta_aceptada' => 'Propuesta aceptada', 'propuesta_rechazada' => 'Propuesta rechazada',
+        'propuesta_retirada' => 'Propuesta retirada', 'propuesta_cancelada' => 'Se asignó otro narrador',
+        'propuesta_vencida' => 'Propuesta vencida',
+        'aventura_aprobada' => 'Aventura aprobada', 'aventura_denegada' => 'Aventura denegada',
+        'narrador_salio' => 'El narrador dejó la aventura', 'entrega_rechazada' => 'Entrega rechazada',
+        'recompensas_entregadas' => 'Recompensas entregadas', 'oferta_por_vencer' => 'Tu oferta vence en 3 días',
+    );
+    $texto = isset($etiquetas[$n['tipo']]) ? $etiquetas[$n['tipo']] : 'Actualización de aventura';
+    $html = '<li class="ta-notificacion' . ($n['leida'] ? ' ta-notificacion-leida' : '') . '"><div><b>' . opg_av_h($texto) . '</b><span>';
+    if ($n['peticion_id']) {
+        $html .= '<a href="' . opg_av_h(OPG_AV_URL . '?id=' . $n['peticion_id']) . '">Solicitud #' . (int) $n['peticion_id'] . '</a>';
+    } elseif ($n['tipo'] === 'oferta_por_vencer') {
+        $html .= '<a href="' . opg_av_h(OPG_AV_URL . '?tab=narradores') . '">Renovar oferta</a>';
+    }
+    $html .= '<time>' . opg_av_h(opg_av_fecha($n['created_at'], true)) . '</time></span></div>';
+    if ($permitir_leer && !$n['leida']) {
+        $html .= '<button type="button" class="opg-chip" ' . opg_av_hx('post', OPG_AV_URL, 'leer_notificacion', array('notificacion_id' => $n['id']))
+            . ' hx-target="#ta-novedades" hx-swap="outerHTML"><i class="fa-solid fa-check" aria-hidden="true"></i> Marcar leída</button>';
+    }
+    return $html . '</li>';
+}
+
+/** Panel persistente de novedades, inspirado en el resumen de Bitácora. */
+function opg_av_v_novedades_panel($items, $cantidad)
+{
+    $pendientes = array();
+    $historial = array();
+    foreach ((array) $items as $n) {
+        if ($n['leida']) { $historial[] = $n; } else { $pendientes[] = $n; }
+    }
+    $cantidad = (int) $cantidad;
+    $clase = $cantidad > 0 ? ' ta-novedades--pendientes' : '';
+    $resumen = $cantidad > 0
+        ? $cantidad . ($cantidad === 1 ? ' actualización pendiente' : ' actualizaciones pendientes')
+        : 'No tienes novedades pendientes.';
+    $html = '<section class="ta-novedades' . $clase . '" id="ta-novedades" aria-labelledby="ta-t-novedades">'
+        . '<header><span><i class="fa-solid fa-bell" aria-hidden="true"></i><span><strong id="ta-t-novedades">Novedades</strong>'
+        . '<small>' . opg_av_h($resumen) . '</small></span></span>'
+        . ($cantidad > 0 ? '<span class="ta-novedades-cifra" aria-label="' . $cantidad . ' sin leer">' . $cantidad . '</span>' : '') . '</header>';
+    if ($pendientes) {
+        $html .= '<ul class="ta-notificaciones ta-notificaciones-pendientes">';
+        foreach ($pendientes as $n) { $html .= opg_av_v_novedad_fila($n, true); }
+        $html .= '</ul>';
+    }
+    if ($historial) {
+        $html .= '<details class="ta-novedades-historial"><summary><span>Historial reciente</span><small>' . count($historial)
+            . (count($historial) === 1 ? ' leída' : ' leídas') . '</small></summary><ul class="ta-notificaciones">';
+        foreach ($historial as $n) { $html .= opg_av_v_novedad_fila($n, false); }
+        $html .= '</ul></details>';
+    }
+    return $html . '</section>';
 }
 
 // ── Tarjeta de una solicitud ─────────────────────────────────────────────────
@@ -486,15 +675,34 @@ function opg_av_v_nombres($jugadores)
 {
     $n = array();
     foreach ($jugadores as $j) {
-        $n[] = opg_av_h($j['nombre'] !== '' ? $j['nombre'] : 'Sin nombre');
+        $n[] = opg_av_v_persona(isset($j['uid']) ? $j['uid'] : 0, $j['nombre'] !== '' ? $j['nombre'] : 'Sin nombre');
     }
     return $n ? implode(', ', $n) : 'Ninguno';
+}
+
+function opg_av_v_persona($uid, $nombre)
+{
+    $nombre = $nombre !== '' ? $nombre : 'Desconocido';
+    if ((int) $uid <= 0) {
+        return opg_av_h($nombre);
+    }
+    return '<a href="../member.php?action=profile&amp;uid=' . (int) $uid . '">' . opg_av_h($nombre) . '</a>';
 }
 
 /** Bloque con etiqueta (idea, motivos...). */
 function opg_av_v_bloque_texto($etiqueta, $texto, $clase = '')
 {
     return '<div class="ta-nota ' . $clase . '"><b>' . opg_av_h($etiqueta) . '</b><p>' . opg_av_texto_html($texto) . '</p></div>';
+}
+
+/** Comentario público compacto, expandible sin JavaScript. */
+function opg_av_v_descripcion($id, $texto)
+{
+    $control = 'ta-descripcion-' . (int) $id;
+    return '<div class="ta-descripcion"><input class="ta-descripcion-control" type="checkbox" id="' . $control . '">'
+        . '<div class="ta-nota ta-nota-comentario"><b>Comentario</b><p id="' . $control . '-texto">' . opg_av_texto_html($texto) . '</p></div>'
+        . '<label class="ta-descripcion-toggle" for="' . $control . '" aria-controls="' . $control . '-texto">'
+        . '<span class="ta-descripcion-mas">Ver descripción</span><span class="ta-descripcion-menos">Ocultar descripción</span></label></div>';
 }
 
 /**
@@ -511,16 +719,41 @@ function opg_av_v_tarjeta($av, $ctx)
     $entrega = $av['entrega'];
     $estado = $av['estado'];
 
-    $titulo = '#' . $id . ' · ' . ($av['isla'] ? $av['isla']['nombre'] : 'Isla sin indicar');
+    $titulo = '#' . $id . ' · ' . ($av['aventura_nombre'] !== '' ? $av['aventura_nombre'] : 'Sin tema vinculado');
     $html = '<article class="opg-card ta-card' . (!empty($ctx['resaltar']) && (int) $ctx['resaltar'] === $id ? ' ta-resaltada' : '') . '" id="av-' . $id . '" style="--opg-card-acento: ' . opg_av_acento_estado($estado) . '">';
     $html .= '<header class="opg-card__cabecera ta-cab"><span class="opg-card__titulo">' . opg_av_h($titulo) . '</span>'
         . '<span class="ta-estado ta-estado-' . opg_av_h($av['estado_clave']) . '">' . opg_av_h($av['estado_etiqueta']) . '</span></header>';
 
-    $meta = array(opg_av_h($av['fecha_texto'] !== null ? $av['fecha_texto'] : 'Sin día'));
-    if ($av['tier']) {
-        $meta[] = 'Tier ' . (int) $av['tier'];
+    $meta = array();
+    $faltan = array();
+    if ($av['isla']) {
+        $meta[] = '<span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' . opg_av_h($av['isla']['nombre']) . '</span>';
+    } else {
+        $faltan[] = 'isla';
     }
-    $html .= '<p class="opg-card__desc ta-meta">' . implode(' · ', $meta) . ($av['inframundo'] ? ' <span class="opg-chip ta-inframundo">Inframundo</span>' : '') . '</p>';
+    if ($av['fecha_texto'] !== null) {
+        $meta[] = '<span><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> ' . opg_av_h($av['fecha_texto']) . '</span>';
+    } else {
+        $faltan[] = 'día';
+    }
+    if (opg_av_es_autonarrada($av)) {
+        $meta[] = '<span class="opg-chip ta-tipo-auto"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i> Crónica autonarrada</span>';
+        if (!empty($av['autonarrada']['palabras'])) {
+            $meta[] = '<span><i class="fa-solid fa-align-left" aria-hidden="true"></i> ' . (int) $av['autonarrada']['palabras'] . ' palabras</span>';
+        }
+    } elseif ($av['tier']) {
+        $meta[] = '<span><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Tier ' . (int) $av['tier'] . '</span>';
+    } else {
+        $faltan[] = 'tier';
+    }
+    if ($av['inframundo']) {
+        $meta[] = '<span class="opg-chip ta-inframundo">Inframundo</span>';
+    }
+    if ($faltan) {
+        $texto_faltan = 'Falta ' . implode(', ', $faltan);
+        $meta[] = '<span class="opg-chip ta-datos-incompletos" title="' . opg_av_h($texto_faltan) . '"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Datos incompletos<span class="ta-solo-lector">: ' . opg_av_h($texto_faltan) . '</span></span>';
+    }
+    $html .= '<div class="opg-card__desc ta-meta">' . implode('', $meta) . '</div>';
 
     $yo = array();
     if ($es_creador) { $yo[] = 'Creaste esta solicitud'; }
@@ -532,16 +765,17 @@ function opg_av_v_tarjeta($av, $ctx)
     }
 
     $html .= '<dl class="ta-datos">'
-        . '<div><dt>Creador</dt><dd>' . opg_av_h($av['creador_nombre'] !== '' ? $av['creador_nombre'] : 'Desconocido') . '</dd></div>'
-        . '<div><dt>Narrador</dt><dd>' . ($av['narrador_uid'] > 0 ? opg_av_h($av['narrador_nombre']) : '<i>Sin narrador</i>') . '</dd></div>'
-        . '<div class="ta-dato-ancho"><dt>Participantes</dt><dd>' . opg_av_v_nombres($av['jugadores']) . '</dd></div>'
+        . '<div class="ta-dato-creador"><dt>Creador</dt><dd>' . opg_av_v_persona($av['uid'], $av['creador_nombre']) . '</dd></div>'
+        . '<div class="ta-dato-narrador"><dt>Narrador</dt><dd>' . ($av['narrador_uid'] > 0 ? opg_av_v_persona($av['narrador_uid'], $av['narrador_nombre']) : '<i>Sin narrador</i>') . '</dd></div>'
+        . '<div class="ta-dato-ancho ta-dato-participantes"><dt>Participantes</dt><dd>' . opg_av_v_nombres($av['jugadores']) . '</dd></div>'
         . '</dl>';
 
     if ($av['comentario_publico'] !== '') {
-        $html .= opg_av_v_bloque_texto('Comentario', $av['comentario_publico']);
+        $html .= opg_av_v_descripcion($id, $av['comentario_publico']);
     }
     if ($av['idea_narrador'] !== '') {
-        $html .= opg_av_v_bloque_texto('Idea', $av['idea_narrador'], 'ta-nota-idea');
+        $idea = opg_av_v_bloque_texto('Idea para narradores', $av['idea_narrador'], 'ta-nota-idea');
+        $html .= $estado === 4 ? $idea : '<details class="ta-detalles"><summary>Idea para narradores</summary>' . $idea . '</details>';
     }
     if ($av['motivo_renuncia'] !== '') {
         $html .= opg_av_v_bloque_texto('El narrador anterior se salió', $av['motivo_renuncia'], 'ta-nota-renuncia');
@@ -563,35 +797,87 @@ function opg_av_v_tarjeta($av, $ctx)
             $html .= '<p class="ta-entrega"><span class="opg-chip">Recompensas entregadas el ' . opg_av_h(opg_av_fecha($entrega['entregado_at'])) . '</span></p>';
         }
     }
+    if (opg_av_es_autonarrada($av) && !empty($av['autonarrada']['entregada_at'])) {
+        if ($av['autonarrada']['estado_pago'] === 'aplicado') {
+            $html .= '<p class="ta-entrega"><span class="opg-chip">Recompensas entregadas'
+                . (!empty($av['autonarrada']['pagada_at']) ? ' el ' . opg_av_h(opg_av_fecha($av['autonarrada']['pagada_at'])) : '')
+                . '</span></p>';
+        } else {
+            $html .= '<p class="ta-entrega"><span class="opg-chip">Autonarrada entregada · Reputación '
+                . opg_av_h($av['autonarrada']['reputacion']) . ' · Pendiente de revisión</span></p>';
+        }
+    }
 
     $html .= '<div class="ta-avisos" id="aviso-' . $id . '" aria-live="polite"></div>';
 
     // Acciones según rol y estado
-    $acciones = '';
+    $principal = '';
+    $secundarias = array();
     $objetivo = 'hx-target="#av-' . $id . '" hx-swap="outerHTML"';
-    $puede_entregar = $es_narrador && $estado === 1 && (!$entrega || $entrega['estado'] === 'rechazada');
-    if (opg_av_puede_vincular($av, $uid)) {
-        $acciones .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_vincular', array('id' => $id)) . ' ' . $objetivo . '>Vincular aventura</button>';
-    }
+    $puede_vincular = opg_av_puede_vincular($av, $uid);
+    $ya_vinculada = $av['tid_vinculado'] > 0;
+    $puede_entregar = !opg_av_es_autonarrada($av) && $es_narrador && $estado === 1 && (!$entrega || $entrega['estado'] === 'rechazada');
+    $puede_entregar_auto = opg_av_es_autonarrada($av) && $es_creador && $estado === 1
+        && $av['tid_vinculado'] > 0 && empty($av['autonarrada']['entregada_at'])
+        && $av['autonarrada']['estado_pago'] === 'pendiente';
     if ($puede_entregar) {
-        $acciones .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_entrega', array('id' => $id)) . ' ' . $objetivo . '>'
+        $principal = '<button type="button" class="btn-op btn-op--primario ta-accion-principal" ' . opg_av_hx('get', OPG_AV_URL, 'form_entrega', array('id' => $id)) . ' ' . $objetivo . '><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> '
             . ($entrega ? 'Corregir y reenviar' : 'Entregar aventura') . '</button>';
+    } elseif ($puede_entregar_auto) {
+        $principal = '<button type="button" class="btn-op btn-op--primario ta-accion-principal" '
+            . opg_av_hx('get', OPG_AV_URL, 'form_entrega', array('id' => $id)) . ' ' . $objetivo
+            . '><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Entregar autonarrada</button>';
+    } elseif ($puede_vincular && !$ya_vinculada) {
+        $principal = '<button type="button" class="btn-op btn-op--primario ta-accion-principal" ' . opg_av_hx('get', OPG_AV_URL, 'form_vincular', array('id' => $id)) . ' ' . $objetivo . '><i class="fa-solid fa-link" aria-hidden="true"></i> Vincular aventura</button>';
     }
-    if ($es_narrador && in_array($estado, array(0, 1), true)) {
-        $acciones .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_renunciar', array('id' => $id)) . ' hx-target="#ta-modal" hx-swap="innerHTML">Dejar de narrar</button>';
+    if ($puede_vincular && $ya_vinculada) {
+        $secundarias[] = '<button type="button" class="opg-chip" '
+            . opg_av_hx('get', OPG_AV_URL, 'form_vincular', array('id' => $id)) . ' ' . $objetivo
+            . '><i class="fa-solid fa-link" aria-hidden="true"></i> Revincular aventura</button>';
+    }
+    if (!opg_av_es_autonarrada($av) && $es_narrador && in_array($estado, array(0, 1), true)) {
+        $secundarias[] = '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_renunciar', array('id' => $id)) . ' hx-target="#ta-modal" hx-swap="innerHTML"><i class="fa-solid fa-person-walking-arrow-right" aria-hidden="true"></i> Dejar de narrar</button>';
     }
     if ($es_creador && in_array($estado, OPG_AV_ESTADOS_EDITABLES, true)) {
-        $acciones .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_editar', array('id' => $id)) . ' ' . $objetivo . '>Editar</button>';
+        $editar = '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_editar', array('id' => $id)) . ' ' . $objetivo . '><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar</button>';
+        if ($principal === '') {
+            $principal = str_replace('class="opg-chip"', 'class="btn-op btn-op--primario ta-accion-principal"', $editar);
+        } else {
+            $secundarias[] = $editar;
+        }
     }
     if ($estado === 4 && !$es_parte && !empty($ctx['tiene_ficha'])) {
-        $acciones .= '<button type="button" class="opg-chip ta-postular" ' . opg_av_hx('get', OPG_AV_URL, 'form_postular', array('id' => $id)) . ' hx-target="#ta-modal" hx-swap="innerHTML">Postularme como narrador</button>';
+        $principal = '<button type="button" class="btn-op btn-op--primario ta-accion-principal ta-postular" ' . opg_av_hx('get', OPG_AV_URL, 'form_postular', array('id' => $id)) . ' hx-target="#ta-modal" hx-swap="innerHTML"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Me interesa narrar</button>';
+    }
+    if ($es_creador && !empty($av['propuestas'])) {
+        $propuestas = '<div class="ta-propuestas-tarjeta"><b>Propuestas de narrador</b>';
+        foreach ($av['propuestas'] as $p) {
+            $propuestas .= '<div><span>' . opg_av_v_persona($p['narrador_uid'], $p['narrador_usuario']) . '</span>';
+            if (!empty($p['mensaje'])) {
+                $propuestas .= '<small>' . opg_av_h($p['mensaje']) . '</small>';
+            }
+            $propuestas .= '<span class="ta-acciones"><button type="button" class="opg-chip" '
+                . opg_av_hx('post', OPG_AV_URL, 'aceptar_propuesta', array('propuesta_id' => (int) $p['id'], 'tab' => 'mias'))
+                . ' hx-target="#ta-panel" hx-swap="innerHTML">Aceptar</button><button type="button" class="opg-chip" '
+                . opg_av_hx('post', OPG_AV_URL, 'rechazar_propuesta', array('propuesta_id' => (int) $p['id'], 'tab' => 'mias'))
+                . ' hx-target="#ta-panel" hx-swap="innerHTML">Rechazar</button></span></div>';
+        }
+        $html .= $propuestas . '</div>';
     }
     if ($es_creador && $estado !== 5) {
-        $acciones .= '<button type="button" class="opg-chip chip-peligro" ' . opg_av_hx('post', OPG_AV_URL, 'pedir_borrado', array('id' => $id)) . ' ' . $objetivo
-            . ' hx-confirm="¿Seguro que quieres pedir el borrado de esta solicitud? Dejará de contar como aventura activa y el staff decidirá si la elimina.">Pedir borrado</button>';
+        $secundarias[] = '<button type="button" class="opg-chip chip-peligro" ' . opg_av_hx('post', OPG_AV_URL, 'pedir_borrado', array('id' => $id)) . ' ' . $objetivo
+            . ' hx-confirm="¿Seguro que quieres pedir el borrado de esta solicitud? Dejará de contar como aventura activa y el staff decidirá si la elimina."><i class="fa-solid fa-trash-can" aria-hidden="true"></i> Pedir borrado</button>';
     }
-    if ($acciones !== '') {
-        $html .= '<div class="ta-acciones">' . $acciones . '</div>';
+    if ($es_parte) {
+        $secundarias[] = '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'historial_usuario', array('id' => $id))
+            . ' hx-target="#ta-modal" hx-swap="innerHTML"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial</button>';
+    }
+    if ($principal !== '' || $secundarias) {
+        $html .= '<div class="ta-acciones">' . $principal;
+        if ($secundarias) {
+            $html .= '<details class="ta-mas-acciones"><summary><i class="fa-solid fa-ellipsis" aria-hidden="true"></i> Más acciones</summary><div>' . implode('', $secundarias) . '</div></details>';
+        }
+        $html .= '</div>';
     }
     return $html . '</article>';
 }
@@ -602,7 +888,7 @@ function opg_av_v_tarjeta($av, $ctx)
 function opg_av_params_filtros($filtros)
 {
     $p = array();
-    foreach (array('ambito', 'estado', 'rol', 'uid', 'q') as $k) {
+    foreach (array('ambito', 'vista', 'estado', 'rol', 'uid', 'q', 'densidad', 'incompletas', 'resolubles', 'orden', 'vigencia') as $k) {
         if (isset($filtros[$k]) && $filtros[$k] !== '' && $filtros[$k] !== null) {
             $p[$k] = $filtros[$k];
         }
@@ -626,12 +912,27 @@ function opg_av_v_filtros($filtros)
 {
     $ambito = (isset($filtros['ambito']) && $filtros['ambito'] === 'otras') ? 'otras' : 'mias';
     $estado = isset($filtros['estado']) ? $filtros['estado'] : '';
-    $estados = $ambito === 'mias'
-        ? array('' => 'Todas', 'creado' => 'Creadas', 'pendiente-narrador' => 'Pendiente', 'aprobado' => 'Aprobadas', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas')
-        : array('' => 'Todas', 'creado' => 'Creadas', 'aprobado' => 'Aprobadas', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas');
+    $vista = isset($filtros['vista']) ? $filtros['vista'] : ($ambito === 'mias' ? 'activas' : 'actuales');
+    $vistas = $ambito === 'mias'
+        ? array('activas' => 'Activas', 'historial' => 'Historial', 'todas' => 'Todas')
+        : array('actuales' => 'Actuales', 'historial' => 'Historial', 'todas' => 'Todas');
+    if ($vista === 'historial') {
+        $estados = array('' => 'Todos', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas');
+    } elseif ($vista === 'todas') {
+        $estados = $ambito === 'mias'
+            ? array('' => 'Todos', 'creado' => 'En revisión', 'pendiente-narrador' => 'Buscando narrador', 'aprobado' => 'Aprobadas', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas')
+            : array('' => 'Todos', 'creado' => 'En revisión', 'aprobado' => 'Aprobadas', 'denegado' => 'Denegadas', 'finalizado' => 'Finalizadas');
+    } else {
+        $estados = $ambito === 'mias'
+            ? array('' => 'Todos', 'creado' => 'En revisión', 'pendiente-narrador' => 'Buscando narrador', 'aprobado' => 'Aprobadas')
+            : array('' => 'Todos', 'creado' => 'En revisión', 'aprobado' => 'Aprobadas');
+    }
     $html = '<form class="ta-filtros" id="ta-filtros-' . $ambito . '" ' . opg_av_hx('get', OPG_AV_URL, 'listar')
-        . ' hx-trigger="change, input changed delay:250ms, submit" hx-target="#ta-lista-' . $ambito . '" hx-swap="innerHTML">'
+        . ' hx-trigger="change, input changed delay:250ms, submit" hx-target="#ta-panel" hx-swap="innerHTML"'
+        . ' hx-include=".ta-densidad input:checked">'
         . '<input type="hidden" name="ambito" value="' . $ambito . '">'
+        . '<input type="hidden" name="panel" value="1">'
+        . opg_av_v_grupo_filtro($ambito === 'mias' ? 'Vista' : 'Periodo', 'vista', $vistas, $vista)
         . opg_av_v_grupo_filtro('Estado', 'estado', $estados, $estado);
     if ($ambito === 'mias') {
         $html .= opg_av_v_grupo_filtro('Tu papel', 'rol', array('' => 'Todas', 'narrador' => 'Soy narrador', 'jugador' => 'Soy jugador'), isset($filtros['rol']) ? $filtros['rol'] : '');
@@ -641,11 +942,34 @@ function opg_av_v_filtros($filtros)
         $html .= '<div class="af-field ta-filtro-busqueda"><label for="ta-q-otras">Buscar por ID o personaje</label>'
             . '<input type="search" id="ta-q-otras" name="q" autocomplete="off" placeholder="#850 o nombre del personaje" value="' . opg_av_h(isset($filtros['q']) ? $filtros['q'] : '') . '"></div>';
     }
+    if (!empty($filtros['estado']) || !empty($filtros['rol']) || !empty($filtros['q'])) {
+        $limpios = array('ambito' => $ambito, 'vista' => $vista,
+            'densidad' => isset($filtros['densidad']) ? $filtros['densidad'] : 'compacta', 'panel' => 1);
+        $html .= '<button type="button" class="opg-chip ta-limpiar-filtros" '
+            . opg_av_hx('get', OPG_AV_URL, 'listar', $limpios)
+            . ' hx-target="#ta-panel" hx-swap="innerHTML"><i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i> Limpiar filtros</button>';
+    }
     return $html . '</form>';
 }
 
-/** Paginador (Anterior / Siguiente) que conserva los filtros. */
-function opg_av_v_paginador($res, $filtros, $accion = 'listar', $base = OPG_AV_URL, $destino = null)
+/** Control de densidad persistido en la URL y compartido con los filtros. */
+function opg_av_v_densidad($ambito, $actual = 'compacta')
+{
+    $ambito = $ambito === 'otras' ? 'otras' : 'mias';
+    $actual = $actual === 'expandida' ? 'expandida' : 'compacta';
+    $hx = function ($densidad) use ($ambito) {
+        return opg_av_hx('get', OPG_AV_URL, 'listar', array('ambito' => $ambito, 'panel' => 1))
+            . ' hx-trigger="change" hx-target="#ta-panel" hx-swap="innerHTML" hx-include="#ta-filtros-' . $ambito . '"';
+    };
+    return '<fieldset class="ta-densidad"><legend>Densidad</legend>'
+        . '<label><input class="ta-densidad-compacta" type="radio" name="densidad" value="compacta"'
+        . ($actual === 'compacta' ? ' checked' : '') . ' ' . $hx('compacta') . '><span><i class="fa-solid fa-bars" aria-hidden="true"></i> Compacta</span></label>'
+        . '<label><input class="ta-densidad-expandida" type="radio" name="densidad" value="expandida"'
+        . ($actual === 'expandida' ? ' checked' : '') . ' ' . $hx('expandida') . '><span><i class="fa-solid fa-align-justify" aria-hidden="true"></i> Expandida</span></label></fieldset>';
+}
+
+/** Paginador con extremos y ventana de páginas que conserva los filtros. */
+function opg_av_v_paginador($res, $filtros, $accion = 'listar', $base = OPG_AV_URL, $destino = null, $swap = 'innerHTML')
 {
     if ($res['paginas'] <= 1) {
         return '';
@@ -654,12 +978,26 @@ function opg_av_v_paginador($res, $filtros, $accion = 'listar', $base = OPG_AV_U
     $destino = $destino !== null ? $destino : '#ta-lista-' . $ambito;
     $params = opg_av_params_filtros($filtros);
     $html = '<nav class="ta-paginador" aria-label="Páginas">';
-    if ($res['pagina'] > 1) {
-        $html .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', $base, $accion, $params + array('pagina' => $res['pagina'] - 1)) . ' hx-target="' . opg_av_h($destino) . '" hx-swap="innerHTML">Anterior</button>';
+    $pagina = (int) $res['pagina'];
+    $paginas = (int) $res['paginas'];
+    $boton = function ($p, $texto, $actual = false) use ($base, $accion, $params, $destino, $swap) {
+        return '<button type="button" class="opg-chip' . ($actual ? ' ta-pagina-activa' : '') . '" '
+            . opg_av_hx('get', $base, $accion, $params + array('pagina' => $p)) . ' hx-target="' . opg_av_h($destino)
+            . '" hx-swap="' . opg_av_h($swap) . '"' . ($actual ? ' aria-current="page"' : '') . '>' . $texto . '</button>';
+    };
+    if ($pagina > 1) {
+        $html .= $boton(1, '<span aria-hidden="true">«</span><span class="ta-solo-lector">Primera</span>')
+            . $boton($pagina - 1, '<span aria-hidden="true">‹</span><span class="ta-solo-lector">Anterior</span>');
     }
-    $html .= '<span class="ta-pagina">Página ' . (int) $res['pagina'] . ' de ' . (int) $res['paginas'] . '</span>';
-    if ($res['pagina'] < $res['paginas']) {
-        $html .= '<button type="button" class="opg-chip" ' . opg_av_hx('get', $base, $accion, $params + array('pagina' => $res['pagina'] + 1)) . ' hx-target="' . opg_av_h($destino) . '" hx-swap="innerHTML">Siguiente</button>';
+    $desde = max(1, $pagina - 2);
+    $hasta = min($paginas, $desde + 4);
+    $desde = max(1, $hasta - 4);
+    for ($p = $desde; $p <= $hasta; $p++) {
+        $html .= $boton($p, (string) $p, $p === $pagina);
+    }
+    if ($pagina < $paginas) {
+        $html .= $boton($pagina + 1, '<span aria-hidden="true">›</span><span class="ta-solo-lector">Siguiente</span>')
+            . $boton($paginas, '<span aria-hidden="true">»</span><span class="ta-solo-lector">Última</span>');
     }
     return $html . '</nav>';
 }
@@ -667,7 +1005,7 @@ function opg_av_v_paginador($res, $filtros, $accion = 'listar', $base = OPG_AV_U
 /** Contenido de la lista de tarjetas (sin el contenedor). */
 function opg_av_v_lista($res, $filtros, $ctx, $texto_vacio = 'No hay aventuras con estos filtros.')
 {
-    $resumen = '<p class="ta-resultados-total">' . (int) $res['total'] . ' aventuras · Página '
+    $resumen = '<p class="ta-resultados-total" tabindex="-1">' . (int) $res['total'] . ' aventuras · Página '
         . (int) $res['pagina'] . ' de ' . (int) $res['paginas'] . '</p>';
     if (!$res['items']) {
         return $resumen . opg_av_v_vacio($texto_vacio);
@@ -692,27 +1030,68 @@ function opg_av_v_sin_aventuras()
 
 // ── Paneles de las pestañas ─────────────────────────────────────────────────
 
-function opg_av_v_estadisticas($datos, $ambito, $oob = false)
+function opg_av_v_estadisticas($datos, $ambito, $oob = false, $filtros = array())
 {
-    $labels = array('total' => 'Total', 'estado_0' => 'Creadas', 'estado_4' => 'Pendientes',
-        'estado_1' => 'Aprobadas', 'estado_2' => 'Denegadas', 'estado_3' => 'Finalizadas',
+    $estados = opg_av_etiquetas_estadisticas();
+    $labels = array('total' => $estados['total'], 'estado_0' => $estados['creado'], 'estado_4' => $estados['pendiente-narrador'],
+        'estado_1' => $estados['aprobado'], 'estado_2' => $estados['denegado'], 'estado_3' => $estados['finalizado'],
         'narrador' => 'Como narrador', 'jugador' => 'Como jugador');
-    $html = '<div class="ta-estadisticas" id="ta-estadisticas-' . opg_av_h($ambito)
+    $mostrar_roles = $ambito === 'mias';
+    $html = '<div class="ta-estadisticas' . ($mostrar_roles ? '' : ' ta-estadisticas-solo-estados') . '" id="ta-estadisticas-' . opg_av_h($ambito)
         . '" aria-label="Estadísticas del listado" aria-live="polite"' . ($oob ? ' hx-swap-oob="true"' : '') . '>';
-    $grupos = array('estados' => array_slice($labels, 0, 6, true), 'roles' => array_slice($labels, 6, null, true));
+    $vista = isset($filtros['vista']) ? $filtros['vista'] : ($ambito === 'mias' ? 'activas' : 'actuales');
+    $claves_estado = $vista === 'historial' ? array('total', 'estado_2', 'estado_3')
+        : ($vista === 'todas' ? array('total', 'estado_0', 'estado_4', 'estado_1', 'estado_2', 'estado_3')
+            : ($ambito === 'mias' ? array('total', 'estado_0', 'estado_4', 'estado_1') : array('total', 'estado_0', 'estado_1')));
+    $estados_visibles = array();
+    foreach ($claves_estado as $clave) { $estados_visibles[$clave] = $labels[$clave]; }
+    $grupos = array('estados' => $estados_visibles);
+    if ($mostrar_roles) {
+        $grupos['roles'] = array_slice($labels, 6, null, true);
+    }
     foreach ($grupos as $grupo => $campos) {
-        $html .= '<dl class="ta-estadisticas-' . $grupo . '" aria-label="'
+        $html .= '<div class="ta-estadisticas-' . $grupo . '" aria-label="'
             . ($grupo === 'estados' ? 'Por estado' : 'Por papel') . '">';
         foreach ($campos as $clave => $label) {
-            $html .= '<div class="ta-estadistica ta-estadistica-' . $clave . '"><dt>' . $label
-                . '</dt><dd>' . (isset($datos[$clave]) ? (int) $datos[$clave] : 0) . '</dd></div>';
+            $html .= '<div class="ta-estadistica ta-estadistica-' . $clave . '"><span>' . $label
+                . '</span><b>' . (isset($datos[$clave]) ? (int) $datos[$clave] : 0) . '</b></div>';
         }
-        $html .= '</dl>';
+        $html .= '</div>';
     }
     return $html . '</div>';
 }
 
-function opg_av_v_mis_activas($items)
+function opg_av_v_buscar_modo_vista($vista_uid = 0)
+{
+    return '<details class="ta-selector-vista">'
+        . '<summary><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver otro personaje</summary>'
+        . '<div class="ta-selector-vista-panel"><label class="ta-solo-lector" for="ta-buscar-modo-vista">Buscar personaje</label>'
+        . '<div class="ta-selector-vista-busqueda">'
+        . '<div class="opg-buscar-caja"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>'
+        . '<input type="search" id="ta-buscar-modo-vista" name="q" autocomplete="off" placeholder="Buscar por nombre o FID"'
+        . ' aria-autocomplete="list" aria-controls="ta-resultados-modo-vista"'
+        . ' ' . opg_av_hx('get', OPG_AV_URL, 'buscar_modo_vista', array('modo_vista' => (int) $vista_uid))
+        . ' hx-trigger="keyup changed delay:250ms, search" hx-target="#ta-resultados-modo-vista" hx-sync="this:replace"></div>'
+        . '<small>Nombre desde 3 letras o FID directo</small>'
+        . '<div id="ta-resultados-modo-vista" class="ta-resultados-vista" role="listbox"></div></div></div></details>';
+}
+
+function opg_av_v_resultados_modo_vista($fichas, $excluir_uid = 0)
+{
+    $html = '';
+    foreach ($fichas as $ficha) {
+        $fid = (int) $ficha['fid'];
+        if ($fid <= 0 || $fid === (int) $excluir_uid) {
+            continue;
+        }
+        $nombre = trim((string) $ficha['nombre']);
+        $html .= '<a class="opg-resultado ta-resultado-vista" role="option" href="' . opg_av_h(OPG_AV_URL . '?modo_vista=' . $fid) . '">'
+            . opg_av_h($nombre !== '' ? $nombre : 'Personaje #' . $fid) . '<span>FID #' . $fid . '</span></a>';
+    }
+    return $html !== '' ? $html : '<p class="opg-resultado-vacio">No se encontraron personajes.</p>';
+}
+
+function opg_av_v_mis_activas($items, $nombre_personaje = '', $reactiva = true)
 {
     $grupos = array('Solitarias' => array(), 'Grupales' => array());
     $narradas = array();
@@ -723,24 +1102,39 @@ function opg_av_v_mis_activas($items)
         }
         $grupos[count($av['jugadores']) === 1 ? 'Solitarias' : 'Grupales'][] = $av;
     }
-    $html = '<section class="ta-mis-activas" id="ta-mis-activas" '
-        . opg_av_hx('get', OPG_AV_URL, 'mis_activas', array('detalle' => 1))
-        . ' hx-trigger="aventuraCreada from:body, aventuraCambiada from:body" hx-target="this" hx-swap="outerHTML" aria-live="polite">'
-        . '<h3 class="ta-subtitulo">Activas de mi personaje <span>' . (count($items) - count($narradas)) . ' / ' . OPG_AV_MAX_TOTAL . ' en total</span></h3>'
+    $atributos = '';
+    if ($reactiva) {
+        $atributos = ' ' . opg_av_hx('get', OPG_AV_URL, 'mis_activas', array('detalle' => 1))
+            . ' hx-trigger="aventuraCreada from:body, aventuraCambiada from:body" hx-target="this" hx-swap="outerHTML"';
+    }
+    $titulo = $nombre_personaje !== '' ? 'Activas de ' . opg_av_h($nombre_personaje) : 'Activas de mi personaje';
+    $html = '<section class="ta-mis-activas" id="ta-mis-activas"' . $atributos . ' aria-live="polite">'
+        . '<h3 class="ta-subtitulo">' . $titulo . ' <span>' . (count($items) - count($narradas)) . ' / ' . OPG_AV_MAX_TOTAL . ' en total</span></h3>'
         . '<div class="ta-activas-grupos">';
     $grupos['Narrando'] = $narradas;
     foreach ($grupos as $nombre => $avs) {
-        if ($nombre === 'Narrando') {
+        $es_narrando = $nombre === 'Narrando';
+        if ($es_narrando) {
             $html .= '</div><h3 class="ta-subtitulo ta-narradas-titulo">Aventuras que narro <span>'
                 . count($avs) . (count($avs) === 1 ? ' activa' : ' activas') . ' · Sin límite</span></h3><div class="ta-activas-grupos ta-narradas">';
         }
-        $html .= '<div><h4>' . $nombre . ' <span>' . count($avs)
-            . ($nombre === 'Solitarias' ? ' / ' . OPG_AV_MAX_SOLITARIAS : '') . '</span></h4><ul>';
+        $html .= '<div class="ta-activas-grupo ta-activas-grupo-' . ($es_narrando ? 'narradas' : strtolower($nombre)) . '">';
+        if (!$es_narrando) {
+            $html .= '<h4>' . $nombre . ' <span>' . count($avs)
+                . ($nombre === 'Solitarias' ? ' / ' . OPG_AV_MAX_SOLITARIAS : '') . '</span></h4>';
+        }
+        $html .= '<ul>';
         foreach ($avs as $av) {
             $nombre = !empty($av['aventura_nombre']) ? $av['aventura_nombre'] : 'Sin tema vinculado';
             $fecha = opg_av_fecha($av['created_at']);
-            $html .= '<li><div class="ta-activa-identidad"><a href="' . opg_av_h(OPG_AV_URL . '?id=' . $av['id']) . '">#' . $av['id']
-                . ' · ' . opg_av_h($nombre) . '</a>'
+            $identidad = '#' . (int) $av['id'] . ' · ' . opg_av_h($nombre);
+            $tid = isset($av['tid_vinculado']) ? (int) $av['tid_vinculado'] : 0;
+            if ($tid > 0 && !empty($av['aventura_nombre'])) {
+                $identidad = '<a href="' . opg_av_h(opg_av_url_tema($tid)) . '" target="_blank" rel="noopener">' . $identidad . '</a>';
+            } else {
+                $identidad = '<span class="ta-activa-titulo">' . $identidad . '</span>';
+            }
+            $html .= '<li><div class="ta-activa-identidad">' . $identidad
                 . '<span class="ta-activa-fecha">Registrada: ' . opg_av_h($fecha !== '' ? $fecha : 'Sin fecha')
                 . ($av['fecha_texto'] ? ' · ' . opg_av_h($av['fecha_texto']) : '') . '</span></div>'
                 . '<span class="ta-estado ta-estado-' . opg_av_h($av['estado_clave']) . '">'
@@ -757,12 +1151,28 @@ function opg_av_v_mis_activas($items)
 function opg_av_v_panel_mias($filtros, $res, $ctx, $tiene_aventuras, $estadisticas = array(), $activas = array())
 {
     $filtros['ambito'] = 'mias';
-    $html = opg_av_v_estadisticas($estadisticas, 'mias') . opg_av_v_mis_activas($activas)
+    $autos = !empty($ctx['uid']) ? opg_av_autonarradas_listar((int) $ctx['uid']) : array();
+    $auto_html = '';
+    if ($autos) {
+        $auto_html = '<section class="ta-autonarradas-resumen"><h3 class="ta-subtitulo">Crónicas autonarradas <span>' . count($autos) . '</span></h3><ul>';
+        foreach ($autos as $auto) {
+            $nombre = $auto['aventura_nombre'] !== '' ? $auto['aventura_nombre'] : 'Sin tema vinculado';
+            $identidad = '#' . (int) $auto['id'] . ' · ' . opg_av_h($nombre);
+            if ($auto['tid_vinculado'] > 0 && $auto['aventura_nombre'] !== '') {
+                $identidad = '<a href="' . opg_av_h(opg_av_url_tema($auto['tid_vinculado'])) . '" target="_blank" rel="noopener">' . $identidad . '</a>';
+            }
+            $auto_html .= '<li><span>' . $identidad . '<small>Semana del ' . opg_av_h(opg_av_fecha($auto['autonarrada']['semana_inicio']))
+                . (!empty($auto['autonarrada']['palabras']) ? ' · ' . (int) $auto['autonarrada']['palabras'] . ' palabras' : '')
+                . '</small></span><span class="ta-estado ta-estado-' . opg_av_h($auto['estado_clave']) . '">' . opg_av_h($auto['estado_etiqueta']) . '</span></li>';
+        }
+        $auto_html .= '</ul></section>';
+    }
+    $html = opg_av_v_estadisticas($estadisticas, 'mias', false, $filtros) . opg_av_v_mis_activas($activas) . $auto_html
         . '<section class="ta-seccion" aria-labelledby="ta-t-mias"><h2 class="ta-titulo" id="ta-t-mias">Mis aventuras</h2>';
     if (!$tiene_aventuras) {
         return $html . opg_av_v_sin_aventuras() . '</section>';
     }
-    $html .= opg_av_v_filtros($filtros)
+    $html .= opg_av_v_densidad('mias', isset($filtros['densidad']) ? $filtros['densidad'] : 'compacta') . opg_av_v_filtros($filtros)
         . '<div class="ta-lista" id="ta-lista-mias" aria-live="polite" ' . opg_av_hx('get', OPG_AV_URL, 'listar', opg_av_params_filtros($filtros) + array('pagina' => $res['pagina']))
         . ' hx-trigger="aventuraCreada from:body, aventuraCambiada from:body" hx-include="#ta-filtros-mias">' . opg_av_v_lista($res, $filtros, $ctx) . '</div>';
     return $html . '</section>';
@@ -774,14 +1184,14 @@ function opg_av_v_bloque_sin_narrador($sin, $ctx)
     $n = (int) $sin['total'];
     $html = '<section class="ta-sin-bloque" id="ta-sin-narrador" aria-labelledby="ta-t-sin" ' . opg_av_hx('get', OPG_AV_URL, 'sin_narrador')
         . ' hx-trigger="aventuraCambiada from:body, aventuraCreada from:body" hx-target="this" hx-swap="outerHTML">'
-        . '<header class="ta-sin-cabecera"><h2 id="ta-t-sin">Aventuras sin narrador</h2><span class="ta-sin-cifra" aria-label="' . $n . ' esperando narrador">' . $n . '</span></header>'
+        . '<header class="ta-sin-cabecera"><h2 id="ta-t-sin">Aventuras sin narrador</h2><span class="opg-chip ta-sin-cifra" aria-label="' . $n . ' esperando narrador">' . $n . ' esperando narrador</span></header>'
         . '<div class="ta-sin-cuerpo">';
     if (!$sin['items']) {
         $html .= opg_av_v_vacio('Ahora mismo todas las aventuras tienen narrador.');
     } else {
-        $html .= '<div class="ta-tarjetas">';
+        $html .= '<div class="ta-sin-lista">';
         foreach ($sin['items'] as $av) {
-            $html .= opg_av_v_tarjeta($av, $ctx);
+            $html .= opg_av_v_fila_sin_narrador($av, $ctx);
         }
         $html .= '</div>' . opg_av_v_ver_mas_sin_narrador($sin);
     }
@@ -803,24 +1213,146 @@ function opg_av_v_sin_narrador_mas($sin, $ctx)
 {
     $html = '';
     foreach ($sin['items'] as $av) {
-        $html .= opg_av_v_tarjeta($av, $ctx);
+        $html .= opg_av_v_fila_sin_narrador($av, $ctx);
     }
     return $html . opg_av_v_ver_mas_sin_narrador($sin);
 }
 
+/** Fila de inventario para elegir de un vistazo qué aventura narrar. */
+function opg_av_v_fila_sin_narrador($av, $ctx)
+{
+    $id = (int) $av['id'];
+    $titulo = $av['aventura_nombre'] !== '' ? $av['aventura_nombre'] : 'Solicitud #' . $id;
+    $titulo_html = opg_av_h($titulo);
+    if ($av['tid_vinculado'] > 0) {
+        $titulo_html = '<a href="' . opg_av_h(opg_av_url_tema($av['tid_vinculado'])) . '" target="_blank" rel="noopener">' . $titulo_html . '</a>';
+    }
+
+    $meta = array();
+    if ($av['tier']) {
+        $meta[] = '<span><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Tier ' . (int) $av['tier'] . '</span>';
+    }
+    if ($av['isla']) {
+        $meta[] = '<span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ' . opg_av_h($av['isla']['nombre']) . '</span>';
+    }
+    if ($av['fecha_texto'] !== null) {
+        $meta[] = '<span><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> ' . opg_av_h($av['fecha_texto']) . '</span>';
+    }
+
+    $resaltada = !empty($ctx['resaltar']) && (int) $ctx['resaltar'] === $id ? ' ta-resaltada' : '';
+    $html = '<article class="opg-card ta-sin-fila' . $resaltada . '" id="av-' . $id . '"><div class="ta-sin-contenido">'
+        . '<header class="ta-sin-fila-cab"><h3>' . $titulo_html . '</h3><span class="ta-estado ta-estado-pendiente-narrador">Buscando narrador</span></header>'
+        . ($meta ? '<div class="ta-sin-meta">' . implode('', $meta) . '</div>' : '')
+        . '<dl class="ta-sin-personas"><div><dt>Creador</dt><dd>' . opg_av_v_persona($av['uid'], $av['creador_nombre']) . '</dd></div>'
+        . '<div><dt>Participantes</dt><dd>' . opg_av_v_nombres($av['jugadores']) . '</dd></div></dl>';
+    if ($av['comentario_publico'] !== '') {
+        $comentario = opg_av_texto_html($av['comentario_publico']);
+        if (opg_av_longitud($av['comentario_publico']) > 180) {
+            $control = 'ta-sin-descripcion-' . $id;
+            $html .= '<div class="ta-sin-descripcion"><input class="ta-sin-descripcion-control" type="checkbox" id="' . $control . '">'
+                . '<p class="ta-sin-comentario"><span>' . $comentario . '</span></p>'
+                . '<label for="' . $control . '"><span class="ta-sin-descripcion-mas">Ver más...</span>'
+                . '<span class="ta-sin-descripcion-menos">Ver menos</span></label></div>';
+        } else {
+            $html .= '<p class="ta-sin-comentario"><span>' . $comentario . '</span></p>';
+        }
+    }
+    if ($av['motivo_renuncia'] !== '') {
+        $html .= '<p class="ta-sin-aviso"><i class="fa-solid fa-person-walking-arrow-right" aria-hidden="true"></i> <b>El narrador anterior se salió:</b> '
+            . opg_av_texto_html($av['motivo_renuncia']) . '</p>';
+    }
+    $html .= '</div><div class="ta-sin-accion">';
+    $html .= '<button type="button" class="btn-op btn-op--primario" ' . opg_av_hx('get', OPG_AV_URL, 'form_postular', array('id' => $id))
+        . ' hx-target="#ta-modal" hx-swap="innerHTML"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Me interesa narrar</button>';
+    return $html . '</div></article>';
+}
+
+function opg_av_v_propuestas_narrador($items, $uid)
+{
+    if (!$items) {
+        return '';
+    }
+    $html = '<section class="ta-seccion ta-propuestas" id="ta-propuestas" aria-labelledby="ta-t-propuestas">'
+        . '<h2 class="ta-titulo" id="ta-t-propuestas">Propuestas para narrar</h2>';
+    $estados = array('pendiente' => 'Pendiente', 'aceptada' => 'Aceptada', 'rechazada' => 'Rechazada',
+        'retirada' => 'Retirada', 'cancelada' => 'Cancelada', 'vencida' => 'Vencida');
+    $html .= '<div class="ta-propuestas-lista">';
+    foreach ($items as $p) {
+        $pendiente = $p['estado'] === 'pendiente';
+        $recibida = $pendiente && (($p['tipo'] === 'invitacion' && (int) $p['narrador_uid'] === (int) $uid)
+            || ($p['tipo'] === 'candidatura' && (int) $p['peticion_uid'] === (int) $uid));
+        $html .= '<article class="opg-card ta-card"><div><b>#' . (int) $p['peticion_id'] . ' · '
+            . ($p['tipo'] === 'invitacion' ? 'Invitación' : 'Candidatura') . '</b><span class="ta-estado ta-estado-'
+            . opg_av_h($p['estado']) . '">' . opg_av_h(isset($estados[$p['estado']]) ? $estados[$p['estado']] : $p['estado']) . '</span></div>'
+            . '<small>' . ($pendiente ? 'Vence ' : 'Creada ') . opg_av_h(opg_av_fecha($pendiente ? $p['expires_at'] : $p['created_at'], true)) . '</small>';
+        if ($p['mensaje'] !== '') { $html .= '<p>' . opg_av_texto_html($p['mensaje']) . '</p>'; }
+        $html .= '<div class="ta-acciones">';
+        if ($recibida) {
+            $html .= '<button type="button" class="btn-op btn-op--primario" ' . opg_av_hx('post', OPG_AV_URL, 'aceptar_propuesta', array('propuesta_id' => $p['id'], 'tab' => 'narradores')) . ' hx-target="#ta-panel" hx-swap="innerHTML">Aceptar</button>'
+                . '<button type="button" class="opg-chip" ' . opg_av_hx('post', OPG_AV_URL, 'rechazar_propuesta', array('propuesta_id' => $p['id'], 'tab' => 'narradores')) . ' hx-target="#ta-panel" hx-swap="innerHTML">Rechazar</button>';
+        } elseif ($pendiente && (int) $p['iniciada_por_uid'] === (int) $uid) {
+            $html .= '<button type="button" class="opg-chip" ' . opg_av_hx('post', OPG_AV_URL, 'retirar_propuesta', array('propuesta_id' => $p['id'], 'tab' => 'narradores')) . ' hx-target="#ta-panel" hx-swap="innerHTML">Retirar</button>';
+        }
+        $html .= '</div></article>';
+    }
+    return $html . '</div></section>';
+}
+
+function opg_av_v_historial_usuario($id, $items)
+{
+    $html = '<ol class="ta-historial-usuario">';
+    if (!$items) { $html .= '<li>Sin historial anterior a la migración.</li>'; }
+    foreach ($items as $evento) {
+        $html .= '<li><b>' . opg_av_h($evento['texto']) . '</b><span>' . opg_av_h($evento['usuario']) . ' · '
+            . opg_av_h(opg_av_fecha($evento['fecha'], true)) . '</span></li>';
+    }
+    return opg_av_v_modal('Historial de la solicitud #' . (int) $id, $html . '</ol><div class="ta-acciones"><button type="button" class="opg-chip" '
+        . opg_av_hx('get', OPG_AV_URL, 'cerrar_modal') . ' hx-target="#ta-modal" hx-swap="innerHTML">Cerrar</button></div>');
+}
+
 // ── Mercado de narradores ───────────────────────────────────────────────────
+
+/** Etiquetas comparables de disponibilidad, ritmo, tiers, estilo y experiencia. */
+function opg_av_v_etiquetas_narrador($n, $incluir_disponible = true)
+{
+    $chips = array();
+    if ($incluir_disponible) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador ta-etiqueta-disponible"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Disponible</span>';
+    }
+    $frecuencias = opg_av_frecuencias_narrador();
+    if (!empty($n['frecuencia']) && isset($frecuencias[$n['frecuencia']])) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador"><i class="fa-solid fa-clock" aria-hidden="true"></i> ' . opg_av_h($frecuencias[$n['frecuencia']]) . '</span>';
+    }
+    if (!empty($n['tiers'])) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Tiers ' . opg_av_h(str_replace(',', ', ', $n['tiers'])) . '</span>';
+    }
+    if (!empty($n['estilo'])) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador"><i class="fa-solid fa-masks-theater" aria-hidden="true"></i> ' . opg_av_h($n['estilo']) . '</span>';
+    }
+    if (isset($n['en_curso'])) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador ta-etiqueta-carga">En curso: ' . (int) $n['en_curso'] . '</span>';
+    }
+    if (isset($n['finalizadas'])) {
+        $chips[] = '<span class="opg-chip ta-etiqueta-narrador ta-etiqueta-experiencia">Finalizadas: ' . (int) $n['finalizadas'] . '</span>';
+    }
+    return $chips ? '<div class="ta-etiquetas-narrador">' . implode('', $chips) . '</div>' : '';
+}
 
 /** Tarjeta de un narrador disponible. */
 function opg_av_v_tarjeta_narrador($n)
 {
     $nombre = $n['nombre'] !== '' ? $n['nombre'] : 'Narrador';
     $html = '<article class="opg-card ta-card ta-narrador" style="--opg-card-acento: var(--opg-verde-exito)">'
-        . '<header class="opg-card__cabecera"><span class="opg-card__titulo">' . opg_av_h($nombre) . '</span></header>';
+        . '<header class="opg-card__cabecera"><span class="opg-card__titulo">' . opg_av_h($nombre) . '</span>'
+        . '<span class="ta-estado ta-estado-disponible">Disponible</span></header>'
+        . opg_av_v_etiquetas_narrador($n, false);
     if ($n['mensaje'] !== '') {
         $html .= '<p class="opg-card__desc">' . opg_av_texto_html($n['mensaje']) . '</p>';
     }
-    $html .= '<p class="ta-meta">Disponible desde ' . opg_av_h(opg_av_fecha($n['desde'])) . ' · En curso: ' . (int) $n['en_curso'] . ' · Finalizadas: ' . (int) $n['finalizadas'] . '</p>'
+    $html .= '<footer class="ta-narrador-pie">'
+        . '<span class="ta-meta">Desde ' . opg_av_h(opg_av_fecha($n['desde'])) . '</span>'
         . '<p class="ta-discord"><b>Discord:</b> <span class="ta-copiable">' . opg_av_h($n['discord']) . '</span></p>'
+        . '</footer>'
         . '</article>';
     return $html;
 }
@@ -837,39 +1369,53 @@ function opg_av_v_mi_oferta($oferta, $tiene_ficha)
         return $html . '</div>';
     }
     $obj = 'hx-target="#ta-narradores" hx-swap="outerHTML"';
-    $html .= '<div class="opg-card ta-card" style="--opg-card-acento: ' . ($oferta['vencida'] ? 'var(--opg-gris-bloqueado)' : 'var(--opg-verde-exito)') . '">'
-        . '<header class="opg-card__cabecera"><span class="opg-card__titulo">Tu oferta de narrador</span>'
-        . '<span class="ta-estado ' . ($oferta['vencida'] ? 'ta-estado-vencida' : 'ta-estado-aprobado') . '">' . ($oferta['vencida'] ? 'Vencida' : 'Vigente') . '</span></header>'
+    $estado = $oferta['vencida'] ? 'Vencida' : 'Vigente · ' . (int) $oferta['dias_restantes'] . ($oferta['dias_restantes'] === 1 ? ' día' : ' días');
+    $html .= '<div class="opg-card ta-card ta-mi-oferta-card" style="--opg-card-acento: ' . ($oferta['vencida'] ? 'var(--opg-gris-bloqueado)' : 'var(--opg-verde-exito)') . '">'
+        . '<header class="opg-card__cabecera"><span class="opg-card__titulo">Tu oferta</span>'
+        . '<span class="ta-estado ' . ($oferta['vencida'] ? 'ta-estado-vencida' : 'ta-estado-aprobado') . '">' . $estado . '</span></header>'
+        . '<div class="ta-mi-oferta-resumen"><div class="ta-mi-oferta-info">'
         . '<p class="ta-discord"><b>Discord:</b> <span class="ta-copiable">' . opg_av_h($oferta['discord']) . '</span></p>';
     if ($oferta['mensaje'] !== '') {
         $html .= '<p class="opg-card__desc">' . opg_av_texto_html($oferta['mensaje']) . '</p>';
     }
-    $html .= '<p class="ta-meta">' . ($oferta['vencida'] ? 'Tu oferta venció: renuévala para volver a aparecer en la lista.'
-        : 'Vence en ' . (int) $oferta['dias_restantes'] . ($oferta['dias_restantes'] === 1 ? ' día.' : ' días.')) . '</p>'
+    $html .= opg_av_v_etiquetas_narrador($oferta, false) . '</div>'
         . '<div class="ta-acciones">'
-        . '<button type="button" class="opg-chip" ' . opg_av_hx('post', OPG_AV_URL, 'renovar_oferta') . ' ' . $obj . '>Renovar</button>'
-        . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_oferta') . ' hx-target="#ta-mi-oferta" hx-swap="innerHTML">Editar</button>'
-        . '<button type="button" class="opg-chip chip-peligro" ' . opg_av_hx('post', OPG_AV_URL, 'retirar_oferta') . ' ' . $obj . ' hx-confirm="¿Retirar tu oferta de narrador?">Retirar oferta</button>'
-        . '</div></div></div>';
+        . '<button type="button" class="opg-chip" ' . opg_av_hx('post', OPG_AV_URL, 'renovar_oferta') . ' ' . $obj . '><i class="fa-solid fa-rotate" aria-hidden="true"></i> Renovar</button>'
+        . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'form_oferta') . ' hx-target="#ta-mi-oferta" hx-swap="innerHTML"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar</button>'
+        . '<button type="button" class="opg-chip chip-peligro" ' . opg_av_hx('post', OPG_AV_URL, 'retirar_oferta') . ' ' . $obj . ' hx-confirm="¿Retirar tu oferta de narrador?"><i class="fa-solid fa-trash" aria-hidden="true"></i> Retirar</button>'
+        . '</div></div></div></div>';
     return $html;
 }
 
 /** Formulario de la oferta: Discord (obligatorio) y mensaje (opcional). */
 function opg_av_v_form_oferta($oferta, $errores = array())
 {
+    $frecuencia = $oferta ? $oferta['frecuencia'] : '';
+    $tiers_actuales = $oferta && $oferta['tiers'] !== '' ? array_map('intval', explode(',', $oferta['tiers'])) : array();
+    $opciones_frecuencia = '<option value="">Indica tu ritmo habitual</option>';
+    foreach (opg_av_frecuencias_narrador() as $valor => $etiqueta) {
+        $opciones_frecuencia .= '<option value="' . opg_av_h($valor) . '"' . ($frecuencia === $valor ? ' selected' : '') . '>' . opg_av_h($etiqueta) . '</option>';
+    }
+    $tiers = '';
+    for ($tier = OPG_AV_TIER_MIN; $tier <= OPG_AV_TIER_MAX; $tier++) {
+        $tiers .= '<label class="ta-tier-preferido"><input type="checkbox" name="tiers[]" value="' . $tier . '"' . (in_array($tier, $tiers_actuales, true) ? ' checked' : '') . '><span>Tier ' . $tier . '</span></label>';
+    }
     return '<form class="opg-card ta-card ta-form" id="ta-form-oferta" ' . opg_av_hx('post', OPG_AV_URL, 'ofrecerme_narrador')
         . ' hx-target="#ta-narradores" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]" style="--opg-card-acento: var(--opg-verde-exito)">'
         . '<span class="opg-card__titulo">Ofrecerme como narrador</span>'
         . '<div class="ta-avisos" id="aviso-oferta" aria-live="polite">' . ($errores ? opg_av_v_aviso('err', $errores) : '') . '</div>'
-        . '<div class="ta-fila">'
-        . '<div class="af-field"><label for="ta-discord">Tu usuario de Discord</label>'
+        . '<div class="ta-oferta-campos">'
+        . '<div class="af-field ta-oferta-discord"><label for="ta-discord">Tu usuario de Discord</label>'
         . '<input type="text" id="ta-discord" name="discord" required maxlength="' . OPG_AV_MAX_DISCORD . '" value="' . opg_av_h($oferta ? $oferta['discord'] : '') . '">'
         . '<small>Es como te contactarán quienes busquen narrador.</small></div>'
-        . '<div class="af-field"><label for="ta-mensaje-oferta">Mensaje (opcional)</label>'
+        . '<div class="af-field ta-oferta-frecuencia"><label for="ta-frecuencia">Frecuencia de publicación</label><select id="ta-frecuencia" name="frecuencia">' . $opciones_frecuencia . '</select></div>'
+        . '<div class="af-field ta-oferta-estilo"><label for="ta-estilo">Estilo narrativo</label><input type="text" id="ta-estilo" name="estilo" maxlength="' . OPG_AV_MAX_ESTILO_NARRADOR . '" placeholder="Misterio, combate, exploración..." value="' . opg_av_h($oferta ? $oferta['estilo'] : '') . '"></div>'
+        . '<div class="af-field ta-oferta-mensaje"><label for="ta-mensaje-oferta">Mensaje (opcional)</label>'
         . '<textarea id="ta-mensaje-oferta" name="mensaje" maxlength="' . OPG_AV_MAX_MENSAJE_OFERTA . '" placeholder="Qué tipo de aventura prefieres o cuándo estás disponible.">'
         . opg_av_h($oferta ? $oferta['mensaje'] : '') . '</textarea>'
         . '<small>Hasta ' . OPG_AV_MAX_MENSAJE_OFERTA . ' caracteres. Tu oferta vence a los ' . OPG_AV_OFERTA_DIAS . ' días si no la renuevas.</small></div>'
-        . '</div><div class="ta-acciones">'
+        . '</div><fieldset class="ta-tiers-preferidos"><legend>Tiers preferidos (opcional)</legend><div>' . $tiers . '</div></fieldset>'
+        . '<div class="ta-acciones">'
         . '<button type="submit" class="btn-op btn-op--primario">Publicar mi oferta</button>'
         . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'narradores_disponibles') . ' hx-target="#ta-narradores" hx-swap="outerHTML">Cancelar</button>'
         . '</div></form>';
@@ -880,17 +1426,18 @@ function opg_av_v_bloque_narradores($oferta_propia, $lista, $tiene_ficha)
 {
     $html = '<section class="ta-seccion ta-narradores" id="ta-narradores" aria-labelledby="ta-t-narr" ' . opg_av_hx('get', OPG_AV_URL, 'narradores_disponibles')
         . ' hx-trigger="ofertaCambiada from:body" hx-target="this" hx-swap="outerHTML">'
-        . '<h2 class="ta-titulo" id="ta-t-narr">Narradores disponibles</h2>'
-        . '<p class="ta-ayuda">Contacto por Discord · Ofertas vigentes durante 30 días</p>'
+        . '<header class="ta-narradores-cabecera"><div><h2 class="ta-titulo" id="ta-t-narr">Narradores disponibles</h2>'
+        . '<p class="ta-ayuda">Contacto por Discord · Ofertas vigentes durante 30 días</p></div>'
+        . '<span class="opg-chip ta-narradores-total">' . (int) $lista['total'] . ((int) $lista['total'] === 1 ? ' disponible' : ' disponibles') . '</span></header>'
         . opg_av_v_mi_oferta($oferta_propia, $tiene_ficha);
     if (!$lista['items']) {
         $html .= opg_av_v_vacio('Nadie se ha ofrecido como narrador todavía.');
     } else {
-        $html .= '<div class="ta-tarjetas ta-grilla">';
+        $html .= '<div class="ta-tarjetas ta-grilla ta-narradores-lista">';
         foreach ($lista['items'] as $n) {
             $html .= opg_av_v_tarjeta_narrador($n);
         }
-        $html .= '</div>';
+        $html .= '</div>' . opg_av_v_paginador($lista, array(), 'narradores_disponibles', OPG_AV_URL, '#ta-narradores', 'outerHTML');
     }
     return $html . '</section>';
 }
@@ -898,9 +1445,9 @@ function opg_av_v_bloque_narradores($oferta_propia, $lista, $tiene_ficha)
 function opg_av_v_panel_otras($filtros, $res, $ctx, $estadisticas)
 {
     $filtros['ambito'] = 'otras';
-    return opg_av_v_estadisticas($estadisticas, 'otras')
+    return opg_av_v_estadisticas($estadisticas, 'otras', false, $filtros)
         . '<section class="ta-seccion" aria-labelledby="ta-t-otras"><h2 class="ta-titulo" id="ta-t-otras">Otras aventuras</h2>'
-        . opg_av_v_filtros($filtros)
+        . opg_av_v_densidad('otras', isset($filtros['densidad']) ? $filtros['densidad'] : 'compacta') . opg_av_v_filtros($filtros)
         . '<div class="ta-lista" id="ta-lista-otras" aria-live="polite" ' . opg_av_hx('get', OPG_AV_URL, 'listar', opg_av_params_filtros($filtros) + array('pagina' => $res['pagina']))
         . ' hx-trigger="aventuraCreada from:body, aventuraCambiada from:body" hx-include="#ta-filtros-otras">' . opg_av_v_lista($res, $filtros, $ctx) . '</div></section>';
 }
@@ -934,12 +1481,12 @@ function opg_av_v_solicitud_creada($id, $estado)
 function opg_av_v_modal($titulo, $cuerpo)
 {
     return '<div class="ta-modal-velo">'
-        . '<button type="button" class="ta-velo-cerrar" aria-label="Cerrar" ' . opg_av_hx('get', OPG_AV_URL, 'cerrar_modal') . ' hx-target="#ta-modal" hx-swap="innerHTML"></button>'
-        . '<div class="ta-modal" role="dialog" aria-modal="true" aria-labelledby="ta-modal-titulo">'
+        . '<button type="button" class="ta-velo-cerrar" tabindex="-1" aria-label="Cerrar" ' . opg_av_hx('get', OPG_AV_URL, 'cerrar_modal') . ' hx-target="#ta-modal" hx-swap="innerHTML"></button>'
+        . '<div class="ta-modal" role="dialog" aria-modal="true" aria-labelledby="ta-modal-titulo" tabindex="-1">'
         . '<h3 id="ta-modal-titulo">' . opg_av_h($titulo) . '</h3>' . $cuerpo . '</div></div>';
 }
 
-/** Ventana de confirmación de "Postularme como narrador". */
+/** Ventana para crear una candidatura de narrador. */
 function opg_av_v_modal_postular($av, $errores = array())
 {
     $id = $av['id'];
@@ -951,10 +1498,10 @@ function opg_av_v_modal_postular($av, $errores = array())
     }
     $cuerpo .= '<form ' . opg_av_hx('post', OPG_AV_URL, 'postular_narrador', array('id' => $id)) . ' hx-target="#ta-modal" hx-swap="innerHTML" hx-disabled-elt="find button[type=submit]">'
         . '<div class="ta-avisos" id="aviso-modal" aria-live="polite">' . ($errores ? opg_av_v_aviso('err', $errores) : '') . '</div>'
-        . '<label class="ta-casilla"><input type="checkbox" name="confirmo" value="1" required> Confirmo que me puse de acuerdo con ' . opg_av_h($av['creador_nombre']) . ' y los participantes para narrarles esta aventura.</label>'
-        . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">Confirmar postulación</button>'
+        . '<div class="af-field"><label for="ta-mensaje-candidatura">Mensaje para el creador (opcional)</label><textarea id="ta-mensaje-candidatura" name="mensaje" maxlength="' . OPG_AV_MAX_IDEA . '" placeholder="Cuéntale cómo te gustaría narrar esta aventura y cuál es tu disponibilidad."></textarea></div>'
+        . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">Enviar candidatura</button>'
         . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'cerrar_modal') . ' hx-target="#ta-modal" hx-swap="innerHTML">Cancelar</button></div></form>';
-    return opg_av_v_modal('¿Quieres narrar a este usuario?', '<p>Confirma que te has puesto de acuerdo con él para narrarle: habla con quien pidió la aventura antes de postularte.</p>' . $cuerpo);
+    return opg_av_v_modal('Me interesa narrar', '<p>El creador recibirá tu candidatura y decidirá si te asigna como narrador.</p>' . $cuerpo);
 }
 
 /** Ventana de confirmación de "Dejar de narrar", con motivo obligatorio. */
@@ -971,7 +1518,7 @@ function opg_av_v_modal_renunciar($av, $errores = array())
         . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--peligro">Dejar de narrar</button>'
         . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'cerrar_modal') . ' hx-target="#ta-modal" hx-swap="innerHTML">Cancelar</button></div></form>';
     return opg_av_v_modal('¿Quieres dejar de narrar esta aventura?',
-        '<p>La aventura #' . (int) $id . ' volverá a quedar sin narrador. No avisamos a los participantes: coméntaselo por Discord.</p>' . $cuerpo);
+        '<p>La aventura #' . (int) $id . ' volverá a quedar sin narrador. Los participantes recibirán una notificación.</p>' . $cuerpo);
 }
 
 // ── Vincular y entregar ─────────────────────────────────────────────────────
@@ -988,12 +1535,13 @@ function opg_av_v_campo_tema($av_id, $tema, $etiqueta = 'Tema de la aventura')
 function opg_av_v_form_vincular($av, $tema, $errores = array())
 {
     $id = $av['id'];
+    $verbo = $av['tid_vinculado'] > 0 ? 'Revincular' : 'Vincular';
     return '<form class="opg-card ta-card ta-form" id="av-' . $id . '" ' . opg_av_hx('post', OPG_AV_URL, 'vincular_aventura', array('id' => $id))
         . ' hx-target="#av-' . $id . '" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]" style="--opg-card-acento: var(--opg-verde-exito)">'
-        . '<span class="opg-card__titulo">Vincular la aventura #' . (int) $id . '</span>'
+        . '<span class="opg-card__titulo">' . $verbo . ' la aventura #' . (int) $id . '</span>'
         . '<div class="ta-avisos" id="aviso-form-' . $id . '" aria-live="polite">' . ($errores ? opg_av_v_aviso('err', $errores) : '') . '</div>'
         . opg_av_v_campo_tema($id, $tema)
-        . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">Vincular</button>'
+        . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">' . $verbo . '</button>'
         . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'ver', array('id' => $id)) . ' hx-target="#av-' . $id . '" hx-swap="outerHTML">Cancelar</button></div></form>';
 }
 
@@ -1028,5 +1576,58 @@ function opg_av_v_form_entrega($d, $errores = array(), $entrada = array())
         . '<label class="opg-chip ta-etiqueta-radio" for="ta-rep-n-' . $id . '">Negativa</label></fieldset>'
         . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">Enviar entrega</button>'
         . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'ver', array('id' => $id)) . ' hx-target="#av-' . $id . '" hx-swap="outerHTML">Cancelar</button></div></form>';
+    return $html;
+}
+
+/** Formulario reducido: el autor solo declara el signo de la reputacion. */
+function opg_av_v_form_entrega_autonarrada($av, $errores = array(), $entrada = array())
+{
+    $id = (int) $av['id'];
+    $rep = isset($entrada['reputacion']) ? (string) $entrada['reputacion'] : '';
+    return '<form class="opg-card ta-card ta-form" id="av-' . $id . '" '
+        . opg_av_hx('post', OPG_AV_URL, 'enviar_entrega', array('id' => $id))
+        . ' hx-target="#av-' . $id . '" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]" style="--opg-card-acento: var(--opg-naranja)">'
+        . '<span class="opg-card__titulo">Entregar la crónica autonarrada #' . $id . '</span>'
+        . '<div class="ta-avisos" id="aviso-form-' . $id . '" aria-live="polite">'
+        . ($errores ? opg_av_v_aviso('err', $errores) : '') . '</div>'
+        . '<p>El Staff comprobará que el tema tenga un único post propio de al menos ' . OPG_AV_AUTO_PALABRAS_MIN
+        . ' palabras. La recompensa fija es de ' . OPG_AV_AUTO_XP . ' XP, ' . OPG_AV_AUTO_NIKAS . ' Nikas, '
+        . OPG_AV_AUTO_REPUTACION . ' de reputación y ' . number_format(OPG_AV_AUTO_BERRIES, 0, ',', '.') . ' Berries.</p>'
+        . '<fieldset class="ta-grupo"><legend>Reputación de la crónica</legend>'
+        . '<input class="ta-radio" type="radio" name="reputacion" id="ta-rep-p-' . $id . '" value="positiva"'
+        . ($rep === 'positiva' ? ' checked' : '') . ' required>'
+        . '<label class="opg-chip ta-etiqueta-radio" for="ta-rep-p-' . $id . '">Positiva</label>'
+        . '<input class="ta-radio" type="radio" name="reputacion" id="ta-rep-n-' . $id . '" value="negativa"'
+        . ($rep === 'negativa' ? ' checked' : '') . '>'
+        . '<label class="opg-chip ta-etiqueta-radio" for="ta-rep-n-' . $id . '">Negativa</label></fieldset>'
+        . '<div class="ta-acciones"><button type="submit" class="btn-op btn-op--primario">Enviar al Staff</button>'
+        . '<button type="button" class="opg-chip" ' . opg_av_hx('get', OPG_AV_URL, 'ver', array('id' => $id))
+        . ' hx-target="#av-' . $id . '" hx-swap="outerHTML">Cancelar</button></div></form>';
+}
+
+/** Resultados del buscador de aventuras de newthread.php (el JS lee data-aventura y data-etiqueta). */
+function opg_av_v_resultados_aventuras($items)
+{
+    if (!$items) {
+        return '<div class="opg-resultado-vacio">No tienes aventuras aprobadas sin tema. Puedes crear el tema igualmente.</div>';
+    }
+    $html = '';
+    foreach ($items as $av) {
+        $nombres = array();
+        foreach ($av['jugadores'] as $j) {
+            $nombres[] = $j['nombre'];
+        }
+        $etiqueta = '#' . (int) $av['id'] . ' · ' . ($av['isla'] ? $av['isla']['nombre'] : 'Sin isla')
+            . ($av['fecha_texto'] !== null ? ' · ' . $av['fecha_texto'] : '') . ($av['tier'] ? ' · Tier ' . (int) $av['tier'] : '')
+            . ($nombres ? ' · ' . implode(', ', $nombres) : '');
+        if (opg_av_es_autonarrada($av)) {
+            $etiqueta = '#' . (int) $av['id'] . ' · Crónica autonarrada · ' . ($av['isla'] ? $av['isla']['nombre'] : 'Sin isla')
+                . ($av['fecha_texto'] !== null ? ' · ' . $av['fecha_texto'] : '');
+        }
+        if (function_exists('mb_strlen') && mb_strlen($etiqueta, 'UTF-8') > 160) {
+            $etiqueta = mb_substr($etiqueta, 0, 159, 'UTF-8') . '…';
+        }
+        $html .= '<button type="button" class="opg-resultado" data-aventura="' . (int) $av['id'] . '" data-etiqueta="' . opg_av_h($etiqueta) . '">' . opg_av_h($etiqueta) . '</button>';
+    }
     return $html;
 }

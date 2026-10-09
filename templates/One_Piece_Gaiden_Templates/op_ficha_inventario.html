@@ -168,51 +168,7 @@
 
     </div>
 
-    <if $g_is_staff then>
-    <!-- Panel staff: gestión de inventario -->
-    <div style="margin-top: 45px; flex-direction: row; display: flex;">
-        <div style="flex-direction: column; display: flex; margin-left: 49px;">
-            <div style="background-color: transparent; margin-top: 0px; flex-direction: column; display: flex;">
-                <div style="box-shadow: 0px 0px 0px black;">
-                    <div style="width: 900px; height: 40px; text-align: center; background-color: #6c1515;" class="barra-op bbox">
-                        <span style="font-family: 'moonGetHeavy'; letter-spacing: 1px; color: white; font-size: 19px; line-height: 38px; text-shadow: 1px 1px 1px black;">GESTIÓN DE INVENTARIO [STAFF]</span>
-                    </div>
-                    <div style="background-color: #ffe8b3a8; border-left: 2px solid black; border-right: 2px solid black; border-bottom: 2px solid black; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; padding: 15px; width: 870px;" class="bbox">
-
-                        <!-- Añadir item -->
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                            <span style="font-family: moonGetHeavy; font-size: 12px; white-space: nowrap; min-width: 100px;">AÑADIR ITEM:</span>
-                            <input id="staff-add-id" type="text" placeholder="ID del objeto (ej: CFR001)" style="flex: 1; padding: 5px 8px; font-family: InterRegular; border: 1px solid #999; border-radius: 3px;">
-                            <input id="staff-add-qty" type="number" value="1" min="1" max="999" style="width: 65px; padding: 5px 8px; font-family: InterRegular; border: 1px solid #999; border-radius: 3px; text-align: center;">
-                            <button onclick="staffAddItem()" style="background-color: #28a745; color: white; padding: 6px 16px; border: none; border-radius: 3px; cursor: pointer; font-family: moonGetHeavy; font-size: 12px;">+ AÑADIR</button>
-                        </div>
-
-                        <!-- Quitar item -->
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-                            <span style="font-family: moonGetHeavy; font-size: 12px; white-space: nowrap; min-width: 100px;">QUITAR ITEM:</span>
-                            <input id="staff-rem-id" type="text" placeholder="ID del objeto (ej: CFR001)" style="flex: 1; padding: 5px 8px; font-family: InterRegular; border: 1px solid #999; border-radius: 3px;">
-                            <input id="staff-rem-qty" type="number" value="1" min="1" max="999" style="width: 65px; padding: 5px 8px; font-family: InterRegular; border: 1px solid #999; border-radius: 3px; text-align: center;">
-                            <button onclick="staffRemoveItem()" style="background-color: #dc3545; color: white; padding: 6px 16px; border: none; border-radius: 3px; cursor: pointer; font-family: moonGetHeavy; font-size: 12px;">&#8722; QUITAR</button>
-                        </div>
-
-                        <!-- Cambios pendientes -->
-                        <div style="border-top: 1px solid #bbb; padding-top: 12px; margin-bottom: 12px;">
-                            <div style="font-family: moonGetHeavy; font-size: 12px; margin-bottom: 6px; color: #333;">CAMBIOS PENDIENTES:</div>
-                            <div id="staff-cambios-list" style="min-height: 32px; font-family: InterRegular; font-size: 13px; color: #666;">
-                                <em>Sin cambios pendientes.</em>
-                            </div>
-                        </div>
-
-                        <!-- Botón guardar -->
-                        <div style="text-align: right;">
-                            <button id="staff-guardar-btn" onclick="staffGuardarCambios()" disabled style="background-color: #6c757d; color: white; padding: 8px 25px; border: none; border-radius: 3px; cursor: not-allowed; font-family: moonGetHeavy; font-size: 13px;">GUARDAR CAMBIOS</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </if>
+    <!-- El panel de gestión de inventario del staff ahora es un modal dentro de .pst-panel (op_personaje) -->
 
 </div>
 
@@ -597,8 +553,8 @@ function staffRemoveItem() {
 function staffQuitarDesdeCard(objeto_id) {
 	staffPendingCambios.push({ tipo: 'remove', objeto_id: objeto_id, cantidad: 1 });
 	staffUpdatePendingList();
-	const panel = document.getElementById('staff-cambios-list');
-	if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	// Abre el modal de gestión para que se vean los cambios pendientes.
+	if (typeof pstAbrirInventario === 'function') { pstAbrirInventario(); }
 }
 
 function staffGuardarCambios() {

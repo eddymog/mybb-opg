@@ -95,16 +95,19 @@ prueba('sin Discord', opg_av_oferta_guardar(8, '', 'hola')['codigo'], 422);
 prueba('Discord de 65 caracteres', opg_av_oferta_guardar(8, str_repeat('a', 65), '')['codigo'], 422);
 prueba('mensaje de 201 caracteres', opg_av_oferta_guardar(8, 'robin#1', str_repeat('a', 201))['codigo'], 422);
 prueba('Discord con salto de línea', opg_av_oferta_guardar(8, "a\nb", '')['codigo'], 422);
-prueba('ofrecerse', opg_av_oferta_guardar(8, 'robin#1', 'Aventuras de misterio')['ok'], true);
+prueba('frecuencia inválida', opg_av_oferta_guardar(8, 'robin#1', '', 'instantanea')['codigo'], 422);
+prueba('tier preferido inválido', opg_av_oferta_guardar(8, 'robin#1', '', 'semanal', array('11'))['codigo'], 422);
+prueba('estilo demasiado largo', opg_av_oferta_guardar(8, 'robin#1', '', 'semanal', array('2'), str_repeat('a', 65))['codigo'], 422);
+prueba('ofrecerse', opg_av_oferta_guardar(8, 'robin#1', 'Aventuras de misterio', 'semanal', array('4', '2', '4'), 'Misterio')['ok'], true);
 $o = opg_av_oferta_obtener(8);
-prueba('oferta guardada y vigente', array($o['discord'], $o['mensaje'], $o['vencida'], $o['dias_restantes']), array('robin#1', 'Aventuras de misterio', false, 30));
+prueba('oferta estructurada guardada, ordenada y vigente', array($o['discord'], $o['mensaje'], $o['frecuencia'], $o['tiers'], $o['estilo'], $o['vencida'], $o['dias_restantes']), array('robin#1', 'Aventuras de misterio', 'semanal', '2,4', 'Misterio', false, 30));
 $creada = $o['created_at'];
 sql("UPDATE mybb_op_narradores_disponibles SET created_at = created_at - 5000 WHERE uid = 8");
 prueba('ofrecerse otra vez actualiza y deja una sola fila', array(opg_av_oferta_guardar(8, 'robin#2', 'Nuevo')['ok'], (int) una("SELECT COUNT(*) AS n FROM mybb_op_narradores_disponibles WHERE uid = 8")['n']), array(true, 1));
 prueba('ofrecerse otra vez conserva created_at', opg_av_oferta_obtener(8)['created_at'], $creada - 5000);
 prueba('ofrecerse otra vez cambia el Discord', opg_av_oferta_obtener(8)['discord'], 'robin#2');
 // Varias ofertas con distinta carga
-opg_av_oferta_guardar(9, 'nami#1', 'Mensaje');
+opg_av_oferta_guardar(9, 'nami#1', 'Mensaje', 'varias-semana', array('3', '5'), 'Exploración');
 opg_av_oferta_guardar(10, 'sanji#1', '');
 opg_av_oferta_guardar(60, 'staff#1', '');
 sql("UPDATE mybb_op_narradores_disponibles SET created_at = " . (TIME_NOW - 3000) . " WHERE uid = 9");
@@ -121,6 +124,9 @@ $por = array(); foreach ($nd['items'] as $n) { $por[$n['uid']] = $n; }
 prueba('narradores: conteos en curso y finalizadas', array($por[8]['en_curso'], $por[8]['finalizadas'], $por[9]['en_curso'], $por[10]['en_curso']), array(2, 3, 1, 0));
 prueba('narradores: incluye el Discord', $por[9]['discord'], 'nami#1');
 prueba('narradores: nombre de ficha', $por[9]['nombre'], 'Nami');
+prueba('narradores: preferencias estructuradas', array($por[9]['frecuencia'], $por[9]['tiers'], $por[9]['estilo']), array('varias-semana', '3,5', 'Exploración'));
+$sin_9 = opg_av_narradores_disponibles(1, 9);
+prueba('narradores: puede excluir la oferta propia del directorio', array(in_array(9, array_map(function ($n) { return $n['uid']; }, $sin_9['items']), true), $sin_9['total']), array(false, $nd['total'] - 1));
 // Vencimiento
 sql("UPDATE mybb_op_narradores_disponibles SET updated_at = " . (TIME_NOW - (31 * 86400)) . " WHERE uid = 9");
 prueba('una oferta de 31 días no se muestra', in_array(9, array_map(function ($n) { return $n['uid']; }, opg_av_narradores_disponibles(1)['items'])), false);
@@ -148,6 +154,21 @@ prueba('la consola retira con motivo', array($r['ok'], opg_av_oferta_obtener(8))
 $aud = una("SELECT * FROM mybb_op_audit_aventuras WHERE accion = 'retirar_oferta_admin' ORDER BY id DESC LIMIT 1");
 prueba('retirar queda auditado con peticion_id 0 y el motivo', array((int) $aud['peticion_id'], (int) $aud['uid'], json_decode($aud['detalle_json'], true)['despues']['motivo']), array(0, 60, 'Discord falso'));
 prueba('el usuario puede volver a ofrecerse', opg_av_oferta_guardar(8, 'robin#3', '')['ok'], true);
+
+// ── Aventura elegida al crear un tema (newthread.php) ──────────────────────
+$V1 = ins(3, 8, 1, array(3), array('isla_fid' => 40));
+$V2 = ins(3, 8, 0, array(3), array('isla_fid' => 40));
+$V3 = ins(3, 8, 1, array(3), array('isla_fid' => 40, 'aventura_url' => 'https://onepiecegaiden.com/showthread.php?tid=101'));
+$V4 = ins(3, 9, 1, array(3), array('isla_fid' => 40));
+prueba('tema nuevo: aventura válida en el foro de su isla', opg_av_validar_para_tema($V1, 8, '15,40'), array());
+prueba('tema nuevo: también en un subforo de la isla', opg_av_validar_para_tema($V1, 8, '15,40,43'), array());
+prueba('tema nuevo: en otro foro, pide el de la isla', array(count($e = opg_av_validar_para_tema($V1, 8, '16,41')), strpos($e[0], 'crea el tema en el foro de esa isla') !== false), array(1, true));
+prueba('tema nuevo: una aventura que no existe', strpos(opg_av_validar_para_tema(999999, 8, '15,40')[0], 'no existe o no es una de las que narras') !== false, true);
+prueba('tema nuevo: la de otro narrador', strpos(opg_av_validar_para_tema($V4, 8, '15,40')[0], 'no existe o no es una de las que narras') !== false, true);
+prueba('tema nuevo: la de un participante no vale, solo la del narrador', strpos(opg_av_validar_para_tema($V1, 3, '15,40')[0], 'no existe o no es una de las que narras') !== false, true);
+prueba('tema nuevo: sin aprobar', strpos(opg_av_validar_para_tema($V2, 8, '15,40')[0], 'Solo se puede vincular una aventura aprobada') !== false, true);
+prueba('tema nuevo: ya tiene tema', strpos(opg_av_validar_para_tema($V3, 8, '15,40')[0], 'ya tiene un tema vinculado') !== false, true);
+sql("DELETE FROM mybb_op_peticionAventuras WHERE id IN ($V1, $V2, $V3, $V4)");
 
 echo "  (parte 2b completa)\n";
 require __DIR__ . '/entregas_db.php';

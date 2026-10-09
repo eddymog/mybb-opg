@@ -1,22 +1,365 @@
 # Requisitos: Registro de aventuras (Tablón de aventuras)
 
+## Revisión compacta de Narradores & Narrados (2026-10-08)
+
+Estado: **implementada y verificada localmente; pendiente de despliegue**. Estas reglas sustituyen cualquier decisión
+anterior sobre el contador de la pestaña o la composición visual de este panel.
+No cambian permisos, estados ni el flujo de candidaturas.
+
+1. `Propuestas para narrar` solo se renderiza cuando el usuario tiene al menos una
+   invitación o candidatura relevante. No se muestra un bloque ni un estado vacío.
+2. La insignia de `Narradores & Narrados` cuenta exclusivamente propuestas
+   personales pendientes que requieren atención. Si el total es cero, se oculta.
+   Los totales de narradores y aventuras sin narrador permanecen en sus cabeceras.
+3. La oferta propia se presenta como una franja compacta de gestión con estado,
+   vigencia, Discord, mensaje y acciones Renovar, Editar y Retirar. No compite
+   visualmente con las ofertas de otros narradores.
+4. Las ofertas ajenas se distribuyen en una cuadrícula de dos o tres columnas
+   según el ancho disponible. Cada elemento conserva nombre, disponibilidad,
+   aventuras en curso/finalizadas, mensaje, fecha y Discord. Discord ofrece una
+   texto seleccionable, sin una acción adicional para copiarlo.
+5. `Aventuras sin narrador` usa filas horizontales de ancho completo en escritorio
+   y una columna en móvil. La fila prioriza solicitud, estado, tier, isla, día,
+   creador, participantes, extracto y la acción `Me interesa narrar`.
+6. Mientras no exista tema, el título es `Solicitud #ID`; no se presenta `Sin tema
+   vinculado` como si fuera una anomalía.
+7. Los datos incompletos no se muestran en este mercado y no bloquean una
+   candidatura. El staff puede completar o corregir esos datos posteriormente.
+8. `Me interesa narrar` conserva prioridad, pero usa el tamaño normal de acción
+   operativa y no tipografía de titular.
+9. Los contadores `N disponibles` y `N esperando narrador` comparten posición,
+   tamaño y tratamiento visual junto al título de cada sección; son informativos.
+10. Las secciones usan entre 20 y 28 px de separación. Los estados vacíos no crean
+    huecos verticales. No se añaden filtros en esta fase.
+
+## Crónicas autonarradas (2026-10-08)
+
+Estado: **implementado y verificado; pendiente de despliegue**. Este apartado prevalece sobre cualquier
+regla anterior que identifique una autonarrada por tier o por la coincidencia
+accidental entre participante y narrador.
+
+### Naturaleza y elegibilidad
+
+1. Una crónica autonarrada es un tipo explícito de solicitud distinto de una
+   aventura convencional.
+2. Solo está disponible para una ficha aprobada cuyo nivel actual esté entre 1
+   y 15, ambos incluidos.
+3. El solicitante conserva el papel de jugador y es automáticamente el único
+   participante y su propio narrador. No se pueden añadir participantes ni
+   elegir otro narrador.
+4. No usa tier, dificultad, inframundo, propuesta para narradores, ofertas de
+   narración ni NPC oficiales. Las autonarradas nunca permiten NPC oficiales.
+5. No consume los límites de aventuras solitarias, grupales o totales. Sus
+   límites son exclusivamente los semanales definidos en este apartado.
+
+### Solicitud y cupo semanal
+
+6. En Solicitar aventura, las fichas elegibles pueden escoger entre una aventura
+   convencional y una crónica autonarrada. El servidor vuelve a validar el tipo
+   aunque el cliente oculte controles.
+7. El formulario autonarrado mantiene isla, día y comentario público. Oculta
+   participantes adicionales, narrador, tier, inframundo y propuesta para
+   narradores.
+8. El formulario informa, sin convertirlo en texto promocional, de las dos reglas
+   operativas: un único post de al menos 800 palabras y un cupo por semana.
+9. La semana se calcula en `Europe/Madrid` y comienza cada lunes a las 06:00,
+   respetando automáticamente el horario de verano español.
+10. `semana_cupo` se fija al enviar la solicitud. Una aprobación, publicación,
+    revisión o entrega posterior no mueve la autonarrada a otra semana.
+11. Cada ficha puede crear como máximo una solicitud autonarrada por
+    `semana_cupo`.
+12. Además, una ficha no puede crear otra autonarrada mientras conserve una
+    anterior aprobada o pendiente que todavía no tenga tema publicado. Al
+    publicarla se libera este bloqueo, aunque la nueva solicitud pertenezca a
+    otra semana.
+13. Los retrasos del staff no eliminan ni trasladan la recompensa reservada para
+    la semana de solicitud.
+
+### Aprobación, publicación y vínculo
+
+14. Una autonarrada nueva entra En revisión y debe ser aprobada por el staff. No
+    pasa por Buscando narrador.
+15. El staff puede aprobarla o denegarla desde Solicitudes en
+    `consola_aventuras.php`, con el mismo historial y motivo obligatorio de las
+    demás solicitudes.
+16. Una vez aprobada, aparece en el selector de aventuras al crear un tema solo
+    para su propietario y únicamente mientras su nivel actual sea 15 o menor.
+17. Alcanzar nivel 16 antes de publicar invalida la publicación como autonarrada:
+    desaparece del selector y cualquier intento directo de vincularla se rechaza
+    en el servidor. Una solicitud ya publicada conserva su vínculo aunque el
+    personaje suba después.
+18. El tema vinculado debe pertenecer al usuario, contener exactamente un post
+    visible y ese post debe ser suyo.
+19. El contenido debe alcanzar al menos 800 palabras después de retirar BBCode,
+    HTML y espacios de formato. El conteo Unicode del servidor es el autoritativo.
+20. Una solicitud solo puede tener un tema vinculado y un tema solo puede
+    pertenecer a una autonarrada. La vinculación puede corregirse antes del pago
+    si el tema anterior no ha sido recompensado.
+
+### Entrega y recompensa
+
+21. Las autonarradas usan una entrega reducida propia. Después de vincular y
+    publicar el tema, el jugador debe abrir su solicitud, pulsar `Entregar
+    autonarrada` e indicar si la reputación es positiva o negativa.
+22. Todas entregan exactamente 30 XP, 2 Nikas, 5 puntos de reputación y 300.000
+    Berries. No existen tiers de autonarrada.
+23. No se aplican bonos de Contrabandista, Arqueólogo, oficio, inframundo,
+    cantidad de jugadores, narrador ni ningún otro multiplicador.
+24. El jugador elige al entregar si los 5 puntos corresponden a reputación
+    positiva o negativa; la cantidad nunca cambia. Staff ve esa elección como
+    dato de solo lectura y no puede sustituirla al pagar.
+25. Solo después de esa entrega las autonarradas aparecen en la pestaña Entregas
+    de `consola_aventuras.php`, identificadas como Autonarrada. Vincular el tema
+    por sí solo no las envía a revisión. No se crea una pestaña principal adicional.
+26. La tarjeta de entrega muestra personaje, nivel al solicitar, nivel al
+    publicar, semana reservada, tema, autor, posts, palabras, validaciones y la
+    recompensa fija. No muestra tier, porcentajes, destinatarios ni ajustes.
+27. Antes de pagar, el servidor repite todas las validaciones de propiedad,
+    publicación, nivel, posts, palabras, semana y pago previo.
+28. `Entregar recompensa y finalizar` paga una sola vez, registra moderador y
+    fecha, finaliza la solicitud, conserva el tema vinculado y escribe tanto el
+    historial de la solicitud como el log general de entregas.
+29. Dos clics o dos moderadores concurrentes no pueden duplicar ninguna moneda.
+    Una interrupción deja un estado recuperable que permite completar únicamente
+    los componentes todavía no aplicados.
+30. Tras el pago, el tema se cierra automáticamente.
+
+### Compatibilidad y presentación
+
+31. `op/staff/entregar_recompensas.php` deja de aceptar pagos y redirige a
+    `consola_aventuras.php?tab=entregas&tipo=autonarrada`, conservando marcadores
+    antiguos sin mantener dos superficies de pago.
+32. Mis aventuras separa visualmente las autonarradas de las aventuras activas
+    que consumen cupo. Una autonarrada no aparece como aventura narrada sin límite.
+33. Otras aventuras, el modo vista y el historial del personaje muestran el tipo
+    Autonarrada de forma explícita.
+34. Los registros antiguos detectados mediante la heurística de único jugador
+    igual al narrador se revisan antes de migrarlos. Después de la migración, todas
+    las consultas usan el tipo persistido y eliminan esa heurística.
+
+## Revisión de experiencia del tablón (2026-10-07)
+
+Esta revisión prevalece sobre los apartados anteriores cuando exista conflicto.
+No cambia los límites, permisos de staff, recompensas ni estados persistidos de
+las solicitudes; cambia cómo se organizan, se encuentran y se asigna un narrador.
+
+### Activas e historial
+
+- **Mis aventuras** se abre en `vista=activas`. Incluye estados 0 (en revisión),
+  1 (aprobada/en curso) y 4 (buscando narrador).
+- `vista=historial` incluye estados 2 (denegada) y 3 (finalizada). Existe una
+  opción `vista=todas` para consultas excepcionales, pero no es la predeterminada.
+- El resumen `Activas de mi personaje / Aventuras que narro` se mantiene como
+  bloque compacto. Cada fila enlaza directamente al tema en una pestaña nueva
+  cuando existe un vínculo visible y accesible; sin tema se muestra como texto
+  plano. No vuelve a desplegar la descripción ni las acciones de la tarjeta.
+- La cabecera del Tablón permite buscar otra ficha aprobada por nombre o FID
+  mediante un botón desplegable inspirado en Bitácora. Su `modo_vista` es una
+  consulta aislada y de solo lectura del mismo resumen: oculta
+  las pestañas, Novedades y controles propios, y ofrece una acción para volver.
+- Novedades solo se muestra en la pestaña Mis aventuras y se retira al cambiar a
+  cualquier otra pestaña, también durante navegación HTMX.
+- La lista principal respeta la vista elegida. En móvil no se cargan primero
+  veinte aventuras históricas cuando el usuario solo necesita ver las actuales.
+- **Otras aventuras** conserva todos sus estados visibles, pero ofrece los
+  accesos `Actuales` (0 y 1) e `Historial` (2 y 3), con `Actuales` como inicio.
+
+### Estadísticas informativas
+
+- Cada contador de estado y, en Mis aventuras, cada contador de papel es un
+  indicador estático. No aplica filtros, no tiene estado seleccionado y no usa
+  `hover` ni `aria-pressed`.
+- Cada vista solo presenta estados pertinentes: Activas muestra Total, En
+  revisión, Aprobadas y Buscando narrador; Historial muestra Total, Denegadas y
+  Finalizadas; Todas muestra el conjunto completo.
+- Los conteos respetan la vista, búsqueda y filtros explícitos activos. Los
+  controles de Vista, Estado y Papel son el único mecanismo que modifica el
+  listado; cuando exista algún filtro se muestra `Limpiar filtros` junto a ellos.
+- El bloque de papeles se rotula `Tus papeles` y advierte de forma accesible que
+  una misma aventura puede contar en más de un papel.
+
+### Etiquetas comprensibles
+
+Los códigos de base de datos no cambian. Las etiquetas para jugadores son:
+
+| Estado | Etiqueta principal | Explicación breve |
+|---|---|---|
+| 0 | En revisión | El staff todavía debe revisarla. |
+| 1 | Aprobada | Puede jugarse, vincularse y entregarse. |
+| 2 | Denegada | Incluye el motivo del staff. |
+| 3 | Finalizada | La aventura y sus recompensas se cerraron. |
+| 4 | Buscando narrador | Acepta propuestas de narrador. |
+| 5 | Pendiente de borrado | Solo visible en consola. |
+
+Toda etiqueta concuerda con `aventura` o `solicitud`; no se muestran `Creado`,
+`Aprobado` ni `Pendiente narrador` en la interfaz de jugadores.
+
+### Estado navegable y persistente
+
+- Pestaña, vista, estado, papel, búsqueda, página y densidad se representan en
+  la URL: `tab`, `vista`, `estado`, `rol`, `q`, `pagina` y `densidad`.
+- Cambiar un filtro reinicia `pagina=1` y usa historial del navegador. Recargar,
+  compartir el enlace o usar Atrás/Adelante reproduce la misma vista.
+- La densidad elegida se conserva en la URL. En móvil la presentación siempre es
+  compacta, aunque el enlace indique expandida, sin cambiar el valor guardado.
+- Tras filtrar o paginar, el foco se mueve al resumen de resultados. Al paginar
+  también se lleva el listado al comienzo sin mover al usuario a la cabecera global.
+
+### Límites antes del envío
+
+- El indicador de cupo responde al papel seleccionado. Como jugador muestra el
+  cupo del personaje y puede bloquear el envío; como narrador muestra `Narrar no
+  consume el límite de tu personaje` y no bloquea por el cupo propio.
+- Cada participante seleccionado muestra `S/T`, donde `S` son sus solitarias
+  activas de un máximo de 3 y `T` sus activas totales de un máximo de 4.
+- Al añadir o quitar participantes, cambiar de papel o cambiar entre aventura
+  solitaria y grupal, el servidor recalcula la elegibilidad del conjunto.
+- Si cualquier participante excedería un límite, se identifica a la persona y
+  el motivo junto al selector, y `Enviar solicitud` queda deshabilitado.
+- La comprobación transaccional al enviar y al aprobar se conserva: la
+  comprobación anticipada mejora la experiencia, pero no sustituye la protección
+  contra carreras.
+
+### Asignación bilateral de narrador
+
+- Una persona ajena no se convierte en narrador únicamente al marcar una
+  casilla. Toda asignación entre dos usuarios requiere una propuesta pendiente y
+  la aceptación de la contraparte.
+- Si un jugador crea una solicitud con `Tengo narrador`, la solicitud queda en
+  estado 4 y se crea una **invitación** para esa ficha. Pasa a estado 0 y asigna
+  el narrador solo cuando la persona invitada acepta.
+- En Aventuras sin narrador, `Me interesa narrar` crea una **candidatura**. El
+  creador la acepta o rechaza; aceptar asigna el narrador y pasa la solicitud a
+  estado 0 para revisión.
+- Quien crea como `Soy el narrador` se asigna a sí mismo sin propuesta, porque
+  ambas partes son la misma persona.
+- Una solicitud puede tener varias propuestas pendientes, pero solo una puede
+  aceptarse. La aceptación bloquea la solicitud, asigna al narrador y cancela el
+  resto atómicamente.
+- Invitaciones y candidaturas pendientes vencen a los 7 días. Quien las inició
+  puede retirarlas; la contraparte puede rechazarlas. Aceptar, rechazar, retirar,
+  cancelar por otra aceptación y vencer quedan auditados.
+- El creador ve las propuestas en Mis aventuras. El narrador ve una sección
+  `Propuestas para narrar` dentro de Narradores & Narrados.
+- Las solicitudes que ya tienen narrador al aplicar la migración lo conservan y
+  no requieren una aceptación retroactiva.
+
+### Tarjetas contextuales
+
+- Si hay tema vinculado, todas las tarjetas muestran `#petición · nombre del
+  tema`; si no, muestran `#petición · Sin tema vinculado`.
+- Creador, narrador y participantes enlazan al perfil del foro. Cuando el usuario
+  puede contactar a la otra parte, también se ofrece `Enviar mensaje privado`.
+- `Idea para narradores` se muestra completa en estado 4 y en propuestas
+  pendientes. En otros estados queda dentro de Detalles y no ocupa la lectura
+  principal.
+- `Sin narrador` solo aparece cuando es una condición actual y útil. No se muestra
+  en finalizadas ni en el bloque que ya se titula Aventuras sin narrador.
+- `Datos incompletos` enumera visualmente `Falta isla`, `Falta día` o `Falta tier`;
+  no depende de un `title` que no existe en pantallas táctiles.
+- Motivos de denegación o renuncia y estados de entrega siempre permanecen
+  visibles cuando afectan al siguiente paso.
+
+### Paginación completa
+
+- Mis aventuras y Otras aventuras conservan 20 resultados por página. Ofertas
+  de narrador conserva 20 y Aventuras sin narrador conserva 10 por carga.
+- Los listados paginados muestran primera, anterior, páginas cercanas, siguiente
+  y última. No renderizan cientos de números a la vez.
+- El directorio de narradores debe exponer todas las páginas que ya calcula el
+  dominio; ninguna oferta vigente puede quedar inaccesible después de la 20.
+- `Ver más` de aventuras sin narrador conserva su comportamiento incremental y
+  la URL indica hasta qué página se cargó para que Atrás/recarga sean coherentes.
+
+### Notificaciones
+
+- El sistema genera una notificación para los usuarios afectados cuando ocurre:
+  invitación o candidatura nueva; aceptación, rechazo, retirada o vencimiento;
+  aprobación o denegación; salida de narrador; entrega rechazada; y recompensas
+  entregadas.
+- Los destinatarios se deduplican por evento y UID. La persona que ejecuta la
+  acción no recibe una copia redundante.
+- La notificación incluye solicitud, acción, actor y enlace directo. Nunca
+  incluye nota privada de staff ni información que el destinatario no pueda ver.
+- La acción de negocio se confirma aunque el canal externo de notificación falle.
+  El aviso queda pendiente para reintento y no se envía dos veces.
+- El canal mínimo es un aviso dentro del tablón. Puede integrarse con MyAlerts o
+  mensaje privado, pero la ausencia de MyAlerts no impide el funcionamiento.
+- Las novedades se muestran como un panel persistente debajo de las pestañas,
+  no dentro de un modal. Las pendientes quedan visibles y las leídas se
+  conservan en un historial reciente desplegable.
+- Una oferta de narrador avisa a su propietario cuando faltan 3 días para vencer.
+
+### Historial para usuarios
+
+- Creador, narrador y participantes pueden abrir `Historial` en su tarjeta.
+- La línea temporal muestra fecha, actor y descripción segura de: creación,
+  edición, propuestas de narrador, asignación o salida, aprobación o denegación,
+  vinculación, entrega, rechazo de entrega y recompensas entregadas.
+- No muestra notas de staff, payloads técnicos, importes internos no entregados,
+  direcciones IP ni acciones de moderación ajenas al usuario.
+- Las filas anteriores a la auditoría se presentan como `Sin historial anterior
+  a la migración`; no se inventan eventos.
+
+### Participantes como relación
+
+- Se crea `op_aventuras_participantes` como fuente indexable de participantes,
+  con una fila por participante. `jugadores_json` se conserva durante la
+  transición como snapshot de compatibilidad.
+- La relación guarda `id`, `peticion_id`, `uid` anulable, `nombre_snapshot`,
+  `orden` y fecha de alta; tiene unicidad por `(peticion_id, orden)` y, para las
+  fichas identificadas, por `(peticion_id, uid)`, además de índice
+  `(uid, peticion_id)`.
+- Una entrada antigua sin UID se conserva con `uid=NULL`: puede mostrarse, pero
+  no concede permisos ni consume cupo hasta que staff resuelva su identidad.
+- Listados, estadísticas, límites y permisos consultan la tabla relacional. Las
+  escrituras actualizan relación y snapshot dentro de la misma transacción.
+- La migración rellena la tabla desde JSON válido, conserva entradas sin UID,
+  registra JSON o estructuras inválidas para revisión y compara conteos antes de
+  convertirla en fuente de verdad.
+- Mientras la calculadora antigua pueda escribir, sus rutas sincronizan la
+  relación después de cada cambio de participantes; además se mantiene fallback
+  y reparación por lotes. No se retira el fallback hasta desactivar la escritura
+  legacy y verificar un último checksum.
+
+## Revisión visual del tablón (2026-10-06)
+
+La especificación detallada y el orden de implementación están en
+[102_TablonDiseno.md](102_TablonDiseno.md). Esta revisión añade:
+
+- Tarjetas compactas con comentario público recortado a tres líneas y expansión
+  accesible; isla, fecha y tier forman una fila de metadatos. Los ausentes se
+  agrupan como `Datos incompletos`.
+- Una acción principal contextual por tarjeta y el resto en `Más acciones`, sin
+  cambiar permisos, confirmaciones ni reglas de negocio.
+- La cabecera del tablón conserva el banner principal y el bloque editorial del
+  foro, sin relleno vertical específico que deje franjas vacías de fondo.
+- Las ofertas de narrador admiten frecuencia, tiers preferidos y estilo. Son
+  opcionales para mantener compatibles las ofertas existentes.
+- El total sin narrador se integra junto al título, los estados usan colores
+  semánticos con etiqueta textual y Mis/Otras permiten densidad Compacta o
+  Expandida. Compacta presenta dos columnas en escritorio y descripciones de una
+  línea; Expandida usa todo el ancho y muestra la descripción completa.
+
+La ampliación de ofertas requiere ejecutar
+`aventuras_tablon_diseno_migration.sql` antes de desplegar el PHP actualizado.
+
 ## Revisión de interfaz (2026-10-05)
 
 Esta revisión sustituye las referencias posteriores a tres pestañas y al mercado
 dentro de Otras aventuras:
 
-- Cuatro pestañas, en orden: **Mis aventuras**, **Otras aventuras**,
-  **Solicitar aventura**, **Narradores & Narrados** (`tab=narradores`).
+- Cuatro pestañas, en orden: **Mis aventuras**, **Solicitar aventura**,
+  **Narradores & Narrados** (`tab=narradores`), **Otras aventuras**.
 - Narradores & Narrados reúne Narradores disponibles y Aventuras sin narrador.
   Otras aventuras contiene solo el listado ajeno de estados 0, 1, 2 y 3.
   El contador de pendientes pertenece a la nueva pestaña.
 - Mis y Otras muestran, debajo de las pestañas y antes del encabezado del listado,
-  total, Creadas, Pendientes de narrador, Aprobadas, Denegadas y Finalizadas,
-  y conteos separados como narrador y jugador. Las cifras abarcan el conjunto
-  completo que cumple los filtros, no solo la página. En Otras, los conteos de rol
-  corresponden al UID buscado, o al usuario actual cuando no se filtra por UID.
-  Estados a la izquierda; narrador y jugador en una columna separada a la derecha.
-  En móvil, los roles forman una franja independiente debajo de los estados.
+  Total, En revisión, Buscando narrador, Aprobadas, Denegadas y Finalizadas.
+  Las cifras abarcan el conjunto completo que cumple los filtros, no solo la
+  página. Solo Mis aventuras añade conteos separados como narrador y jugador, en
+  un bloque visualmente separado; Otras aventuras dedica todo el ancho a estados.
+  En móvil, los roles de Mis forman una franja independiente bajo los estados.
 - Ambos listados tienen **20 aventuras por página**, conservan filtros y muestran
   total de resultados y página actual. Estadísticas y listado se actualizan juntos.
 - Mis aventuras incluye búsqueda reactiva por número de solicitud (`#850`). Otras
@@ -30,6 +373,8 @@ dentro de Otras aventuras:
   se muestra el ID y "Sin tema vinculado". Cuenta
   participación como jugador en estados 0, 1 y 4, excluye las narradas y es
   independiente de los filtros. Se mantiene el contador compacto en Solicitar.
+  Cada aventura se presenta como una fila compacta; las narradas usan dos columnas
+  en escritorio y una en móvil, sin repetir el contador bajo el encabezado.
 - Al seleccionar narrador, desaparece su buscador. Quitar el narrador permite
   elegir otro; solo hay uno. Con al menos un participante, su buscador se abre
   mediante **Añadir participante** y se cierra tras cada selección. Sin
@@ -43,6 +388,9 @@ dentro de Otras aventuras:
   1000 caracteres. La idea opcional describe cómo quiere ser narrado el jugador,
   qué desea que pase y qué narración o narrador busca. Buscar isla va arriba y
   el chip de Isla debajo, alineando el buscador con los campos Día y Tier.
+- El formulario se organiza en tres secciones sin tarjetas anidadas: Personas,
+  Datos de la aventura y Descripción. La propuesta para posibles narradores va
+  después del comentario público y solo aparece cuando corresponde.
 - El rediseño sigue `style.md`: marco de tres fondos, tokens compartidos,
   `.barra-op`, Inter para cuerpo y controles, `moonGetHeavy` para títulos y cifras,
   bandas sin tarjetas anidadas, controles accesibles y adaptación a 375px.
@@ -84,9 +432,11 @@ ocurre la aventura, y de cómo se cierra y se recompensa.
   actual (`op_Calculadora_Tiers.html` ni `jscripts/calculadoraDificultad/`). Los
   templates y estilos se escriben de cero siguiendo [style.md](style.md).
 - La interfaz usa **HTMX**: el servidor responde con fragmentos HTML y el
-  navegador los inserta en la página; no hay JavaScript propio de aplicación.
+  navegador los inserta en la página. El JavaScript propio se limita a mejoras
+  progresivas de interacción, como foco y confirmaciones; las reglas y cálculos
+  permanecen en el servidor.
 - La página de jugadores tiene **cuatro pestañas, en este orden: Mis aventuras,
-  Otras aventuras, Solicitar aventura y Narradores & Narrados**. La pestaña inicial es Mis aventuras. No
+  Solicitar aventura, Narradores & Narrados y Otras aventuras**. La pestaña inicial es Mis aventuras. No
   existe una pestaña "Registro": sus dos mitades son pestañas independientes. La
   pestaña Consola no existe en ella, para nadie. Toda la lógica de gestión pasa
   a `/op/staff/consola_aventuras.php`, enlazada desde la consola de mods
@@ -102,7 +452,9 @@ ocurre la aventura, y de cómo se cierra y se recompensa.
   el formulario que antes se publicaba en el foro, y el staff paga las recompensas
   a los participantes y al narrador en una **página nueva y rediseñada,
   `/op/staff/aventuras_recompensas.php`**, que sigue la lógica de
-  `recompensasAventuras.php` (la herramienta real de pago de aventuras).
+  `recompensasAventuras.php` (la herramienta real de pago de aventuras). La
+  entrega guarda quién era el narrador asignado al enviarla; no se exige ni se
+  interpreta una etiqueta `[Narrador]` dentro de los posts.
 - La pestaña Narradores & Narrados funciona como un **mercado de oferta y demanda de
   narración** (sección 6.7): destaca las aventuras sin narrador y lista a los
   usuarios que se ofrecen a narrar.
@@ -317,6 +669,26 @@ constantes y no de estructura.
 
 ## 6. Reglas de negocio
 
+### Revisión de entrega y recompensas (2026-10-08)
+
+- El narrador de una entrega es el usuario asignado a la solicitud en el momento
+  de enviarla. Se conserva en la propia entrega y es la fuente de verdad para el
+  rol y el cálculo, aunque la asignación de la solicitud cambie después.
+- Los mensajes del tema no necesitan la etiqueta `[Narrador]`; el sistema no la
+  busca ni bloquea el pago por su ausencia.
+- La página de recompensas presenta primero el nombre del tema y deja los números
+  de entrega y solicitud como metadatos secundarios.
+- La revisión se organiza en cuatro secciones compactas: entrega, criterios,
+  destinatarios y validación/acciones. Ajustar un criterio o destinatario actualiza
+  la vista previa automáticamente y existe además una acción explícita para
+  actualizarla.
+- Advertencias y bloqueos se muestran una sola vez, distinguiendo qué impide pagar.
+  Cuando el pago está deshabilitado se explica la causa junto al botón.
+- Antes de pagar se abre una confirmación propia con el alcance de la acción. La
+  barra de acciones permanece visible al recorrer listas largas.
+- En móvil, cada destinatario se presenta como un bloque legible, sin depender de
+  una tabla horizontal.
+
 ### 6.1 Límite de aventuras activas
 
 - Una aventura está activa en los estados 0, 1 y 4.
@@ -362,8 +734,9 @@ el creador (`uid`) por la sesión, nunca por un valor del cliente.
   participantes con el mismo typeahead.
 - Indica si **tiene narrador** o **no tiene narrador**.
   - Si tiene, lo nombra con un typeahead de fichas: es el narrador con el que ya
-    se puso de acuerdo, no uno que elija de la lista de narradores disponibles.
-    No puede ser alguno de los participantes. Estado inicial 0.
+    se puso de acuerdo o al que desea invitar. No puede ser alguno de los
+    participantes. La solicitud nace en estado 4 y la invitación debe aceptarse;
+    solo entonces pasa al estado 0.
   - Si no tiene, aparece un campo para escribir una **nota "vendiendo su idea"**
     de hasta 500 caracteres (opcional, pero se recomienda), que verán los
     posibles narradores en el bloque de aventuras sin narrador. Estado inicial 4.
@@ -379,12 +752,9 @@ Reglas comunes:
 - Nadie puede postularse a narrar una solicitud de la que es participante ni de
   la que es creador.
 - Solo se puede postular a solicitudes en estado 4 sin narrador asignado.
-- Para postularse, el narrador debe **confirmar en una ventana** que se puso de
-  acuerdo con el usuario: "¿Quieres narrar a este usuario? Confirma que te has
-  puesto de acuerdo con él para narrarle." La ventana muestra quién creó la
-  solicitud, los participantes, la isla y el día, y exige marcar una casilla de
-  confirmación antes de aceptar. El servidor rechaza una postulación sin esa
-  confirmación. La idea es que el narrador haya contactado antes al usuario.
+- `Me interesa narrar` crea una candidatura pendiente y puede incluir un mensaje
+  breve. No asigna al narrador directamente. La ventana muestra quién creó la
+  solicitud, participantes, isla y día; el creador acepta o rechaza después.
 - Una solicitud en estado 4 no se puede aprobar hasta que tenga narrador.
 - **El narrador puede salirse.** El narrador asignado a una solicitud en estado 0
   o 1 puede dejar de narrarla con la acción "Dejar de narrar", que pide una
@@ -407,19 +777,17 @@ Reglas comunes:
     el nuevo narrador puede reemplazarla al vincular.
   - Solo puede salirse el narrador asignado. No se puede dejar de narrar una
     aventura finalizada, denegada ni pendiente de borrado.
-  - No se avisa automáticamente a los participantes (no hay notificaciones): el
-    narrador debe comunicárselo por Discord. La ventana de confirmación se lo
-    recuerda.
+  - Se avisa automáticamente al creador y a los participantes mediante la
+    bandeja interna. Discord puede seguir usándose como canal complementario.
   - Si el narrador es además el creador (forma A), tras salirse la solicitud
     queda en estado 4 y sigue siendo suya en Mis aventuras, pero no puede
     postularse de nuevo a ella como narrador (regla de creador). Puede pedir su
     borrado.
   - La acción queda en la auditoría con el narrador que se salió y el motivo.
 - Cualquier usuario con ficha puede ser narrador; no se exige `is_narra`.
-- Nombrar a un narrador al crear la solicitud no requiere su aceptación en el
-  sistema: se asume que el acuerdo entre jugadores y narrador ya está pactado
-  fuera de la herramienta. Si hiciera falta, un moderador o staff puede denegar
-  la aventura.
+- Nombrar a un narrador ajeno al crear o editar requiere su aceptación en el
+  sistema mediante una invitación. La única asignación inmediata es la de quien
+  crea la solicitud con `Soy el narrador`.
 - No hay límite de participantes por solicitud.
 
 ### 6.3 Isla, día y comentario público
@@ -489,16 +857,16 @@ al crear y desde la consola de aventuras.
 ### 6.7 Mercado de narradores
 
 La pestaña Narradores & Narrados conecta a quien busca narrador con quien quiere
-narrar. Los usuarios **no eligen narradores de la lista**: la lista solo se ve, y
-el contacto se hace por Discord fuera de la herramienta.
+narrar. Discord continúa visible como vía de conversación, pero la aceptación y
+la asignación se registran dentro de la herramienta.
 
 **Demanda: aventuras sin narrador.** Son las solicitudes en estado 4 (pendiente
 de narrador) que no son del usuario. Se muestran en un bloque destacado al
 en Narradores & Narrados, para que quien esté dispuesto a narrar vea las
 ofertas: los narradores pueden aceptar las aventuras de otros usuarios (o de
 grupos de usuarios) que esperan narrador. Cada tarjeta muestra los datos de la
-solicitud y la nota con la que el creador vende su idea. La acción "Postularme
-como narrador" pide la confirmación de la sección 6.2. La pestaña muestra además
+solicitud y la nota con la que el creador vende su idea. La acción `Me interesa
+narrar` crea la candidatura descrita en la sección 6.2. La pestaña muestra además
 un contador con cuántas hay.
 
 **Oferta: narradores disponibles.** Cualquier usuario con ficha puede
@@ -515,11 +883,13 @@ un contador con cuántas hay.
   cuántas aventuras narra en curso (estados 0 y 1) y cuántas ha finalizado
   (estado 3), y su usuario de Discord como texto, para que quien busca narrador
   lo contacte allí.
+- Para el autor, su oferta aparece una sola vez como franja compacta con acciones
+  de renovar, editar y retirar; no se repite dentro del directorio. Los demás
+  usuarios continúan viéndola como una tarjeta de narrador disponible.
 - Ofrecerse no asigna nada y no obliga a nada: es una publicación de
-  disponibilidad. La asignación sigue siendo la de la sección 6.2: el narrador se
-  postula a una solicitud sin narrador (con confirmación), o quien crea la
-  solicitud nombra al narrador con el que ya se puso de acuerdo. La lista no
-  tiene botón de elegir.
+  disponibilidad. Desde una oferta se puede iniciar una invitación, y desde una
+  aventura sin narrador se puede iniciar una candidatura; ambas requieren la
+  aceptación de la contraparte según la sección 6.2.
 - Estar en la lista no limita ni cambia las reglas de las aventuras que ya narra.
 - Una oferta **vence a los 30 días** sin renovarse (valor por defecto, ajustable
   en una constante). Mientras no venza, su autor ve cuántos días le quedan y un
@@ -547,9 +917,9 @@ número, de la oferta más antigua a la más reciente, para repartir la carga.
   creó como jugador sigue siendo participante.
 - Se aplican las mismas validaciones que al crearla (secciones 6.2 y 6.3). Los
   límites de aventuras activas se siguen comprobando al aprobar, no al editar.
-- Si tras editar tiene narrador, el estado es 0; si no lo tiene, es 4. Si se
-  nombra un narrador, se vacía `motivo_renuncia`. Nombrar o quitar un narrador al
-  editar no requiere su aceptación en el sistema, igual que al crear.
+- Si se conserva el narrador ya asignado, el estado no cambia. Si se elimina,
+  pasa a 4. Elegir un narrador ajeno crea una invitación y mantiene el estado 4
+  hasta su aceptación; al crearla se vacía `motivo_renuncia`.
 - Cada edición guarda `editado_at` y queda en la auditoría con los campos que
   cambiaron. La consola marca las solicitudes editadas ("Editada el ...") para
   que quien revisa sepa que cambiaron.
@@ -567,7 +937,7 @@ ya tiene el tema vinculado), que lleva a `op/staff/recompensasAventuras.php?tid=
 Esa página es la herramienta real de pago de aventuras:
 
 - lee todos los posts del tema;
-- detecta **quién narró** por la etiqueta `[narrador]` en sus posts;
+- usa como narrador al usuario indicado en la entrega;
 - cuenta, por usuario, los **posts válidos** (los de 300 caracteres o más, sin
   etiquetas); los demás se descartan;
 - compara con los **posts esperados** del tier (4, 5, 6, 7, 8, 9, 10, 10, 11 y 12
@@ -625,8 +995,8 @@ una; la página nueva `/op/staff/aventuras_recompensas.php` (sección 7.5) muest
 un tramo a mano:
 
 - Las **reglas de cálculo** son las de esa página, sin cambios:
-  - **Narradores:** usuarios con al menos un post con la etiqueta `[narrador]`.
-    Si no hay ninguno, no se puede pagar y se explica por qué.
+  - **Narrador:** el usuario asignado cuando se envió la entrega, aunque no haya
+    escrito ningún post. En ese caso se muestra con cero posts y una advertencia.
   - **Posts válidos** de cada usuario: los de 300 caracteres o más, sin
     etiquetas. Los demás no cuentan.
   - **Porcentaje base** = posts válidos / posts esperados del tier x 100, si no
@@ -677,8 +1047,8 @@ tope de 675. `aventuras_recompensas.php` es la página nueva que las reemplaza p
 las aventuras entregadas desde el Tablón. Las páginas `entregar_recompensas_*` no
 cambian.
 
-**Conflicto de interés.** Quien es creador, narrador o participante de la
-solicitud no puede pagar ni rechazar su entrega (misma regla de la sección 7.4).
+**Moderación propia.** Mods, staff y narradores con permiso de gestión pueden
+pagar o rechazar una entrega aunque sean creadores, narradores o participantes.
 
 **Visible para los usuarios.** La tarjeta en Mis aventuras muestra "Entrega
 pendiente de revisión", "Entrega rechazada: {motivo}" con el botón para corregirla
@@ -688,8 +1058,8 @@ consola solo se permite si no hay una entrega pendiente.
 ## 7. Interfaz
 
 La calculadora actual tiene tres pestañas: Solicitud, Registro y Consola. En
-`/op/tablon_de_aventuras.php` hay **cuatro**: Mis aventuras, Otras aventuras,
-Solicitar aventura y Narradores & Narrados. La gestión sale de esta página.
+`/op/tablon_de_aventuras.php` hay **cuatro**: Mis aventuras, Solicitar aventura,
+Narradores & Narrados y Otras aventuras. La gestión sale de esta página.
 
 | Pestaña | Visible para | Contenido |
 |---|---|---|
@@ -768,7 +1138,8 @@ aventuras (sección 7.4).
 
 Muestra todo lo que no es del usuario: **ninguna solicitud en la que sea
 creador, narrador o participante**, en estados 0, 1, 2 y 3. Estadísticas antes
-del encabezado sobre todo el conjunto filtrado, y paginación de 20 en 20.
+del encabezado sobre todo el conjunto filtrado, solo por total y estado, sin
+contadores "Como narrador" ni "Como jugador", y paginación de 20 en 20.
 Filtros por estado (Creadas, Aprobadas, Denegadas y Finalizadas) y UID de narrador
 o participante. Las solicitudes pendientes se consultan en la cuarta pestaña.
 
@@ -817,10 +1188,11 @@ disponibles. La pestaña Entregas lleva un contador con las entregas pendientes.
 
 **Solicitudes**
 
-- **Cola de revisión.** Se abre filtrada por **Creadas** (estado 0), las que
+- **Cola de revisión.** Se abre filtrada por **En revisión** (estado 0), las que
   esperan revisión. Cada filtro de estado muestra cuántas solicitudes hay en él
-  ("Creadas (3)"), incluido "Pendientes de borrado". También hay búsqueda por UID
-  de narrador o participante. No hay filtros por isla ni por día.
+  ("En revisión (3)"), incluido "Pendientes de borrado". La búsqueda acepta `#ID`,
+  UID o nombre de creador, narrador o participante. No hay filtros por isla ni
+  por día.
 - Cada fila muestra id, isla, día, narrador, participantes, estado, nota de
   staff, la nota de idea del creador, el motivo de renuncia si existe y la marca
   "Editada el ..." si el creador la modificó.
@@ -854,11 +1226,62 @@ disponibles. La pestaña Entregas lleva un contador con las entregas pendientes.
 **Narradores disponibles**
 
 - Lista todas las ofertas, incluidas las vencidas (marcadas como tales), con
-  nombre de ficha, usuario de Discord, mensaje y fechas de oferta y de última
+  nombre de ficha, usuario de Discord, mensaje, frecuencia, tiers preferidos,
+  estilo, carga actual, aventuras finalizadas y fechas de oferta y de última
   renovación.
+- La lista está paginada de 20 en 20 y permite filtrar por vigencia y buscar por
+  UID o nombre. No puede quedar limitada silenciosamente a la primera página.
 - Acción **Retirar oferta**, con confirmación y un motivo obligatorio de hasta
   200 caracteres. Borra la oferta y el motivo queda en la auditoría. El usuario
   puede volver a ofrecerse.
+
+**Rediseño operativo implementado y verificado (2026-10-07)**
+
+1. La consola es responsive y no tiene desbordamiento horizontal a 375, 700,
+   1030 ni 1440 px. El contenedor, la cabecera compartida, las pestañas, filtros,
+   tarjetas, formularios e historial se adaptan al ancho disponible.
+2. La barra naranja de título se sustituye por el encabezado compacto de
+   herramienta del Tablón: icono, un único `h1`, texto de apoyo breve y línea de
+   acento. No se ocultan el banner, menú, avisos de staff ni Bitácora.
+3. La consola no repite una banda general de trabajo pendiente: Solicitudes muestra
+   sus estadísticas por estado y Entregas conserva su contador en la pestaña.
+4. Una solicitud no puede aprobarse si le falta isla, día, tier, comentario
+   público, narrador o participantes válidos. La tarjeta enumera lo que falta,
+   deshabilita `Aprobar` y ofrece `Completar datos`; el servidor repite la
+   validación dentro de la transición transaccional.
+5. Las filas de solicitudes son compactas y comparables. En primer nivel muestran
+   ID y título del tema, antigüedad, estado, isla/día/tier, creador, narrador,
+   participantes y acciones. Comentario, idea, nota interna, renuncia y denegación
+   se consultan en un detalle expandible sin perder su contenido.
+6. Las tres pestañas forman una barra segmentada de columnas estables, con iconos
+   Font Awesome, texto, estado activo por subrayado y contador integrado en
+   Entregas. En móvil pueden repartirse en filas sin recortar texto.
+7. Cada fila tiene una sola acción principal. `Aprobar`, `Revisar y pagar` o
+   `Completar datos` ocupan ese lugar según contexto; `Denegar` conserva tratamiento
+   peligroso y Editar, Historial y Finalizar se agrupan en `Más acciones`.
+8. Solicitudes conserva los filtros por estado, persona y orden. El orden
+   predeterminado es por las más recientes; el staff puede elegir las más antiguas.
+9. `Buscar por UID` se sustituye por un typeahead único que acepta `#ID`, UID o
+   nombre y busca entre creador, narrador y participantes. La selección se
+   representa en la URL.
+10. Historial se presenta como línea temporal en un panel lateral, acordeón o
+    diálogo compacto. Solo hay uno abierto; al abrir recibe foco y al cerrar lo
+    devuelve al botón. En móvil ocupa el ancho disponible y no desplaza de forma
+    confusa toda la cola.
+11. Narradores disponibles respeta `pagina` tanto en carga completa como HTMX y
+    muestra paginación cuando supera 20 ofertas.
+12. La consola presenta las preferencias estructuradas y la carga que ya muestra
+    el directorio público, para que el staff modere con el mismo contexto.
+13. Los conteos de estados y entregas se calculan una vez por petición y se
+    reutilizan entre resumen, pestañas y paneles; no se repite una consulta
+    idéntica para construir el contador.
+14. Los estilos comunes de Tablón, Consola y Recompensas viven en una hoja común;
+    cada template conserva solo reglas propias. No se duplican bloques completos
+    `.ta-*` y `.ca-*` susceptibles de divergir.
+15. La página usa `h1`, `article`, encabezados y nombres accesibles adecuados. Los
+    cambios HTMX anuncian total/página, enfocan el contenido nuevo cuando procede,
+    mantienen foco visible y funcionan con teclado. Iconos y colores nunca son la
+    única forma de comunicar estado o acción.
 
 La consola y las pestañas de jugadores comparten las reglas de transición y de límites
 mediante la librería de `inc/plugins/lib/` (sección 2); la consola no
@@ -882,7 +1305,7 @@ Contenido:
 - **Análisis del tema** (sección 6.9): posts totales y válidos por usuario, quién
   narró, posts esperados del tier y si se cumplen los mínimos. Avisa de quien
   escribió sin estar en la solicitud, de quien está en la solicitud sin haber
-  escrito, y de un narrador asignado que no escribió `[narrador]`.
+  escrito, incluido el narrador conservado en la entrega.
 - **Ajustes del staff**: tier (opcional, por defecto el de la solicitud), extra por
   jugadores para los narradores, variación de posts de cada usuario, reputación de
   cada jugador, incluir o excluir a cada destinatario y número de participantes
@@ -1125,8 +1548,8 @@ Observados en `op/Calculadora_Tiers.php`:
 31. Postularse como narrador abre una ventana que pide confirmar el acuerdo con
     el usuario. Enviar la postulación sin la confirmación marcada se rechaza, y
     cancelar la ventana no cambia nada.
-32. Las pestañas aparecen en el orden Mis aventuras, Otras aventuras, Solicitar
-    aventura y Narradores & Narrados, y la página se abre en Mis aventuras. Un usuario sin ninguna
+32. Las pestañas aparecen en el orden Mis aventuras, Solicitar aventura,
+    Narradores & Narrados y Otras aventuras, y la página se abre en Mis aventuras. Un usuario sin ninguna
     aventura ve en Mis aventuras la recomendación de pedir una, con un botón
     hacia Solicitar aventura; un usuario con aventuras cuyos filtros no devuelven
     nada ve solo el aviso de lista vacía.
@@ -1159,7 +1582,7 @@ Observados en `op/Calculadora_Tiers.php`:
 39. Un narrador usuario sin `is_narra`, mod ni staff no entra a la consola de
     aventuras. Un narrador del staff tiene acceso a todas sus secciones.
     Eliminar sigue exigiendo `is_staff`.
-40. La consola se abre filtrada por Creadas, y cada filtro de estado muestra
+40. La consola se abre filtrada por En revisión, y cada filtro de estado muestra
     cuántas solicitudes hay. La nota de idea y el motivo de renuncia se muestran
     en la fila.
 41. El historial de una solicitud muestra, con usuario y fecha, la creación, las
@@ -1185,15 +1608,16 @@ Observados en `op/Calculadora_Tiers.php`:
     un resumen de 2001 caracteres se rechaza. Al enviar, la entrega queda pendiente,
     la solicitud sigue en estado 1, no se puede crear otra entrega para la misma
     solicitud ni usar el mismo tema en otra.
-46. El análisis del tema coincide con el de `recompensasAventuras.php` para el mismo
-    tema, tier y ajustes: mismos narradores detectados por `[narrador]`, mismos
+46. El análisis conserva los cálculos de `recompensasAventuras.php` para el mismo
+    tema, tier y ajustes, pero toma el narrador de la entrega: mismos
     posts válidos (300 caracteres o más), mismos posts esperados por tier, mismos
     porcentajes (base de 0 a 150, final de 0 a 200, extra por jugadores de 0 a 50) y
     mismas recompensas, incluidos oficios, inframundo, cofres y kuros por exceso.
 47. El tier de la entrega es por defecto el de la solicitud y el staff puede
     cambiarlo. El nivel del narrador sale de su ficha. La reputación de cada jugador
     es por defecto la elegida por el narrador y el staff puede cambiarla por jugador.
-    Se puede excluir a un destinatario. Sin narradores detectados no se puede pagar.
+    Se puede excluir a un destinatario. El narrador sin posts aparece con cero y
+    una advertencia, sin depender del contenido de los mensajes.
     Con posts mínimos sin cumplir hace falta confirmar.
 48. El tope mensual de experiencia del narrador es 675, igual que en
     `recompensasAventuras.php`, que no cambia: con 625 acumulados y 100 de
@@ -1208,9 +1632,26 @@ Observados en `op/Calculadora_Tiers.php`:
     ya pagó (cerrado o con el mensaje) no se puede pagar de nuevo desde la nueva, y
     al revés.
 50. Rechazar sin motivo falla. Una entrega rechazada libera el tema y el narrador la
-    corrige y reenvía. Quien participa en la aventura no puede pagar ni rechazar, y
-    un usuario sin permisos de consola no puede abrir `aventuras_recompensas.php` ni
-    llamar a sus acciones.
+    corrige y reenvía. Un gestor puede moderar entregas propias; un usuario sin
+    permisos de consola no puede abrir `aventuras_recompensas.php` ni llamar a sus
+    acciones.
 51. Mis aventuras muestra "Entrega pendiente de revisión", "Entrega rechazada:
     {motivo}" con botón de corregir y reenviar, o "Recompensas entregadas el ...".
     "Finalizar" manual se rechaza si hay una entrega pendiente.
+52. La consola no desborda horizontalmente a 375, 700, 1030 ni 1440 px, conserva
+    la cabecera global y presenta un único `h1` y pestañas segmentadas con iconos.
+53. Una solicitud incompleta enumera sus campos ausentes y no se aprueba ni desde
+    la interfaz ni mediante una petición directa. Tras completar los datos, puede
+    aprobarse si también supera permisos, transición y límites.
+54. El listado se abre con las creadas más recientes y permite invertir el orden.
+    Busca por `#ID`, UID o nombre entre creador, narrador y participantes,
+    conservando estado, búsqueda y orden en la URL.
+55. Las tarjetas compactas tienen una sola acción principal y un menú secundario;
+    el detalle y el historial son accesibles con teclado, gestionan el foco y no
+    ocultan comentario, idea, nota privada ni motivos cuando se solicitan.
+56. Narradores disponibles pagina de 20 en 20, permite alcanzar todas las páginas
+    y muestra vigencia, preferencias, carga y finalizadas. La misma consulta de
+    conteos no se ejecuta dos veces al construir una respuesta.
+57. Tablón, Consola y Recompensas cargan estilos compartidos sin duplicar sus
+    componentes base; las pruebas de página comprueban semántica, foco, URL,
+    paginación, acciones, estados vacíos y ausencia de desbordamiento.

@@ -166,6 +166,7 @@ if ($accion === '') {
     }
     $post_key = htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8');
     $bbname_html = htmlspecialchars($mybb->settings['bbname'], ENT_QUOTES, 'UTF-8');
+    $asset_url = htmlspecialchars(rtrim($mybb->settings['bburl'], '/'), ENT_QUOTES, 'UTF-8');
     $htmx_url = htmlspecialchars(rtrim($mybb->settings['bburl'], '/') . '/jscripts/htmx/htmx.min.js?v=2.0.4', ENT_QUOTES, 'UTF-8');
     eval("\$page = \"" . $templates->get('staff_aventuras_recompensas') . "\";");
     output_page($page);

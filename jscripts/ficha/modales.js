@@ -274,12 +274,12 @@
     var edicionHtml = puedeEditar ? `
       <hr style="width:100%;margin:18px 0;border:none;border-top:2px dashed #d8b06a;">
       <div style="font-size:16px;text-align:justify;">Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.</div>
-      <input id="bandaSonoraURL" type="text" class="textbox" style="width:100%;margin-top:12px;box-sizing:border-box;font-size:15px;padding:8px;" placeholder="https://www.youtube.com/watch?v=..." value="${banda_sonora}">
-      <div style="margin-top:14px;display:flex;gap:12px;">
+      <input id="bandaSonoraURL" type="text" class="textbox" style="width:100%;margin-top:12px;box-sizing:border-box;font-size:15px;padding:8px;" placeholder="youtube.com/watch?v=..." value="${escAttrBanda(banda_sonora)}" oninput="validarEnlaceBandaSonora();" autocomplete="off">
+      <div id="bandaSonoraEstado" role="status" aria-live="polite" style="margin-top:8px;min-height:20px;font-size:13px;text-align:left;"></div>
+      <div style="margin-top:10px;display:flex;gap:12px;">
         <button onclick="guardarBandaSonora();" style="width:120px;font-size:14px;padding:8px 0;">Guardar</button>
         <button onclick="probarBandaSonora();" style="width:120px;font-size:14px;padding:8px 0;">Probar</button>
       </div>
-      <div style="margin-top:10px;font-size:13px;text-align:center;font-style:italic;">Formatos aceptados: youtube.com/watch?v=ID o youtu.be/ID</div>
     ` : '';
 
     $('#myModal').html(`
@@ -342,23 +342,110 @@
 
   // ── Banda sonora — acciones ───────────────────────────────────
 
+  function escAttrBanda(valor) {
+    return String(valor == null ? '' : valor).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function avisoBandaSonora(texto, tipo) {
+    if (window.bandaSonora && window.bandaSonora.aviso) { window.bandaSonora.aviso(texto, tipo); }
+  }
+
+  // Aviso en vivo mientras se escribe: dice si el enlace sirve y cómo se va a guardar.
+  function validarEnlaceBandaSonora() {
+    var texto = ($('#bandaSonoraURL').val() || '').trim();
+    if (texto === '') { avisoBandaSonora('', ''); return; }
+    var r = window.analizarEnlaceYoutube(texto);
+    if (r.ok) {
+      avisoBandaSonora('✔ Enlace válido. Se guardará como ' + r.canonica, 'ok');
+    } else {
+      avisoBandaSonora('✖ ' + r.motivo, 'err');
+    }
+  }
+
+  // Se guarda al momento (sin pasar por la cola de "Guardar Cambios") para poder decir si el servidor lo aceptó.
+  function enviarBandaSonora(valor) {
+    var uidFicha = (typeof query_uid !== 'undefined') ? query_uid : '';
+    avisoBandaSonora('Guardando...', '');
+    // Solo se envía el ID del video (no el enlace): un https:// en el cuerpo de la petición lo bloquea el cortafuegos del hosting (406).
+    var idVideo = valor ? window.extraerYoutubeId(valor) : '';
+    $.post('/op/personaje.php?uid=' + encodeURIComponent(uidFicha), { cambiar_banda_sonora_id: idVideo })
+      .done(function (respuesta) {
+        if (String(respuesta).trim() === 'success') {
+          modal.style.display = 'none'; // el observer de bandaSonora.js ve este cierre y limpia el reproductor del modal solo
+          location.reload();
+          return;
+        }
+        var detalle = String(respuesta).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+        avisoBandaSonora('✖ El servidor no guardó el enlace.', 'err');
+        alert('No se pudo guardar la banda sonora.' + (detalle ? ' Respuesta del servidor: ' + detalle : ''));
+      })
+      .fail(function (xhr) {
+        avisoBandaSonora('✖ No se pudo conectar con el servidor.', 'err');
+        alert('No se pudo guardar la banda sonora (error ' + xhr.status + ').');
+      });
+  }
+
+  var guardandoBandaSonora = false;
+
+  // Guarda la banda sonora tras avisar si el enlace sirve: formato válido y video existente.
   function guardarBandaSonora() {
-    var url = $('#bandaSonoraURL').val();
-    FICHA.PendingQueue.addParams({ cambiar_banda_sonora: url });
-    modal.style.display = 'none'; // el observer de bandaSonora.js ve este cierre y limpia el reproductor del modal solo
+    if (guardandoBandaSonora) { return; }
+    var texto = ($('#bandaSonoraURL').val() || '').trim();
+
+    if (texto === '') {
+      if (confirm('El campo está vacío: se quitará la banda sonora de esta ficha. ¿Continuar?')) { enviarBandaSonora(''); }
+      return;
+    }
+
+    var r = window.analizarEnlaceYoutube(texto);
+    if (!r.ok) {
+      avisoBandaSonora('✖ ' + r.motivo, 'err');
+      alert('No se puede guardar: ' + r.motivo);
+      return;
+    }
+
+    guardandoBandaSonora = true;
+    avisoBandaSonora('Comprobando el video...', '');
+    var terminar = function () { guardandoBandaSonora = false; };
+    window.bandaSonora.verificarVideo(r.id, function (resultado) {
+      terminar();
+      if (resultado === 'ok') {
+        enviarBandaSonora(r.canonica);
+      } else if (resultado === 'no-existe') {
+        avisoBandaSonora('✖ Ese video no existe o es privado.', 'err');
+        alert('No se puede guardar: YouTube dice que ese video no existe o es privado.');
+      } else if (resultado === 'no-incrustable') {
+        avisoBandaSonora('✖ El dueño del video no permite reproducirlo fuera de YouTube.', 'err');
+        alert('No se puede guardar: ese video no se puede reproducir en la ficha (el dueño no permite incrustarlo o es privado).');
+      } else if (confirm('El enlace tiene un formato válido, pero no pudimos comprobar que el video exista. ¿Guardarlo de todos modos?')) {
+        enviarBandaSonora(r.canonica);
+      } else {
+        avisoBandaSonora('', '');
+      }
+    });
   }
 
   function probarBandaSonora() {
-    var url = $('#bandaSonoraURL').val();
-    if (!url) { alert('Por favor, introduce un enlace de YouTube.'); return; }
+    var texto = ($('#bandaSonoraURL').val() || '').trim();
+    if (texto === '') { alert('Por favor, introduce un enlace de YouTube.'); return; }
+    var r = window.analizarEnlaceYoutube(texto);
+    if (!r.ok) {
+      avisoBandaSonora('✖ ' + r.motivo, 'err');
+      alert('No se puede probar: ' + r.motivo);
+      return;
+    }
     // actualizarVideoModal() reemplaza lo que haya en #bandaSonoraModalVideo
     // (el mensaje de "sin banda sonora" o un video anterior) por el video de
     // prueba real — se ve y se escucha ahí mismo, sin tener que tocar el
     // reproductor de fondo para nada.
-    var ok = window.bandaSonora ? window.bandaSonora.actualizarVideoModal('bandaSonoraModalVideo', url) : false;
-    if (!ok) {
-      alert('No se pudo extraer un ID de YouTube válido del enlace proporcionado.');
-    }
+    avisoBandaSonora('Comprobando el video...', '');
+    if (window.bandaSonora) { window.bandaSonora.actualizarVideoModal('bandaSonoraModalVideo', r.canonica); }
+    window.bandaSonora.verificarVideo(r.id, function (resultado) {
+      if (resultado === 'ok') { avisoBandaSonora('✔ El video existe y se puede reproducir. Guarda para usarlo como banda sonora.', 'ok'); }
+      else if (resultado === 'no-existe') { avisoBandaSonora('✖ Ese video no existe o es privado.', 'err'); }
+      else if (resultado === 'no-incrustable') { avisoBandaSonora('✖ El dueño del video no permite reproducirlo fuera de YouTube.', 'err'); }
+      else { avisoBandaSonora('El formato es válido; no pudimos comprobar el video. Si se reproduce arriba, sirve.', ''); }
+    });
   }
 
   // ── Guardar avatares ──────────────────────────────────────────
@@ -433,6 +520,7 @@
   w.cambiarCronologia      = cambiarCronologia;
   w.guardarBandaSonora     = guardarBandaSonora;
   w.probarBandaSonora      = probarBandaSonora;
+  w.validarEnlaceBandaSonora = validarEnlaceBandaSonora;
   w.cambiarAvatar1         = cambiarAvatar1;
   w.cambiarAvatar2         = cambiarAvatar2;
   w.cambiarAvatar3         = cambiarAvatar3;

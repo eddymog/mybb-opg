@@ -237,11 +237,20 @@ $msg = opg_rec_mensaje_resumen(array(
     'jugadores' => array(array('uid' => 20, 'username' => 'Jugador', 'variacion' => 0, 'calculo' => $calc_j)),
 ));
 prueba('mensaje: lleva el marcador que reconoce la herramienta antigua', strpos($msg, 'RECOMPENSAS PROCESADAS') !== false, true);
-prueba('mensaje: tier', strpos($msg, '[color=#ff7b00]Tier 3[/color]') !== false, true);
+prueba('mensaje: usa el cierre narrativo y conserva el tier',
+    array(strpos($msg, '¡LA TRAVESÍA HA LLEGADO A SU FIN!') !== false, strpos($msg, '[b]Tier:[/b] Tier 3') !== false),
+    array(true, true));
 prueba('mensaje: avisa del límite mensual', strpos($msg, 'Límite mensual') !== false, true);
 prueba('mensaje: usa el tope de 675', strpos($msg, ' / 675') !== false, true);
 prueba('mensaje: bono de inframundo', strpos($msg, 'Bono inframundo 25%') !== false, true);
-prueba('mensaje: cierra con la línea del sistema', strpos($msg, 'Pago procesado automáticamente') !== false, true);
+prueba('mensaje: reputación positiva inspira respeto y admiración', strpos($msg, 'inspiran respeto y admiración') !== false, true);
+$calc_j_neg = opg_rec_calcular_jugador(array('oficios' => ''), 100.0, 3, false, 'negativa');
+$msg_neg = opg_rec_mensaje_resumen(array(
+    'tier' => 3, 'staff_uid' => 50, 'staff_nombre' => 'Staff', 'extra_jugadores' => 0,
+    'narradores' => array(),
+    'jugadores' => array(array('uid' => 20, 'username' => 'Jugador', 'variacion' => 0, 'calculo' => $calc_j_neg)),
+));
+prueba('mensaje: reputación negativa inspira miedo y respeto', strpos($msg_neg, 'inspiran miedo y respeto') !== false, true);
 
 echo ($fallos === 0 ? 'OK' : 'CON FALLOS') . ": $total pruebas, $fallos fallos\n";
 exit($fallos === 0 ? 0 : 1);

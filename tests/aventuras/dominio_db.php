@@ -9,6 +9,9 @@ require MYBB_ROOT . 'inc/plugins/lib/recompensas_aventura.php';
 require MYBB_ROOT . 'inc/plugins/lib/aventuras_entregas.php';
 
 preparar_esquema($db);
+prueba('la migración registra una sola tarea de mantenimiento', (int) una("SELECT COUNT(*) AS n FROM mybb_tasks WHERE file = 'aventurasux'")['n'], 1);
+ejecutar_script($db, file_get_contents(MYBB_ROOT . 'docs/aventuras_ux_migration.sql'));
+prueba('la migración UX es idempotente', (int) una("SELECT COUNT(*) AS n FROM mybb_tasks WHERE file = 'aventurasux'")['n'], 1);
 
 function crear_foro($fid, $nombre, $pid, $active = 1, $parentlist = null)
 {
@@ -95,8 +98,13 @@ prueba('otro día no es duplicado', $r3['ok'], true);
 limpiar();
 $r = crear_ok(entrada_b(array('tiene_narrador' => '1', 'narrador_fid' => 8, 'idea' => 'No se guarda')), 3);
 $f = fila($r['id']);
-prueba('B con narrador: estado 0', (int) $f['estado'], 0);
-prueba('B con narrador: narrador asignado', array((int) $f['narrador_uid'], (int) $f['narrador_fid'], $f['narrador_nombre']), array(8, 8, 'Robin'));
+prueba('B con narrador: queda buscando hasta aceptar', (int) $f['estado'], 4);
+prueba('B con narrador: todavía no se asigna', array($f['narrador_uid'], $f['narrador_fid'], $f['narrador_nombre']), array(null, null, null));
+$inv = una("SELECT * FROM mybb_op_aventuras_propuestas_narrador WHERE peticion_id = " . (int) $r['id']);
+prueba('B con narrador: crea invitación pendiente', array($inv['tipo'], $inv['estado'], (int) $inv['narrador_uid']), array('invitacion', 'pendiente', 8));
+prueba('el narrador invitado acepta', opg_av_propuesta_aceptar($inv['id'], 8)['ok'], true);
+$f = fila($r['id']);
+prueba('aceptar invitación asigna narrador y pasa a revisión', array((int) $f['estado'], (int) $f['narrador_uid'], $f['narrador_nombre']), array(0, 8, 'Robin'));
 prueba('B con narrador: la idea no se guarda', $f['idea_narrador'], null);
 $r = crear_ok(entrada_a(), 8);
 $f = fila($r['id']);
@@ -227,10 +235,18 @@ ins(5, 8, 4, array(5)); ins(5, 8, 0, array(5));
 prueba('pendientes (0 y 4) sí cuentan', opg_av_contar_activas(5), array(2, 2));
 // Participantes sin uid (antiguos) se ignoran y un JSON inválido no rompe la consulta
 limpiar();
-ins(5, 8, 1, array(5), array('jugadores_json' => 'esto no es json'));
-ins(5, 8, 1, array(5), array('jugadores_json' => ''));
+$json_invalido = ins(5, 8, 1, array(5), array('jugadores_json' => 'esto no es json'));
+$json_vacio = ins(5, 8, 1, array(5), array('jugadores_json' => ''));
 prueba('JSON inválido en la tabla no rompe los conteos', opg_av_contar_activas(5), array(0, 0));
 prueba('JSON inválido no rompe los listados', is_array(opg_av_listar(array('yo' => 5, 'ambito' => 'mias'), 1)['items']), true);
+$legacy_valida = ins(5, 8, 0, array(5, 6));
+require_once MYBB_ROOT . 'inc/tasks/aventurasux.php';
+task_aventurasux(array());
+prueba('el task migra participantes legacy válidos', (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_participantes WHERE peticion_id = $legacy_valida")['n'], 2);
+prueba('el task omite JSON inválido sin bloquear el lote', array(
+    (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_participantes WHERE peticion_id = $json_invalido")['n'],
+    (int) una("SELECT COUNT(*) AS n FROM mybb_op_aventuras_participantes WHERE peticion_id = $json_vacio")['n'],
+), array(0, 0));
 
 echo "  (parte 1 completa)\n";
 $GLOBALS['continuar'] = true;

@@ -136,8 +136,10 @@ function ejecutar_script($db, $sql)
 function preparar_esquema($db)
 {
     $tablas = array('mybb_op_peticionAventuras', 'mybb_op_peticionAventuras_meta', 'mybb_users', 'mybb_forums', 'mybb_threads',
-        'mybb_posts', 'mybb_op_fichas', 'mybb_op_inventario', 'mybb_settings');
-    foreach (array('mybb_op_audit_aventuras', 'mybb_op_narradores_disponibles', 'mybb_op_aventuras_entregas', 'mybb_op_aventuras_entregas_pagos') as $t) {
+        'mybb_posts', 'mybb_op_fichas', 'mybb_op_inventario', 'mybb_settings', 'mybb_tasks');
+    foreach (array('mybb_op_audit_aventuras', 'mybb_op_narradores_disponibles', 'mybb_op_aventuras_entregas', 'mybb_op_aventuras_entregas_pagos',
+        'mybb_op_aventuras_participantes', 'mybb_op_aventuras_propuestas_narrador', 'mybb_op_aventuras_notificaciones',
+        'mybb_op_aventuras_autonarradas') as $t) {
         $db->query("DROP TABLE IF EXISTS `$t`", 1);
     }
     $esquema = extraer_esquema(MYBB_ROOT . 'rovddqmy_op.sql', $tablas);
@@ -146,6 +148,12 @@ function preparar_esquema($db)
     $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'", 1);
     $migracion = file_get_contents(MYBB_ROOT . 'docs/aventuras_migration.sql');
     ejecutar_script($db, $migracion);
+    $migracion_ux = file_get_contents(MYBB_ROOT . 'docs/aventuras_ux_migration.sql');
+    ejecutar_script($db, $migracion_ux);
+    $migracion_auto = file_get_contents(MYBB_ROOT . 'docs/aventuras_autonarradas_migration.sql');
+    ejecutar_script($db, $migracion_auto);
+    $migracion_auto_entrega = file_get_contents(MYBB_ROOT . 'docs/aventuras_autonarradas_entrega_migration.sql');
+    ejecutar_script($db, $migracion_auto_entrega);
 }
 
 // ── Utilidades de prueba ────────────────────────────────────────────────────
@@ -206,7 +214,7 @@ function ins($uid, $narr, $estado, $jug, $extra = array())
     $nj = array();
     foreach ($jug as $u) { $nj[] = array('uid' => $u, 'nombre' => 'U' . $u); }
     $campos = array_merge(array('uid' => $uid, 'narrador_uid' => $narr, 'narrador_fid' => $narr, 'estado' => $estado, 'isla_fid' => 40, 'dia' => 5, 'tier_seleccionado' => 3,
-        'num_jugadores' => count($jug), 'jugadores_json' => json_encode($nj), 'created_at' => TIME_NOW - 1000, 'comentario_publico' => '', 'comentario_staff' => '', 'enemigos_json' => '[]',
+        'num_jugadores' => count($jug), 'jugadores_json' => json_encode($nj), 'created_at' => TIME_NOW - 1000, 'comentario_publico' => 'Comentario de prueba', 'comentario_staff' => '', 'enemigos_json' => '[]',
         'descripcion_tier' => '', 'dificultad_texto' => '', 'dificultad_color' => '', 'inframundo' => 0), $extra);
     $cols = array(); $vals = array();
     foreach ($campos as $c => $v) { $cols[] = "`$c`"; $vals[] = $v === null ? 'NULL' : "'" . $db->escape_string($v) . "'"; }
@@ -215,4 +223,12 @@ function ins($uid, $narr, $estado, $jug, $extra = array())
 }
 
 function fila($id) { return una("SELECT * FROM mybb_op_peticionAventuras WHERE id = " . (int) $id); }
-function limpiar() { sql("DELETE FROM mybb_op_peticionAventuras"); sql("DELETE FROM mybb_op_audit_aventuras"); sql("DELETE FROM mybb_op_aventuras_entregas"); }
+function limpiar() {
+    sql("DELETE FROM mybb_op_aventuras_autonarradas");
+    sql("DELETE FROM mybb_op_aventuras_notificaciones");
+    sql("DELETE FROM mybb_op_aventuras_propuestas_narrador");
+    sql("DELETE FROM mybb_op_aventuras_participantes");
+    sql("DELETE FROM mybb_op_peticionAventuras");
+    sql("DELETE FROM mybb_op_audit_aventuras");
+    sql("DELETE FROM mybb_op_aventuras_entregas");
+}

@@ -770,6 +770,8 @@ plantilla o se copian entre sí sin querer.
 | `ta-` | `op_tablon_de_aventuras` (tablón de aventuras, jugadores) |
 | `ca-` | `staff_consola_aventuras` (consola de aventuras) |
 | `ar-` | `staff_aventuras_recompensas` (pago de una entrega de aventura) |
+| `ps-` | `header` (barra de pendientes del staff, `#peticiones_staff`) |
+| `pst-` | `op_personaje` (accesos de staff bajo la ficha) |
 
 **Esta tabla es temporal.** Existe solo porque hoy conviven clases genéricas
 (`.af-field`, `.aviso`, `.opg-guia-*`) con clases todavía prefijadas por

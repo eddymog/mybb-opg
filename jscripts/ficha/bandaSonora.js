@@ -22,21 +22,95 @@
   var LS_VOLUMEN  = 'opg_banda_sonora_volumen';
   var LS_AUTOPLAY = 'opg_banda_sonora_autoplay';
 
-  function extraerYoutubeId(url) {
-    if (!url) { return ''; }
-    var patrones = [
-      /youtube\.com\/watch\?v=([^&]+)/,
-      /youtu\.be\/([^?]+)/,
-      /youtube\.com\/embed\/([^?]+)/,
-      /youtube\.com\/v\/([^?]+)/,
-    ];
-    for (var i = 0; i < patrones.length; i++) {
-      var m = url.match(patrones[i]);
-      if (m && m[1]) { return m[1]; }
+  // Un ID de video de YouTube: 11 caracteres de [A-Za-z0-9_-].
+  var ID_YOUTUBE = /^[A-Za-z0-9_-]{11}$/;
+
+  function resultadoYoutube(ok, id, motivo) {
+    return { ok: ok, vacio: false, id: id || '', canonica: ok ? 'https://www.youtube.com/watch?v=' + id : '', motivo: motivo || '' };
+  }
+
+  /**
+   * Analiza lo que escribió el usuario y devuelve { ok, vacio, id, canonica, motivo }.
+   * Acepta, con o sin https:// o http://, con o sin www., m. o music.:
+   *   youtube.com/watch?v=ID (el parámetro v puede ir en cualquier posición)
+   *   youtu.be/ID, youtube.com/embed/ID, /v/ID, /shorts/ID, /live/ID
+   *   y youtube-nocookie.com/embed/ID.
+   * "canonica" es la forma normalizada que se guarda: https://www.youtube.com/watch?v=ID.
+   * Debe coincidir con opg_banda_sonora_normalizar() de inc/plugins/lib/banda_sonora.php.
+   */
+  function analizarEnlaceYoutube(texto) {
+    var t = String(texto == null ? '' : texto).trim().replace(/^[<"'\s]+|[>"'\s]+$/g, '');
+    if (t === '') {
+      return { ok: false, vacio: true, id: '', canonica: '', motivo: 'Escribe un enlace de YouTube.' };
     }
-    return '';
+    if (!/^[a-z][a-z0-9+.\-]*:\/\//i.test(t)) { t = 'https://' + t.replace(/^\/\//, ''); }
+    var u;
+    try { u = new URL(t); } catch (e) { return resultadoYoutube(false, '', 'No parece un enlace válido.'); }
+
+    var host = u.hostname.toLowerCase().replace(/^(www|m|music)\./, '');
+    var id = '';
+    if (host === 'youtu.be') {
+      id = u.pathname.split('/')[1] || '';
+    } else if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+      if (/^\/watch\/?$/.test(u.pathname)) {
+        id = u.searchParams.get('v') || '';
+      } else {
+        var m = u.pathname.match(/^\/(?:embed|v|shorts|live)\/([^\/]+)/);
+        id = m ? m[1] : '';
+      }
+    } else {
+      return resultadoYoutube(false, '', 'El enlace debe ser de YouTube (youtube.com o youtu.be).');
+    }
+    if (!id) {
+      var esLista = u.searchParams.get('list') || /^\/(playlist|channel|c|user|@)/.test(u.pathname);
+      return resultadoYoutube(false, '', esLista
+        ? 'Ese enlace es de una lista o un canal. Usa el enlace de un video concreto.'
+        : 'No se encontró el ID del video en el enlace.');
+    }
+    if (!ID_YOUTUBE.test(id)) {
+      return resultadoYoutube(false, '', 'El ID del video no es válido (debe tener 11 letras, números, - o _).');
+    }
+    return resultadoYoutube(true, id, '');
+  }
+  window.analizarEnlaceYoutube = analizarEnlaceYoutube;
+
+  function extraerYoutubeId(url) {
+    var r = analizarEnlaceYoutube(url);
+    return r.ok ? r.id : '';
   }
   window.extraerYoutubeId = extraerYoutubeId;
+
+  /**
+   * Comprueba con el oEmbed de YouTube si un video existe y se puede incrustar, sin
+   * cargarlo. callback recibe: 'ok', 'no-existe', 'no-incrustable' o 'desconocido'
+   * (sin red, bloqueado por el navegador o sin respuesta en 6 s: no se puede asegurar nada).
+   */
+  function verificarVideoYoutube(id, callback) {
+    if (!window.fetch) { callback('desconocido'); return; }
+    var terminado = false;
+    function fin(resultado) {
+      if (terminado) { return; }
+      terminado = true;
+      clearTimeout(reloj);
+      callback(resultado);
+    }
+    var reloj = setTimeout(function () { fin('desconocido'); }, 6000);
+    var url = 'https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + id);
+    fetch(url).then(function (r) {
+      if (r.ok) { fin('ok'); }
+      else if (r.status === 404 || r.status === 400) { fin('no-existe'); }
+      else if (r.status === 401 || r.status === 403) { fin('no-incrustable'); }
+      else { fin('desconocido'); }
+    }).catch(function () { fin('desconocido'); });
+  }
+
+  // Mensaje de estado del modal de edición (#bandaSonoraEstado), si está abierto.
+  function avisoModal(texto, tipo) {
+    var el = document.getElementById('bandaSonoraEstado');
+    if (!el) { return; }
+    el.textContent = texto || '';
+    el.style.color = tipo === 'ok' ? '#1d6b3a' : (tipo === 'err' ? '#a31621' : '#5e5e5e');
+  }
 
   var VOLUMEN_POR_DEFECTO = 5;
 
@@ -172,6 +246,10 @@
           onReady: function (e) {
             e.target.setVolume(volumenActual);
           },
+          // 2: ID inválido; 5: error del reproductor; 100: no existe o es privado; 101 y 150: el dueño no permite reproducirlo fuera de YouTube.
+          onError: function (e) {
+            avisoModal('YouTube no pudo cargar este video (código ' + e.data + '). Puede no existir, ser privado o no permitir reproducirlo aquí.', 'err');
+          },
         },
       });
     });
@@ -232,6 +310,8 @@
     setAutoplayHabilitado: setAutoplayHabilitado,
     mostrarEnModal: mostrarEnModal,
     actualizarVideoModal: actualizarVideoModal,
+    verificarVideo: verificarVideoYoutube,
+    aviso: avisoModal,
     ocultarDeModal: ocultarDeModal,
     alternarModal: alternarModal,
   };

@@ -1,5 +1,284 @@
 # Registro de aventuras (Tablón de aventuras): plan de implementación
 
+## Fase Narradores & Narrados compacto (2026-10-08)
+
+Estado: **implementada y verificada localmente; pendiente de despliegue**.
+
+1. Añadir el conteo de propuestas personales pendientes y usarlo en la insignia;
+   retirar de ella el total de solicitudes sin narrador.
+2. Omitir por completo `Propuestas para narrar` cuando el conteo sea cero y probar
+   invitaciones, candidaturas y propuestas ya resueltas.
+3. Refactorizar la oferta propia a una franja compacta, manteniendo las acciones y
+   eventos HTMX actuales.
+4. Adaptar las ofertas ajenas a una cuadrícula de hasta tres columnas y mantener
+   Discord como texto seleccionable, sin acción adicional.
+5. Crear la fila horizontal de aventuras sin narrador con identidad `Solicitud
+   #ID`, metadatos compactos, extracto de dos líneas y acción principal estable.
+6. No mostrar datos ausentes ni usarlos para bloquear una candidatura.
+7. Unificar las cabeceras y contadores informativos de ambas secciones y reducir
+   el espaciado vertical a 20-28 px.
+8. Ajustar responsive a una columna bajo 700 px y verificar que textos, contadores,
+   Discord y acciones no desborden.
+9. Ampliar pruebas de página, dominio y HTMX. Cubrir estados vacíos, ofertas largas,
+   datos incompletos, permisos y actualización de conteos.
+10. No añadir filtros ni modificar el esquema SQL en esta fase.
+
+**Criterio de cierre:** ninguna sección vacía reserva altura; la insignia representa
+solo acciones personales; todas las ofertas y aventuras siguen accesibles; y la
+interfaz pasa revisión visual en 375, 700, 1030 y 1440 px.
+
+## Fase autonarradas (2026-10-08)
+
+Estado: **implementada y verificada localmente; pendiente de migración y
+despliegue**.
+
+La implementación vive en el dominio compartido de aventuras, el formulario del
+tablón, `newthread.php` y la pestaña Entregas de la consola. La herramienta
+antigua `op/staff/entregar_recompensas.php` ya no procesa pagos y redirige a la
+cola unificada.
+
+### A1. Congelar comportamiento y datos
+
+1. Añadir fixtures para niveles 1, 15 y 16, cambios de nivel, límites de semana,
+   temas de 799/800 palabras, temas ajenos y pagos interrumpidos.
+2. Extraer un informe de filas que cumplen la heurística histórica de autonarrada
+   y obtener confirmación del staff antes del backfill.
+3. Registrar conteos y checksums de solicitudes antes de migrar.
+
+### A2. Migración
+
+1. Añadir `tipo` e índice a `op_peticionAventuras`.
+2. Crear `op_aventuras_autonarradas` con relación uno a uno, unicidad semanal,
+   unicidad de tema y estado recuperable de pago.
+3. Migrar solo las filas históricas confirmadas.
+4. Verificar conteos, checksums, índices y compatibilidad con MySQL 5.7.
+
+### A3. Dominio semanal y elegibilidad
+
+1. Implementar semana de Madrid con corte lunes 06:00 y pruebas de DST.
+2. Obtener el nivel desde la fuente canónica de la ficha y guardar el nivel de
+   solicitud.
+3. Implementar disponibilidad: nivel 1–15, ninguna solicitud en la misma semana
+   y ninguna autonarrada anterior sin publicar.
+4. Añadir bloqueo transaccional para solicitudes concurrentes.
+
+### A4. Formulario y creación
+
+1. Añadir el selector Aventura/Autonarrada solo para fichas elegibles.
+2. Crear la variante condicional del formulario con identidad fija, isla, día y
+   comentario, sin tier, inframundo, participantes extra ni narrador externo.
+3. Mostrar las reglas de un post, 800 palabras y un cupo semanal.
+4. Validar de nuevo todo en `crear`; ignorar o rechazar campos incompatibles
+   enviados manualmente.
+5. Adaptar edición para impedir convertir tipos después de crear.
+
+### A5. Aprobación y publicación
+
+1. Adaptar las tarjetas y transiciones de Solicitudes en la consola.
+2. Incluir autonarradas aprobadas en el selector de `newthread.php` únicamente
+   hasta nivel 15.
+3. Validar vínculo, propiedad, tema único y nivel en servidor.
+4. Guardar `tid`, `publicada_at`, `nivel_publicacion` y conteo preliminar.
+5. Implementar el recuento autoritativo de palabras y la regla de un solo post.
+
+### A6. Tablón e históricos
+
+1. Crear el bloque Autonarradas en Mis aventuras sin alterar cupos normales.
+2. Añadir tipo, semana, vínculo, palabras y estados a tarjetas y modo vista.
+3. Sustituir la heurística por `tipo` en `aventuras_personaje.php` y su copia de
+   staff.
+4. Revisar estadísticas, filtros, paginación y búsquedas para ambos tipos.
+
+### A7. Entregas integradas en consola
+
+1. Ampliar Entregas con filtro Todas/Aventuras/Autonarradas y URL canónica.
+2. Crear la tarjeta autonarrada con validaciones, recompensa fija y orientación
+   de reputación.
+3. Implementar análisis y revalidación en servidor.
+4. Añadir la entrega reducida del autor con reputación positiva o negativa y
+   guardar `entregada_at`; no encolar solo por vincular el tema.
+5. Mostrar la reputación declarada como solo lectura para Staff.
+6. Implementar el pago reclamable e idempotente por componentes.
+7. Finalizar solicitud, cerrar tema y escribir ambos historiales.
+8. Mostrar `Completar recompensa` únicamente para pagos interrumpidos.
+
+### A8. Retirada de la herramienta antigua
+
+1. Desactivar POST en `op/staff/entregar_recompensas.php`.
+2. Redirigir GET a Entregas de la consola, trasladando filtros compatibles.
+3. Actualizar `consola_mod.php`, enlaces, documentación y templates.
+4. Confirmar que no queda otra ruta capaz de pagar autonarradas.
+
+### A9. Verificación y despliegue
+
+1. Ejecutar sintaxis, dominio puro, dominio DB, concurrencia, página del Tablón,
+   Consola, recompensas y regresión completa.
+2. Probar explícitamente nivel 16 por interfaz y petición directa, semanas de
+   invierno/verano, doble clic, dos moderadores y fallos parciales.
+3. Verificar visualmente 375, 700, 1030 y 1440 px, teclado y foco.
+4. Desplegar primero migración, después dominio/controladores y al final templates.
+5. Mantener apagada la creación autonarrada hasta verificar backfill, índices y
+   redirección de la herramienta anterior en producción.
+
+## Modo vista del tablón (2026-10-08)
+
+Estado: **implementado**.
+
+1. Añadir `buscar_modo_vista` a las acciones GET y devolver resultados enlazados
+   por `modo_vista=FID`, limitados a fichas aprobadas.
+2. Incorporar el selector desplegable en la cabecera y una pantalla externa de
+   solo lectura con retorno, sin pestañas ni Novedades. Actualizar el slot de
+   Novedades fuera de banda para que solo exista en Mis aventuras.
+3. Reutilizar el resumen de activas sin sus refrescos propios y distinguir las
+   aventuras jugadas de las narradas.
+4. Enlazar cada identidad directamente al tema visible con `target="_blank"` y
+   `rel="noopener"`; usar texto plano cuando no exista vínculo utilizable.
+5. Cubrir búsqueda por nombre/FID, aislamiento de la vista y ambas variantes del
+   título con pruebas HTTP.
+
+## Fase UX aprobada (2026-10-07)
+
+Estado: **implementada y verificada, pendiente de despliegue**. Esta fase amplía
+las fases existentes y conserva las pruebas de permisos, concurrencia, entrega y
+recompensas.
+
+### U1. Contrato y fixtures
+
+1. Congelar fixtures de solicitudes antiguas: JSON válido, inválido, UID repetido,
+   participante sin UID o sin ficha y solicitudes con narrador ya asignado.
+2. Añadir casos con más de 20 narradores, más de 40 aventuras y enlaces directos
+   a estados activos e históricos.
+3. Definir eventos notificables y textos sin información privada.
+4. Confirmar disponibilidad de MyAlerts en producción y mantener bandeja interna
+   como canal obligatorio aunque no exista el plugin.
+
+**Salida:** dataset reproducible y matriz de compatibilidad antes de migrar.
+
+### U2. Migración relacional
+
+1. Añadir a una migración nueva, separada de las ya desplegadas:
+   `op_aventuras_participantes`, `op_aventuras_propuestas_narrador` y
+   `op_aventuras_notificaciones`, con índices de `201_DesignPlan_Registro.md`.
+2. Escribir migrador reentrante de `jugadores_json` por lotes y reporte de
+   anomalías. No editar automáticamente JSON inválido.
+3. Comparar por petición orden, nombres, UIDs anulables y conteos; guardar checksum
+   y lista de excepciones.
+4. Implementar lectura relacional con fallback controlado y escritura dual.
+5. Añadir sincronización a las escrituras legacy y un task de reparación. Mantener
+   fallback mientras la calculadora antigua pueda escribir.
+6. Cambiar límites, permisos, Mis/Otras, estadísticas y conflicto de interés a
+   `EXISTS` relacional, con fallback solo para excepciones no migradas.
+7. Retirar el fallback únicamente después de apagar escritura legacy y superar
+   el checksum final.
+
+**Pruebas:** paridad exacta JSON/relación, migración ejecutada dos veces, filas
+antiguas y concurrencia. Ningún cambio visual en esta fase.
+
+### U3. Estado de URL, vistas y etiquetas
+
+1. Incorporar `vista`, `estado`, `rol`, `q`, `pagina` y `densidad` al parser y a
+   una única función de URL canónica.
+2. Implementar Activas/Historial/Todas en Mis y Actuales/Historial/Todas en Otras.
+3. Cambiar solo las etiquetas visibles: En revisión, Aprobada, Denegada,
+   Finalizada y Buscando narrador. Mantener códigos y claves internas.
+4. Hacer que enlaces directos `?id=N` elijan vista y página correctas.
+5. Añadir degradación GET completa para filtros y paginadores.
+
+**Pruebas:** recarga, compartir URL, Atrás/Adelante, parámetros inválidos, enlace
+directo histórico y ausencia de pérdida de filtros.
+
+### U4. Estadísticas informativas y listas
+
+1. Calcular estadísticas con las mismas condiciones validadas de vista, búsqueda,
+   estado y papel que utiliza el listado.
+2. Renderizar estadísticas como indicadores estáticos, sin selección, `hover` ni
+   `aria-pressed`; añadir `Limpiar filtros` junto a los filtros explícitos.
+3. Reducir el resumen de activas a título, fechas y estado.
+4. Mostrar nombre de tema en todas las tarjetas y enlazar personas a perfiles/MP.
+5. Aplicar visibilidad contextual de idea, narrador ausente y datos incompletos.
+
+**Pruebas:** combinaciones vista/estado/papel/búsqueda, conteos solapados, tema
+inaccesible, filas legacy incompletas y salida móvil.
+
+### U5. Paginación completa
+
+1. Generalizar el paginador con primera, anterior, ventana de cinco, siguiente y
+   última, preservando URL.
+2. Aplicarlo a Mis, Otras y Narradores disponibles.
+3. Conservar carga incremental para sin narrador y representar su avance en URL.
+4. Tras swap, enfocar el resumen y desplazar el comienzo del listado.
+
+**Pruebas:** 1, 2, 20, 21 y más de 100 resultados; primera/última; filtros en
+página inexistente; más de 20 ofertas accesibles; teclado y foco.
+
+### U6. Cupos anticipados
+
+1. Implementar consulta de cupos en lote y acción GET `validar_cupos`.
+2. Añadir cifras a chips de participantes y aviso de bloqueo con nombre/motivo.
+3. Recalcular al cambiar papel, composición de participantes o edición.
+4. Deshabilitar envío en modo jugador bloqueado; modo narrador muestra mensaje
+   neutral y permanece habilitable.
+5. Mantener la validación transaccional definitiva sin reutilizar datos del
+   chequeo previo.
+
+**Pruebas:** 3/3 solitaria, 4/4 total, grupal permitida, participante añadido con
+cupo lleno, cambio a narrador y carrera por la última plaza.
+
+### U7. Propuestas bilaterales
+
+1. Implementar dominio y auditoría de invitación, candidatura, aceptación,
+   rechazo, retirada, cancelación y vencimiento.
+2. Cambiar creación con narrador ajeno a solicitud estado 4 + invitación.
+3. Sustituir asignación inmediata de `Postularme` por `Me interesa narrar`.
+4. Renderizar propuestas recibidas/enviadas y controles autorizados.
+5. Aceptar bajo bloqueo transaccional, asignar un único narrador, cambiar a 0 y
+   cancelar las propuestas restantes.
+6. Crear task de vencimiento a 7 días.
+
+**Pruebas:** permisos de cada contraparte, duplicado, dos aceptaciones simultáneas,
+solicitud que deja de estar disponible, vencimiento y narrador propio sin propuesta.
+
+### U8. Notificaciones
+
+1. Implementar outbox y bandeja interna con contador no leído.
+2. Encolar eventos después de calcular destinatarios únicos dentro de la misma
+   transacción de negocio.
+3. Registrar integración MyAlerts si está instalada y fallback configurable a PM.
+4. Añadir task de reintento y aviso de oferta a 3 días de vencer.
+5. Renderizar las novedades como panel persistente bajo las pestañas, con las
+   pendientes visibles y las leídas en un historial reciente desplegable.
+6. Marcar leída una notificación actualizando solo el panel, sin borrar
+   auditoría ni historial y sin utilizar un modal.
+
+**Pruebas:** deduplicación, actor excluido, destinatarios correctos, fallo de canal
+sin rollback, reintento idempotente y ausencia de datos privados.
+
+### U9. Historial de usuario
+
+1. Añadir endpoint GET `historial_usuario` y DTO seguro desde auditoría.
+2. Autorizar creador, participantes y narradores pertinentes.
+3. Renderizar línea temporal accesible con fallback pre-migración.
+4. Gestionar foco al abrir/cerrar y excluir payloads técnicos/notas de staff.
+
+**Pruebas:** cada rol, usuario ajeno, acciones permitidas, acción desconocida,
+historial vacío y XSS en detalles históricos.
+
+### U10. Verificación y despliegue
+
+1. Actualizar pruebas de dominio, página, consola y concurrencia antes de capturas.
+2. Verificar 375, 700, 1030 y 1440 px; navegación solo con teclado y lectores de
+   nombres/estados de controles.
+3. Medir consultas y tiempos con 10 000 solicitudes y 1 000 ofertas simuladas.
+4. Desplegar en orden: tablas, backfill, lectura/fallback, escritura dual, UX,
+   propuestas, notificaciones y tasks.
+5. Mantener una bandera para desactivar propuestas/notificaciones nuevas sin
+   revertir las tablas ni perder solicitudes.
+
+**Criterio de cierre:** todas las ofertas son paginables; filtros sobreviven a
+recarga; ninguna asignación ajena es unilateral; cupos se anticipan y se revalidan;
+notificaciones no se duplican; historial no filtra datos privados; JSON y relación
+mantienen paridad durante la convivencia.
+
 ## Revisión de interfaz (2026-10-05)
 
 Separar las activas del personaje de las narradas en el desglose, conservando
@@ -37,15 +316,17 @@ Esta revisión sustituye la distribución en tres pestañas de las fases 8 a 10.
    >20, enlaces de pendientes fuera de las primeras 10, chips y sus swaps HTMX.
    Ejecutar pruebas existentes y revisión visual en escritorio y 375px.
 
-No requiere migración de datos. Importar `op_tablon_de_aventuras` para publicar
-los cambios del template; conservar pruebas de recompensas y consola.
+Esta afirmación correspondía solo a la revisión visual 2026-10-05. La fase UX
+2026-10-07 sí requiere la migración relacional U2 antes de activar propuestas,
+notificaciones y lecturas indexadas. El template se publica después del
+backfill y la escritura dual; se conservan las pruebas de recompensas y consola.
 
 > Depende de:
 > [101_Requirements_Registro.md](101_Requirements_Registro.md),
 > [201_DesignPlan_Registro.md](201_DesignPlan_Registro.md) y
 > [style.md](style.md)
 >
-> **Estado: por implementar.** Ninguna fase cambia la calculadora actual, salvo la
+> **Estado: implementado, pendiente de despliegue.** Ninguna fase cambia la calculadora actual, salvo la
 > fase 1 (arreglo de permisos). `recompensasAventuras.php` no se modifica en ninguna
 > fase y conserva su tope mensual de experiencia de narrador de **675**, que es
 > también el de la página nueva. Las referencias `§N` son secciones del documento de
@@ -138,7 +419,7 @@ implementación:
    requisitos (`0→1`, `0/4→2`, `1→2`, `1→3`, `4→0`, `0/1→4`, `0↔4` por edición,
    `→5`, `5→borrado`).
 3. Permisos: `opg_av_puede_gestionar`, `opg_av_puede_eliminar`,
-   `opg_av_puede_resolver` (no ser creador, narrador ni participante) y
+   `opg_av_puede_resolver` (gestión, incluso en aventuras propias) y
    `opg_av_puede_editar`.
 4. Lectura: `opg_av_normalizar_fila` con todo el tratamiento de filas antiguas
    (§4.8), `opg_av_obtener` y `opg_av_listar` con las consultas de §4.10 y sus
@@ -262,12 +543,12 @@ trabaja solo con fichas de prueba, nunca con las reales.
    códigos `200`, `403`, `404`, `409` y `422` con `HX-Retarget` en los errores.
 3. Crear el template `op_tablon_de_aventuras` con el marco de tres fondos
    (`{$headerinclude}`, `.mainBackground` a `.thirdBackground` de ancho completo y
-   máximo 1030px), título en `.barra-op`, la etiqueta `htmx-config`, el
+   máximo 1030px), encabezado compacto de herramienta, la etiqueta `htmx-config`, el
    `hx-headers` con el `post_code` y el `<script defer>` de HTMX. El `<style>` sigue
    el orden de `style.md` §7 con el prefijo `ta-`. Sin identificadores que empiecen
    por `$` salvo `{$variable}`.
-4. Barra de cuatro pestañas en el orden Mis aventuras, Otras aventuras, Solicitar
-   aventura y Narradores & Narrados, con `?tab=`, apertura en Mis aventuras y carga de cada panel con
+4. Barra de cuatro pestañas en el orden Mis aventuras, Solicitar aventura,
+   Narradores & Narrados y Otras aventuras, con `?tab=`, apertura en Mis aventuras y carga de cada panel con
    `hx-get` y `hx-push-url`.
 5. Pestaña **Mis aventuras**: filtros de estado y de rol con la opción "Todas",
    lista paginada, estado vacío con recomendación cuando el usuario no tiene
@@ -306,7 +587,8 @@ lista de `style.md` §5 a 1030px y a 375px.
 
 1. Pestaña **Narradores & Narrados** con los bloques de ofertas y aventuras sin narrador (`sin_narrador`,
    `contar_sin_narrador`, "Ver más") y narradores disponibles. **Otras aventuras**
-   conserva el listado con filtros de estado y búsqueda por UID y sus estadísticas.
+   conserva el listado con filtros de estado, búsqueda por número o nombre de
+   personaje y estadísticas informativas.
 2. Contador de la pestaña que se refresca con los eventos `aventuraCreada` y
    `aventuraCambiada`.
 3. Ofertas: `form_oferta`, `ofrecerme_narrador` (Discord obligatorio y mensaje),
@@ -342,7 +624,7 @@ rechazada libera el tema y se reenvía.
 1. Crear `op/staff/consola_aventuras.php` y el template `staff_consola_aventuras`
    (prefijo `ca-`): acceso con el bloque de `consola_mod.php`, `?tab=` con
    Solicitudes, Entregas y Narradores disponibles.
-2. Solicitudes: `listar` con la cola abierta en "Creadas", conteos por estado, filas
+2. Solicitudes: `listar` con la cola abierta en "En revisión", conteos por estado, filas
    alternas, nota de idea, motivo de renuncia y marca "Editada el ...";
    `cambiar_estado` con `opg_av_puede_resolver` y acciones deshabilitadas con su
    explicación; `form_denegar`; `form_editar` y `actualizar_datos`; `historial`;
@@ -355,11 +637,61 @@ rechazada libera el tema y se reenvía.
    con el permiso `narra` (§5.3). Es el único cambio en ese archivo.
 
 **Verificación:** un usuario normal y un narrador usuario sin `is_narra` no pueden
-entrar ni llamar a las acciones; mods, narradores del staff y staff sí; aprobar,
-denegar y finalizar se rechazan si el usuario es parte de la solicitud; denegar sin
+entrar ni llamar a las acciones; mods, narradores del staff y staff sí, incluso
+cuando sean parte de la solicitud; denegar sin
 motivo falla; "Finalizar" se rechaza con una entrega pendiente; retirar una oferta
 exige motivo y queda auditado; el historial de una solicitud antigua dice "Sin
 historial anterior a la migración".
+
+### 12.1 Rediseño operativo de la consola (implementado)
+
+Implementar y verificar estrictamente en este orden. Cada punto debe conservar las
+pruebas anteriores antes de comenzar el siguiente.
+
+1. **Responsive.** Añadir la clase de página, neutralizar anchos mínimos heredados
+   y acotar todos los contenedores. Probar `scrollWidth <= clientWidth` a 375, 700,
+   1030 y 1440 px en Solicitudes, Entregas, Narradores, formularios e historial.
+2. **Encabezado.** Reemplazar barra y caja descriptiva por el encabezado compacto
+   con icono, `h1`, apoyo breve y línea de acento, conservando íntegra la cabecera
+   global del foro.
+3. **Conteos.** Crear un contexto único para los estados de Solicitudes y el
+   contador de Entregas, sin renderizar una banda general redundante.
+4. **Integridad.** Implementar `opg_av_datos_faltantes`, usarlo en tarjetas/filtros
+   y volver a validarlo bajo bloqueo al aprobar. Añadir pruebas directas para cada
+   campo ausente y para una solicitud completa.
+5. **Filas compactas.** Separar resumen y Detalles, añadir título y antigüedad,
+   truncar visualmente textos largos sin perderlos y convertir cada resultado en
+   `article` con encabezado asociado.
+6. **Pestañas.** Convertirlas en barra segmentada de tres columnas, añadir iconos
+   Font Awesome y mantener el contador de Entregas estable y accesible.
+7. **Acciones.** Calcular una acción primaria contextual; mover Editar, Historial y
+   Finalizar a `Más acciones`; mantener Denegar/Eliminar como peligrosas y aplicar
+   `hx-disabled-elt` durante toda mutación.
+8. **Filtros.** Mantener estado, búsqueda y orden; abrir En revisión con las más
+   recientes y conservar esos valores en URL y paginación.
+9. **Búsqueda.** Añadir `buscar_personas`, typeahead por `#ID`, UID o nombre y
+   condición que cubra creador, narrador y participantes. Probar XSS, coincidencias,
+   ausencia de resultados y navegación atrás.
+10. **Historial.** Renderizar línea temporal en panel/diálogo, permitir solo uno
+    abierto y gestionar foco de apertura, cierre y retorno en escritorio y móvil.
+11. **Paginación de narradores.** Pasar `pagina` desde controlador, renderizar el
+    paginador y conservar página/filtros con carga completa y HTMX. Probar 21 ofertas.
+12. **Contexto de narradores.** Ampliar consulta y tarjeta administrativa con
+    frecuencia, tiers, estilo, vigencia, carga actual y finalizadas; añadir búsqueda
+    y filtro de vigencia.
+13. **Consultas.** Obtener conteos una vez por respuesta y pasarlos a resumen,
+    pestañas y panel. Medir el número de consultas en pruebas para impedir regresión.
+14. **CSS compartido.** Extraer componentes comunes a una hoja del sistema de
+    aventuras, cargarla en los tres templates y retirar duplicados sin alterar el
+    Tablón ni Recompensas.
+15. **Accesibilidad.** Completar jerarquía `h1/h2/article`, nombres, foco visible,
+    teclado, regiones vivas y enfoque del resumen tras filtrar/paginar. Ejecutar la
+    matriz responsive y una revisión manual con teclado.
+
+**Verificación final de la fase:** sintaxis PHP; suites `dominio_puro`,
+`dominio_db`, `pagina_tablon`, `pagina_consola`, `pagina_recompensas` y
+`concurrencia`; prueba de consultas; capturas e interacciones a cuatro anchos; sin
+errores de consola, IDs duplicados ni desbordamiento. No hay migración SQL nueva.
 
 ## 13. Página de recompensas
 
@@ -386,7 +718,7 @@ Crear `op/staff/aventuras_recompensas.php` y `staff_aventuras_recompensas`
   entrega queda entregada y la solicitud en estado 3.
 - Un tema ya pagado con la herramienta antigua (cerrado o con el mensaje) no se
   puede pagar aquí, y un tema pagado aquí no se puede pagar allí.
-- Quien participa en la aventura no puede pagar ni rechazar.
+- Mods, staff y narradores con permiso pueden pagar o rechazar aunque participen.
 - Prueba de interrupción: forzar un error a mitad del pago y completar la entrega.
 
 ## 14. Documentación y estilo
@@ -477,11 +809,41 @@ Solo después de validar con staff y con usuarios:
 
 ## Notas de la implementación
 
+### Revisión de recompensas (2026-10-08)
+
+Estado: **implementada y verificada, pendiente de migración e importación del
+template en producción**.
+
+1. Añadir `narrador_uid` a `op_aventuras_entregas`, rellenar entregas antiguas
+   desde `enviado_por` y conservar fallback durante el despliegue.
+2. Guardar el narrador asignado al crear o reenviar una entrega. Pasarlo de forma
+   explícita al analizador y retirar cualquier lectura de `[Narrador]`.
+3. Actualizar las pruebas de dominio, base de datos y página para cubrir narrador
+   con posts, narrador sin posts y cambio posterior de asignación.
+4. Sustituir el banner y estilos duplicados del template por una cabecera compacta
+   y estilos `ar-` compartidos en `jscripts/aventuras.css`.
+5. Reorganizar la vista en Entrega, Criterios y actividad, Destinatarios y
+   Validación/acciones; unificar avisos y explicar bloqueos junto al pago.
+6. Activar vista previa HTMX al cambiar controles, mantener el botón manual,
+   añadir barra adherente y diálogo propio de confirmación.
+7. Mostrar recompensas como valores separados y convertir destinatarios en
+   bloques verticales a 700 px o menos.
+8. Ejecutar suites de recompensas, dominio y páginas, validar HTML y revisar
+   visualmente los anchos 375, 700, 1030 y 1440 px.
+
+Verificación automatizada completada: dominio puro 136/0, paridad de recompensas
+10293/0, dominio DB 400/0, Tablón 159/0, Consola 84/0, concurrencia 19/0 y página
+de recompensas 57/0. La comprobación visual final queda para el template importado
+en el foro, donde están disponibles la cabecera global y los assets reales.
+
 Diferencias respecto a lo planificado, ya aplicadas en el código:
 
 - **Fase 2 (permisos de Calculadora_Tiers.php):** solo se reactivaron `update_meta` (exige gestión) y `delete` (exige mod o staff); `claim_narrador`, `update_enemigos`, `vincular_aventura` y `save` exigen sesión. La calculadora antigua sigue funcionando.
 - **Acciones extra en la página de jugadores:** `quitar_chip` y `cerrar_modal` (devuelven vacío) para vaciar un chip o cerrar la ventana sin JavaScript.
-- **Consola (`op/staff/consola_aventuras.php`):** acciones `tab`, `listar`, `entregas`, `form_denegar`, `cambiar_estado`, `form_editar`, `actualizar_datos`, `buscar_islas`, `elegir_isla`, `historial`, `eliminar`, `form_retirar_oferta`, `retirar_oferta` y `cerrar`. El filtro de estado usa `todas` como valor de "Todas" para que se conserve al paginar.
+- **Consola (`op/staff/consola_aventuras.php`):** acciones `tab`, `listar`, `entregas`, `narradores`, `buscar_personas`, `form_denegar`, `cambiar_estado`, `form_editar`, `actualizar_datos`, `buscar_islas`, `elegir_isla`, `historial`, `eliminar`, `form_retirar_oferta`, `retirar_oferta` y `cerrar`. Filtros y paginación publican una URL canónica recargable.
+- **Rediseño de Consola del 2026-10-07:** completados los quince pasos de §12.1 sin
+  una migración SQL nueva. Verificado con las suites de dominio y páginas, revisión
+  visual y `scrollWidth = clientWidth` a 375, 700, 1030 y 1440 px.
 - **Pago (`op/staff/aventuras_recompensas.php`):** acciones `analizar`, `pagar`, `completar`, `form_rechazar`, `rechazar`, `xp_dudosa` y `cerrar`. Si el pago queda a medias se muestra el estado real con el motivo y "Completar entrega".
 - **Tope mensual del narrador:** 675, igual que `recompensasAventuras.php` (que no cambia).
 - **Pruebas:** `tests/aventuras/` (`dominio_puro`, `recompensas`, `dominio_db`, `concurrencia`, `pagina_tablon`, `pagina_consola`, `pagina_recompensas`). Las de base de datos usan un MySQL 5.7 desechable (ver `bootstrap_db.php`).
@@ -497,3 +859,13 @@ Diferencias respecto a lo planificado, ya aplicadas en el código:
   El formulario se verifica además a 375, 1030 y 1440px: alineación de isla,
   día y tier, chips debajo, descripción obligatoria y nuevos placeholders.
   Pendiente de importar el template y validar en el foro con staff.
+- **Revisión visual 2026-10-06:** implementados en el orden documentado en
+  `102_TablonDiseno.md` los ocho cambios del tablón: tarjetas compactas y
+  descripciones expandibles, metadatos agrupados, acción principal contextual,
+  cabecera coherente con el foro, preferencias estructuradas de narrador, contador sin
+  narrador integrado, colores semánticos y densidad Compacta/Expandida. La tabla
+  de ofertas se amplía con `aventuras_tablon_diseno_migration.sql`; desplegar la
+  migración antes del PHP e importar después `op_tablon_de_aventuras`.
+- **Verificación visual 2026-10-06:** Playwright/Chrome comprueba ausencia de
+  desbordes y las interacciones nuevas a 375, 700, 1030 y 1440 px. Dominio DB
+  pasa 384 pruebas y la página del tablón 155 pruebas, sin fallos.

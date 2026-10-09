@@ -125,10 +125,7 @@ if ($personajeFid > 0 && $personaje) {
     $filtroPersonaje = "JSON_CONTAINS(pa.`jugadores_json`, JSON_OBJECT('uid', {$personajeFid}))";
 }
 
-$condicionAutonarrada = "COALESCE(pa.`narrador_fid`, 0) > 0
-    AND pa.`tier_seleccionado` BETWEEN 1 AND 3
-    AND JSON_LENGTH(pa.`jugadores_json`) = 1
-    AND COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(pa.`jugadores_json`, '$[0].uid')) AS UNSIGNED), 0) = pa.`narrador_fid`";
+$condicionAutonarrada = "pa.`tipo` = 'autonarrada'";
 $whereRegular = ' WHERE NOT (' . $condicionAutonarrada . ')';
 $whereAutonarrada = ' WHERE ' . $condicionAutonarrada;
 if ($filtroPersonaje !== '') {
@@ -191,21 +188,16 @@ foreach ($conteoTiers as $numeroTier => $cantidad) {
         . '</div>';
 }
 
-$conteoTiersAutonarradas = array_fill(1, 3, 0);
-$queryConteosAutonarradas = $db->query("SELECT pa.`tier_seleccionado`, COUNT(*) AS total
+$conteoTiersAutonarradas = array('Crónicas' => 0);
+$queryConteosAutonarradas = $db->query("SELECT COUNT(*) AS total
     FROM `{$tablaAventuras}` pa
-    {$whereAutonarrada}
-    GROUP BY pa.`tier_seleccionado`");
-while ($conteo = $db->fetch_array($queryConteosAutonarradas)) {
-    $tierConteo = (int)$conteo['tier_seleccionado'];
-    if (isset($conteoTiersAutonarradas[$tierConteo])) {
-        $conteoTiersAutonarradas[$tierConteo] = (int)$conteo['total'];
-    }
-}
+    {$whereAutonarrada}");
+$conteoAuto = $db->fetch_array($queryConteosAutonarradas);
+$conteoTiersAutonarradas['Crónicas'] = (int)($conteoAuto['total'] ?? 0);
 $aventuras_autonarradas_conteo_tiers = '';
 foreach ($conteoTiersAutonarradas as $numeroTier => $cantidad) {
     $aventuras_autonarradas_conteo_tiers .= '<div class="aventuras-tier-conteo">'
-        . '<span>T' . $numeroTier . '</span><strong>' . $cantidad . '</strong>'
+        . '<span>' . aventuras_e($numeroTier) . '</span><strong>' . $cantidad . '</strong>'
         . '</div>';
 }
 
@@ -335,12 +327,13 @@ function aventuras_renderizar_fila($aventura, $estados, $personajeFid)
     $estado = $estados[$estadoCodigo] ?? $estados[0];
     $fecha = my_date('d/m/Y', (int)$aventura['created_at']);
     $infra = !empty($aventura['inframundo']) ? '<span class="aventura-etiqueta aventura-etiqueta--infra">Inframundo</span>' : '';
+    $esAutonarrada = ($aventura['tipo'] ?? 'normal') === 'autonarrada';
     $tier = min(10, max(1, (int)$aventura['tier_seleccionado']));
 
     return '<article class="aventura-fila">'
         . '<div class="aventura-principal">'
         . '<div class="aventura-identidad"><span class="aventura-id">#' . (int)$aventura['id'] . '</span>'
-        . '<span class="aventura-tier">T' . $tier . '</span>'
+        . '<span class="aventura-tier">' . ($esAutonarrada ? 'Autonarrada' : 'T' . $tier) . '</span>'
         . '<span class="aventura-estado aventura-estado--' . aventuras_e($estado['clave']) . '">' . aventuras_e($estado['texto']) . '</span>'
         . $infra . '</div>'
         . '<div class="aventura-meta"><span><strong>Narrador:</strong> ' . $narradorHtml . '</span>'

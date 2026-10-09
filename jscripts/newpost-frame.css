@@ -681,3 +681,12 @@
     width: 100% !important;
   }
 }
+
+/* ── Vincular el tema a una aventura (newthread, solo con el tipo Aventura) ── */
+.nt-aventura[hidden] { display: none; }
+.nt-aventura .opg-buscar-caja { display: block; }
+.nt-aventura input[type="search"] { width: 100%; }
+.nt-aventura-elegida { display: flex; flex-wrap: wrap; gap: 6px; }
+.nt-aventura-elegida:empty { display: none; }
+.nt-aventura-quitar { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; color: var(--opg-rojo-error); }
+.nt-aventura .opg-resultados:empty { display: none; }

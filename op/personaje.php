@@ -26,6 +26,7 @@ define('THIS_SCRIPT', 'personaje.php');
 require_once "./../global.php";
 require_once "./functions/op_functions.php";
 require_once MYBB_ROOT."inc/plugins/lib/spoiler.php";
+require_once MYBB_ROOT."inc/plugins/lib/banda_sonora.php";
 
 // ─── Parámetros ──────────────────────────────────────────────────────────────
 $query_uid = $mybb->get_input('uid');
@@ -162,9 +163,16 @@ if ($can_mutate) {
     if ($cambiar_visibleS1      != '') updateOrInsertSecret($db, $query_uid, 'es_visible',   $cambiar_visibleS1);
 
     // ─── Banda sonora (AJAX) ──────────────────────────────────────────────────
-    if (isset($_POST['cambiar_banda_sonora'])) {
-        $bandaSonora = $db->escape_string($_POST['cambiar_banda_sonora']);
-        if (empty($bandaSonora) || preg_match('/(youtube\.com|youtu\.be)/', $bandaSonora)) {
+    if (isset($_POST['cambiar_banda_sonora_id']) || isset($_POST['cambiar_banda_sonora'])) {
+        // Se valida y se guarda siempre la forma normalizada (https://www.youtube.com/watch?v=ID); vacío quita la banda sonora.
+        // El navegador envía solo el ID (cambiar_banda_sonora_id): un enlace con https:// en el cuerpo lo bloquea el cortafuegos con un 406.
+        if (isset($_POST['cambiar_banda_sonora_id'])) {
+            $banda = is_array($_POST['cambiar_banda_sonora_id']) ? array('ok' => false, 'vacio' => false, 'canonica' => '') : opg_banda_sonora_desde_id($_POST['cambiar_banda_sonora_id']);
+        } else {
+            $banda = is_array($_POST['cambiar_banda_sonora']) ? array('ok' => false, 'vacio' => false, 'canonica' => '') : opg_banda_sonora_normalizar($_POST['cambiar_banda_sonora']);
+        }
+        if ($banda['vacio'] || $banda['ok']) {
+            $bandaSonora = $db->escape_string($banda['canonica']);
             $db->query("UPDATE mybb_op_fichas SET banda_sonora='{$bandaSonora}' WHERE fid='{$query_uid}'");
             echo "success";
         } else {

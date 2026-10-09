@@ -88,6 +88,9 @@ CREATE TABLE IF NOT EXISTS `mybb_op_narradores_disponibles` (
   `uid` INT UNSIGNED NOT NULL,
   `discord` VARCHAR(64) NOT NULL,
   `mensaje` VARCHAR(200) NOT NULL DEFAULT '',
+  `frecuencia` VARCHAR(32) NOT NULL DEFAULT '',
+  `tiers` VARCHAR(32) NOT NULL DEFAULT '',
+  `estilo` VARCHAR(64) NOT NULL DEFAULT '',
   `created_at` INT UNSIGNED NOT NULL,
   `updated_at` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`uid`),
@@ -113,6 +116,7 @@ CREATE TABLE IF NOT EXISTS `mybb_op_aventuras_entregas` (
   `infra` TINYINT(1) NULL,
   `ajustes_json` MEDIUMTEXT NULL,
   `intentos` SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+  `narrador_uid` INT UNSIGNED NOT NULL DEFAULT 0,
   `enviado_por` INT UNSIGNED NOT NULL,
   `enviado_at` INT UNSIGNED NOT NULL,
   `revisado_por` INT UNSIGNED NULL,
@@ -124,7 +128,8 @@ CREATE TABLE IF NOT EXISTS `mybb_op_aventuras_entregas` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_peticion` (`peticion_id`),
   UNIQUE KEY `uq_tid_activo` (`tid_activo`),
-  KEY `idx_estado` (`estado`, `enviado_at`)
+  KEY `idx_estado` (`estado`, `enviado_at`),
+  KEY `idx_narrador_uid` (`narrador_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `mybb_op_aventuras_entregas_pagos` (

@@ -38,6 +38,9 @@ switch ($accion) {
     case 'postular':
         $r = opg_av_postular_narrador((int) $argv[2], (int) $argv[3], true);
         break;
+    case 'aceptar_propuesta':
+        $r = opg_av_propuesta_aceptar((int) $argv[2], (int) $argv[3]);
+        break;
     case 'aprobar':
         $r = opg_av_cambiar_estado((int) $argv[2], 1, 50);
         break;

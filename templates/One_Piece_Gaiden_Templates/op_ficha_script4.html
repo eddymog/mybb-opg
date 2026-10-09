@@ -214,14 +214,11 @@ function openBandaSonoraModal() {
                     Ingresa un enlace de YouTube. Esta canción se reproducirá automáticamente cuando alguien visite tu ficha.
                 </div>
                 <input id="bandaSonoraURL" type="text" class="textbox" style="width: 540px; margin: auto; margin-top: 20px;" 
-                       placeholder="https://www.youtube.com/watch?v=..." 
+                       placeholder="youtube.com/watch?v=..." 
                        value="{$ficha['banda_sonora']}">
                 <div style="margin: auto; margin-top: 15px; display: flex; gap: 10px;">
                     <button onclick="cambiarBandaSonora();" style="width: 100px;">Guardar</button>
                     <button onclick="probarSonido();" style="width: 100px;">Probar</button>
-                </div>
-                <div style="margin-top: 15px; font-size: 14px; text-align: center; font-style: italic;">
-                    Formatos aceptados: enlaces de YouTube (youtube.com/watch?v=ID o youtu.be/ID)
                 </div>
             </div>
         </div>

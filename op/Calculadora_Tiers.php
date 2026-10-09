@@ -17,6 +17,7 @@ define('THIS_SCRIPT', 'Calculadora_Tiers.php');
 require_once "./../global.php";
 require "./../inc/config.php";
 require_once "./functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/aventuras.php';
 
 global $templates, $mybb, $db;
 
@@ -505,6 +506,9 @@ if ($action === 'save') {
 
     $db->insert_query(db_table_name('op_peticionAventuras'), $record);
     $id = (int)$db->insert_id();
+    // Puente temporal: la calculadora conserva su JSON y mantiene la relación
+    // nueva sincronizada mientras ambas interfaces conviven.
+    opg_av_sincronizar_participantes($id, $jugadores);
 
     json_response([
         'ok' => true,

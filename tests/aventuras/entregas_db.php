@@ -44,7 +44,7 @@ function tema_con_posts($tid, $fid, $nombre, $posts)
 function posts_estandar()
 {
     $p = array();
-    for ($i = 0; $i < 8; $i++) { $p[] = array(8, 'Robin', '[narrador] ' . msg()); }
+    for ($i = 0; $i < 8; $i++) { $p[] = array(8, 'Robin', msg()); }
     for ($i = 0; $i < 6; $i++) { $p[] = array(3, 'Eddy', msg()); }
     for ($i = 0; $i < 4; $i++) { $p[] = array(5, 'Luffy', msg()); }
     $p[] = array(5, 'Luffy', 'corto'); $p[] = array(5, 'Luffy', '<b>' . str_repeat('x', 100) . '</b>');
@@ -96,7 +96,7 @@ sql("UPDATE mybb_op_peticionAventuras SET estado = 1 WHERE id = $S");
 $r = opg_ent_enviar($S, $base, 8);
 $E = $r['id'];
 $e = opg_ent_obtener_por_id($E);
-prueba('enviar: crea la entrega pendiente', array($r['ok'], $e['estado'], $e['tid'], $e['tema_nombre'], $e['reputacion'], $e['intentos']), array(true, 'pendiente', 200, 'Una aventura de prueba', 'positiva', 1));
+prueba('enviar: crea la entrega pendiente y conserva al narrador', array($r['ok'], $e['estado'], $e['tid'], $e['tema_nombre'], $e['reputacion'], $e['intentos'], $e['narrador_uid']), array(true, 'pendiente', 200, 'Una aventura de prueba', 'positiva', 1, 8));
 prueba('enviar: la solicitud sigue en 1 y se vincula el tema', array(estado_de($S), fila($S)['aventura_url']), array(1, 'https://onepiecegaiden.com/showthread.php?tid=200'));
 prueba('enviar: otra entrega para la misma solicitud', opg_ent_enviar($S, $base, 8)['codigo'], 409);
 $S2 = nueva_sol(3, 0, 9, array(3));
@@ -108,7 +108,7 @@ prueba('rechazar sin motivo', opg_ent_rechazar($E, '', 50)['codigo'], 422);
 prueba('rechazar con motivo de 501', opg_ent_rechazar($E, str_repeat('a', 501), 50)['codigo'], 422);
 prueba('un usuario normal no rechaza', opg_ent_rechazar($E, 'x', 9)['codigo'], 403);
 $GLOBALS['roles']['narra'][] = 5;
-prueba('un participante narrador del staff no rechaza su entrega', opg_ent_rechazar($E, 'x', 5)['codigo'], 403);
+prueba('un participante narrador del staff puede resolver su entrega', opg_av_puede_resolver(opg_av_obtener($S), 5), true);
 $GLOBALS['roles']['narra'] = array(60);
 $r = opg_ent_rechazar($E, 'Falta detalle en el resumen', 50);
 $e = opg_ent_obtener_por_id($E);
@@ -129,7 +129,7 @@ prueba('análisis: tier de la solicitud por defecto', $a['ajustes']['tier'], 3);
 prueba('análisis: reputación por defecto la del narrador', $a['ajustes']['reputacion_defecto'], 'negativa');
 $por = array(); foreach ($a['destinatarios'] as $d) { $por[$d['uid']] = $d; }
 prueba('análisis: detecta los 5 usuarios con narrador primero', array_keys($por)[0] === 8 && count($por) === 5, true);
-prueba('análisis: narrador detectado por la etiqueta', array($por[8]['rol'], $por[3]['rol']), array('narrador', 'jugador'));
+prueba('análisis: narrador tomado de la entrega', array($por[8]['rol'], $por[3]['rol']), array('narrador', 'jugador'));
 prueba('análisis: posts válidos (299 caracteres no cuentan, etiquetas se descuentan)', array($por[8]['validos'], $por[3]['validos'], $por[5]['validos'], $por[5]['posts'], $por[6]['validos'], $por[20]['validos']), array(8, 6, 4, 6, 6, 3));
 prueba('análisis: porcentajes del tier 3 (6 esperados)', array($por[8]['porcentaje'], $por[3]['porcentaje'], $por[5]['porcentaje'], $por[6]['porcentaje']), array(116.67, 100.0, 66.67, 100.0));
 prueba('análisis: incluye por defecto solo a quien está en la solicitud', array($por[8]['incluir'], $por[3]['incluir'], $por[5]['incluir'], $por[6]['incluir'], $por[20]['incluir']), array(true, true, true, true, false));
@@ -158,14 +158,14 @@ prueba('con los mínimos confirmados se puede pagar', array($a5['puede_pagar'], 
 $a6 = opg_ent_analizar($E, array('confirma_minimos' => '1', 'destinatarios' => array(3 => array('porcentaje' => 999, 'variacion' => '0'))));
 $por6 = array(); foreach ($a6['destinatarios'] as $d) { $por6[$d['uid']] = $d; }
 prueba('el porcentaje del cliente se ignora', $por6[3]['porcentaje'], 100.0);
-// Narrador asignado sin [narrador] y participantes sin posts
+// Narrador explícito de la entrega sin posts y participantes sin posts.
 $S3 = nueva_sol(3, 0, 9, array(3, 10));
 $E3 = opg_ent_enviar($S3, array('tema' => '203', 'resumen' => 'x', 'reputacion' => 'positiva'), 9)['id'];
+sql("UPDATE mybb_op_peticionAventuras SET narrador_uid = 8, narrador_fid = 8, narrador_nombre = 'Robin' WHERE id = $S3");
 $a7 = opg_ent_analizar($E3, array());
-prueba('sin [narrador] en ningún post: bloqueo', array($a7['puede_pagar'], in_array('No se detectó ningún narrador: ningún post lleva la etiqueta [narrador].', $a7['bloqueos'], true)), array(false, true));
-prueba('avisa del narrador asignado sin la etiqueta y de quien no escribió', array(
-    in_array('El narrador asignado (U9) no escribió la etiqueta [narrador] en ningún post.', $a7['advertencias'], true) || count($a7['advertencias']) >= 2,
-    count(array_filter($a7['advertencias'], function ($x) { return strpos($x, 'no escribió en el tema') !== false; })) >= 1), array(true, true));
+$por7 = array(); foreach ($a7['destinatarios'] as $d) { $por7[$d['uid']] = $d; }
+prueba('el narrador no depende de etiquetas y conserva el de la entrega', array($por7[9]['rol'], $por7[9]['posts'], $por7[8]['rol'] ?? null), array('narrador', 0, null));
+prueba('avisa del narrador y participantes que no escribieron', count(array_filter($a7['advertencias'], function ($x) { return strpos($x, 'no escribió en el tema') !== false; })) >= 2, true);
 // Tema sin posts
 $S4 = nueva_sol(3, 0, 9, array(3));
 sql("UPDATE mybb_op_peticionAventuras SET narrador_uid = 9, narrador_fid = 9 WHERE id = $S4");

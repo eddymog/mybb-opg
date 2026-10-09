@@ -11,6 +11,7 @@
  */
 
 const OPG_ENT_PREFIJO_AVENTURA = 3;        // mybb_threads.prefix: Aventura
+const OPG_ENT_PREFIJO_AUTONARRADA = 9;     // mybb_threads.prefix: Autonarrada
 const OPG_ENT_MIN_BUSQUEDA = 3;            // caracteres mínimos del typeahead de temas
 const OPG_ENT_MAX_RESUMEN = 2000;
 const OPG_ENT_BLOQUEO_SEG = 120;           // vigencia del reclamo de una entrega en proceso
@@ -61,8 +62,9 @@ function opg_ent_problemas_tema($fila, $av)
     if (in_array((int) $fila['fid'], opg_ent_foros_inaccesibles(), true)) {
         $p[] = 'No tienes acceso al foro de ese tema.';
     }
-    if ((int) $fila['prefix'] !== OPG_ENT_PREFIJO_AVENTURA) {
-        $p[] = 'El tema no es del tipo Aventura.';
+    $prefijo_esperado = opg_av_es_autonarrada($av) ? OPG_ENT_PREFIJO_AUTONARRADA : OPG_ENT_PREFIJO_AVENTURA;
+    if ((int) $fila['prefix'] !== $prefijo_esperado) {
+        $p[] = opg_av_es_autonarrada($av) ? 'El tema no es del tipo Autonarrada.' : 'El tema no es del tipo Aventura.';
     }
     if (!opg_ent_en_zona($fila, $av)) {
         $p[] = !empty($av['isla']) ? 'El tema no está en el foro de la isla de la solicitud.' : 'El tema no está en un foro de rol.';
@@ -178,6 +180,7 @@ function opg_ent_normalizar($f)
         'infra' => $f['infra'] !== null ? (bool) $f['infra'] : null,
         'ajustes' => $f['ajustes_json'] !== null && $f['ajustes_json'] !== '' ? json_decode((string) $f['ajustes_json'], true) : null,
         'intentos' => (int) $f['intentos'],
+        'narrador_uid' => isset($f['narrador_uid']) && (int) $f['narrador_uid'] > 0 ? (int) $f['narrador_uid'] : (int) $f['enviado_por'],
         'enviado_por' => (int) $f['enviado_por'],
         'enviado_at' => (int) $f['enviado_at'],
         'revisado_por' => $f['revisado_por'] !== null ? (int) $f['revisado_por'] : null,
@@ -353,15 +356,15 @@ function opg_ent_enviar($peticion_id, $entrada, $uid)
         $ok = opg_av_w(
             'UPDATE ' . opg_av_t('op_aventuras_entregas') . ' SET tid = ' . $tid . ', tid_activo = ' . $tid . ', tema_nombre = ' . opg_av_sql($tema['nombre'])
             . ', resumen = ' . opg_av_sql($resumen) . ', reputacion = ' . opg_av_sql($reputacion) . ", estado = 'pendiente', intentos = intentos + 1"
-            . ', enviado_por = ' . $uid . ', enviado_at = ' . $ahora . ', revisado_por = NULL, revisado_at = NULL, motivo_rechazo = NULL,'
+            . ', narrador_uid = ' . (int) $av['narrador_uid'] . ', enviado_por = ' . $uid . ', enviado_at = ' . $ahora . ', revisado_por = NULL, revisado_at = NULL, motivo_rechazo = NULL,'
             . ' procesando_por = NULL, procesando_at = NULL WHERE id = ' . (int) $previa['id'] . " AND estado = 'rechazada'"
         );
         $entrega_id = (int) $previa['id'];
     } else {
         $ok = opg_av_w(
-            'INSERT INTO ' . opg_av_t('op_aventuras_entregas') . ' (peticion_id, tid, tid_activo, tema_nombre, resumen, reputacion, estado, intentos, enviado_por, enviado_at) VALUES ('
+            'INSERT INTO ' . opg_av_t('op_aventuras_entregas') . ' (peticion_id, tid, tid_activo, tema_nombre, resumen, reputacion, estado, intentos, narrador_uid, enviado_por, enviado_at) VALUES ('
             . (int) $peticion_id . ', ' . $tid . ', ' . $tid . ', ' . opg_av_sql($tema['nombre']) . ', ' . opg_av_sql($resumen) . ', ' . opg_av_sql($reputacion)
-            . ", 'pendiente', 1, " . $uid . ', ' . $ahora . ')'
+            . ", 'pendiente', 1, " . (int) $av['narrador_uid'] . ', ' . $uid . ', ' . $ahora . ')'
         );
         global $db;
         $entrega_id = $ok ? (int) $db->insert_id() : 0;
@@ -397,7 +400,7 @@ function opg_ent_rechazar($entrega_id, $motivo, $uid_staff)
     }
     $av = opg_av_obtener($entrega['peticion_id'], true);
     if (!$av || !opg_av_puede_resolver($av, $uid_staff)) {
-        return opg_av_fallo(403, array($av && opg_av_puede_gestionar($uid_staff) ? 'No puedes resolver una aventura en la que participas.' : 'Sin permisos.'));
+        return opg_av_fallo(403, array('Sin permisos.'));
     }
     $ok = opg_av_w(
         'UPDATE ' . opg_av_t('op_aventuras_entregas') . " SET estado = 'rechazada', tid_activo = NULL, motivo_rechazo = " . opg_av_sql($motivo)
@@ -408,6 +411,7 @@ function opg_ent_rechazar($entrega_id, $motivo, $uid_staff)
         return opg_av_fallo(409, array('La entrega ya no está pendiente.'));
     }
     opg_av_auditar($entrega['peticion_id'], $uid_staff, 'rechazar_entrega', array('entrega' => (int) $entrega_id), array('motivo' => $motivo));
+    opg_av_notificar_partes($av, $uid_staff, 'entrega_rechazada', 'entrega:' . (int) $entrega_id . ':rechazada', array('motivo' => $motivo));
     return array('ok' => true);
 }
 
@@ -429,6 +433,23 @@ function opg_ent_fichas_para_pago($uids)
         $mapa[(int) $f['fid']] = $f;
     }
     return $mapa;
+}
+
+/** Nombre visible del narrador conservado en la entrega. */
+function opg_ent_nombre_narrador($uid, $av)
+{
+    $uid = (int) $uid;
+    if ($uid > 0 && $av && (int) $av['narrador_uid'] === $uid && $av['narrador_nombre'] !== '') {
+        return $av['narrador_nombre'];
+    }
+    $f = opg_av_uno(
+        'SELECT f.nombre, u.username FROM ' . opg_av_t('users') . ' u LEFT JOIN ' . opg_av_t('op_fichas')
+        . ' f ON f.fid = u.uid WHERE u.uid = ' . $uid . ' LIMIT 1'
+    );
+    if ($f) {
+        return $f['nombre'] !== null && $f['nombre'] !== '' ? (string) $f['nombre'] : (string) $f['username'];
+    }
+    return 'Usuario ' . $uid;
 }
 
 /** Pagos ya registrados de una entrega, por uid. */
@@ -459,7 +480,9 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
     if (!$av) {
         return opg_av_fallo(404, array('La solicitud de la entrega no existe.'));
     }
-    $analisis = opg_rec_analizar_tema($entrega['tid']);
+    $narrador_uid = (int) $entrega['narrador_uid'];
+    $narradores = $narrador_uid > 0 ? array($narrador_uid => opg_ent_nombre_narrador($narrador_uid, $av)) : array();
+    $analisis = opg_rec_analizar_tema($entrega['tid'], $narradores);
     if (!$analisis['ok']) {
         return opg_av_fallo(422, $analisis['errores']);
     }
@@ -496,8 +519,8 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
             $en_solicitud[(int) $j['uid']] = $j['nombre'];
         }
     }
-    if ($av['narrador_uid'] > 0) {
-        $en_solicitud[$av['narrador_uid']] = $av['narrador_nombre'];
+    if ($narrador_uid > 0) {
+        $en_solicitud[$narrador_uid] = $narradores[$narrador_uid];
     }
 
     // Narradores primero, luego jugadores; dentro de cada grupo, por posts válidos.
@@ -563,14 +586,11 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
         $bloqueos[] = 'Selecciona al menos un destinatario.';
     }
 
-    // Quien está en la solicitud pero no escribió, y el narrador asignado sin [narrador].
+    // Quien está en la solicitud pero no escribió.
     foreach ($en_solicitud as $uid => $nombre) {
-        if (!isset($analisis['usuarios'][$uid])) {
+        if (!isset($analisis['usuarios'][$uid]) || (int) $analisis['usuarios'][$uid]['posts'] === 0) {
             $advertencias[] = $nombre . ' está en la solicitud pero no escribió en el tema.';
         }
-    }
-    if ($av['narrador_uid'] > 0 && !in_array($av['narrador_uid'], $analisis['narradores'], true)) {
-        $advertencias[] = 'El narrador asignado (' . $av['narrador_nombre'] . ') no escribió la etiqueta [narrador] en ningún post.';
     }
 
     $minimos = opg_rec_minimos($analisis, $ajustes);
@@ -818,6 +838,7 @@ function opg_ent_cerrar_si_completo($entrega, $av, $ajustes, $uid_staff)
     opg_av_auditar($entrega['peticion_id'], $uid_staff, 'pagar_entrega', null, array(
         'entrega' => (int) $entrega['id'], 'tier' => (int) $ajustes['tier'], 'destinatarios' => count($pagos),
     ));
+    opg_av_notificar_partes($av, $uid_staff, 'recompensas_entregadas', 'entrega:' . (int) $entrega['id'] . ':entregada', array());
     opg_av_confirmar();
     return array('cerrada' => true, 'errores' => array());
 }
@@ -838,7 +859,7 @@ function opg_ent_pagar($entrega_id, $ajustes_entrada, $uid_staff)
     }
     $av = opg_av_obtener($entrega['peticion_id'], true);
     if (!$av || !opg_av_puede_resolver($av, $uid_staff)) {
-        return opg_av_fallo(403, array($av && opg_av_puede_gestionar($uid_staff) ? 'No puedes resolver una aventura en la que participas.' : 'Sin permisos.'));
+        return opg_av_fallo(403, array('Sin permisos.'));
     }
 
     opg_av_w(

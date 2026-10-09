@@ -33,7 +33,7 @@ function tema($tid, $nombre, $posts)
 function posts_std($narr = 8, $nn = 'Robin')
 {
     $p = array();
-    for ($i = 0; $i < 8; $i++) { $p[] = array($narr, $nn, '[narrador] ' . msg()); }
+    for ($i = 0; $i < 8; $i++) { $p[] = array($narr, $nn, msg()); }
     for ($i = 0; $i < 6; $i++) { $p[] = array(3, 'Eddy', msg()); }
     for ($i = 0; $i < 4; $i++) { $p[] = array(5, 'Luffy', msg()); }
     for ($i = 0; $i < 6; $i++) { $p[] = array(6, 'Zoro', msg()); }
@@ -42,7 +42,7 @@ function posts_std($narr = 8, $nn = 'Robin')
 function entrega($pid, $tid, $nombre, $estado = 'pendiente')
 {
     global $db;
-    sql("INSERT INTO mybb_op_aventuras_entregas (peticion_id, tid, tid_activo, tema_nombre, enviado_por, resumen, reputacion, estado, enviado_at) VALUES ($pid, $tid, " . ($estado === 'pendiente' ? $tid : 'NULL') . ", '" . $db->escape_string($nombre) . "', 8, '" . $db->escape_string('Resumen <b>x</b> del narrador') . "', 'positiva', '$estado', " . TIME_NOW . ")");
+    sql("INSERT INTO mybb_op_aventuras_entregas (peticion_id, tid, tid_activo, tema_nombre, narrador_uid, enviado_por, resumen, reputacion, estado, enviado_at) VALUES ($pid, $tid, " . ($estado === 'pendiente' ? $tid : 'NULL') . ", '" . $db->escape_string($nombre) . "', 8, 8, '" . $db->escape_string('Resumen <b>x</b> del narrador') . "', 'positiva', '$estado', " . TIME_NOW . ")");
     return (int) $db->insert_id();
 }
 
@@ -70,8 +70,10 @@ foreach (array(1, 50, 60) as $u) {
 
 // ── Página completa ──────────────────────────────────────────────────────────
 $r = pagina(array('id' => $E));
-prueba('muestra la cabecera con el tema y el resumen escapados', array(contiene($r, 'Entrega #' . $E . ' de la solicitud #' . $S), contiene($r, 'Aventura &lt;i&gt;de&lt;/i&gt; prueba'), contiene($r, 'Resumen &lt;b&gt;x&lt;/b&gt; del narrador'), contiene($r, 'Resumen <b>')), array(true, true, true, false));
+prueba('muestra la cabecera compacta con tema, ids, estado y resumen escapados', array(contiene($r, 'Entrega #' . $E . ' · Solicitud #' . $S), contiene($r, 'Aventura &lt;i&gt;de&lt;/i&gt; prueba'), contiene($r, 'Pendiente de revisión'), contiene($r, 'Resumen &lt;b&gt;x&lt;/b&gt; del narrador'), contiene($r, 'Resumen <b>')), array(true, true, true, true, false));
 prueba('muestra los ajustes y a los cuatro destinatarios por posts', array(contiene($r, 'name="tier"'), contiene($r, 'value="3" selected'), contiene($r, 'name="d[8][variacion]"'), contiene($r, 'name="d[3][incluir]"'), contiene($r, 'name="d[5][rep]"'), contiene($r, 'name="d[8][rep]"')), array(true, true, true, true, true, false));
+prueba('identifica al narrador guardado en la entrega', array(contiene($r, 'Narrador de la entrega'), contiene($r, 'Robin')), array(true, true));
+prueba('vista previa automática, validación y confirmación propia', array(contiene($r, 'hx-trigger="submit, change delay:250ms"'), contiene($r, 'id="ar-validacion"'), contiene($r, 'data-ar-abrir-confirmacion'), contiene($r, '<dialog class="ar-dialogo"'), contiene($r, 'aventuras_recompensas.js?v=1')), array(true, true, true, true, true));
 prueba('el tier aparece con sus posts esperados', contiene($r, 'Tier 10 (12 posts por participante)'), true);
 prueba('mínimos cumplidos: sin bloqueo y Pagar habilitado', array(contiene($r, 'No se cumplen los posts mínimos'), contiene($r, 'name="confirma_minimos"'), preg_match('/action=pagar[^>]*disabled/', $r['cuerpo']), contiene($r, 'ar-cumple')), array(false, false, 0, true));
 tema(303, 'Aventura corta', posts_std());
@@ -82,7 +84,7 @@ prueba('sin los mínimos: bloqueo, casilla de confirmar y Pagar deshabilitado', 
 prueba('carga HTMX y la clave', array(contiene($r, 'htmx.min.js?v=2.0.4'), contiene($r, '{"X-Post-Key":"clave-valida"}')), array(true, true));
 prueba('enlaza de vuelta a la consola', contiene($r, 'consola_aventuras.php?tab=entregas'), true);
 $r2 = pagina(array('tid' => 300));
-prueba('?tid= abre la misma entrega', contiene($r2, 'Entrega #' . $E . ' de la solicitud'), true);
+prueba('?tid= abre la misma entrega', contiene($r2, 'Entrega #' . $E . ' · Solicitud'), true);
 prueba('?id inexistente', contiene(pagina(array('id' => 9999)), 'No hay ninguna entrega con ese número o ese tema.'), true);
 prueba('sin id', contiene(pagina(array()), 'Elige una entrega desde la consola de aventuras.'), true);
 
@@ -103,7 +105,7 @@ $aj = array('tier' => '3', 'extra_jugadores' => '0', 'n_participantes' => '3', '
     'd' => array(8 => array('incluir' => '1', 'variacion' => '0'), 3 => array('incluir' => '1', 'variacion' => '0', 'rep' => 'positiva'),
         5 => array('incluir' => '1', 'variacion' => '0', 'rep' => 'positiva'), 6 => array('incluir' => '1', 'variacion' => '0', 'rep' => 'positiva')));
 $r = p('analizar', $aj, 50, array('id' => $E));
-prueba('analizar con la confirmación: Pagar habilitado y vista previa', array($r['estado'], preg_match('/action=pagar[^>]*disabled/', $r['cuerpo']), contiene($r, 'Experiencia 120'), contiene($r, 'Cofre')), array(200, 0, true, true));
+prueba('analizar con la confirmación: Pagar habilitado y vista previa', array($r['estado'], preg_match('/action=pagar[^>]*disabled/', $r['cuerpo']), contiene($r, '>Experiencia</dt><dd>120'), contiene($r, 'Cofre')), array(200, 0, true, true));
 $aj2 = $aj; $aj2['d'][6]['incluir'] = '0'; $aj2['tier'] = '5';
 $r = p('analizar', $aj2, 50, array('id' => $E));
 prueba('analizar con otro tier y un destinatario excluido', array(contiene($r, 'value="5" selected'), contiene($r, 'ar-excluido')), array(true, true));
@@ -126,13 +128,11 @@ prueba('la entrega quedó rechazada y libre', array(una("SELECT estado FROM mybb
 prueba('rechazar otra vez: 409', p('rechazar', array('motivo' => 'x'), 50, array('id' => $E2))['estado'], 409);
 prueba('pagar una rechazada: 409', p('pagar', $aj, 50, array('id' => $E2))['estado'], 409);
 
-// ── Permisos: nadie paga su propia aventura ─────────────────────────────────
+// ── El equipo puede moderar su propia aventura ──────────────────────────────
 tema(302, 'Aventura de la narra', posts_std());
 $S3 = ins(3, 8, 1, array(3, 60), array('tier_seleccionado' => 3));
 $E3 = entrega($S3, 302, 'Aventura de la narra');
-$r = p('pagar', $aj, 60, array('id' => $E3));
-prueba('un participante narra no paga la suya: 403', array($r['estado'], contiene($r, 'No puedes resolver una aventura en la que participas.')), array(403, true));
-prueba('rechazar la propia: 403', p('rechazar', array('motivo' => 'x'), 60, array('id' => $E3))['estado'], 403);
+prueba('rechazar la propia está permitido', p('rechazar', array('motivo' => 'x'), 60, array('id' => $E3))['estado'], 200);
 
 // ── Completar sin pagos iniciados ────────────────────────────────────────────
 prueba('completar sin pagos iniciados: 409', p('completar', array(), 50, array('id' => $E3))['estado'], 409);
@@ -141,7 +141,7 @@ prueba('completar sin pagos iniciados: 409', p('completar', array(), 50, array('
 $r = p('pagar', array_merge($aj, array('tier' => '8', 'confirma_minimos' => '0')), 50, array('id' => $E4));
 prueba('pagar sin confirmar mínimos: 422 retarget y nada cambia', array($r['estado'], cabecera($r, 'HX-Retarget'), ficha_de(3)['nika'], (int) una("SELECT COUNT(*) n FROM mybb_op_aventuras_entregas_pagos")['n']), array(422, '#ar-aviso', '0', 0));
 $r = p('pagar', $aj, 50, array('id' => $E));
-prueba('pagar: panel con aviso, resultados y estado entregada', array($r['estado'], contiene($r, 'Recompensas entregadas y tema cerrado.'), contiene($r, 'Pagos registrados'), contiene($r, 'Pagado'), contiene($r, 'Entregada')), array(200, true, true, true, true));
+prueba('pagar: panel con aviso, resultados y estado entregada', array($r['estado'], contiene($r, 'Recompensas entregadas y tema cerrado.'), contiene($r, 'Pagos registrados'), contiene($r, 'Pagado'), contiene($r, 'Recompensas entregadas')), array(200, true, true, true, true));
 prueba('las fichas cobran', array(ficha_de(3)['nika'], ficha_de(8)['exp_mes'], ficha_de(6)['newpoints']), array('20', '140', '120.00'));
 prueba('tema cerrado y solicitud finalizada', array((int) una("SELECT closed FROM mybb_threads WHERE tid = 300")['closed'], (int) fila($S)['estado']), array(1, 3));
 prueba('un solo mensaje de recompensas', (int) una("SELECT COUNT(*) n FROM mybb_posts WHERE tid = 300 AND message LIKE '%RECOMPENSAS PROCESADAS%'")['n'], 1);
@@ -165,7 +165,8 @@ preg_match_all('/hx-(?:get|post)="[^"]*action=([a-z_]+)/', $todo_html, $m);
 $enlazadas = array_unique($m[1]);
 $faltan = array_values(array_diff($enlazadas, array_merge($GET_ACC, $POST_ACC)));
 prueba('todas las acciones enlazadas existen en la página', $faltan, array());
-prueba('sin hx-on ni scripts en los fragmentos', array(preg_match('/\shx-on[:\-]/', $todo_html), strpos(str_replace('<script src="https://onepiecegaiden.com/jscripts/htmx/htmx.min.js?v=2.0.4" defer></script>', '', $todo_html), '<script')), array(0, false));
+$sin_scripts_externos = preg_replace('/<script src="[^"]+" defer><\/script>/', '', $todo_html);
+prueba('sin hx-on ni scripts incrustados en los fragmentos', array(preg_match('/\shx-on[:\-]/', $todo_html), strpos($sin_scripts_externos, '<script')), array(0, false));
 prueba('las rutas relativas apuntan a esta página (o a la consola)', preg_match('/hx-(?:get|post)="(?!aventuras_recompensas\.php)/', $todo_html), 0);
 prueba('HTML bien formado y sin ids repetidos en cada respuesta', problemas_html($GLOBALS['respuestas']), array());
 echo "  (acciones enlazadas: " . implode(', ', $enlazadas) . ")\n";

@@ -82,7 +82,117 @@
 						<div class='pestana' id='pestana_secreto1' onclick="clickPestana('secreto1');" style="border-end-start-radius: 50px; border-end-end-radius: 50px;border-start-start-radius: 0px; border-start-end-radius: 0px;"><span class="pestana-texto">TOP SECRET</span></div>
 					</div></if>
 				<br><br>
-				<if $g_is_staff then><a href="/op/staff/ficha_atributos2.php?fid={$ficha['fid']}">Cambiar datos de la ficha</a> | <a href="/op/staff/ficha_recalcular_pasivas.php?fid={$ficha['fid']}">Recalcular pasivas</a></if>
+				<if $g_is_staff then>
+				<style>
+				/* Accesos de staff bajo la ficha (prefijo pst-) */
+				.pst-panel { box-sizing: border-box; width: min(1030px, 100%); margin: 25px auto 0; padding: 10px 14px 12px; text-align: left;
+					background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); }
+				.pst-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+				.pst-titulo { font-family: var(--opg-fuente-titular); font-size: 16px; letter-spacing: 1px; color: var(--opg-morado-texto); }
+				.pst-titulo i { color: var(--opg-naranja); margin-right: 4px; }
+				.pst-sub { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+				.pst-enlaces { display: flex; flex-wrap: wrap; gap: 8px; }
+				.pst-panel a.pst-enlace:link, .pst-panel a.pst-enlace:visited { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 2px solid var(--opg-tinta); border-radius: 999px;
+					background: #fff; color: var(--opg-ciruela) !important; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; line-height: 1.2; text-decoration: none; transition: background var(--opg-rapido), color var(--opg-rapido); }
+				.pst-panel button.pst-enlace { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 2px solid var(--opg-tinta); border-radius: 999px; cursor: pointer;
+					background: #fff; color: var(--opg-ciruela); font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; line-height: 1.2; transition: background var(--opg-rapido), color var(--opg-rapido); }
+				.pst-panel button.pst-enlace i { color: var(--opg-naranja); }
+				.pst-panel button.pst-enlace:hover, .pst-panel button.pst-enlace:focus-visible { background: var(--opg-naranja); color: #fff; }
+				.pst-panel button.pst-enlace:hover i, .pst-panel button.pst-enlace:focus-visible i { color: #fff; }
+				.pst-panel button.pst-enlace:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+				.pst-panel a.pst-enlace i { color: var(--opg-naranja); }
+				.pst-panel a.pst-enlace:hover, .pst-panel a.pst-enlace:focus-visible { background: var(--opg-naranja); color: #fff !important; }
+				.pst-panel a.pst-enlace:hover i, .pst-panel a.pst-enlace:focus-visible i { color: #fff; }
+				.pst-panel a.pst-enlace:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+				@media (prefers-reduced-motion: reduce) { .pst-panel a.pst-enlace, .pst-panel button.pst-enlace { transition: none; } }
+				/* Modal de gestión de inventario */
+				.pst-modal-velo { position: fixed; inset: 0; z-index: 9990; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(26, 20, 35, .72); }
+				.pst-modal-velo[hidden] { display: none; }
+				.pst-modal { box-sizing: border-box; width: 100%; max-width: 640px; max-height: 90vh; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; text-align: left;
+					background: var(--opg-crema-clara); border: 3px solid var(--opg-tinta); border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); }
+				.pst-modal:focus { outline: none; }
+				.pst-modal-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+				.pst-modal-cab h3 { margin: 0; font-family: var(--opg-fuente-titular); font-size: 20px; letter-spacing: 1px; color: var(--opg-ciruela); }
+				.pst-cerrar { border: 0; background: none; cursor: pointer; font-size: 26px; line-height: 1; padding: 0 4px; color: var(--opg-rojo-error); }
+				.pst-cerrar:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+				.pst-fila { display: grid; grid-template-columns: minmax(90px, auto) 1fr 70px auto; gap: 8px; align-items: center; }
+				.pst-fila label { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+				.pst-fila input { box-sizing: border-box; width: 100%; padding: 6px 8px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; font-family: var(--opg-fuente-cuerpo); font-size: 13px; }
+				.pst-fila input[type="number"] { text-align: center; }
+				.pst-fila input:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+				.pst-btn { padding: 6px 14px; border: 2px solid var(--opg-tinta); border-radius: 999px; cursor: pointer; color: #fff; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; }
+				.pst-btn:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+				.pst-btn--ok { background: var(--opg-verde-exito); }
+				.pst-btn--quitar { background: var(--opg-rojo-error); }
+				.pst-pend { border-top: 1px solid rgba(0, 0, 0, .2); padding-top: 10px; }
+				.pst-pend-tit { margin-bottom: 6px; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+				#staff-cambios-list { min-height: 32px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-gris-texto); }
+				.pst-acciones { display: flex; justify-content: flex-end; }
+				@media (max-width: 600px) { .pst-fila { grid-template-columns: 1fr 70px; } .pst-fila label { grid-column: 1 / -1; } .pst-fila .pst-btn { grid-column: 1 / -1; } }
+				</style>
+				<nav class="pst-panel" aria-label="Herramientas de staff para este personaje">
+					<div class="pst-cab"><span class="pst-titulo"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Herramientas de staff</span><span class="pst-sub">Personaje UID {$ficha['fid']}</span></div>
+					<div class="pst-enlaces">
+						<a class="pst-enlace" href="/op/staff/ficha_atributos2.php?fid={$ficha['fid']}"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Atributos de la ficha</span></a>
+						<a class="pst-enlace" href="/op/staff/tecnicas_ficha.php?fid={$ficha['fid']}&amp;accion=A%C3%B1adir"><i class="fa-solid fa-hand-fist" aria-hidden="true"></i><span>Añadir técnica</span></a>
+						<a class="pst-enlace" href="/op/staff/tecnicas_ficha.php?fid={$ficha['fid']}&amp;accion=Remover"><i class="fa-solid fa-hand-fist" aria-hidden="true"></i><span>Remover técnica</span></a>
+						<a class="pst-enlace" href="/op/staff/virtudes_ficha.php?fid={$ficha['fid']}&amp;accion=A%C3%B1adir"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span>Añadir virtud o defecto</span></a>
+						<a class="pst-enlace" href="/op/staff/virtudes_ficha.php?fid={$ficha['fid']}&amp;accion=Remover"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i><span>Remover virtud o defecto</span></a>
+						<a class="pst-enlace" href="/op/staff/ficha_recalcular_pasivas.php?fid={$ficha['fid']}"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Recalcular pasivas</span></a>
+						<button type="button" class="pst-enlace" id="pst-inv-abrir" onclick="pstAbrirInventario()" aria-haspopup="dialog"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span>Gestionar inventario</span></button>
+					</div>
+					<div class="pst-modal-velo" id="pst-inv-modal" hidden onclick="if (event.target === this) { pstCerrarInventario(); }">
+						<div class="pst-modal" role="dialog" aria-modal="true" aria-labelledby="pst-inv-titulo" tabindex="-1">
+							<div class="pst-modal-cab"><h3 id="pst-inv-titulo">Gestión de inventario</h3><button type="button" class="pst-cerrar" aria-label="Cerrar" onclick="pstCerrarInventario()">&times;</button></div>
+							<p class="pst-sub">Personaje UID {$ficha['fid']}. Los cambios se acumulan y se guardan juntos, con una razón obligatoria.</p>
+							<div class="pst-fila">
+								<label for="staff-add-id">Añadir objeto</label>
+								<input id="staff-add-id" type="text" placeholder="ID del objeto (ej: CFR001)" autocomplete="off">
+								<input id="staff-add-qty" type="number" value="1" min="1" max="999" aria-label="Cantidad a añadir">
+								<button type="button" class="pst-btn pst-btn--ok" onclick="staffAddItem()">+ Añadir</button>
+							</div>
+							<div class="pst-fila">
+								<label for="staff-rem-id">Quitar objeto</label>
+								<input id="staff-rem-id" type="text" placeholder="ID del objeto (ej: CFR001)" autocomplete="off">
+								<input id="staff-rem-qty" type="number" value="1" min="1" max="999" aria-label="Cantidad a quitar">
+								<button type="button" class="pst-btn pst-btn--quitar" onclick="staffRemoveItem()">&#8722; Quitar</button>
+							</div>
+							<div class="pst-pend">
+								<div class="pst-pend-tit">Cambios pendientes</div>
+								<div id="staff-cambios-list"><em>Sin cambios pendientes.</em></div>
+							</div>
+							<div class="pst-acciones">
+								<button id="staff-guardar-btn" type="button" onclick="staffGuardarCambios()" disabled style="background-color: #6c757d; color: white; padding: 8px 22px; border: 2px solid #000; border-radius: 999px; cursor: not-allowed; font-family: InterMedium, InterRegular, sans-serif; font-size: 13px;">Guardar cambios</button>
+							</div>
+						</div>
+					</div>
+				</nav>
+				<script>
+				// Modal de gestión de inventario (staff). Las funciones staffAddItem, staffGuardarCambios... viven en op_ficha_inventario.
+				function pstAbrirInventario() {
+					var velo = document.getElementById('pst-inv-modal');
+					if (!velo) { return; }
+					velo.hidden = false;
+					document.body.style.overflow = 'hidden';
+					var primero = document.getElementById('staff-add-id');
+					if (primero) { primero.focus(); }
+				}
+				function pstCerrarInventario() {
+					var velo = document.getElementById('pst-inv-modal');
+					if (!velo) { return; }
+					velo.hidden = true;
+					document.body.style.overflow = '';
+					var abrir = document.getElementById('pst-inv-abrir');
+					if (abrir) { abrir.focus(); }
+				}
+				document.addEventListener('keydown', function (e) {
+					var velo = document.getElementById('pst-inv-modal');
+					var razon = document.getElementById('staffInvModal');
+					var razonAbierto = razon && razon.style.display !== 'none' && razon.style.display !== '';
+					if (e.key === 'Escape' && velo && !velo.hidden && !razonAbierto) { pstCerrarInventario(); }
+				});
+				</script>
+				</if>
 
 				<!-- The Modal -->
 				<div id="myModal" class="modal">

@@ -3,7 +3,7 @@
 <title>{$lang->newthread_in}</title>
 {$headerinclude}
 <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/sceditor-theme.css?ver=2" />
-<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=35" />
+<link rel="stylesheet" href="{$mybb->asset_url}/jscripts/newpost-frame.css?ver=37" />
 {$post_javascript}
 <script src="{$mybb->settings['bburl']}/jscripts/belico/panel.js?v=9"></script>
 <script src="{$mybb->settings['bburl']}/jscripts/belico/calc.js?v=20"></script>
@@ -31,6 +31,20 @@
 <div class="af-field af-field--titulo"><label for="subject">Título</label><input type="text" id="subject" class="textbox" name="subject" size="40" maxlength="85" value="{$subject}" tabindex="1" /></div>
 </div>
 
+<div class="af-row nt-aventura" id="nt-aventura" data-prefijos="3,9" data-url="{$mybb->settings['bburl']}/op/tablon_de_aventuras.php" hidden>
+<div class="af-field af-field--ancho-completo">
+<label for="nt-aventura-buscar">Vincular a una aventura (opcional)</label>
+<span class="opg-buscar-caja">
+<input type="search" id="nt-aventura-buscar" name="aventura_texto" class="textbox" autocomplete="off" value="{$aventura_texto_html}" placeholder="Número de la solicitud o nombre de la isla" aria-controls="nt-aventura-resultados" />
+<div class="opg-resultados" id="nt-aventura-resultados" aria-live="polite"></div>
+</span>
+<input type="hidden" name="aventura_id" id="nt-aventura-id" value="{$aventura_id_html}" />
+<input type="hidden" name="aventura_etiqueta" id="nt-aventura-etiqueta" value="{$aventura_etiqueta_html}" />
+<div class="nt-aventura-elegida" id="nt-aventura-elegida"></div>
+<small>Solo salen las solicitudes aprobadas del tipo de tema elegido que todavía no tienen tema. Si no eliges ninguna, deja el campo vacío.</small>
+</div>
+</div>
+
 <if $is_mundo_rol then>
 <div class="af-row">
 <div class="af-field">
@@ -56,6 +70,7 @@
 <textarea name="message" id="message" rows="20" cols="70" tabindex="2">{$message}</textarea>
 {$codebuttons}
 <script src="{$mybb->settings['bburl']}/jscripts/post_editor.js?ver=10"></script>
+<script src="{$mybb->settings['bburl']}/jscripts/newthread_aventura.js?ver=3"></script>
 </div>
 
 <div class="newpost-editor-pie">{$multiquote_external}</div>

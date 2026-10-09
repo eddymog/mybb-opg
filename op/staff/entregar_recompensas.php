@@ -38,6 +38,18 @@ if (!is_mod($uid) && !is_staff($uid) && !is_narra($uid)) {
     exit;
 }
 
+// La entrega de cronicas autonarradas forma parte de la cola unificada de la
+// consola. Esta ruta se conserva solo para no romper marcadores antiguos.
+$destino = rtrim($mybb->settings['bburl'], '/') . '/op/staff/consola_aventuras.php?tab=entregas&tipo=autonarradas';
+if ($mybb->request_method == 'post') {
+    http_response_code(410);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array('error' => 'Esta herramienta fue retirada. Usa Entregas en la consola de aventuras.', 'redirect' => $destino));
+    exit;
+}
+header('Location: ' . $destino, true, 302);
+exit;
+
 // Tramos de recompensa: xp = experiencia (mybb_users.newpoints), nikas y
 // berries van a mybb_op_fichas, reputacion se suma a `reputacion` y,
 // opcionalmente, a `reputacion_positiva`/`reputacion_negativa` según lo que

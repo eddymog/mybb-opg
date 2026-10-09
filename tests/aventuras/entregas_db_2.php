@@ -28,7 +28,7 @@ prueba('pagar una entrega inexistente', opg_ent_pagar(99999, array(), 50)['codig
 prueba('un usuario normal no paga', opg_ent_pagar($E, array('confirma_minimos' => '1'), 9)['codigo'], 403);
 prueba('invitado no paga', opg_ent_pagar($E, array('confirma_minimos' => '1'), 0)['codigo'], 403);
 $GLOBALS['roles']['narra'][] = 6;   // un participante narrador del staff
-prueba('un participante no paga su propia aventura', opg_ent_pagar($E, array('confirma_minimos' => '1'), 6)['codigo'], 403);
+prueba('un participante narrador del staff puede resolver su aventura', opg_av_puede_resolver(opg_av_obtener($S), 6), true);
 $GLOBALS['roles']['narra'] = array(60);
 $r = opg_ent_pagar($E, array(), 50);
 prueba('sin confirmar los mínimos no se paga', array($r['ok'], $r['codigo'], count($r['errores']) > 0), array(false, 422, true));
@@ -181,7 +181,7 @@ fijar_reset_al_mes_actual();
 sql("UPDATE mybb_op_fichas SET oficios = '{\"Mercader\":{\"sub\":{\"Contrabandista\":1}},\"Investigador\":{\"sub\":{\"Arqueólogo\":1}}}' WHERE fid = 3");
 sql("UPDATE mybb_op_fichas SET nivelnarrador = 'Erudito' WHERE fid = 8");
 $p = array();
-for ($i = 0; $i < 5; $i++) { $p[] = array(8, 'Robin', '[narrador] ' . msg()); $p[] = array(3, 'Eddy', msg()); }
+for ($i = 0; $i < 5; $i++) { $p[] = array(8, 'Robin', msg()); $p[] = array(3, 'Eddy', msg()); }
 tema_con_posts(240, 40, 'Aventura de inframundo', $p);
 $S10 = nueva_sol(2, 1, 8, array(3));
 $E10 = opg_ent_enviar($S10, array('tema' => '240', 'resumen' => 'x', 'reputacion' => 'positiva'), 8)['id'];

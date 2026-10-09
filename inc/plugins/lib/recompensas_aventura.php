@@ -4,7 +4,7 @@
  *
  * Reproduce en el servidor la lógica de op/staff/recompensasAventuras.php (la
  * herramienta real de pago de aventuras), sin cambiar reglas ni montos:
- *  - quién narró: usuarios con al menos un post con la etiqueta [narrador];
+ *  - quién narró: el usuario conservado explícitamente en la entrega;
  *  - posts válidos: los de 300 caracteres o más (strlen sin etiquetas, en bytes
  *    como hoy);
  *  - porcentaje de participación según los posts esperados del tier;
@@ -105,11 +105,10 @@ const OPG_REC_JUGADOR = array(
 
 /**
  * Lee los posts de un tema y cuenta, por usuario, los totales y los válidos.
- * Devuelve array('ok', 'errores', 'tid', 'total_posts', 'usuarios', 'narradores',
- * 'posts_no_validos', 'bloqueos'). Un tema sin posts es un error; un tema sin
- * [narrador] se analiza igual pero deja un bloqueo para el pago.
+ * $narradores es un mapa uid => nombre fijado por la entrega. El rol no se
+ * deduce del contenido de los mensajes.
  */
-function opg_rec_analizar_tema($tid)
+function opg_rec_analizar_tema($tid, $narradores = array())
 {
     $tid = (int) $tid;
     $posts = opg_av_todos(
@@ -120,7 +119,7 @@ function opg_rec_analizar_tema($tid)
     }
 
     $usuarios = array();
-    $narradores = array();
+    $narradores = is_array($narradores) ? $narradores : array();
     $no_validos = 0;
     foreach ($posts as $p) {
         $uid = (int) $p['uid'];
@@ -133,17 +132,16 @@ function opg_rec_analizar_tema($tid)
         } else {
             $no_validos++;
         }
-        if (stripos((string) $p['message'], '[narrador]') !== false) {
-            $narradores[$uid] = true;
+    }
+    foreach ($narradores as $uid => $nombre) {
+        $uid = (int) $uid;
+        if ($uid <= 0) {
+            continue;
         }
-    }
-    foreach ($narradores as $uid => $_) {
+        if (!isset($usuarios[$uid])) {
+            $usuarios[$uid] = array('uid' => $uid, 'username' => (string) $nombre, 'posts' => 0, 'validos' => 0, 'es_narrador' => true);
+        }
         $usuarios[$uid]['es_narrador'] = true;
-    }
-
-    $bloqueos = array();
-    if (!$narradores) {
-        $bloqueos[] = 'No se detectó ningún narrador: ningún post lleva la etiqueta [narrador].';
     }
     return array(
         'ok' => true,
@@ -151,9 +149,9 @@ function opg_rec_analizar_tema($tid)
         'tid' => $tid,
         'total_posts' => count($posts),
         'usuarios' => $usuarios,
-        'narradores' => array_keys($narradores),
+        'narradores' => array_values(array_map('intval', array_keys($narradores))),
         'posts_no_validos' => $no_validos,
-        'bloqueos' => $bloqueos,
+        'bloqueos' => array(),
     );
 }
 
@@ -508,34 +506,37 @@ function opg_rec_tema_pagado($tid)
  */
 function opg_rec_mensaje_resumen($datos)
 {
-    $m = "[align=center][img]https://en.onepiece-cardgame.com/renewal/images/beginners/index/ico_howto_current.webp[/img][/align]\n\n";
-    $m .= "[align=center][size=x-large][b][color=#27ae60]" . OPG_REC_MARCADOR . "[/color][/b][/size][/align]\n\n";
+    $m = "[align=center]\n";
+    $m .= "[b][size=large]¡LA TRAVESÍA HA LLEGADO A SU FIN![/size][/b]\n\n";
+    $m .= "El Diario Mundial ha registrado el desenlace de esta aventura.\n";
+    $m .= "Sus protagonistas ya han recibido las recompensas correspondientes.\n\n";
+    $m .= "[b]RECOMPENSAS DE LA TRAVESÍA[/b]\n[/align]\n\n";
     $m .= "[hr]\n\n";
-    $m .= "[b][color=#3498db]Información de la Aventura[/color][/b]\n";
+    $m .= "[b]INFORMACIÓN DE LA AVENTURA[/b]\n";
     $m .= "[list]\n";
-    $m .= "[*][b]Tier:[/b] [color=#ff7b00]Tier {$datos['tier']}[/color]\n";
+    $m .= "[*][b]Tier:[/b] Tier {$datos['tier']}\n";
     $m .= "[*][b]Fecha de pago:[/b] " . date('d/m/Y H:i') . "\n";
     $m .= "[*][b]Procesado por:[/b] ID: {$datos['staff_uid']} - {$datos['staff_nombre']}\n";
     $m .= "[/list]\n\n";
 
     if (!empty($datos['narradores'])) {
-        $m .= "[b][color=#9b59b6]Narradores[/color][/b]\n\n";
+        $m .= '[b]' . (count($datos['narradores']) === 1 ? 'QUIEN GUIÓ LA TRAVESÍA' : 'QUIENES GUIARON LA TRAVESÍA') . "[/b]\n\n";
         foreach ($datos['narradores'] as $n) {
             $c = $n['calculo'];
             $m .= "[quote]";
             $m .= "[b]ID:{$n['uid']} - {$n['username']}[/b] - [i]Tier Narrador: {$c['nivel']}[/i]\n\n";
-            $m .= "[b]Recompensas recibidas:[/b]\n";
+            $m .= "[b]Recompensas recibidas[/b]\n";
             $m .= "[list]\n";
             if ($c['excedente'] > 0) {
-                $m .= "[*][b]Experiencia:[/b] [color=#3498db]{$c['experiencia']} EXP[/color] [color=#e74c3c](⚠ Límite mensual: {$c['excedente']} EXP extra → +{$c['kuros']} kuros)[/color]\n";
+                $m .= "[*][b]Experiencia:[/b] +{$c['experiencia']} EXP (Límite mensual: {$c['excedente']} EXP extra se convierten en +{$c['kuros']} kuros)\n";
                 $m .= "[*][b]Exp mensual:[/b] " . $c['exp_mensual_despues'] . " / " . OPG_REC_EXP_NARRADOR_MENSUAL . "\n";
-                $m .= "[*][b]Kuros:[/b] [color=#8e44ad]+{$c['kuros']} kuros[/color] [i](mitad del excedente)[/i]\n";
+                $m .= "[*][b]Kuros:[/b] +{$c['kuros']} kuros [i](mitad del excedente)[/i]\n";
             } else {
-                $m .= "[*][b]Experiencia:[/b] [color=#3498db]{$c['experiencia']} EXP[/color]\n";
+                $m .= "[*][b]Experiencia:[/b] +{$c['experiencia']} EXP\n";
                 $m .= "[*][b]Exp mensual:[/b] " . $c['exp_mensual_despues'] . " / " . OPG_REC_EXP_NARRADOR_MENSUAL . "\n";
             }
-            $m .= "[*][b]Nikas:[/b] [color=#f39c12]{$c['nikas']} NK[/color]\n";
-            $m .= "[*][b]Cofres:[/b] [color=#9b59b6]{$c['cofre_cantidad']}x {$c['cofre']}[/color]\n";
+            $m .= "[*][b]Nikas:[/b] +{$c['nikas']} NK\n";
+            $m .= "[*][b]Cofres:[/b] {$c['cofre_cantidad']}x {$c['cofre']}\n";
             $m .= "[/list]\n\n";
             $m .= "[b]Bonificaciones:[/b]\n";
             $m .= "[list]\n";
@@ -546,38 +547,41 @@ function opg_rec_mensaje_resumen($datos)
                 $signo = $n['variacion'] > 0 ? '+' : '';
                 $m .= "[*][b]Variación de post:[/b] {$signo}{$n['variacion']}%\n";
             }
-            $m .= "[*][b]Porcentaje total aplicado:[/b] [color=#27ae60]{$c['porcentaje']}%[/color]\n";
+            $m .= "[*][b]Porcentaje total aplicado:[/b] {$c['porcentaje']}%\n";
             $m .= "[/list]";
             $m .= "[/quote]\n\n";
         }
     }
 
+    $orientaciones = array();
     if (!empty($datos['jugadores'])) {
-        $m .= "[b][color=#16a085]Jugadores[/color][/b]\n\n";
+        $m .= '[b]' . (count($datos['jugadores']) === 1 ? 'QUIEN VIVIÓ LA AVENTURA' : 'QUIENES VIVIERON LA AVENTURA') . "[/b]\n\n";
         foreach ($datos['jugadores'] as $j) {
             $c = $j['calculo'];
             if ($c['reputacion_tipo'] === 'positiva') {
-                $emoji = '✨'; $txt = 'Positiva';
+                $txt = 'positiva';
+                $orientaciones['positiva'] = true;
             } elseif ($c['reputacion_tipo'] === 'negativa') {
-                $emoji = '💀'; $txt = 'Negativa';
+                $txt = 'negativa';
+                $orientaciones['negativa'] = true;
             } else {
-                $emoji = '🚫'; $txt = 'Ninguna';
+                $txt = 'ninguna';
             }
             $m .= "[quote]";
             $m .= "[b]ID:{$j['uid']} - {$j['username']}[/b]\n\n";
-            $m .= "[b]Recompensas recibidas:[/b]\n";
+            $m .= "[b]Recompensas recibidas[/b]\n";
             $m .= "[list]\n";
-            $m .= "[*][b]Experiencia:[/b] [color=#3498db]{$c['experiencia']} EXP[/color]\n";
-            $m .= "[*][b]Nikas:[/b] [color=#f39c12]{$c['nikas']} NK[/color]\n";
-            $m .= "[*][b]Reputación ({$emoji} {$txt}):[/b] [color=#e74c3c]{$c['reputacion']} REP[/color]\n";
+            $m .= "[*][b]Experiencia:[/b] +{$c['experiencia']} EXP\n";
+            $m .= "[*][b]Nikas:[/b] +{$c['nikas']} NK\n";
+            $m .= "[*][b]Reputación {$txt}:[/b] +{$c['reputacion']} REP\n";
             if ($c['infra'] && $c['nivel_contrabandista'] > -1) {
-                $m .= "[*][b]Berries:[/b] [color=#27ae60]{$c['berries']} ฿[/color] (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']} + Inframundo 25%)\n";
+                $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']} + Inframundo 25%)\n";
             } elseif ($c['infra']) {
-                $m .= "[*][b]Berries:[/b] [color=#27ae60]{$c['berries']} ฿[/color] (Base: {$c['berries_base']} + Bono inframundo 25%)\n";
+                $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Bono inframundo 25%)\n";
             } elseif ($c['nivel_contrabandista'] > -1) {
-                $m .= "[*][b]Berries:[/b] [color=#27ae60]{$c['berries']} ฿[/color] (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']})\n";
+                $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']})\n";
             } else {
-                $m .= "[*][b]Berries:[/b] [color=#27ae60]{$c['berries']} ฿[/color]\n";
+                $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries\n";
             }
             $m .= "[/list]\n\n";
             if ($j['variacion'] != 0 || $c['nivel_contrabandista'] > -1 || $c['nivel_arqueologo'] > -1) {
@@ -597,15 +601,22 @@ function opg_rec_mensaje_resumen($datos)
                         $m .= "[*][b]Arqueologo (Nivel {$c['nivel_arqueologo']}):[/b] x{$c['mult_xp_arqueologo']} XP\n";
                     }
                 }
-                $m .= "[*][b]Porcentaje total aplicado:[/b] [color=#27ae60]{$c['porcentaje']}%[/color]\n";
+                $m .= "[*][b]Porcentaje total aplicado:[/b] {$c['porcentaje']}%\n";
                 $m .= "[/list]";
             }
             $m .= "[/quote]\n\n";
         }
     }
 
-    $m .= "[hr]\n\n";
-    $m .= "[align=center][size=small][i]✅ Pago procesado automáticamente por el sistema de recompensas de One Piece Gaiden[/i][/size][/align]";
+    $m .= "[hr]\n\n[align=center]";
+    if (isset($orientaciones['positiva']) && !isset($orientaciones['negativa'])) {
+        $m .= "[i]El eco de sus acciones viaja de puerto en puerto.\nAllí donde llega la historia, sus nombres inspiran respeto y admiración.[/i]\n\n";
+    } elseif (isset($orientaciones['negativa']) && !isset($orientaciones['positiva'])) {
+        $m .= "[i]El eco de sus acciones viaja de puerto en puerto.\nAllí donde llega la historia, sus nombres inspiran miedo y respeto.[/i]\n\n";
+    } else {
+        $m .= "[i]El eco de esta travesía ya viaja de puerto en puerto.[/i]\n\n";
+    }
+    $m .= "[size=small]" . OPG_REC_MARCADOR . " automáticamente por One Piece Gaiden.[/size][/align]";
     return $m;
 }
 
