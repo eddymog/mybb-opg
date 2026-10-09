@@ -14,6 +14,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'belico.php');
 require_once "./../global.php";
 require_once "./functions/op_functions.php";
+require_once MYBB_ROOT."/inc/plugins/lib/belico_calculos.php";
 
 global $mybb, $db, $headerinclude, $header, $footer;
 
@@ -27,8 +28,6 @@ function belico_reglas()
     if ($reglas === null) {
         $reglas = array(
             // Guía b01_guia_belica.md, líneas citadas en 100_Requirements_Belico.md §3.3
-            'multi_arma'            => array('dos' => 0.75, 'mas' => 0.60, 'ta_dos' => -10, 'ta_por_arma' => -5), // 264-269
-            'dos_manos'             => 1.5,                                                                       // 254
             'distancia_ta'          => array('cada_metros' => 20, 'penalizacion' => -5),                          // 309
             'sorpresa_ref'          => -20,                                                                       // 310
             'bloque_sin_cortar'     => 5,                                                                         // 96
@@ -157,34 +156,71 @@ function belico_cargar_tecnicas($db, $fid)
     $fid      = (int) $fid;
     $tecnicas = array();
     $q = $db->query("
-        SELECT t.tid, t.nombre, t.rama, t.estilo, t.clase, t.tipo, t.tier, t.efectos
+        SELECT t.tid, t.nombre, t.rama, t.estilo, t.clase, t.tipo, t.tier, t.efectos, t.energia, t.energia_turno, t.haki, t.haki_turno, t.enfriamiento, t.descripcion
         FROM mybb_op_tecnicas t
         INNER JOIN mybb_op_tec_aprendidas ta ON t.tid = ta.tid
         WHERE ta.uid = '{$fid}'
         ORDER BY t.tid, t.rama
     ");
     while ($row = $db->fetch_array($q)) {
+        $row['grupo']   = belico_grupo_tecnica($row);
+        $row['calcula'] = belico_tecnica_calcula($row['efectos'], $row['descripcion']);
         $tecnicas[$row['tid']] = $row;
     }
     return $tecnicas;
 }
 
-// Solo armas (categoria='armas'), sin LLST001 — igual que calc.js:474-476.
+// Grupo del selector de técnica. null = pasiva (tiene su propia pestaña, no se elige aquí).
+function belico_grupo_tecnica($tecnica)
+{
+    $t = mb_strtolower((string) $tecnica['clase'] . ' ' . (string) $tecnica['tipo'], 'UTF-8');
+    if (strpos($t, 'pasiva') !== false)    { return null; }
+    if (strpos($t, 'utilidad') !== false)  { return 'Utilidad'; }
+    if (strpos($t, 'ofensiva') !== false)  { return 'Ofensivas'; }
+    if (strpos($t, 'defensiva') !== false) { return 'Defensivas'; }
+    if (strpos($t, 'ambiental') !== false) { return 'Ambientales'; }
+    return 'Otras';
+}
+
+// ¿Algún efecto de la técnica depende del personaje (Golpe/Bloqueo básico, Nivel o atributos)?
+// No depende de los valores, así que se evalúa con ceros.
+function belico_tecnica_calcula($efectos, $descripcion = '')
+{
+    $cero  = array('NIV' => 0, 'FUE' => 0, 'AGI' => 0, 'PUN' => 0, 'DES' => 0, 'RES' => 0, 'REF' => 0, 'VOL' => 0);
+    $vacio = array('valor' => 0, 'tipo' => '', 'pasos' => array(), 'configuracion' => '');
+    return !empty(opg_belico_calcular_efectos_contextuales((string) $efectos, $cero, $vacio, $vacio))
+        || opg_belico_hay_formulas_sueltas($efectos) || opg_belico_hay_formulas_sueltas($descripcion);
+}
+
+function belico_etiqueta_tecnica($tecnica)
+{
+    $tier = trim((string) $tecnica['tier']);
+    return ($tecnica['calcula'] ? '◆ ' : '') . '[' . $tecnica['tid'] . '] ' . $tecnica['nombre'] . ($tier !== '' ? ' · Tier ' . $tier : '');
+}
+
+function belico_orden_tier($tecnica)
+{
+    return (int) preg_replace('/\D+/', '', (string) $tecnica['tier']);
+}
+
+function belico_meta_tecnica($tecnica)
+{
+    $partes = array();
+    $tipo = trim((string) $tecnica['clase'] . ' · ' . (string) $tecnica['tipo'], ' ·');
+    if ($tipo !== '') { $partes[] = $tipo; }
+    if (trim((string) $tecnica['tier']) !== '') { $partes[] = 'Tier ' . trim((string) $tecnica['tier']); }
+    foreach (array('energia' => 'Energía', 'energia_turno' => 'Energía por turno', 'haki' => 'Haki', 'haki_turno' => 'Haki por turno', 'enfriamiento' => 'Enfriamiento') as $campo => $nombre) {
+        $valor = trim((string) $tecnica[$campo]);
+        if ($valor !== '' && $valor !== '0') { $partes[] = $nombre . ' ' . $valor; }
+    }
+    return implode(' · ', $partes);
+}
+
+// Solo armas (categoria='armas'), sin LLST001. Misma consulta que usa tecnicas_show.php
+// (incluye cantidad y apodo del inventario).
 function belico_cargar_armas($db, $fid)
 {
-    $fid   = (int) $fid;
-    $armas = array();
-    $q = $db->query("
-        SELECT o.*
-        FROM mybb_op_objetos o
-        INNER JOIN mybb_op_inventario i ON o.objeto_id = i.objeto_id
-        WHERE i.uid = '{$fid}' AND LOWER(o.categoria) = 'armas' AND o.objeto_id != 'LLST001'
-        ORDER BY o.nombre
-    ");
-    while ($row = $db->fetch_array($q)) {
-        $armas[$row['objeto_id']] = $row;
-    }
-    return $armas;
+    return opg_belico_cargar_armas_usuario($db, $fid);
 }
 
 function belico_cargar_hilo($tid)
@@ -210,188 +246,6 @@ function belico_cargar_hilo($tid)
 // Cálculos (belico_calc_*) — sin $db, sin HTML, portados de calc.js donde
 // corresponde (200_DesignPlan_Belico.md §5)
 // ───────────────────────────────────────────────────────────────────────────
-
-// Mismo patrón y mismo fallback que calc.js::_calcularDanoArma().
-function belico_calc_danio_texto($texto, $atributos)
-{
-    if (!$texto) {
-        return array('texto' => '', 'valor' => 0, 'calculado' => false);
-    }
-    $calc = $texto;
-    if (preg_match_all('/\[([A-Z]{3})[x×](\d+(?:[,.]?\d+)?)\]/u', $texto, $matches, PREG_SET_ORDER)) {
-        foreach ($matches as $m) {
-            $attr = $m[1];
-            $mult = (float) str_replace(',', '.', $m[2]);
-            if (isset($atributos[$attr])) {
-                $val  = (int) ceil($atributos[$attr] * $mult);
-                $calc = str_replace($m[0], (string) $val, $calc);
-            }
-        }
-    }
-    $total     = 0;
-    $hay_calc  = false;
-    if (preg_match_all('/\b\d+\b/', $calc, $nums)) {
-        foreach ($nums[0] as $n) { $total += (int) $n; }
-        $hay_calc = true;
-    }
-    return array('texto' => $calc, 'valor' => $total, 'calculado' => $hay_calc);
-}
-
-function belico_tipo_danio_arma($arma)
-{
-    if (empty($arma)) {
-        return 'contundente';
-    }
-    $t = strtolower(isset($arma['dano']) ? $arma['dano'] : '');
-    if (strpos($t, 'cortante') !== false)  { return 'cortante'; }
-    if (strpos($t, 'perforante') !== false) { return 'perforante'; }
-    if (strpos($t, 'sónico') !== false || strpos($t, 'sonico') !== false) { return 'sónico'; }
-    return 'contundente';
-}
-
-// "A dos manos" (Guía 254): +50% al daño/bloqueo base del arma, antes de la
-// penalización por varias armas.
-function belico_calc_danio_arma($arma, $atributos, $modo, $dos_manos)
-{
-    if (empty($arma)) {
-        return array('texto' => 'Sin arma', 'valor' => 0, 'calculado' => false);
-    }
-    $texto = ($modo === 'defensa' && !empty($arma['bloqueo'])) ? $arma['bloqueo'] : (isset($arma['dano']) ? $arma['dano'] : '');
-    if ($texto === '') {
-        return array('texto' => 'Sin valor', 'valor' => 0, 'calculado' => false);
-    }
-    $r = belico_calc_danio_texto($texto, $atributos);
-    if ($dos_manos && $r['calculado']) {
-        $r['valor'] = (int) ceil($r['valor'] * belico_reglas()['dos_manos']);
-    }
-    return $r;
-}
-
-// Golpe/Bloqueo básico. $armas_seleccionadas: array de ['arma'=>fila|null,
-// 'dos_manos'=>bool]. Mismo malus que calc.js::_actualizarGolpeBasico()
-// y Guía 264-266 (1 arma 100%, 2 → 75% c/u, 3+ → 60% c/u).
-function belico_calc_golpe_basico($armas_seleccionadas, $atributos, $modo)
-{
-    $reglas  = belico_reglas();
-    $activas = array_values(array_filter($armas_seleccionadas, function ($a) { return !empty($a['arma']); }));
-    $num     = count($activas);
-
-    if ($num === 0) {
-        $base = $modo === 'defensa' ? $atributos['RES'] : $atributos['FUE'];
-        return array('valor' => $base, 'tipo' => $modo === 'defensa' ? 'DAÑO MITIGADO' : 'DE DAÑO CONTUNDENTE');
-    }
-
-    $mult  = $num === 1 ? 1.0 : ($num === 2 ? $reglas['multi_arma']['dos'] : $reglas['multi_arma']['mas']);
-    $total = 0;
-    $tipos = array();
-    foreach ($activas as $item) {
-        $calc = belico_calc_danio_arma($item['arma'], $atributos, $modo, !empty($item['dos_manos']));
-        $base = ($calc['calculado'] && $calc['valor'] > 0)
-            ? $calc['valor']
-            : ($modo === 'defensa' ? $atributos['RES'] : $atributos['FUE']);
-        $total += $base * $mult;
-        $tipo = belico_tipo_danio_arma($item['arma']);
-        if (!in_array($tipo, $tipos, true)) { $tipos[] = $tipo; }
-    }
-
-    return array(
-        'valor' => (int) ceil($total),
-        'tipo'  => $modo === 'defensa' ? 'DAÑO MITIGADO' : ('DE DAÑO ' . strtoupper(implode('/', $tipos))),
-    );
-}
-
-// Tasa de Acierto final. Guía 264-269: 1 arma = la suya; 2 armas = -10;
-// 3+ = -5 por arma; con atributos de TA distintos, se toma el más bajo.
-// Sin arma: Agilidad (línea 283).
-function belico_calc_tasa_acierto($armas_seleccionadas, $atributos)
-{
-    $reglas  = belico_reglas();
-    $activas = array_values(array_filter($armas_seleccionadas, function ($a) { return !empty($a['arma']); }));
-    $num     = count($activas);
-
-    if ($num === 0) {
-        return array('valor' => $atributos['AGI'], 'atributo' => 'AGI');
-    }
-
-    $valores = array();
-    foreach ($activas as $item) {
-        $attr      = (!empty($item['ta_atributo']) && isset($atributos[$item['ta_atributo']])) ? $item['ta_atributo'] : 'AGI';
-        $valores[] = $atributos[$attr];
-    }
-    $base = min($valores);
-
-    $penal = 0;
-    if ($num === 2) {
-        $penal = $reglas['multi_arma']['ta_dos'];
-    } elseif ($num > 2) {
-        $penal = $reglas['multi_arma']['ta_por_arma'] * $num;
-    }
-
-    return array('valor' => $base + $penal, 'atributo' => null);
-}
-
-function belico_extraer_tipo_tecnica($efectos)
-{
-    $texto = strtolower((string) $efectos);
-    if (strpos($texto, 'daño cortante') !== false)    { return 'cortante'; }
-    if (strpos($texto, 'daño perforante') !== false)  { return 'perforante'; }
-    if (strpos($texto, 'daño contundente') !== false) { return 'contundente'; }
-    return 'especial';
-}
-
-// Portado de calc.js::_extraerDanoTecnica()/_calcularDanoTecnicaCompleto().
-function belico_calc_danio_tecnica($efectos, $nivel)
-{
-    $tipo = belico_extraer_tipo_tecnica($efectos);
-
-    $formula = null;
-    if (preg_match('/\[\d+(?:,\d+)?xNivel\]/u', (string) $efectos)) {
-        $formula = $efectos;
-    } elseif (preg_match('/\[[A-Z]{3}x[\d,.]+\]/u', (string) $efectos)) {
-        $formula = $efectos;
-    }
-
-    if ($formula === null) {
-        return array('texto' => 'Sin daño', 'valor' => 0, 'calculado' => false, 'tipo' => 'especial');
-    }
-
-    $calc     = $formula;
-    $total    = 0;
-    $hay_calc = false;
-    if ($nivel > 0 && preg_match_all('/\[(\d+(?:,\d+)?)xNivel\]/u', $formula, $matches, PREG_SET_ORDER)) {
-        foreach ($matches as $m) {
-            $mult = (float) str_replace(',', '.', $m[1]);
-            $val  = (int) ceil($mult * $nivel);
-            $total += $val;
-            $hay_calc = true;
-            $calc = str_replace($m[0], (string) $val, $calc);
-        }
-    }
-    if (!$hay_calc && preg_match_all('/\b\d+\b/', $calc, $nums)) {
-        foreach ($nums[0] as $n) { $total += (int) $n; }
-    }
-
-    return array('texto' => $calc, 'valor' => $total, 'calculado' => $hay_calc, 'tipo' => $tipo);
-}
-
-// Portado de calc.js::_actualizarDanoTotal().
-function belico_calc_danio_total($golpe_valor, $tecnica, $modo)
-{
-    $tecnica_es_defensiva = !empty($tecnica) && !empty($tecnica['es_defensiva']);
-    $tecnica_valor        = !empty($tecnica) ? (int) $tecnica['valor'] : 0;
-
-    if ($modo === 'defensa') {
-        if ($tecnica_es_defensiva) {
-            return array('valor' => $golpe_valor + $tecnica_valor, 'desc' => 'BLOQUEO + TÉCNICA');
-        }
-        return array('valor' => $golpe_valor, 'desc' => $tecnica_valor > 0 ? 'BLOQUEO (TÉCNICA OFENSIVA)' : 'SOLO BLOQUEO');
-    }
-
-    if ($tecnica_es_defensiva) {
-        return array('valor' => $golpe_valor, 'desc' => '(TÉCNICA DEFENSIVA)');
-    }
-    return array('valor' => $golpe_valor + $tecnica_valor, 'desc' => $tecnica_valor > 0 ? 'DAÑO COMBINADO' : 'SOLO GOLPE BÁSICO');
-}
 
 // Estadísticas bélicas — mismas fórmulas y mismo redondeo que
 // calc.js::_actualizarEstadisticas() (100_Requirements_Belico.md §3.2).
@@ -427,7 +281,8 @@ function belico_calc_reaccion($ref, $ta, $metros, $sorpresa, $bloques_sin_cortar
                       'nota' => 'Ataque sorpresa no detectado: no hay reacción posible.');
     }
 
-    $ta_ajustada = $ta - $reglas['distancia_ta']['penalizacion'] * (int) floor($metros / $reglas['distancia_ta']['cada_metros']);
+    // La penalización es negativa (-5): la distancia reduce la TA de la ofensiva, no la sube.
+    $ta_ajustada = $ta + $reglas['distancia_ta']['penalizacion'] * (int) floor($metros / $reglas['distancia_ta']['cada_metros']);
 
     $ref_ajustado = $ref + $reglas['bloque_sin_cortar'] * $bloques_sin_cortar;
     if ($sorpresa === 'detectado') {
@@ -571,23 +426,6 @@ function belico_calc_agarre($fue_agresor, $fue_defensor, $turnos_forcejeo)
     return array('libre' => $fue_defensor_ajustada > $fue_agresor, 'fue_defensor_ajustada' => $fue_defensor_ajustada);
 }
 
-// Guía 52: empieza quien tenga el atributo más bajo más alto; si empatan,
-// se compara el segundo más bajo; si siguen empatados, 1d100.
-function belico_calc_iniciativa($atributos_a, $atributos_b)
-{
-    $vals_a = array_values($atributos_a);
-    $vals_b = array_values($atributos_b);
-    sort($vals_a);
-    sort($vals_b);
-    $n = min(count($vals_a), count($vals_b));
-    for ($i = 0; $i < $n; $i++) {
-        if ($vals_a[$i] !== $vals_b[$i]) {
-            return $vals_a[$i] > $vals_b[$i] ? 'A' : 'B';
-        }
-    }
-    return 'empate';
-}
-
 // Guía 412-432: mismo esquema para Vida, Energía y Haki.
 function belico_calc_estado_recurso($actual, $vol, $res)
 {
@@ -620,23 +458,6 @@ function belico_aplicar_modificadores($atributos, $mods)
         $out[$k] = $v + (isset($mods[$k]) ? $mods[$k] : 0);
     }
     return $out;
-}
-
-$BELICO_ATRIBUTOS_VALIDOS = array('FUE', 'AGI', 'PUN', 'DES', 'RES', 'REF', 'VOL');
-
-function belico_leer_armas_seleccionadas($mybb, $armas_disponibles, $espacios)
-{
-    global $BELICO_ATRIBUTOS_VALIDOS;
-    $seleccion = array();
-    for ($i = 1; $i <= $espacios; $i++) {
-        $objeto_id = trim((string) $mybb->get_input('arma' . $i, MyBB::INPUT_STRING));
-        $arma      = ($objeto_id !== '' && isset($armas_disponibles[$objeto_id])) ? $armas_disponibles[$objeto_id] : null;
-        $dos_manos = ((int) $mybb->get_input('dosmanos' . $i, MyBB::INPUT_INT)) === 1;
-        $ta_attr   = trim((string) $mybb->get_input('ta' . $i, MyBB::INPUT_STRING));
-        $ta_attr   = in_array($ta_attr, $BELICO_ATRIBUTOS_VALIDOS, true) ? $ta_attr : 'AGI';
-        $seleccion[] = array('arma' => $arma, 'dos_manos' => $dos_manos, 'ta_atributo' => $ta_attr);
-    }
-    return $seleccion;
 }
 
 function belico_es_htmx()
@@ -802,104 +623,345 @@ function belico_render_resultado_estado($mybb, $atributos)
 
 // ── Ataque ───────────────────────────────────────────────────────────────
 
-function belico_render_selector_armas($armas, $i, $seleccionado = '', $dos_manos = false, $ta_sel = 'AGI')
+function belico_leer_seleccion_armas($mybb, $armas)
 {
-    global $BELICO_ATRIBUTOS_VALIDOS;
-    $html  = '<div class="af-field"><label for="belico-arma-' . $i . '">Arma ' . $i . '</label><select id="belico-arma-' . $i . '" name="arma' . $i . '">';
-    $html .= '<option value="">Sin arma</option>';
-    foreach ($armas as $objeto_id => $arma) {
-        $sel = ($objeto_id === $seleccionado) ? ' selected' : '';
-        $html .= '<option value="' . htmlspecialchars($objeto_id, ENT_QUOTES, 'UTF-8') . '"' . $sel . '>' . htmlspecialchars($arma['nombre'], ENT_QUOTES, 'UTF-8') . '</option>';
-    }
-    $html .= '</select></div>';
-    $html .= '<div class="af-field"><label for="belico-ta-' . $i . '">TA arma ' . $i . '</label><select id="belico-ta-' . $i . '" name="ta' . $i . '">';
-    foreach ($BELICO_ATRIBUTOS_VALIDOS as $attr) {
-        $sel = ($attr === $ta_sel) ? ' selected' : '';
-        $html .= '<option value="' . $attr . '"' . $sel . '>' . $attr . '</option>';
-    }
-    $html .= '</select></div>';
-    $html .= '<div class="af-field belico-check"><label><input type="checkbox" name="dosmanos' . $i . '" value="1"' . ($dos_manos ? ' checked' : '') . '> A dos manos</label></div>';
-    return $html;
+    return opg_belico_seleccionar_armas($armas, $mybb->get_input('contexto_arma', MyBB::INPUT_STRING), array(
+        $mybb->get_input('arma_uno', MyBB::INPUT_STRING),
+        $mybb->get_input('arma_dos', MyBB::INPUT_STRING),
+        $mybb->get_input('arma_tres', MyBB::INPUT_STRING),
+    ));
 }
 
-function belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos = null)
+function belico_render_selector_arma($armas, $campo, $etiqueta, $placeholder, $seleccionado)
 {
-    $espacios = (int) $mybb->get_input('espacios', MyBB::INPUT_INT);
-    if ($espacios < 1) { $espacios = 1; }
-    if ($espacios > 4) { $espacios = 4; } // límite práctico — agregar/quitar dinámico no cambia ningún cálculo (200_DesignPlan §5.6)
+    $html  = '<div class="af-field"><label for="belico-' . $campo . '">' . $etiqueta . '</label><select id="belico-' . $campo . '" name="' . $campo . '">';
+    $html .= '<option value="">' . $placeholder . '</option>';
+    foreach ($armas as $objeto_id => $arma) {
+        $sel = ($objeto_id === $seleccionado) ? ' selected' : '';
+        $html .= '<option value="' . htmlspecialchars($objeto_id, ENT_QUOTES, 'UTF-8') . '" data-tipos="' . implode(',', belico_tipos_arma($arma)) . '"' . $sel . '>' . htmlspecialchars(opg_belico_nombre_arma($arma), ENT_QUOTES, 'UTF-8') . '</option>';
+    }
+    return $html . '</select></div>';
+}
+
+function belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos = null, $recursos = null)
+{
+    $sel = belico_leer_seleccion_armas($mybb, $armas);
+    // Se muestra la configuración pedida (no la final) para que elegir "Una arma" no vuelva a "Sin arma" antes de escoger el arma.
+    $config = $sel['solicitada'];
+    $cantidad = $sel['cantidad'];
+
+    $opciones_config = array('sin_arma' => 'Sin arma', 'una_mano' => 'Una arma', 'dos_manos' => 'Una arma con ambas manos', 'dos_armas' => 'Dos armas', 'tres_armas' => 'Tres armas');
 
     $html  = '<section class="belico-modulo belico-modulo--principal" id="belico-ataque"><h2>Ataque</h2>';
+    $html .= belico_render_vista_toggle();
     $html .= '<form id="belico-ataque-form" class="af-row">';
     $html .= belico_render_campos_ocultos($tid, $fid);
-    $modo = $mybb->get_input('modo', MyBB::INPUT_STRING) === 'defensa' ? 'defensa' : 'ataque';
-    $html .= '<div class="af-field"><label for="belico-modo">Modo</label><select id="belico-modo" name="modo"><option value="ataque"' . ($modo === 'ataque' ? ' selected' : '') . '>Ataque</option><option value="defensa"' . ($modo === 'defensa' ? ' selected' : '') . '>Defensa</option></select></div>';
-    $html .= '<div class="af-field"><label for="belico-espacios">Cantidad de armas</label><select id="belico-espacios" name="espacios" hx-get="belico.php" hx-vals=\'{"accion":"ataque_form"}\' hx-include="#belico-ataque-form,#belico-atributos" hx-target="#belico-ataque" hx-trigger="change consume" hx-swap="outerHTML">';
-    for ($n = 1; $n <= 4; $n++) {
-        $sel = ($n === $espacios) ? ' selected' : '';
-        $html .= '<option value="' . $n . '"' . $sel . '>' . $n . '</option>';
+    $html .= '<div class="af-field"><label for="belico-contexto-arma">Configuración</label><select id="belico-contexto-arma" name="contexto_arma" hx-get="belico.php" hx-vals=\'{"accion":"ataque_form"}\' hx-include="#belico-ataque-form,#belico-atributos" hx-target="#belico-ataque" hx-trigger="change consume" hx-swap="outerHTML">';
+    foreach ($opciones_config as $valor => $texto) {
+        $html .= '<option value="' . $valor . '"' . ($valor === $config ? ' selected' : '') . '>' . $texto . '</option>';
     }
     $html .= '</select></div>';
-    for ($i = 1; $i <= $espacios; $i++) {
-        $arma_sel = trim((string) $mybb->get_input('arma' . $i, MyBB::INPUT_STRING));
-        $ta_sel = trim((string) $mybb->get_input('ta' . $i, MyBB::INPUT_STRING));
-        $dos_manos = (int) $mybb->get_input('dosmanos' . $i, MyBB::INPUT_INT) === 1;
-        $html .= belico_render_selector_armas($armas, $i, $arma_sel, $dos_manos, $ta_sel ?: 'AGI');
-    }
-    $html .= '<div class="af-field"><label for="belico-tecnica">Técnica</label><select id="belico-tecnica" name="tecnica">';
-    $html .= '<option value="">Sin técnica</option>';
-    $tecnica_sel = trim((string) $mybb->get_input('tecnica', MyBB::INPUT_STRING));
-    foreach ($tecnicas as $tid_tec => $tec) {
-        $seleccionada = $tecnica_sel === $tid_tec ? ' selected' : '';
-        $html .= '<option value="' . htmlspecialchars($tid_tec, ENT_QUOTES, 'UTF-8') . '"' . $seleccionada . '>[' . htmlspecialchars($tid_tec, ENT_QUOTES, 'UTF-8') . '] ' . htmlspecialchars($tec['nombre'], ENT_QUOTES, 'UTF-8') . '</option>';
-    }
-    $html .= '</select></div>';
+    if ($cantidad >= 1) { $html .= belico_render_selector_arma($armas, 'arma_uno', 'Arma 1', 'Selecciona un arma', trim((string) $mybb->get_input('arma_uno', MyBB::INPUT_STRING))); }
+    if ($cantidad >= 2) { $html .= belico_render_selector_arma($armas, 'arma_dos', 'Arma 2', 'Selecciona una segunda arma', trim((string) $mybb->get_input('arma_dos', MyBB::INPUT_STRING))); }
+    if ($cantidad >= 3) { $html .= belico_render_selector_arma($armas, 'arma_tres', 'Arma 3', 'Selecciona una tercera arma', trim((string) $mybb->get_input('arma_tres', MyBB::INPUT_STRING))); }
+    $html .= '<div class="af-field"><label for="belico-distancia">Distancia al objetivo (m)</label><input type="number" id="belico-distancia" name="distancia" min="0" step="1" value="' . max(0, (int) $mybb->get_input('distancia', MyBB::INPUT_INT)) . '"><small>-5 de TA por cada 20 m</small></div>';
+    $html .= belico_render_campo_tecnica($tecnicas, trim((string) $mybb->get_input('tecnica', MyBB::INPUT_STRING)));
     $html .= '</form>';
-    $html .= '<div id="res-ataque" aria-live="polite" ' . belico_attrs_htmx('ataque', '#belico-ataque-form', 'change from:#belico-ataque-form') . '>';
-    $html .= belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos ?: belico_calc_atributos_finales_vacio());
+    $html .= '<div id="res-ataque" aria-live="polite" ' . belico_attrs_htmx('ataque', '#belico-ataque-form', 'change from:#belico-ataque-form, input from:#belico-distancia delay:300ms') . '>';
+    $html .= $atributos ? belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos, $recursos) : '';
     $html .= '</div>';
     $html .= '</section>';
     return $html;
 }
 
-// Placeholder usado solo para el render inicial del formulario (sin
-// atributos todavía resueltos en ese punto del armado de la página).
-function belico_calc_atributos_finales_vacio()
+function belico_render_vista_toggle()
 {
-    return array('NIV' => 0, 'FUE' => 0, 'AGI' => 0, 'PUN' => 0, 'DES' => 0, 'RES' => 0, 'REF' => 0, 'VOL' => 0);
+    // "Con cálculo" = valores calculados con tu personaje (vista por defecto); "Sin cálculo" = la fórmula tal cual está escrita.
+    return '<div class="belico-vista" role="group" aria-label="Vista de cálculos">'
+        . '<button type="button" data-belico-vista="codigos" aria-pressed="false">Sin cálculo</button>'
+        . '<button type="button" data-belico-vista="calculos" aria-pressed="true">Con cálculo</button></div>';
 }
 
-function belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos)
+// Los tipos de arma viven en la librería (los usa también el cálculo del bono a dos manos).
+function belico_tipos_arma($arma) { return opg_belico_tipos_arma($arma); }
+function belico_etiquetas_tipos_arma() { return opg_belico_etiquetas_tipos_arma(); }
+
+// Tipos de arma que exige o menciona una pasiva en su texto ("Siempre que use un arma de tensión...").
+function belico_condicion_arma_pasiva($tecnica)
 {
-    $espacios = (int) $mybb->get_input('espacios', MyBB::INPUT_INT);
-    if ($espacios < 1) { $espacios = 1; }
-    $modo = $mybb->get_input('modo', MyBB::INPUT_STRING) === 'defensa' ? 'defensa' : 'ataque';
-
-    $seleccion = belico_leer_armas_seleccionadas($mybb, $armas, $espacios);
-
-    $tid_tec  = trim((string) $mybb->get_input('tecnica', MyBB::INPUT_STRING));
-    $tecnica  = null;
-    if ($tid_tec !== '' && isset($tecnicas[$tid_tec])) {
-        $tec    = $tecnicas[$tid_tec];
-        $dt     = belico_calc_danio_tecnica($tec['efectos'], $atributos['NIV']);
-        $tipo_s = strtolower($tec['tipo']);
-        $tecnica = array('valor' => $dt['valor'], 'es_defensiva' => strpos($tipo_s, 'defensiva') !== false);
+    $patrones = array(
+        'tension'     => '/arma[s]?\s+(?:de\s+)?tensi[oó]n/iu',
+        'asalto'      => '/arma[s]?\s+(?:de\s+)?asalto/iu',
+        'filo'        => '/arma[s]?\s+(?:de\s+)?filo/iu',
+        'asta'        => '/arma[s]?\s+(?:de\s+)?asta\b/iu',
+        'fuego'       => '/arma[s]?\s+(?:de\s+)?fuego/iu',
+        'contundente' => '/arma[s]?\s+contundente[s]?/iu',
+        'corporal'    => '/arma[s]?\s+corporal(?:es)?/iu',
+        'flexible'    => '/arma[s]?\s+flexible[s]?/iu',
+        'exotica'     => '/arma[s]?\s+ex[oó]tica[s]?/iu',
+        'arrojadiza'  => '/arma[s]?\s+arrojadiza[s]?/iu',
+        'defensiva'   => '/arma[s]?\s+defensiva[s]?|escudo/iu',
+        'amuleto'     => '/amuleto[s]?/iu',
+        'musical'     => '/instrumento[s]?|musical(?:es)?/iu',
+    );
+    $texto = (string) $tecnica['descripcion'] . ' ' . (string) $tecnica['efectos'];
+    $tipos = array();
+    foreach ($patrones as $tipo => $patron) {
+        if (preg_match($patron, $texto)) { $tipos[] = $tipo; }
     }
 
-    $golpe = belico_calc_golpe_basico($seleccion, $atributos, $modo);
-    $ta    = belico_calc_tasa_acierto($seleccion, $atributos);
-    $total = belico_calc_danio_total($golpe['valor'], $tecnica, $modo);
+    // Enumeraciones: "Armas de Tensión, de Fuego, de Asalto o Arrojadizas" menciona cuatro tipos, no solo el primero.
+    $nombres = 'tensi[oó]n|asalto|filo|asta|fuego|contundentes?|corporales?|flexibles?|ex[oó]ticas?|arrojadizas?|defensivas?';
+    $palabras = array(
+        'tension' => '/tensi[oó]n/iu', 'asalto' => '/asalto/iu', 'filo' => '/\bfilo\b/iu', 'asta' => '/\basta\b/iu', 'fuego' => '/fuego/iu',
+        'contundente' => '/contundent/iu', 'corporal' => '/corporal/iu', 'flexible' => '/flexible/iu', 'exotica' => '/ex[oó]tic/iu',
+        'arrojadiza' => '/arrojadiz/iu', 'defensiva' => '/defensiv/iu',
+    );
+    if (preg_match_all('/arma[s]?\s+(?:de\s+)?(?:' . $nombres . ')(?:\s*(?:,|\by\b|\bo\b)\s*(?:(?:de|armas?)\s+)*(?:' . $nombres . '))*/iu', $texto, $listas)) {
+        foreach ($listas[0] as $lista) {
+            foreach ($palabras as $tipo => $patron) {
+                if (preg_match($patron, $lista) && !in_array($tipo, $tipos, true)) { $tipos[] = $tipo; }
+            }
+        }
+    }
+    return $tipos;
+}
 
-    $html  = '<div class="belico-resultados belico-resultados--ataque">';
-    $html .= '<div><span>Golpe / bloqueo: </span><strong>' . $golpe['valor'] . '</strong><small> (' . htmlspecialchars($golpe['tipo'], ENT_QUOTES, 'UTF-8') . ')</small></div>';
-    $html .= '<div><span>Tasa de acierto: </span><strong>' . $ta['valor'] . '</strong></div>';
-    $html .= '<div class="belico-resultado-clave"><span>Daño total: </span><strong>' . $total['valor'] . '</strong><small> (' . htmlspecialchars($total['desc'], ENT_QUOTES, 'UTF-8') . ')</small></div>';
-    $html .= '</div>';
+// Selector de técnica: buscador + filtro "solo con cálculo" (los maneja belico_js_ataque) y opciones
+// agrupadas por tipo, ordenadas por tier. Sin JS sigue funcionando como un select normal.
+function belico_render_campo_tecnica($tecnicas, $seleccionada)
+{
+    $orden  = array('Ofensivas', 'Defensivas', 'Ambientales', 'Utilidad', 'Otras');
+    $grupos = array_fill_keys($orden, array());
+    foreach ($tecnicas as $tecnica) {
+        if ($tecnica['grupo'] !== null) { $grupos[$tecnica['grupo']][] = $tecnica; }
+    }
+
+    $html  = '<div class="af-field belico-campo-tecnica"><label for="belico-tecnica">Técnica</label>';
+    $html .= '<div class="belico-tecnica-filtros"><input type="search" id="belico-tecnica-buscar" placeholder="Buscar por nombre o código..." autocomplete="off" aria-label="Buscar técnica">';
+    $html .= '<label class="belico-tecnica-solo"><input type="checkbox" id="belico-tecnica-solo-calculo"> Solo con cálculo</label></div>';
+    $html .= '<select id="belico-tecnica" name="tecnica"><option value="">Sin técnica</option>';
+    foreach ($orden as $grupo) {
+        if (empty($grupos[$grupo])) { continue; }
+        usort($grupos[$grupo], function ($a, $b) {
+            $d = belico_orden_tier($a) - belico_orden_tier($b);
+            return $d !== 0 ? $d : strcmp((string) $a['tid'], (string) $b['tid']);
+        });
+        $html .= '<optgroup label="' . $grupo . '">';
+        foreach ($grupos[$grupo] as $tecnica) {
+            $sel = $seleccionada === $tecnica['tid'] ? ' selected' : '';
+            $html .= '<option value="' . htmlspecialchars($tecnica['tid'], ENT_QUOTES, 'UTF-8') . '"' . $sel . '>' . htmlspecialchars(belico_etiqueta_tecnica($tecnica), ENT_QUOTES, 'UTF-8') . '</option>';
+        }
+        $html .= '</optgroup>';
+    }
+    $html .= '</select><small>◆ = tiene valores que se calculan con tu personaje.</small></div>';
     return $html;
 }
 
-function belico_render_resultado_ataque($mybb, $armas, $tecnicas, $atributos)
+// Texto de los efectos: solo la fórmula se reemplaza por su valor ("+[Nivel] de Daño" pasa a "+29 de Daño"),
+// con el desglose al pasar el cursor. Se incluyen las dos versiones y el interruptor "Sin cálculo / Con cálculo" muestra una.
+function belico_render_efectos_inline($efectos, $sustituciones)
 {
-    return belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos);
+    $texto  = (string) $efectos;
+    $marcas = array();
+    foreach ($sustituciones as $i => $sustitucion) {
+        if (strpos($texto, $sustitucion['expresion']) === false) { continue; }
+        $marca = "\x01" . $i . "\x01";
+        $texto = str_replace($sustitucion['expresion'], $marca, $texto);
+        $marcas[$marca] = '<span class="belico-codigo">' . htmlspecialchars($sustitucion['expresion'], ENT_QUOTES, 'UTF-8') . '</span>'
+            . '<span class="belico-calculo-inline"><strong class="belico-calculo belico-calculo--chip" tabindex="0" data-opg-calculo="' . htmlspecialchars(implode("\n", $sustitucion['pasos']), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($sustitucion['numero'], ENT_QUOTES, 'UTF-8') . '</strong></span>';
+    }
+    return strtr(nl2br(htmlspecialchars($texto, ENT_QUOTES, 'UTF-8')), $marcas);
+}
+
+// Casilla de resultado con desglose al pasar el cursor (mismo recurso que tecnicas_show.php).
+function belico_render_resultado_calculo($titulo, $valor, $detalle, $pasos, $clave = '')
+{
+    $desglose = htmlspecialchars(implode("\n", $pasos), ENT_QUOTES, 'UTF-8');
+    return '<div' . ($clave !== '' ? ' data-belico-tile="' . $clave . '"' : '') . '><span>' . htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8') . '</span>'
+        . '<strong class="belico-calculo" tabindex="0" data-belico-valor="' . (int) $valor . '" data-opg-calculo="' . $desglose . '">' . (int) $valor . '</strong>'
+        . '<small>' . htmlspecialchars($detalle, ENT_QUOTES, 'UTF-8') . '</small></div>';
+}
+
+// Tarjeta por arma elegida: tipo, tier, alcance, daño y bloqueo base, efecto y cuánto aporta a la configuración.
+function belico_render_tarjetas_armas($sel, $atributos)
+{
+    if (empty($sel['armas'])) {
+        return '<p class="belico-sin-arma"><small>Sin arma: el golpe y el bloqueo usan tu Fuerza y la TA tu Agilidad.</small></p>';
+    }
+    $etiquetas = opg_belico_etiquetas_tipos_arma();
+    $cantidad = count($sel['armas']);
+    $multiplicador = $sel['configuracion'] === 'dos_manos' ? 1.5 : ($cantidad === 2 ? 0.75 : ($cantidad > 2 ? 0.6 : 1));
+    $html = '<div class="belico-armas-elegidas">';
+    foreach ($sel['armas'] as $arma) {
+        $dano = opg_belico_calcular_arma($arma, $atributos, false);
+        $bloqueo = opg_belico_calcular_bloqueo_arma($arma, $atributos, false);
+        $tipos = array();
+        foreach (opg_belico_tipos_arma($arma) as $tipo) { $tipos[] = $etiquetas[$tipo]; }
+        $meta = array();
+        if ($tipos) { $meta[] = ucfirst(implode(', ', $tipos)); }
+        if ((int) $arma['tier'] > 0) { $meta[] = 'Tier ' . (int) $arma['tier']; }
+        if (trim((string) $arma['alcance']) !== '') { $meta[] = trim((string) $arma['alcance']); }
+        $html .= '<article class="belico-arma-tarjeta"><h4>' . htmlspecialchars(opg_belico_nombre_arma($arma), ENT_QUOTES, 'UTF-8') . '</h4>'
+            . '<small>' . htmlspecialchars(implode(' · ', $meta), ENT_QUOTES, 'UTF-8') . '</small>'
+            . '<p>Daño base <strong>' . (int) $dano['valor'] . '</strong> · Bloqueo base <strong>' . (int) $bloqueo['valor'] . '</strong></p>';
+        if ($multiplicador !== 1) {
+            $sin_bono = $sel['configuracion'] === 'dos_manos' && array_intersect(opg_belico_tipos_arma($arma), opg_belico_tipos_sin_bono_dos_manos());
+            if ($sel['configuracion'] === 'dos_manos') {
+                $html .= '<p><small>' . ($sin_bono ? 'Sin bono de dos manos.' : 'A dos manos (+50%): ' . (int) ceil($dano['valor'] * 1.5) . ' de daño y ' . (int) ceil($bloqueo['valor'] * 1.5) . ' de bloqueo.') . '</small></p>';
+            } else {
+                $html .= '<p><small>Aporta al ' . (int) round($multiplicador * 100) . '% en esta configuración: ' . (int) ceil($dano['valor'] * $multiplicador) . ' de daño y ' . (int) ceil($bloqueo['valor'] * $multiplicador) . ' de bloqueo.</small></p>';
+            }
+        }
+        if (trim((string) $arma['efecto']) !== '') {
+            $html .= '<p><small>' . htmlspecialchars(trim((string) $arma['efecto']), ENT_QUOTES, 'UTF-8') . '</small></p>';
+        }
+        $html .= '</article>';
+    }
+    return $html . '</div>';
+}
+
+// "9 de 12" / "supera tu máximo": coste de la técnica frente a los recursos máximos del personaje.
+function belico_texto_coste($nombre, $valor, $maximo)
+{
+    $valor = trim((string) $valor);
+    if ($valor === '' || $valor === '0') { return array('', false); }
+    $texto = $nombre . ' ' . $valor;
+    $excede = false;
+    if ($maximo !== null && is_numeric($valor)) {
+        $texto .= ' (máx. ' . (int) $maximo . ')';
+        $excede = (int) $valor > (int) $maximo;
+    }
+    return array($texto, $excede);
+}
+
+function belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos, $recursos = null)
+{
+    $sel       = belico_leer_seleccion_armas($mybb, $armas);
+    $distancia = max(0, (int) $mybb->get_input('distancia', MyBB::INPUT_INT));
+    $golpe     = opg_belico_calcular_golpe_basico($sel['armas'], $atributos, $sel['configuracion']);
+    $bloqueo   = opg_belico_calcular_bloqueo_basico($sel['armas'], $atributos, $sel['configuracion']);
+    $ta        = opg_belico_calcular_tasa_acierto($sel['armas'], $atributos, $distancia);
+
+    $tid_tec = trim((string) $mybb->get_input('tecnica', MyBB::INPUT_STRING));
+    $tec = ($tid_tec !== '' && isset($tecnicas[$tid_tec])) ? $tecnicas[$tid_tec] : null;
+
+    // Avisos: configuración, requisitos del arma y requisito de arma de la técnica.
+    $avisos = opg_belico_avisos_armas($sel, $atributos);
+    if ($tec) {
+        $requeridos = opg_belico_tipos_requeridos_tecnica($tec);
+        $tipos_elegidos = array();
+        foreach ($sel['armas'] as $arma) { $tipos_elegidos = array_merge($tipos_elegidos, opg_belico_tipos_arma($arma)); }
+        $tipos_elegidos = opg_belico_tipos_con_comodin($tipos_elegidos);
+        $etiquetas = opg_belico_etiquetas_tipos_arma();
+        $estilo_tec = trim((string) $tec['rama']) !== '' && mb_strtolower((string) $tec['rama'], 'UTF-8') !== 'única' ? $tec['rama'] : $tec['estilo'];
+        if ($requeridos === array() && $sel['armas']) {
+            $avisos[] = array('nivel' => 'aviso', 'texto' => 'Esta técnica (' . $estilo_tec . ') no se usa con armas.');
+        } elseif ($requeridos && $sel['armas'] && !array_intersect($requeridos, $tipos_elegidos)) {
+            $nombres_req = array();
+            foreach ($requeridos as $tipo) { $nombres_req[] = $etiquetas[$tipo]; }
+            $avisos[] = array('nivel' => 'aviso', 'texto' => 'Esta técnica (' . $estilo_tec . ') requiere armas de ' . implode(', ', $nombres_req) . ' y tu arma no es de ese tipo.');
+        } elseif ($requeridos && !$sel['armas'] && !in_array('corporal', $requeridos, true)) {
+            $nombres_req = array();
+            foreach ($requeridos as $tipo) { $nombres_req[] = $etiquetas[$tipo]; }
+            $avisos[] = array('nivel' => 'info', 'texto' => 'Esta técnica (' . $estilo_tec . ') requiere armas de ' . implode(', ', $nombres_req) . ': elige una en la configuración.');
+        }
+    }
+
+    $html = '';
+    if ($avisos) {
+        $html .= '<ul class="belico-avisos-ataque">';
+        foreach ($avisos as $aviso) {
+            $html .= '<li class="belico-aviso-' . $aviso['nivel'] . '"><span aria-hidden="true">' . ($aviso['nivel'] === 'aviso' ? '⚠' : 'ℹ') . '</span> ' . htmlspecialchars($aviso['texto'], ENT_QUOTES, 'UTF-8') . '</li>';
+        }
+        $html .= '</ul>';
+    }
+    $html .= belico_render_tarjetas_armas($sel, $atributos);
+
+    $html .= '<div class="belico-resultados belico-resultados--ataque">';
+    $html .= belico_render_resultado_calculo('Golpe básico', $golpe['valor'], 'daño ' . opg_belico_normalizar_tipo($golpe['tipo']) . ' · ' . $golpe['configuracion'],
+        array_merge($golpe['pasos'], array('Total: ' . $golpe['valor'] . ' de daño ' . opg_belico_normalizar_tipo($golpe['tipo']))), 'golpe');
+    $html .= belico_render_resultado_calculo('Bloqueo básico', $bloqueo['valor'], 'mitigación · ' . $bloqueo['configuracion'],
+        array_merge($bloqueo['pasos'], array('Total: ' . $bloqueo['valor'] . ' de mitigación')), 'bloqueo');
+    $html .= belico_render_resultado_calculo('Tasa de acierto', $ta['valor'], 'según tus armas' . ($distancia ? ' · a ' . $distancia . ' m' : ''), array_merge($ta['pasos'], array('Total: ' . $ta['valor'])), 'ta');
+    $html .= '</div>';
+
+    // Resumen de la ofensiva: daño por tipo (técnica o golpe básico), TA y coste. Las pasivas marcadas se suman en el navegador.
+    $resultados = $tec ? opg_belico_calcular_efectos_contextuales($tec['efectos'], $atributos, $golpe, $bloqueo) : array();
+    $danios = array();
+    foreach ($resultados as $resultado) {
+        if (!empty($resultado['es_danio'])) {
+            $tipo = (string) $resultado['tipo'];
+            $danios[$tipo] = (isset($danios[$tipo]) ? $danios[$tipo] : 0) + (int) $resultado['valor'];
+        }
+    }
+    $origen_danio = 'de la técnica';
+    if (empty($danios)) {
+        $danios[opg_belico_normalizar_tipo($golpe['tipo'])] = (int) $golpe['valor'];
+        $origen_danio = $tec ? 'golpe básico (la técnica no inflige daño calculable)' : 'golpe básico';
+    }
+    $base_comun = 0;
+    $base_verdadero = 0;
+    $detalle_tipos = array();
+    foreach ($danios as $tipo => $valor) {
+        if (stripos($tipo, 'verdadero') !== false) { $base_verdadero += $valor; } else { $base_comun += $valor; }
+        $detalle_tipos[] = $valor . ' ' . ($tipo !== '' ? $tipo : 'daño');
+    }
+    $html .= '<div class="belico-resumen" id="belico-resumen" data-base-dano="' . $base_comun . '" data-base-verdadero="' . $base_verdadero . '" data-base-ta="' . (int) $ta['valor'] . '">';
+    $html .= '<h3>Resumen de la ofensiva</h3>';
+    $html .= '<div class="belico-resumen-fila"><span>Daño</span><strong>' . $base_comun . '</strong><small>' . htmlspecialchars($origen_danio . ': ' . implode(' + ', $detalle_tipos), ENT_QUOTES, 'UTF-8') . '</small><span class="belico-con-pasivas" data-belico-resumen="dano"></span></div>';
+    $html .= '<div class="belico-resumen-fila" data-belico-fila="verdadero"' . ($base_verdadero ? '' : ' hidden') . '><span>Daño verdadero</span><strong>' . $base_verdadero . '</strong><span class="belico-con-pasivas" data-belico-resumen="verdadero"></span></div>';
+    $html .= '<div class="belico-resumen-fila"><span>Tasa de acierto</span><strong>' . (int) $ta['valor'] . '</strong><small>' . ($distancia ? 'a ' . $distancia . ' m' : 'sin penalización de distancia') . '</small><span class="belico-con-pasivas" data-belico-resumen="ta"></span></div>';
+    if ($tec) {
+        $partes = array();
+        $excede = array();
+        $max_e = $recursos && isset($recursos['energia_max']) ? $recursos['energia_max'] : null;
+        $max_h = $recursos && isset($recursos['haki_max']) ? $recursos['haki_max'] : null;
+        foreach (array(array('Energía', $tec['energia'], $max_e), array('Energía por turno', $tec['energia_turno'], $max_e), array('Haki', $tec['haki'], $max_h), array('Haki por turno', $tec['haki_turno'], $max_h)) as $coste) {
+            list($texto, $sobrepasa) = belico_texto_coste($coste[0], $coste[1], $coste[2]);
+            if ($texto !== '') { $partes[] = $texto . ($sobrepasa ? ' ⚠ supera tu máximo' : ''); }
+        }
+        if (trim((string) $tec['enfriamiento']) !== '' && trim((string) $tec['enfriamiento']) !== '0') { $partes[] = 'Enfriamiento ' . trim((string) $tec['enfriamiento']) . ' turnos'; }
+        $html .= '<div class="belico-resumen-fila"><span>Coste</span><strong class="belico-resumen-coste">' . htmlspecialchars($partes ? implode(' · ', $partes) : 'Sin coste', ENT_QUOTES, 'UTF-8') . '</strong></div>';
+    }
+    $bloques_pasos = array('Golpe básico' => $golpe['pasos'], 'Bloqueo básico' => $bloqueo['pasos'], 'Tasa de acierto' => $ta['pasos']);
+    foreach ($resultados as $resultado) {
+        $info = opg_belico_detalle_resultado($resultado, $golpe, $bloqueo);
+        $bloques_pasos['Técnica: ' . $info['etiqueta']] = $info['pasos'];
+    }
+    $html .= '<details class="belico-pasos"><summary>Ver cálculo paso a paso</summary>';
+    foreach ($bloques_pasos as $titulo => $pasos) {
+        $html .= '<h4>' . htmlspecialchars($titulo, ENT_QUOTES, 'UTF-8') . '</h4><ol>';
+        foreach ($pasos as $paso) { $html .= '<li>' . htmlspecialchars($paso, ENT_QUOTES, 'UTF-8') . '</li>'; }
+        $html .= '</ol>';
+    }
+    $html .= '</details></div>';
+
+    if ($tec) {
+        $tid_esc = htmlspecialchars($tid_tec, ENT_QUOTES, 'UTF-8');
+        $sust_efectos = opg_belico_sustituciones_texto($tec['efectos'], $atributos, $golpe, $bloqueo);
+        $sust_desc    = opg_belico_sustituciones_texto($tec['descripcion'], $atributos, $golpe, $bloqueo);
+        $html .= '<div class="belico-resultado-texto belico-efectos"><p><strong>[' . $tid_esc . '] ' . htmlspecialchars($tec['nombre'], ENT_QUOTES, 'UTF-8') . '</strong></p>';
+        $meta = belico_meta_tecnica($tec);
+        if ($meta !== '') { $html .= '<p><small>' . htmlspecialchars($meta, ENT_QUOTES, 'UTF-8') . '</small></p>'; }
+        $html .= '<p>' . belico_render_efectos_inline($tec['efectos'], $sust_efectos) . '</p>';
+        if (trim((string) $tec['descripcion']) !== '') {
+            $html .= '<details class="belico-pasiva-desc"><summary>Descripción</summary><p>' . belico_render_efectos_inline($tec['descripcion'], $sust_desc) . '</p></details>';
+        }
+        if (empty($sust_efectos) && empty($sust_desc)) {
+            $html .= '<p><small>Esta técnica no tiene valores que calcular con tu personaje.</small></p>';
+        }
+        if ($tec['grupo'] !== null) {
+            $html .= '<p><button type="button" class="opg-chip" data-belico-usar-en-turno="' . $tid_esc . '">Añadir al turno</button></p>';
+        }
+        $html .= '</div>';
+    }
+    return $html;
+}
+
+function belico_render_resultado_ataque($mybb, $armas, $tecnicas, $atributos, $recursos = null)
+{
+    return belico_render_resultado_ataque_html($mybb, $armas, $tecnicas, $atributos, $recursos);
 }
 
 // ── Reacción ─────────────────────────────────────────────────────────────
@@ -916,6 +978,7 @@ function belico_render_bloque_reaccion($atributos, $tid, $fid)
     $html .= '<div class="af-field"><label for="belico-bloques">Bloques sin cortar</label><input type="number" id="belico-bloques" name="bloques" value="0"></div>';
     $html .= '<div class="af-field"><label for="belico-mantenida">Reflejos de mantenida (este turno)</label><input type="number" id="belico-mantenida" name="mantenida" value="0"></div>';
     $html .= '</form>';
+    $html .= '<p class="belico-nota-pasivas" id="belico-nota-reflejos" hidden></p>';
     $html .= '<div id="res-reaccion" class="belico-resultado-texto" aria-live="polite">';
     $html .= belico_render_resultado_reaccion_html((int) $atributos['REF'], 0, 0, 'no', 0, 0);
     $html .= '</div></section>';
@@ -1020,10 +1083,6 @@ function belico_render_bloque_utilidades($atributos, $tid, $fid)
     $html .= '<div class="af-field"><label>Caída: altura (m)</label><input type="number" name="altura" value="0"></div></form>';
     $html .= '<div id="res-caida">' . belico_render_resultado_caida_html(0, (int) $atributos['FUE'], (int) $atributos['RES']) . '</div></div>';
 
-    $html .= '<div class="belico-utilidad"><h3>Iniciativa</h3><form class="af-row" hx-get="belico.php" hx-vals=\'{"accion":"iniciativa"}\' hx-target="#res-iniciativa" hx-trigger="input changed delay:300ms" hx-swap="innerHTML">' . $oculto;
-    $html .= '<div class="af-field"><label>Iniciativa: Atributos del rival (coma)</label><input type="text" name="rival_attrs" placeholder="50,50,50,50,50,50,50"></div></form>';
-    $html .= '<div id="res-iniciativa"></div></div>';
-
     $html .= '<div class="belico-utilidad"><h3>Asfixia</h3><p>Resiste <strong>' . (int) floor($atributos['RES'] / belico_reglas()['asfixia_cada']) . '</strong> turno(s).</p></div>';
 
     $html .= '<div class="belico-utilidad"><h3>Lanzamiento</h3><form class="af-row" hx-get="belico.php" hx-vals=\'{"accion":"lanzamiento"}\' hx-target="#res-lanzamiento" hx-trigger="input changed delay:300ms" hx-swap="innerHTML">' . $oculto;
@@ -1040,32 +1099,179 @@ function belico_render_bloque_utilidades($atributos, $tid, $fid)
     return $html;
 }
 
-function belico_render_bloque_pasivas($tecnicas)
+// Las "Senda" son los bonos fijos de atributo de cada disciplina: ya están sumados a la ficha, no se marcan por turno.
+function belico_es_senda($tecnica)
 {
-    $pasivas = array();
+    return mb_stripos((string) $tecnica['nombre'], 'senda', 0, 'UTF-8') !== false;
+}
+
+function belico_es_pasiva($tecnica)
+{
+    return stripos((string) $tecnica['clase'] . ' ' . (string) $tecnica['tipo'], 'pasiva') !== false && !belico_es_senda($tecnica);
+}
+
+function belico_origen_pasiva($tecnica)
+{
+    $estilo = mb_strtolower(trim((string) $tecnica['estilo']), 'UTF-8');
+    if ($estilo === 'racial') { return 'Raciales'; }
+    if ($estilo === 'especial') { return 'Especiales'; }
+    $disciplinas = array('arquero', 'artillero', 'artista', 'artista marcial', 'asesino', 'combatiente', 'elemental', 'escudero', 'espadachín', 'guerrero', 'pícaro', 'tecnicista', 'tirador');
+    return in_array($estilo, $disciplinas, true) ? 'Disciplinas' : 'Estilos y únicas';
+}
+
+// Condiciones que el texto menciona (solo informativas: la página no las comprueba, ver la descripción).
+function belico_condiciones_texto($tecnica)
+{
+    $t = (string) $tecnica['descripcion'] . ' ' . (string) $tecnica['efectos'];
+    $etiquetas = array();
+    if (preg_match('/(umbral|\d+\s*%)[^.]{0,60}(vitalidad|vida)|(vitalidad|vida)[^.]{0,60}(umbral|\d+\s*%)/iu', $t)) { $etiquetas[] = 'Vitalidad'; }
+    if (preg_match('/m[aá]s de \d+\s*metros|desde[^.]{0,20}\d+\s*metros|a distancia/iu', $t)) { $etiquetas[] = 'Distancia'; }
+    if (preg_match('/\b(salto|desplazamiento|carga|embestida|impulso)\b/iu', $t)) { $etiquetas[] = 'Movimiento previo'; }
+    if (preg_match('/si el (adversario|enemigo|objetivo)|quemadura|derribo|sangrado|aturd|asfixia|congel|veneno|hemorragia/iu', $t)) { $etiquetas[] = 'Estado del objetivo'; }
+    if (preg_match('/resto del combate/iu', $t)) { $etiquetas[] = 'Dura el resto del combate'; }
+    if (preg_match('/por turno|cada turno/iu', $t)) { $etiquetas[] = 'Por turno'; }
+    $hay_max = preg_match('/m[aá]ximo de (\d+)/iu', $t, $max);
+    if ($hay_max || preg_match('/acumul/iu', $t)) {
+        $etiquetas[] = $hay_max ? 'Acumulable (máx. ' . $max[1] . ')' : 'Acumulable';
+    }
+    if (preg_match('/dado de/iu', $t)) { $etiquetas[] = 'Dado'; }
+    return $etiquetas;
+}
+
+// Lista de pasivas agrupada por origen, con el efecto calculado con tus atributos y la descripción plegable.
+// $marcadas: tid => true (se conservan al volver a dibujar la lista cuando cambian los atributos).
+function belico_render_lista_pasivas($tecnicas, $atributos, $marcadas)
+{
+    $orden  = array('Disciplinas', 'Estilos y únicas', 'Raciales', 'Especiales');
+    $grupos = array_fill_keys($orden, array());
     foreach ($tecnicas as $tecnica) {
-        $clasificacion = (string) $tecnica['clase'] . ' ' . (string) $tecnica['tipo'];
-        if (stripos($clasificacion, 'pasiva') !== false) {
-            $pasivas[] = $tecnica;
-        }
+        if (belico_es_pasiva($tecnica)) { $grupos[belico_origen_pasiva($tecnica)][] = $tecnica; }
+    }
+    $total = 0;
+    foreach ($grupos as $lista) { $total += count($lista); }
+    if ($total === 0) {
+        return '<div class="opg-vacio"><p>No hay técnicas pasivas aprendidas para seleccionar.</p></div>';
     }
 
-    $html = '<section class="belico-modulo belico-pasivas" id="belico-pasivas"><h2>Pasivas del turno</h2>';
-    $html .= '<p class="belico-turno-intro">Marca únicamente las pasivas que estén aplicando en este turno y copia el bloque para incluirlo en tu post.</p>';
-    if (empty($pasivas)) {
-        $html .= '<div class="opg-vacio"><p>No hay técnicas pasivas aprendidas para seleccionar.</p></div>';
-    } else {
-        $html .= '<div class="belico-pasivas-lista" role="group" aria-label="Pasivas aplicadas este turno">';
-        foreach ($pasivas as $tecnica) {
-            $tid = htmlspecialchars((string) $tecnica['tid'], ENT_QUOTES, 'UTF-8');
+    $vacio_golpe = array('valor' => 0, 'tipo' => '', 'pasos' => array(), 'configuracion' => '');
+    $html = '';
+    foreach ($orden as $origen) {
+        if (empty($grupos[$origen])) { continue; }
+        usort($grupos[$origen], function ($a, $b) {
+            $c = strcmp((string) $a['estilo'], (string) $b['estilo']);
+            if ($c !== 0) { return $c; }
+            $d = belico_orden_tier($a) - belico_orden_tier($b);
+            return $d !== 0 ? $d : strcmp((string) $a['tid'], (string) $b['tid']);
+        });
+        $con_marcadas = false;
+        $items = '';
+        foreach ($grupos[$origen] as $tecnica) {
+            $tid = (string) $tecnica['tid'];
+            $tid_esc = htmlspecialchars($tid, ENT_QUOTES, 'UTF-8');
             $nombre = htmlspecialchars((string) $tecnica['nombre'], ENT_QUOTES, 'UTF-8');
-            $detalle = htmlspecialchars(trim((string) $tecnica['clase'] . ' · ' . (string) $tecnica['tipo'], ' ·'), ENT_QUOTES, 'UTF-8');
-            $html .= '<label class="opg-card belico-pasiva-item"><input type="checkbox" value="' . $tid . '" data-belico-pasiva data-belico-pasiva-nombre="' . $nombre . '"><span class="belico-pasiva-control" aria-hidden="true"></span><span><strong>' . $nombre . '</strong><small>' . $detalle . '</small></span></label>';
+            $marcada = isset($marcadas[$tid]);
+            if ($marcada) { $con_marcadas = true; }
+
+            $sust_efectos = opg_belico_sustituciones_texto((string) $tecnica['efectos'], $atributos, $vacio_golpe, $vacio_golpe);
+            $sust_desc    = opg_belico_sustituciones_texto((string) $tecnica['descripcion'], $atributos, $vacio_golpe, $vacio_golpe);
+            // Para copiar al post: el efecto con los valores puestos (solo si hay algo calculado).
+            $texto_calculado = $sust_efectos ? trim(preg_replace('/\s+/', ' ', opg_belico_aplicar_valores((string) $tecnica['efectos'], $sust_efectos))) : '';
+
+            $meta = array();
+            if (trim((string) $tecnica['estilo']) !== '') { $meta[] = trim((string) $tecnica['estilo']); }
+            if (trim((string) $tecnica['tier']) !== '') { $meta[] = 'Tier ' . trim((string) $tecnica['tier']); }
+            if (preg_match('/^(?:RAC|TRI)\d+$/', $tid)) { $meta[] = 'bono de atributos ya aplicado'; }
+            $buscar = htmlspecialchars(mb_strtolower($tecnica['nombre'] . ' ' . $tid . ' ' . $tecnica['estilo'], 'UTF-8'), ENT_QUOTES, 'UTF-8');
+
+            $armas_req = belico_condicion_arma_pasiva($tecnica);
+            $bonos = opg_belico_extraer_bonos((string) $tecnica['efectos'], $atributos);
+            $json_bonos = htmlspecialchars(json_encode($bonos, JSON_UNESCAPED_UNICODE) ?: '[]', ENT_QUOTES, 'UTF-8');
+            $items .= '<div class="opg-card belico-pasiva-item" data-buscar="' . $buscar . '" data-bonos="' . $json_bonos . '"' . (($sust_efectos || $bonos) ? ' data-valor="1"' : '') . ($armas_req ? ' data-armas="' . implode(',', $armas_req) . '"' : '') . '>'
+                . '<label class="belico-pasiva-marca"><input type="checkbox" name="pasivas[]" value="' . $tid_esc . '" data-belico-pasiva data-belico-pasiva-nombre="' . $nombre . '" data-belico-pasiva-origen="' . htmlspecialchars($origen, ENT_QUOTES, 'UTF-8') . '" data-belico-pasiva-efecto="' . htmlspecialchars($texto_calculado, ENT_QUOTES, 'UTF-8') . '"' . ($marcada ? ' checked' : '') . '>'
+                . '<span class="belico-pasiva-control" aria-hidden="true"></span><span><strong>' . $nombre . '</strong><small>' . htmlspecialchars(implode(' · ', $meta), ENT_QUOTES, 'UTF-8') . '</small></span></label>';
+            if (trim((string) $tecnica['efectos']) !== '') {
+                $items .= '<p class="belico-pasiva-efecto">' . belico_render_efectos_inline($tecnica['efectos'], $sust_efectos) . '</p>';
+            }
+            if ($armas_req) {
+                $etiquetas_arma = belico_etiquetas_tipos_arma();
+                $nombres_arma = array();
+                foreach ($armas_req as $tipo_arma) { $nombres_arma[] = $etiquetas_arma[$tipo_arma]; }
+                $items .= '<p class="belico-pasiva-arma">Arma: ' . htmlspecialchars(implode(', ', $nombres_arma), ENT_QUOTES, 'UTF-8') . ' <span class="belico-arma-estado"></span></p>';
+            }
+            $condiciones = belico_condiciones_texto($tecnica);
+            if ($condiciones) {
+                $items .= '<p class="belico-pasiva-condiciones" title="Detectado por el texto de la pasiva; revisa la descripción para confirmarlo.">';
+                foreach ($condiciones as $condicion) { $items .= '<span class="belico-etiqueta">' . htmlspecialchars($condicion, ENT_QUOTES, 'UTF-8') . '</span>'; }
+                $items .= '</p>';
+            }
+            if (trim((string) $tecnica['descripcion']) !== '') {
+                $items .= '<details class="belico-pasiva-desc"><summary>Descripción</summary><p>' . belico_render_efectos_inline((string) $tecnica['descripcion'], $sust_desc) . '</p></details>';
+            }
+            $items .= '</div>';
         }
-        $html .= '</div>';
-        $html .= '<div class="belico-pasivas-pie"><span id="belico-pasivas-resumen" aria-live="polite">0 pasivas seleccionadas</span><button type="button" class="btn-op btn-op--secundario btn-op--sm" id="belico-copiar-pasivas">Copiar pasivas</button></div>';
-        $html .= '<textarea id="belico-pasivas-textarea" hidden aria-label="Pasivas para copiar al post"></textarea>';
+        // Raciales son muchas: van cerradas salvo que tengan alguna marcada.
+        $abierto = ($origen !== 'Raciales' || $con_marcadas) ? ' open' : '';
+        $html .= '<details class="belico-pasiva-grupo"' . $abierto . '><summary>' . htmlspecialchars($origen, ENT_QUOTES, 'UTF-8') . ' (' . count($grupos[$origen]) . ')</summary>'
+            . '<div class="belico-pasivas-lista">' . $items . '</div></details>';
     }
+    return $html;
+}
+
+function belico_render_bloque_pasivas($tecnicas, $atributos, $armas)
+{
+    $html = '<section class="belico-modulo belico-pasivas" id="belico-pasivas"><h2>Pasivas del turno</h2>';
+    $html .= '<p class="belico-turno-intro">Marca únicamente las pasivas que estén aplicando en este turno y copia el bloque para incluirlo en tu post. Los valores se calculan con tus atributos. Las "Senda" no aparecen: sus bonos ya están sumados a tu ficha.</p>';
+    $html .= '<div class="belico-pasivas-controles">' . belico_render_vista_toggle()
+        . '<div class="belico-vista" role="group" aria-label="Densidad de la lista"><button type="button" data-belico-densidad="tarjetas" aria-pressed="true">Tarjetas</button><button type="button" data-belico-densidad="compacta" aria-pressed="false">Compacta</button></div></div>';
+
+    // Tipo de arma que llevas este turno (independiente de Ataque y del Constructor). Solo salen los tipos
+    // de las armas de tu inventario; con eso se sabe qué pasivas con condición de arma aplican.
+    $por_tipo = array();
+    foreach ($armas as $arma) {
+        foreach (belico_tipos_arma($arma) as $tipo_arma) { $por_tipo[$tipo_arma][] = opg_belico_nombre_arma($arma); }
+    }
+    $etiquetas_arma = belico_etiquetas_tipos_arma();
+    $html .= '<div class="belico-pasivas-armas" role="group" aria-label="Tipo de arma que llevas este turno"><span class="belico-pasivas-armas-titulo">Arma en mano:</span>';
+    $hay_tipos = false;
+    foreach ($etiquetas_arma as $tipo_arma => $etiqueta_arma) {
+        if (empty($por_tipo[$tipo_arma])) { continue; }
+        $hay_tipos = true;
+        $lista = implode(', ', array_unique($por_tipo[$tipo_arma]));
+        $html .= '<label class="belico-arma-chip" title="' . htmlspecialchars($lista, ENT_QUOTES, 'UTF-8') . '"><input type="checkbox" value="' . $tipo_arma . '" data-belico-pasivas-tipo><span>' . htmlspecialchars(ucfirst($etiqueta_arma), ENT_QUOTES, 'UTF-8') . ' (' . count($por_tipo[$tipo_arma]) . ')</span></label>';
+    }
+    if (!$hay_tipos) {
+        $html .= '<span class="belico-pasivas-armas-vacio">no tienes armas con un tipo reconocido en el inventario</span>';
+    }
+    $html .= '<button type="button" class="opg-chip" id="belico-marcar-aplicables" title="Marca las pasivas con condición de arma que aplican a los tipos elegidos">Marcar las que aplican</button>'
+        . '<button type="button" class="opg-chip" id="belico-deshacer-pasivas" hidden>Deshacer</button>';
+    $html .= '</div>';
+
+    // Conjuntos guardados en el navegador (selección con nombre que se aplica de un clic).
+    $html .= '<div class="belico-pasivas-conjuntos"><span class="belico-pasivas-armas-titulo">Conjuntos:</span>'
+        . '<select id="belico-conjuntos" aria-label="Conjuntos de pasivas guardados"><option value="">(ninguno guardado)</option></select>'
+        . '<button type="button" class="opg-chip" id="belico-conjunto-aplicar">Aplicar</button>'
+        . '<button type="button" class="opg-chip" id="belico-conjunto-guardar">Guardar selección como...</button>'
+        . '<button type="button" class="opg-chip" id="belico-conjunto-borrar">Borrar</button></div>';
+
+    $html .= '<div class="belico-pasivas-buscador"><input type="search" id="belico-pasivas-buscar" placeholder="Buscar pasiva por nombre, código o estilo..." autocomplete="off" aria-label="Buscar pasiva">'
+        . '<label class="belico-tecnica-solo"><input type="checkbox" id="belico-pasivas-solo-aplican"> Solo las que aplican con mi arma</label>'
+        . '<label class="belico-tecnica-solo"><input type="checkbox" id="belico-pasivas-solo-marcadas"> Solo marcadas</label>'
+        . '<label class="belico-tecnica-solo"><input type="checkbox" id="belico-pasivas-solo-valor"> Solo con valor calculado</label></div>';
+
+    // Barra fija con lo que llevas marcado, los bonos sumados y las acciones.
+    $html .= '<div class="belico-pasivas-barra" id="belico-pasivas-barra">'
+        . '<div class="belico-pasivas-barra-fila"><span id="belico-pasivas-resumen" aria-live="polite">0 pasivas seleccionadas</span>'
+        . '<span class="belico-pasivas-acciones"><button type="button" class="opg-chip" id="belico-limpiar-pasivas">Turno nuevo</button>'
+        . '<button type="button" class="btn-op btn-op--secundario btn-op--sm" id="belico-copiar-pasivas">Copiar pasivas</button>'
+        . '<span id="belico-pasivas-aviso" class="belico-pasivas-aviso" aria-live="polite"></span></span></div>'
+        . '<div id="belico-pasivas-chips" class="belico-pasivas-chips"></div>'
+        . '<div id="belico-pasivas-bonos" class="belico-pasivas-bonos"></div></div>';
+
+    $html .= '<div id="belico-pasivas-contenido" hx-get="belico.php" hx-vals=\'{"accion":"pasivas"}\' hx-include="#belico-atributos,[data-belico-pasiva]:checked" hx-trigger="change from:#belico-atributos, input from:#belico-atributos delay:300ms" hx-swap="innerHTML">';
+    $html .= belico_render_lista_pasivas($tecnicas, $atributos, array());
+    $html .= '</div>';
+    $html .= '<details class="belico-pasivas-previa"><summary>Texto que se copia al post</summary><pre id="belico-pasivas-previa">Selecciona al menos una pasiva.</pre></details>';
+    $html .= '<textarea id="belico-pasivas-textarea" hidden aria-label="Pasivas para copiar al post"></textarea>';
     $html .= '</section>';
     return $html;
 }
@@ -1114,44 +1320,460 @@ function belico_render_resultado_agarre($mybb, $atributos)
     );
 }
 
-function belico_render_resultado_iniciativa($mybb, $atributos)
+// ── Turno: cálculo en el servidor ────────────────────────────────────────
+
+// Normaliza el turno que llega del navegador: solo ids conocidos, números acotados y límites de tamaño.
+function belico_normalizar_turno($crudo, $tecnicas)
 {
-    $rival_raw = (string) $mybb->get_input('rival_attrs', MyBB::INPUT_STRING);
-    $partes    = array_filter(array_map('trim', explode(',', $rival_raw)), function ($v) { return $v !== ''; });
-    if (count($partes) < 2) {
-        return belico_render_aviso('Ingresa los atributos del rival separados por coma (ej. 50,50,50,50,50,50,50).', 'err');
+    $t = is_array($crudo) ? $crudo : array();
+    $entero = function ($valor, $maximo) { return max(0, min($maximo, (int) $valor)); };
+    $tids = function ($lista, $filtro = null) use ($tecnicas) {
+        $salida = array();
+        if (is_array($lista)) {
+            foreach ($lista as $tid) {
+                if (!is_scalar($tid)) { continue; }
+                $tid = (string) $tid;
+                if (isset($tecnicas[$tid]) && ($filtro === null || $filtro($tecnicas[$tid])) && !in_array($tid, $salida, true)) { $salida[] = $tid; }
+            }
+        }
+        return $salida;
+    };
+    $acciones = opg_belico_acciones_turno();
+    $texto = function ($valor) { return is_scalar($valor) ? (string) $valor : ''; };
+    $recursos = isset($t['recursos']) && is_array($t['recursos']) ? $t['recursos'] : array();
+    $equipo = isset($t['equipo']) && is_array($t['equipo']) ? $t['equipo'] : array();
+    // El nombre va dentro de [spoiler=...]: sin corchetes ni signos que rompan la etiqueta.
+    $nombre = mb_substr(trim(str_replace(array('[', ']', '='), array('(', ')', '-'), $texto(isset($t['nombre']) ? $t['nombre'] : ''))), 0, 60, 'UTF-8');
+    $norm = array(
+        'nombre' => $nombre !== '' ? $nombre : 'Turno',
+        'equipo' => array(
+            'configuracion' => $texto(isset($equipo['configuracion']) ? $equipo['configuracion'] : 'sin_arma'),
+            'armas' => array_slice(array_map('strval', array_filter(isset($equipo['armas']) && is_array($equipo['armas']) ? $equipo['armas'] : array(), 'is_scalar')), 0, 3),
+        ),
+        'pasivas' => $tids(isset($t['pasivas']) ? $t['pasivas'] : array(), 'belico_es_pasiva'),
+        'recursos' => array(
+            'vida' => $entero(isset($recursos['vida']) ? $recursos['vida'] : 0, 999999),
+            'energia' => $entero(isset($recursos['energia']) ? $recursos['energia'] : 0, 999999),
+            'haki' => $entero(isset($recursos['haki']) ? $recursos['haki'] : 0, 999999),
+        ),
+        'adicionales_extra' => $entero(isset($t['adicionales_extra']) ? $t['adicionales_extra'] : 0, 20),
+        'enfriamientos' => array(),
+        'continuan' => $tids(isset($t['continuan']) ? $t['continuan'] : array()),
+        'instantaneas' => $tids(isset($t['instantaneas']) ? $t['instantaneas'] : array()),
+        'bloques' => array(),
+    );
+    if (isset($t['enfriamientos']) && is_array($t['enfriamientos'])) {
+        foreach ($t['enfriamientos'] as $tid => $turnos) {
+            $tid = (string) $tid;
+            if (isset($tecnicas[$tid]) && is_scalar($turnos) && $entero($turnos, 99) > 0) { $norm['enfriamientos'][$tid] = $entero($turnos, 99); }
+        }
     }
-    $rival = array();
-    foreach ($partes as $p) { $rival[] = (int) $p; }
-    $resultado = belico_calc_iniciativa($atributos, $rival);
-    if ($resultado === 'empate') {
-        return '<p>Empate completo: se tira un dado de 100, el que saque más alto elige quién empieza.</p>';
+    $lista_bloques = isset($t['bloques']) && is_array($t['bloques']) ? array_slice($t['bloques'], 0, 30) : array();
+    foreach ($lista_bloques as $b) {
+        if (!is_array($b)) { continue; }
+        $pasos = array();
+        $lista_pasos = isset($b['pasos']) && is_array($b['pasos']) ? array_slice($b['pasos'], 0, 12) : array();
+        foreach ($lista_pasos as $p) {
+            if (!is_array($p)) { continue; }
+            if (isset($p['accion']) && is_scalar($p['accion'])) {
+                if (isset($acciones[(string) $p['accion']])) { $pasos[] = array('t' => 'accion', 'accion' => (string) $p['accion']); }
+            } elseif (isset($p['tid']) && is_scalar($p['tid']) && isset($tecnicas[(string) $p['tid']]) && !belico_es_pasiva($tecnicas[(string) $p['tid']])) {
+                $pasos[] = array('t' => 'tecnica', 'tid' => (string) $p['tid'], 'aplicar_bonos' => !isset($p['aplicar_bonos']) || (bool) $p['aplicar_bonos']);
+            }
+        }
+                $detalle = str_replace(array('[', ']'), array('(', ')'), mb_substr(trim($texto(isset($b['detalle']) ? $b['detalle'] : '')), 0, 300, 'UTF-8'));
+        $reaccion = isset($b['reaccion']) && is_array($b['reaccion']) ? $b['reaccion'] : array();
+        $sorpresa = $texto(isset($reaccion['sorpresa']) ? $reaccion['sorpresa'] : 'no');
+        $norm['bloques'][] = array(
+            'anterior' => !empty($b['anterior']),
+            'interrumpido' => !empty($b['interrumpido']),
+            'reaccion' => array(
+                'ta' => $entero(isset($reaccion['ta']) ? $reaccion['ta'] : 0, 9999),
+                'distancia' => $entero(isset($reaccion['distancia']) ? $reaccion['distancia'] : 0, 9999),
+                'sorpresa' => in_array($sorpresa, array('no', 'detectado', 'sin_detectar'), true) ? $sorpresa : 'no',
+                'ref_extra' => $entero(isset($reaccion['ref_extra']) ? $reaccion['ref_extra'] : 0, 9999),
+                'corto' => !empty($reaccion['corto']),
+            ),
+            'mov_previo' => $entero(isset($b['mov_previo']) ? $b['mov_previo'] : 0, 9999),
+            'mov_posterior' => $entero(isset($b['mov_posterior']) ? $b['mov_posterior'] : 0, 9999),
+            'pasos' => $pasos,
+            'pasivas_mas' => $tids(isset($b['pasivas_mas']) ? $b['pasivas_mas'] : array(), 'belico_es_pasiva'),
+            'pasivas_menos' => $tids(isset($b['pasivas_menos']) ? $b['pasivas_menos'] : array()),
+            'detalle' => $detalle,
+        );
     }
-    return '<p>Empieza: <strong>' . ($resultado === 'A' ? 'Tu personaje' : 'El rival') . '</strong>.</p>';
+    return $norm;
 }
 
-// ── Constructor del turno y copiar al post ───────────────────────────────
-
-function belico_render_bloque_registro($movimiento)
+function belico_texto_coste_turno($coste)
 {
-    $html  = '<section class="belico-modulo belico-registro-seccion belico-turno" id="belico-registro-seccion"><h2>Constructor del turno</h2>';
-    $html .= '<p class="belico-turno-intro">Define los bloques en orden cronológico. El constructor solo permite las combinaciones previstas por la guía.</p>';
-    $html .= '<div class="belico-turno-config af-row">';
-    $html .= '<div class="af-field"><label for="belico-turno-nombre">Nombre del turno</label><input type="text" id="belico-turno-nombre" value="Turno" maxlength="60"></div>';
-    $html .= '<div class="af-field"><label for="belico-movimiento-limite">Movimiento disponible</label><input type="number" id="belico-movimiento-limite" value="' . (int) $movimiento . '" min="0"><small>Máximo del turno; ajústalo si un efecto lo modifica.</small></div>';
-    $html .= '<div class="af-field"><label for="belico-adicionales-limite">Acciones adicionales</label><input type="number" id="belico-adicionales-limite" value="3" min="0"><small>Base: 3; ajústalo si una pasiva concede más.</small></div>';
+    $partes = array();
+    if ($coste['energia'] > 0) { $partes[] = '-' . $coste['energia'] . ' de energía'; }
+    if ($coste['haki'] > 0) { $partes[] = '-' . $coste['haki'] . ' de haki'; }
+    return implode(', ', $partes);
+}
+
+/**
+ * Calcula el turno completo: costes y recursos bloque a bloque, daño, TA, límites de la guía (como avisos) y el
+ * texto para el post. No guarda nada. Devuelve la estructura que el navegador pinta.
+ */
+function belico_calcular_turno($estado, $tecnicas, $armas, $atributos, $maximos = array())
+{
+    $max_energia = isset($maximos['energia_max']) ? (int) $maximos['energia_max'] : null;
+    $max_haki = isset($maximos['haki_max']) ? (int) $maximos['haki_max'] : null;
+    $esc = function ($t) { return htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8'); };
+    $etiquetas_acciones = opg_belico_acciones_turno();
+    $sel = opg_belico_seleccionar_armas($armas, $estado['equipo']['configuracion'], $estado['equipo']['armas']);
+    $golpe = opg_belico_calcular_golpe_basico($sel['armas'], $atributos, $sel['configuracion']);
+    $bloqueo = opg_belico_calcular_bloqueo_basico($sel['armas'], $atributos, $sel['configuracion']);
+    $ta = opg_belico_calcular_tasa_acierto($sel['armas'], $atributos, 0);
+    $tipo_golpe = opg_belico_normalizar_tipo($golpe['tipo']);
+    $tipos_equipo = array();
+    foreach ($sel['armas'] as $arma) { $tipos_equipo = array_merge($tipos_equipo, opg_belico_tipos_arma($arma)); }
+    $tipos_equipo = opg_belico_tipos_con_comodin($tipos_equipo);
+    $estadisticas = belico_calc_estadisticas($atributos);
+    $max_movimiento = (int) $estadisticas['movimiento'];
+    $limite_adicionales = 3 + $estado['adicionales_extra'];
+
+    $avisos = array();
+    foreach (opg_belico_avisos_armas($sel, $atributos) as $aviso) { $avisos[] = $aviso['texto']; }
+
+    // Bonos numéricos de una lista de pasivas, descartando las que no aplican con el arma del equipo.
+    $bonos_de = function ($tids) use ($tecnicas, $tipos_equipo, $atributos) {
+        $suma = array();
+        foreach ($tids as $tid) {
+            $requeridos = belico_condicion_arma_pasiva($tecnicas[$tid]);
+            if ($requeridos && !array_intersect($requeridos, $tipos_equipo)) { continue; }
+            foreach (opg_belico_extraer_bonos((string) $tecnicas[$tid]['efectos'], $atributos) as $bono) {
+                $clave = $bono['k'] . ($bono['p'] ? '%' : '');
+                $suma[$clave] = (isset($suma[$clave]) ? $suma[$clave] : 0) + $bono['v'];
+            }
+        }
+        return $suma;
+    };
+    $nombre_tec = function ($tid) use ($tecnicas, $esc) { return '[' . $esc($tid) . '] ' . $esc($tecnicas[$tid]['nombre']); };
+
+    $energia = $estado['recursos']['energia'];
+    $haki = $estado['recursos']['haki'];
+    $usadas = array();
+    $mantenidas_siguiente = array();
+    $enfriamientos = array();
+    $falta_recursos = false;
+
+    // Inicio del turno: enfriamientos que arrastras, mantenidas que continúan (coste por turno) e instantáneas de inicio.
+    $lineas_inicio = array();
+    foreach ($estado['enfriamientos'] as $tid => $turnos) {
+        $lineas_inicio[] = 'En enfriamiento: ' . $nombre_tec($tid) . ' (' . $turnos . ' turno' . ($turnos === 1 ? '' : 's') . ')';
+    }
+    $bb_continuan = array();
+    $bb_instantaneas = array();
+    foreach ($estado['continuan'] as $tid) {
+        $coste = opg_belico_coste_tecnica($tecnicas[$tid], true);
+        $energia -= $coste['energia'];
+        $haki -= $coste['haki'];
+        $mantenidas_siguiente[$tid] = true;
+        $texto = belico_texto_coste_turno($coste);
+        $lineas_inicio[] = 'Continúa ' . $nombre_tec($tid) . ($texto !== '' ? ' (' . $texto . ' por turno)' : '');
+        $bb_continuan[] = '[tecnica=' . $tid . ']' . ($texto !== '' ? ' (' . $texto . ' por turno)' : '');
+    }
+    foreach ($estado['instantaneas'] as $tid) {
+        $coste = opg_belico_coste_tecnica($tecnicas[$tid], false);
+        $energia -= $coste['energia'];
+        $haki -= $coste['haki'];
+        $usadas[$tid] = 'inicio';
+        if (opg_belico_es_mantenida($tecnicas[$tid])) { $mantenidas_siguiente[$tid] = true; }
+        if ($coste['enfriamiento'] > 0) { $enfriamientos[$tid] = $coste['enfriamiento']; }
+        $texto = belico_texto_coste_turno($coste);
+        $lineas_inicio[] = 'Instantánea ' . $nombre_tec($tid) . ($texto !== '' ? ' (' . $texto . ')' : '');
+        foreach ($coste['avisos'] as $a) { $avisos[] = $tecnicas[$tid]['nombre'] . ': ' . $a; }
+        $bb_instantaneas[] = '[tecnica=' . $tid . ']' . ($texto !== '' ? ' (' . $texto . ')' : '');
+    }
+    if ($energia < 0 || $haki < 0) { $avisos[] = 'Los costes del inicio del turno superan tus recursos.'; $falta_recursos = true; }
+
+    $bloques = array();
+    $texto_bloques = array();
+    $mov_total = 0;
+    $adicionales = 0;
+    $n_anterior = 0;
+    $n_actual = 0;
+    $sin_cortar = 0;
+    $hay_actual = false;
+    foreach ($estado['bloques'] as $i => $bloque) {
+        $n = $i + 1;
+        $es_anterior = !empty($bloque['anterior']);
+        if ($es_anterior) { $n_anterior++; $etiqueta_bloque = 'Reacción ' . $n_anterior . ' (turno anterior)'; }
+        else { $n_actual++; $hay_actual = true; $etiqueta_bloque = 'Bloque ' . $n_actual; }
+        $instantanea_estado = array($energia, $haki, $usadas, $mantenidas_siguiente, $enfriamientos, $adicionales, $mov_total);
+        $av = array();
+        if ($es_anterior && $hay_actual) { $av[] = 'Las reacciones al turno anterior van antes de los bloques de este turno.'; }
+        $pasivas_bloque = array_values(array_diff(array_unique(array_merge($estado['pasivas'], $bloque['pasivas_mas'])), $bloque['pasivas_menos']));
+        $bonos = $bonos_de($pasivas_bloque);
+        $reflejos_pasivas = isset($bonos['reflejos']) ? $bonos['reflejos'] : 0;
+
+        $principales = 0; $utilidades = 0; $acciones_otras = 0; $bloqueos = 0; $acciones_n = 0;
+        $bonos_utilidad = array();
+        foreach ($bloque['pasos'] as $paso) {
+            if ($paso['t'] === 'accion') {
+                $acciones_n++;
+                if ($paso['accion'] === 'bloqueo') { $bloqueos++; } else { $acciones_otras++; }
+                continue;
+            }
+            $tec = $tecnicas[$paso['tid']];
+            if (opg_belico_es_instantanea($tec)) { continue; }
+            $rol = opg_belico_rol_tecnica($tec);
+            if ($rol === 'principal') { $principales++; }
+            elseif ($rol === 'utilidad') {
+                $utilidades++;
+                if ($paso['aplicar_bonos']) {
+                    foreach (opg_belico_extraer_bonos((string) $tec['efectos'], $atributos) as $bono) {
+                        $clave = $bono['k'] . ($bono['p'] ? '%' : '');
+                        $bonos_utilidad[$clave] = (isset($bonos_utilidad[$clave]) ? $bonos_utilidad[$clave] : 0) + $bono['v'];
+                    }
+                }
+            } else { $av[] = '"' . $tec['nombre'] . '" no es una técnica que se use en un bloque de acción.'; }
+        }
+        foreach ($bonos_utilidad as $clave => $valor) { $bonos[$clave] = (isset($bonos[$clave]) ? $bonos[$clave] : 0) + $valor; }
+        $bono_danio = isset($bonos['dano']) ? $bonos['dano'] : 0;
+        $bono_verdadero = isset($bonos['dano verdadero']) ? $bonos['dano verdadero'] : 0;
+        $bono_ta = isset($bonos['tasa de acierto']) ? $bonos['tasa de acierto'] : 0;
+
+        // Tipo de bloque (se deduce de lo que contiene) y reglas de la guía como avisos.
+        if ($principales > 0) {
+            $tipo = 'con técnica';
+            if ($principales > 1) { $av[] = 'Un bloque con técnica admite una única técnica ofensiva o defensiva.'; }
+            if ($utilidades + $acciones_n > 1) { $av[] = 'Junto a la técnica solo cabe una utilidad o una acción adicional que la afecte.'; }
+        } elseif ($utilidades > 0) {
+            $tipo = 'de utilidad';
+            if ($utilidades > 2) { $av[] = 'Un bloque de utilidad admite hasta dos técnicas.'; }
+            if ($acciones_otras > 0 || $bloqueos > 1) { $av[] = 'Un bloque de utilidad solo admite, además de las técnicas, un bloqueo básico.'; }
+        } elseif ($acciones_n > 0) {
+            $tipo = 'sin técnica';
+            if ($acciones_n > 2) { $av[] = 'Un bloque sin técnica admite hasta dos acciones.'; }
+        } else {
+            $tipo = (count($bloque['pasos']) > 0) ? 'de instantáneas' : 'vacío';
+            if (!$bloque['pasos'] && !$bloque['mov_previo'] && !$bloque['mov_posterior']) { $av[] = 'El bloque está vacío.'; }
+        }
+        $adicionales += $acciones_n;
+        $mov_total += $bloque['mov_previo'] + $bloque['mov_posterior'];
+
+        $lineas = array();
+        $bb = array();
+        if ($bloque['mov_previo']) { $lineas[] = 'Movimiento previo: ' . $bloque['mov_previo'] . ' m'; $bb[] = 'Movimiento ' . $bloque['mov_previo'] . ' m'; }
+        if ($es_anterior) {
+            // Reacción: Reflejos (con pasivas y extra) más +5 por cada bloque del rival que no se cortó, contra su TA.
+            $r = $bloque['reaccion'];
+            $ref = (int) $atributos['REF'] + (int) $reflejos_pasivas + $r['ref_extra'];
+            $res = belico_calc_reaccion($ref, $r['ta'], $r['distancia'], $r['sorpresa'], $sin_cortar, 0);
+            $detalle_ref = 'Reflejos ' . ($ref + 5 * $sin_cortar) . ($sin_cortar ? ' (incluye +' . (5 * $sin_cortar) . ' por ' . $sin_cortar . ' bloque' . ($sin_cortar === 1 ? '' : 's') . ' sin cortar)' : '') . ' contra TA ' . $r['ta'] . ($r['distancia'] ? ' a ' . $r['distancia'] . ' m' : '');
+            $pct = isset($res['porcentaje']) && $res['porcentaje'] > 0 ? ' (' . $res['porcentaje'] . '%)' : '';
+            $lineas[] = 'Reacción: <strong>' . $esc($res['reaccion']) . $pct . '</strong> · ' . $esc($detalle_ref);
+            $bb[] = 'Reacción: ' . $res['reaccion'] . $pct . ' (' . $detalle_ref . ')';
+            $sin_cortar = $r['corto'] ? 0 : $sin_cortar + 1;
+        }
+        $energia_antes = $energia; $haki_antes = $haki;
+        foreach ($bloque['pasos'] as $paso) {
+            if ($paso['t'] === 'accion') {
+                $accion = $paso['accion'];
+                $etiqueta = $etiquetas_acciones[$accion][0];
+                if (!$etiquetas_acciones[$accion][1]) {
+                    if ($bloque['mov_previo'] || ($accion !== 'soltarse' && $bloque['mov_posterior'])) { $av[] = $etiqueta . ' no admite movimiento' . ($accion === 'soltarse' ? ' previo' : ' en el mismo bloque') . '.'; }
+                }
+                if ($accion === 'golpe') {
+                    $total = $golpe['valor'] + $bono_danio;
+                    $linea = 'Golpe básico: ' . $total . ' de daño ' . $tipo_golpe . ' · TA ' . ($ta['valor'] + $bono_ta);
+                    $bb[] = 'Golpe básico (' . $total . ' de daño ' . $tipo_golpe . ', TA ' . ($ta['valor'] + $bono_ta) . ')';
+                } elseif ($accion === 'bloqueo') {
+                    $linea = 'Bloqueo básico: ' . $bloqueo['valor'] . ' de mitigación';
+                    $bb[] = 'Bloqueo básico (' . $bloqueo['valor'] . ' de mitigación)';
+                } else {
+                    $linea = $etiqueta;
+                    $bb[] = $etiqueta;
+                }
+                $lineas[] = $linea . ' <small>(acción adicional)</small>';
+                continue;
+            }
+            $tid = $paso['tid'];
+            $tec = $tecnicas[$tid];
+            $coste = opg_belico_coste_tecnica($tec, false);
+            $energia -= $coste['energia'];
+            $haki -= $coste['haki'];
+            if (isset($estado['enfriamientos'][$tid])) {
+                $av[] = $tec['nombre'] . ' sigue en enfriamiento: faltan ' . $estado['enfriamientos'][$tid] . ' turno' . ($estado['enfriamientos'][$tid] === 1 ? '' : 's') . '.';
+            }
+            if ($coste['enfriamiento'] > 0) {
+                if (isset($usadas[$tid])) { $av[] = $tec['nombre'] . ' ya se usó en este turno y tiene enfriamiento de ' . $coste['enfriamiento'] . ' turnos.'; }
+                $enfriamientos[$tid] = $coste['enfriamiento'];
+            }
+            $usadas[$tid] = $n;
+            foreach ($coste['avisos'] as $a) { $av[] = $tec['nombre'] . ': ' . $a; }
+            if (opg_belico_es_mantenida($tec)) { $mantenidas_siguiente[$tid] = true; }
+            $texto_coste = belico_texto_coste_turno($coste);
+            $sufijo_coste = $texto_coste !== '' ? ' · ' . $texto_coste : '';
+            $bb_coste = $texto_coste !== '' ? ' (' . $texto_coste . ')' : '';
+            if (opg_belico_es_instantanea($tec)) {
+                $lineas[] = $nombre_tec($tid) . ' <small>(instantánea' . (opg_belico_es_mantenida($tec) ? ', mantenida nueva' : '') . ')</small>' . $sufijo_coste;
+                $bb[] = '[tecnica=' . $tid . ']' . $bb_coste;
+                continue;
+            }
+            $rol = opg_belico_rol_tecnica($tec);
+            if ($rol === 'principal') {
+                $comun = 0; $verdadero = 0; $tipos = array();
+                foreach (opg_belico_calcular_efectos_contextuales((string) $tec['efectos'], $atributos, $golpe, $bloqueo) as $resultado) {
+                    if (empty($resultado['es_danio'])) { continue; }
+                    if (stripos((string) $resultado['tipo'], 'verdadero') !== false) { $verdadero += (int) $resultado['valor']; }
+                    else { $comun += (int) $resultado['valor']; $tipos[] = (string) $resultado['tipo']; }
+                }
+                $partes = array();
+                $nombres_tipos = trim(implode('/', array_unique(array_filter($tipos))));
+                if ($comun > 0) { $partes[] = ($comun + $bono_danio) . ' de daño' . ($nombres_tipos !== '' ? ' ' . $nombres_tipos : ''); }
+                if ($verdadero > 0 || ($comun + $verdadero > 0 && $bono_verdadero)) { $partes[] = ($verdadero + $bono_verdadero) . ' de daño verdadero'; }
+                $texto_danio = $partes ? rtrim(implode(' + ', $partes)) : 'sin daño calculable';
+                $lineas[] = $nombre_tec($tid) . ': ' . $esc($texto_danio) . ($partes ? ' · TA ' . ($ta['valor'] + $bono_ta) : '') . $sufijo_coste;
+                $bb[] = '[tecnica=' . $tid . ']' . ($partes ? ': ' . $texto_danio . ', TA ' . ($ta['valor'] + $bono_ta) : '') . $bb_coste;
+            } else {
+                $tiene_bonos = $paso['aplicar_bonos'] ? opg_belico_extraer_bonos((string) $tec['efectos'], $atributos) : array();
+                $texto_bonos = array();
+                foreach ($tiene_bonos as $bono) { $texto_bonos[] = ($bono['v'] > 0 ? '+' : '') . $bono['v'] . ($bono['p'] ? '%' : '') . ' ' . $bono['l']; }
+                $lineas[] = $nombre_tec($tid) . ' <small>(' . (opg_belico_es_mantenida($tec) ? 'mantenida nueva' : 'utilidad') . ($texto_bonos ? ': ' . $esc(implode(', ', $texto_bonos)) : '') . ')</small>' . $sufijo_coste;
+                $bb[] = '[tecnica=' . $tid . ']' . $bb_coste;
+            }
+        }
+        if ($bloque['mov_posterior']) { $lineas[] = 'Movimiento posterior: ' . $bloque['mov_posterior'] . ' m'; $bb[] = 'Movimiento ' . $bloque['mov_posterior'] . ' m'; }
+
+        if (!empty($bloque['interrumpido'])) {
+            // Bloque interrumpido: no se hizo, así que no cuesta recursos, movimiento ni acciones y no deja mantenidas ni enfriamientos.
+            list($energia, $haki, $usadas, $mantenidas_siguiente, $enfriamientos, $adicionales, $mov_total) = $instantanea_estado;
+            $tipo .= ', interrumpido';
+            array_unshift($lineas, '<strong>Interrumpido:</strong> sus costes no se cuentan.');
+            $etiqueta_bloque .= ' (interrumpido)';
+        }
+        if (($energia < 0 || $haki < 0) && !$falta_recursos) {
+            $av[] = 'No te alcanza ' . ($energia < 0 ? 'la energía' : 'el haki') . ' en este bloque.';
+            $falta_recursos = true;
+        }
+        $texto_bb = '[b]' . $etiqueta_bloque . '[/b] (' . $tipo . '): ' . ($bb ? implode(' → ', $bb) : 'sin acciones') . '.';
+        if ($bloque['detalle'] !== '') { $texto_bb .= ' ' . $bloque['detalle']; }
+        $texto_bloques[] = $texto_bb;
+        $bloques[] = array(
+            'tipo' => $tipo,
+            'html' => implode('<br>', $lineas) . '<div class="belico-t-recursos">Tras el bloque: energía ' . $energia . ' · haki ' . $haki . ($energia_antes !== $energia || $haki_antes !== $haki ? ' <small>(' . ($energia_antes - $energia) . ' de energía, ' . ($haki_antes - $haki) . ' de haki en el bloque)</small>' : '') . '</div>',
+            'avisos' => $av,
+        );
+    }
+
+    if ($mov_total > $max_movimiento) { $avisos[] = 'Movimiento total ' . $mov_total . ' m, por encima de tu máximo de ' . $max_movimiento . ' m.'; }
+    if ($adicionales > $limite_adicionales) { $avisos[] = 'Usas ' . $adicionales . ' acciones adicionales y tienes ' . $limite_adicionales . ' por turno.'; }
+
+    // Texto para el post.
+    $etiquetas_config = array('una_mano' => 'una mano', 'dos_manos' => 'ambas manos', 'dos_armas' => 'dos armas', 'tres_armas' => 'tres armas');
+    $linea_equipo = 'Equipo: ' . ($sel['armas'] ? implode(', ', array_map('opg_belico_nombre_arma', $sel['armas'])) . ' (' . $etiquetas_config[$sel['configuracion']] . ')' : 'sin arma') . '.';
+    $texto = array('[spoiler=' . $estado['nombre'] . ']', $linea_equipo);
+    if ($estado['pasivas']) {
+        $partes = array();
+        foreach ($estado['pasivas'] as $tid) {
+            $efecto = trim(preg_replace('/\s+/', ' ', opg_belico_aplicar_valores((string) $tecnicas[$tid]['efectos'], opg_belico_sustituciones_texto((string) $tecnicas[$tid]['efectos'], $atributos, $golpe, $bloqueo))));
+            $partes[] = '[tecnica=' . $tid . ']' . ($efecto !== '' ? ' (' . $efecto . ')' : '');
+        }
+        $texto[] = 'Pasivas del turno: ' . implode(', ', $partes) . '.';
+    }
+    if ($bb_continuan) { $texto[] = 'Mantenidas que continúan: ' . implode(', ', $bb_continuan) . '.'; }
+    if ($bb_instantaneas) { $texto[] = 'Instantáneas: ' . implode(', ', $bb_instantaneas) . '.'; }
+    foreach ($texto_bloques as $linea) { $texto[] = $linea; }
+    $texto[] = 'Recursos tras el turno: Energía ' . $energia . ($max_energia !== null ? '/' . $max_energia : '') . ' · Haki ' . $haki . ($max_haki !== null ? '/' . $max_haki : '') . '. Movimiento ' . $mov_total . '/' . $max_movimiento . ' m. Acciones adicionales ' . $adicionales . '/' . $limite_adicionales . '.';
+    $texto[] = '[/spoiler]';
+
+    $resumen = '<div class="belico-t-resumen-fila"><span>Recursos tras el turno</span><strong>Energía ' . $energia . ($max_energia !== null ? ' de ' . $max_energia : '') . ' · Haki ' . $haki . ($max_haki !== null ? ' de ' . $max_haki : '') . '</strong></div>'
+        . '<div class="belico-t-resumen-fila"><span>Movimiento</span><strong>' . $mov_total . ' de ' . $max_movimiento . ' m</strong></div>'
+        . '<div class="belico-t-resumen-fila"><span>Acciones adicionales</span><strong>' . $adicionales . ' de ' . $limite_adicionales . '</strong></div>';
+    if ($enfriamientos) {
+        $partes = array();
+        foreach ($enfriamientos as $tid => $turnos) { $partes[] = $esc($tecnicas[$tid]['nombre']) . ' (' . $turnos . ')'; }
+        $resumen .= '<div class="belico-t-resumen-fila"><span>Quedan en enfriamiento</span><strong>' . implode(', ', $partes) . '</strong></div>';
+    }
+    if ($mantenidas_siguiente) {
+        $partes = array();
+        foreach (array_keys($mantenidas_siguiente) as $tid) { $partes[] = $esc($tecnicas[$tid]['nombre']); }
+        $resumen .= '<div class="belico-t-resumen-fila"><span>Mantenidas para el siguiente turno</span><strong>' . implode(', ', $partes) . '</strong></div>';
+    }
+
+    // Enfriamiento N: la técnica queda bloqueada durante los N turnos siguientes al uso. Los que ya arrastrabas bajan uno.
+    $enfriamientos_siguiente = array();
+    foreach ($estado['enfriamientos'] as $tid => $turnos) {
+        if ($turnos - 1 > 0) { $enfriamientos_siguiente[$tid] = $turnos - 1; }
+    }
+    foreach ($enfriamientos as $tid => $turnos) { $enfriamientos_siguiente[$tid] = $turnos; }
+
+    return array(
+        'inicio_html' => implode('<br>', $lineas_inicio),
+        'bloques' => $bloques,
+        'avisos' => $avisos,
+        'resumen_html' => $resumen,
+        'bbcode' => implode("\n", $texto),
+        'energia_final' => $energia,
+        'haki_final' => $haki,
+        'siguiente' => array(
+            'enfriamientos' => $enfriamientos_siguiente,
+            'continuan' => array_values(array_unique(array_merge($estado['continuan'], array_keys($mantenidas_siguiente)))),
+            'energia' => max(0, $energia),
+            'haki' => max(0, $haki),
+        ),
+    );
+}
+
+// ── Turno: bloque de la página ────────────────────────────────────────────
+
+function belico_render_bloque_turno($atributos, $recursos, $armas)
+{
+    $movimiento = (int) belico_calc_estadisticas($atributos)['movimiento'];
+    $html  = '<section class="belico-modulo belico-turno" id="belico-turno"><h2>Turno</h2>';
+    $html .= '<p class="belico-turno-intro">Arma todo tu turno aquí: equipo, recursos, mantenidas y bloques en el orden en que los escribirás. Los daños, costes y avisos se calculan solos y al final copias el turno completo. Movimiento máximo: <strong>' . $movimiento . ' m</strong>.</p>';
+    $html .= belico_render_vista_toggle();
+
+    $html .= '<div class="belico-pasivas-conjuntos"><span class="belico-pasivas-armas-titulo">Plantillas:</span>'
+        . '<select id="belico-turno-plantillas" aria-label="Plantillas de turno guardadas"><option value="">(ninguna guardada)</option></select>'
+        . '<button type="button" class="opg-chip" id="belico-plantilla-aplicar">Aplicar</button>'
+        . '<button type="button" class="opg-chip" id="belico-plantilla-guardar">Guardar este turno como...</button>'
+        . '<button type="button" class="opg-chip" id="belico-plantilla-borrar">Borrar</button></div>';
+    $html .= '<div class="belico-t-cabecera af-row">';
+    $html .= '<div class="af-field"><label for="belico-turno-config">Equipo</label><select id="belico-turno-config"><option value="sin_arma">Sin arma</option><option value="una_mano">Una arma</option><option value="dos_manos">Una arma con ambas manos</option><option value="dos_armas">Dos armas</option><option value="tres_armas">Tres armas</option></select></div>';
+    $html .= belico_render_selector_arma($armas, 'turno_arma_uno', 'Arma 1', 'Selecciona un arma', '');
+    $html .= belico_render_selector_arma($armas, 'turno_arma_dos', 'Arma 2', 'Selecciona una segunda arma', '');
+    $html .= belico_render_selector_arma($armas, 'turno_arma_tres', 'Arma 3', 'Selecciona una tercera arma', '');
     $html .= '</div>';
-    $html .= '<div class="belico-turno-resumen" aria-live="polite"><span id="belico-movimiento-resumen">Movimiento: 0 / ' . (int) $movimiento . ' m</span><span id="belico-adicionales-resumen">Acciones adicionales: 0 / 3</span></div>';
-    $html .= '<div class="belico-tipos-bloque" role="group" aria-label="Añadir bloque de acción">';
-    $html .= '<button type="button" class="opg-chip" data-belico-nuevo-bloque="tecnica">Con técnica ofensiva o defensiva</button>';
-    $html .= '<button type="button" class="opg-chip" data-belico-nuevo-bloque="sin_tecnica">Sin técnica</button>';
-    $html .= '<button type="button" class="opg-chip" data-belico-nuevo-bloque="utilidad">Técnicas de utilidad</button>';
+
+    $html .= '<div class="belico-t-cabecera af-row">';
+    $html .= '<div class="af-field"><label for="belico-turno-vida">Vida actual</label><input type="number" id="belico-turno-vida" min="0" value="' . (int) $recursos['vida_max'] . '"><small>máx. ' . (int) $recursos['vida_max'] . '</small></div>';
+    $html .= '<div class="af-field"><label for="belico-turno-energia">Energía actual</label><input type="number" id="belico-turno-energia" min="0" value="' . (int) $recursos['energia_max'] . '"><small>máx. ' . (int) $recursos['energia_max'] . '</small></div>';
+    $html .= '<div class="af-field"><label for="belico-turno-haki">Haki actual</label><input type="number" id="belico-turno-haki" min="0" value="' . (int) $recursos['haki_max'] . '"><small>máx. ' . (int) $recursos['haki_max'] . '</small></div>';
+    $html .= '<div class="af-field"><label for="belico-turno-extra">Acciones adicionales extra</label><input type="number" id="belico-turno-extra" min="0" max="20" value="0"><small>Base 3; suma lo que den tus pasivas</small></div>';
     $html .= '</div>';
-    $html .= '<div id="belico-turno-bloques" class="belico-turno-bloques"></div>';
-    $html .= '<p id="belico-turno-vacio" class="belico-turno-vacio">Añade el primer bloque para construir la estrategia del turno.</p>';
-    $html .= '<div class="belico-turno-avisos" id="belico-turno-avisos" aria-live="polite"></div>';
-    $html .= '<div class="belico-modulo-acciones"><button type="button" class="btn-op btn-op--secundario btn-op--sm" id="belico-copiar-turno">Copiar estrategia</button><button type="button" class="opg-chip" id="belico-limpiar-turno">Limpiar turno</button></div>';
-    $html .= '<textarea id="belico-copiar-textarea" hidden aria-label="Estrategia para copiar al post"></textarea>';
+
+    $html .= '<div class="belico-t-listas">';
+    $html .= '<div class="belico-t-lista"><h3>Pasivas del turno</h3><div id="belico-turno-pasivas" class="belico-t-chips"></div><button type="button" class="opg-chip" data-belico-ir="pasivas">Elegir pasivas</button></div>';
+    $html .= '<div class="belico-t-lista"><h3>Mantenidas que continúan</h3><small>Siguen del turno anterior: no ocupan bloque y pagan su coste por turno.</small><div id="belico-turno-continuan" class="belico-t-chips"></div><select id="belico-turno-continuan-add" aria-label="Añadir mantenida que continúa"></select></div>';
+    $html .= '<div class="belico-t-lista"><h3>Instantáneas al inicio</h3><small>Haki y recubrimientos elementales: gastan su recurso y no ocupan bloque.</small><div id="belico-turno-instantaneas" class="belico-t-chips"></div><select id="belico-turno-instantaneas-add" aria-label="Añadir instantánea"></select></div>';
+    $html .= '<div class="belico-t-lista"><h3>Técnicas en enfriamiento</h3><small>Quedan bloqueadas los turnos que indica su enfriamiento. Se arrastran solas al pasar de turno.</small><div id="belico-turno-enfriamientos" class="belico-t-chips"></div><select id="belico-turno-enfriamientos-add" aria-label="Añadir técnica en enfriamiento"></select></div>';
+    $html .= '<div id="belico-turno-inicio" class="belico-t-inicio"></div>';
+    $html .= '</div>';
+
+    $html .= '<h3 class="belico-t-titulo">Bloques de acción</h3>';
+    $html .= '<div id="belico-turno-bloques" class="belico-t-bloques"></div>';
+    $html .= '<div class="belico-t-agregar" role="group" aria-label="Añadir bloque"><span>Añadir:</span>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="reaccion" title="Para responder a bloques del rival del turno anterior">Reaccionar al turno anterior</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="ataque">Atacar con técnica</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="golpe">Golpe básico</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="utilidad">Activar utilidad o mantenida</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="mover">Moverse</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="vacio">Bloque vacío</button></div>';
+
+    $html .= '<div id="belico-turno-avisos" class="belico-t-avisos" aria-live="polite"></div>';
+    $html .= '<div id="belico-turno-resumen" class="belico-t-resumen"></div>';
+    $html .= '<details class="belico-pasivas-previa" open><summary>Texto que se copia al post (puedes editarlo)</summary>'
+        . '<textarea id="belico-turno-texto" rows="10" aria-label="Texto del turno para copiar"></textarea>'
+        . '<button type="button" class="opg-chip" id="belico-turno-regenerar" hidden>Volver al texto generado</button></details>';
+    $html .= '<div class="belico-t-acciones"><button type="button" class="btn-op btn-op--secundario btn-op--sm" id="belico-turno-copiar">Copiar turno</button>'
+        . '<button type="button" class="opg-chip" id="belico-turno-siguiente" title="Pasa tus recursos finales y las mantenidas al turno nuevo">Pasar al siguiente turno</button>'
+        . '<button type="button" class="opg-chip" id="belico-turno-limpiar">Turno nuevo</button><span id="belico-turno-aviso" class="belico-pasivas-aviso" aria-live="polite"></span></div>';
     $html .= '</section>';
     return $html;
 }
@@ -1256,10 +1878,22 @@ function belico_css()
 .belico-pagina .belico-resultados span { color: var(--opg-gris-texto); font-size: 12px; }
 .belico-pagina .belico-resultados strong { color: var(--opg-marron); font: 26px/1.2 InterMedium, var(--opg-fuente-cuerpo); }
 .belico-pagina .belico-resultados small { color: var(--opg-gris-texto); overflow-wrap: anywhere; }
-.belico-pagina .belico-modulo-acciones { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin-top: var(--opg-espacio-4); }
 .belico-pagina .btn-op { letter-spacing: 0; }
 .belico-pagina .btn-op--sm { font: 14px/1.3 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-tinta); text-shadow: none; padding: 8px 14px; }
 .belico-pagina .btn-op--secundario.btn-op--sm { color: #fff; }
+.belico-pagina .belico-campo-tecnica { flex: 1 1 100%; }
+.belico-pagina .belico-tecnica-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-2); }
+.belico-pagina .belico-tecnica-filtros input[type="search"] { flex: 1 1 220px; width: auto; }
+.belico-pagina .belico-tecnica-solo { display: inline-flex; align-items: center; gap: var(--opg-espacio-2); font-size: 13px; cursor: pointer; text-transform: none; }
+.belico-pagina .belico-campo-tecnica small { color: var(--opg-gris-texto); }
+.belico-pagina .belico-efectos [data-belico-usar-en-turno]:disabled { opacity: .6; cursor: default; }
+.belico-pagina .belico-calculo { position: relative; cursor: help; text-decoration: underline dotted var(--opg-morado-texto); text-underline-offset: 4px; }
+.belico-pagina .belico-calculo:focus-visible { outline: 3px solid var(--opg-naranja); outline-offset: 3px; }
+.belico-pagina .belico-calculo::after { content: attr(data-opg-calculo); position: absolute; z-index: 30; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: 290px; white-space: pre-line; padding: 10px; border: 2px solid var(--opg-tinta); border-radius: 6px; background: var(--opg-crema-clara); box-shadow: 4px 4px 0 var(--opg-tinta); color: var(--opg-marron); font: 400 12px/1.45 var(--opg-fuente-cuerpo); text-decoration: none; text-align: left; opacity: 0; pointer-events: none; transform: translateY(3px); transition: opacity .15s, transform .15s; }
+.belico-pagina .belico-calculo:hover::after, .belico-pagina .belico-calculo:focus::after { opacity: 1; transform: translateY(0); }
+.belico-pagina .belico-efectos code { color: var(--opg-gris-texto); font-size: 12px; }
+/* El valor va dentro de la frase (+55 de [Daño]): en línea y con la tipografía del texto, aunque la tarjeta fuerce strong en bloque. */
+.belico-pagina .belico-calculo.belico-calculo--chip { display: inline; font: inherit; font-weight: 700; line-height: inherit; color: var(--opg-morado-texto); }
 .belico-pagina .belico-resultado-texto { padding: var(--opg-espacio-3) var(--opg-espacio-4); border-left: 3px solid var(--opg-morado); background: var(--opg-crema-clara); font-size: 13px; line-height: 1.45; }
 .belico-pagina .belico-resultado-texto p { margin: 0 0 var(--opg-espacio-2); }
 .belico-pagina .belico-resultado-texto p:last-child { margin-bottom: 0; }
@@ -1270,34 +1904,144 @@ function belico_css()
 .belico-pagina .belico-utilidad { min-width: 0; padding: var(--opg-espacio-4) 0; border-top: 1px solid rgba(59, 19, 0, .28); }
 .belico-pagina .belico-utilidad .af-row { margin-bottom: var(--opg-espacio-2); }
 .belico-pagina .belico-utilidad p { margin: 0; font-size: 13px; line-height: 1.45; }
-.belico-pagina .belico-registro-seccion { border-bottom: 0; }
-.belico-pagina .belico-turno-intro { margin: calc(var(--opg-espacio-2) * -1) 0 var(--opg-espacio-4); color: var(--opg-gris-texto); font-size: 13px; line-height: 1.45; }
-.belico-pagina .belico-turno-config { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-4); padding: var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); }
-.belico-pagina .belico-turno-config .af-field { display: flex; flex-direction: column; min-width: 0; margin: 0; }
-.belico-pagina .belico-turno-config .af-field small { min-height: 2.8em; }
-.belico-pagina .belico-turno-resumen { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-2); margin: var(--opg-espacio-3) 0; }
-.belico-pagina .belico-turno-resumen span { padding: 5px 9px; border: 1px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); color: var(--opg-marron); font: 12px/1.2 InterMedium, var(--opg-fuente-cuerpo); }
-.belico-pagina .belico-turno-resumen .belico-turno-excedido { border-color: var(--opg-rojo-error); color: var(--opg-rojo-error); }
-.belico-pagina .belico-tipos-bloque { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--opg-espacio-2); margin: var(--opg-espacio-4) 0; }
-.belico-pagina .belico-tipos-bloque .opg-chip { justify-content: center; min-height: 42px; border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); text-align: center; }
-.belico-pagina .belico-tipos-bloque .opg-chip:hover { background: var(--opg-naranja); }
-.belico-pagina .belico-turno-bloques { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
-.belico-pagina .belico-turno-vacio { margin: 0; padding: var(--opg-espacio-4); border: 2px dashed var(--opg-tinta); border-radius: var(--opg-radio-sm); color: var(--opg-gris-texto); font-size: 13px; }
-.belico-pagina .belico-bloque-turno { --opg-card-acento: var(--opg-morado); margin: 0; }
-.belico-pagina .belico-bloque-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--opg-espacio-3); }
-.belico-pagina .belico-bloque-titulo { margin: 0; color: var(--opg-marron); font: 16px/1.25 InterMedium, var(--opg-fuente-cuerpo); }
-.belico-pagina .belico-bloque-descripcion { margin: 4px 0 0; color: var(--opg-gris-texto); font-size: 12px; line-height: 1.4; }
-.belico-pagina .belico-bloque-orden { display: inline-flex; flex: none; gap: 4px; }
-.belico-pagina .belico-bloque-icono { width: 28px; height: 28px; justify-content: center; padding: 0; background: var(--opg-crema-clara); }
-.belico-pagina .belico-bloque-icono:last-child:hover { background: var(--opg-rojo-error); }
-.belico-pagina .belico-bloque-cuerpo { margin: var(--opg-espacio-3) 0 0; padding-top: var(--opg-espacio-3); border-top: 1px solid rgba(59, 19, 0, .28); }
-.belico-pagina .belico-bloque-cuerpo .af-field { flex: 1 1 170px; }
-.belico-pagina .belico-bloque-cuerpo .belico-check { flex-basis: 100%; }
-.belico-pagina .belico-turno-avisos { margin-top: var(--opg-espacio-3); }
-.belico-pagina .belico-turno-aviso { margin: var(--opg-espacio-2) 0 0; padding-left: var(--opg-espacio-3); border-left: 3px solid var(--opg-rojo-error); color: var(--opg-rojo-error); font-size: 13px; line-height: 1.4; }
 .belico-pagina #belico-copiar-textarea:not([hidden]) { display: block; width: 100%; min-height: 100px; margin-top: var(--opg-espacio-3); padding: var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); font: 13px/1.4 var(--opg-fuente-cuerpo); }
-.belico-pagina .belico-pasivas-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-3); }
-.belico-pagina .belico-pasiva-item { --opg-card-acento: var(--opg-morado); display: flex; align-items: center; gap: var(--opg-espacio-3); min-width: 0; margin: 0; cursor: pointer; }
+.belico-pagina .belico-pasivas-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-3); padding: var(--opg-espacio-3) 0; }
+.belico-pagina .belico-llevas { margin: var(--opg-espacio-3) 0 0; padding: 6px var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); color: var(--opg-marron); font-size: 12px; line-height: 1.4; }
+.belico-pagina .belico-llevas:empty { display: none; }
+.belico-pagina .belico-avisos-ataque { margin: var(--opg-espacio-3) 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.belico-pagina .belico-avisos-ataque li { padding: 6px var(--opg-espacio-3); border-left: 4px solid var(--opg-gris-texto); background: var(--opg-crema-clara); font-size: 13px; line-height: 1.4; }
+.belico-pagina .belico-avisos-ataque .belico-aviso-aviso { border-left-color: var(--opg-rojo-error); }
+.belico-pagina .belico-avisos-ataque .belico-aviso-info { border-left-color: var(--opg-morado); }
+.belico-pagina .belico-armas-elegidas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--opg-espacio-3); margin: var(--opg-espacio-3) 0 0; }
+.belico-pagina .belico-arma-tarjeta { padding: var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); font-size: 13px; line-height: 1.4; }
+.belico-pagina .belico-arma-tarjeta h4 { margin: 0 0 2px; font: 15px/1.25 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-marron); }
+.belico-pagina .belico-arma-tarjeta p { margin: 4px 0 0; }
+.belico-pagina .belico-arma-tarjeta small, .belico-pagina .belico-sin-arma small { color: var(--opg-gris-texto); }
+.belico-pagina .belico-resumen { margin: var(--opg-espacio-4) 0 0; padding: var(--opg-espacio-3) var(--opg-espacio-4); border: 2px solid var(--opg-morado-texto); border-radius: var(--opg-radio-md); background: var(--opg-morado-seleccion); }
+.belico-pagina .belico-resumen h3 { margin: 0 0 var(--opg-espacio-2); font: 14px/1.2 InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+.belico-pagina .belico-resumen-fila { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--opg-espacio-3); padding: 3px 0; font-size: 13px; }
+.belico-pagina .belico-resumen-fila[hidden] { display: none; }
+.belico-pagina .belico-resumen-fila > span:first-child { min-width: 110px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-resumen-fila strong { font: 20px/1.2 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-marron); }
+.belico-pagina .belico-resumen-fila strong.belico-resumen-coste { font-size: 14px; }
+.belico-pagina .belico-resumen-fila small { color: var(--opg-gris-texto); }
+.belico-pagina .belico-resumen .belico-con-pasivas { color: var(--opg-morado-texto); font-weight: 700; }
+.belico-pagina .belico-pasos { margin-top: var(--opg-espacio-2); font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-pasos summary { cursor: pointer; color: var(--opg-morado-texto); }
+.belico-pagina .belico-pasos h4 { margin: var(--opg-espacio-2) 0 2px; font: 700 12px/1.2 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-marron); }
+.belico-pagina .belico-pasos ol { margin: 0; padding-left: 20px; }
+.belico-pagina .belico-turno-intro { margin: 0 0 var(--opg-espacio-3); font-size: 13px; line-height: 1.5; }
+.belico-pagina .belico-t-cabecera { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .af-field[hidden] { display: none; }
+.belico-pagina .belico-t-listas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--opg-espacio-3); margin: var(--opg-espacio-3) 0; }
+.belico-pagina .belico-t-lista { padding: var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); }
+.belico-pagina .belico-t-lista h3 { margin: 0 0 4px; font: 13px/1.2 InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+.belico-pagina .belico-t-lista small { display: block; color: var(--opg-gris-texto); font-size: 11px; line-height: 1.3; }
+.belico-pagina .belico-t-lista select { width: 100%; margin-top: var(--opg-espacio-2); min-height: 34px; background-color: var(--opg-crema-clara); color: var(--opg-marron); }
+.belico-pagina .belico-t-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--opg-espacio-2) 0; }
+.belico-pagina .belico-t-inicio { grid-column: 1 / -1; font-size: 12px; color: var(--opg-marron); }
+.belico-pagina .belico-t-inicio:empty { display: none; }
+.belico-pagina .belico-t-titulo { margin: var(--opg-espacio-4) 0 var(--opg-espacio-2); font: 15px/1.2 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-marron); }
+.belico-pagina .belico-t-bloques { display: grid; gap: var(--opg-espacio-3); }
+.belico-pagina .belico-t-vacio { margin: 0; color: var(--opg-gris-texto); font-size: 13px; }
+.belico-pagina .belico-t-bloque { border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta); }
+.belico-pagina .belico-t-bloque-cab { display: flex; align-items: center; gap: var(--opg-espacio-3); padding: 6px var(--opg-espacio-3); border-bottom: 2px solid var(--opg-tinta); background: var(--opg-morado); color: #fff; }
+.belico-pagina .belico-t-bloque-cab h4 { margin: 0; font: 14px/1.2 InterMedium, var(--opg-fuente-cuerpo); }
+.belico-pagina .belico-t-tipo { font-size: 12px; opacity: .9; }
+.belico-pagina .belico-t-controles { margin-left: auto; display: inline-flex; gap: 4px; }
+.belico-pagina .belico-t-x { min-height: 0; padding: 2px 8px; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; font-size: 12px; }
+.belico-pagina .belico-t-paso .belico-t-x { color: var(--opg-rojo-error); }
+.belico-pagina .belico-t-bloque-cuerpo { display: grid; gap: var(--opg-espacio-2); padding: var(--opg-espacio-3); }
+.belico-pagina .belico-t-mov { font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-t-mov input { width: 80px; min-height: 30px; margin-left: 4px; }
+.belico-pagina .belico-t-interrumpido { font-size: 11px; cursor: pointer; }
+.belico-pagina .belico-t-interrumpido input { width: auto; min-height: 0; accent-color: var(--opg-naranja); }
+.belico-pagina .belico-t-bloque--interrumpido { opacity: .7; border-style: dashed; }
+.belico-pagina .belico-t-bloque--reaccion { border-color: var(--opg-morado-texto); }
+.belico-pagina .belico-t-bloque--reaccion .belico-t-bloque-cab { background: var(--opg-morado-texto); }
+.belico-pagina .belico-t-reaccion { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2) var(--opg-espacio-3); padding: var(--opg-espacio-2) var(--opg-espacio-3); border: 1px dashed var(--opg-morado-texto); border-radius: var(--opg-radio-sm); background: var(--opg-morado-seleccion); }
+.belico-pagina .belico-t-reaccion select { min-height: 30px; background-color: #fff; color: var(--opg-marron); }
+.belico-pagina .belico-t-paso { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); }
+.belico-pagina .belico-t-paso select { flex: 1 1 220px; min-width: 0; min-height: 34px; background-color: #fff; color: var(--opg-marron); }
+.belico-pagina .belico-t-paso-tipo { flex: 0 0 auto; min-width: 150px; font: 700 11px/1.2 InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; color: var(--opg-morado-texto); }
+.belico-pagina .belico-t-bonos { font-size: 11px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-t-agregar-paso, .belico-pagina .belico-t-agregar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); }
+.belico-pagina .belico-t-agregar { margin: var(--opg-espacio-3) 0; }
+.belico-pagina .belico-t-agregar > span { font: 700 12px/1 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-morado-texto); }
+.belico-pagina .belico-t-pasivas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.belico-pagina .belico-t-pasivas select { min-height: 30px; max-width: 220px; font-size: 12px; }
+.belico-pagina .belico-chip-sel--off { opacity: .45; text-decoration: line-through; }
+.belico-pagina .belico-t-bloque-cuerpo > input[type="text"] { width: 100%; min-height: 34px; background-color: #fff; }
+.belico-pagina .belico-t-resultado { padding: var(--opg-espacio-2) var(--opg-espacio-3); border-left: 3px solid var(--opg-morado); background: #fff3e0; font-size: 13px; line-height: 1.5; }
+.belico-pagina .belico-t-resultado:empty { display: none; }
+.belico-pagina .belico-t-recursos { margin-top: 4px; color: var(--opg-gris-texto); font-size: 11px; }
+.belico-pagina .belico-t-aviso { margin: 4px 0 0; padding-left: var(--opg-espacio-3); border-left: 3px solid var(--opg-rojo-error); color: var(--opg-rojo-error); font-size: 12px; line-height: 1.4; }
+.belico-pagina .belico-t-avisos { margin: var(--opg-espacio-3) 0; }
+.belico-pagina .belico-t-resumen { margin: var(--opg-espacio-3) 0; padding: var(--opg-espacio-3) var(--opg-espacio-4); border: 2px solid var(--opg-morado-texto); border-radius: var(--opg-radio-md); background: var(--opg-morado-seleccion); }
+.belico-pagina .belico-t-resumen:empty { display: none; }
+.belico-pagina .belico-t-resumen-fila { display: flex; flex-wrap: wrap; gap: 4px var(--opg-espacio-3); padding: 2px 0; font-size: 13px; }
+.belico-pagina .belico-t-resumen-fila > span { min-width: 190px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-pasivas-previa textarea { display: block; width: 100%; margin-top: var(--opg-espacio-2); padding: var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); color: var(--opg-marron); font: 12px/1.4 var(--opg-fuente-cuerpo); }
+.belico-pagina .belico-t-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); margin-top: var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas-controles { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas-controles .belico-vista { margin: 0; }
+.belico-pagina .belico-pasivas-conjuntos { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas-conjuntos select { min-height: 34px; padding: 4px 8px; background-color: var(--opg-crema-clara); color: var(--opg-marron); }
+.belico-pagina .belico-pasivas-armas .opg-chip[hidden] { display: none; }
+.belico-pagina .belico-pasivas-barra { position: sticky; top: 8px; z-index: 5; margin: 0 0 var(--opg-espacio-3); padding: var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta); }
+.belico-pagina .belico-pasivas-barra-fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3); font: 700 13px/1.2 InterMedium, var(--opg-fuente-cuerpo); }
+.belico-pagina .belico-pasivas-aviso { color: var(--opg-verde-exito); font-size: 12px; font-weight: 700; }
+.belico-pagina .belico-pasivas-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--opg-espacio-2); }
+.belico-pagina .belico-pasivas-chips:empty { display: none; }
+.belico-pagina .belico-chip-sel { min-height: 0; padding: 3px 10px; border: 2px solid var(--opg-morado-texto); border-radius: 999px; background: #fff3e0; color: var(--opg-marron); font: 600 12px/1.2 var(--opg-fuente-cuerpo); cursor: pointer; }
+.belico-pagina .belico-chip-sel:hover { background: var(--opg-morado); color: #fff; }
+.belico-pagina .belico-pasivas-bonos { margin-top: var(--opg-espacio-2); font-size: 13px; color: var(--opg-marron); }
+.belico-pagina .belico-pasivas-bonos:empty { display: none; }
+.belico-pagina .belico-bono { display: inline-block; margin-right: var(--opg-espacio-3); }
+.belico-pagina .belico-bono strong { color: var(--opg-morado-texto); }
+.belico-pagina .belico-pasiva-condiciones { margin: var(--opg-espacio-2) 0 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.belico-pagina .belico-etiqueta { padding: 1px 8px; border: 1px solid var(--opg-gris-texto); border-radius: 10px; background: #fff; color: var(--opg-gris-texto); font-size: 11px; }
+.belico-pagina .belico-pasivas-previa { margin-top: var(--opg-espacio-3); font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-pasivas-previa summary { cursor: pointer; color: var(--opg-morado-texto); }
+.belico-pagina .belico-pasivas-previa pre { margin: var(--opg-espacio-2) 0 0; padding: var(--opg-espacio-3); white-space: pre-wrap; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); color: var(--opg-marron); font: 12px/1.4 var(--opg-fuente-cuerpo); }
+.belico-pagina .belico-con-pasivas { color: var(--opg-morado-texto); font-weight: 700; }
+.belico-pagina .belico-nota-pasivas { margin: var(--opg-espacio-3) 0 0; font-size: 13px; color: var(--opg-marron); }
+.belico-pagina .belico-pasivas--compacta .belico-pasivas-lista { grid-template-columns: minmax(0, 1fr); gap: var(--opg-espacio-2); }
+.belico-pagina .belico-pasivas--compacta .belico-pasiva-item { padding: var(--opg-espacio-2) var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas--compacta .belico-pasiva-item:has(input:checked) { transform: none; box-shadow: none; }
+.belico-pagina .belico-pasivas--compacta .belico-pasiva-efecto, .belico-pagina .belico-pasivas--compacta .belico-pasiva-arma, .belico-pagina .belico-pasivas--compacta .belico-pasiva-condiciones { margin-top: 2px; font-size: 12px; }
+.belico-pagina .belico-pasivas-armas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-2); margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas-armas-titulo { font: 700 13px/1.2 InterMedium, var(--opg-fuente-cuerpo); color: var(--opg-morado-texto); }
+.belico-pagina .belico-pasivas-armas-vacio { font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-arma-chip { display: inline-flex; margin: 0; cursor: pointer; }
+.belico-pagina .belico-arma-chip input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
+.belico-pagina .belico-arma-chip span { padding: 5px 12px; border: 2px solid var(--opg-tinta); border-radius: 999px; background: var(--opg-crema-clara); color: var(--opg-marron); font-size: 13px; text-transform: none; }
+.belico-pagina .belico-arma-chip input:checked + span { background: var(--opg-morado); border-color: var(--opg-morado-texto); color: #fff; }
+.belico-pagina .belico-arma-chip input:focus-visible + span { outline: 2px solid var(--opg-naranja); outline-offset: 2px; }
+.belico-pagina .belico-pasivas-buscador { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .belico-pasivas-buscador input[type="search"] { flex: 1 1 240px; width: auto; }
+.belico-pagina .belico-pasivas-buscador .belico-tecnica-solo { flex: 0 0 auto; white-space: nowrap; }
+.belico-pagina .belico-pasivas-buscador input[type="checkbox"] { width: auto; min-height: 0; accent-color: var(--opg-naranja); }
+.belico-pagina .belico-pasiva-arma { margin: var(--opg-espacio-2) 0 0; font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-arma-estado { font-weight: 700; }
+.belico-pagina .belico-pasiva-item[data-aplica="si"] .belico-arma-estado { color: var(--opg-verde-exito); }
+.belico-pagina .belico-pasiva-item[data-aplica="no"] .belico-arma-estado { color: var(--opg-rojo-error); }
+.belico-pagina .belico-pasiva-item[data-aplica="no"] { opacity: .75; }
+.belico-pagina.belico-modo-codigos .belico-calculo-inline { display: none; }
+.belico-pagina:not(.belico-modo-codigos) .belico-codigo { display: none; }
+.belico-pagina .belico-vista { display: inline-flex; gap: 4px; margin: 0 0 var(--opg-espacio-3); padding: 3px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); }
+.belico-pagina .belico-vista button { min-height: 0; padding: 6px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--opg-morado-texto); font: 800 12px/1 InterMedium, var(--opg-fuente-cuerpo); cursor: pointer; }
+.belico-pagina .belico-vista button[aria-pressed="true"] { background: var(--opg-morado); color: #fff; }
+.belico-pagina .belico-pasivas-buscador input { width: 100%; min-height: 38px; background-color: var(--opg-crema-clara); color: var(--opg-marron); }
+.belico-pagina .belico-pasiva-grupo { margin-bottom: var(--opg-espacio-3); }
+.belico-pagina .belico-pasiva-grupo > summary { cursor: pointer; padding: 7px var(--opg-espacio-3); background: var(--opg-morado); color: #fff; font: 800 13px/1.2 InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; letter-spacing: .5px; border-radius: var(--opg-radio-sm); }
+.belico-pagina .belico-pasiva-marca { display: flex; align-items: center; gap: var(--opg-espacio-3); cursor: pointer; }
+.belico-pagina .belico-pasiva-efecto { margin: var(--opg-espacio-2) 0 0; font-size: 13px; line-height: 1.45; }
+.belico-pagina .belico-pasiva-desc { margin-top: var(--opg-espacio-2); font-size: 12px; color: var(--opg-gris-texto); }
+.belico-pagina .belico-pasiva-desc summary { cursor: pointer; color: var(--opg-morado-texto); }
+.belico-pagina .belico-pasiva-desc p { margin: var(--opg-espacio-2) 0 0; line-height: 1.45; }
+.belico-pagina .belico-pasivas-acciones { display: inline-flex; flex-wrap: wrap; gap: var(--opg-espacio-2); align-items: center; }
+.belico-pagina .belico-pasiva-item { --opg-card-acento: var(--opg-morado); display: block; min-width: 0; margin: 0; }
 .belico-pagina .belico-pasiva-item input { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); }
 .belico-pagina .belico-pasiva-control { display: grid; flex: 0 0 auto; place-items: center; width: 22px; height: 22px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); }
 .belico-pagina .belico-pasiva-item input:checked + .belico-pasiva-control { border-color: var(--opg-morado-texto); background: var(--opg-morado); }
@@ -1325,12 +2069,9 @@ function belico_css()
   .belico-pagina .belico-contexto .btn-op { width: 100%; }
   .belico-pagina .belico-resultados { grid-template-columns: minmax(0, 1fr); }
   .belico-pagina .belico-utilidades-grid { grid-template-columns: minmax(0, 1fr); }
-  .belico-pagina .belico-tipos-bloque { grid-template-columns: minmax(0, 1fr); }
   .belico-pagina .belico-pasivas-lista { grid-template-columns: minmax(0, 1fr); }
-  .belico-pagina .belico-turno-config { grid-template-columns: minmax(0, 1fr); }
   .belico-pagina .belico-tabs { gap: var(--opg-espacio-1); }
   .belico-pagina .belico-tabs button { padding: 9px 12px 8px; font-size: 13px; }
-  .belico-pagina .belico-bloque-cabecera { align-items: flex-start; }
 }
 CSS;
 }
@@ -1366,6 +2107,593 @@ function belicoMostrarTextarea(texto) {
 JS;
 }
 
+function belico_js_ataque($uid, $fid)
+{
+    return 'window.belicoClaveAtaque = ' . json_encode((int) $uid . '_' . (int) $fid) . ";\n" . <<<'JS'
+function belicoPlano(texto) {
+    return String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// Reconstruye el selector de técnicas según la búsqueda y el filtro (la técnica elegida siempre se conserva).
+function belicoFiltrarTecnicas() {
+    var select = document.getElementById('belico-tecnica');
+    var buscar = document.getElementById('belico-tecnica-buscar');
+    var solo = document.getElementById('belico-tecnica-solo-calculo');
+    if (!select || !buscar || !solo) { return; }
+    var consulta = belicoPlano(buscar.value).trim();
+    var actual = select.value;
+    while (select.firstChild) { select.removeChild(select.firstChild); }
+    var primera = document.createElement('option');
+    primera.value = '';
+    primera.textContent = 'Sin técnica';
+    select.appendChild(primera);
+    ['Ofensivas', 'Defensivas', 'Ambientales', 'Utilidad', 'Otras'].forEach(function (grupo) {
+        var items = (window.belicoTecnicas || []).filter(function (tecnica) {
+            if (tecnica.grupo !== grupo) { return false; }
+            if (tecnica.tid === actual) { return true; }
+            if (solo.checked && !tecnica.calcula) { return false; }
+            return !consulta || belicoPlano(tecnica.nombre + ' ' + tecnica.tid).indexOf(consulta) !== -1;
+        });
+        if (!items.length) { return; }
+        var optgrupo = document.createElement('optgroup');
+        optgrupo.label = grupo;
+        items.forEach(function (tecnica) {
+            var opcion = document.createElement('option');
+            opcion.value = tecnica.tid;
+            opcion.textContent = tecnica.etiqueta;
+            optgrupo.appendChild(opcion);
+        });
+        select.appendChild(optgrupo);
+    });
+    select.value = actual;
+}
+
+document.addEventListener('input', function (evento) {
+    if (evento.target.id === 'belico-tecnica-buscar') { belicoFiltrarTecnicas(); }
+});
+document.addEventListener('change', function (evento) {
+    if (evento.target.id === 'belico-tecnica-solo-calculo') { belicoFiltrarTecnicas(); }
+});
+// Enter en el buscador (o en cualquier campo) no debe enviar el formulario ni recargar la página.
+document.addEventListener('submit', function (evento) {
+    if (evento.target.id === 'belico-ataque-form') { evento.preventDefault(); }
+});
+
+// Lleva la técnica elegida al tab Turno (como un bloque nuevo, o dentro del último si es instantánea).
+document.addEventListener('click', function (evento) {
+    var boton = evento.target.closest('[data-belico-usar-en-turno]');
+    if (!boton) { return; }
+    if (typeof belicoTurnoAgregarTecnica === 'function' && belicoTurnoAgregarTecnica(boton.dataset.belicoUsarEnTurno)) {
+        belicoActivarTab('turno');
+        var bloques = document.querySelectorAll('.belico-t-bloque');
+        if (bloques.length) { bloques[bloques.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    } else {
+        boton.textContent = 'Esta técnica no entra en un bloque de acción';
+        boton.disabled = true;
+    }
+});
+
+// ── Pasivas ───────────────────────────────────────────────────────────────────
+function belicoPasivasMarcadas() {
+    return Array.prototype.slice.call(document.querySelectorAll('[data-belico-pasiva]:checked'));
+}
+
+function belicoNumeroBono(valor) {
+    var redondeado = Math.round(valor * 100) / 100;
+    return (redondeado > 0 ? '+' : '') + String(redondeado).replace('.', ',');
+}
+
+function belicoAvisoPasivas(texto) {
+    var aviso = document.getElementById('belico-pasivas-aviso');
+    if (!aviso) { return; }
+    aviso.textContent = texto;
+    window.clearTimeout(window.belicoAvisoTemporizador);
+    window.belicoAvisoTemporizador = window.setTimeout(function () { aviso.textContent = ''; }, 2500);
+}
+
+// Tipos de arma marcados en el propio tab de pasivas (hay = alguno marcado).
+function belicoArmasActuales() {
+    var actual = { hay: false, tipos: [] };
+    document.querySelectorAll('[data-belico-pasivas-tipo]:checked').forEach(function (campo) {
+        actual.hay = true;
+        actual.tipos.push(campo.value);
+    });
+    return actual;
+}
+
+// Marca cada pasiva con condición de arma según las armas marcadas en este tab.
+function belicoEvaluarArmasPasivas() {
+    var actual = belicoArmasActuales();
+    document.querySelectorAll('.belico-pasiva-item[data-armas]').forEach(function (item) {
+        var estado = item.querySelector('.belico-arma-estado');
+        var requeridos = item.dataset.armas.split(',');
+        // Los Wazamono son una excepción a la regla: cumplen cualquier condición de tipo de arma.
+        var aplica = actual.hay && (actual.tipos.indexOf('wazamono') !== -1 || requeridos.some(function (tipo) { return actual.tipos.indexOf(tipo) !== -1; }));
+        item.dataset.aplica = actual.hay ? (aplica ? 'si' : 'no') : 'no';
+        if (estado) {
+            estado.textContent = !actual.hay ? '(marca el tipo de arma arriba para comprobarlo)' : (aplica ? '✓ aplica con tu arma actual' : '✗ no aplica con tu arma actual');
+        }
+    });
+    belicoActualizarPasivas(true);
+}
+
+function belicoFiltrarPasivas() {
+    var campo = document.getElementById('belico-pasivas-buscar');
+    if (!campo) { return; }
+    var consulta = belicoPlano(campo.value).trim();
+    var marca = function (id) { var c = document.getElementById(id); return !!(c && c.checked); };
+    var soloAplican = marca('belico-pasivas-solo-aplican');
+    var soloMarcadas = marca('belico-pasivas-solo-marcadas');
+    var soloValor = marca('belico-pasivas-solo-valor');
+    document.querySelectorAll('.belico-pasiva-item').forEach(function (item) {
+        var coincide = !consulta || belicoPlano(item.dataset.buscar).indexOf(consulta) !== -1;
+        var oculta = (soloAplican && item.dataset.aplica === 'no')
+            || (soloMarcadas && !item.querySelector('[data-belico-pasiva]:checked'))
+            || (soloValor && item.dataset.valor !== '1');
+        item.style.display = (coincide && !oculta) ? '' : 'none';
+    });
+    document.querySelectorAll('.belico-pasiva-grupo').forEach(function (grupo) {
+        var hay = Array.prototype.some.call(grupo.querySelectorAll('.belico-pasiva-item'), function (item) { return item.style.display !== 'none'; });
+        grupo.style.display = hay ? '' : 'none';
+        if ((consulta || soloMarcadas) && hay) { grupo.open = true; }
+    });
+}
+
+// Suma los bonos numéricos de las pasivas marcadas. Las que no aplican con el arma elegida no suman.
+function belicoBonosActivos() {
+    var suma = {};
+    var excluidas = 0;
+    belicoPasivasMarcadas().forEach(function (campo) {
+        var item = campo.closest('.belico-pasiva-item');
+        if (!item) { return; }
+        var bonos = [];
+        try { bonos = JSON.parse(item.dataset.bonos || '[]'); } catch (e) { bonos = []; }
+        if (item.dataset.aplica === 'no') { if (bonos.length) { excluidas++; } return; }
+        bonos.forEach(function (bono) {
+            var clave = bono.k + (bono.p ? '%' : '');
+            if (!suma[clave]) { suma[clave] = { k: bono.k, p: bono.p, l: bono.l + (bono.p ? ' (%)' : ''), v: 0 }; }
+            suma[clave].v += bono.v;
+        });
+    });
+    return { suma: suma, excluidas: excluidas };
+}
+
+// Texto para el post: agrupado por origen y con los valores ya calculados entre paréntesis.
+function belicoTextoPasivas() {
+    var marcadas = belicoPasivasMarcadas();
+    if (!marcadas.length) { return ''; }
+    var texto = '[spoiler=Pasivas del turno]\n';
+    var origenActual = null;
+    marcadas.forEach(function (pasiva) {
+        var origen = pasiva.dataset.belicoPasivaOrigen || 'Otras';
+        if (origen !== origenActual) { texto += '[b]' + origen + '[/b]\n'; origenActual = origen; }
+        var efecto = pasiva.dataset.belicoPasivaEfecto;
+        texto += '[tecnica=' + pasiva.value + ']' + (efecto ? ' (' + efecto + ')' : '') + '\n';
+    });
+    return texto + '[/spoiler]';
+}
+
+// Bonos de las pasivas marcadas: se suman al resumen de la ofensiva (Ataque) y a Reflejos (Reacción).
+function belicoAplicarPasivasAtaque() {
+    var suma = belicoBonosActivos().suma;
+    var valor = function (clave) { return suma[clave] ? suma[clave].v : 0; };
+    var resumen = document.getElementById('belico-resumen');
+    if (resumen) {
+        var baseDano = Number(resumen.dataset.baseDano) || 0;
+        var baseVerdadero = Number(resumen.dataset.baseVerdadero) || 0;
+        var baseTa = Number(resumen.dataset.baseTa) || 0;
+        var poner = function (clave, base, extra, sufijo) {
+            var destino = resumen.querySelector('[data-belico-resumen="' + clave + '"]');
+            if (!destino) { return; }
+            destino.textContent = extra ? '→ ' + (base + extra) + ' con pasivas (' + belicoNumeroBono(extra) + (sufijo || '') + ')' : '';
+        };
+        poner('dano', baseDano, valor('dano'));
+        poner('verdadero', baseVerdadero, valor('dano verdadero'));
+        poner('ta', baseTa, valor('tasa de acierto'));
+        var filaVerdadero = resumen.querySelector('[data-belico-fila="verdadero"]');
+        if (filaVerdadero) { filaVerdadero.hidden = !(baseVerdadero || valor('dano verdadero')); }
+    }
+    var nota = document.getElementById('belico-nota-reflejos');
+    if (!nota) { return; }
+    var reflejos = valor('reflejos');
+    nota.textContent = '';
+    if (!reflejos) { nota.hidden = true; return; }
+    var campo = document.getElementById('belico-mod-ref');
+    var baseRef = campo ? (Number(campo.dataset.belicoBase) || 0) + (Number(campo.value) || 0) : 0;
+    nota.hidden = false;
+    nota.appendChild(document.createTextNode('Pasivas marcadas: ' + belicoNumeroBono(reflejos) + ' Reflejos (con pasivas: ' + (baseRef + reflejos) + '). '));
+    var usar = document.createElement('button');
+    usar.type = 'button';
+    usar.className = 'opg-chip';
+    usar.dataset.belicoUsarRef = String(baseRef + reflejos);
+    usar.textContent = 'Usar este valor';
+    nota.appendChild(usar);
+}
+
+// Tira bajo las pestañas con lo que llevas: arma, técnica, tipo de arma de las pasivas y pasivas con sus bonos.
+function belicoActualizarLlevas() {
+    var caja = document.getElementById('belico-llevas');
+    if (!caja) { return; }
+    var partes = [];
+    var formulario = document.getElementById('belico-ataque-form');
+    if (formulario && formulario.elements.contexto_arma) {
+        var config = formulario.elements.contexto_arma;
+        var nombres = [];
+        ['arma_uno', 'arma_dos', 'arma_tres'].forEach(function (nombre) {
+            var campo = formulario.elements[nombre];
+            if (campo && campo.value) { nombres.push(campo.options[campo.selectedIndex].text); }
+        });
+        partes.push('Arma: ' + config.options[config.selectedIndex].text + (nombres.length ? ' (' + nombres.join(', ') + ')' : ''));
+        var tecnica = formulario.elements.tecnica;
+        if (tecnica && tecnica.value) { partes.push('Técnica: ' + tecnica.options[tecnica.selectedIndex].text.replace(/^◆\s*/, '')); }
+    }
+    var tipos = Array.prototype.map.call(document.querySelectorAll('[data-belico-pasivas-tipo]:checked'), function (campo) {
+        return campo.nextElementSibling ? campo.nextElementSibling.textContent.replace(/\s*\(\d+\)\s*$/, '') : campo.value;
+    });
+    if (tipos.length) { partes.push('En mano (pasivas): ' + tipos.join(', ')); }
+    var marcadas = belicoPasivasMarcadas();
+    if (marcadas.length) {
+        var activos = belicoBonosActivos();
+        var bonos = Object.keys(activos.suma).sort().map(function (clave) { return activos.suma[clave].l + ' ' + belicoNumeroBono(activos.suma[clave].v) + (activos.suma[clave].p ? '%' : ''); });
+        partes.push(marcadas.length + (marcadas.length === 1 ? ' pasiva' : ' pasivas') + (bonos.length ? ' (' + bonos.join(', ') + ')' : ''));
+    }
+    caja.textContent = partes.length ? 'Llevas: ' + partes.join(' · ') : '';
+}
+
+// Contador, chips de lo marcado, bonos sumados, vista previa del texto y recuerdo de la selección.
+function belicoActualizarPasivas(sinGuardar) {
+    var marcadas = belicoPasivasMarcadas();
+    var resumen = document.getElementById('belico-pasivas-resumen');
+    if (resumen) { resumen.textContent = marcadas.length + (marcadas.length === 1 ? ' pasiva seleccionada' : ' pasivas seleccionadas'); }
+
+    var chips = document.getElementById('belico-pasivas-chips');
+    if (chips) {
+        while (chips.firstChild) { chips.removeChild(chips.firstChild); }
+        marcadas.forEach(function (campo) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'belico-chip-sel';
+            chip.dataset.belicoQuitar = campo.value;
+            chip.title = 'Quitar';
+            chip.textContent = (campo.dataset.belicoPasivaNombre || campo.value) + ' ✕';
+            chips.appendChild(chip);
+        });
+    }
+
+    var bonosCaja = document.getElementById('belico-pasivas-bonos');
+    if (bonosCaja) {
+        while (bonosCaja.firstChild) { bonosCaja.removeChild(bonosCaja.firstChild); }
+        if (marcadas.length) {
+            var activos = belicoBonosActivos();
+            var claves = Object.keys(activos.suma).sort();
+            if (!claves.length) {
+                bonosCaja.appendChild(document.createTextNode('Ninguna de las marcadas suma un bono numérico.'));
+            } else {
+                bonosCaja.appendChild(document.createTextNode('Bonos: '));
+                claves.forEach(function (clave) {
+                    var bono = activos.suma[clave];
+                    var etiqueta = document.createElement('span');
+                    etiqueta.className = 'belico-bono';
+                    etiqueta.appendChild(document.createTextNode(bono.l + ' '));
+                    var cifra = document.createElement('strong');
+                    cifra.textContent = belicoNumeroBono(bono.v) + (bono.p ? '%' : '');
+                    etiqueta.appendChild(cifra);
+                    bonosCaja.appendChild(etiqueta);
+                });
+            }
+            if (activos.excluidas) {
+                var nota = document.createElement('small');
+                nota.textContent = ' (' + activos.excluidas + ' con bono no suman porque no aplican con tu arma)';
+                bonosCaja.appendChild(nota);
+            }
+        }
+    }
+
+    var previa = document.getElementById('belico-pasivas-previa');
+    if (previa) { previa.textContent = belicoTextoPasivas() || 'Selecciona al menos una pasiva.'; }
+
+    belicoAplicarPasivasAtaque();
+    belicoActualizarLlevas();
+    belicoFiltrarPasivas();
+    if (typeof belicoTurnoPasivasCambiaron === 'function') { belicoTurnoPasivasCambiaron(); }
+    if (sinGuardar !== true) {
+        try {
+            localStorage.setItem('opg_belico_pasivas_' + window.belicoClaveAtaque, JSON.stringify(marcadas.map(function (campo) { return campo.value; })));
+        } catch (e) {}
+    }
+}
+
+function belicoCopiarPasivas() {
+    var texto = belicoTextoPasivas();
+    var salida = document.getElementById('belico-pasivas-textarea');
+    var mostrar = function (contenido) {
+        if (!salida) { return; }
+        salida.hidden = false;
+        salida.value = contenido;
+        salida.focus();
+        salida.select();
+    };
+    if (!texto) { mostrar('Selecciona al menos una pasiva para copiarla al post.'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(function () {
+            if (salida) { salida.hidden = true; }
+            belicoAvisoPasivas('Copiado ✓');
+        }).catch(function () { mostrar(texto); });
+    } else {
+        mostrar(texto);
+    }
+}
+
+// Conjuntos de pasivas guardados en este navegador.
+function belicoClaveConjuntos() { return 'opg_belico_pasivas_conjuntos_' + window.belicoClaveAtaque; }
+function belicoLeerConjuntos() {
+    try { return JSON.parse(localStorage.getItem(belicoClaveConjuntos()) || '{}') || {}; } catch (e) { return {}; }
+}
+function belicoPintarConjuntos(seleccionado) {
+    var select = document.getElementById('belico-conjuntos');
+    if (!select) { return; }
+    var conjuntos = belicoLeerConjuntos();
+    var nombres = Object.keys(conjuntos).sort();
+    while (select.firstChild) { select.removeChild(select.firstChild); }
+    var primera = document.createElement('option');
+    primera.value = '';
+    primera.textContent = nombres.length ? '(elige un conjunto)' : '(ninguno guardado)';
+    select.appendChild(primera);
+    nombres.forEach(function (nombre) {
+        var opcion = document.createElement('option');
+        opcion.value = nombre;
+        opcion.textContent = nombre + ' (' + conjuntos[nombre].length + ')';
+        select.appendChild(opcion);
+    });
+    select.value = seleccionado && conjuntos[seleccionado] ? seleccionado : '';
+}
+
+document.addEventListener('input', function (evento) {
+    if (evento.target.id === 'belico-pasivas-buscar') { belicoFiltrarPasivas(); }
+});
+document.addEventListener('change', function (evento) {
+    if (['belico-pasivas-solo-aplican', 'belico-pasivas-solo-marcadas', 'belico-pasivas-solo-valor'].indexOf(evento.target.id) !== -1) { belicoFiltrarPasivas(); }
+    if (evento.target.matches && evento.target.matches('[data-belico-pasivas-tipo]')) {
+        belicoEvaluarArmasPasivas();
+        try {
+            var marcados = Array.prototype.map.call(document.querySelectorAll('[data-belico-pasivas-tipo]:checked'), function (campo) { return campo.value; });
+            localStorage.setItem('opg_belico_pasivas_tipos_' + window.belicoClaveAtaque, JSON.stringify(marcados));
+        } catch (e) {}
+    }
+});
+document.body.addEventListener('htmx:afterSettle', function () { belicoAplicarPasivasAtaque(); belicoActualizarLlevas(); });
+document.addEventListener('change', function (evento) {
+    if (evento.target.closest && evento.target.closest('#belico-ataque-form')) { belicoActualizarLlevas(); }
+});
+document.addEventListener('DOMContentLoaded', belicoEvaluarArmasPasivas);
+
+var belicoPasivasAntes = null;
+document.addEventListener('click', function (evento) {
+    var objetivo = evento.target;
+    var quitar = objetivo.closest('[data-belico-quitar]');
+    if (quitar) {
+        var campo = Array.prototype.filter.call(document.querySelectorAll('[data-belico-pasiva]'), function (c) { return c.value === quitar.dataset.belicoQuitar; })[0];
+        if (campo) { campo.checked = false; belicoActualizarPasivas(); }
+        return;
+    }
+    var usarRef = objetivo.closest('[data-belico-usar-ref]');
+    if (usarRef) {
+        var ref = document.getElementById('belico-ref');
+        if (ref) { ref.value = usarRef.dataset.belicoUsarRef; ref.dispatchEvent(new Event('input', { bubbles: true })); }
+        return;
+    }
+    var densidad = objetivo.closest('[data-belico-densidad]');
+    if (densidad) {
+        var seccion = document.getElementById('belico-pasivas');
+        if (seccion) { seccion.classList.toggle('belico-pasivas--compacta', densidad.dataset.belicoDensidad === 'compacta'); }
+        document.querySelectorAll('[data-belico-densidad]').forEach(function (boton) {
+            boton.setAttribute('aria-pressed', boton.dataset.belicoDensidad === densidad.dataset.belicoDensidad ? 'true' : 'false');
+        });
+        try { localStorage.setItem('opg_belico_densidad', densidad.dataset.belicoDensidad); } catch (e) {}
+        return;
+    }
+    if (objetivo.closest('#belico-limpiar-pasivas')) {
+        belicoPasivasMarcadas().forEach(function (c) { c.checked = false; });
+        belicoActualizarPasivas();
+        return;
+    }
+    if (objetivo.closest('#belico-marcar-aplicables')) {
+        belicoPasivasAntes = belicoPasivasMarcadas().map(function (c) { return c.value; });
+        var nuevas = 0;
+        document.querySelectorAll('.belico-pasiva-item[data-aplica="si"] [data-belico-pasiva]').forEach(function (c) { if (!c.checked) { c.checked = true; nuevas++; } });
+        document.querySelectorAll('.belico-pasiva-grupo').forEach(function (grupo) { if (grupo.querySelector('[data-belico-pasiva]:checked')) { grupo.open = true; } });
+        var deshacer = document.getElementById('belico-deshacer-pasivas');
+        if (deshacer) { deshacer.hidden = false; }
+        belicoActualizarPasivas();
+        belicoAvisoPasivas(nuevas ? nuevas + ' marcadas' : 'No hay pasivas nuevas que apliquen');
+        return;
+    }
+    if (objetivo.closest('#belico-deshacer-pasivas')) {
+        if (belicoPasivasAntes) {
+            document.querySelectorAll('[data-belico-pasiva]').forEach(function (c) { c.checked = belicoPasivasAntes.indexOf(c.value) !== -1; });
+            belicoPasivasAntes = null;
+            objetivo.closest('#belico-deshacer-pasivas').hidden = true;
+            belicoActualizarPasivas();
+        }
+        return;
+    }
+    if (objetivo.closest('#belico-conjunto-guardar')) {
+        var marcadas = belicoPasivasMarcadas().map(function (c) { return c.value; });
+        if (!marcadas.length) { belicoAvisoPasivas('Marca al menos una pasiva'); return; }
+        var nombre = window.prompt('Nombre del conjunto:');
+        nombre = nombre ? nombre.trim() : '';
+        if (!nombre) { return; }
+        var conjuntos = belicoLeerConjuntos();
+        conjuntos[nombre] = marcadas;
+        try { localStorage.setItem(belicoClaveConjuntos(), JSON.stringify(conjuntos)); } catch (e) {}
+        belicoPintarConjuntos(nombre);
+        belicoAvisoPasivas('Conjunto guardado ✓');
+        return;
+    }
+    if (objetivo.closest('#belico-conjunto-aplicar')) {
+        var elegido = document.getElementById('belico-conjuntos').value;
+        var guardado = belicoLeerConjuntos()[elegido];
+        if (!guardado) { return; }
+        document.querySelectorAll('[data-belico-pasiva]').forEach(function (c) { c.checked = guardado.indexOf(c.value) !== -1; });
+        document.querySelectorAll('.belico-pasiva-grupo').forEach(function (grupo) { if (grupo.querySelector('[data-belico-pasiva]:checked')) { grupo.open = true; } });
+        belicoActualizarPasivas();
+        return;
+    }
+    if (objetivo.closest('#belico-conjunto-borrar')) {
+        var cual = document.getElementById('belico-conjuntos').value;
+        if (!cual || !window.confirm('¿Borrar el conjunto "' + cual + '"?')) { return; }
+        var todos = belicoLeerConjuntos();
+        delete todos[cual];
+        try { localStorage.setItem(belicoClaveConjuntos(), JSON.stringify(todos)); } catch (e) {}
+        belicoPintarConjuntos('');
+        return;
+    }
+    if (objetivo.closest('#belico-copiar-pasivas')) { belicoCopiarPasivas(); }
+});
+
+// Interruptor "Sin cálculo / Con cálculo" (fórmulas tal cual o valores calculados), recordado en el navegador.
+(function () {
+    var clave = 'opg_belico_vista';
+    function aplicar(vista) {
+        var raiz = document.querySelector('.belico-pagina');
+        if (!raiz) { return; }
+        raiz.classList.remove('belico-modo-codigos', 'belico-modo-calculos');
+        raiz.classList.add('belico-modo-' + vista);
+        document.querySelectorAll('[data-belico-vista]').forEach(function (boton) {
+            boton.setAttribute('aria-pressed', boton.dataset.belicoVista === vista ? 'true' : 'false');
+        });
+    }
+    document.addEventListener('click', function (evento) {
+        var boton = evento.target.closest('[data-belico-vista]');
+        if (!boton) { return; }
+        aplicar(boton.dataset.belicoVista);
+        try { localStorage.setItem(clave, boton.dataset.belicoVista); } catch (e) {}
+    });
+    var guardada = 'calculos';
+    try { guardada = localStorage.getItem(clave) || 'calculos'; } catch (e) {}
+    if (guardada !== 'codigos' && guardada !== 'calculos') { guardada = 'calculos'; }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function () { aplicar(guardada); }); } else { aplicar(guardada); }
+}());
+
+// La lista se vuelve a dibujar cuando cambian los atributos: se reevalúan las armas y se conserva todo lo demás.
+document.body.addEventListener('htmx:afterSwap', function (evento) {
+    if (evento.target && evento.target.id === 'belico-pasivas-contenido') { belicoEvaluarArmasPasivas(); }
+});
+
+(function () {
+    function restaurar() {
+        var leer = function (clave) {
+            try { return JSON.parse(localStorage.getItem(clave + window.belicoClaveAtaque) || '[]') || []; } catch (e) { return []; }
+        };
+        var guardadas = leer('opg_belico_pasivas_');
+        var tipos = leer('opg_belico_pasivas_tipos_');
+        document.querySelectorAll('[data-belico-pasivas-tipo]').forEach(function (campo) {
+            if (tipos.indexOf(campo.value) !== -1) { campo.checked = true; }
+        });
+        document.querySelectorAll('[data-belico-pasiva]').forEach(function (campo) {
+            if (guardadas.indexOf(campo.value) !== -1) { campo.checked = true; }
+        });
+        document.querySelectorAll('.belico-pasiva-grupo').forEach(function (grupo) {
+            if (grupo.querySelector('[data-belico-pasiva]:checked')) { grupo.open = true; }
+        });
+        var densidad = 'tarjetas';
+        try { densidad = localStorage.getItem('opg_belico_densidad') || 'tarjetas'; } catch (e) {}
+        var seccion = document.getElementById('belico-pasivas');
+        if (seccion) { seccion.classList.toggle('belico-pasivas--compacta', densidad === 'compacta'); }
+        document.querySelectorAll('[data-belico-densidad]').forEach(function (boton) {
+            boton.setAttribute('aria-pressed', boton.dataset.belicoDensidad === densidad ? 'true' : 'false');
+        });
+        belicoPintarConjuntos('');
+        belicoEvaluarArmasPasivas();
+    }
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', restaurar); } else { restaurar(); }
+}());
+
+// Pone una configuración de armas en el formulario de Ataque (la del tab Turno), esperando a que se dibujen las ranuras de arma.
+function belicoAtaqueFijar(config, armas) {
+    var f = document.getElementById('belico-ataque-form');
+    if (!f || !f.elements.contexto_arma) { return; }
+    var poner = function () {
+        var actual = document.getElementById('belico-ataque-form');
+        ['arma_uno', 'arma_dos', 'arma_tres'].forEach(function (nombre, i) {
+            var campo = actual.elements[nombre];
+            if (campo && Array.prototype.some.call(campo.options, function (o) { return o.value === (armas[i] || ''); })) { campo.value = armas[i] || ''; }
+        });
+        actual.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    if (f.elements.contexto_arma.value === config) { poner(); return; }
+    var anterior = f;
+    var alTerminar = function () {
+        if (document.getElementById('belico-ataque-form') === anterior) { return; }
+        document.body.removeEventListener('htmx:afterSettle', alTerminar);
+        poner();
+    };
+    document.body.addEventListener('htmx:afterSettle', alTerminar);
+    f.elements.contexto_arma.value = config;
+    f.elements.contexto_arma.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Recuerda la configuración de armas y la técnica en este navegador.
+(function () {
+    var clave = 'opg_belico_ataque_' + window.belicoClaveAtaque;
+    var campos = ['contexto_arma', 'arma_uno', 'arma_dos', 'arma_tres', 'tecnica', 'distancia'];
+    var restaurando = false;
+    var guardado = null;
+    try { guardado = JSON.parse(localStorage.getItem(clave) || 'null'); } catch (e) { guardado = null; }
+
+    function formulario() { return document.getElementById('belico-ataque-form'); }
+
+    function guardar() {
+        var f = formulario();
+        if (!f || restaurando) { return; }
+        var datos = {};
+        campos.forEach(function (nombre) { if (f.elements[nombre]) { datos[nombre] = f.elements[nombre].value; } });
+        try { localStorage.setItem(clave, JSON.stringify(datos)); } catch (e) {}
+    }
+
+    document.addEventListener('change', function (evento) {
+        if (evento.target.closest && evento.target.closest('#belico-ataque-form')) { guardar(); }
+    });
+
+    function ponerValores() {
+        var f = formulario();
+        if (!f) { return; }
+        ['arma_uno', 'arma_dos', 'arma_tres', 'tecnica'].forEach(function (nombre) {
+            var campo = f.elements[nombre];
+            if (campo && guardado[nombre] !== undefined && Array.prototype.some.call(campo.options, function (o) { return o.value === guardado[nombre]; })) {
+                campo.value = guardado[nombre];
+            }
+        });
+        if (f.elements.distancia && guardado.distancia !== undefined) { f.elements.distancia.value = guardado.distancia; }
+        restaurando = false;
+        f.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function iniciar() {
+        var f = formulario();
+        if (!f || !guardado || !guardado.contexto_arma) { return; }
+        var hayAlgo = campos.some(function (nombre) { return guardado[nombre] && guardado[nombre] !== 'sin_arma'; });
+        if (!hayAlgo) { return; }
+        restaurando = true;
+        var config = f.elements.contexto_arma;
+        if (config.value === guardado.contexto_arma) { ponerValores(); return; }
+        // Cambiar la configuración vuelve a dibujar el formulario (con sus ranuras de arma): se esperan los valores hasta entonces.
+        var anterior = f;
+        var alTerminar = function () {
+            if (formulario() === anterior) { return; }
+            document.body.removeEventListener('htmx:afterSettle', alTerminar);
+            ponerValores();
+        };
+        document.body.addEventListener('htmx:afterSettle', alTerminar);
+        config.value = guardado.contexto_arma;
+        config.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', iniciar); } else { iniciar(); }
+}());
+JS;
+}
+
 function belico_js_turno($tecnicas)
 {
     $lista = array();
@@ -1375,293 +2703,20 @@ function belico_js_turno($tecnicas)
             'nombre' => (string) $tecnica['nombre'],
             'clase' => (string) $tecnica['clase'],
             'tipo' => (string) $tecnica['tipo'],
+            'grupo' => $tecnica['grupo'],
+            'calcula' => (bool) $tecnica['calcula'],
+            'etiqueta' => belico_etiqueta_tecnica($tecnica),
+            'rol' => opg_belico_rol_tecnica($tecnica),
+            'instantanea' => opg_belico_es_instantanea($tecnica),
+            'mantenida' => opg_belico_es_mantenida($tecnica),
+            'pasiva' => belico_es_pasiva($tecnica),
+            'enfriamiento' => opg_belico_numero_coste($tecnica['enfriamiento']),
         );
     }
     $json = json_encode($lista, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     if ($json === false) { $json = '[]'; }
 
-    return 'window.belicoTecnicas = ' . $json . ";\n" . belico_js_base() . <<<'JS'
-
-function belicoCrearElemento(etiqueta, clase, texto) {
-    var elemento = document.createElement(etiqueta);
-    if (clase) { elemento.className = clase; }
-    if (texto !== undefined) { elemento.textContent = texto; }
-    return elemento;
-}
-
-function belicoCrearCampo(etiqueta, control, ayuda) {
-    var campo = belicoCrearElemento('div', 'af-field');
-    var label = belicoCrearElemento('label', '', etiqueta);
-    var id = 'belico-turno-' + Math.random().toString(36).slice(2);
-    control.id = id;
-    label.htmlFor = id;
-    campo.appendChild(label);
-    campo.appendChild(control);
-    if (ayuda) { campo.appendChild(belicoCrearElemento('small', '', ayuda)); }
-    return campo;
-}
-
-function belicoNumero(valor) {
-    return Math.max(0, Number(valor) || 0);
-}
-
-function belicoCrearNumero(valor, clase) {
-    var campo = document.createElement('input');
-    campo.type = 'number';
-    campo.min = '0';
-    campo.value = valor || 0;
-    campo.className = clase || '';
-    return campo;
-}
-
-function belicoCrearTexto(placeholder) {
-    var campo = document.createElement('input');
-    campo.type = 'text';
-    campo.placeholder = placeholder;
-    campo.className = 'belico-detalle';
-    return campo;
-}
-
-function belicoClasificacionTecnica(tecnica) {
-    return ((tecnica.clase || '') + ' ' + (tecnica.tipo || '')).toLowerCase();
-}
-
-function belicoEsUtilidad(tecnica) {
-    var texto = belicoClasificacionTecnica(tecnica);
-    return texto.indexOf('utilidad') !== -1 && (texto.indexOf('activa') !== -1 || texto.indexOf('mantenida') !== -1);
-}
-
-function belicoEsPrincipal(tecnica) {
-    var texto = belicoClasificacionTecnica(tecnica);
-    return texto.indexOf('activa') !== -1 && texto.indexOf('mantenida') === -1 && (texto.indexOf('ofensiva') !== -1 || texto.indexOf('defensiva') !== -1 || texto.indexOf('ambiental') !== -1);
-}
-
-function belicoCrearSelectorTecnicas(filtro, vacio, tipo) {
-    var select = document.createElement('select');
-    select.dataset.belicoTecnica = tipo;
-    var primera = document.createElement('option');
-    primera.value = '';
-    primera.textContent = vacio;
-    select.appendChild(primera);
-    (window.belicoTecnicas || []).filter(filtro).forEach(function (tecnica) {
-        var opcion = document.createElement('option');
-        opcion.value = tecnica.tid;
-        opcion.textContent = '[' + tecnica.tid + '] ' + tecnica.nombre;
-        select.appendChild(opcion);
-    });
-    return select;
-}
-
-function belicoCrearMovimiento(cuerpo) {
-    cuerpo.appendChild(belicoCrearCampo('Movimiento previo (m)', belicoCrearNumero(0, 'belico-movimiento-previo')));
-    cuerpo.appendChild(belicoCrearCampo('Movimiento posterior (m)', belicoCrearNumero(0, 'belico-movimiento-posterior')));
-}
-
-function belicoNombreTipo(tipo) {
-    return {
-        tecnica: 'Técnica ofensiva o defensiva',
-        sin_tecnica: 'Sin técnica',
-        utilidad: 'Técnicas de utilidad'
-    }[tipo] || 'Acción';
-}
-
-function belicoBotonBloque(icono, etiqueta, accion) {
-    var boton = document.createElement('button');
-    boton.type = 'button';
-    boton.className = 'opg-chip belico-bloque-icono';
-    boton.dataset.belicoAccionBloque = accion;
-    boton.setAttribute('aria-label', etiqueta);
-    boton.title = etiqueta;
-    boton.innerHTML = '<i class="fa-solid ' + icono + '" aria-hidden="true"></i>';
-    return boton;
-}
-
-function belicoCrearBloque(tipo) {
-    var bloque = belicoCrearElemento('article', 'opg-card belico-bloque-turno');
-    bloque.dataset.belicoTipo = tipo;
-    var cabecera = belicoCrearElemento('header', 'belico-bloque-cabecera');
-    var texto = belicoCrearElemento('div');
-    texto.appendChild(belicoCrearElemento('h3', 'belico-bloque-titulo', belicoNombreTipo(tipo)));
-    var descripciones = {
-        tecnica: 'Una ofensiva o defensa, más una técnica de utilidad opcional que la afecte.',
-        sin_tecnica: 'Hasta dos acciones no técnicas; cada una consume una acción adicional.',
-        utilidad: 'Hasta dos técnicas de utilidad y, opcionalmente, un bloqueo básico.'
-    };
-    texto.appendChild(belicoCrearElemento('p', 'belico-bloque-descripcion', descripciones[tipo]));
-    cabecera.appendChild(texto);
-    var controles = belicoCrearElemento('div', 'belico-bloque-orden');
-    controles.appendChild(belicoBotonBloque('fa-arrow-up', 'Subir bloque', 'subir'));
-    controles.appendChild(belicoBotonBloque('fa-arrow-down', 'Bajar bloque', 'bajar'));
-    controles.appendChild(belicoBotonBloque('fa-xmark', 'Quitar bloque', 'quitar'));
-    cabecera.appendChild(controles);
-    bloque.appendChild(cabecera);
-    var cuerpo = belicoCrearElemento('div', 'belico-bloque-cuerpo af-row');
-    cuerpo.appendChild(belicoCrearCampo('Contexto', belicoCrearSelectorContexto()));
-
-    if (tipo === 'tecnica') {
-        cuerpo.appendChild(belicoCrearCampo('Técnica principal', belicoCrearSelectorTecnicas(belicoEsPrincipal, 'Elegir ofensiva o defensiva', 'principal')));
-        cuerpo.appendChild(belicoCrearCampo('Técnica de utilidad', belicoCrearSelectorTecnicas(belicoEsUtilidad, 'Sin técnica de utilidad', 'utilidad'), 'Opcional; debe afectar a la acción principal.'));
-    }
-    if (tipo === 'sin_tecnica') {
-        cuerpo.appendChild(belicoCrearCampo('Primera acción', belicoCrearSelectorAccion()));
-        cuerpo.appendChild(belicoCrearCampo('Segunda acción', belicoCrearSelectorAccion(), 'Opcional.'));
-    }
-    if (tipo === 'utilidad') {
-        cuerpo.appendChild(belicoCrearCampo('Primera técnica', belicoCrearSelectorTecnicas(belicoEsUtilidad, 'Elegir técnica de utilidad', 'utilidad')));
-        cuerpo.appendChild(belicoCrearCampo('Segunda técnica', belicoCrearSelectorTecnicas(belicoEsUtilidad, 'Sin segunda técnica', 'utilidad'), 'Opcional.'));
-        var check = document.createElement('input');
-        check.type = 'checkbox';
-        check.dataset.belicoBloqueBasico = '1';
-        var campoCheck = belicoCrearElemento('div', 'af-field belico-check');
-        var etiqueta = document.createElement('label');
-        etiqueta.appendChild(check);
-        etiqueta.appendChild(document.createTextNode(' Añadir bloqueo básico'));
-        campoCheck.appendChild(etiqueta);
-        cuerpo.appendChild(campoCheck);
-    }
-    belicoCrearMovimiento(cuerpo);
-    cuerpo.appendChild(belicoCrearCampo('Detalle del bloque', belicoCrearTexto('Objetivo, objeto o condición'), 'Opcional.'));
-    bloque.appendChild(cuerpo);
-    return bloque;
-}
-
-function belicoCrearSelectorAccion() {
-    var opciones = [
-        ['', 'Sin acción adicional'], ['golpe', 'Golpe o bloqueo básico'], ['lanzamiento', 'Lanzar un objeto sin técnica'],
-        ['consumible', 'Utilizar un consumible'], ['dial', 'Utilizar un dial'], ['agarre', 'Realizar un agarre'],
-        ['cambiar_arma', 'Cambiar el tipo de arma dual'], ['equipar_arma', 'Equipar un arma'],
-        ['levantarse', 'Levantarse tras derribo'], ['recuperar_arma', 'Recuperar arma tras desarme'],
-        ['trampa', 'Poner una trampa'], ['soltarse', 'Soltarse de un agarre']
-    ];
-    var select = document.createElement('select');
-    select.dataset.belicoAccionAdicional = '1';
-    opciones.forEach(function (opcion) {
-        var item = document.createElement('option');
-        item.value = opcion[0];
-        item.textContent = opcion[1];
-        select.appendChild(item);
-    });
-    return select;
-}
-
-function belicoCrearSelectorContexto() {
-    var select = document.createElement('select');
-    select.dataset.belicoContexto = '1';
-    [['turno', 'Acción de este turno'], ['respuesta', 'Respuesta a un bloque previo']].forEach(function (opcion) {
-        var item = document.createElement('option');
-        item.value = opcion[0];
-        item.textContent = opcion[1];
-        select.appendChild(item);
-    });
-    return select;
-}
-
-function belicoActualizarBloques() {
-    var bloques = document.querySelectorAll('#belico-turno-bloques .belico-bloque-turno');
-    bloques.forEach(function (bloque, indice) {
-        bloque.querySelector('.belico-bloque-titulo').textContent = 'Bloque ' + (indice + 1) + ' — ' + belicoNombreTipo(bloque.dataset.belicoTipo);
-    });
-    var vacio = document.getElementById('belico-turno-vacio');
-    if (vacio) { vacio.hidden = bloques.length > 0; }
-    belicoRevisarTurno();
-}
-
-function belicoRevisarTurno() {
-    var movimiento = 0;
-    var adicionales = 0;
-    var avisos = [];
-    var bloques = document.querySelectorAll('#belico-turno-bloques .belico-bloque-turno');
-    bloques.forEach(function (bloque, indice) {
-        movimiento += belicoNumero(bloque.querySelector('.belico-movimiento-previo').value) + belicoNumero(bloque.querySelector('.belico-movimiento-posterior').value);
-        if (bloque.dataset.belicoTipo === 'tecnica' && !bloque.querySelector('[data-belico-tecnica="principal"]').value) { avisos.push('El bloque ' + (indice + 1) + ' necesita una técnica ofensiva o defensiva.'); }
-        if (bloque.dataset.belicoTipo === 'sin_tecnica') {
-            var acciones = Array.prototype.slice.call(bloque.querySelectorAll('[data-belico-accion-adicional]')).filter(function (campo) { return campo.value; });
-            adicionales += acciones.length;
-            if (!acciones.length) { avisos.push('El bloque ' + (indice + 1) + ' necesita al menos una acción no técnica.'); }
-            var sinMovimiento = acciones.some(function (campo) { return ['levantarse', 'recuperar_arma', 'trampa'].indexOf(campo.value) !== -1; });
-            var soltarse = acciones.some(function (campo) { return campo.value === 'soltarse'; });
-            var previo = belicoNumero(bloque.querySelector('.belico-movimiento-previo').value);
-            var posterior = belicoNumero(bloque.querySelector('.belico-movimiento-posterior').value);
-            if (sinMovimiento && (previo || posterior)) { avisos.push('El bloque ' + (indice + 1) + ' incluye una acción sin movimiento; no puede declarar desplazamiento previo ni posterior.'); }
-            if (!sinMovimiento && soltarse && previo) { avisos.push('El bloque ' + (indice + 1) + ' incluye soltarse de un agarre; no puede declarar movimiento previo.'); }
-        }
-        if (bloque.dataset.belicoTipo === 'utilidad') {
-            var tecnicas = Array.prototype.slice.call(bloque.querySelectorAll('[data-belico-tecnica="utilidad"]')).filter(function (campo) { return campo.value; });
-            if (!tecnicas.length) { avisos.push('El bloque ' + (indice + 1) + ' necesita una técnica de utilidad.'); }
-            if (bloque.querySelector('[data-belico-bloque-basico]').checked) { adicionales += 1; }
-        }
-    });
-    var limiteMovimiento = belicoNumero(document.getElementById('belico-movimiento-limite').value);
-    var limiteAdicionales = belicoNumero(document.getElementById('belico-adicionales-limite').value);
-    var resumenMovimiento = document.getElementById('belico-movimiento-resumen');
-    var resumenAdicionales = document.getElementById('belico-adicionales-resumen');
-    resumenMovimiento.textContent = 'Movimiento: ' + movimiento + ' / ' + limiteMovimiento + ' m';
-    resumenAdicionales.textContent = 'Acciones adicionales: ' + adicionales + ' / ' + limiteAdicionales;
-    resumenMovimiento.classList.toggle('belico-turno-excedido', movimiento > limiteMovimiento);
-    resumenAdicionales.classList.toggle('belico-turno-excedido', adicionales > limiteAdicionales);
-    if (movimiento > limiteMovimiento) { avisos.push('El movimiento declarado supera el disponible para este turno.'); }
-    if (adicionales > limiteAdicionales) { avisos.push('Las acciones adicionales superan el límite configurado.'); }
-    var destino = document.getElementById('belico-turno-avisos');
-    destino.replaceChildren();
-    avisos.forEach(function (aviso) { destino.appendChild(belicoCrearElemento('p', 'belico-turno-aviso', aviso)); });
-    return avisos;
-}
-
-function belicoTextoTecnica(select) {
-    return select && select.value ? '[tecnica=' + select.value + ']' : '';
-}
-
-function belicoTextoSeguro(texto) {
-    return (texto || '').replace(/[\[\]]/g, '').trim();
-}
-
-function belicoConstruirBloque(bloque, indice) {
-    var tipo = bloque.dataset.belicoTipo;
-    var lineas = ['[spoiler=Bloque de acción ' + (indice + 1) + ' — ' + belicoNombreTipo(tipo) + ']'];
-    if (bloque.querySelector('[data-belico-contexto]').value === 'respuesta') { lineas.push('Contexto: Respuesta a un bloque del turno anterior.'); }
-    var previo = belicoNumero(bloque.querySelector('.belico-movimiento-previo').value);
-    var posterior = belicoNumero(bloque.querySelector('.belico-movimiento-posterior').value);
-    if (previo) { lineas.push('Movimiento previo: ' + previo + ' m.'); }
-    if (tipo === 'tecnica') {
-        lineas.push('Técnica principal: ' + belicoTextoTecnica(bloque.querySelector('[data-belico-tecnica="principal"]')) + '.');
-        var asociada = bloque.querySelector('[data-belico-tecnica="utilidad"]');
-        if (asociada.value) { lineas.push('Técnica de utilidad asociada: ' + belicoTextoTecnica(asociada) + '.'); }
-    }
-    if (tipo === 'sin_tecnica') {
-        Array.prototype.slice.call(bloque.querySelectorAll('[data-belico-accion-adicional]')).forEach(function (campo) {
-            if (campo.value) { lineas.push('Acción: ' + campo.options[campo.selectedIndex].text + '.'); }
-        });
-    }
-    if (tipo === 'utilidad') {
-        Array.prototype.slice.call(bloque.querySelectorAll('[data-belico-tecnica="utilidad"]')).forEach(function (campo) {
-            if (campo.value) { lineas.push('Técnica de utilidad: ' + belicoTextoTecnica(campo) + '.'); }
-        });
-        if (bloque.querySelector('[data-belico-bloque-basico]').checked) { lineas.push('Acción: Bloqueo básico.'); }
-    }
-    if (posterior) { lineas.push('Movimiento posterior: ' + posterior + ' m.'); }
-    var detalle = belicoTextoSeguro(bloque.querySelector('.belico-detalle').value);
-    if (detalle) { lineas.push('Detalle: ' + detalle); }
-    lineas.push('[/spoiler]');
-    return lineas.join('\n');
-}
-
-function belicoCopiarTurno() {
-    var bloques = Array.prototype.slice.call(document.querySelectorAll('#belico-turno-bloques .belico-bloque-turno'));
-    var avisos = belicoRevisarTurno();
-    if (!bloques.length || avisos.length) {
-        if (!bloques.length) { document.getElementById('belico-turno-avisos').appendChild(belicoCrearElemento('p', 'belico-turno-aviso', 'Añade al menos un bloque antes de copiar la estrategia.')); }
-        return;
-    }
-    var nombre = belicoTextoSeguro(document.getElementById('belico-turno-nombre').value) || 'Turno';
-    var estrategia = '[spoiler=' + nombre + ' — estrategia]\n';
-    bloques.forEach(function (bloque, indice) { estrategia += belicoConstruirBloque(bloque, indice) + '\n'; });
-    estrategia += '[/spoiler]';
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(estrategia).catch(function () { belicoMostrarTextarea(estrategia); });
-    } else {
-        belicoMostrarTextarea(estrategia);
-    }
-}
+    return 'window.belicoTecnicas = ' . $json . ";\nwindow.belicoAcciones = " . json_encode(opg_belico_acciones_turno(), JSON_UNESCAPED_UNICODE) . ";\n" . belico_js_base() . <<<'JS'
 
 function belicoActivarTab(nombre) {
     var tabs = document.querySelectorAll('[data-belico-tab]');
@@ -1676,73 +2731,665 @@ function belicoActivarTab(nombre) {
     });
 }
 
-function belicoActualizarPasivas() {
-    var seleccionadas = document.querySelectorAll('[data-belico-pasiva]:checked');
-    var resumen = document.getElementById('belico-pasivas-resumen');
-    if (resumen) {
-        resumen.textContent = seleccionadas.length + (seleccionadas.length === 1 ? ' pasiva seleccionada' : ' pasivas seleccionadas');
-    }
+// ── Turno ─────────────────────────────────────────────────────────────────────
+var belicoTurno = null;
+var belicoTurnoUltimo = null;
+var belicoTurnoTextoEditado = false;
+var belicoTurnoSecuencia = 0;
+var belicoTurnoTemporizador = null;
+
+function belicoEl(etiqueta, clase, texto) {
+    var e = document.createElement(etiqueta);
+    if (clase) { e.className = clase; }
+    if (texto !== undefined) { e.textContent = texto; }
+    return e;
 }
 
-function belicoCopiarPasivas() {
-    var seleccionadas = Array.prototype.slice.call(document.querySelectorAll('[data-belico-pasiva]:checked'));
-    var salida = document.getElementById('belico-pasivas-textarea');
-    if (!seleccionadas.length) {
-        if (salida) {
-            salida.hidden = false;
-            salida.value = 'Selecciona al menos una pasiva para copiarla al post.';
-            salida.focus();
-        }
-        return;
-    }
-    var texto = '[spoiler=Pasivas del turno]\n';
-    seleccionadas.forEach(function (pasiva) {
-        texto += '[tecnica=' + pasiva.value + ']\n';
-    });
-    texto += '[/spoiler]';
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(texto).then(function () {
-            if (salida) { salida.hidden = true; }
-        }).catch(function () {
-            if (salida) { salida.hidden = false; salida.value = texto; salida.focus(); salida.select(); }
-        });
-    } else if (salida) {
-        salida.hidden = false;
-        salida.value = texto;
-        salida.focus();
-        salida.select();
-    }
+function belicoTecnicaPorId(tid) {
+    return (window.belicoTecnicas || []).filter(function (t) { return t.tid === tid; })[0];
 }
+
+function belicoTecnicasPor(filtro) {
+    return (window.belicoTecnicas || []).filter(filtro);
+}
+
+function belicoTurnoClave() { return 'opg_belico_turno_' + window.belicoClaveAtaque; }
+
+function belicoPasivasDelTurno() {
+    return typeof belicoPasivasMarcadas === 'function' ? belicoPasivasMarcadas().map(function (c) { return c.value; }) : [];
+}
+
+function belicoTurnoNuevo() {
+    var config = 'sin_arma';
+    var armas = ['', '', ''];
+    var f = document.getElementById('belico-ataque-form');
+    if (f && f.elements.contexto_arma) {
+        config = f.elements.contexto_arma.value;
+        armas = ['arma_uno', 'arma_dos', 'arma_tres'].map(function (n) { return f.elements[n] ? f.elements[n].value : ''; });
+    }
+    var recurso = function (id) { var c = document.getElementById(id); return c ? Number(c.defaultValue) || 0 : 0; };
+    return {
+        nombre: 'Turno',
+        equipo: { configuracion: config, armas: armas },
+        recursos: { vida: recurso('belico-turno-vida'), energia: recurso('belico-turno-energia'), haki: recurso('belico-turno-haki') },
+        adicionales_extra: 0,
+        enfriamientos: {},
+        continuan: [],
+        instantaneas: [],
+        bloques: []
+    };
+}
+
+function belicoTurnoValido(t) {
+    return t && typeof t === 'object' && t.equipo && Array.isArray(t.bloques) && Array.isArray(t.continuan) && Array.isArray(t.instantaneas) && t.recursos;
+}
+
+function belicoTurnoGuardar() {
+    try { localStorage.setItem(belicoTurnoClave(), JSON.stringify(belicoTurno)); } catch (e) {}
+}
+
+function belicoTurnoCargar() {
+    var guardado = null;
+    try { guardado = JSON.parse(localStorage.getItem(belicoTurnoClave()) || 'null'); } catch (e) { guardado = null; }
+    belicoTurno = belicoTurnoValido(guardado) ? guardado : belicoTurnoNuevo();
+    if (!belicoTurno.enfriamientos || typeof belicoTurno.enfriamientos !== 'object' || Array.isArray(belicoTurno.enfriamientos)) { belicoTurno.enfriamientos = {}; }
+}
+
+// Cada cambio guarda el turno y pide el cálculo al servidor (con un pequeño retardo).
+function belicoTurnoCambio() {
+    belicoTurnoGuardar();
+    window.clearTimeout(belicoTurnoTemporizador);
+    belicoTurnoTemporizador = window.setTimeout(belicoTurnoEnviar, 300);
+}
+
+function belicoTurnoPayload() {
+    var t = JSON.parse(JSON.stringify(belicoTurno));
+    t.pasivas = belicoPasivasDelTurno();
+    return t;
+}
+
+function belicoTurnoEnviar() {
+    var atributos = document.getElementById('belico-atributos');
+    if (!atributos || !belicoTurno) { return; }
+    var datos = new FormData(atributos);
+    datos.append('accion', 'turno');
+    datos.append('turno', JSON.stringify(belicoTurnoPayload()));
+    var secuencia = ++belicoTurnoSecuencia;
+    fetch('belico.php', { method: 'POST', body: datos, headers: { 'HX-Request': 'true' }, credentials: 'same-origin' })
+        .then(function (respuesta) { return respuesta.json(); })
+        .then(function (resultado) { if (secuencia === belicoTurnoSecuencia) { belicoTurnoAplicar(resultado); } })
+        .catch(function () {
+            var avisos = document.getElementById('belico-turno-avisos');
+            if (avisos) { avisos.textContent = 'No se pudo calcular el turno. Revisa tu conexión e inténtalo de nuevo.'; }
+        });
+}
+
+function belicoTurnoAvisoCopia(texto) {
+    var aviso = document.getElementById('belico-turno-aviso');
+    if (!aviso) { return; }
+    aviso.textContent = texto;
+    window.clearTimeout(window.belicoTurnoAvisoTemporizador);
+    window.belicoTurnoAvisoTemporizador = window.setTimeout(function () { aviso.textContent = ''; }, 2500);
+}
+
+// ── Pintado de la cabecera y las listas ──────────────────────────────────────
+function belicoTurnoPintarCabecera() {
+    var poner = function (id, valor) { var c = document.getElementById(id); if (c) { c.value = valor; } };
+    poner('belico-turno-config', belicoTurno.equipo.configuracion);
+    poner('belico-turno-vida', belicoTurno.recursos.vida);
+    poner('belico-turno-energia', belicoTurno.recursos.energia);
+    poner('belico-turno-haki', belicoTurno.recursos.haki);
+    poner('belico-turno-extra', belicoTurno.adicionales_extra);
+    var cantidad = { sin_arma: 0, una_mano: 1, dos_manos: 1, dos_armas: 2, tres_armas: 3 }[belicoTurno.equipo.configuracion] || 0;
+    ['turno_arma_uno', 'turno_arma_dos', 'turno_arma_tres'].forEach(function (nombre, i) {
+        var select = document.getElementById('belico-' + nombre);
+        if (!select) { return; }
+        var valor = belicoTurno.equipo.armas[i] || '';
+        select.value = Array.prototype.some.call(select.options, function (o) { return o.value === valor; }) ? valor : '';
+        select.closest('.af-field').hidden = i >= cantidad;
+    });
+}
+
+function belicoTurnoChips(contenedorId, tids, quitar) {
+    var caja = document.getElementById(contenedorId);
+    if (!caja) { return; }
+    while (caja.firstChild) { caja.removeChild(caja.firstChild); }
+    tids.forEach(function (tid) {
+        var tec = belicoTecnicaPorId(tid);
+        var chip = belicoEl('button', 'belico-chip-sel', (tec ? tec.nombre : tid) + (quitar ? ' ✕' : ''));
+        chip.type = 'button';
+        if (quitar) { chip.dataset.belicoTurnoQuitar = quitar; chip.dataset.tid = tid; chip.title = 'Quitar'; }
+        else { chip.disabled = true; }
+        caja.appendChild(chip);
+    });
+    if (!tids.length) { caja.appendChild(belicoEl('small', '', 'Ninguna')); }
+}
+
+function belicoTurnoPintarSelect(id, marcador, tids, filtro) {
+    var select = document.getElementById(id);
+    if (!select) { return; }
+    while (select.firstChild) { select.removeChild(select.firstChild); }
+    var primera = belicoEl('option', '', marcador);
+    primera.value = '';
+    select.appendChild(primera);
+    belicoTecnicasPor(filtro).forEach(function (t) {
+        if (tids.indexOf(t.tid) !== -1) { return; }
+        var op = belicoEl('option', '', t.etiqueta);
+        op.value = t.tid;
+        select.appendChild(op);
+    });
+}
+
+function belicoTurnoPintarEnfriamientos() {
+    var caja = document.getElementById('belico-turno-enfriamientos');
+    if (caja) {
+        while (caja.firstChild) { caja.removeChild(caja.firstChild); }
+        var tids = Object.keys(belicoTurno.enfriamientos);
+        tids.forEach(function (tid) {
+            var tec = belicoTecnicaPorId(tid);
+            var chip = belicoEl('button', 'belico-chip-sel', (tec ? tec.nombre : tid) + ' (' + belicoTurno.enfriamientos[tid] + ') ✕');
+            chip.type = 'button';
+            chip.title = 'Quitar del enfriamiento';
+            chip.dataset.belicoTurnoQuitarEnf = tid;
+            caja.appendChild(chip);
+        });
+        if (!tids.length) { caja.appendChild(belicoEl('small', '', 'Ninguna')); }
+    }
+    belicoTurnoPintarSelect('belico-turno-enfriamientos-add', '+ Añadir técnica en enfriamiento...', Object.keys(belicoTurno.enfriamientos), function (t) { return t.enfriamiento > 0 && !t.pasiva; });
+}
+
+function belicoTurnoPintarListas() {
+    belicoTurnoPintarEnfriamientos();
+    belicoTurnoChips('belico-turno-pasivas', belicoPasivasDelTurno(), '');
+    belicoTurnoChips('belico-turno-continuan', belicoTurno.continuan, 'continuan');
+    belicoTurnoChips('belico-turno-instantaneas', belicoTurno.instantaneas, 'instantaneas');
+    belicoTurnoPintarSelect('belico-turno-continuan-add', '+ Añadir mantenida que continúa...', belicoTurno.continuan, function (t) { return t.mantenida && !t.pasiva; });
+    belicoTurnoPintarSelect('belico-turno-instantaneas-add', '+ Añadir instantánea...', belicoTurno.instantaneas, function (t) { return t.instantanea && !t.pasiva; });
+}
+
+// ── Pintado de los bloques ───────────────────────────────────────────────────
+var BELICO_ROLES = { principal: 'Técnica ofensiva o defensiva', utilidad: 'Utilidad o mantenida', instantanea: 'Instantánea', accion: 'Acción' };
+
+function belicoTurnoOpcionesPaso(paso) {
+    var opciones = [];
+    if (paso.t === 'accion') {
+        Object.keys(window.belicoAcciones || {}).forEach(function (clave) { opciones.push({ valor: clave, texto: window.belicoAcciones[clave][0] }); });
+        return opciones;
+    }
+    var filtro = {
+        principal: function (t) { return t.rol === 'principal' && !t.instantanea && !t.pasiva; },
+        utilidad: function (t) { return t.rol === 'utilidad' && !t.instantanea && !t.pasiva; },
+        instantanea: function (t) { return t.instantanea && !t.pasiva; }
+    }[paso.rol] || function () { return false; };
+    belicoTecnicasPor(filtro).forEach(function (t) { opciones.push({ valor: t.tid, texto: t.etiqueta }); });
+    return opciones;
+}
+
+function belicoTurnoFilaPaso(i, j, paso) {
+    var fila = belicoEl('div', 'belico-t-paso');
+    var etiqueta = belicoEl('span', 'belico-t-paso-tipo', BELICO_ROLES[paso.t === 'accion' ? 'accion' : paso.rol] || 'Paso');
+    var select = document.createElement('select');
+    select.dataset.turnoPaso = i + ',' + j;
+    var vacio = belicoEl('option', '', paso.t === 'accion' ? 'Elige una acción...' : 'Elige una técnica...');
+    vacio.value = '';
+    select.appendChild(vacio);
+    belicoTurnoOpcionesPaso(paso).forEach(function (o) {
+        var op = belicoEl('option', '', o.texto);
+        op.value = o.valor;
+        select.appendChild(op);
+    });
+    select.value = paso.t === 'accion' ? (paso.accion || '') : (paso.tid || '');
+    fila.appendChild(etiqueta);
+    fila.appendChild(select);
+    if (paso.t === 'tecnica' && paso.rol === 'utilidad') {
+        var etiquetaBonos = belicoEl('label', 'belico-t-bonos');
+        var marca = document.createElement('input');
+        marca.type = 'checkbox';
+        marca.checked = paso.aplicar_bonos !== false;
+        marca.dataset.turnoBonos = i + ',' + j;
+        etiquetaBonos.appendChild(marca);
+        etiquetaBonos.appendChild(document.createTextNode(' sumar su bono al ataque'));
+        fila.appendChild(etiquetaBonos);
+    }
+    var quitar = belicoEl('button', 'belico-t-x', '✕');
+    quitar.type = 'button';
+    quitar.title = 'Quitar paso';
+    quitar.dataset.turnoPasoQuitar = i + ',' + j;
+    fila.appendChild(quitar);
+    return fila;
+}
+
+function belicoTurnoFilaReaccion(i, r) {
+    var fila = belicoEl('div', 'belico-t-reaccion');
+    var numero = function (campo, etiqueta, valor) {
+        var caja = belicoEl('label', 'belico-t-mov', etiqueta + ' ');
+        var input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.value = valor;
+        input.dataset.turnoReact = i + ',' + campo;
+        caja.appendChild(input);
+        return caja;
+    };
+    fila.appendChild(numero('ta', 'TA del rival', r.ta || 0));
+    fila.appendChild(numero('distancia', 'Distancia (m)', r.distancia || 0));
+    fila.appendChild(numero('ref_extra', 'Reflejos extra', r.ref_extra || 0));
+    var sorpresa = document.createElement('select');
+    sorpresa.dataset.turnoReact = i + ',sorpresa';
+    [['no', 'Sin sorpresa'], ['detectado', 'Sorpresa detectada'], ['sin_detectar', 'Sorpresa sin detectar']].forEach(function (o) {
+        var op = belicoEl('option', '', o[1]);
+        op.value = o[0];
+        sorpresa.appendChild(op);
+    });
+    sorpresa.value = r.sorpresa || 'no';
+    fila.appendChild(sorpresa);
+    var etiqueta = belicoEl('label', 'belico-t-bonos');
+    var corto = document.createElement('input');
+    corto.type = 'checkbox';
+    corto.checked = !!r.corto;
+    corto.dataset.turnoReact = i + ',corto';
+    etiqueta.appendChild(corto);
+    etiqueta.appendChild(document.createTextNode(' Corté su cadena (reinicia el +5 de Reflejos)'));
+    fila.appendChild(etiqueta);
+    return fila;
+}
+
+function belicoTurnoCampoNumero(i, campo, etiqueta, valor) {
+    var caja = belicoEl('label', 'belico-t-mov', etiqueta + ' ');
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.value = valor;
+    input.dataset.turnoCampo = i + ',' + campo;
+    caja.appendChild(input);
+    return caja;
+}
+
+function belicoTurnoPintarBloques() {
+    var caja = document.getElementById('belico-turno-bloques');
+    if (!caja) { return; }
+    while (caja.firstChild) { caja.removeChild(caja.firstChild); }
+    var pasivasTurno = belicoPasivasDelTurno();
+    var nAnterior = 0;
+    var nActual = 0;
+    belicoTurno.bloques.forEach(function (bloque, i) {
+        var art = belicoEl('article', 'belico-t-bloque' + (bloque.anterior ? ' belico-t-bloque--reaccion' : '') + (bloque.interrumpido ? ' belico-t-bloque--interrumpido' : ''));
+        art.dataset.bloque = i;
+        var cab = belicoEl('header', 'belico-t-bloque-cab');
+        cab.appendChild(belicoEl('h4', '', bloque.anterior ? 'Reacción ' + (++nAnterior) + ' (turno anterior)' : 'Bloque ' + (++nActual)));
+        var tipo = belicoEl('span', 'belico-t-tipo');
+        tipo.dataset.turnoTipo = i;
+        cab.appendChild(tipo);
+        var interrumpido = belicoEl('label', 'belico-t-interrumpido');
+        var marcaInterrumpido = document.createElement('input');
+        marcaInterrumpido.type = 'checkbox';
+        marcaInterrumpido.checked = !!bloque.interrumpido;
+        marcaInterrumpido.dataset.turnoInterrumpido = String(i);
+        interrumpido.appendChild(marcaInterrumpido);
+        interrumpido.appendChild(document.createTextNode(' Interrumpido'));
+        interrumpido.title = 'Si te cortaron este bloque, sus costes se recuperan y no se cuenta';
+        cab.appendChild(interrumpido);
+        var controles = belicoEl('span', 'belico-t-controles');
+        [['subir', '↑', 'Subir'], ['bajar', '↓', 'Bajar'], ['quitar', '✕', 'Quitar bloque']].forEach(function (c) {
+            var b = belicoEl('button', 'belico-t-x', c[1]);
+            b.type = 'button';
+            b.title = c[2];
+            b.dataset.turnoBloque = i + ',' + c[0];
+            controles.appendChild(b);
+        });
+        cab.appendChild(controles);
+        art.appendChild(cab);
+
+        var cuerpo = belicoEl('div', 'belico-t-bloque-cuerpo');
+        if (bloque.anterior) { cuerpo.appendChild(belicoTurnoFilaReaccion(i, bloque.reaccion || {})); }
+        cuerpo.appendChild(belicoTurnoCampoNumero(i, 'mov_previo', 'Movimiento previo (m)', bloque.mov_previo || 0));
+        bloque.pasos.forEach(function (paso, j) { cuerpo.appendChild(belicoTurnoFilaPaso(i, j, paso)); });
+        var agregar = belicoEl('div', 'belico-t-agregar-paso');
+        [['principal', '+ Técnica ofensiva o defensiva'], ['utilidad', '+ Utilidad o mantenida'], ['accion', '+ Acción'], ['instantanea', '+ Instantánea']].forEach(function (a) {
+            var b = belicoEl('button', 'opg-chip', a[1]);
+            b.type = 'button';
+            b.dataset.turnoPasoNuevo = i + ',' + a[0];
+            agregar.appendChild(b);
+        });
+        cuerpo.appendChild(agregar);
+        cuerpo.appendChild(belicoTurnoCampoNumero(i, 'mov_posterior', 'Movimiento posterior (m)', bloque.mov_posterior || 0));
+
+        // Pasivas de este bloque: las del turno (se pueden quitar solo aquí) y las que se añaden solo aquí.
+        var menos = bloque.pasivas_menos || [];
+        var mas = bloque.pasivas_mas || [];
+        var fila = belicoEl('div', 'belico-t-pasivas');
+        fila.appendChild(belicoEl('span', 'belico-t-paso-tipo', 'Pasivas del bloque'));
+        pasivasTurno.forEach(function (tid) {
+            var tec = belicoTecnicaPorId(tid);
+            var chip = belicoEl('button', 'belico-chip-sel' + (menos.indexOf(tid) !== -1 ? ' belico-chip-sel--off' : ''), (tec ? tec.nombre : tid));
+            chip.type = 'button';
+            chip.title = menos.indexOf(tid) !== -1 ? 'Desactivada en este bloque: clic para volver a activarla' : 'Clic para quitarla solo en este bloque';
+            chip.dataset.turnoPasivaBloque = i + ',' + tid;
+            fila.appendChild(chip);
+        });
+        mas.forEach(function (tid) {
+            var tec = belicoTecnicaPorId(tid);
+            var chip = belicoEl('button', 'belico-chip-sel', (tec ? tec.nombre : tid) + ' ✕');
+            chip.type = 'button';
+            chip.title = 'Quitar de este bloque';
+            chip.dataset.turnoPasivaMas = i + ',' + tid;
+            fila.appendChild(chip);
+        });
+        var extra = document.createElement('select');
+        extra.dataset.turnoPasivaAgregar = String(i);
+        var marcador = belicoEl('option', '', '+ pasiva solo aquí...');
+        marcador.value = '';
+        extra.appendChild(marcador);
+        belicoTecnicasPor(function (t) { return t.pasiva; }).forEach(function (t) {
+            if (pasivasTurno.indexOf(t.tid) !== -1 || mas.indexOf(t.tid) !== -1) { return; }
+            var op = belicoEl('option', '', t.nombre);
+            op.value = t.tid;
+            extra.appendChild(op);
+        });
+        fila.appendChild(extra);
+        cuerpo.appendChild(fila);
+
+        var detalle = document.createElement('input');
+        detalle.type = 'text';
+        detalle.maxLength = 300;
+        detalle.placeholder = 'Detalle del bloque (objetivo, narración...)';
+        detalle.value = bloque.detalle || '';
+        detalle.dataset.turnoCampo = i + ',detalle';
+        cuerpo.appendChild(detalle);
+        var res = belicoEl('div', 'belico-t-resultado');
+        res.dataset.turnoResultado = String(i);
+        cuerpo.appendChild(res);
+        art.appendChild(cuerpo);
+        caja.appendChild(art);
+    });
+    if (!belicoTurno.bloques.length) {
+        caja.appendChild(belicoEl('p', 'belico-t-vacio', 'Añade tu primer bloque con los botones de abajo.'));
+    }
+    if (belicoTurnoUltimo) { belicoTurnoAplicar(belicoTurnoUltimo, true); }
+}
+
+// ── Resultado del servidor ───────────────────────────────────────────────────
+function belicoTurnoAplicar(resultado, sinTexto) {
+    belicoTurnoUltimo = resultado;
+    var inicio = document.getElementById('belico-turno-inicio');
+    if (inicio) { inicio.innerHTML = resultado.inicio_html || ''; }
+    if (resultado.bloques && resultado.bloques.length === belicoTurno.bloques.length) {
+        resultado.bloques.forEach(function (bloque, i) {
+            var destino = document.querySelector('[data-turno-resultado="' + i + '"]');
+            var tipo = document.querySelector('[data-turno-tipo="' + i + '"]');
+            if (tipo) { tipo.textContent = bloque.tipo; }
+            if (!destino) { return; }
+            destino.innerHTML = bloque.html;
+            (bloque.avisos || []).forEach(function (aviso) {
+                var p = belicoEl('p', 'belico-t-aviso', '⚠ ' + aviso);
+                destino.appendChild(p);
+            });
+        });
+    }
+    var avisos = document.getElementById('belico-turno-avisos');
+    if (avisos) {
+        while (avisos.firstChild) { avisos.removeChild(avisos.firstChild); }
+        (resultado.avisos || []).forEach(function (aviso) { avisos.appendChild(belicoEl('p', 'belico-t-aviso', '⚠ ' + aviso)); });
+    }
+    var resumen = document.getElementById('belico-turno-resumen');
+    if (resumen) { resumen.innerHTML = resultado.resumen_html || ''; }
+    var texto = document.getElementById('belico-turno-texto');
+    if (texto && !sinTexto && !belicoTurnoTextoEditado) { texto.value = resultado.bbcode || ''; }
+}
+
+function belicoTurnoRepintarTodo() {
+    belicoTurnoPintarCabecera();
+    belicoTurnoPintarListas();
+    belicoTurnoPintarBloques();
+}
+
+// Se llama desde la pestaña Pasivas cuando cambia la selección.
+function belicoTurnoPasivasCambiaron() {
+    if (!belicoTurno) { return; }
+    belicoTurnoPintarListas();
+    belicoTurnoPintarBloques();
+    belicoTurnoCambio();
+}
+
+function belicoTurnoBloqueNuevo(tipo) {
+    var pasos = [];
+    var bloque = { mov_previo: 0, mov_posterior: 0, pasos: pasos, pasivas_mas: [], pasivas_menos: [], detalle: '' };
+    if (tipo === 'reaccion') { bloque.anterior = true; bloque.reaccion = { ta: 0, distancia: 0, sorpresa: 'no', ref_extra: 0, corto: false }; }
+    if (tipo === 'ataque') { pasos.push({ t: 'tecnica', tid: '', rol: 'principal' }); }
+    if (tipo === 'golpe') { pasos.push({ t: 'accion', accion: 'golpe' }); }
+    if (tipo === 'utilidad') { pasos.push({ t: 'tecnica', tid: '', rol: 'utilidad', aplicar_bonos: true }); }
+    if (tipo === 'mover') { bloque.mov_previo = 10; }
+    return bloque;
+}
+
+// Lleva una técnica de otra pestaña (Ataque) al turno, en el lugar que le corresponde.
+function belicoTurnoAgregarTecnica(tid) {
+    var tec = belicoTecnicaPorId(tid);
+    if (!belicoTurno || !tec || tec.pasiva) { return false; }
+    var ultimo = belicoTurno.bloques[belicoTurno.bloques.length - 1];
+    if (tec.instantanea) {
+        if (!ultimo) { ultimo = belicoTurnoBloqueNuevo('vacio'); belicoTurno.bloques.push(ultimo); }
+        ultimo.pasos.push({ t: 'tecnica', tid: tid, rol: 'instantanea' });
+    } else if (tec.rol === 'principal') {
+        var nuevo = belicoTurnoBloqueNuevo('vacio');
+        nuevo.pasos.push({ t: 'tecnica', tid: tid, rol: 'principal' });
+        belicoTurno.bloques.push(nuevo);
+    } else if (tec.rol === 'utilidad') {
+        var bloqueUtilidad = belicoTurnoBloqueNuevo('vacio');
+        bloqueUtilidad.pasos.push({ t: 'tecnica', tid: tid, rol: 'utilidad', aplicar_bonos: true });
+        belicoTurno.bloques.push(bloqueUtilidad);
+    } else {
+        return false;
+    }
+    belicoTurnoPintarBloques();
+    belicoTurnoCambio();
+    return true;
+}
+
+// ── Eventos del turno ────────────────────────────────────────────────────────
+function belicoPar(texto) { var p = String(texto).split(','); return [Number(p[0]), p.slice(1).join(',')]; }
 
 document.addEventListener('click', function (evento) {
-    var tab = evento.target.closest('[data-belico-tab]');
-    if (tab) {
-        belicoActivarTab(tab.dataset.belicoTab);
-        return;
-    }
-    var nuevo = evento.target.closest('[data-belico-nuevo-bloque]');
+    var objetivo = evento.target;
+    var tab = objetivo.closest('[data-belico-tab]');
+    if (tab) { belicoActivarTab(tab.dataset.belicoTab); return; }
+    var ir = objetivo.closest('[data-belico-ir]');
+    if (ir) { belicoActivarTab(ir.dataset.belicoIr); return; }
+    if (!belicoTurno || !objetivo.closest('#belico-turno')) { return; }
+
+    var nuevo = objetivo.closest('[data-belico-turno-nuevo]');
     if (nuevo) {
-        document.getElementById('belico-turno-bloques').appendChild(belicoCrearBloque(nuevo.dataset.belicoNuevoBloque));
-        belicoActualizarBloques();
+        var nuevoBloque = belicoTurnoBloqueNuevo(nuevo.dataset.belicoTurnoNuevo);
+        if (nuevoBloque.anterior) {
+            // Las reacciones al turno anterior van antes de los bloques de este turno.
+            var primeroActual = belicoTurno.bloques.findIndex(function (b) { return !b.anterior; });
+            belicoTurno.bloques.splice(primeroActual === -1 ? belicoTurno.bloques.length : primeroActual, 0, nuevoBloque);
+        } else {
+            belicoTurno.bloques.push(nuevoBloque);
+        }
+        belicoTurnoUltimo = null;
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
         return;
     }
-    var boton = evento.target.closest('[data-belico-accion-bloque]');
-    if (boton) {
-        var bloque = boton.closest('.belico-bloque-turno');
-        var accion = boton.dataset.belicoAccionBloque;
-        if (accion === 'quitar') { bloque.remove(); }
-        if (accion === 'subir' && bloque.previousElementSibling) { bloque.parentNode.insertBefore(bloque, bloque.previousElementSibling); }
-        if (accion === 'bajar' && bloque.nextElementSibling) { bloque.parentNode.insertBefore(bloque.nextElementSibling, bloque); }
-        belicoActualizarBloques();
+    var quitarEnf = objetivo.closest('[data-belico-turno-quitar-enf]');
+    if (quitarEnf) {
+        delete belicoTurno.enfriamientos[quitarEnf.dataset.belicoTurnoQuitarEnf];
+        belicoTurnoPintarListas();
+        belicoTurnoCambio();
         return;
     }
-    if (evento.target.closest('#belico-copiar-turno')) { belicoCopiarTurno(); }
-    if (evento.target.closest('#belico-limpiar-turno')) {
-        document.getElementById('belico-turno-bloques').replaceChildren();
-        document.getElementById('belico-copiar-textarea').hidden = true;
-        belicoActualizarBloques();
+    var quitarLista = objetivo.closest('[data-belico-turno-quitar]');
+    if (quitarLista) {
+        var lista = belicoTurno[quitarLista.dataset.belicoTurnoQuitar];
+        var posicion = lista.indexOf(quitarLista.dataset.tid);
+        if (posicion !== -1) { lista.splice(posicion, 1); }
+        belicoTurnoPintarListas();
+        belicoTurnoCambio();
+        return;
     }
-    if (evento.target.closest('#belico-copiar-pasivas')) { belicoCopiarPasivas(); }
+    var bloqueAccion = objetivo.closest('[data-turno-bloque]');
+    if (bloqueAccion) {
+        var datos = belicoPar(bloqueAccion.dataset.turnoBloque);
+        var bloques = belicoTurno.bloques;
+        if (datos[1] === 'quitar') { bloques.splice(datos[0], 1); }
+        if (datos[1] === 'subir' && datos[0] > 0) { bloques.splice(datos[0] - 1, 0, bloques.splice(datos[0], 1)[0]); }
+        if (datos[1] === 'bajar' && datos[0] < bloques.length - 1) { bloques.splice(datos[0] + 1, 0, bloques.splice(datos[0], 1)[0]); }
+        belicoTurnoUltimo = null;
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
+        return;
+    }
+    var pasoNuevo = objetivo.closest('[data-turno-paso-nuevo]');
+    if (pasoNuevo) {
+        var d = belicoPar(pasoNuevo.dataset.turnoPasoNuevo);
+        var paso = d[1] === 'accion' ? { t: 'accion', accion: 'golpe' } : { t: 'tecnica', tid: '', rol: d[1], aplicar_bonos: true };
+        belicoTurno.bloques[d[0]].pasos.push(paso);
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
+        return;
+    }
+    var pasoQuitar = objetivo.closest('[data-turno-paso-quitar]');
+    if (pasoQuitar) {
+        var q = belicoPar(pasoQuitar.dataset.turnoPasoQuitar);
+        belicoTurno.bloques[q[0]].pasos.splice(Number(q[1]), 1);
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
+        return;
+    }
+    var pasivaBloque = objetivo.closest('[data-turno-pasiva-bloque]');
+    if (pasivaBloque) {
+        var p = belicoPar(pasivaBloque.dataset.turnoPasivaBloque);
+        var menos = belicoTurno.bloques[p[0]].pasivas_menos = belicoTurno.bloques[p[0]].pasivas_menos || [];
+        var pos = menos.indexOf(p[1]);
+        if (pos === -1) { menos.push(p[1]); } else { menos.splice(pos, 1); }
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
+        return;
+    }
+    var pasivaMas = objetivo.closest('[data-turno-pasiva-mas]');
+    if (pasivaMas) {
+        var m = belicoPar(pasivaMas.dataset.turnoPasivaMas);
+        var mas = belicoTurno.bloques[m[0]].pasivas_mas || [];
+        var pm = mas.indexOf(m[1]);
+        if (pm !== -1) { mas.splice(pm, 1); }
+        belicoTurno.bloques[m[0]].pasivas_mas = mas;
+        belicoTurnoPintarBloques();
+        belicoTurnoCambio();
+        return;
+    }
+    if (objetivo.closest('#belico-turno-siguiente')) {
+        if (!belicoTurnoUltimo || !belicoTurnoUltimo.siguiente) { belicoTurnoAvisoCopia('Espera a que se calcule el turno'); return; }
+        if (!window.confirm('Se pasan tus recursos finales y las mantenidas al turno nuevo, y se vacían los bloques. ¿Continuar?')) { return; }
+        var siguiente = belicoTurnoUltimo.siguiente;
+        belicoTurno.continuan = siguiente.continuan.slice();
+        belicoTurno.recursos.energia = siguiente.energia;
+        belicoTurno.recursos.haki = siguiente.haki;
+        belicoTurno.instantaneas = [];
+        belicoTurno.enfriamientos = siguiente.enfriamientos || {};
+        belicoTurno.bloques = [];
+        belicoTurnoUltimo = null;
+        belicoTurnoTextoEditado = false;
+        belicoTurnoRepintarTodo();
+        belicoTurnoCambio();
+        belicoTurnoAvisoCopia('Turno nuevo listo ✓');
+        return;
+    }
+    if (objetivo.closest('#belico-turno-limpiar')) {
+        if (!window.confirm('¿Empezar un turno nuevo? Se borran los bloques de este turno.')) { return; }
+        belicoTurno = belicoTurnoNuevo();
+        belicoTurnoUltimo = null;
+        belicoTurnoTextoEditado = false;
+        belicoTurnoRepintarTodo();
+        belicoTurnoCambio();
+        return;
+    }
+    if (objetivo.closest('#belico-turno-regenerar')) {
+        belicoTurnoTextoEditado = false;
+        objetivo.closest('#belico-turno-regenerar').hidden = true;
+        if (belicoTurnoUltimo) { document.getElementById('belico-turno-texto').value = belicoTurnoUltimo.bbcode || ''; }
+        return;
+    }
+    if (objetivo.closest('#belico-turno-copiar')) {
+        var texto = document.getElementById('belico-turno-texto');
+        if (!texto || !texto.value) { belicoTurnoAvisoCopia('No hay nada que copiar todavía'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(texto.value).then(function () { belicoTurnoAvisoCopia('Copiado ✓'); }).catch(function () { texto.focus(); texto.select(); });
+        } else { texto.focus(); texto.select(); }
+    }
+});
+
+document.addEventListener('change', function (evento) {
+    var objetivo = evento.target;
+    if (objetivo.matches('[data-belico-pasiva]') && typeof belicoActualizarPasivas === 'function') { belicoActualizarPasivas(); }
+    if (!belicoTurno || !objetivo.closest || !objetivo.closest('#belico-turno')) { return; }
+    var id = objetivo.id;
+    if (id === 'belico-turno-config') {
+        belicoTurno.equipo.configuracion = objetivo.value;
+        belicoTurnoPintarCabecera();
+        if (typeof belicoAtaqueFijar === 'function') { belicoAtaqueFijar(belicoTurno.equipo.configuracion, belicoTurno.equipo.armas); }
+    } else if (id === 'belico-turno_arma_uno' || id === 'belico-turno_arma_dos' || id === 'belico-turno_arma_tres') {
+        belicoTurno.equipo.armas[['belico-turno_arma_uno', 'belico-turno_arma_dos', 'belico-turno_arma_tres'].indexOf(id)] = objetivo.value;
+        if (typeof belicoAtaqueFijar === 'function') { belicoAtaqueFijar(belicoTurno.equipo.configuracion, belicoTurno.equipo.armas); }
+    } else if (id === 'belico-turno-enfriamientos-add') {
+        if (!objetivo.value) { return; }
+        var tecEnf = belicoTecnicaPorId(objetivo.value);
+        belicoTurno.enfriamientos[objetivo.value] = tecEnf ? tecEnf.enfriamiento : 1;
+        belicoTurnoPintarListas();
+    } else if (id === 'belico-turno-continuan-add' || id === 'belico-turno-instantaneas-add') {
+        if (!objetivo.value) { return; }
+        belicoTurno[id === 'belico-turno-continuan-add' ? 'continuan' : 'instantaneas'].push(objetivo.value);
+        belicoTurnoPintarListas();
+    } else if (objetivo.dataset.turnoPaso !== undefined) {
+        var d = belicoPar(objetivo.dataset.turnoPaso);
+        var paso = belicoTurno.bloques[d[0]].pasos[Number(d[1])];
+        if (paso.t === 'accion') { paso.accion = objetivo.value; } else { paso.tid = objetivo.value; }
+    } else if (objetivo.dataset.turnoInterrumpido !== undefined) {
+        belicoTurno.bloques[Number(objetivo.dataset.turnoInterrumpido)].interrumpido = objetivo.checked;
+        belicoTurnoPintarBloques();
+    } else if (objetivo.dataset.turnoReact !== undefined) {
+        var rc = belicoPar(objetivo.dataset.turnoReact);
+        var reaccion = belicoTurno.bloques[rc[0]].reaccion = belicoTurno.bloques[rc[0]].reaccion || {};
+        reaccion[rc[1]] = objetivo.type === 'checkbox' ? objetivo.checked : (objetivo.tagName === 'SELECT' ? objetivo.value : Math.max(0, Number(objetivo.value) || 0));
+    } else if (objetivo.dataset.turnoBonos !== undefined) {
+        var b = belicoPar(objetivo.dataset.turnoBonos);
+        belicoTurno.bloques[b[0]].pasos[Number(b[1])].aplicar_bonos = objetivo.checked;
+    } else if (objetivo.dataset.turnoPasivaAgregar !== undefined) {
+        if (!objetivo.value) { return; }
+        var bloque = belicoTurno.bloques[Number(objetivo.dataset.turnoPasivaAgregar)];
+        bloque.pasivas_mas = bloque.pasivas_mas || [];
+        bloque.pasivas_mas.push(objetivo.value);
+        belicoTurnoPintarBloques();
+    } else if (id === 'belico-turno-texto') {
+        return;
+    }
+    belicoTurnoCambio();
+});
+
+document.addEventListener('input', function (evento) {
+    var objetivo = evento.target;
+    if (!belicoTurno || !objetivo.closest || !objetivo.closest('#belico-turno')) { return; }
+    var id = objetivo.id;
+    var numero = function () { return Math.max(0, Number(objetivo.value) || 0); };
+    if (id === 'belico-turno-texto') {
+        belicoTurnoTextoEditado = true;
+        var boton = document.getElementById('belico-turno-regenerar');
+        if (boton) { boton.hidden = false; }
+        return;
+    }
+    if (id === 'belico-turno-vida') { belicoTurno.recursos.vida = numero(); }
+    else if (id === 'belico-turno-energia') { belicoTurno.recursos.energia = numero(); }
+    else if (id === 'belico-turno-haki') { belicoTurno.recursos.haki = numero(); }
+    else if (id === 'belico-turno-extra') { belicoTurno.adicionales_extra = numero(); }
+    else if (objetivo.dataset.turnoReact !== undefined) {
+        var rc = belicoPar(objetivo.dataset.turnoReact);
+        var reaccion = belicoTurno.bloques[rc[0]].reaccion = belicoTurno.bloques[rc[0]].reaccion || {};
+        reaccion[rc[1]] = numero();
+    } else if (objetivo.dataset.turnoCampo !== undefined) {
+        var d = belicoPar(objetivo.dataset.turnoCampo);
+        belicoTurno.bloques[d[0]][d[1]] = d[1] === 'detalle' ? objetivo.value : numero();
+    } else { return; }
+    belicoTurnoCambio();
 });
 
 document.addEventListener('keydown', function (evento) {
@@ -1759,13 +3406,72 @@ document.addEventListener('keydown', function (evento) {
     tabs[indice].focus();
 });
 
-document.addEventListener('input', function (evento) {
-    if (evento.target.closest('.belico-turno')) { belicoRevisarTurno(); }
+// Plantillas: equipo, mantenidas, instantáneas y bloques de un turno guardados con nombre (sin los recursos actuales).
+function belicoTurnoClavePlantillas() { return 'opg_belico_turno_plantillas_' + window.belicoClaveAtaque; }
+function belicoTurnoLeerPlantillas() {
+    try { return JSON.parse(localStorage.getItem(belicoTurnoClavePlantillas()) || '{}') || {}; } catch (e) { return {}; }
+}
+function belicoTurnoPintarPlantillas(seleccionada) {
+    var select = document.getElementById('belico-turno-plantillas');
+    if (!select) { return; }
+    var plantillas = belicoTurnoLeerPlantillas();
+    var nombres = Object.keys(plantillas).sort();
+    while (select.firstChild) { select.removeChild(select.firstChild); }
+    var primera = belicoEl('option', '', nombres.length ? '(elige una plantilla)' : '(ninguna guardada)');
+    primera.value = '';
+    select.appendChild(primera);
+    nombres.forEach(function (nombre) {
+        var op = belicoEl('option', '', nombre + ' (' + plantillas[nombre].bloques.length + ' bloques)');
+        op.value = nombre;
+        select.appendChild(op);
+    });
+    select.value = seleccionada && plantillas[seleccionada] ? seleccionada : '';
+}
+document.addEventListener('click', function (evento) {
+    var objetivo = evento.target;
+    if (!belicoTurno || !objetivo.closest('#belico-turno')) { return; }
+    if (objetivo.closest('#belico-plantilla-guardar')) {
+        if (!belicoTurno.bloques.length) { belicoTurnoAvisoCopia('El turno no tiene bloques'); return; }
+        var nombre = window.prompt('Nombre de la plantilla:');
+        nombre = nombre ? nombre.trim() : '';
+        if (!nombre) { return; }
+        var plantillas = belicoTurnoLeerPlantillas();
+        plantillas[nombre] = { equipo: belicoTurno.equipo, continuan: belicoTurno.continuan, instantaneas: belicoTurno.instantaneas, adicionales_extra: belicoTurno.adicionales_extra, bloques: belicoTurno.bloques };
+        try { localStorage.setItem(belicoTurnoClavePlantillas(), JSON.stringify(plantillas)); } catch (e) {}
+        belicoTurnoPintarPlantillas(nombre);
+        belicoTurnoAvisoCopia('Plantilla guardada ✓');
+    } else if (objetivo.closest('#belico-plantilla-aplicar')) {
+        var elegida = document.getElementById('belico-turno-plantillas').value;
+        var plantilla = belicoTurnoLeerPlantillas()[elegida];
+        if (!plantilla) { return; }
+        if (belicoTurno.bloques.length && !window.confirm('Se reemplazan los bloques de este turno por los de la plantilla. ¿Continuar?')) { return; }
+        var copia = JSON.parse(JSON.stringify(plantilla));
+        belicoTurno.equipo = copia.equipo;
+        belicoTurno.continuan = copia.continuan;
+        belicoTurno.instantaneas = copia.instantaneas;
+        belicoTurno.adicionales_extra = copia.adicionales_extra || 0;
+        belicoTurno.bloques = copia.bloques;
+        belicoTurnoUltimo = null;
+        belicoTurnoRepintarTodo();
+        belicoTurnoCambio();
+        if (typeof belicoAtaqueFijar === 'function') { belicoAtaqueFijar(belicoTurno.equipo.configuracion, belicoTurno.equipo.armas); }
+    } else if (objetivo.closest('#belico-plantilla-borrar')) {
+        var cual = document.getElementById('belico-turno-plantillas').value;
+        if (!cual || !window.confirm('¿Borrar la plantilla "' + cual + '"?')) { return; }
+        var todas = belicoTurnoLeerPlantillas();
+        delete todas[cual];
+        try { localStorage.setItem(belicoTurnoClavePlantillas(), JSON.stringify(todas)); } catch (e) {}
+        belicoTurnoPintarPlantillas('');
+    }
 });
-document.addEventListener('change', function (evento) {
-    if (evento.target.closest('.belico-turno')) { belicoRevisarTurno(); }
-    if (evento.target.matches('[data-belico-pasiva]')) { belicoActualizarPasivas(); }
-});
+
+function belicoTurnoIniciar() {
+    belicoTurnoCargar();
+    belicoTurnoPintarPlantillas('');
+    belicoTurnoRepintarTodo();
+    belicoTurnoEnviar();
+}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', belicoTurnoIniciar); } else { belicoTurnoIniciar(); }
 JS;
 }
 
@@ -1792,6 +3498,7 @@ function belico_output_pagina($mybb, $headerinclude, $header, $footer, $contenid
           . '</main></div>'
           . $footer
           . '<script>' . belico_js_turno($tecnicas) . '</script>'
+          . '<script>' . belico_js_ataque($GLOBALS['uid'], $GLOBALS['fid']) . '</script>'
           . '</body></html>';
     output_page($page);
 }
@@ -1822,17 +3529,23 @@ $hilo           = $tid > 0 ? belico_cargar_hilo($tid) : null;
 
 if ($es_htmx) {
     switch ($accion) {
+        case 'turno':
+            $crudo = json_decode((string) $mybb->get_input('turno', MyBB::INPUT_STRING), true);
+            $estado_turno = belico_normalizar_turno($crudo, $tecnicas);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(belico_calcular_turno($estado_turno, $tecnicas, $armas, $atributos, $recursos), JSON_UNESCAPED_UNICODE);
+            break;
         case 'estadisticas': echo belico_render_estadisticas(belico_calc_estadisticas($atributos)); break;
+        case 'pasivas':      echo belico_render_lista_pasivas($tecnicas, $atributos, array_flip(array_map('strval', $mybb->get_input('pasivas', MyBB::INPUT_ARRAY)))); break;
         case 'estado':       echo belico_render_resultado_estado($mybb, $atributos); break;
-        case 'ataque':       echo belico_render_resultado_ataque($mybb, $armas, $tecnicas, $atributos); break;
-        case 'ataque_form':  echo belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos); break;
+        case 'ataque':       echo belico_render_resultado_ataque($mybb, $armas, $tecnicas, $atributos, $recursos); break;
+        case 'ataque_form':  echo belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos, $recursos); break;
         case 'reaccion':     echo belico_render_resultado_reaccion($mybb); break;
         case 'danio':        echo belico_render_resultado_danio($mybb, $recursos, $atributos); break;
         case 'caida':        echo belico_render_resultado_caida($mybb, $atributos); break;
         case 'asfixia':      echo belico_render_resultado_asfixia($mybb, $atributos); break;
         case 'lanzamiento':  echo belico_render_resultado_lanzamiento($mybb, $atributos); break;
         case 'agarre':       echo belico_render_resultado_agarre($mybb, $atributos); break;
-        case 'iniciativa':   echo belico_render_resultado_iniciativa($mybb, $atributos); break;
         default:             echo belico_render_aviso('Acción no reconocida.');
     }
     exit;
@@ -1845,21 +3558,21 @@ $contenido .= belico_render_bloque_estado($atributos, $recursos, $tid, $fid);
 $contenido .= belico_render_bloque_estadisticas($atributos, $tid, $fid);
 $contenido .= '</aside><div class="belico-principal">';
 $contenido .= '<div class="belico-tabs" role="tablist" aria-label="Herramientas bélicas">';
-$contenido .= '<button id="belico-tab-ataque" type="button" role="tab" aria-selected="true" aria-controls="belico-panel-ataque" data-belico-tab="ataque">Ataque</button>';
-$contenido .= '<button id="belico-tab-turno" type="button" role="tab" aria-selected="false" aria-controls="belico-panel-turno" data-belico-tab="turno" tabindex="-1">Constructor de turno</button>';
+$contenido .= '<button id="belico-tab-turno" type="button" role="tab" aria-selected="true" aria-controls="belico-panel-turno" data-belico-tab="turno">Turno</button>';
+$contenido .= '<button id="belico-tab-ataque" type="button" role="tab" aria-selected="false" aria-controls="belico-panel-ataque" data-belico-tab="ataque" tabindex="-1">Ataque</button>';
 $contenido .= '<button id="belico-tab-pasivas" type="button" role="tab" aria-selected="false" aria-controls="belico-panel-pasivas" data-belico-tab="pasivas" tabindex="-1">Pasivas</button>';
 $contenido .= '<button id="belico-tab-reaccion" type="button" role="tab" aria-selected="false" aria-controls="belico-panel-reaccion" data-belico-tab="reaccion" tabindex="-1">Reacción</button>';
 $contenido .= '<button id="belico-tab-utilidades" type="button" role="tab" aria-selected="false" aria-controls="belico-panel-utilidades" data-belico-tab="utilidades" tabindex="-1">Utilidades</button>';
 $contenido .= '</div>';
-$contenido .= '<section id="belico-panel-ataque" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-ataque" data-belico-panel="ataque">';
-$contenido .= belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos);
+$contenido .= '<div class="belico-llevas" id="belico-llevas" aria-live="polite"></div>';
+$contenido .= '<section id="belico-panel-turno" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-turno" data-belico-panel="turno">';
+$contenido .= belico_render_bloque_turno($atributos, $recursos, $armas);
 $contenido .= '</section>';
-$estadisticas_turno = belico_calc_estadisticas($atributos);
-$contenido .= '<section id="belico-panel-turno" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-turno" data-belico-panel="turno" hidden>';
-$contenido .= belico_render_bloque_registro($estadisticas_turno['movimiento']);
+$contenido .= '<section id="belico-panel-ataque" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-ataque" data-belico-panel="ataque" hidden>';
+$contenido .= belico_render_bloque_ataque($mybb, $armas, $tecnicas, $tid, $fid, $atributos, $recursos);
 $contenido .= '</section>';
 $contenido .= '<section id="belico-panel-pasivas" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-pasivas" data-belico-panel="pasivas" hidden>';
-$contenido .= belico_render_bloque_pasivas($tecnicas);
+$contenido .= belico_render_bloque_pasivas($tecnicas, $atributos, $armas);
 $contenido .= '</section>';
 $contenido .= '<section id="belico-panel-reaccion" class="belico-tab-panel" role="tabpanel" aria-labelledby="belico-tab-reaccion" data-belico-panel="reaccion" hidden>';
 $contenido .= belico_render_bloque_reaccion($atributos, $tid, $fid);
