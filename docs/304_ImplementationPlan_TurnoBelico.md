@@ -50,6 +50,7 @@ arranca con un DOM simulado, pero **no se ha probado en el navegador**. Fases 2 
 - Con los JSON del repo: todas las técnicas `BUSO`, `KENB`, `HAO` y los cinco recubrimientos se detectan como instantáneas.
 - Navegador: armar el turno del ejemplo de la guía (personaje A, turno 1) y comparar el texto copiado.
 - **Script del repo:** `php tests/belico/calculos_y_turno.php` cubre el cálculo del turno (ver 303 §3.1.1).
+- **Huecos por tipo de bloque (jsdom):** 27 comprobaciones nuevas: un único hueco de ataque y de complemento en el bloque con técnica, dos acciones en el sin técnica, dos utilidades y un bloqueo en el de utilidad, selectores filtrados por rol, instantáneas fuera de los huecos, cambio de tipo, reacción, texto, siguiente turno y descarte del formato antiguo.
 - **DOM simulado (jsdom), hecho:** se generó la página con las funciones de `belico.php` y se ejecutó el JavaScript de Turno con `fetch` apuntando al
   cálculo real en PHP. 37 comprobaciones sin errores de script: inputs de arma según el equipo, bloques y selectores por rol, resultado con daño,
   texto con `[tecnica=ID]`, reacciones primero, bloque interrumpido, mantenidas e instantáneas de inicio, pasivas del turno y por bloque, texto editable,

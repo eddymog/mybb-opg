@@ -117,6 +117,14 @@ $r = $calcular($base + array('bloques' => array(array('pasos' => array(array('ti
 comprobar(count($r['bloques'][1]['avisos']) >= 1, 'técnica repetida con enfriamiento avisa');
 $r = $calcular(array('recursos' => array('energia' => 20, 'haki' => 0), 'bloques' => array(array('pasos' => array(array('tid' => 'AT1'))))));
 comprobar(count($r['bloques'][0]['avisos']) === 1 && $r['energia_final'] < 0, 'recursos negativos solo avisan');
+$r = $calcular($base + array('bloques' => array(array('mov_previo' => 20, 'pasos' => array()))));
+igual(array($r['bloques'][0]['tipo'], count($r['bloques'][0]['avisos'])), array('sin técnica', 0), 'moverse solo es un bloque válido sin técnica');
+$r = $calcular($base + array('bloques' => array(array('pasos' => array(array('tid' => 'AT1'), array('tid' => 'UT1'), array('tid' => 'MA1'))))));
+comprobar(count($r['bloques'][0]['avisos']) >= 1, 'bloque con técnica admite una sola utilidad o acción adicional');
+$r = $calcular($base + array('bloques' => array(array('pasos' => array(array('tid' => 'UT1'), array('tid' => 'MA1'), array('accion' => 'bloqueo'))))));
+igual(count($r['bloques'][0]['avisos']), 0, 'bloque de utilidad: dos técnicas y un bloqueo básico');
+$r = $calcular($base + array('bloques' => array(array('pasos' => array(array('tid' => 'UT1'), array('accion' => 'golpe'))))));
+comprobar(count($r['bloques'][0]['avisos']) >= 1, 'bloque de utilidad no admite un golpe básico');
 $r = $calcular($base + array('bloques' => array(array('interrumpido' => true, 'mov_previo' => 30, 'pasos' => array(array('tid' => 'AT1'))))));
 igual(array($r['energia_final'], strpos($r['resumen_html'], '0 de') !== false), array(100, true), 'bloque interrumpido no cuesta recursos ni movimiento');
 $r = $calcular($base + array('bloques' => array(

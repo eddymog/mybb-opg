@@ -22,8 +22,10 @@ require_once MYBB_ROOT . "inc/class_parser.php";
 
 // Hook para procesar DESPUÉS de MyBB
 $plugins->add_hook("postbit", "BBCustom_hide_run");
-$plugins->add_hook('datahandler_post_insert_post_end', 'BBCustom_hide_newpost');
-$plugins->add_hook('datahandler_post_insert_thread_end', 'BBCustom_hide_newpost');
+// Prioridad 15: después de BBCustom_dado (5), para que un [XdY] dentro del [hide] ya esté
+// lanzado y convertido en [dado_guardado=N] cuando el hide guarda su contenido.
+$plugins->add_hook('datahandler_post_insert_post_end', 'BBCustom_hide_newpost', 15);
+$plugins->add_hook('datahandler_post_insert_thread_end', 'BBCustom_hide_newpost', 15);
 
 function BBCustom_hide_info()
 {
@@ -184,16 +186,24 @@ function BBCustom_hide_newpost(&$data)
 {
     global $db;
     
-    $uid = $data->post_insert_data['uid'];
-    $pid = $data->return_values['pid'];
-    $tid = $data->post_insert_data['tid'];
-    $message = $data->post_insert_data['message'];
+    $uid = (int) $data->post_insert_data['uid'];
+    $pid = (int) $data->return_values['pid'];
+    $tid = (int) $data->post_insert_data['tid'];
     $hide_counter = 0;
+
+    // Se parte del mensaje guardado en la base de datos y no de $data->post_insert_data: ahí
+    // llega ya escapado para SQL y no incluye lo que hayan reescrito antes otros plugins (los
+    // dados de BBCustom_dado). Usar el valor de $data deshacía esa conversión al actualizar el post.
+    $fila_post = $db->fetch_array($db->query("SELECT message FROM mybb_posts WHERE pid='$pid' LIMIT 1"));
+    if (!$fila_post) {
+        return;
+    }
+    $message = $fila_post['message'];
     
     // Procesar todos los [hide]...[/hide]
     while (preg_match('#\[hide\](.*?)\[\/hide\]#si', $message, $matches))
     {
-        $hide_content = $matches[1];
+        $hide_content = $db->escape_string($matches[1]);
         $hide_counter += 1;
         
         // Guardar en la base de datos
@@ -216,7 +226,7 @@ function BBCustom_hide_newpost(&$data)
     if ($hide_counter > 0) {
         $db->query("
             UPDATE `mybb_posts` 
-            SET message='$message' 
+            SET message='" . $db->escape_string($message) . "' 
             WHERE pid='$pid'
         ");
     }

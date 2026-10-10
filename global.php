@@ -533,7 +533,7 @@ while ($q = $db->fetch_array($g_ultimos_post_query)) {
 	$up_lastpost = intval($q['lastpost']) + (3600 * 8);
 
 	$up_thread_url = "/showthread.php?tid=$up_tid&action=lastpost";
-	$up_user_profile = "/member.php?action=profile&uid=$up_uid";
+	$up_user_profile = "/op/personaje.php?uid=$up_uid";
 	$up_forum = "/forumdisplay.php?fid=$up_fid";
 	$timestamp = "1696037165";
 
@@ -564,7 +564,7 @@ while ($q = $db->fetch_array($g_ultimos_post_query_rol)) {
 	$up_lastpost = $q['lastpost'];
 
 	$up_thread_url = "/showthread.php?tid=$up_tid";
-	$up_user_profile = "/member.php?action=profile&uid=$up_uid";
+	$up_user_profile = "/op/personaje.php?uid=$up_uid";
 	$up_forum = "/forumdisplay.php?fid=$up_fid";
 	$timestamp = "1696037165";
 
@@ -595,7 +595,7 @@ while ($q = $db->fetch_array($g_ultimos_post_query_off)) {
 	$up_lastpost = $q['lastpost'];
 
 	$up_thread_url = "/showthread.php?tid=$up_tid";
-	$up_user_profile = "/member.php?action=profile&uid=$up_uid";
+	$up_user_profile = "/op/personaje.php?uid=$up_uid";
 	$up_forum = "/forumdisplay.php?fid=$up_fid";
 	$timestamp = "1696037165";
 

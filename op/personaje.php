@@ -85,6 +85,8 @@ if (!$ficha_existe && $user_uid == $query_uid) {
 }
 
 if (!$ficha_existe || $ficha_staff) {
+    // Mismo mensaje si no tiene ficha o si es una ficha de staff oculta, para no revelar cuál de las dos es
+    $mensaje_redireccion = 'Este usuario no tiene ficha.';
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);
     return;
@@ -2646,6 +2648,133 @@ document.getElementById("tresetModal").addEventListener("click",function(e){
 $op_img_estilos_json = json_encode(op_ficha_estilos_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $op_img_oficios_json = json_encode(op_ficha_oficios_catalogo_imagenes(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $op_disciplinas_catalogo_json = json_encode(op_ficha_disciplinas_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+// ─── Actividad del personaje (sección bajo la ficha) ─────────────────────────
+// Mensajes y temas totales con su enlace de búsqueda y las cuentas adjuntas (Account Switcher), igual que
+// el perfil estándar (member.php). Los enlaces de gestión de staff van dentro del panel de staff de la plantilla.
+
+/**
+ * Cuentas del mismo grupo del Account Switcher (la principal y sus adjuntas), sin la del personaje que se ve.
+ * Aplica los mismos permisos y la misma privacidad que accountswitcher_profile() del plugin.
+ * Devuelve array('cuentas' => [...], 'ocultas' => N, 'principal' => uid).
+ */
+function op_ficha_cuentas_adjuntas($uid, $usuario)
+{
+    global $db, $mybb;
+    $vacio = array('cuentas' => array(), 'ocultas' => 0, 'principal' => 0);
+    if (!$usuario || !isset($mybb->settings['aj_profile']) || (int) $mybb->settings['aj_profile'] !== 1) { return $vacio; }
+    // Permiso para ver la lista (los super admins siempre pueden)
+    if (isset($mybb->settings['aj_groupperm']) && $mybb->settings['aj_groupperm'] != -1 && !is_super_admin($mybb->user['uid'])) {
+        if (!is_member($mybb->settings['aj_groupperm']) || $mybb->settings['aj_groupperm'] == '') { return $vacio; }
+    }
+
+    $principal = (int) $usuario['as_uid'] ? (int) $usuario['as_uid'] : (int) $uid;
+    $q = $db->query("SELECT uid, username, avatar, avatardimensions, usergroup, displaygroup, as_uid, as_privacy FROM mybb_users WHERE as_uid='{$principal}' OR uid='{$principal}'");
+    $visibles = array();
+    $ocultas = 0;
+    while ($c = $db->fetch_array($q)) {
+        if ((int) $c['uid'] === (int) $uid) { continue; }
+        // Privacidad: una cuenta marcada como privada solo la ve su grupo, ella misma o quien tiene acceso al panel de administración
+        $privada = $mybb->usergroup['cancp'] != 1
+            && $mybb->user['uid'] != $c['uid']
+            && $mybb->settings['aj_privacy'] == 1
+            && $c['as_privacy'] == 1
+            && (
+                ($mybb->user['as_uid'] != 0 && $mybb->user['as_uid'] != $c['as_uid'] && $mybb->user['as_uid'] != $c['uid'])
+                || ($mybb->user['as_uid'] == 0 && $mybb->user['uid'] != $c['as_uid'])
+            );
+        if ($privada) { $ocultas++; continue; }
+        $visibles[] = $c;
+    }
+    return array('cuentas' => $visibles, 'ocultas' => $ocultas, 'principal' => $principal);
+}
+
+function op_ficha_html_cuentas($uid, $usuario)
+{
+    $datos = op_ficha_cuentas_adjuntas($uid, $usuario);
+    if (!$datos['cuentas'] && !$datos['ocultas']) { return ''; }
+
+    $html = '<div class="pact-cuentas"><div class="pact-subtitulo">Cuentas adjuntas</div><div class="pact-lista">';
+    foreach ($datos['cuentas'] as $c) {
+        $cuenta_uid = (int) $c['uid'];
+        $avatar = format_avatar($c['avatar'], $c['avatardimensions'], '48x48');
+        $imagen = $avatar['image'];
+        if (substr($imagen, 0, 2) === './') { $imagen = substr($imagen, 1); }
+        // Siempre a su página de personaje: si no tiene ficha, ahí se le avisa
+        $enlace = '/op/personaje.php?uid=' . $cuenta_uid;
+        $nombre = format_name(htmlspecialchars_uni($c['username']), (int) $c['usergroup'], (int) $c['displaygroup']);
+        $html .= '<a class="pact-cuenta" href="' . htmlspecialchars_uni($enlace) . '" title="' . htmlspecialchars_uni($c['username']) . ($cuenta_uid === (int) $datos['principal'] ? ' (cuenta principal)' : '') . '">'
+            . '<img src="' . htmlspecialchars_uni($imagen) . '" alt="" width="48" height="48" loading="lazy">'
+            . '<span class="pact-cuenta-nombre">' . $nombre . '</span>'
+            . '</a>';
+    }
+    $html .= '</div>';
+    if ($datos['ocultas'] > 0) {
+        $html .= '<div class="pact-ocultas">' . (int) $datos['ocultas'] . ($datos['ocultas'] === 1 ? ' cuenta oculta' : ' cuentas ocultas') . ' por privacidad.</div>';
+    }
+    return $html . '</div>';
+}
+
+/**
+ * Enlaces de gestión para staff, con las mismas condiciones que member.php: ModCP según los permisos del grupo
+ * (editar perfil, suspender, editar o levantar la suspensión) y panel de administración (ACP) si tiene acceso.
+ */
+function op_ficha_enlaces_gestion($uid)
+{
+    global $mybb, $g_is_staff;
+    if (empty($g_is_staff)) { return ''; }
+    require_once MYBB_ROOT . 'inc/functions_modcp.php';
+    $uid = (int) $uid;
+    $permisos = user_permissions($uid);
+    $suspendido = $permisos['isbannedgroup'] == 1;
+    $base = $mybb->settings['bburl'];
+    // Enlaces discretos (texto pequeño bajo un separador): son herramientas de uso poco frecuente.
+    $enlace = function ($url, $icono, $texto) {
+        return '<a class="pst-gestion-enlace" href="' . htmlspecialchars_uni($url) . '">' . $texto . '</a>';
+    };
+    $html = '';
+
+    if ($mybb->usergroup['canmodcp'] == 1 && modcp_can_manage_user($uid)) {
+        if ($mybb->usergroup['caneditprofiles'] == 1) {
+            $html .= $enlace($base . '/modcp.php?action=editprofile&uid=' . $uid, 'fa-user-pen', 'Editar en el ModCP');
+        }
+        if ($mybb->usergroup['canbanusers'] == 1) {
+            if ($suspendido) {
+                $html .= $enlace($base . '/modcp.php?action=banuser&uid=' . $uid, 'fa-user-lock', 'Editar suspensión en el ModCP');
+                $html .= $enlace($base . '/modcp.php?action=liftban&uid=' . $uid . '&my_post_key=' . $mybb->post_code, 'fa-user-check', 'Levantar suspensión en el ModCP');
+            } else {
+                $html .= $enlace($base . '/modcp.php?action=banuser&uid=' . $uid, 'fa-user-slash', 'Suspender en el ModCP');
+            }
+        }
+    }
+
+    if ($mybb->usergroup['cancp'] == 1 && $mybb->config['hide_admin_links'] != 1) {
+        $acp = $base . '/' . $mybb->config['admin_dir'] . '/index.php?module=';
+        $html .= $enlace($acp . 'user-users&action=edit&uid=' . $uid, 'fa-user-gear', 'Editar en el panel de administración');
+        if ($suspendido) {
+            $html .= $enlace($acp . 'user-banning&action=edit&uid=' . $uid, 'fa-user-lock', 'Editar suspensión en el panel de administración');
+            $html .= $enlace($acp . 'user-banning&action=lift&uid=' . $uid . '&my_post_key=' . $mybb->post_code, 'fa-user-check', 'Levantar suspensión en el panel de administración');
+        } else {
+            $html .= $enlace($acp . 'user-banning&uid=' . $uid, 'fa-user-slash', 'Suspender en el panel de administración');
+        }
+    }
+    return $html;
+}
+
+$op_act_mensajes = my_number_format($usuario ? (int) $usuario['postnum'] : 0);
+$op_act_temas    = my_number_format($usuario ? (int) $usuario['threadnum'] : 0);
+$op_act_enlace_mensajes = '';
+$op_act_enlace_temas    = '';
+if ($mybb->usergroup['cansearch'] == 1) {
+    if ($usuario && (int) $usuario['postnum'] > 0) {
+        $op_act_enlace_mensajes = '<a class="pact-enlace" href="search.php?action=finduser&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus mensajes</a>';
+    }
+    if ($usuario && (int) $usuario['threadnum'] > 0) {
+        $op_act_enlace_temas = '<a class="pact-enlace" href="search.php?action=finduserthreads&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus temas</a>';
+    }
+}
+$op_act_cuentas = op_ficha_html_cuentas((int) $query_uid, $usuario);
+$op_staff_gestion = op_ficha_enlaces_gestion((int) $query_uid);
 
 // ─── Render templates ─────────────────────────────────────────────────────────
 eval("\$op_ficha_css      = \"".$templates->get("op_ficha_css3")."\";");

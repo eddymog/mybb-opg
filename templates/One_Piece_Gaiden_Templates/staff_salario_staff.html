@@ -34,7 +34,32 @@
     .ss-item:nth-child(odd)  { background: var(--opg-crema); }
     .ss-item:nth-child(even) { background: var(--opg-crema-dorada); }
     .ss-item + .ss-item { border-top: 1px solid rgba(0, 0, 0, .1); }
-    .ss-item span:first-of-type { flex: 1 1 auto; }
+    .ss-item:hover { background: rgba(255, 137, 0, .15); }
+    .ss-item input:checked + .ss-nombre { font-weight: bold; }
+    .ss-item--off { cursor: not-allowed; opacity: .55; }
+    .ss-nombre { flex: 1 1 auto; }
+    .ss-nombre small { color: var(--opg-morado-texto); }
+    .ss-ultimo { font-size: 11px; color: var(--opg-marron); opacity: .75; }
+    .ss-ultimo--reciente { color: var(--opg-rojo-error); opacity: 1; font-weight: bold; }
+    .ss-grupo-cabecera {
+        display: flex; align-items: center; justify-content: space-between; gap: var(--opg-espacio-3);
+        padding: 6px var(--opg-espacio-3); background: var(--opg-morado); color: #fff;
+        font-family: var(--opg-fuente-titular); font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+        position: sticky; top: 0; z-index: 1;
+    }
+    .ss-grupo-todos { font-family: var(--opg-fuente-cuerpo); font-size: 12px; text-transform: none; letter-spacing: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .ss-toggle-extras { display: inline-block; margin: 0 0 var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-morado-texto); }
+    .ss-config { margin-top: var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .ss-config > summary { cursor: pointer; padding: 8px var(--opg-espacio-3); background: var(--opg-crema-dorada); font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-tinta); }
+    .ss-config > summary:hover { background: rgba(255, 137, 0, .2); }
+    .ss-config-cuerpo { padding: var(--opg-espacio-3); }
+    .ss-config-cuerpo .ss-lista-checks { max-height: 360px; }
+    .ss-barra { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); margin-bottom: var(--opg-espacio-3); }
+    .ss-barra input[type=search] { flex: 1 1 220px; box-sizing: border-box; padding: 8px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; font-family: var(--opg-fuente-cuerpo); font-size: 14px; }
+    .ss-barra input[type=search]:focus { outline: none; border-color: var(--opg-naranja); box-shadow: 0 0 0 3px rgba(255, 137, 0, .35); }
+    .ss-resumen { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-ciruela); }
+    .ss-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--opg-espacio-3); }
+    .ss-acciones button:disabled { opacity: .5; cursor: not-allowed; }
     .ss-monto { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; color: var(--opg-morado-texto); }
 
     .ss-row { display: flex; flex-wrap: wrap; gap: var(--opg-espacio-3) var(--opg-espacio-4); margin-bottom: var(--opg-espacio-3); }
@@ -55,6 +80,33 @@
         font-size: 16px; letter-spacing: 1px; text-transform: uppercase; color: var(--opg-ciruela);
         padding-bottom: 4px; border-bottom: 5px solid var(--opg-morado);
     }
+    .ss-lista-resumen { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-tinta); margin: 0 0 var(--opg-espacio-3); }
+    .ss-historial { width: 100%; border-collapse: collapse; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-tinta); }
+    .ss-historial th { text-align: left; padding: 6px 10px; background: var(--opg-morado); color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+    .ss-historial td { padding: 6px 10px; }
+    .ss-historial tbody tr:nth-child(odd)  { background: var(--opg-crema); }
+    .ss-historial tbody tr:nth-child(even) { background: var(--opg-crema-dorada); }
+    .ss-historial .ss-num { text-align: right; white-space: nowrap; }
+    .ss-historial a { color: var(--opg-morado-texto); font-weight: bold; }
+    .ss-historial small, .ss-nd { color: var(--opg-marron); opacity: .8; }
+    .ss-lote { border-bottom: 2px solid var(--opg-tinta); }
+    .ss-lote:last-child { border-bottom: 0; }
+    .ss-lote summary, .ss-totales summary {
+        display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--opg-espacio-2) var(--opg-espacio-4); cursor: pointer;
+        padding: 8px var(--opg-espacio-3); background: var(--opg-crema-dorada); color: var(--opg-tinta);
+        font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px;
+    }
+    .ss-lote summary:hover, .ss-totales summary:hover { background: rgba(255, 137, 0, .2); }
+    .ss-lote-fecha { font-weight: bold; }
+    .ss-lote-fecha small { font-weight: normal; margin-left: 4px; }
+    .ss-lote-quien { color: var(--opg-morado-texto); }
+    .ss-lote-total { margin-left: auto; }
+    .ss-totales { margin: 0 0 var(--opg-espacio-3); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .ss-chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--opg-tinta); background: #fff; color: var(--opg-tinta); }
+    .ss-chip--rol { background: var(--opg-crema); }
+    .ss-chip--custom { background: var(--opg-naranja); color: #fff; border-color: var(--opg-tinta); }
+    .ss-paginacion { display: flex; align-items: center; justify-content: center; gap: var(--opg-espacio-4); margin-top: var(--opg-espacio-3); }
+    .ss-pagina { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
     .ss-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
     .ss-lista > .opg-vacio { padding: var(--opg-espacio-4); }
     .ss-fila { padding: var(--opg-espacio-2) var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
@@ -65,6 +117,8 @@
     @media (max-width: 700px) {
         .salario-staff .secondBackground, .salario-staff .thirdBackground { padding: 10px; }
         .ss-titulo .barra-texto-op { font-size: 20px; }
+        .ss-oculta-movil { display: none; }
+        .ss-item { flex-wrap: wrap; }
     }
     </style>
 </head>
@@ -91,29 +145,51 @@
         <div>
             <div class="barra-op bbox ss-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Tabla de salarios</span></div>
             <div class="barra-espacio-op bbox ss-tabla">
-                <span class="ss-tabla-item">Administradores (grupo 4) <strong>+500 kuros</strong></span>
-                <span class="ss-tabla-item">Staff / Mods (grupos 3, 6, 14, 16) <strong>+400 kuros</strong></span>
-                <span class="ss-tabla-item">Narradores (grupo 15) <strong>+200 kuros</strong></span>
+                <span class="ss-tabla-item">Administradores (grupo 4) <strong>+{$monto_admin} kuros</strong></span>
+                <span class="ss-tabla-item">Staff / Mods (grupos 3, 6, 14, 16) <strong>+{$monto_staff} kuros</strong></span>
+                <span class="ss-tabla-item">Narradores (grupo 15) <strong>+{$monto_narra} kuros</strong></span>
             </div>
         </div>
 
         <div>
             <div class="barra-op bbox ss-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Pagar a varios</span></div>
             <div class="barra-espacio-op bbox ss-panel-cuerpo">
-                <form method="post">
+                <form method="post" id="ss-form-lote">
                     <input type="hidden" name="my_post_key" value="{$post_key}">
                     <input type="hidden" name="accion" value="lote">
-                    <label class="ss-seleccionar-todos"><input type="checkbox" id="ss-todos"> Seleccionar todos</label>
+                    <div class="ss-barra">
+                        <input type="search" id="ss-buscar" placeholder="Buscar por nombre o UID..." autocomplete="off">
+                        <label class="ss-seleccionar-todos" style="margin:0"><input type="checkbox" id="ss-todos"> Seleccionar todos</label>
+                    </div>
                     <div class="ss-lista-checks">{$checkboxes_staff}</div>
-                    <button class="btn-op btn-op--primario" onclick="return confirm('¿Pagar salario a los miembros del staff seleccionados?');">Pagar seleccionados</button>
+                    {$bloque_no_cobran}
+                    <div class="ss-acciones">
+                        <button type="submit" id="ss-pagar" class="btn-op btn-op--primario" disabled>Pagar seleccionados</button>
+                        <span class="ss-resumen" id="ss-resumen">Nadie seleccionado</span>
+                    </div>
                 </form>
+
+                <details class="ss-config">
+                    <summary>Configurar quién cobra ({$config_resumen})</summary>
+                    <div class="ss-config-cuerpo">
+                        <p class="ss-lista-resumen">Marca las cuentas que reciben salario (una por persona). "Todos" y "Seleccionar todos" de arriba solo toman estas. Las demás quedan ocultas, y las cuentas nuevas con rol cobran por defecto.</p>
+                        <form method="post" id="ss-form-config">
+                            <input type="hidden" name="my_post_key" value="{$post_key}">
+                            <input type="hidden" name="accion" value="config">
+                            <div class="ss-lista-checks">{$config_html}</div>
+                            <div class="ss-acciones">
+                                <button type="submit" class="btn-op btn-op--primario">Guardar configuración</button>
+                            </div>
+                        </form>
+                    </div>
+                </details>
             </div>
         </div>
 
         <div>
             <div class="barra-op bbox ss-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Pagar a una UID puntual</span></div>
             <div class="barra-espacio-op bbox ss-panel-cuerpo">
-                <form method="post" onsubmit="return confirm('¿Pagar salario por rol a la UID indicada?');">
+                <form method="post" id="ss-form-uid">
                     <input type="hidden" name="my_post_key" value="{$post_key}">
                     <input type="hidden" name="accion" value="uid">
                     <div class="ss-row">
@@ -126,8 +202,16 @@
         </div>
 
         <section>
-            <h2 class="ss-lista-titulo">Últimos pagos</h2>
-            <div class="ss-lista">{$salarios_kuros}</div>
+            <h2 class="ss-lista-titulo">Historial de pagos</h2>
+            <form method="get" class="ss-barra">
+                <input type="search" name="q" value="{$filtro_esc}" placeholder="Filtrar por receptor, UID o quien pagó...">
+                <button type="submit" class="btn-op btn-op--secundario">Filtrar</button>
+                <if $filtro_esc != '' then><a class="btn-op btn-op--secundario" href="salario_staff.php">Limpiar</a></if>
+            </form>
+            <p class="ss-lista-resumen">{$historial_resumen}</p>
+            {$totales_persona}
+            <div class="ss-lista">{$salarios_historial}</div>
+            <div class="ss-paginacion">{$paginacion}</div>
         </section>
 
     </div>
@@ -138,13 +222,95 @@
 
     <script>
     (function () {
+        var form = document.getElementById('ss-form-lote');
+        if (!form) { return; }
         var todos = document.getElementById('ss-todos');
-        if (!todos) { return; }
+        var buscar = document.getElementById('ss-buscar');
+        var boton = document.getElementById('ss-pagar');
+        var resumen = document.getElementById('ss-resumen');
+        var checks = Array.prototype.slice.call(form.querySelectorAll('.chk-staff-rol:not(:disabled)'));
+        var extrasAbierto = false;
+        var relevantes = checks.filter(function (c) { return !c.classList.contains('chk-extra'); });
+        var grupos = Array.prototype.slice.call(form.querySelectorAll('.chk-grupo'));
+
+        function visible(chk) { return chk.offsetParent !== null; }
+        function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+        function actualizar() {
+            var n = 0, total = 0;
+            checks.forEach(function (c) { if (c.checked) { n++; total += parseInt(c.getAttribute('data-monto'), 10); } });
+            boton.disabled = n === 0;
+            resumen.textContent = n === 0 ? 'Nadie seleccionado' : n + ' seleccionados, ' + fmt(total) + ' kuros en total';
+            todos.checked = n > 0 && relevantes.every(function (c) { return c.checked || !visible(c); });
+            grupos.forEach(function (g) {
+                var del = checks.filter(function (c) { return c.getAttribute('data-grupo') === g.getAttribute('data-grupo'); });
+                g.checked = del.length > 0 && del.every(function (c) { return c.checked; });
+            });
+        }
+
+        // Los atajos solo afectan a lo que el filtro deja visible.
         todos.addEventListener('change', function () {
-            document.querySelectorAll('.chk-staff-rol').forEach(function (chk) {
-                chk.checked = todos.checked;
+            relevantes.forEach(function (c) { if (visible(c)) { c.checked = todos.checked; } });
+            actualizar();
+        });
+        grupos.forEach(function (g) {
+            g.addEventListener('change', function () {
+                checks.forEach(function (c) {
+                    if (c.getAttribute('data-grupo') === g.getAttribute('data-grupo') && visible(c)) { c.checked = g.checked; }
+                });
+                actualizar();
             });
         });
+        checks.forEach(function (c) { c.addEventListener('change', actualizar); });
+
+        buscar.addEventListener('input', function () {
+            var q = buscar.value.toLowerCase().trim();
+            form.querySelectorAll('.ss-item').forEach(function (it) {
+                it.style.display = it.getAttribute('data-buscar').indexOf(q) === -1 ? 'none' : '';
+            });
+            form.querySelectorAll('.ss-grupo').forEach(function (g) {
+                if (g.id === 'ss-extras' && !extrasAbierto) { return; }
+                var hay = Array.prototype.some.call(g.querySelectorAll('.ss-item'), function (it) { return it.style.display !== 'none'; });
+                g.style.display = hay ? '' : 'none';
+            });
+            actualizar();
+        });
+
+        form.addEventListener('submit', function (e) {
+            if (!confirm('¿Pagar ' + resumen.textContent + '?')) { e.preventDefault(); return; }
+            boton.disabled = true; // evita el doble clic
+        });
+
+        var toggle = document.getElementById('ss-toggle-extras');
+        if (toggle) {
+            toggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                var extras = document.getElementById('ss-extras');
+                var abierto = extras.style.display !== 'none';
+                extras.style.display = abierto ? 'none' : '';
+                extrasAbierto = !abierto;
+                toggle.textContent = abierto ? 'Mostrar las cuentas que no cobran' : 'Ocultar las cuentas que no cobran';
+                actualizar();
+            });
+        }
+
+        document.querySelectorAll('.chk-config-grupo').forEach(function (g) {
+            g.addEventListener('change', function () {
+                g.closest('.ss-grupo').querySelectorAll('.chk-config').forEach(function (c) { c.checked = g.checked; });
+            });
+        });
+
+        var formUid = document.getElementById('ss-form-uid');
+        if (formUid) {
+            formUid.addEventListener('submit', function (e) {
+                var uid = document.getElementById('uid_pagar').value;
+                var monto = document.getElementById('custom_kuros').value;
+                var txt = monto ? fmt(monto) + ' kuros a la UID ' + uid : 'el salario de su rol a la UID ' + uid;
+                if (!confirm('¿Pagar ' + txt + '?')) { e.preventDefault(); return; }
+                formUid.querySelector('button').disabled = true;
+            });
+        }
+        actualizar();
     })();
     </script>
 </body>

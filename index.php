@@ -181,7 +181,7 @@ if($mybb->settings['showwol'] != 0 && $mybb->usergroup['canviewonline'] != 0)
 
 					// Properly format the username and assign the template.
 					$user['username'] = format_name(htmlspecialchars_uni($user['username']), $user['usergroup'], $user['displaygroup']);
-					$user['profilelink'] = build_profile_link($user['username'], $user['uid']);
+					$user['profilelink'] = '<a href="/op/personaje.php?uid='.(int)$user['uid'].'">'.$user['username'].'</a>';
 					eval('$onlinemembers[] = "'.$templates->get('index_whosonline_memberbit', 1, 0).'";');
 				}
 				// This user has been handled.

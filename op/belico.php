@@ -1550,8 +1550,9 @@ function belico_calcular_turno($estado, $tecnicas, $armas, $atributos, $maximos 
             $tipo = 'sin técnica';
             if ($acciones_n > 2) { $av[] = 'Un bloque sin técnica admite hasta dos acciones.'; }
         } else {
-            $tipo = (count($bloque['pasos']) > 0) ? 'de instantáneas' : 'vacío';
-            if (!$bloque['pasos'] && !$bloque['mov_previo'] && !$bloque['mov_posterior']) { $av[] = 'El bloque está vacío.'; }
+            if (count($bloque['pasos']) > 0) { $tipo = 'de instantáneas'; }
+            elseif ($bloque['mov_previo'] || $bloque['mov_posterior']) { $tipo = 'sin técnica'; } // moverse solo es un bloque válido (la acción adicional es opcional)
+            else { $tipo = 'vacío'; $av[] = 'El bloque está vacío.'; }
         }
         $adicionales += $acciones_n;
         $mov_total += $bloque['mov_previo'] + $bloque['mov_posterior'];
@@ -1726,7 +1727,7 @@ function belico_render_bloque_turno($atributos, $recursos, $armas)
 {
     $movimiento = (int) belico_calc_estadisticas($atributos)['movimiento'];
     $html  = '<section class="belico-modulo belico-turno" id="belico-turno"><h2>Turno</h2>';
-    $html .= '<p class="belico-turno-intro">Arma todo tu turno aquí: equipo, recursos, mantenidas y bloques en el orden en que los escribirás. Los daños, costes y avisos se calculan solos y al final copias el turno completo. Movimiento máximo: <strong>' . $movimiento . ' m</strong>.</p>';
+    $html .= '<p class="belico-turno-intro">Arma todo tu turno aquí: equipo, recursos, mantenidas y bloques en el orden en que los escribirás. Cada bloque solo te deja poner lo que permite la guía. Los daños, costes y avisos se calculan solos y al final copias el turno completo. Movimiento máximo: <strong>' . $movimiento . ' m</strong>.</p>';
     $html .= belico_render_vista_toggle();
 
     $html .= '<div class="belico-pasivas-conjuntos"><span class="belico-pasivas-armas-titulo">Plantillas:</span>'
@@ -1759,12 +1760,12 @@ function belico_render_bloque_turno($atributos, $recursos, $armas)
     $html .= '<h3 class="belico-t-titulo">Bloques de acción</h3>';
     $html .= '<div id="belico-turno-bloques" class="belico-t-bloques"></div>';
     $html .= '<div class="belico-t-agregar" role="group" aria-label="Añadir bloque"><span>Añadir:</span>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="tecnica" title="Una técnica ofensiva o defensiva y un único complemento">Bloque con técnica</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="sin_tecnica" title="Hasta dos acciones que no son técnicas">Bloque sin técnica</button>'
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="utilidad" title="Hasta dos técnicas de utilidad o mantenidas y un bloqueo básico">Bloque de utilidad</button>'
         . '<button type="button" class="opg-chip" data-belico-turno-nuevo="reaccion" title="Para responder a bloques del rival del turno anterior">Reaccionar al turno anterior</button>'
-        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="ataque">Atacar con técnica</button>'
         . '<button type="button" class="opg-chip" data-belico-turno-nuevo="golpe">Golpe básico</button>'
-        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="utilidad">Activar utilidad o mantenida</button>'
-        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="mover">Moverse</button>'
-        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="vacio">Bloque vacío</button></div>';
+        . '<button type="button" class="opg-chip" data-belico-turno-nuevo="mover">Moverse</button></div>';
 
     $html .= '<div id="belico-turno-avisos" class="belico-t-avisos" aria-live="polite"></div>';
     $html .= '<div id="belico-turno-resumen" class="belico-t-resumen"></div>';
@@ -1947,6 +1948,7 @@ function belico_css()
 .belico-pagina .belico-t-bloque { border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: 3px 3px 0 var(--opg-tinta); }
 .belico-pagina .belico-t-bloque-cab { display: flex; align-items: center; gap: var(--opg-espacio-3); padding: 6px var(--opg-espacio-3); border-bottom: 2px solid var(--opg-tinta); background: var(--opg-morado); color: #fff; }
 .belico-pagina .belico-t-bloque-cab h4 { margin: 0; font: 14px/1.2 InterMedium, var(--opg-fuente-cuerpo); }
+.belico-pagina .belico-t-tipo-select { min-height: 28px; max-width: 280px; padding: 2px 8px; border: 1px solid #fff; border-radius: 4px; background: #fff; color: var(--opg-marron); font-size: 12px; }
 .belico-pagina .belico-t-tipo { font-size: 12px; opacity: .9; }
 .belico-pagina .belico-t-controles { margin-left: auto; display: inline-flex; gap: 4px; }
 .belico-pagina .belico-t-x { min-height: 0; padding: 2px 8px; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; font-size: 12px; }
@@ -2781,7 +2783,8 @@ function belicoTurnoNuevo() {
 }
 
 function belicoTurnoValido(t) {
-    return t && typeof t === 'object' && t.equipo && Array.isArray(t.bloques) && Array.isArray(t.continuan) && Array.isArray(t.instantaneas) && t.recursos;
+    return t && typeof t === 'object' && t.equipo && Array.isArray(t.bloques) && Array.isArray(t.continuan) && Array.isArray(t.instantaneas) && t.recursos
+        && t.bloques.every(function (b) { return b && ['tecnica', 'sin_tecnica', 'utilidad'].indexOf(b.tipo) !== -1 && Array.isArray(b.acciones) && Array.isArray(b.utilidades); });
 }
 
 function belicoTurnoGuardar() {
@@ -2800,12 +2803,6 @@ function belicoTurnoCambio() {
     belicoTurnoGuardar();
     window.clearTimeout(belicoTurnoTemporizador);
     belicoTurnoTemporizador = window.setTimeout(belicoTurnoEnviar, 300);
-}
-
-function belicoTurnoPayload() {
-    var t = JSON.parse(JSON.stringify(belicoTurno));
-    t.pasivas = belicoPasivasDelTurno();
-    return t;
 }
 
 function belicoTurnoEnviar() {
@@ -2908,55 +2905,78 @@ function belicoTurnoPintarListas() {
 }
 
 // ── Pintado de los bloques ───────────────────────────────────────────────────
-var BELICO_ROLES = { principal: 'Técnica ofensiva o defensiva', utilidad: 'Utilidad o mantenida', instantanea: 'Instantánea', accion: 'Acción' };
+// Cada bloque tiene un tipo y solo muestra los huecos que la guía permite para ese tipo:
+//  - con técnica: una técnica ofensiva o defensiva y un único complemento (utilidad, mantenida o acción adicional)
+//  - sin técnica: hasta dos acciones
+//  - de utilidad: hasta dos técnicas y, opcionalmente, un bloqueo básico
+// Las instantáneas (haki y recubrimientos elementales) no ocupan hueco.
+var BELICO_TIPOS_BLOQUE = [['tecnica', 'Con técnica ofensiva o defensiva'], ['sin_tecnica', 'Sin técnica (hasta dos acciones)'], ['utilidad', 'De utilidad (hasta dos técnicas)']];
 
-function belicoTurnoOpcionesPaso(paso) {
-    var opciones = [];
-    if (paso.t === 'accion') {
-        Object.keys(window.belicoAcciones || {}).forEach(function (clave) { opciones.push({ valor: clave, texto: window.belicoAcciones[clave][0] }); });
-        return opciones;
-    }
-    var filtro = {
-        principal: function (t) { return t.rol === 'principal' && !t.instantanea && !t.pasiva; },
-        utilidad: function (t) { return t.rol === 'utilidad' && !t.instantanea && !t.pasiva; },
-        instantanea: function (t) { return t.instantanea && !t.pasiva; }
-    }[paso.rol] || function () { return false; };
-    belicoTecnicasPor(filtro).forEach(function (t) { opciones.push({ valor: t.tid, texto: t.etiqueta }); });
-    return opciones;
+function belicoTurnoOpcionesTecnicas(filtro) {
+    return belicoTecnicasPor(filtro).map(function (t) { return { valor: t.tid, texto: t.etiqueta }; });
 }
 
-function belicoTurnoFilaPaso(i, j, paso) {
-    var fila = belicoEl('div', 'belico-t-paso');
-    var etiqueta = belicoEl('span', 'belico-t-paso-tipo', BELICO_ROLES[paso.t === 'accion' ? 'accion' : paso.rol] || 'Paso');
+function belicoTurnoOpcionesAcciones() {
+    return Object.keys(window.belicoAcciones || {}).map(function (clave) { return { valor: clave, texto: window.belicoAcciones[clave][0] }; });
+}
+
+function belicoTurnoSelect(i, campo, indice, valor, opciones, vacio) {
     var select = document.createElement('select');
-    select.dataset.turnoPaso = i + ',' + j;
-    var vacio = belicoEl('option', '', paso.t === 'accion' ? 'Elige una acción...' : 'Elige una técnica...');
-    vacio.value = '';
-    select.appendChild(vacio);
-    belicoTurnoOpcionesPaso(paso).forEach(function (o) {
+    select.dataset.turnoSlot = i + ',' + campo + ',' + indice;
+    var primera = belicoEl('option', '', vacio);
+    primera.value = '';
+    select.appendChild(primera);
+    opciones.forEach(function (o) {
         var op = belicoEl('option', '', o.texto);
         op.value = o.valor;
         select.appendChild(op);
     });
-    select.value = paso.t === 'accion' ? (paso.accion || '') : (paso.tid || '');
-    fila.appendChild(etiqueta);
-    fila.appendChild(select);
-    if (paso.t === 'tecnica' && paso.rol === 'utilidad') {
-        var etiquetaBonos = belicoEl('label', 'belico-t-bonos');
-        var marca = document.createElement('input');
-        marca.type = 'checkbox';
-        marca.checked = paso.aplicar_bonos !== false;
-        marca.dataset.turnoBonos = i + ',' + j;
-        etiquetaBonos.appendChild(marca);
-        etiquetaBonos.appendChild(document.createTextNode(' sumar su bono al ataque'));
-        fila.appendChild(etiquetaBonos);
-    }
-    var quitar = belicoEl('button', 'belico-t-x', '✕');
-    quitar.type = 'button';
-    quitar.title = 'Quitar paso';
-    quitar.dataset.turnoPasoQuitar = i + ',' + j;
-    fila.appendChild(quitar);
+    select.value = valor || '';
+    return select;
+}
+
+function belicoTurnoHueco(etiqueta) {
+    var fila = belicoEl('div', 'belico-t-paso');
+    fila.appendChild(belicoEl('span', 'belico-t-paso-tipo', etiqueta));
+    for (var k = 1; k < arguments.length; k++) { fila.appendChild(arguments[k]); }
     return fila;
+}
+
+function belicoTurnoMarca(texto, atributo, valor, marcada) {
+    var etiqueta = belicoEl('label', 'belico-t-bonos');
+    var marca = document.createElement('input');
+    marca.type = 'checkbox';
+    marca.checked = marcada;
+    marca.dataset[atributo] = valor;
+    etiqueta.appendChild(marca);
+    etiqueta.appendChild(document.createTextNode(' ' + texto));
+    return etiqueta;
+}
+
+function belicoTurnoSelectComplemento(i, complemento) {
+    var select = document.createElement('select');
+    select.dataset.turnoSlot = i + ',complemento,0';
+    var primera = belicoEl('option', '', 'Sin complemento');
+    primera.value = '';
+    select.appendChild(primera);
+    var grupoUtilidad = belicoEl('optgroup');
+    grupoUtilidad.label = 'Técnica de utilidad o mantenida';
+    belicoTurnoOpcionesTecnicas(function (t) { return t.rol === 'utilidad' && !t.instantanea && !t.pasiva; }).forEach(function (o) {
+        var op = belicoEl('option', '', o.texto);
+        op.value = 'u:' + o.valor;
+        grupoUtilidad.appendChild(op);
+    });
+    select.appendChild(grupoUtilidad);
+    var grupoAccion = belicoEl('optgroup');
+    grupoAccion.label = 'Acción adicional';
+    belicoTurnoOpcionesAcciones().forEach(function (o) {
+        var op = belicoEl('option', '', o.texto);
+        op.value = 'a:' + o.valor;
+        grupoAccion.appendChild(op);
+    });
+    select.appendChild(grupoAccion);
+    select.value = complemento ? (complemento.t === 'accion' ? 'a:' + complemento.accion : 'u:' + complemento.tid) : '';
+    return select;
 }
 
 function belicoTurnoFilaReaccion(i, r) {
@@ -2983,14 +3003,7 @@ function belicoTurnoFilaReaccion(i, r) {
     });
     sorpresa.value = r.sorpresa || 'no';
     fila.appendChild(sorpresa);
-    var etiqueta = belicoEl('label', 'belico-t-bonos');
-    var corto = document.createElement('input');
-    corto.type = 'checkbox';
-    corto.checked = !!r.corto;
-    corto.dataset.turnoReact = i + ',corto';
-    etiqueta.appendChild(corto);
-    etiqueta.appendChild(document.createTextNode(' Corté su cadena (reinicia el +5 de Reflejos)'));
-    fila.appendChild(etiqueta);
+    fila.appendChild(belicoTurnoMarca('Corté su cadena (reinicia el +5 de Reflejos)', 'turnoReact', i + ',corto', !!r.corto));
     return fila;
 }
 
@@ -3010,6 +3023,9 @@ function belicoTurnoPintarBloques() {
     if (!caja) { return; }
     while (caja.firstChild) { caja.removeChild(caja.firstChild); }
     var pasivasTurno = belicoPasivasDelTurno();
+    var principales = belicoTurnoOpcionesTecnicas(function (t) { return t.rol === 'principal' && !t.instantanea && !t.pasiva; });
+    var utilidades = belicoTurnoOpcionesTecnicas(function (t) { return t.rol === 'utilidad' && !t.instantanea && !t.pasiva; });
+    var acciones = belicoTurnoOpcionesAcciones();
     var nAnterior = 0;
     var nActual = 0;
     belicoTurno.bloques.forEach(function (bloque, i) {
@@ -3017,8 +3033,16 @@ function belicoTurnoPintarBloques() {
         art.dataset.bloque = i;
         var cab = belicoEl('header', 'belico-t-bloque-cab');
         cab.appendChild(belicoEl('h4', '', bloque.anterior ? 'Reacción ' + (++nAnterior) + ' (turno anterior)' : 'Bloque ' + (++nActual)));
-        var tipo = belicoEl('span', 'belico-t-tipo');
-        tipo.dataset.turnoTipo = i;
+        var tipo = document.createElement('select');
+        tipo.className = 'belico-t-tipo-select';
+        tipo.dataset.turnoSlot = i + ',tipo,0';
+        tipo.setAttribute('aria-label', 'Tipo de bloque');
+        BELICO_TIPOS_BLOQUE.forEach(function (t) {
+            var op = belicoEl('option', '', t[1]);
+            op.value = t[0];
+            tipo.appendChild(op);
+        });
+        tipo.value = bloque.tipo;
         cab.appendChild(tipo);
         var interrumpido = belicoEl('label', 'belico-t-interrumpido');
         var marcaInterrumpido = document.createElement('input');
@@ -3043,15 +3067,48 @@ function belicoTurnoPintarBloques() {
         var cuerpo = belicoEl('div', 'belico-t-bloque-cuerpo');
         if (bloque.anterior) { cuerpo.appendChild(belicoTurnoFilaReaccion(i, bloque.reaccion || {})); }
         cuerpo.appendChild(belicoTurnoCampoNumero(i, 'mov_previo', 'Movimiento previo (m)', bloque.mov_previo || 0));
-        bloque.pasos.forEach(function (paso, j) { cuerpo.appendChild(belicoTurnoFilaPaso(i, j, paso)); });
-        var agregar = belicoEl('div', 'belico-t-agregar-paso');
-        [['principal', '+ Técnica ofensiva o defensiva'], ['utilidad', '+ Utilidad o mantenida'], ['accion', '+ Acción'], ['instantanea', '+ Instantánea']].forEach(function (a) {
-            var b = belicoEl('button', 'opg-chip', a[1]);
-            b.type = 'button';
-            b.dataset.turnoPasoNuevo = i + ',' + a[0];
-            agregar.appendChild(b);
+
+        if (bloque.tipo === 'tecnica') {
+            cuerpo.appendChild(belicoTurnoHueco('Técnica ofensiva o defensiva', belicoTurnoSelect(i, 'principal', 0, bloque.principal, principales, 'Elige una técnica...')));
+            var hueco = belicoTurnoHueco('Complemento (opcional, solo uno)', belicoTurnoSelectComplemento(i, bloque.complemento));
+            if (bloque.complemento && bloque.complemento.t === 'tecnica') { hueco.appendChild(belicoTurnoMarca('sumar su bono al ataque', 'turnoBonos', String(i), bloque.aplicar_bonos !== false)); }
+            cuerpo.appendChild(hueco);
+        } else if (bloque.tipo === 'sin_tecnica') {
+            cuerpo.appendChild(belicoTurnoHueco('Acción 1', belicoTurnoSelect(i, 'accion', 0, bloque.acciones[0], acciones, 'Elige una acción...')));
+            cuerpo.appendChild(belicoTurnoHueco('Acción 2 (opcional)', belicoTurnoSelect(i, 'accion', 1, bloque.acciones[1], acciones, 'Ninguna')));
+        } else {
+            cuerpo.appendChild(belicoTurnoHueco('Técnica de utilidad 1', belicoTurnoSelect(i, 'utilidad', 0, bloque.utilidades[0], utilidades, 'Elige una técnica...')));
+            var segunda = belicoTurnoHueco('Técnica de utilidad 2 (opcional)', belicoTurnoSelect(i, 'utilidad', 1, bloque.utilidades[1], utilidades, 'Ninguna'));
+            segunda.appendChild(belicoTurnoMarca('sumar sus bonos', 'turnoBonos', String(i), bloque.aplicar_bonos !== false));
+            cuerpo.appendChild(segunda);
+            cuerpo.appendChild(belicoTurnoHueco('Bloqueo básico (opcional)', belicoTurnoMarca('añadir un bloqueo básico', 'turnoBloqueo', String(i), !!bloque.bloqueo)));
+        }
+
+        // Instantáneas: no ocupan hueco y se pueden poner en cualquier bloque.
+        var filaInstantaneas = belicoEl('div', 'belico-t-pasivas');
+        filaInstantaneas.appendChild(belicoEl('span', 'belico-t-paso-tipo', 'Instantáneas (no ocupan hueco)'));
+        (bloque.instantaneas || []).forEach(function (tid) {
+            var tec = belicoTecnicaPorId(tid);
+            var chip = belicoEl('button', 'belico-chip-sel', (tec ? tec.nombre : tid) + ' ✕');
+            chip.type = 'button';
+            chip.title = 'Quitar';
+            chip.dataset.turnoInstQuitar = i + ',' + tid;
+            filaInstantaneas.appendChild(chip);
         });
-        cuerpo.appendChild(agregar);
+        var agregarInstantanea = document.createElement('select');
+        agregarInstantanea.dataset.turnoInstAgregar = String(i);
+        var marcadorInstantanea = belicoEl('option', '', '+ instantánea...');
+        marcadorInstantanea.value = '';
+        agregarInstantanea.appendChild(marcadorInstantanea);
+        belicoTecnicasPor(function (t) { return t.instantanea && !t.pasiva; }).forEach(function (t) {
+            if ((bloque.instantaneas || []).indexOf(t.tid) !== -1) { return; }
+            var op = belicoEl('option', '', t.etiqueta);
+            op.value = t.tid;
+            agregarInstantanea.appendChild(op);
+        });
+        filaInstantaneas.appendChild(agregarInstantanea);
+        cuerpo.appendChild(filaInstantaneas);
+
         cuerpo.appendChild(belicoTurnoCampoNumero(i, 'mov_posterior', 'Movimiento posterior (m)', bloque.mov_posterior || 0));
 
         // Pasivas de este bloque: las del turno (se pueden quitar solo aquí) y las que se añaden solo aquí.
@@ -3116,8 +3173,6 @@ function belicoTurnoAplicar(resultado, sinTexto) {
     if (resultado.bloques && resultado.bloques.length === belicoTurno.bloques.length) {
         resultado.bloques.forEach(function (bloque, i) {
             var destino = document.querySelector('[data-turno-resultado="' + i + '"]');
-            var tipo = document.querySelector('[data-turno-tipo="' + i + '"]');
-            if (tipo) { tipo.textContent = bloque.tipo; }
             if (!destino) { return; }
             destino.innerHTML = bloque.html;
             (bloque.avisos || []).forEach(function (aviso) {
@@ -3151,39 +3206,99 @@ function belicoTurnoPasivasCambiaron() {
     belicoTurnoCambio();
 }
 
+// Un bloque nuevo: solo guarda lo que su tipo permite (ver el comentario de "Pintado de los bloques").
 function belicoTurnoBloqueNuevo(tipo) {
-    var pasos = [];
-    var bloque = { mov_previo: 0, mov_posterior: 0, pasos: pasos, pasivas_mas: [], pasivas_menos: [], detalle: '' };
-    if (tipo === 'reaccion') { bloque.anterior = true; bloque.reaccion = { ta: 0, distancia: 0, sorpresa: 'no', ref_extra: 0, corto: false }; }
-    if (tipo === 'ataque') { pasos.push({ t: 'tecnica', tid: '', rol: 'principal' }); }
-    if (tipo === 'golpe') { pasos.push({ t: 'accion', accion: 'golpe' }); }
-    if (tipo === 'utilidad') { pasos.push({ t: 'tecnica', tid: '', rol: 'utilidad', aplicar_bonos: true }); }
+    var bloque = {
+        tipo: 'tecnica', mov_previo: 0, mov_posterior: 0, principal: '', complemento: null, acciones: ['', ''], utilidades: ['', ''],
+        bloqueo: false, aplicar_bonos: true, instantaneas: [], pasivas_mas: [], pasivas_menos: [], detalle: ''
+    };
+    if (tipo === 'sin_tecnica' || tipo === 'golpe' || tipo === 'mover') { bloque.tipo = 'sin_tecnica'; }
+    if (tipo === 'utilidad') { bloque.tipo = 'utilidad'; }
+    if (tipo === 'golpe') { bloque.acciones[0] = 'golpe'; }
     if (tipo === 'mover') { bloque.mov_previo = 10; }
+    if (tipo === 'reaccion') { bloque.anterior = true; bloque.reaccion = { ta: 0, distancia: 0, sorpresa: 'no', ref_extra: 0, corto: false }; }
     return bloque;
 }
 
-// Lleva una técnica de otra pestaña (Ataque) al turno, en el lugar que le corresponde.
+// Cambiar el tipo reinicia los huecos (instantáneas, movimiento, pasivas y detalle se conservan).
+function belicoTurnoCambiarTipo(bloque, tipo) {
+    var lleno = bloque.principal || bloque.complemento || bloque.acciones.some(Boolean) || bloque.utilidades.some(Boolean) || bloque.bloqueo;
+    if (lleno && !window.confirm('Al cambiar el tipo de bloque se quitan sus técnicas y acciones. ¿Continuar?')) { return false; }
+    bloque.tipo = tipo;
+    bloque.principal = '';
+    bloque.complemento = null;
+    bloque.acciones = ['', ''];
+    bloque.utilidades = ['', ''];
+    bloque.bloqueo = false;
+    return true;
+}
+
+// Lleva una técnica de otra pestaña (Ataque) al turno, en el hueco que le corresponde.
 function belicoTurnoAgregarTecnica(tid) {
     var tec = belicoTecnicaPorId(tid);
     if (!belicoTurno || !tec || tec.pasiva) { return false; }
     var ultimo = belicoTurno.bloques[belicoTurno.bloques.length - 1];
     if (tec.instantanea) {
-        if (!ultimo) { ultimo = belicoTurnoBloqueNuevo('vacio'); belicoTurno.bloques.push(ultimo); }
-        ultimo.pasos.push({ t: 'tecnica', tid: tid, rol: 'instantanea' });
+        if (!ultimo) { ultimo = belicoTurnoBloqueNuevo('sin_tecnica'); belicoTurno.bloques.push(ultimo); }
+        ultimo.instantaneas.push(tid);
     } else if (tec.rol === 'principal') {
-        var nuevo = belicoTurnoBloqueNuevo('vacio');
-        nuevo.pasos.push({ t: 'tecnica', tid: tid, rol: 'principal' });
+        var nuevo = belicoTurnoBloqueNuevo('tecnica');
+        nuevo.principal = tid;
         belicoTurno.bloques.push(nuevo);
     } else if (tec.rol === 'utilidad') {
-        var bloqueUtilidad = belicoTurnoBloqueNuevo('vacio');
-        bloqueUtilidad.pasos.push({ t: 'tecnica', tid: tid, rol: 'utilidad', aplicar_bonos: true });
-        belicoTurno.bloques.push(bloqueUtilidad);
+        if (ultimo && ultimo.tipo === 'tecnica' && !ultimo.complemento && ultimo.principal) {
+            ultimo.complemento = { t: 'tecnica', tid: tid };
+        } else if (ultimo && ultimo.tipo === 'utilidad' && !ultimo.utilidades[1]) {
+            ultimo.utilidades[ultimo.utilidades[0] ? 1 : 0] = tid;
+        } else {
+            var bloqueUtilidad = belicoTurnoBloqueNuevo('utilidad');
+            bloqueUtilidad.utilidades[0] = tid;
+            belicoTurno.bloques.push(bloqueUtilidad);
+        }
     } else {
         return false;
     }
     belicoTurnoPintarBloques();
     belicoTurnoCambio();
     return true;
+}
+
+// Los huecos del bloque en el orden en que se escriben: instantáneas, complemento de utilidad, principal, acción adicional.
+function belicoTurnoPasosDe(b) {
+    var pasos = [];
+    (b.instantaneas || []).forEach(function (tid) { pasos.push({ tid: tid }); });
+    var bonos = b.aplicar_bonos !== false;
+    if (b.tipo === 'tecnica') {
+        if (b.complemento && b.complemento.t === 'tecnica' && b.complemento.tid) { pasos.push({ tid: b.complemento.tid, aplicar_bonos: bonos }); }
+        if (b.principal) { pasos.push({ tid: b.principal }); }
+        if (b.complemento && b.complemento.t === 'accion' && b.complemento.accion) { pasos.push({ accion: b.complemento.accion }); }
+    } else if (b.tipo === 'sin_tecnica') {
+        (b.acciones || []).forEach(function (a) { if (a) { pasos.push({ accion: a }); } });
+    } else {
+        (b.utilidades || []).forEach(function (u) { if (u) { pasos.push({ tid: u, aplicar_bonos: bonos }); } });
+        if (b.bloqueo) { pasos.push({ accion: 'bloqueo' }); }
+    }
+    return pasos;
+}
+
+function belicoTurnoPayload() {
+    return {
+        nombre: belicoTurno.nombre,
+        equipo: belicoTurno.equipo,
+        recursos: belicoTurno.recursos,
+        adicionales_extra: belicoTurno.adicionales_extra,
+        enfriamientos: belicoTurno.enfriamientos,
+        continuan: belicoTurno.continuan,
+        instantaneas: belicoTurno.instantaneas,
+        pasivas: belicoPasivasDelTurno(),
+        bloques: belicoTurno.bloques.map(function (b) {
+            return {
+                anterior: !!b.anterior, reaccion: b.reaccion || {}, interrumpido: !!b.interrumpido,
+                mov_previo: b.mov_previo || 0, mov_posterior: b.mov_posterior || 0, pasos: belicoTurnoPasosDe(b),
+                pasivas_mas: b.pasivas_mas || [], pasivas_menos: b.pasivas_menos || [], detalle: b.detalle || ''
+            };
+        })
+    };
 }
 
 // ── Eventos del turno ────────────────────────────────────────────────────────
@@ -3240,19 +3355,12 @@ document.addEventListener('click', function (evento) {
         belicoTurnoCambio();
         return;
     }
-    var pasoNuevo = objetivo.closest('[data-turno-paso-nuevo]');
-    if (pasoNuevo) {
-        var d = belicoPar(pasoNuevo.dataset.turnoPasoNuevo);
-        var paso = d[1] === 'accion' ? { t: 'accion', accion: 'golpe' } : { t: 'tecnica', tid: '', rol: d[1], aplicar_bonos: true };
-        belicoTurno.bloques[d[0]].pasos.push(paso);
-        belicoTurnoPintarBloques();
-        belicoTurnoCambio();
-        return;
-    }
-    var pasoQuitar = objetivo.closest('[data-turno-paso-quitar]');
-    if (pasoQuitar) {
-        var q = belicoPar(pasoQuitar.dataset.turnoPasoQuitar);
-        belicoTurno.bloques[q[0]].pasos.splice(Number(q[1]), 1);
+    var instQuitar = objetivo.closest('[data-turno-inst-quitar]');
+    if (instQuitar) {
+        var iq = belicoPar(instQuitar.dataset.turnoInstQuitar);
+        var listaInst = belicoTurno.bloques[iq[0]].instantaneas;
+        var posInst = listaInst.indexOf(iq[1]);
+        if (posInst !== -1) { listaInst.splice(posInst, 1); }
         belicoTurnoPintarBloques();
         belicoTurnoCambio();
         return;
@@ -3340,10 +3448,34 @@ document.addEventListener('change', function (evento) {
         if (!objetivo.value) { return; }
         belicoTurno[id === 'belico-turno-continuan-add' ? 'continuan' : 'instantaneas'].push(objetivo.value);
         belicoTurnoPintarListas();
-    } else if (objetivo.dataset.turnoPaso !== undefined) {
-        var d = belicoPar(objetivo.dataset.turnoPaso);
-        var paso = belicoTurno.bloques[d[0]].pasos[Number(d[1])];
-        if (paso.t === 'accion') { paso.accion = objetivo.value; } else { paso.tid = objetivo.value; }
+    } else if (objetivo.dataset.turnoSlot !== undefined) {
+        var sl = belicoPar(objetivo.dataset.turnoSlot);
+        var partes = sl[1].split(',');
+        var bloqueSlot = belicoTurno.bloques[sl[0]];
+        var campoSlot = partes[0];
+        var indiceSlot = Number(partes[1]) || 0;
+        if (campoSlot === 'tipo') {
+            if (!belicoTurnoCambiarTipo(bloqueSlot, objetivo.value)) { belicoTurnoPintarBloques(); return; }
+            belicoTurnoPintarBloques();
+        } else if (campoSlot === 'principal') {
+            bloqueSlot.principal = objetivo.value;
+        } else if (campoSlot === 'complemento') {
+            var valorComp = objetivo.value;
+            bloqueSlot.complemento = !valorComp ? null : (valorComp.charAt(0) === 'a' ? { t: 'accion', accion: valorComp.slice(2) } : { t: 'tecnica', tid: valorComp.slice(2) });
+            belicoTurnoPintarBloques();
+        } else if (campoSlot === 'accion') {
+            bloqueSlot.acciones[indiceSlot] = objetivo.value;
+        } else if (campoSlot === 'utilidad') {
+            bloqueSlot.utilidades[indiceSlot] = objetivo.value;
+        }
+    } else if (objetivo.dataset.turnoInstAgregar !== undefined) {
+        if (!objetivo.value) { return; }
+        var bloqueInst = belicoTurno.bloques[Number(objetivo.dataset.turnoInstAgregar)];
+        bloqueInst.instantaneas = bloqueInst.instantaneas || [];
+        bloqueInst.instantaneas.push(objetivo.value);
+        belicoTurnoPintarBloques();
+    } else if (objetivo.dataset.turnoBloqueo !== undefined) {
+        belicoTurno.bloques[Number(objetivo.dataset.turnoBloqueo)].bloqueo = objetivo.checked;
     } else if (objetivo.dataset.turnoInterrumpido !== undefined) {
         belicoTurno.bloques[Number(objetivo.dataset.turnoInterrumpido)].interrumpido = objetivo.checked;
         belicoTurnoPintarBloques();
@@ -3352,8 +3484,7 @@ document.addEventListener('change', function (evento) {
         var reaccion = belicoTurno.bloques[rc[0]].reaccion = belicoTurno.bloques[rc[0]].reaccion || {};
         reaccion[rc[1]] = objetivo.type === 'checkbox' ? objetivo.checked : (objetivo.tagName === 'SELECT' ? objetivo.value : Math.max(0, Number(objetivo.value) || 0));
     } else if (objetivo.dataset.turnoBonos !== undefined) {
-        var b = belicoPar(objetivo.dataset.turnoBonos);
-        belicoTurno.bloques[b[0]].pasos[Number(b[1])].aplicar_bonos = objetivo.checked;
+        belicoTurno.bloques[Number(objetivo.dataset.turnoBonos)].aplicar_bonos = objetivo.checked;
     } else if (objetivo.dataset.turnoPasivaAgregar !== undefined) {
         if (!objetivo.value) { return; }
         var bloque = belicoTurno.bloques[Number(objetivo.dataset.turnoPasivaAgregar)];
@@ -3446,6 +3577,7 @@ document.addEventListener('click', function (evento) {
         if (!plantilla) { return; }
         if (belicoTurno.bloques.length && !window.confirm('Se reemplazan los bloques de este turno por los de la plantilla. ¿Continuar?')) { return; }
         var copia = JSON.parse(JSON.stringify(plantilla));
+        if (!belicoTurnoValido({ equipo: copia.equipo, bloques: copia.bloques, continuan: copia.continuan || [], instantaneas: copia.instantaneas || [], recursos: {} })) { belicoTurnoAvisoCopia('Esa plantilla es de una versión anterior'); return; }
         belicoTurno.equipo = copia.equipo;
         belicoTurno.continuan = copia.continuan;
         belicoTurno.instantaneas = copia.instantaneas;

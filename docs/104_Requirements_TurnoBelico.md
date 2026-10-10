@@ -66,6 +66,14 @@ mínimo posible.
   aplica el +5 de Reflejos por cada bloque no cortado.
 
 ### 4.3 Bloques
+
+**Cada bloque tiene un tipo y la interfaz solo ofrece los huecos que la guía permite para ese tipo** (no se pueden acumular acciones):
+- **Con técnica:** un hueco de técnica ofensiva o defensiva y **un único** complemento (utilidad, mantenida o acción adicional).
+- **Sin técnica:** hasta dos acciones que no son técnicas.
+- **De utilidad:** hasta dos técnicas de utilidad o mantenidas y, opcionalmente, un bloqueo básico.
+- **Instantáneas:** no ocupan hueco y se pueden poner en cualquier bloque.
+- Cambiar el tipo reinicia los huecos (pide confirmación si había algo). El servidor sigue avisando por si llega un turno inválido.
+
 - Se añaden por **lo que se hace** ("Atacar con técnica", "Golpe básico", "Moverse", "Consumible", "Activar
   mantenida"...); la herramienta decide el tipo de bloque de la guía y lo nombra. Se pueden reordenar y quitar.
 - Cada bloque muestra: pasos en orden (movimiento previo, utilidad, principal, movimiento posterior), **daño, TA y

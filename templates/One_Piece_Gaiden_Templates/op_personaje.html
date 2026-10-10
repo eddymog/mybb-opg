@@ -33,7 +33,7 @@
 							<div style=" margin-top: 40px; text-align: center; ">
 								<img src="/images/op/ficha/MarcoNombre_One_Piece_Gaiden_Foro_Rol.png" />
 								<div style=" margin-top: -112px; ">
-									<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;text-shadow: 2px 2px 0px black;color: #ff7e00;font-size: 50px;"><a class="nombre" href="/member.php?action=profile&uid={$ficha['fid']}">{$ficha['nombre']}</a></span>
+									<span style="font-family: 'moonGetHeavy';letter-spacing: 1px;text-shadow: 2px 2px 0px black;color: #ff7e00;font-size: 50px;">{$ficha['nombre']}</span>
 								</div>
 								<div style=" margin-top: 3px; ">
 									<span onclick="openApodoModal()" class="apodo" style="font-family: 'moonGetHeavy';letter-spacing: 1px;color: {$faccionColor};font-size: 25px;">{$ficha['apodo']}</span>
@@ -82,6 +82,39 @@
 						<div class='pestana' id='pestana_secreto1' onclick="clickPestana('secreto1');" style="border-end-start-radius: 50px; border-end-end-radius: 50px;border-start-start-radius: 0px; border-start-end-radius: 0px;"><span class="pestana-texto">TOP SECRET</span></div>
 					</div></if>
 				<br><br>
+				<style>
+				/* Actividad del personaje, bajo la ficha (prefijo pact-). Una sola fila compacta; si no cabe, pasa a la siguiente */
+				.pact-panel { box-sizing: border-box; width: min(1030px, 100%); margin: 25px auto 0; padding: 8px 12px; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+					background: var(--opg-crema-clara); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); box-shadow: var(--opg-sombra-offset); }
+				.pact-cab { display: flex; align-items: center; }
+				.pact-titulo { font-family: var(--opg-fuente-titular); font-size: 14px; letter-spacing: 1px; color: var(--opg-morado-texto); }
+				.pact-titulo i { color: var(--opg-naranja); margin-right: 4px; }
+				.pact-cifras { display: flex; flex-wrap: wrap; gap: 8px; }
+				.pact-cifra { display: flex; align-items: baseline; gap: 4px 6px; padding: 3px 10px; border: 2px solid var(--opg-tinta); border-radius: 999px; background: #fff; }
+				.pact-cifra strong { font-family: var(--opg-fuente-titular); font-size: 17px; line-height: 1.2; color: var(--opg-ciruela); }
+				.pact-cifra span { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-gris-texto); }
+				.pact-panel a.pact-enlace:link, .pact-panel a.pact-enlace:visited { margin-left: 4px; font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-morado-texto); text-decoration: none; }
+				.pact-panel a.pact-enlace:hover, .pact-panel a.pact-enlace:focus-visible { color: var(--opg-naranja-hover); text-decoration: underline; outline: none; }
+				.pact-cuentas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-left: 16px; border-left: 1px dashed var(--opg-tinta); }
+				.pact-subtitulo { font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--opg-morado-texto); }
+				.pact-lista { display: flex; flex-wrap: wrap; gap: 6px; }
+				.pact-panel a.pact-cuenta:link, .pact-panel a.pact-cuenta:visited { display: flex; align-items: center; gap: 6px; max-width: 170px; padding: 2px 10px 2px 2px; border: 2px solid var(--opg-tinta); border-radius: 999px;
+					background: #fff; text-decoration: none; transition: background var(--opg-rapido); }
+				.pact-panel a.pact-cuenta:hover, .pact-panel a.pact-cuenta:focus-visible { background: var(--opg-crema-dorada); outline: none; box-shadow: var(--opg-foco); }
+				.pact-cuenta img { flex: none; width: 26px; height: 26px; object-fit: cover; border: 1px solid var(--opg-tinta); border-radius: 50%; background: var(--opg-crema); }
+				.pact-cuenta-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 12px; }
+				.pact-ocultas { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
+				@media (max-width: 700px) { .pact-cuentas { padding-left: 0; border-left: 0; width: 100%; } }
+				@media (prefers-reduced-motion: reduce) { .pact-panel a.pact-cuenta { transition: none; } }
+				</style>
+				<section class="pact-panel" aria-label="Actividad del personaje">
+					<div class="pact-cab"><span class="pact-titulo"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Actividad</span></div>
+					<div class="pact-cifras">
+						<div class="pact-cifra"><strong>{$op_act_mensajes}</strong><span>Mensajes totales</span>{$op_act_enlace_mensajes}</div>
+						<div class="pact-cifra"><strong>{$op_act_temas}</strong><span>Temas totales</span>{$op_act_enlace_temas}</div>
+					</div>
+					{$op_act_cuentas}
+				</section>
 				<if $g_is_staff then>
 				<style>
 				/* Accesos de staff bajo la ficha (prefijo pst-) */
@@ -92,6 +125,12 @@
 				.pst-titulo i { color: var(--opg-naranja); margin-right: 4px; }
 				.pst-sub { font-family: var(--opg-fuente-cuerpo); font-size: 11px; color: var(--opg-gris-texto); }
 				.pst-enlaces { display: flex; flex-wrap: wrap; gap: 8px; }
+				/* Gestión de la cuenta (ModCP y panel de administración): se usa poco, así que va aparte y discreta */
+				.pst-sep { height: 0; margin: 12px 0 8px; border: 0; border-top: 1px dashed var(--opg-gris-texto); opacity: .6; }
+				.pst-gestion { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; font-family: var(--opg-fuente-cuerpo); font-size: 11px; }
+				.pst-gestion-titulo { color: var(--opg-gris-texto); }
+				.pst-panel a.pst-gestion-enlace:link, .pst-panel a.pst-gestion-enlace:visited { color: var(--opg-gris-texto); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+				.pst-panel a.pst-gestion-enlace:hover, .pst-panel a.pst-gestion-enlace:focus-visible { color: var(--opg-morado-texto); text-decoration-style: solid; outline: none; box-shadow: var(--opg-foco); }
 				.pst-panel a.pst-enlace:link, .pst-panel a.pst-enlace:visited { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 2px solid var(--opg-tinta); border-radius: 999px;
 					background: #fff; color: var(--opg-ciruela) !important; font-family: InterMedium, var(--opg-fuente-cuerpo); font-size: 13px; line-height: 1.2; text-decoration: none; transition: background var(--opg-rapido), color var(--opg-rapido); }
 				.pst-panel button.pst-enlace { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border: 2px solid var(--opg-tinta); border-radius: 999px; cursor: pointer;
@@ -141,6 +180,10 @@
 						<a class="pst-enlace" href="/op/staff/ficha_recalcular_pasivas.php?fid={$ficha['fid']}"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i><span>Recalcular pasivas</span></a>
 						<button type="button" class="pst-enlace" id="pst-inv-abrir" onclick="pstAbrirInventario()" aria-haspopup="dialog"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span>Gestionar inventario</span></button>
 					</div>
+					<if $op_staff_gestion != '' then>
+					<hr class="pst-sep">
+					<div class="pst-gestion"><span class="pst-gestion-titulo">Cuenta de usuario:</span>{$op_staff_gestion}</div>
+					</if>
 					<div class="pst-modal-velo" id="pst-inv-modal" hidden onclick="if (event.target === this) { pstCerrarInventario(); }">
 						<div class="pst-modal" role="dialog" aria-modal="true" aria-labelledby="pst-inv-titulo" tabindex="-1">
 							<div class="pst-modal-cab"><h3 id="pst-inv-titulo">Gestión de inventario</h3><button type="button" class="pst-cerrar" aria-label="Cerrar" onclick="pstCerrarInventario()">&times;</button></div>

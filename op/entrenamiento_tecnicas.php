@@ -743,7 +743,7 @@ if ($ficha_existe == true && $aprobada_por == true) {
         if ($ficha['estilo4'] != "bloqueado" && $ficha['estilo4'] != "no_bloqueado" && $ficha['estilo4'] != "Estilo Único") { $estilo4 = $ficha['estilo4']; }
 
 
-        $belica1_query = $belica1 ? "(tier <= $belica1_tier AND rama LIKE '$belica1')" : "";
+        $belica1_query = $belica1 ? "OR (tier <= $belica1_tier AND rama LIKE '$belica1')" : "";
         $belica2_query = $belica2 ? "OR (tier <= $belica2_tier AND rama LIKE '$belica2')" : "";
         $belica3_query = $belica3 ? "OR (tier <= $belica3_tier AND rama LIKE '$belica3')" : "";
         $belica4_query = $belica4 ? "OR (tier <= $belica4_tier AND rama LIKE '$belica4')" : "";
@@ -879,7 +879,7 @@ if ($ficha_existe == true && $aprobada_por == true) {
         $query_tecs = $db->query("
             SELECT * FROM mybb_op_tecnicas as t1 
             WHERE 
-            ($belica1_query $belica2_query $belica3_query $belica4_query $belica5_query $belica6_query $belica7_query $belica8_query $belica9_query $belica10_query $belica11_query $belica12_query
+            (1=0 $belica1_query $belica2_query $belica3_query $belica4_query $belica5_query $belica6_query $belica7_query $belica8_query $belica9_query $belica10_query $belica11_query $belica12_query
              $belica1_espe1_query $belica1_espe2_query
              $belica2_espe1_query $belica2_espe2_query 
              $belica3_espe1_query $belica3_espe2_query

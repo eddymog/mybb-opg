@@ -17,10 +17,14 @@ if (!defined("IN_MYBB")) {
 // Cargar librería de spoilers
 require_once MYBB_ROOT . "inc/plugins/lib/spoiler.php";
 
-// Hooks
-$plugins->add_hook("postbit", "BBCustom_dado_run");
-$plugins->add_hook('datahandler_post_insert_post_end', 'BBCustom_dado_newpost');
-$plugins->add_hook('datahandler_post_insert_thread_end', 'BBCustom_dado_newpost');
+// Hooks. Las prioridades importan porque [XdY] puede ir dentro de [hide] (BBCustom_hide):
+//  - Al crear el post, los dados se lanzan ANTES (prioridad 5) que el hide guarde su contenido (15),
+//    para que el hide guarde [dado_guardado=N] y no el texto [XdY] sin lanzar.
+//  - Al mostrarlo, el hide se despliega PRIMERO (prioridad 10) y los dados se sustituyen DESPUÉS (20),
+//    así también se resuelven los que quedaron dentro del contenido del hide.
+$plugins->add_hook("postbit", "BBCustom_dado_run", 20);
+$plugins->add_hook('datahandler_post_insert_post_end', 'BBCustom_dado_newpost', 5);
+$plugins->add_hook('datahandler_post_insert_thread_end', 'BBCustom_dado_newpost', 5);
 
 function BBCustom_dado_info()
 {
@@ -111,12 +115,20 @@ function BBCustom_dado_newpost(&$data)
 {
     global $db;
     
-    $uid = $data->post_insert_data['uid'];
-    $pid = $data->return_values['pid'];
-    $tid = $data->post_insert_data['tid'];
-    $username = $data->post_insert_data['username'];
-    $message = $data->post_insert_data['message'];
+    $uid = (int) $data->post_insert_data['uid'];
+    $pid = (int) $data->return_values['pid'];
+    $tid = (int) $data->post_insert_data['tid'];
     $dado_counter = 0;
+
+    // Se parte del mensaje guardado en la base de datos y no de $data->post_insert_data: ahí
+    // llega ya escapado para SQL (escaparlo otra vez dejaba barras antes de las comillas) y
+    // además refleja lo que hayan reescrito antes otros plugins.
+    $fila_post = $db->fetch_array($db->query("SELECT message, username FROM mybb_posts WHERE pid='$pid' LIMIT 1"));
+    if (!$fila_post) {
+        return;
+    }
+    $message = $fila_post['message'];
+    $username = $fila_post['username'];
     
     // Procesar todos los [XdY]
     while (preg_match('#\[(\d+d\d+)\]#si', $message, $matches))
@@ -182,8 +194,6 @@ function BBCustom_dado_newpost(&$data)
     
     // Si se procesó algún dado, actualizar el mensaje
     if ($dado_counter > 0) {
-        // Convertir secuencias literales de escape a saltos de línea reales
-        $message = str_replace(array('\\r\\n', '\\r', '\\n'), array("\r\n", "\r", "\n"), $message);
         $message_escaped = $db->escape_string($message);
         $db->query("
             UPDATE mybb_posts 
@@ -298,9 +308,9 @@ function BBCustom_dado_darken_color($color, $percent = 20)
     $g = hexdec(substr($color, 2, 2));
     $b = hexdec(substr($color, 4, 2));
     
-    $r = max(0, $r - ($r * $percent / 100));
-    $g = max(0, $g - ($g * $percent / 100));
-    $b = max(0, $b - ($b * $percent / 100));
+    $r = (int) max(0, $r - ($r * $percent / 100));
+    $g = (int) max(0, $g - ($g * $percent / 100));
+    $b = (int) max(0, $b - ($b * $percent / 100));
     
     return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT) 
               . str_pad(dechex($g), 2, '0', STR_PAD_LEFT) 

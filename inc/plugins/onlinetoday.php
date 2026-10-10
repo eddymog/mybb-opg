@@ -383,13 +383,13 @@ function add_onlinetoday()
 							{
 								$user['username'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);	
 								// $user['link'] = $mybb->settings['bburl']."/".get_profile_link($user['uid']);
-								$user['link'] = $mybb->settings['bburl']."/op/ficha.php?uid=".$user['uid'];
+								$user['link'] = $mybb->settings['bburl']."/op/personaje.php?uid=".$user['uid'];
 								$user['profilelink'] = $comma."<a href=\"{$user['link']}\" title=\"{$user['lastactive']}\">{$user['username']}</a>";
 							}
 							if($mybb->settings['onlinetoday_formatname'] == 0)
 							{
 								// $user['link'] = $mybb->settings['bburl']."/".get_profile_link($user['uid']);
-								$user['link'] = $mybb->settings['bburl']."/op/ficha.php?uid=".$user['uid'];
+								$user['link'] = $mybb->settings['bburl']."/op/personaje.php?uid=".$user['uid'];
 								$user['profilelink'] = $comma."<a href=\"{$user['link']}\" title=\"{$user['lastactive']}\">{$user['username']}</a>";
 							}
 							if($mybb->settings['onlinetoday_avatars'] == 0)

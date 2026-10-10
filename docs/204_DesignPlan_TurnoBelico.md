@@ -45,6 +45,19 @@ Los `tid` y números de este documento son de ejemplo.
   técnica; solo utilidades/mantenidas = utilidad). Así el jugador nunca elige un tipo abstracto.
 - Clave de guardado: `opg_belico_turno_{uid}_{fid}`.
 
+## 2.0 Modelo de bloque con huecos (reemplaza a la lista libre de `pasos`)
+
+En el navegador cada bloque guarda solo lo que su tipo permite:
+```json
+{ "tipo": "tecnica | sin_tecnica | utilidad", "principal": "DEP201", "complemento": {"t":"tecnica","tid":"DSA101"},
+  "acciones": ["golpe", ""], "utilidades": ["", ""], "bloqueo": false, "aplicar_bonos": true,
+  "instantaneas": ["BUSO101"], "mov_previo": 20, "mov_posterior": 0, "pasivas_mas": [], "pasivas_menos": [], "detalle": "" }
+```
+Al enviar, `belicoTurnoPasosDe()` lo convierte en la lista `pasos` que ya entiende el servidor (instantáneas, complemento de utilidad, principal,
+acción adicional). El servidor no cambia y sigue avisando de cualquier violación. Un turno guardado con el formato anterior se descarta al cargar.
+El selector de tipo está en la cabecera de cada bloque; los botones rápidos son: Bloque con técnica, Bloque sin técnica, Bloque de utilidad,
+Reaccionar al turno anterior, Golpe básico y Moverse.
+
 ## 2.1 Cambios respecto al borrador (implementación de la fase 1)
 
 - **Equipo propio del tab Turno:** configuración y hasta tres armas (campos `belico-turno-config` y `belico-turno_arma_*`).
