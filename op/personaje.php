@@ -2767,10 +2767,10 @@ $op_act_enlace_mensajes = '';
 $op_act_enlace_temas    = '';
 if ($mybb->usergroup['cansearch'] == 1) {
     if ($usuario && (int) $usuario['postnum'] > 0) {
-        $op_act_enlace_mensajes = '<a class="pact-enlace" href="search.php?action=finduser&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus mensajes</a>';
+        $op_act_enlace_mensajes = '<a class="pact-enlace" href="/search.php?action=finduser&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus mensajes</a>';
     }
     if ($usuario && (int) $usuario['threadnum'] > 0) {
-        $op_act_enlace_temas = '<a class="pact-enlace" href="search.php?action=finduserthreads&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus temas</a>';
+        $op_act_enlace_temas = '<a class="pact-enlace" href="/search.php?action=finduserthreads&amp;uid=' . (int) $query_uid . '"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar sus temas</a>';
     }
 }
 $op_act_cuentas = op_ficha_html_cuentas((int) $query_uid, $usuario);
