@@ -702,15 +702,15 @@ switch ($accion) {
         }
         $q = ta_in('q');
         $tid = opg_av_tid_de_entrada($q);
-        if ($tid > 0 && (!ctype_digit($q) || opg_av_longitud($q) >= OPG_ENT_MIN_BUSQUEDA)) {
-            $v = opg_ent_tema_valido($tid, $av, $uid);
-            if (!$v['ok']) {
-                ta_responder(opg_av_v_resultados_temas(array(), implode(' ', $v['errores']), $id));
-            }
-            ta_responder(opg_av_v_resultados_temas(array($v['tema']), '', $id));
+        if ($tid <= 0) {
+            ta_responder(opg_av_v_resultados_temas(array(), $q === '' ? '' : 'Escribe el TID del tema o pega su enlace.', $id));
         }
-        $r = opg_ent_temas_buscar($q, $av, $uid);
-        ta_responder(opg_av_v_resultados_temas($r['temas'], $r['mensaje'], $id));
+        // La validación comprueba que sea un tema de tipo Aventura (o Autonarrada), visible, de la isla y libre.
+        $v = opg_ent_tema_valido($tid, $av, $uid);
+        if (!$v['ok']) {
+            ta_responder(opg_av_v_resultados_temas(array(), implode(' ', $v['errores']), $id));
+        }
+        ta_responder(opg_av_v_resultados_temas(array($v['tema']), '', $id));
 
     case 'quitar_tema':
         $av = ta_av($id);

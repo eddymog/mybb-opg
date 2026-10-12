@@ -127,7 +127,7 @@ function opg_av_v_buscador($destino, $etiqueta, $placeholder, $id_peticion = 0, 
         . '<input type="search" id="' . $id . '" name="q" autocomplete="off" placeholder="' . opg_av_h($placeholder) . '"'
         . ' aria-controls="' . $res . '" '
         . opg_av_hx('get', OPG_AV_URL, $accion[$destino], $params)
-        . ' hx-trigger="input changed delay:250ms, search" hx-target="#' . $res . '" hx-swap="innerHTML" hx-sync="this:replace">'
+        . ' hx-trigger="input changed delay:250ms, search" hx-include="this" hx-target="#' . $res . '" hx-swap="innerHTML" hx-sync="this:replace">'
         . '<div class="opg-resultados" id="' . $res . '" aria-live="polite"></div>'
         . '</span></div>';
 }
@@ -139,7 +139,7 @@ function opg_av_v_buscador_std($destino, $id_peticion = 0, $oob = false)
         'participante' => array('Añadir participantes', 'Busca por nombre o apodo'),
         'narrador' => array('Tu narrador', 'Busca la ficha del narrador con el que ya te pusiste de acuerdo'),
         'isla' => array('Busca la isla', 'Escribe el nombre de la isla'),
-        'tema' => array('Busca el tema', 'Escribe 3 letras del nombre, o pega el enlace o el número del tema'),
+        'tema' => array('TID del tema', 'Escribe el TID del tema o pega su enlace'),
     );
     return opg_av_v_buscador($destino, $textos[$destino][0], $textos[$destino][1], $id_peticion, $oob);
 }
