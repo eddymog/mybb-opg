@@ -18,6 +18,7 @@ global $templates, $mybb;
 $entrenar = $_POST["entrenar"];
 $cancelar = $_POST["cancelar"];
 $culminar = $_POST["culminar"];
+$reentrenar = !empty($_POST["reentrenar"]); // "Culminar y volver a entrenar"
 $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
 
@@ -76,6 +77,51 @@ if ($cancelar) {
     eval('$reload_script = $reload_js;');
 }
 
+if ($culminar) {
+
+    $entreno = null;
+    $culminado = false;
+
+    $query_entreno_usuario = $db->query("
+        SELECT * FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid'
+    ");
+
+    while ($q = $db->fetch_array($query_entreno_usuario)) {
+        $entreno = $q;
+    }
+
+    // El servidor decide si se puede culminar: tiene que existir el entrenamiento y haber terminado
+    // (el formulario solo pide culminar, no demuestra que haya pasado el tiempo).
+    // Se borra la fila ANTES de pagar: solo quien consigue borrarla cobra, asi un doble envio no paga dos veces.
+    if ($entreno && time() > intval($entreno['timestamp_end'])) {
+        $db->query("DELETE FROM mybb_op_entrenamientos_usuarios WHERE id='".intval($entreno['id'])."'");
+        if ($db->affected_rows() > 0) {
+            $culminado = true;
+
+            $nombre = $db->escape_string($ficha['nombre']);
+            $old_exp = $exp_usuario;
+            $new_exp = floatval($old_exp) + (floatval($entreno['recompensa']));
+
+            log_audit_currency($uid, $username, $uid, '[Entrenamiento][Experiencia]', 'experiencia', $new_exp);
+
+            $db->query(" 
+                INSERT INTO `mybb_op_audit_entrenamientos` (`fid`, `nombre`, `puntos_estadistica`, `pr`) VALUES 
+                ('$uid', '$nombre', '2', '$old_exp->$new_exp');
+            ");
+
+            $log = "Entrenamiento finalizado. \nPuntos de experiencia: $old_exp->$new_exp\n";
+            eval('$log_var = $log;');
+        }
+    }
+
+    eval('$reload_script = $reload_js;');
+
+    // "Culminar y volver a entrenar": tras cobrar, se inicia otro entrenamiento (con las mismas comprobaciones de $entrenar).
+    if ($culminado && $reentrenar) {
+        $entrenar = true;
+    }
+}
+
 if ($entrenar) {
     $now = time();
     $chk_oficio  = $db->fetch_array($db->query("SELECT COUNT(*) AS n FROM mybb_op_oficios_usuarios WHERE uid='$uid' AND timestamp_end > $now"));
@@ -94,35 +140,6 @@ if ($entrenar) {
         INSERT INTO `mybb_op_entrenamientos_usuarios` (`uid`,`nombre`,`timestamp_end`, `duracion`, `costo_pr`, `recompensa`) VALUES ('$uid','$nombre','$timestamp_end', '$duracion', '0', '$experiencia');
     ");
     eval('$reload_script = $reload_js;');
-}
-
-if ($culminar) {
-
-    $entreno = null;
-
-    $query_entreno_usuario = $db->query("
-        SELECT * FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid'
-    ");
-
-    while ($q = $db->fetch_array($query_entreno_usuario)) {
-        $entreno = $q;
-    }
-
-    $nombre = $ficha['nombre'];
-    $old_exp = $exp_usuario;
-    $new_exp = floatval($old_exp) + (floatval($entreno['recompensa']));
-
-    log_audit_currency($uid, $username, $uid, '[Entrenamiento][Experiencia]', 'experiencia', $new_exp);
-    
-    $db->query(" 
-        INSERT INTO `mybb_op_audit_entrenamientos` (`fid`, `nombre`, `puntos_estadistica`, `pr`) VALUES 
-        ('$uid', '$nombre', '2', '$old_exp->$new_exp');
-    ");
-
-    $log = "Entrenamiento finalizado. \nPuntos de experiencia: $old_exp->$new_exp\n";
-    eval('$log_var = $log;');
-    eval('$reload_script = $reload_js;');
-    $db->query("DELETE FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid'");
 }
 
 if ($ficha_existe == true && $ficha_aprobada == true) {

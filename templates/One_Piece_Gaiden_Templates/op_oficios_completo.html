@@ -44,6 +44,7 @@
 						<div style="display: none">
 							<form id="form" method="post" action="oficios.php">
 								<input type="text" name="culminar" id="culminar" value="1">
+								<input type="hidden" name="reentrenar" id="reentrenar" value="0">
 							</form>
 						</div>
 						<div style="position: relative;margin-top: 120px;">
@@ -63,7 +64,8 @@
 							<div class="texto-top">¡Felicidades!<br>¡Has ganado {$recompensa} puntos de oficio!</div>
 							<div id="myGif"><img style="border: 2px solid black; " src="/images/op/uploads/PuntosOficioCompletados_One_Piece_Gaiden_Foro_Rol.gif" /></div>
 							<div style=" text-align: center;margin-top: 12px; ">
-								<button class="entreno-button" type="button" onclick="javascript: document.getElementById('form').submit();">Completar Lección</button>
+								<button class="entreno-button" type="button" onclick="enviarCulminar(false);">Completar Lección</button>
+								<button class="entreno-button" type="button" onclick="enviarCulminar(true);" style="margin-left: 10px;">Completar y seguir con otra lección</button>
 							</div>
 						</div>
 						
@@ -74,7 +76,13 @@
 		 </div>
 	  </div>
 	<script>
-
+		// Un solo envio: los botones se desactivan al pulsar (el servidor tambien evita el doble cobro).
+		function enviarCulminar(reentrenar) {
+			document.getElementById('reentrenar').value = reentrenar ? '1' : '0';
+			var botones = document.querySelectorAll('.entreno-button');
+			for (var i = 0; i < botones.length; i++) { botones[i].disabled = true; }
+			document.getElementById('form').submit();
+		}
 	</script>
     {$reload_script}
     {$footer}

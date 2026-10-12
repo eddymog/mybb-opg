@@ -13,11 +13,36 @@ require_once "./../global.php";
 require "./../inc/config.php";
 require_once "./functions/op_functions.php";
 
+/** Multiplicador de velocidad que da el codigo activo del usuario (1 si no tiene). */
+function oficios_efecto_codigo($db, $uid)
+{
+    $efecto = 1;
+    $time_now = time();
+    $codigo_usuario = get_obj_from_query($db->query("
+        SELECT * FROM mybb_op_codigos_usuarios WHERE uid='$uid' AND expiracion > $time_now
+    "));
+    if ($codigo_usuario) {
+        $codigo_admin = select_one_query_with_id('mybb_op_codigos_admin', 'codigo', $codigo_usuario['codigo']);
+        $categoria = $codigo_admin['categoria'];
+        if ($categoria == 'entrenamientoX2') {
+            $efecto = 2;
+        } else if ($categoria == 'entrenamientoX3') {
+            $efecto = 3;
+        } else if ($categoria == 'entrenamientoX1.2') {
+            $efecto = 1.2;
+        } else if ($categoria == 'entrenamientoX1.5') {
+            $efecto = 1.5;
+        }
+    }
+    return $efecto;
+}
+
 global $templates, $mybb;
 
 $entrenar = $_POST["entrenar"];
 $cancelar = $_POST["cancelar"];
 $culminar = $_POST["culminar"];
+$reentrenar = !empty($_POST["reentrenar"]); // "Culminar y seguir con otra leccion"
 $oficioNumber = $_POST["oficio"];
 
 if ($g_ficha['muerto'] == '1') {
@@ -98,6 +123,57 @@ if ($cancelar) {
     eval('$reload_script = $reload_js;');
 }
 
+if ($culminar) {
+
+    $entreno = null;
+    $culminado = false;
+
+    $query_entreno_usuario = $db->query("
+        SELECT * FROM mybb_op_oficios_usuarios WHERE uid='$uid'
+    ");
+
+    while ($q = $db->fetch_array($query_entreno_usuario)) {
+        $entreno = $q;
+    }
+
+    // El servidor decide si se puede culminar: tiene que existir la leccion y haber terminado, con el mismo
+    // calculo de tiempo que muestra la pagina (el codigo activo la acorta).
+    // Se borra la fila ANTES de pagar: solo quien consigue borrarla cobra, asi un doble envio no paga dos veces.
+    if ($entreno) {
+        $efecto_culminar = oficios_efecto_codigo($db, $uid);
+        $duracion_entreno = intval($entreno['duracion']);
+        $fin_efectivo = intval($entreno['timestamp_end']) - ($duracion_entreno - ($duracion_entreno * (1 / $efecto_culminar)));
+        if (time() > $fin_efectivo) {
+            $db->query("DELETE FROM mybb_op_oficios_usuarios WHERE id='".intval($entreno['id'])."'");
+            if ($db->affected_rows() > 0) {
+                $culminado = true;
+
+                $nombre = $db->escape_string($ficha['nombre']);
+                $experienciaDeEntreno = $entreno['experiencia'];
+                $old_exp = $ficha['puntos_oficio'];
+                $new_exp = floatval($old_exp) + (floatval($experienciaDeEntreno));
+
+                log_audit_currency($uid, $username, $uid, '[Entrenamiento][Puntos oficio]', 'puntos_oficio', $new_exp);
+
+                $db->query(" 
+                    INSERT INTO `mybb_op_audit_oficios` (`fid`, `nombre`, `oficio`, `experiencia`, `progreso`) VALUES 
+                    ('$uid', '$nombre', 'oficio', '$experienciaDeEntreno', '$old_exp->$new_exp');
+                ");
+
+                $log = "Lección finalizada. \nPuntos de oficio: $old_exp->$new_exp\n";
+                eval('$log_var = $log;');
+            }
+        }
+    }
+
+    eval('$reload_script = $reload_js;');
+
+    // "Culminar y seguir con otra leccion": tras cobrar, se inicia otra (con las mismas comprobaciones de $entrenar).
+    if ($culminado && $reentrenar) {
+        $entrenar = true;
+    }
+}
+
 if ($entrenar) {
     $now = time();
     $chk_entreno = $db->fetch_array($db->query("SELECT COUNT(*) AS n FROM mybb_op_entrenamientos_usuarios WHERE uid='$uid' AND timestamp_end > $now"));
@@ -115,40 +191,6 @@ if ($entrenar) {
     eval('$reload_script = $reload_js;');
 }
 
-if ($culminar) {
-
-    $entreno = null;
-
-    $query_entreno_usuario = $db->query("
-        SELECT * FROM mybb_op_oficios_usuarios WHERE uid='$uid'
-    ");
-
-    while ($q = $db->fetch_array($query_entreno_usuario)) {
-        $entreno = $q;
-    }
-
-    $nombre = $ficha['nombre'];
-    $experienciaDeEntreno = $entreno['experiencia'];
-    $old_exp = $ficha['puntos_oficio'];
-    $new_exp = floatval($old_exp) + (floatval($experienciaDeEntreno));
-
-    // $db->query(" 
-    //     UPDATE `mybb_op_fichas` SET `puntos_oficio`='$new_exp' WHERE `fid`='$uid';
-    // ");
-
-    log_audit_currency($uid, $username, $uid, '[Entrenamiento][Puntos oficio]', 'puntos_oficio', $new_exp);
-
-    $db->query(" 
-        INSERT INTO `mybb_op_audit_oficios` (`fid`, `nombre`, `oficio`, `experiencia`, `progreso`) VALUES 
-        ('$uid', '$nombre', 'oficio', '$experienciaDeEntreno', '$old_exp->$new_exp');
-    ");
-
-    $log = "Lección finalizada. \nPuntos de oficio: $old_exp->$new_exp\n";
-    eval('$log_var = $log;');
-    eval('$reload_script = $reload_js;');
-    $db->query("DELETE FROM mybb_op_oficios_usuarios WHERE uid='$uid'");
-}
-
 if ($ficha_existe == true && $ficha_aprobada == true) {
     
     $query_entreno_usuario2 = $db->query("
@@ -160,28 +202,10 @@ if ($ficha_existe == true && $ficha_aprobada == true) {
 
     while ($m = $db->fetch_array($query_entreno_usuario2)) {
 
-        $efecto = 1;
+        $efecto = oficios_efecto_codigo($db, $uid);
         $time_now = time();
 
         $experienciaActual = $ficha['puntos_oficio'];
-        $codigo_usuario = get_obj_from_query($db->query("
-            SELECT * FROM mybb_op_codigos_usuarios WHERE uid='$uid' AND expiracion > $time_now
-        "));
-        if ($codigo_usuario) {
-            $codigo_admin = select_one_query_with_id('mybb_op_codigos_admin', 'codigo', $codigo_usuario['codigo']);
-
-            $categoria = $codigo_admin['categoria'];
-
-            if ($categoria == 'entrenamientoX2') {
-                $efecto = 2;
-            } else if ($categoria == 'entrenamientoX3') {
-                $efecto = 3;
-            } else if ($categoria == 'entrenamientoX1.2') {
-                $efecto = 1.2;
-            } else if ($categoria == 'entrenamientoX1.5') {
-                $efecto = 1.5;
-            }      
-        }
         $recompensa = $m['experiencia'];
         $oficio_duracion = intval($m['duracion']); // <--- esto se saca de la base de
         $extra_time = $oficio_duracion - ($oficio_duracion * (1 / $efecto)); 
