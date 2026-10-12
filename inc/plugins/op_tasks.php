@@ -2,17 +2,11 @@
 /**
  * OPG - Tareas en segundo plano (op_tasks)
  *
- * Registra la tarea programada `op_worldtick` (inc/tasks/op_worldtick.php),
- * que resuelve en segundo plano las colas de entrenamiento de estadística,
- * oficio y técnicas cuyo tiempo ya venció — sin sustituir la resolución al
- * cargar la página correspondiente (que sigue funcionando exactamente igual),
- * solo evita que una recompensa quede "pendiente de reclamar" indefinidamente
- * si el jugador no vuelve a esa página.
+ * Registra las tareas programadas del foro: `op_worldtick` (inc/tasks/op_worldtick.php, rango,
+ * fama y nivel de los personajes), `aventurasux` y `op_xp_snapshot`.
  *
- * Alcance de esta primera versión: solo entrenamiento.php, oficios.php y
- * entrenamiento_tecnicas.php. crafteo.php y creacion.php (que clonan objetos
- * dinámicamente) quedan fuera a propósito por ahora — economía de items en
- * vivo, mejor abordarlo aparte con más cuidado.
+ * Los entrenamientos (experiencia, oficios y tecnicas) NO se resuelven en segundo plano: el
+ * jugador los reclama a mano en su pagina.
  */
 
 if (!defined('IN_MYBB')) {
@@ -23,7 +17,7 @@ function op_tasks_info()
 {
     return array(
         'name'          => 'OPG - Tareas en segundo plano (worldtick)',
-        'description'   => 'Registra la tarea programada que resuelve en segundo plano entrenamientos/oficios/técnicas vencidos, sin sustituir la resolución al cargar página.',
+        'description'   => 'Registra las tareas programadas del foro (rango, fama y nivel, mantenimiento de aventuras y snapshot de XP).',
         'website'       => '',
         'author'        => 'Cascabelles',
         'authorsite'    => '',
@@ -47,8 +41,8 @@ if (defined('IN_ADMINCP')) {
     function op_tasks_install()
     {
         op_tasks_asegurar_tarea('op_worldtick', array(
-                'title'       => 'OPG: Resolver colas (worldtick)',
-                'description' => 'Resuelve entrenamientos de estadística, oficio y técnicas cuyo tiempo ya venció.',
+                'title'       => 'OPG: Rango, fama y nivel (worldtick)',
+                'description' => 'Resuelve rango, fama y nivel de los personajes.',
                 'minute'      => '0,5,10,15,20,25,30,35,40,45,50,55',
                 'hour'        => '*',
                 'day'         => '*',
@@ -68,6 +62,17 @@ if (defined('IN_ADMINCP')) {
             'enabled'     => 1,
             'logging'     => 1,
         ));
+        op_tasks_asegurar_tarea('op_xp_snapshot', array(
+            'title'       => 'OPG: Snapshot diario de XP',
+            'description' => 'Guarda el newpoints de quienes postearon en rol en las ultimas 2 semanas (op/staff/xp_snapshot.php).',
+            'minute'      => '30',
+            'hour'        => '5',
+            'day'         => '*',
+            'month'       => '*',
+            'weekday'     => '*',
+            'enabled'     => 1,
+            'logging'     => 1,
+        ));
     }
 
     function op_tasks_is_installed()
@@ -80,7 +85,7 @@ if (defined('IN_ADMINCP')) {
     function op_tasks_uninstall()
     {
         global $db;
-        $db->delete_query('tasks', "file IN ('op_worldtick','aventurasux')");
+        $db->delete_query('tasks', "file IN ('op_worldtick','aventurasux','op_xp_snapshot')");
     }
 
     function op_tasks_activate() { op_tasks_install(); }

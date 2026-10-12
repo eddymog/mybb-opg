@@ -1,0 +1,67 @@
+<html>
+
+<head>
+    <title>Snapshot de XP</title>
+    {$headerinclude}
+    <style>
+    .xp-snapshot .thirdBackground { width: 100%; max-width: 900px; gap: var(--opg-espacio-5); text-align: left; }
+    .xp-titulo { padding: var(--opg-espacio-2); }
+    .xp-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
+    .xp-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
+    .xp-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .xp-filtros select { min-height: 34px; padding: 4px 8px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; }
+    .xp-tabla { width: 100%; border-collapse: collapse; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-tinta); }
+    .xp-tabla th { text-align: left; padding: 6px 10px; background: var(--opg-morado); color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+    .xp-tabla th a { color: #fff; text-decoration: none; }
+    .xp-tabla td { padding: 6px 10px; }
+    .xp-tabla tbody tr:nth-child(odd)  { background: var(--opg-crema); }
+    .xp-tabla tbody tr:nth-child(even) { background: var(--opg-crema-dorada); }
+    .xp-tabla .xp-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .xp-pos { color: #1b7a3a; font-weight: bold; }
+    .xp-neg { color: #b3261e; font-weight: bold; }
+    .xp-cero, .xp-nd, .xp-vacio { color: var(--opg-gris-texto); }
+    .xp-vacio { text-align: center; padding: 18px 10px; }
+    .xp-tabla-caja { overflow-x: auto; }
+    </style>
+</head>
+
+<body>
+    {$header}
+    <div class="indice xp-snapshot">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <div class="thirdBackground">
+
+        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
+
+        <div>
+            <div class="barra-op bbox xp-titulo"><span class="barra-texto-op">Snapshot de XP</span></div>
+            <div class="barra-espacio-op bbox xp-descripcion">
+                Experiencia (newpoints) de quienes han posteado en la zona de rol en las últimas 2 semanas. Se guarda una foto al día y se compara contra días anteriores. "n/d" significa que aún no hay una foto tan antigua para ese usuario.
+            </div>
+        </div>
+
+        <div>
+            <form class="barra-espacio-op bbox xp-filtros" method="get">
+                <label for="xp-fecha">Día</label>
+                <select id="xp-fecha" name="fecha" onchange="this.form.submit()">{$selector_fecha}</select>
+                <input type="hidden" name="orden" value="{$xp_orden}">
+                <input type="hidden" name="dir" value="{$xp_dir}">
+                <span>{$xp_resumen}</span>
+            </form>
+        </div>
+
+        <div class="xp-tabla-caja">
+            <table class="xp-tabla">
+                <thead><tr>{$encabezados}</tr></thead>
+                <tbody>{$xp_filas}</tbody>
+            </table>
+        </div>
+
+    </div>
+    </div>
+    </div>
+    </div>
+</body>
+
+</html>
