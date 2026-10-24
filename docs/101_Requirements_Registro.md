@@ -185,7 +185,7 @@ Los códigos de base de datos no cambian. Las etiquetas para jugadores son:
 | Estado | Etiqueta principal | Explicación breve |
 |---|---|---|
 | 0 | En revisión | El staff todavía debe revisarla. |
-| 1 | Aprobada | Puede jugarse, vincularse y entregarse. |
+| 1 | Aprobada | Puede jugarse, vincularse y entregarse. (Vincular también se permite en los estados 0 y 4.) |
 | 2 | Denegada | Incluye el motivo del staff. |
 | 3 | Finalizada | La aventura y sus recompensas se cerraron. |
 | 4 | Buscando narrador | Acepta propuestas de narrador. |
@@ -380,7 +380,18 @@ dentro de Otras aventuras:
   mediante **Añadir participante** y se cierra tras cada selección. Sin
   participantes, se muestra directamente. Día tiene placeholder **1-90**.
 - El narrador asignado y cualquiera de los participantes pueden vincular una
-  solicitud aprobada. La entrega sigue siendo exclusiva del narrador.
+  aventura normal mientras la solicitud siga viva (en revisión, aprobada o buscando
+  narrador): no hace falta que esté aprobada, basta con que exista y tenga número.
+  Una solicitud denegada, finalizada o eliminada ya no admite vincular, y una
+  autonarrada sigue pidiendo estar aprobada. El buscador de `newthread.php` ofrece
+  esas aventuras a sus jugadores y narrador, indicando el estado si no están
+  aprobadas y si ya tienen tema (en ese caso el tema nuevo sustituye al anterior:
+  revincular). La entrega exige aprobación y puede hacerla el narrador o cualquiera
+  de los jugadores de la aventura: quien envía marca una casilla obligatoria
+  ("He confirmado con el resto del grupo...") y la entrega registra quién la envió
+  (`enviado_por`), mientras que el narrador cobrado sigue siendo el de la aventura.
+  Las autonarradas siguen siendo cosa de su narradora.
+  Un tema vinculado a una solicitud denegada o eliminada queda libre para otra.
 - La creación valida límites antes de insertar, para cada participante: no admite
   una cuarta solitaria ni una quinta activa total. Con tres solitarias admite una
   grupal si queda cupo total. Los envíos simultáneos no pueden consumir el mismo cupo.
@@ -690,6 +701,16 @@ constantes y no de estructura.
   una tabla horizontal.
 
 ### 6.1 Límite de aventuras activas
+
+> **Estado actual (octubre de 2026): límites desactivados.** La constante
+> `OPG_AV_LIMITES_ACTIVOS` de `inc/plugins/lib/aventuras.php` vale `false`: no hay
+> máximo de solitarias ni de aventuras activas, y se pueden enviar, editar y aprobar
+> todas las solicitudes que se quieran. Las aventuras se siguen contando para mostrar
+> `N solitarias` y `N en total`, sin tope. Las reglas de este apartado, y las cifras
+> `S/3` y `T/4` que aparecen en el resto del documento, describen el comportamiento con
+> `OPG_AV_LIMITES_ACTIVOS = true` (se conservan para poder reactivarlo). El sistema
+> antiguo (`op/Calculadora_Tiers.php`) mantiene sus propios límites (5 y 1 grupal) y no
+> se tocó.
 
 - Una aventura está activa en los estados 0, 1 y 4.
 - Una aventura es **solitaria** si tiene 1 participante y **grupal** si tiene 2

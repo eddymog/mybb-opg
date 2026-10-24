@@ -405,26 +405,29 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                 $oficios_jugador = ($ficha_jugador && $ficha_jugador['oficios']) ? json_decode($ficha_jugador['oficios']) : null;
 
                 // Contrabandista (berries)
+                // Mercader R2 (base): +25%. Contrabandista R1/R2/R3: +50%/+75%/+100% (no se acumulan).
                 $nivelContrabandista = -1;
+                $nivelMercader = 0;
                 $contrabandistaMult = 1;
                 if ($oficios_jugador && isset($oficios_jugador->{'Mercader'})) {
-                    $nivelContrabandista = $oficios_jugador->{'Mercader'}->{'sub'}->{'Contrabandista'};
+                    $nivelMercader = intval($oficios_jugador->{'Mercader'}->{'nivel'} ?? 0);
+                    $nivelContrabandista = intval($oficios_jugador->{'Mercader'}->{'sub'}->{'Contrabandista'} ?? 0);
                 }
-                if ($nivelContrabandista == 0)      { $contrabandistaMult = 1.25; }
-                else if ($nivelContrabandista == 1) { $contrabandistaMult = 1.50; }
+                if ($nivelContrabandista == 1)      { $contrabandistaMult = 1.50; }
                 else if ($nivelContrabandista == 2) { $contrabandistaMult = 1.75; }
-                else if ($nivelContrabandista == 3) { $contrabandistaMult = 2.00; }
+                else if ($nivelContrabandista >= 3) { $contrabandistaMult = 2.00; }
+                else if ($nivelMercader >= 2)       { $contrabandistaMult = 1.25; }
 
                 // Arqueologo (XP y Nikas)
                 $nivelArqueologo = -1;
                 $arqueologoExtraXP = 1;
                 $arqueologoExtraNikas = 0;
                 if ($oficios_jugador && isset($oficios_jugador->{'Investigador'})) {
-                    $nivelArqueologo = $oficios_jugador->{'Investigador'}->{'sub'}->{'Arqueólogo'};
+                    $nivelArqueologo = intval($oficios_jugador->{'Investigador'}->{'sub'}->{'Arqueólogo'} ?? 0);
                 }
-                if ($nivelArqueologo == 0)      { $arqueologoExtraXP = 1.00; }
-                else if ($nivelArqueologo == 1) { $arqueologoExtraXP = 1.10; }
-                else if ($nivelArqueologo == 2) { $arqueologoExtraNikas = 1; }
+                // Los bonos se acumulan: R1 +10% XP, R2 mantiene el XP y suma +1 Nika, R3 mantiene ambos
+                if ($nivelArqueologo >= 1) { $arqueologoExtraXP = 1.10; }
+                if ($nivelArqueologo >= 2) { $arqueologoExtraNikas = 1; }
                 // --- Fin Bonus de Oficios ---
                 
                 // Calcular recompensas finales
@@ -499,17 +502,17 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                 $mensaje .= "[*][b]Experiencia:[/b] [color=#3498db]{$exp_final} EXP[/color]\n";
                 $mensaje .= "[*][b]Nikas:[/b] [color=#f39c12]{$nikas_final} NK[/color]\n";
                 $mensaje .= "[*][b]Reputación ({$tipo_rep_emoji} {$tipo_rep_texto}):[/b] [color=#e74c3c]{$reputacion_final} REP[/color]\n";
-                if ($inframundo && $nivelContrabandista > -1) {
+                if ($inframundo && $contrabandistaMult > 1) {
                     $mensaje .= "[*][b]Berries:[/b] [color=#27ae60]{$berries_final} ฿[/color] (Base: {$berries_base_final} + Contrabandista x{$contrabandistaMult} + Inframundo 25%)\n";
                 } else if ($inframundo) {
                     $mensaje .= "[*][b]Berries:[/b] [color=#27ae60]{$berries_final} ฿[/color] (Base: {$berries_base_final} + Bono inframundo 25%)\n";
-                } else if ($nivelContrabandista > -1) {
+                } else if ($contrabandistaMult > 1) {
                     $mensaje .= "[*][b]Berries:[/b] [color=#27ae60]{$berries_final} ฿[/color] (Base: {$berries_base_final} + Contrabandista x{$contrabandistaMult})\n";
                 } else {
                     $mensaje .= "[*][b]Berries:[/b] [color=#27ae60]{$berries_final} ฿[/color]\n";
                 }
                 $mensaje .= "[/list]\n\n";
-                $has_bonificaciones = ($posts_extras != 0 || $nivelContrabandista > -1 || $nivelArqueologo > -1);
+                $has_bonificaciones = ($posts_extras != 0 || $contrabandistaMult > 1 || $arqueologoExtraXP > 1 || $arqueologoExtraNikas > 0);
                 if ($has_bonificaciones) {
                     $signo = $posts_extras > 0 ? '+' : '';
                     $mensaje .= "[b]Bonificaciones:[/b]\n";
@@ -517,15 +520,14 @@ if (isset($mybb->input['action']) && $mybb->input['action'] == 'procesar_pago') 
                     if ($posts_extras != 0) {
                         $mensaje .= "[*][b]Variación de post:[/b] {$signo}{$posts_extras}%\n";
                     }
-                    if ($nivelContrabandista > -1) {
+                    if ($contrabandistaMult > 1) {
                         $mensaje .= "[*][b]Contrabandista (Nivel {$nivelContrabandista}):[/b] x{$contrabandistaMult} berries\n";
                     }
-                    if ($nivelArqueologo > -1) {
-                        if ($arqueologoExtraNikas > 0) {
-                            $mensaje .= "[*][b]Arqueologo (Nivel {$nivelArqueologo}):[/b] +{$arqueologoExtraNikas} nika extra\n";
-                        } else {
-                            $mensaje .= "[*][b]Arqueologo (Nivel {$nivelArqueologo}):[/b] x{$arqueologoExtraXP} XP\n";
-                        }
+                    if ($arqueologoExtraXP > 1) {
+                        $mensaje .= "[*][b]Arqueologo (Nivel {$nivelArqueologo}):[/b] x{$arqueologoExtraXP} XP\n";
+                    }
+                    if ($arqueologoExtraNikas > 0) {
+                        $mensaje .= "[*][b]Arqueologo (Nivel {$nivelArqueologo}):[/b] +{$arqueologoExtraNikas} nika extra\n";
                     }
                     $mensaje .= "[*][b]Porcentaje total aplicado:[/b] [color=#27ae60]{$porcentaje_aplicado}%[/color]\n";
                     $mensaje .= "[/list]";

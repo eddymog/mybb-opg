@@ -213,6 +213,10 @@ página inexistente; más de 20 ofertas accesibles; teclado y foco.
 
 ### U6. Cupos anticipados
 
+> Con `OPG_AV_LIMITES_ACTIVOS = false` (estado actual) no hay topes: `validar_cupos` no
+> bloquea a nadie, los chips muestran solo los conteos y `opg_av_validar_limites()`
+> devuelve vacío. Lo que sigue describe el comportamiento con los límites activados.
+
 1. Implementar consulta de cupos en lote y acción GET `validar_cupos`.
 2. Añadir cifras a chips de participantes y aviso de bloqueo con nombre/motivo.
 3. Recalcular al cambiar papel, composición de participantes o edición.

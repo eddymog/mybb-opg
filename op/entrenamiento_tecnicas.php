@@ -14,6 +14,10 @@ require_once "./../global.php";
 require "./../inc/config.php";
 require_once MYBB_ROOT."/inc/plugins/lib/spoiler.php";
 
+// true: entrenar una tecnica la aprende al instante (un solo clic, sin espera).
+// false: vuelve al entrenamiento con tiempos por tier (1 h a 300 h) de mas abajo.
+define('ENTRENAMIENTO_TECNICAS_INSTANTANEO', true);
+
 // === DEBUG TEMPORAL ===
 // ini_set('display_errors', '1');           // mostrar en pantalla
 // ini_set('display_startup_errors', '1');
@@ -95,17 +99,111 @@ $has_full_haki = false;
 // while ($q = $db->fetch_array($has_full_haki_query)) { $has_full_haki = true; }
 if ($ficha['camino'] == 'Haki') { $has_full_haki = true; }
 
-if ($tid_completo) {
+/**
+ * HTML del aviso que sale al aprender una tecnica: ventana con estilo del foro que, al cerrarse, recarga la pagina.
+ * $tecnica es la fila de mybb_op_tecnicas (o null), $pasivo el nombre del atributo pasivo ganado (o '').
+ */
+function entrenamiento_tecnicas_aviso_html($tecnica, $tid, $pasivo)
+{
+    $esc = function ($t) { return htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8'); };
+    $nombre = ($tecnica && trim((string) $tecnica['nombre']) !== '') ? $tecnica['nombre'] : $tid;
+    $detalle = array();
+    if ($tecnica && (string) $tecnica['tier'] !== '') { $detalle[] = 'Tier ' . $tecnica['tier']; }
+    if ($tecnica && trim((string) $tecnica['rama']) !== '') { $detalle[] = $tecnica['rama']; }
+
+    $frases = array(
+        '¡Un paso más hacia la Grand Line!',
+        'El mar premia a quien entrena sin descanso.',
+        '¡Tu leyenda suma un nuevo capítulo!',
+        'Con esto ya puedes mirar al horizonte sin miedo.',
+        '¡Zarpa con fuerza, el mundo te está esperando!',
+        'El One Piece no se encuentra solo: sigue entrenando.',
+        'Cada golpe te acerca un poco más a tu sueño.',
+        '¡Que se preparen los mares, vas con todo!',
+        'Los rivales fuertes de mañana se forjan con el esfuerzo de hoy.',
+        '¡Tu tripulación estaría orgullosa de ti!',
+        'El viento sopla a tu favor, aprovéchalo.',
+        '¡Un poco más y el mundo entero hablará de ti!',
+        'Ni la tormenta más brava podrá detenerte ahora.',
+        '¡Otra técnica para tu arsenal, y lo mejor de la aventura aún está por llegar!',
+        'El océano es enorme, pero tu determinación lo es más.',
+        '¡Así se forja una leyenda de los siete mares!',
+        'Sigue así: el horizonte siempre premia a los valientes.',
+        'Nadie dijo que fuera fácil, ¡pero lo estás logrando!',
+        'Tu voluntad pesa más que cualquier ancla.',
+        '¡Icen las velas, el siguiente reto ya te espera!',
+    );
+    $frase = $frases[array_rand($frases)];
+
+    $css = <<<'CSS'
+<style>
+#opg-aviso-tecnica{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.72);animation:opgAtFondo .2s ease-out}
+#opg-aviso-tecnica .opg-at-caja{box-sizing:border-box;width:min(92vw,430px);background:#ffedd2;color:#3b1300;border:3px solid #000;border-radius:18px;box-shadow:6px 6px 0 #000;text-align:center;overflow:hidden;animation:opgAtCaja .35s cubic-bezier(.2,1.4,.4,1)}
+#opg-aviso-tecnica .opg-at-cinta{background:#d62828;color:#fff;font-family:moonGetHeavy,InterRegular,sans-serif;font-size:22px;letter-spacing:1px;padding:12px 10px;border-bottom:3px solid #000;text-shadow:2px 2px 0 #000}
+#opg-aviso-tecnica .opg-at-gif{display:block;width:100%;height:auto;background:#000;border-bottom:3px solid #000}
+#opg-aviso-tecnica .opg-at-cuerpo{padding:20px 22px 22px}
+#opg-aviso-tecnica .opg-at-nombre{font-family:moonGetHeavy,InterRegular,sans-serif;font-size:26px;line-height:1.15;margin-bottom:6px;word-break:break-word}
+#opg-aviso-tecnica .opg-at-detalle{font-family:InterRegular,sans-serif;font-size:14px;opacity:.8;margin-bottom:14px}
+#opg-aviso-tecnica .opg-at-pasivo{display:inline-block;background:#27ae60;color:#fff;border:2px solid #000;border-radius:999px;padding:6px 16px;font-family:InterRegular,sans-serif;font-size:15px;text-shadow:1px 1px 1px #000;margin-bottom:14px}
+#opg-aviso-tecnica .opg-at-frase{font-family:InterRegular,sans-serif;font-size:15px;font-style:italic;margin:0 0 18px}
+#opg-aviso-tecnica .opg-at-boton{font-family:moonGetHeavy,InterRegular,sans-serif;font-size:17px;color:#fff;background:#ee3d3d;border:2px solid #000;border-radius:12px;box-shadow:3px 3px 0 #000;padding:10px 22px;cursor:pointer}
+#opg-aviso-tecnica .opg-at-boton:hover{background:#c92a2a}
+#opg-aviso-tecnica .opg-at-boton:focus-visible{outline:3px solid #000;outline-offset:2px}
+@keyframes opgAtFondo{from{opacity:0}to{opacity:1}}
+@keyframes opgAtCaja{from{opacity:0;transform:scale(.8) rotate(-2deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#opg-aviso-tecnica,#opg-aviso-tecnica .opg-at-caja{animation:none}}
+</style>
+CSS;
+
+    $html = $css . '<div id="opg-aviso-tecnica" role="dialog" aria-modal="true" aria-labelledby="opg-at-titulo">'
+        . '<div class="opg-at-caja">'
+        . '<div class="opg-at-cinta" id="opg-at-titulo">¡TÉCNICA DOMINADA!</div>'
+        . '<img class="opg-at-gif" src="/images/op/uploads/EntrenamientoCompletado_One_Piece_Gaiden_Foro_Rol.gif" alt="">'
+        . '<div class="opg-at-cuerpo">'
+        . '<div class="opg-at-nombre">' . $esc($nombre) . '</div>';
+    if ($detalle) {
+        $html .= '<div class="opg-at-detalle">' . $esc(implode(' · ', $detalle)) . '</div>';
+    }
+    if ($pasivo !== '') {
+        $html .= '<div class="opg-at-pasivo">+5 ' . $esc($pasivo) . ' pasiva</div>';
+    }
+    $html .= '<p class="opg-at-frase">' . $esc($frase) . '</p>'
+        . '<button type="button" class="opg-at-boton" id="opg-at-cerrar">¡A seguir entrenando!</button>'
+        . '</div></div></div>'
+        . '<script>(function(){var c=function(){window.location.href=window.location.href;};'
+        . 'document.getElementById("opg-at-cerrar").addEventListener("click",c);'
+        . 'document.getElementById("opg-aviso-tecnica").addEventListener("click",function(e){if(e.target===this){c();}});'
+        . 'document.addEventListener("keydown",function(e){if(e.key==="Escape"||e.key==="Enter"){c();}});'
+        . 'document.getElementById("opg-at-cerrar").focus();})();</script>';
+    return $html;
+}
+
+/**
+ * Aprende una tecnica: la registra, audita y suma los pasivos que otorga.
+ * Con $instantaneo no hay fila de entrenamiento en curso (el tiempo inicial y final son el mismo).
+ */
+function entrenamiento_tecnicas_completar($tid_completo, $instantaneo = false)
+{
+    global $db, $uid, $ficha, $puntos_rol, $recompensa, $reload_js, $reload_script, $log_var;
     $tiempo_iniciado = '';
     $tiempo_finaliza = '';
     $tecnica = null;
-    $query_user_tecnica_entrenada = $db->query("SELECT * FROM mybb_op_tecnicas_usuarios WHERE uid='$uid'");
-    while ($q = $db->fetch_array($query_user_tecnica_entrenada)) {
-        $tiempo_iniciado = $q['tiempo_iniciado'];
-        $tiempo_finaliza = $q['tiempo_finaliza'];
-    }
+    $pasivo_ganado = '';
+    if ($instantaneo) {
+        // Sin espera: no hay fila en mybb_op_tecnicas_usuarios que cerrar. No se repite una tecnica ya aprendida.
+        $tiempo_iniciado = time();
+        $tiempo_finaliza = $tiempo_iniciado;
+        $ya_aprendida = $db->fetch_array($db->query("SELECT tid FROM mybb_op_tec_aprendidas WHERE uid='$uid' AND tid='" . $db->escape_string($tid_completo) . "' LIMIT 1"));
+        if ($ya_aprendida) { return; }
+    } else {
+        $query_user_tecnica_entrenada = $db->query("SELECT * FROM mybb_op_tecnicas_usuarios WHERE uid='$uid'");
+        while ($q = $db->fetch_array($query_user_tecnica_entrenada)) {
+            $tiempo_iniciado = $q['tiempo_iniciado'];
+            $tiempo_finaliza = $q['tiempo_finaliza'];
+        }
 
-    $db->query(" DELETE FROM mybb_op_tecnicas_usuarios WHERE uid='$uid' ");
+        $db->query(" DELETE FROM mybb_op_tecnicas_usuarios WHERE uid='$uid' ");
+    }
 
     $query_tecnica = $db->query(" SELECT * FROM mybb_op_tecnicas WHERE tid='$tid_completo' ");
     while ($t = $db->fetch_array($query_tecnica)) { $tecnica = $t; }
@@ -127,30 +225,37 @@ if ($tid_completo) {
 
     if ($tid_completo == 'DCO001' || $tid_completo == 'DEP001' || $tid_completo == 'DGU001' || $tid_completo == 'DAQ002' || $tid_completo == 'DAM001') {
         $db->query(" UPDATE `mybb_op_fichas` SET `fuerza_pasiva`=`fuerza_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Fuerza';
     }
 
     if ($tid_completo == 'DCO002' || $tid_completo == 'DAT002' || $tid_completo == 'DEC001') {
         $db->query(" UPDATE `mybb_op_fichas` SET `resistencia_pasiva`=`resistencia_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Resistencia';
     }
 
     if ($tid_completo == 'DAS002' || $tid_completo == 'DAM002') {
         $db->query(" UPDATE `mybb_op_fichas` SET `agilidad_pasiva`=`agilidad_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Agilidad';
     }
 
     if ($tid_completo == 'DEP002' || $tid_completo == 'DGU002' || $tid_completo == 'DTC001' || $tid_completo == 'DRT002' || $tid_completo == 'DAS001') {
         $db->query(" UPDATE `mybb_op_fichas` SET `destreza_pasiva`=`destreza_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Destreza';
     }
 
     if ($tid_completo == 'DTI001' || $tid_completo == 'DAQ001' || $tid_completo == 'DAT001' || $tid_completo == 'DPI001') {
         $db->query(" UPDATE `mybb_op_fichas` SET `punteria_pasiva`=`punteria_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Puntería';
     }
 
     if ($tid_completo == 'DTI002' || $tid_completo == 'DTC002' || $tid_completo == 'DPI002' || $tid_completo == 'DEC002') {
         $db->query(" UPDATE `mybb_op_fichas` SET `reflejos_pasiva`=`reflejos_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Reflejos';
     }
 
     if ($tid_completo == 'DRT001') {
         $db->query(" UPDATE `mybb_op_fichas` SET `voluntad_pasiva`=`voluntad_pasiva`+5 WHERE fid=$uid; ");
+        $pasivo_ganado = 'Voluntad';
     }
 
     // if ($tid_completo == 'x') {
@@ -171,9 +276,14 @@ if ($tid_completo) {
     //     $db->query(" UPDATE `mybb_op_fichas` SET `energia_pasiva`=`energia_pasiva`+75 WHERE fid=$uid; ");
     // }
 
-    $log = "Entrenamiento para técnica ID: $tid_completo finalizado \n";
-    eval('$log_var = $log;');
-    eval('$reload_script = $reload_js;');
+    // Aviso visual en lugar del alert(). La plantilla imprime $reload_script tal cual al final de la
+    // pagina, asi que el aviso va ahi; al cerrarlo recarga la pagina. $log_var vacio apaga el alert().
+    $log_var = '';
+    $reload_script = entrenamiento_tecnicas_aviso_html($tecnica, $tid_completo, $pasivo_ganado);
+}
+
+if ($tid_completo) {
+    entrenamiento_tecnicas_completar($tid_completo);
 }
 
 // cancelar mision
@@ -187,10 +297,16 @@ if ($tid_en_curso == 'cancel') {
 // post para entrenar técnica
 if ($tecnica_id) {
     $nombre = $ficha['nombre'];
-    $query_tecnicas_post = $db->query(" SELECT * FROM mybb_op_tecnicas WHERE tid='$tecnica_id' ");
+    $query_tecnicas_post = $db->query(" SELECT * FROM mybb_op_tecnicas WHERE tid='" . $db->escape_string($tecnica_id) . "' ");
 
     $nuevo_tiempo = 0;
     while ($t = $db->fetch_array($query_tecnicas_post)) {
+
+        if (ENTRENAMIENTO_TECNICAS_INSTANTANEO) {
+            // Se aprende ya, con el id tal como esta en la base de datos.
+            entrenamiento_tecnicas_completar($t['tid'], true);
+            continue;
+        }
 
         $tier = $t['tier'];
         $tiempo_de_tecnica = 0;
@@ -237,7 +353,9 @@ if ($tecnica_id) {
             ");
         }
     }
-    eval('$reload_script = $reload_js;');
+    if (!ENTRENAMIENTO_TECNICAS_INSTANTANEO) {
+        eval('$reload_script = $reload_js;');
+    }
 }
 
 

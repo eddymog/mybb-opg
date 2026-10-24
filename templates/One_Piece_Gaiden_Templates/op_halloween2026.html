@@ -1,0 +1,35 @@
+<html>
+<head>
+    <title>La Cosecha de Calabazas Malditas</title>
+    {$headerinclude}
+    <script src="{$mybb->settings['bburl']}/jscripts/vendor/htmx-2.0.10.min.js"></script>
+    <script defer src="{$mybb->settings['bburl']}/jscripts/halloween2026.js?v={$hlw_js_version}"></script>
+</head>
+<body>
+{$header}
+<div class="indice hlw-page"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+    <main class="hlw-shell">
+        <header class="hlw-header">
+            <div class="hlw-header__mark"><i class="fa-solid fa-ghost" aria-hidden="true"></i></div>
+            <div class="hlw-header__title"><p>Evento Off-Rol 2026</p><h1>La Cosecha de Calabazas Malditas</h1>
+                <div class="hlw-header__status"><span class="{$hlw_event_state_class}"><i class="fa-solid fa-circle"></i> {$hlw_event_state}</span><small>{$hlw_event_timing}</small></div>
+            </div>
+            <div class="hlw-header__balance"><small>Tu cosecha</small><strong>{$hlw_balance}</strong><span>Calabazas</span></div>
+            <div class="hlw-header__progress" aria-label="Progreso temporal del evento"><span style="width: {$hlw_event_progress}%"></span></div>
+        </header>
+        <nav class="hlw-tabs" aria-label="Secciones del evento">
+            <a class="{$hlw_event_active}" href="{$hlw_event_url}" hx-get="{$hlw_event_url}" hx-target="#hlw-panel" hx-swap="outerHTML" hx-push-url="true">
+                <i class="fa-solid fa-house"></i><span>Evento</span></a>
+            <a class="{$hlw_activity_active}" href="{$hlw_activity_url}" hx-get="{$hlw_activity_url}" hx-target="#hlw-panel" hx-swap="outerHTML" hx-push-url="true">
+                <i class="fa-solid fa-clock-rotate-left"></i><span>Mi actividad</span></a>
+            <a class="{$hlw_store_active}" href="{$hlw_store_url}" hx-get="{$hlw_store_url}" hx-target="#hlw-panel" hx-swap="outerHTML" hx-push-url="true">
+                <i class="fa-solid fa-store"></i><span>Tienda</span></a>
+            <a class="{$hlw_stats_active}" href="{$hlw_stats_url}" hx-get="{$hlw_stats_url}" hx-target="#hlw-panel" hx-swap="outerHTML" hx-push-url="true">
+                <i class="fa-solid fa-chart-column"></i><span>Estadisticas</span></a>
+        </nav>
+        {$hlw_panel}
+    </main>
+</div></div></div></div>
+{$footer}
+</body>
+</html>

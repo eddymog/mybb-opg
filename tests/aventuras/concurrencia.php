@@ -52,7 +52,7 @@ function lanzar($acciones)
 // ── 1. Cuatro pagos simultáneos de la misma entrega ──────────────────────────
 tema(300, 'Pago concurrente', $db);
 $S = ins(3, 8, 1, array(3, 5), array('tier_seleccionado' => 3, 'isla_fid' => 40));
-$e = opg_ent_enviar($S, array('tema' => '300', 'resumen' => 'x', 'reputacion' => 'positiva'), 8);
+$e = opg_ent_enviar($S, array('tema' => '300', 'resumen' => 'x', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 8);
 $E = $e['id'];
 $res = lanzar(array(array('pagar', $E), array('pagar', $E), array('pagar', $E), array('pagar', $E)));
 $oks = count(array_filter($res, function ($r) { return $r['ok']; }));
@@ -101,7 +101,13 @@ prueba('el tema queda en una sola entrega vigente', (int) una("SELECT COUNT(*) A
 limpiar();
 for ($i = 0; $i < 3; $i++) { ins(3, 8, 1, array(3, 5)); }
 $res = lanzar(array(array('crear', 20), array('crear', 21)));
-prueba('dos creaciones simultáneas con un cupo: solo una se inserta', count(array_filter($res, function ($r) { return $r['ok']; })), 1);
-prueba('la otra creación recibe error de límite', count(array_filter($res, function ($r) { return !$r['ok'] && $r['codigo'] === 422; })), 1);
-prueba('ningún jugador supera cuatro activas tras envíos simultáneos', opg_av_contar_activas(3), array(0, 4));
+if (OPG_AV_LIMITES_ACTIVOS) {
+    prueba('dos creaciones simultáneas con un cupo: solo una se inserta', count(array_filter($res, function ($r) { return $r['ok']; })), 1);
+    prueba('la otra creación recibe error de límite', count(array_filter($res, function ($r) { return !$r['ok'] && $r['codigo'] === 422; })), 1);
+    prueba('ningún jugador supera cuatro activas tras envíos simultáneos', opg_av_contar_activas(3), array(0, 4));
+} else {
+    prueba('sin límites: dos creaciones simultáneas se insertan las dos', count(array_filter($res, function ($r) { return $r['ok']; })), 2);
+    prueba('sin límites: ninguna creación recibe error de límite', count(array_filter($res, function ($r) { return !$r['ok'] && $r['codigo'] === 422; })), 0);
+    prueba('sin límites: el jugador queda con cinco activas', opg_av_contar_activas(3), array(0, 5));
+}
 resumen();

@@ -27,8 +27,9 @@ if (
     $uid == 279 ||
     $uid == 268 ||
     $uid == 23  ||
+    $uid == 10  ||
     $uid == 7
-   ) { 
+   ) {
     $avisos_li = "";
 
     $query_avisos = $db->query("

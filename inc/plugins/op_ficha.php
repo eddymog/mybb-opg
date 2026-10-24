@@ -272,7 +272,7 @@ function op_ficha_seed_niveles_requeridos()
     return array(
         'estilo1'       => 8,  // desbloquear el 1er slot de estilo
         'estilo2'       => 20, // desbloquear el 2º slot de estilo
-        'estilo3'       => 35, // desbloquear el 3er slot de estilo
+        'estilo3'       => 30, // desbloquear el 3er slot de estilo
         'camino_elegir' => 8,  // elegir un camino de especialización de disciplina
         'camino_subir'  => 20, // subir un camino ya elegido a nivel 2
     );

@@ -40,7 +40,6 @@
 | Regalo impredecible de Kuro | ??? Calabazas (repetible) |
 | 1 Aventura Spooky completada | 20 Calabazas |
 | Avatar temático | 5 Calabazas (avatar de foro) y 5 Calabazas (avatar Discord) |
-| Participar en el evento "Llamada del Grand Line" | 25 Calabazas Malditas |
 | Concurso de Historias de Miedo 1 | 50 Calabazas |
 | Concurso de NPC Spooky | 50 Calabazas |
 | Participar en la Actividad Semana 3 | 50 Calabazas |

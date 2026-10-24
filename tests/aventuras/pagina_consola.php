@@ -17,7 +17,7 @@ $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'"
 
 $PAG = 'op/staff/consola_aventuras.php';
 $js_consola = file_get_contents(MYBB_ROOT . 'jscripts/consola_aventuras.js');
-$GET_ACC = array('tab', 'listar', 'entregas', 'narradores', 'buscar_personas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'form_retirar_oferta');
+$GET_ACC = array('tab', 'listar', 'entregas', 'narradores', 'buscar_personas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'quitar_isla', 'form_retirar_oferta');
 $POST_ACC = array('cambiar_estado', 'actualizar_datos', 'eliminar', 'retirar_oferta');
 $todo_html = ''; $GLOBALS['respuestas'] = array();
 function g($accion, $get = array(), $uid = 60) { global $PAG, $todo_html; $r = llamar($PAG, array_merge(array('action' => $accion), $get), array(), $uid, true, 'clave-valida', 'GET'); $todo_html .= $r['cuerpo']; $GLOBALS['respuestas'][] = $r['cuerpo']; return $r; }
@@ -114,14 +114,17 @@ prueba('una solicitud inexistente: 404', p('cambiar_estado', array(), 60, array(
 
 // ── Editar datos ─────────────────────────────────────────────────────────────
 $r = g('form_editar', array('id' => $A));
-prueba('formulario de datos con los valores actuales', array(contiene($r, 'name="nota_staff"'), contiene($r, 'name="isla_fid" value="40"'), contiene($r, 'value="5"'), contiene($r, 'consola_aventuras.php?action=buscar_islas')), array(true, true, true, true));
+prueba('formulario de datos con los valores actuales', array(contiene($r, 'name="nota_staff"'), contiene($r, 'name="isla_fid" value="40"'), contiene($r, 'value="5"'), contiene($r, 'consola_aventuras.php?action=quitar_isla')), array(true, true, true, true));
+prueba('con isla elegida el formulario no muestra el buscador', contiene($r, 'name="q"'), false);
 prueba('el formulario no enlaza a otra página', contiene($r, 'tablon_de_aventuras.php'), false);
 $r = p('actualizar_datos', array('nota_staff' => 'Revisar <i>luego</i>', 'comentario' => 'Nuevo', 'inframundo' => '1', 'dia' => '30', 'isla_fid' => '41'), 60, array('id' => $A));
 prueba('actualizar datos: fila con nota, día e isla nuevos', array($r['estado'], contiene($r, 'Revisar &lt;i&gt;luego&lt;/i&gt;'), contiene($r, 'Isla Beta'), contiene($r, 'Verano 725, día 30'), contiene($r, 'Inframundo')), array(200, true, true, true, true));
 prueba('actualizar datos con día inválido: 422', array(p('actualizar_datos', array('nota_staff' => '', 'comentario' => 'Nuevo', 'inframundo' => '0', 'dia' => '99'), 60, array('id' => $A))['estado']), array(422));
 prueba('actualizar datos sin día: conserva el día', (int) fila($A)['dia'], 30);
 prueba('isla inválida: 422', p('actualizar_datos', array('nota_staff' => '', 'comentario' => 'x', 'inframundo' => '0', 'isla_fid' => '15'), 60, array('id' => $A))['estado'], 422);
-prueba('buscar islas y elegir', array(contiene(g('buscar_islas', array('id' => $A, 'q' => 'Alfa')), 'Isla Alfa'), contiene(g('elegir_isla', array('id' => $A, 'fid' => 40)), 'name="isla_fid" value="40"'), g('elegir_isla', array('id' => $A, 'fid' => 15))['cuerpo']), array(true, true, ''));
+prueba('buscar islas y elegir', array(contiene(g('buscar_islas', array('id' => $A, 'q' => 'Alfa')), 'Isla Alfa'), contiene(g('elegir_isla', array('id' => $A, 'fid' => 40)), 'name="isla_fid" value="40"'), contiene(g('elegir_isla', array('id' => $A, 'fid' => 40)), 'name="q"')), array(true, true, false));
+prueba('elegir una isla inválida deja el buscador y ninguna isla', array(contiene(g('elegir_isla', array('id' => $A, 'fid' => 15)), 'name="q"'), contiene(g('elegir_isla', array('id' => $A, 'fid' => 15)), 'name="isla_fid"')), array(true, false));
+prueba('quitar la isla devuelve el buscador y quita el campo oculto', array(contiene(g('quitar_isla', array('id' => $A)), 'name="q"'), contiene(g('quitar_isla', array('id' => $A)), 'name="isla_fid"')), array(true, false));
 
 // ── Historial ────────────────────────────────────────────────────────────────
 $r = g('historial', array('id' => $B));

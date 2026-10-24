@@ -147,33 +147,47 @@
     $('#' + slotKey).html(getNoBloqueadoHtml(num));
   }
 
+  // Requisitos para desbloquear cada slot de estilo. Salen de la base de datos (admin > Costes) por
+  // window.OPG_REQ_ESTILOS; si la plantilla aun no lo define, se usan estos valores de la guia vigente.
+  function _reqEstilo(num) {
+    var porDefecto = { 1: { nivel: 8, nikas: 0 }, 2: { nivel: 20, nikas: 50 }, 3: { nivel: 30, nikas: 100 } };
+    var r = (w.OPG_REQ_ESTILOS || {})['estilo' + num] || {};
+    return {
+      nivel: isFinite(parseInt(r.nivel, 10)) ? parseInt(r.nivel, 10) : porDefecto[num].nivel,
+      nikas: isFinite(parseInt(r.nikas, 10)) ? parseInt(r.nikas, 10) : porDefecto[num].nikas
+    };
+  }
+
   function openModalDesbloquearEstilo1() {
-    if (nivel >= 8 && estilo1 == 'bloqueado') {
+    var req = _reqEstilo(1);
+    if (nivel >= req.nivel && estilo1 == 'bloqueado') {
       if (confirm('Puedes desbloquear el primer slot de estilo. Será gratuito. ¿Estás de acuerdo?')) {
         _desbloquearEstiloSlot(1, 'estilo1_desbloquear', 0);
       }
     } else {
-      alert('Aún no puedes desbloquear el primer estilo.\nDebes ser nivel 8 mínimo.');
+      alert('Aún no puedes desbloquear el primer estilo.\nDebes ser nivel ' + req.nivel + ' mínimo.');
     }
   }
 
   function openModalDesbloquearEstilo2() {
-    if (nivel >= 20 && FICHA.PendingQueue.availableNikas() >= 50 && estilo2 == 'bloqueado' && estilo1 != 'bloqueado') {
-      if (confirm('Puedes desbloquear el segundo slot de estilo. Deberás invertir 50 nikas. ¿Estás de acuerdo?')) {
-        _desbloquearEstiloSlot(2, 'estilo2_desbloquear', 50);
+    var req = _reqEstilo(2);
+    if (nivel >= req.nivel && FICHA.PendingQueue.availableNikas() >= req.nikas && estilo2 == 'bloqueado' && estilo1 != 'bloqueado') {
+      if (confirm('Puedes desbloquear el segundo slot de estilo. Deberás invertir ' + req.nikas + ' nikas. ¿Estás de acuerdo?')) {
+        _desbloquearEstiloSlot(2, 'estilo2_desbloquear', req.nikas);
       }
     } else {
-      alert('Aún no puedes desbloquear el segundo estilo.\nDebes ser nivel 20 y tener más de 50 nikas.');
+      alert('Aún no puedes desbloquear el segundo estilo.\nDebes ser nivel ' + req.nivel + ' y tener más de ' + req.nikas + ' nikas.');
     }
   }
 
   function openModalDesbloquearEstilo3() {
-    if (nivel >= 35 && FICHA.PendingQueue.availableNikas() >= 100 && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
-      if (confirm('Puedes desbloquear el tercer slot de estilo. Deberás invertir 100 nikas. ¿Estás de acuerdo?')) {
-        _desbloquearEstiloSlot(3, 'estilo3_desbloquear', 100);
+    var req = _reqEstilo(3);
+    if (nivel >= req.nivel && FICHA.PendingQueue.availableNikas() >= req.nikas && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
+      if (confirm('Puedes desbloquear el tercer slot de estilo. Deberás invertir ' + req.nikas + ' nikas. ¿Estás de acuerdo?')) {
+        _desbloquearEstiloSlot(3, 'estilo3_desbloquear', req.nikas);
       }
     } else {
-      alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel 35 y tener más de 100 nikas.');
+      alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel ' + req.nivel + ' y tener más de ' + req.nikas + ' nikas.');
     }
   }
 

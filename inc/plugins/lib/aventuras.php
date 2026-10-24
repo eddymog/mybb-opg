@@ -22,20 +22,25 @@
 
 const OPG_AV_ANO = 725;
 const OPG_AV_ESTACION = 'Verano';
+const OPG_AV_ANO_MIN = 700;               // las crónicas autonarradas pueden ser de años anteriores
 const OPG_AV_DIAS = 90;                   // igual a CRON_DIAS en op/cronologia.php
 const OPG_AV_ISLA_PADRES = array(15, 16, 17, 18);
 const OPG_AV_MAX_COMENTARIO = 1000;
 const OPG_AV_MAX_NOTA_STAFF = 200;
 const OPG_AV_MAX_MOTIVO = 500;
 const OPG_AV_MAX_IDEA = 500;
-const OPG_AV_MAX_MENSAJE_OFERTA = 200;
+const OPG_AV_MAX_MENSAJE_OFERTA = 500; // requiere docs/aventuras_oferta_mensaje_migration.sql (la columna era VARCHAR(200))
 const OPG_AV_MAX_DISCORD = 64;
 const OPG_AV_MAX_ESTILO_NARRADOR = 64;
 const OPG_AV_MAX_MOTIVO_OFERTA = 200;
+// Limites de aventuras activas por personaje. false = sin limite (las aventuras se siguen contando para mostrarlas).
+// true = se aplican OPG_AV_MAX_SOLITARIAS y OPG_AV_MAX_TOTAL al enviar, editar y aprobar una solicitud.
+const OPG_AV_LIMITES_ACTIVOS = false;
 const OPG_AV_MAX_SOLITARIAS = 3;
 const OPG_AV_MAX_TOTAL = 4;
 const OPG_AV_ESTADOS_ACTIVOS = array(0, 1, 4);
-const OPG_AV_ESTADOS_EDITABLES = array(0, 4);
+// El 2 (denegada) permite al creador corregir y reenviar: al guardar vuelve a revisión (0) o a buscar narrador (4).
+const OPG_AV_ESTADOS_EDITABLES = array(0, 2, 4);
 const OPG_AV_POR_PAGINA = 20;
 const OPG_AV_POR_PAGINA_SIN_NARRADOR = 10;
 const OPG_AV_OFERTA_DIAS = 30;
@@ -362,11 +367,11 @@ function opg_av_es_parte($av, $uid)
     return false;
 }
 
-/** Vincular requiere participar o narrar una solicitud aprobada. */
-function opg_av_puede_vincular($av, $uid)
+/** El usuario narra la solicitud o es uno de sus jugadores (el creador solo cuenta si ocupa uno de los dos papeles). */
+function opg_av_es_miembro($av, $uid)
 {
     $uid = (int) $uid;
-    if ($uid <= 0 || (int) $av['estado'] !== 1) {
+    if ($uid <= 0) {
         return false;
     }
     if ((int) $av['narrador_uid'] === $uid) {
@@ -380,6 +385,22 @@ function opg_av_puede_vincular($av, $uid)
     return false;
 }
 
+/**
+ * Estados en los que se puede vincular un tema. Una aventura normal admite la vinculación mientras la solicitud
+ * siga viva (en revisión, aprobada o buscando narrador): basta con que exista y tenga número, no hace falta que
+ * esté aprobada. Una crónica autonarrada sigue pidiendo estar aprobada.
+ */
+function opg_av_estados_vinculables($av)
+{
+    return opg_av_es_autonarrada($av) ? array(1) : OPG_AV_ESTADOS_ACTIVOS;
+}
+
+/** Vincular: cualquiera de sus jugadores o su narrador, mientras la solicitud esté en un estado vinculable. */
+function opg_av_puede_vincular($av, $uid)
+{
+    return in_array((int) $av['estado'], opg_av_estados_vinculables($av), true) && opg_av_es_miembro($av, $uid);
+}
+
 /** Cualquier usuario con permiso de gestión puede resolver la solicitud. */
 function opg_av_puede_resolver($av, $uid)
 {
@@ -391,6 +412,15 @@ function opg_av_puede_editar($av, $uid)
     return (int) $uid > 0
         && (int) $av['uid'] === (int) $uid
         && in_array((int) $av['estado'], OPG_AV_ESTADOS_EDITABLES, true);
+}
+
+/** Solicitudes antiguas sin isla o sin día: cualquier parte puede rellenarlos mientras la solicitud siga viva. */
+function opg_av_puede_completar_fecha($av, $uid)
+{
+    $faltan = opg_av_datos_faltantes($av);
+    return (isset($faltan['isla']) || isset($faltan['dia']))
+        && in_array((int) $av['estado'], OPG_AV_ESTADOS_ACTIVOS, true)
+        && opg_av_es_parte($av, $uid);
 }
 
 // ── Fichas ───────────────────────────────────────────────────────────────────
@@ -508,9 +538,37 @@ function opg_av_posts_por_tier($tier)
     return isset($tabla[(int) $tier]) ? $tabla[(int) $tier] : 0;
 }
 
-function opg_av_fecha_texto($dia)
+function opg_av_estaciones()
 {
-    return $dia ? (OPG_AV_ESTACION . ' ' . OPG_AV_ANO . ', día ' . (int) $dia) : null;
+    return array('primavera' => 'Primavera', 'verano' => 'Verano', 'otono' => 'Otoño', 'invierno' => 'Invierno');
+}
+
+/** Año y estación de una crónica autonarrada: año de OPG_AV_ANO_MIN al actual, sin estaciones futuras. */
+function opg_av_validar_fecha_auto($ano, $estacion)
+{
+    $errores = array();
+    $n = (is_int($ano) || (is_string($ano) && ctype_digit(trim($ano)))) ? (int) trim((string) $ano) : 0;
+    if ($n < OPG_AV_ANO_MIN || $n > OPG_AV_ANO) {
+        $errores[] = 'El año debe ser un número de ' . OPG_AV_ANO_MIN . ' a ' . OPG_AV_ANO . '.';
+    }
+    $estacion = is_string($estacion) ? trim($estacion) : '';
+    $estaciones = array_keys(opg_av_estaciones());
+    if (!in_array($estacion, $estaciones, true)) {
+        $errores[] = 'Elige la estación.';
+    } elseif ($n === OPG_AV_ANO && array_search($estacion, $estaciones, true) > array_search(strtolower(OPG_AV_ESTACION), $estaciones, true)) {
+        $errores[] = 'Una crónica autonarrada no puede ser de una estación que aún no ha llegado.';
+    }
+    return array($n, $estacion, $errores);
+}
+
+function opg_av_fecha_texto($dia, $ano = null, $estacion = null)
+{
+    if (!$dia) {
+        return null;
+    }
+    $estaciones = opg_av_estaciones();
+    $nombre = $estacion !== null && isset($estaciones[$estacion]) ? $estaciones[$estacion] : OPG_AV_ESTACION;
+    return $nombre . ' ' . ($ano ? (int) $ano : OPG_AV_ANO) . ', día ' . (int) $dia;
 }
 
 // ── Lectura y normalización ─────────────────────────────────────────────────
@@ -685,7 +743,9 @@ function opg_av_normalizar_fila($fila, $es_consola = false)
             ? OPG_AV_TIPO_AUTONARRADA : OPG_AV_TIPO_NORMAL,
         'isla' => $isla_fid > 0 ? array('fid' => $isla_fid, 'nombre' => isset($fila['isla_nombre']) ? (string) $fila['isla_nombre'] : '') : null,
         'dia' => $dia > 0 ? $dia : null,
-        'fecha_texto' => opg_av_fecha_texto($dia),
+        'ano' => !empty($fila['ano']) ? (int) $fila['ano'] : OPG_AV_ANO,
+        'estacion' => !empty($fila['estacion']) && isset(opg_av_estaciones()[$fila['estacion']]) ? (string) $fila['estacion'] : strtolower(OPG_AV_ESTACION),
+        'fecha_texto' => opg_av_fecha_texto($dia, !empty($fila['ano']) ? (int) $fila['ano'] : null, !empty($fila['estacion']) ? (string) $fila['estacion'] : null),
         'tier' => ($tier >= OPG_AV_TIER_MIN && $tier <= OPG_AV_TIER_MAX) ? $tier : null,
         'inframundo' => !empty($fila['inframundo']),
         'comentario_publico' => $comentario,
@@ -1052,9 +1112,9 @@ function opg_av_pagina_de($id, $filtros, $es_consola = false)
 }
 
 /**
- * Aventuras aprobadas que el usuario narra y que aún no tienen tema vinculado, para el
- * buscador de newthread.php. $texto: número de solicitud (con o sin #) o parte del
- * nombre de la isla; vacío lista las más recientes. Máximo 20.
+ * Aventuras en las que el usuario juega o narra y que admiten vincular un tema (en revisión, aprobadas o
+ * buscando narrador), tengan ya tema o no, para el buscador de newthread.php. $texto: número de solicitud
+ * (con o sin #) o parte del nombre de la isla; vacío lista las más recientes. Máximo 20.
  */
 function opg_av_aventuras_de_narrador($uid, $texto = '', $prefijo = 0)
 {
@@ -1063,12 +1123,20 @@ function opg_av_aventuras_de_narrador($uid, $texto = '', $prefijo = 0)
     if ($uid <= 0) {
         return array();
     }
-    $cond = array('pa.estado = 1', 'pa.narrador_uid = ' . $uid, "(pa.aventura_url IS NULL OR pa.aventura_url = '')");
+    // Aventura normal: cualquier jugador o el narrador, con la solicitud viva (no hace falta que esté aprobada).
+    // Crónica autonarrada: como antes, su narradora y ya aprobada.
+    $normal = '(pa.tipo = ' . opg_av_sql(OPG_AV_TIPO_NORMAL) . ' AND pa.estado IN (' . implode(',', OPG_AV_ESTADOS_ACTIVOS) . ')'
+        . ' AND (pa.narrador_uid = ' . $uid . ' OR ' . opg_av_sql_participa($uid) . '))';
+    $auto = '(pa.tipo = ' . opg_av_sql(OPG_AV_TIPO_AUTONARRADA) . ' AND pa.estado = 1 AND pa.narrador_uid = ' . $uid . ')';
     if ((int) $prefijo === OPG_ENT_PREFIJO_AUTONARRADA) {
-        $cond[] = 'pa.tipo = ' . opg_av_sql(OPG_AV_TIPO_AUTONARRADA);
+        $tipos = $auto;
     } elseif ((int) $prefijo === OPG_ENT_PREFIJO_AVENTURA) {
-        $cond[] = 'pa.tipo = ' . opg_av_sql(OPG_AV_TIPO_NORMAL);
+        $tipos = $normal;
+    } else {
+        $tipos = '(' . $normal . ' OR ' . $auto . ')';
     }
+    // Incluye las que ya tienen tema: vincular al crear un tema nuevo también sirve para revincular.
+    $cond = array($tipos);
     $texto = trim((string) $texto);
     if ($texto !== '') {
         $numero = ltrim($texto, '#');
@@ -1092,9 +1160,9 @@ function opg_av_aventuras_de_narrador($uid, $texto = '', $prefijo = 0)
 
 /**
  * Comprueba, ANTES de crear el tema, que la aventura elegida en newthread.php admite un
- * tema nuevo: existe y la narra el usuario, está aprobada, no tiene tema y el foro
- * elegido ($parentlist) es el de su isla. Devuelve la lista de errores (vacía si vale).
- * Requiere aventuras_entregas.php (opg_ent_en_zona).
+ * tema nuevo: existe, el usuario la juega o la narra, está en un estado vinculable (no hace falta que esté
+ * aprobada) y el foro elegido ($parentlist) es el de su isla. Si ya tenía tema, se revincula al nuevo.
+ * Devuelve la lista de errores (vacía si vale). Requiere aventuras_entregas.php (opg_ent_en_zona).
  */
 function opg_av_validar_para_tema($id, $uid, $parentlist, $prefijo = null)
 {
@@ -1104,15 +1172,15 @@ function opg_av_validar_para_tema($id, $uid, $parentlist, $prefijo = null)
         return array('La aventura #' . $id . ' no existe o no es una de las que narras.');
     }
     $av = opg_av_normalizar_fila($fila);
-    if ($av['narrador_uid'] !== (int) $uid) {
-        return array('La aventura #' . $id . ' no existe o no es una de las que narras.');
+    if (!opg_av_es_miembro($av, $uid)) {
+        return array('La aventura #' . $id . ' no existe o no participas en ella como jugador ni como narrador.');
     }
-    if ($av['estado'] !== 1) {
-        return array('Solo se puede vincular una aventura aprobada: la #' . $id . ' está "' . $av['estado_etiqueta'] . '".');
+    if (!in_array($av['estado'], opg_av_estados_vinculables($av), true)) {
+        return array(opg_av_es_autonarrada($av)
+            ? 'Solo se puede vincular una crónica aprobada: la #' . $id . ' está "' . $av['estado_etiqueta'] . '".'
+            : 'No se puede vincular la aventura #' . $id . ': está "' . $av['estado_etiqueta'] . '".');
     }
-    if ($av['aventura_url'] !== '') {
-        return array('La aventura #' . $id . ' ya tiene un tema vinculado.');
-    }
+    // Una aventura que ya tiene tema se puede revincular al nuevo, igual que desde el tablón.
     if ($prefijo !== null) {
         $esperado = opg_av_es_autonarrada($av) ? OPG_ENT_PREFIJO_AUTONARRADA : OPG_ENT_PREFIJO_AVENTURA;
         if ((int) $prefijo !== $esperado) {
@@ -1210,6 +1278,9 @@ function opg_av_contar_activas($fid, $excluir_id = 0)
  */
 function opg_av_validar_limites($av)
 {
+    if (!OPG_AV_LIMITES_ACTIVOS) {
+        return array();
+    }
     $excedidos = array();
     $es_solitaria = count($av['jugadores']) === 1;
     foreach ($av['jugadores'] as $j) {
@@ -1260,6 +1331,9 @@ function opg_av_cupos_participantes($uids, $cantidad_candidata = 1, $excluir_id 
                 }
             }
         }
+    }
+    if (!OPG_AV_LIMITES_ACTIVOS) {
+        return $salida;
     }
     $nueva_solitaria = (int) $cantidad_candidata === 1;
     foreach ($salida as &$cupo) {
@@ -1335,7 +1409,7 @@ function opg_av_historial_usuario($id, $uid)
         return opg_av_fallo(403, array('No puedes consultar este historial.'));
     }
     $etiquetas = array(
-        'crear' => 'Solicitud creada', 'editar' => 'Solicitud editada',
+        'crear' => 'Solicitud creada', 'editar' => 'Solicitud editada', 'completar_fecha' => 'Isla y día completados',
         'propuesta_candidatura' => 'Candidatura enviada', 'propuesta_invitacion' => 'Invitación enviada',
         'propuesta_aceptada' => 'Narrador asignado', 'propuesta_rechazada' => 'Propuesta rechazada',
         'propuesta_retirada' => 'Propuesta retirada', 'renunciar_narrador' => 'El narrador dejó la aventura',
@@ -1404,7 +1478,56 @@ function opg_av_notificaciones_listar($uid, $limite = 30)
     $limite = max(1, min(100, (int) $limite));
     $filas = opg_av_todos('SELECT * FROM ' . opg_av_t('op_aventuras_notificaciones')
         . ' WHERE uid = ' . (int) $uid . ' ORDER BY id DESC LIMIT ' . $limite);
+
+    // Contexto para redactar cada novedad: la aventura (tema, isla, tier), quién actuó y el narrador de la propuesta.
+    $ids = array();
+    $actores = array();
+    $propuestas = array();
+    foreach ($filas as $f) {
+        if ((int) $f['peticion_id'] > 0) {
+            $ids[] = (int) $f['peticion_id'];
+        }
+        if ((int) $f['actor_uid'] > 0) {
+            $actores[] = (int) $f['actor_uid'];
+        }
+        $d = json_decode((string) $f['datos_json'], true);
+        if (is_array($d) && !empty($d['propuesta_id'])) {
+            $propuestas[] = (int) $d['propuesta_id'];
+        }
+    }
+    $info_av = array();
+    if ($ids) {
+        $filas_av = opg_av_todos("SELECT pa.id, pa.tier_seleccionado, f.name AS isla, CASE WHEN th.visible = 1 THEN th.subject ELSE NULL END AS tema FROM "
+            . opg_av_t('op_peticionAventuras') . ' pa LEFT JOIN ' . opg_av_t('forums') . ' f ON f.fid = pa.isla_fid LEFT JOIN '
+            . opg_av_t('threads') . " th ON th.tid = CAST(SUBSTRING_INDEX(pa.aventura_url, 'tid=', -1) AS UNSIGNED) WHERE pa.id IN (" . implode(',', array_unique($ids)) . ')');
+        foreach ($filas_av as $r) {
+            $info_av[(int) $r['id']] = $r;
+        }
+    }
+    $nombres_actor = array();
+    if ($actores) {
+        foreach (opg_av_todos('SELECT u.uid, COALESCE(f.nombre, u.username) AS nombre FROM ' . opg_av_t('users') . ' u LEFT JOIN '
+            . opg_av_t('op_fichas') . ' f ON f.fid = u.uid WHERE u.uid IN (' . implode(',', array_unique($actores)) . ')') as $r) {
+            $nombres_actor[(int) $r['uid']] = (string) $r['nombre'];
+        }
+    }
+    $narr_propuesta = array();
+    if ($propuestas) {
+        foreach (opg_av_todos('SELECT p.id, COALESCE(f.nombre, u.username) AS nombre FROM ' . opg_av_t('op_aventuras_propuestas_narrador') . ' p LEFT JOIN '
+            . opg_av_t('users') . ' u ON u.uid = p.narrador_uid LEFT JOIN ' . opg_av_t('op_fichas') . ' f ON f.fid = p.narrador_uid WHERE p.id IN ('
+            . implode(',', array_unique($propuestas)) . ')') as $r) {
+            $narr_propuesta[(int) $r['id']] = (string) $r['nombre'];
+        }
+    }
     foreach ($filas as &$fila) {
+        $pid = (int) $fila['peticion_id'];
+        $fila['aventura'] = isset($info_av[$pid]) ? array(
+            'tema' => (string) $info_av[$pid]['tema'], 'isla' => (string) $info_av[$pid]['isla'], 'tier' => (int) $info_av[$pid]['tier_seleccionado'],
+        ) : null;
+        $fila['actor'] = isset($nombres_actor[(int) $fila['actor_uid']]) ? $nombres_actor[(int) $fila['actor_uid']] : '';
+        $dp = json_decode((string) $fila['datos_json'], true);
+        $fila['narrador_propuesta'] = is_array($dp) && !empty($dp['propuesta_id']) && isset($narr_propuesta[(int) $dp['propuesta_id']])
+            ? $narr_propuesta[(int) $dp['propuesta_id']] : '';
         $datos = json_decode((string) $fila['datos_json'], true);
         $fila['datos'] = is_array($datos) ? $datos : array();
         $fila['id'] = (int) $fila['id'];
@@ -1415,6 +1538,14 @@ function opg_av_notificaciones_listar($uid, $limite = 30)
     }
     unset($fila);
     return $filas;
+}
+
+/** Marca como leídas todas las novedades pendientes del usuario. */
+function opg_av_notificaciones_leer_todas($uid)
+{
+    $ok = opg_av_w('UPDATE ' . opg_av_t('op_aventuras_notificaciones') . ' SET read_at = ' . opg_av_ahora()
+        . ' WHERE uid = ' . (int) $uid . ' AND read_at IS NULL');
+    return $ok ? array('ok' => true) : opg_av_fallo(500, array('No se pudieron marcar las novedades.'));
 }
 
 function opg_av_notificacion_leer($id, $uid)
@@ -1443,12 +1574,25 @@ function opg_av_propuesta_insertar($peticion_id, $narrador_uid, $iniciada_por_ui
     if ($e) {
         return opg_av_fallo(422, array($e));
     }
+    // Solo puede haber una propuesta pendiente por par (solicitud, narrador): se comprueba antes de insertar.
+    $previa = opg_av_uno('SELECT tipo FROM ' . opg_av_t('op_aventuras_propuestas_narrador')
+        . ' WHERE peticion_id = ' . (int) $peticion_id . ' AND narrador_uid = ' . (int) $narrador_uid . " AND estado = 'pendiente' LIMIT 1");
+    if ($previa) {
+        return opg_av_fallo(409, array($previa['tipo'] === 'invitacion'
+            ? 'El creador ya te invitó a narrar esta aventura: acepta la invitación en tus propuestas.'
+            : 'Ya tienes una candidatura pendiente para esta aventura.'));
+    }
     $ahora = opg_av_ahora();
-    $ok = opg_av_w('INSERT INTO ' . opg_av_t('op_aventuras_propuestas_narrador')
-        . ' (peticion_id, narrador_uid, iniciada_por_uid, tipo, estado, mensaje, created_at, expires_at) VALUES ('
-        . (int) $peticion_id . ', ' . (int) $narrador_uid . ', ' . (int) $iniciada_por_uid . ', '
-        . opg_av_sql($tipo) . ", 'pendiente', " . opg_av_sql($mensaje) . ', ' . $ahora . ', '
-        . ($ahora + OPG_AV_PROPUESTA_DIAS * 86400) . ')');
+    try {
+        $ok = opg_av_w('INSERT INTO ' . opg_av_t('op_aventuras_propuestas_narrador')
+            . ' (peticion_id, narrador_uid, iniciada_por_uid, tipo, estado, mensaje, created_at, expires_at) VALUES ('
+            . (int) $peticion_id . ', ' . (int) $narrador_uid . ', ' . (int) $iniciada_por_uid . ', '
+            . opg_av_sql($tipo) . ", 'pendiente', " . opg_av_sql($mensaje) . ', ' . $ahora . ', '
+            . ($ahora + OPG_AV_PROPUESTA_DIAS * 86400) . ')');
+    } catch (Throwable $e) {
+        // mysqli lanza excepción ante una clave duplicada (otra petición se adelantó).
+        $ok = false;
+    }
     if (!$ok) {
         return opg_av_fallo(409, array('Ya existe una propuesta pendiente para ese narrador.'));
     }
@@ -1673,6 +1817,8 @@ function opg_av_validar_autonarrada($entrada, $uid, $fila = null)
     if ($dia === null) {
         $errores[] = 'El día debe ser un número de 1 a ' . OPG_AV_DIAS . '.';
     }
+    list($ano, $estacion, $e_fecha) = opg_av_validar_fecha_auto(isset($entrada['ano']) ? $entrada['ano'] : null, isset($entrada['estacion']) ? $entrada['estacion'] : '');
+    $errores = array_merge($errores, $e_fecha);
     list($comentario, $e) = opg_av_texto(isset($entrada['comentario']) ? $entrada['comentario'] : '', OPG_AV_MAX_COMENTARIO, 'el comentario público', true);
     if ($e) {
         $errores[] = $e;
@@ -1689,7 +1835,7 @@ function opg_av_validar_autonarrada($entrada, $uid, $fila = null)
         'rol' => 'jugador',
         'participantes' => array(array('uid' => $uid, 'nombre' => $ficha['nombre'])),
         'narrador' => array('uid' => $uid, 'nombre' => $ficha['nombre']),
-        'narrador_invitado' => null, 'idea' => '', 'isla_fid' => $isla['fid'], 'dia' => $dia,
+        'narrador_invitado' => null, 'idea' => '', 'isla_fid' => $isla['fid'], 'dia' => $dia, 'ano' => $ano, 'estacion' => $estacion,
         'tier' => 0, 'comentario' => $comentario, 'inframundo' => false, 'estado' => 0,
         'nivel_solicitud' => $nivel, 'semana_inicio' => is_array($fila) && isset($fila['created_at'])
             ? opg_av_semana_madrid((int) $fila['created_at']) : opg_av_semana_madrid(),
@@ -1767,6 +1913,8 @@ function opg_av_validar_solicitud($entrada, $uid, $fila = null)
                 $errores[] = 'Elige a tu narrador.';
             } elseif (in_array($narrador_fid, $participantes, true)) {
                 $errores[] = 'El narrador no puede ser uno de los participantes.';
+            } elseif (!isset($entrada['confirma_narrador']) || !opg_av_verdadero($entrada['confirma_narrador'])) {
+                $errores[] = 'Confirma que ya hablaste con el narrador y aceptó narrar tu aventura.';
             }
         } else {
             list($idea, $e) = opg_av_texto(isset($entrada['idea']) ? $entrada['idea'] : '', OPG_AV_MAX_IDEA, 'la nota de idea');
@@ -1819,16 +1967,14 @@ function opg_av_validar_solicitud($entrada, $uid, $fila = null)
     foreach ($participantes as $p) {
         $lista[] = array('uid' => $p, 'nombre' => $fichas[$p]['nombre']);
     }
-    $mantener_narrador = $edicion && $rol === 'jugador' && $tiene_narrador
-        && isset($fila['narrador_uid']) && (int) $fila['narrador_uid'] === $narrador_fid;
-    $asignacion_inmediata = $rol === 'narrador' || $mantener_narrador;
+    // Elegir narrador implica que ya lo acordaste con esa persona (se confirma en el formulario): queda asignado sin invitación.
+    $asignacion_inmediata = $rol === 'narrador' || $tiene_narrador;
     $datos = array(
         'tipo' => OPG_AV_TIPO_NORMAL,
         'rol' => $rol,
         'participantes' => $lista,
         'narrador' => $asignacion_inmediata ? array('uid' => $narrador_fid, 'nombre' => $fichas[$narrador_fid]['nombre']) : null,
-        'narrador_invitado' => ($rol === 'jugador' && $tiene_narrador && !$mantener_narrador)
-            ? array('uid' => $narrador_fid, 'nombre' => $fichas[$narrador_fid]['nombre']) : null,
+        'narrador_invitado' => null,
         'idea' => $tiene_narrador ? '' : $idea,
         'isla_fid' => $isla['fid'],
         'dia' => $dia,
@@ -1910,11 +2056,12 @@ function opg_av_crear($datos, $uid)
     $json = json_encode($datos['participantes'], JSON_UNESCAPED_UNICODE);
     $ok = opg_av_w(
         'INSERT INTO ' . opg_av_t('op_peticionAventuras')
-        . ' (uid, narrador_uid, narrador_fid, narrador_nombre, isla_fid, dia, tier_seleccionado, nivel_promedio, num_jugadores,'
+        . ' (uid, narrador_uid, narrador_fid, narrador_nombre, isla_fid, dia, ano, estacion, tier_seleccionado, nivel_promedio, num_jugadores,'
         . ' dificultad_texto, dificultad_color, ratio_poder, descripcion_tier, jugadores_json, enemigos_json, detalles_json,'
         . ' created_at, estado, tipo, comentario_publico, comentario_staff, idea_narrador, inframundo) VALUES ('
         . $uid . ', ' . ($nar ? (int) $nar['uid'] : 'NULL') . ', ' . ($nar ? (int) $nar['uid'] : 'NULL') . ', '
         . ($nar ? opg_av_sql($nar['nombre']) : 'NULL') . ', ' . (int) $datos['isla_fid'] . ', ' . (int) $datos['dia'] . ', '
+        . (!empty($datos['ano']) ? (int) $datos['ano'] : 'NULL') . ', ' . (!empty($datos['estacion']) ? opg_av_sql($datos['estacion']) : 'NULL') . ', '
         . (int) $datos['tier'] . ', 0, ' . count($datos['participantes']) . ", '', '', 0, '', "
         . opg_av_sql($json) . ", '[]', NULL, " . opg_av_ahora() . ', ' . (int) $datos['estado'] . ', ' . opg_av_sql($es_auto ? OPG_AV_TIPO_AUTONARRADA : OPG_AV_TIPO_NORMAL) . ', '
         . opg_av_sql($datos['comentario']) . ", '', " . opg_av_sql($datos['idea'] !== '' ? $datos['idea'] : null) . ', '
@@ -1958,7 +2105,7 @@ function opg_av_crear($datos, $uid)
 /** Campos que cambiaron entre dos solicitudes normalizadas, para la auditoría. */
 function opg_av_diferencias($antes, $despues)
 {
-    $campos = array('participantes', 'narrador_uid', 'idea_narrador', 'isla_fid', 'dia', 'tier', 'comentario_publico', 'inframundo', 'estado');
+    $campos = array('participantes', 'narrador_uid', 'idea_narrador', 'isla_fid', 'dia', 'ano', 'estacion', 'tier', 'comentario_publico', 'inframundo', 'estado');
     $ant = array();
     $des = array();
     foreach ($campos as $c) {
@@ -1988,7 +2135,7 @@ function opg_av_valor_comparable($av, $campo)
     }
 }
 
-/** El creador edita su solicitud mientras está en estado 0 o 4. */
+/** El creador edita su solicitud mientras está en estado 0, 2 (denegada, se reenvía a revisión) o 4. */
 function opg_av_editar($id, $entrada, $uid)
 {
     $uid = (int) $uid;
@@ -2039,9 +2186,12 @@ function opg_av_editar($id, $entrada, $uid)
         . ', narrador_uid = ' . ($nar ? (int) $nar['uid'] : 'NULL') . ', narrador_fid = ' . ($nar ? (int) $nar['uid'] : 'NULL')
         . ', narrador_nombre = ' . ($nar ? opg_av_sql($nar['nombre']) : 'NULL')
         . ', idea_narrador = ' . opg_av_sql($d['idea'] !== '' ? $d['idea'] : null)
-        . ', isla_fid = ' . (int) $d['isla_fid'] . ', dia = ' . (int) $d['dia'] . ', tier_seleccionado = ' . (int) $d['tier']
+        . ', isla_fid = ' . (int) $d['isla_fid'] . ', dia = ' . (int) $d['dia']
+        . ', ano = ' . (!empty($d['ano']) ? (int) $d['ano'] : 'NULL') . ', estacion = ' . (!empty($d['estacion']) ? opg_av_sql($d['estacion']) : 'NULL')
+        . ', tier_seleccionado = ' . (int) $d['tier']
         . ', comentario_publico = ' . opg_av_sql($d['comentario']) . ', inframundo = ' . ($d['inframundo'] ? '1' : '0')
         . ', estado = ' . (int) $d['estado'] . ', editado_at = ' . opg_av_ahora() . $motivo_renuncia
+        . ((int) $fila['estado'] === 2 ? ", motivo_denegacion = ''" : '')
         . ' WHERE id = ' . (int) $id . ' AND estado IN (' . implode(',', OPG_AV_ESTADOS_EDITABLES) . ')'
     );
     if (!$ok) {
@@ -2073,6 +2223,67 @@ function opg_av_editar($id, $entrada, $uid)
     $despues = opg_av_normalizar_fila(opg_av_fila($id));
     list($ant, $des) = opg_av_diferencias($antes, $despues);
     opg_av_auditar($id, $uid, 'editar', $ant, $des);
+    opg_av_confirmar();
+    return array('ok' => true, 'id' => (int) $id);
+}
+
+/** Rellena la isla y el día que faltan, sin tocar lo ya escrito ni el estado de la solicitud. */
+function opg_av_completar_fecha($id, $entrada, $uid)
+{
+    $uid = (int) $uid;
+    opg_av_iniciar();
+    $fila = opg_av_fila($id, true);
+    if (!$fila) {
+        opg_av_revertir();
+        return opg_av_fallo(404, array('La solicitud no existe.'));
+    }
+    $av = opg_av_normalizar_fila($fila);
+    if (!opg_av_es_parte($av, $uid)) {
+        opg_av_revertir();
+        return opg_av_fallo(403, array('Solo los participantes de la aventura pueden completar sus datos.'));
+    }
+    if (!opg_av_puede_completar_fecha($av, $uid)) {
+        opg_av_revertir();
+        return opg_av_fallo(409, array('A esta solicitud ya no le falta la isla ni el día.'));
+    }
+    $faltan = opg_av_datos_faltantes($av);
+    $set = array();
+    $errores = array();
+    $antes = array();
+    $despues = array();
+    if (isset($faltan['isla'])) {
+        $isla = opg_av_isla_valida(isset($entrada['isla_fid']) ? $entrada['isla_fid'] : 0);
+        if (!$isla) {
+            $errores[] = 'Elige una isla válida.';
+        } else {
+            $set[] = 'isla_fid = ' . (int) $isla['fid'];
+            $antes['isla_fid'] = $av['isla'] ? $av['isla']['fid'] : null;
+            $despues['isla_fid'] = (int) $isla['fid'];
+        }
+    }
+    if (isset($faltan['dia'])) {
+        $dia = opg_av_validar_dia(isset($entrada['dia']) ? $entrada['dia'] : null);
+        if ($dia === null) {
+            $errores[] = 'El día debe ser un número de 1 a ' . OPG_AV_DIAS . '.';
+        } else {
+            $set[] = 'dia = ' . (int) $dia;
+            $antes['dia'] = $av['dia'];
+            $despues['dia'] = (int) $dia;
+        }
+    }
+    if ($errores) {
+        opg_av_revertir();
+        return opg_av_fallo(422, $errores);
+    }
+    $ok = opg_av_w(
+        'UPDATE ' . opg_av_t('op_peticionAventuras') . ' SET ' . implode(', ', $set) . ', editado_at = ' . opg_av_ahora()
+        . ' WHERE id = ' . (int) $id . ' AND estado IN (' . implode(',', OPG_AV_ESTADOS_ACTIVOS) . ')'
+    );
+    if (!$ok) {
+        opg_av_revertir();
+        return opg_av_fallo(500, array('No se pudieron guardar los datos.'));
+    }
+    opg_av_auditar($id, $uid, 'completar_fecha', $antes, $despues);
     opg_av_confirmar();
     return array('ok' => true, 'id' => (int) $id);
 }
@@ -2230,7 +2441,7 @@ function opg_av_cambiar_estado($id, $a, $uid, $motivo = '')
     if ($a === 1 || $a === 2) {
         $actualizada = opg_av_normalizar_fila(opg_av_fila($id));
         opg_av_notificar_partes($actualizada, $uid, $a === 1 ? 'aventura_aprobada' : 'aventura_denegada',
-            'aventura:' . (int) $id . ':estado:' . $a, $a === 2 ? array('motivo' => $motivo) : array());
+            'aventura:' . (int) $id . ':estado:' . $a . ':' . opg_av_ahora(), $a === 2 ? array('motivo' => $motivo) : array());
     }
     opg_av_confirmar();
     return array('ok' => true, 'id' => (int) $id, 'estado' => $a);
@@ -2326,7 +2537,8 @@ function opg_av_url_tema($tid)
 }
 
 /**
- * El narrador asignado vincula el tema (estado 1). Acepta tema elegido, enlace o tid.
+ * El narrador o cualquier jugador vincula el tema; la solicitud no tiene que estar aprobada (basta con que siga
+ * viva: en revisión, aprobada o buscando narrador). Acepta tema elegido, enlace o tid.
  * Requiere opg_ent_tema_valido() (aventuras_entregas.php).
  */
 function opg_av_vincular($id, $entrada, $uid)
@@ -2337,8 +2549,10 @@ function opg_av_vincular($id, $entrada, $uid)
         return opg_av_fallo(404, array('La solicitud no existe.'));
     }
     $av = opg_av_normalizar_fila($fila);
-    if ($av['estado'] !== 1) {
-        return opg_av_fallo(409, array('Solo se puede vincular una aventura aprobada.'));
+    if (!in_array($av['estado'], opg_av_estados_vinculables($av), true)) {
+        return opg_av_fallo(409, array(opg_av_es_autonarrada($av)
+            ? 'Solo se puede vincular una crónica aprobada.'
+            : 'Esta solicitud ya no admite vincular un tema: está ' . strtolower($av['estado_etiqueta']) . '.'));
     }
     if (!opg_av_puede_vincular($av, $uid)) {
         return opg_av_fallo(403, array('Solo el narrador asignado o un participante puede vincular la aventura.'));
@@ -2371,7 +2585,7 @@ function opg_av_vincular($id, $entrada, $uid)
     }
     $ok = opg_av_w(
         'UPDATE ' . opg_av_t('op_peticionAventuras') . ' pa SET aventura_url = ' . opg_av_sql($url)
-        . ' WHERE pa.id = ' . (int) $id . ' AND pa.estado = 1 AND (pa.narrador_uid = ' . $uid
+        . ' WHERE pa.id = ' . (int) $id . ' AND pa.estado IN (' . implode(',', opg_av_estados_vinculables($av)) . ') AND (pa.narrador_uid = ' . $uid
         . ' OR ' . opg_av_sql_participa($uid) . ')'
     );
     if (!$ok) {

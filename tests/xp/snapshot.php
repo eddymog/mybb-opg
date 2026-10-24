@@ -8,5 +8,5 @@ function prueba($n, $a, $e) { global $fallos; if ($a !== $e) { $fallos++; echo "
 prueba('ganancia positiva', opg_xp_ganancia('150.50', '100.00'), 50.5);
 prueba('ganancia negativa', opg_xp_ganancia('90', '100'), -10.0);
 prueba('sin base', opg_xp_ganancia('90', null), null);
-prueba('ventanas', OPG_XP_VENTANAS, array(1, 7, 14));
+prueba('ventanas', OPG_XP_VENTANAS, array(1, 3, 7, 14));
 exit($fallos ? 1 : 0);

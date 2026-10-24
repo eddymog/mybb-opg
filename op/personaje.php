@@ -1178,11 +1178,39 @@ while ($u = $db->fetch_array($query_usuario)) {
 }
 
 // ─── Límite de experiencia semanal ───────────────────────────────────────────
-$experiencia_limite = null;
+// La semana se numera igual que en newpoints_addpoints() (inc/plugins/newpoints.php): bloques de 604800 s
+// desde 1721620800 (lunes 22/07/2024 04:00 UTC). Se lee la fila de la semana ACTUAL: antes se leía la última
+// fila guardada, que si no había XP esta semana era la de una semana anterior.
+$op_exp_origen = 1721620800;
+$op_exp_semana = (int) ceil((time() - $op_exp_origen) / 604800);
+$experiencia_limite = array('experiencia_semanal' => 0);
 $q_exp_lim = $db->query("
-    SELECT * FROM mybb_op_experiencia_limite WHERE uid='$query_uid' ORDER BY id DESC LIMIT 1
+    SELECT * FROM mybb_op_experiencia_limite WHERE uid='$query_uid' AND semana='$op_exp_semana' ORDER BY id DESC LIMIT 1
 ");
 while ($q = $db->fetch_array($q_exp_lim)) { $experiencia_limite = $q; }
+
+// Cuánto falta para que se reinicie el límite semanal (texto para el modal de Experiencia).
+$op_exp_reinicio = $op_exp_origen + $op_exp_semana * 604800;
+$op_exp_faltan = max(0, $op_exp_reinicio - time());
+$op_exp_dias = (int) floor($op_exp_faltan / 86400);
+$op_exp_horas = (int) floor(($op_exp_faltan % 86400) / 3600);
+$op_exp_minutos = (int) floor(($op_exp_faltan % 3600) / 60);
+$op_exp_partes = array();
+if ($op_exp_dias > 0) { $op_exp_partes[] = $op_exp_dias . ($op_exp_dias == 1 ? ' día' : ' días'); }
+if ($op_exp_horas > 0) { $op_exp_partes[] = $op_exp_horas . ($op_exp_horas == 1 ? ' hora' : ' horas'); }
+if ($op_exp_dias == 0 && $op_exp_minutos > 0) { $op_exp_partes[] = $op_exp_minutos . ($op_exp_minutos == 1 ? ' minuto' : ' minutos'); }
+if (!$op_exp_partes) { $op_exp_partes[] = 'menos de un minuto'; }
+$op_exp_dt = new DateTime('@' . $op_exp_reinicio);
+$op_exp_dt->setTimezone(new DateTimeZone('Europe/Madrid'));
+$op_exp_nombres_dia = array('Sunday' => 'domingo', 'Monday' => 'lunes', 'Tuesday' => 'martes', 'Wednesday' => 'miércoles', 'Thursday' => 'jueves', 'Friday' => 'viernes', 'Saturday' => 'sábado');
+$op_exp_reinicio_txt = implode(' y ', array_filter(array(
+    count($op_exp_partes) > 1 ? implode(', ', array_slice($op_exp_partes, 0, -1)) : '',
+    end($op_exp_partes),
+)));
+// La hora exacta solo aporta cuando falta mas de un dia; si no, "en 41 minutos" ya lo dice todo.
+if ($op_exp_dias >= 1) {
+    $op_exp_reinicio_txt .= ' (' . $op_exp_nombres_dia[$op_exp_dt->format('l')] . ' a las ' . $op_exp_dt->format('H:i') . ', hora de Madrid)';
+}
 
 // Límite semanal mostrado en la ficha: mismo criterio que newpoints_addpoints()
 // (evento temporal de XP x1.5 y límite a 200, ver inc/plugins/newpoints.php).
@@ -1477,6 +1505,32 @@ if ($niveles_bajados > 0) {
         "Nivel bajado automáticamente $niveles_bajados nivel(es) (reajuste de tabla de experiencia) a $nivel. Puntos de estadística resultantes: $puntos_estadistica.");
 }
 
+// ─── Resumen del modal de Experiencia ────────────────────────────────────────
+// Numeros a la espanola (14.217,58) sin ceros de mas. Los avisos dependen del estado: limite semanal alcanzado
+// o no, y experiencia para subir de nivel (o limite de nivel).
+$op_exp_fmt = function ($v) { return rtrim(rtrim(number_format((float) $v, 2, ',', '.'), '0'), ','); };
+$op_exp_semanal = (float) $experiencia_limite['experiencia_semanal'];
+$op_exp_limite_semanal = (float) $newpoints_limite_semanal_actual;
+$op_nivel_actual = intval($nivel);
+$op_exp_tabla_nivel = $exp_tabla[$op_nivel_actual] ?? null;
+$op_exp_para_subir = $op_exp_tabla_nivel ? ($op_exp_tabla_nivel[1] - $experiencia) : $expRem;
+
+$op_exp_lineas = array();
+$op_exp_lineas[] = '- Experiencia total: ' . $op_exp_fmt($usuario['newpoints']) . ' puntos.';
+if ($op_exp_semanal >= $op_exp_limite_semanal) {
+    $op_exp_lineas[] = '- <strong>Esta semana: ' . $op_exp_fmt($op_exp_semanal) . ' / ' . $op_exp_fmt($op_exp_limite_semanal) . '.</strong> ¡Límite alcanzado! Se reinicia en ' . $op_exp_reinicio_txt . '.';
+} else {
+    $op_exp_lineas[] = '- Esta semana: ' . $op_exp_fmt($op_exp_semanal) . ' / ' . $op_exp_fmt($op_exp_limite_semanal) . '. Te quedan ' . $op_exp_fmt($op_exp_limite_semanal - $op_exp_semanal) . ' puntos por ganar. El límite se reinicia en ' . $op_exp_reinicio_txt . '.';
+}
+if ($op_exp_para_subir > 0) {
+    $op_exp_lineas[] = '- Te faltan ' . $op_exp_fmt($op_exp_para_subir) . ' puntos para el nivel ' . ($op_nivel_actual + 1) . '.';
+} elseif ($op_nivel_actual >= $limite_nivel) {
+    $op_exp_lineas[] = '- Estás en tu límite de nivel (' . $limite_nivel . '): sube el límite para seguir avanzando.';
+} else {
+    $op_exp_lineas[] = '- Ya tienes la experiencia para el nivel ' . ($op_nivel_actual + 1) . '.';
+}
+$op_exp_resumen_html = implode('<br>', $op_exp_lineas);
+
 $pestana = $mybb->get_input('pestana');
 
 // ─── Técnicas aprendidas ──────────────────────────────────────────────────────
@@ -1569,6 +1623,14 @@ if (isset($oficios_obj->{'Mercader'})) {
         if ($caminoNivel == 1) { $precioVentaPct = 1.42857143; }
         if ($caminoNivel == 2) { $precioVentaPct = 1.25; }
         if ($caminoNivel == 3) { $precioVentaPct = 1.1111111117; }
+    }
+    // Magnate (grado): Comerciante R3 + Contrabandista R3 a nivel 60 o más vende al 100% (igual que vender.php)
+    $sub_merc_pv = $oficios_obj->{'Mercader'}->{'sub'} ?? null;
+    if ($sub_merc_pv
+        && intval($sub_merc_pv->{'Comerciante'} ?? 0) >= 3
+        && intval($sub_merc_pv->{'Contrabandista'} ?? 0) >= 3
+        && intval($ficha['nivel']) >= 60) {
+        $precioVentaPct = 1.0;
     }
 }
 
@@ -1669,6 +1731,7 @@ while ($q = $db->fetch_array($query_historial_all)) {
     if (strpos($cat,'[Post]') !== false ||
         strpos($cat,'[Modificación de kuros]') !== false ||
         strpos($cat,'[Tienda Kuros][Kuros]') !== false ||
+        strpos($cat,'[Aventura][Kuros]') !== false ||
         strpos($cat,'[Kuros]') !== false) {
         $historial_kuro_array[] = $q;
     }
@@ -1678,6 +1741,7 @@ while ($q = $db->fetch_array($query_historial_all)) {
         strpos($cat,'[Recompensa][Experiencia]') !== false ||
         strpos($cat,'[Entrenamiento][Experiencia]') !== false ||
         strpos($cat,'[Cofre][Experiencia]') !== false ||
+        strpos($cat,'[Aventura][Experiencia]') !== false ||
         strpos($cat,'[Tienda Kuros][Experiencia]') !== false) {
         $historial_experiencia_array[] = $q;
     }
@@ -1686,6 +1750,7 @@ while ($q = $db->fetch_array($query_historial_all)) {
         strpos($cat,'[Recompensa][Nikas]') !== false ||
         strpos($cat,'[Cofre][Nikas]') !== false ||
         strpos($cat,'[Tienda Kuros][Nikas]') !== false ||
+        strpos($cat,'[Aventura][Nikas]') !== false ||
         strpos($cat,'[Mejoras]') !== false ||
         strpos($cat,'[Creación][Nikas]') !== false) {
         $historial_nikas_array[] = $q;
@@ -1697,6 +1762,7 @@ while ($q = $db->fetch_array($query_historial_all)) {
         strpos($cat,'[Cofre][Berries]') !== false ||
         strpos($cat,'[Tienda Kuros][Berries]') !== false ||
         strpos($cat,'[Venta][Berries]') !== false ||
+        strpos($cat,'[Aventura][Berries]') !== false ||
         strpos($cat,'[Intercambio][Berries]') !== false ||
         strpos($cat,'[Salarios]') !== false ||
         strpos($cat,'[Crafteo][Berries]') !== false) {
@@ -2648,6 +2714,13 @@ document.getElementById("tresetModal").addEventListener("click",function(e){
 $op_img_estilos_json = json_encode(op_ficha_estilos_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $op_img_oficios_json = json_encode(op_ficha_oficios_catalogo_imagenes(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 $op_disciplinas_catalogo_json = json_encode(op_ficha_disciplinas_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+// Requisitos (nivel y nikas) para desbloquear los slots de estilo, de la BD (admin > Costes), para belicas.js.
+$op_costes_estilo_unlock = op_ficha_estilo_unlock_cost_new();
+$op_req_estilos_json = json_encode(array(
+    'estilo1' => array('nivel' => op_ficha_nivel_requerido('estilo1'), 'nikas' => 0),
+    'estilo2' => array('nivel' => op_ficha_nivel_requerido('estilo2'), 'nikas' => isset($op_costes_estilo_unlock['estilo2']) ? (int) $op_costes_estilo_unlock['estilo2'] : 50),
+    'estilo3' => array('nivel' => op_ficha_nivel_requerido('estilo3'), 'nikas' => isset($op_costes_estilo_unlock['estilo3']) ? (int) $op_costes_estilo_unlock['estilo3'] : 100),
+));
 
 // ─── Actividad del personaje (sección bajo la ficha) ─────────────────────────
 // Mensajes y temas totales con su enlace de búsqueda y las cuentas adjuntas (Account Switcher), igual que

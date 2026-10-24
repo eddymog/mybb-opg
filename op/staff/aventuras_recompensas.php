@@ -97,7 +97,7 @@ function ar_ajustes()
                 continue;
             }
             $fila = array();
-            foreach (array('incluir', 'variacion', 'rep') as $k) {
+            foreach (array('incluir', 'variacion', 'rep', 'rol') as $k) {
                 if (isset($d[$k]) && !is_array($d[$k])) {
                     $fila[$k] = trim((string) $d[$k]);
                 }

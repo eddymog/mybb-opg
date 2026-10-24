@@ -101,8 +101,6 @@ jQuery(function($) {
 	
 	const entrenamiento_completo = '{$g_entrenamiento_completo}';    
 	const entrenamiento_en_curso = '{$g_entrenamiento_en_curso}';    
-	const entrenamiento_tecnica_completo = '{$g_entrenamiento_tecnica_completo}';    
-	const entrenamiento_tecnica_en_curso = '{$g_entrenamiento_tecnica_en_curso}';    
 	const oficio_completo = '{$g_oficio_completo}';    
 	const oficio_en_curso = '{$g_oficio_en_curso}';  
 	const crafteo_completo = '{$g_crafteo_completo}';    
@@ -138,15 +136,6 @@ jQuery(function($) {
 		var tiempo_recompensas = new Date(new Date().getTime() + (parseInt(tiempo_recomp) * 1000));
 		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_recompensas, 'recompensas-tiempo-horas'), 1000);
 	}    
-	
-	if (entrenamiento_tecnica_en_curso) {
-		$('#entrenar-tecnicas').css({ color: "#fb7c00" });
-		$('#rol').css({ color: "#fb7c00" });
-		$('#tecnicas-tiempo').css({ display: "block" });
-		var tiempo_tecnicas = new Date({$tiempo_tecnicas});
-		$('#tecnicas-tiempo').css({ display: "block" });
-		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_tecnicas, 'tecnicas-tiempo'), 1000);
-	}
 	
 	if (entrenamiento_en_curso) {    
 		$('#entrenar').css({ color: "#fb7c00" });     
@@ -186,11 +175,6 @@ jQuery(function($) {
 		console.log(tiempo_crafteo);
 		timerTecnicas = setInterval(showRemaining1.bind(null, tiempo_crafteo, 'crafteo-tiempo'), 1000);
 	}    
-	
-	if (entrenamiento_tecnica_completo) {
-		$('#entrenar-tecnicas').css({ color: "#0BD93C" });
-		$('#rol').css({ color: "#0BD93C" });
-	}
 	
 	if (entrenamiento_completo) {    
 		$('#entrenar').css({ color: "#0BD93C" });    

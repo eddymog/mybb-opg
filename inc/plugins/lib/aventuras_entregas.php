@@ -82,6 +82,7 @@ function opg_ent_problemas_tema($fila, $av)
     }
     $vinc = opg_av_uno(
         'SELECT id FROM ' . opg_av_t('op_peticionAventuras') . ' WHERE id <> ' . (int) $av['id']
+        . ' AND estado NOT IN (2, 5)'   // una solicitud denegada o eliminada libera su tema
         . " AND aventura_url REGEXP " . opg_av_sql('tid=' . (int) $fila['tid'] . '([^0-9]|$)') . ' LIMIT 1'
     );
     if ($vinc) {
@@ -142,6 +143,7 @@ function opg_ent_temas_buscar($texto, $av, $uid)
     }
     $cond .= ' AND NOT EXISTS (SELECT 1 FROM ' . opg_av_t('op_aventuras_entregas') . ' e WHERE e.tid_activo = t.tid AND e.peticion_id <> ' . (int) $av['id'] . ')'
         . ' AND NOT EXISTS (SELECT 1 FROM ' . opg_av_t('op_peticionAventuras') . ' o WHERE o.id <> ' . (int) $av['id']
+        . ' AND o.estado NOT IN (2, 5)'
         . " AND o.aventura_url REGEXP CONCAT('tid=', t.tid, '([^0-9]|$)'))";
 
     $filas = opg_av_todos(
@@ -251,12 +253,21 @@ function opg_ent_listar($estado, $pagina)
     return array('items' => $items, 'total' => $total, 'pagina' => $pagina, 'paginas' => $paginas);
 }
 
-// ── Envío de la entrega (el narrador) ───────────────────────────────────────
+// ── Envío de la entrega (cualquier miembro de la aventura) ──────────────────
 
-/** El narrador asignado puede enviar si la solicitud está aprobada y no hay entrega vigente. */
+/**
+ * Entregar: el narrador o cualquiera de los jugadores de una aventura aprobada, mientras no haya una entrega
+ * vigente. Quien envía confirma que lo ha acordado con el resto del grupo (casilla obligatoria). Una crónica
+ * autonarrada sigue siendo cosa de su narradora.
+ */
 function opg_ent_puede_enviar($av, $uid, $entrega = null)
 {
-    if ((int) $uid <= 0 || $av['narrador_uid'] !== (int) $uid || $av['estado'] !== 1) {
+    $uid = (int) $uid;
+    if ($uid <= 0 || $av['estado'] !== 1) {
+        return false;
+    }
+    $miembro = opg_av_es_autonarrada($av) ? $av['narrador_uid'] === $uid : opg_av_es_miembro($av, $uid);
+    if (!$miembro) {
         return false;
     }
     return $entrega === null || $entrega['estado'] === 'rechazada';
@@ -276,7 +287,8 @@ function opg_ent_form($peticion_id, $uid)
     if (!opg_ent_puede_enviar($av, $uid, $entrega)) {
         return array('ok' => false, 'codigo' => 403, 'errores' => array('No puedes entregar esta aventura.'));
     }
-    $ficha = opg_av_uno('SELECT nivelnarrador FROM ' . opg_av_t('op_fichas') . ' WHERE fid = ' . (int) $uid . ' LIMIT 1');
+    // El nivel que se muestra es el del narrador de la aventura, no el de quien entrega (puede ser un jugador).
+    $ficha = opg_av_uno('SELECT nivelnarrador FROM ' . opg_av_t('op_fichas') . ' WHERE fid = ' . (int) $av['narrador_uid'] . ' LIMIT 1');
     $tid = $entrega ? $entrega['tid'] : $av['tid_vinculado'];
     $tema = null;
     $tema_error = null;
@@ -311,9 +323,10 @@ function opg_ent_enviar($peticion_id, $entrada, $uid)
         return opg_av_fallo(404, array('La solicitud no existe.'));
     }
     $av = opg_av_normalizar_fila($fila);
-    if ($uid <= 0 || $av['narrador_uid'] !== $uid) {
+    $miembro = opg_av_es_autonarrada($av) ? ($uid > 0 && $av['narrador_uid'] === $uid) : opg_av_es_miembro($av, $uid);
+    if (!$miembro) {
         opg_av_revertir();
-        return opg_av_fallo(403, array('Solo el narrador asignado puede entregar la aventura.'));
+        return opg_av_fallo(403, array('Solo el narrador o un jugador de la aventura puede entregarla.'));
     }
     if ($av['estado'] !== 1) {
         opg_av_revertir();
@@ -345,6 +358,11 @@ function opg_ent_enviar($peticion_id, $entrada, $uid)
     $reputacion = isset($entrada['reputacion']) ? (string) $entrada['reputacion'] : '';
     if ($reputacion !== 'positiva' && $reputacion !== 'negativa') {
         $errores[] = 'Indica si la reputación es positiva o negativa.';
+    }
+    // Cualquiera del grupo puede entregar, así que quien lo hace confirma que lo ha acordado con los demás.
+    $confirmo = isset($entrada['confirmar_grupo']) && in_array((string) $entrada['confirmar_grupo'], array('1', 'on', 'true', 'si'), true);
+    if (!$confirmo) {
+        $errores[] = 'Confirma que has hablado con el resto del grupo y que estáis de acuerdo en entregar esta aventura.';
     }
     if ($errores) {
         opg_av_revertir();
@@ -380,7 +398,7 @@ function opg_ent_enviar($peticion_id, $entrada, $uid)
     if ($av['tid_vinculado'] !== $tid && strlen($url) <= 255) {
         opg_av_w('UPDATE ' . opg_av_t('op_peticionAventuras') . ' SET aventura_url = ' . opg_av_sql($url) . ' WHERE id = ' . (int) $peticion_id);
     }
-    opg_av_auditar($peticion_id, $uid, 'enviar_entrega', null, array('entrega' => $entrega_id, 'tid' => $tid, 'tema' => $tema['nombre'], 'reputacion' => $reputacion, 'reenvio' => (bool) $previa));
+    opg_av_auditar($peticion_id, $uid, 'enviar_entrega', null, array('entrega' => $entrega_id, 'tid' => $tid, 'tema' => $tema['nombre'], 'reputacion' => $reputacion, 'reenvio' => (bool) $previa, 'confirmo_grupo' => true));
     opg_av_confirmar();
     return array('ok' => true, 'id' => $entrega_id);
 }
@@ -411,7 +429,7 @@ function opg_ent_rechazar($entrega_id, $motivo, $uid_staff)
         return opg_av_fallo(409, array('La entrega ya no está pendiente.'));
     }
     opg_av_auditar($entrega['peticion_id'], $uid_staff, 'rechazar_entrega', array('entrega' => (int) $entrega_id), array('motivo' => $motivo));
-    opg_av_notificar_partes($av, $uid_staff, 'entrega_rechazada', 'entrega:' . (int) $entrega_id . ':rechazada', array('motivo' => $motivo));
+    opg_av_notificar_partes($av, $uid_staff, 'entrega_rechazada', 'entrega:' . (int) $entrega_id . ':rechazada:' . opg_av_ahora(), array('motivo' => $motivo));
     return array('ok' => true);
 }
 
@@ -495,6 +513,28 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
     $bloqueos = array_merge($analisis['bloqueos'], $norm['errores']);
     $advertencias = array();
 
+    // Roles de narrador elegidos por el staff (cambio de narrador, varias cuentas...). Sin elección, manda el narrador de la entrega.
+    $principal = $narrador_uid;
+    $roles = array();
+    foreach ($ajustes['destinatarios'] as $uid_r => $d_r) {
+        if ($d_r['rol'] !== null && isset($analisis['usuarios'][$uid_r])) {
+            $roles[$uid_r] = $d_r['rol'];
+        }
+    }
+    if ($roles) {
+        foreach ($roles as $uid_r => $rol_r) {
+            $analisis['usuarios'][$uid_r]['es_narrador'] = $rol_r !== 'jugador';
+        }
+        $principales = array_keys(array_filter($roles, function ($r) { return $r === 'principal'; }));
+        if (count($principales) === 1) {
+            $principal = (int) $principales[0];
+        } else {
+            $principal = 0;
+            $bloqueos[] = 'Elige un único narrador principal.';
+        }
+    }
+    $ajustes['narrador_principal'] = $principal;
+
     if (!$ajustes['tier'] || !isset(OPG_REC_POSTS_TIER[$ajustes['tier']])) {
         $bloqueos[] = 'La solicitud no tiene tier: elígelo en los ajustes.';
         return array('ok' => true, 'entrega' => $entrega, 'av' => $av, 'ajustes' => $ajustes, 'analisis' => $analisis,
@@ -551,7 +591,7 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
         if (!$ficha) {
             $avisos[] = 'No tiene ficha: no puede recibir recompensas.';
         } elseif ($p['rol'] === 'narrador') {
-            $calculo = opg_rec_calcular_narrador($ficha, $p['porcentaje'], $ajustes['tier'], $ficha['expNarradorMensualActual']);
+            $calculo = opg_rec_calcular_narrador($ficha, $p['porcentaje'], $ajustes['tier'], $ficha['expNarradorMensualActual'], $uid === $principal);
             if (!$calculo['nivel_conocido']) {
                 $avisos[] = 'Su nivel de narrador no es válido (' . ($ficha['nivelnarrador'] !== '' ? $ficha['nivelnarrador'] : 'vacío') . '): se calcula como Aprendiz.';
             }
@@ -580,7 +620,11 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
             'calculo' => $calculo,
             'pago' => isset($pagos[$uid]) ? $pagos[$uid] : null,
             'avisos' => $avisos,
+            'principal' => $uid === $principal,
         );
+        if ($uid === $principal && !$incluir) {
+            $advertencias[] = $u['username'] . ' es el narrador principal pero no cobrará: nadie recibirá los cofres.';
+        }
     }
     if ($incluidos === 0) {
         $bloqueos[] = 'Selecciona al menos un destinatario.';
@@ -591,6 +635,10 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
         if (!isset($analisis['usuarios'][$uid]) || (int) $analisis['usuarios'][$uid]['posts'] === 0) {
             $advertencias[] = $nombre . ' está en la solicitud pero no escribió en el tema.';
         }
+    }
+
+    if ($narrador_uid > 0 && $principal !== $narrador_uid) {
+        $advertencias[] = 'El narrador principal difiere del de la solicitud (' . $narradores[$narrador_uid] . '). Revisa el resumen de la entrega.';
     }
 
     $minimos = opg_rec_minimos($analisis, $ajustes);
@@ -612,6 +660,7 @@ function opg_ent_analizar($entrega_id, $ajustes_entrada)
         'requiere_confirmar_minimos' => $requiere,
         'puede_pagar' => !$bloqueos,
         'infra' => $av['inframundo'],
+        'principal' => $principal,
     );
 }
 
@@ -651,7 +700,7 @@ function opg_ent_texto_log($rol, $staff_uid, $staff_nombre, $username, $uid, $ti
             . "\n        * <strong><i><u>Exp mensual acumulada</i></u></strong>: {$c['exp_mensual_antes']} + {$c['experiencia']} = {$c['exp_mensual_despues']} / " . OPG_REC_EXP_NARRADOR_MENSUAL . " <br>"
             . "\n        * <strong><i><u>Nikas</i></u></strong>: +{$c['nikas']} <br>"
             . ($c['kuros'] > 0 ? "\n        * <strong><i><u>Kuros (por excedente)</i></u></strong>: +{$c['kuros']} <br>" : '')
-            . "\n        * <strong><i><u>Cofres</i></u></strong>: {$c['cofre_cantidad']}x {$c['cofre']} <br>"
+            . ($c['cofre_cantidad'] > 0 ? "\n        * <strong><i><u>Cofres</i></u></strong>: {$c['cofre_cantidad']}x {$c['cofre']} <br>" : '')
             . "\n        * <strong><i><u>Porcentaje aplicado</i></u></strong>: {$c['porcentaje']}% <br>\n    ";
     } else {
         $rep_txt = $c['reputacion_tipo'] === 'positiva' ? 'Positiva' : ($c['reputacion_tipo'] === 'negativa' ? 'Negativa' : 'Ninguna');
@@ -680,11 +729,48 @@ function opg_ent_log_pago($rol, $staff_uid, $username, $uid, $tid, $tier, $c, $p
     log_audit((int) $staff_uid, $db->escape_string($nombre_staff), $cat, $db->escape_string($texto));
 }
 
+// ── Historial del personaje ──────────────────────────────────────────────────
+
+/** Número para el historial: sin ceros de más (14217.58, 120). */
+function opg_ent_num_historial($v)
+{
+    $s = rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+    return ($s === '' || $s === '-0') ? '0' : $s;
+}
+
+/**
+ * Texto de una fila del historial: "Nikas: 10->15 (5) · Aventura #12 · tema #345". El principio sigue el formato
+ * que lee la ficha (jscripts/ficha/portada.js: "Etiqueta: antes->después (diferencia)").
+ */
+function opg_ent_texto_historial($moneda, $antes, $despues, $peticion_id, $tid)
+{
+    return $moneda . ': ' . opg_ent_num_historial($antes) . '->' . opg_ent_num_historial($despues)
+        . ' (' . (int) round((float) $despues - (float) $antes) . ') · Aventura #' . (int) $peticion_id . ' · tema #' . (int) $tid;
+}
+
+/**
+ * Anota en el historial de la ficha (pestañas Experiencia, Nikas, Berries y Kuros) lo que dio una aventura, con la
+ * categoría [Aventura][Moneda]. Solo escribe el registro: no cambia ningún valor de la ficha. Si la tabla de
+ * auditoría falla, el pago no se ve afectado.
+ */
+function opg_ent_historial($uid, $uid_staff, $moneda, $antes, $despues, $peticion_id, $tid)
+{
+    $uid = (int) $uid;
+    $actor = (int) $uid_staff > 0 ? (int) $uid_staff : $uid;
+    $u = opg_av_uno('SELECT username FROM ' . opg_av_t('users') . ' WHERE uid = ' . $actor . ' LIMIT 1');
+    $nombre = $u ? (string) $u['username'] : '';
+    return opg_av_w(
+        'INSERT INTO ' . opg_av_t('op_audit_general') . ' (uid, username, user_uid, categoria, log) VALUES ('
+        . $actor . ', ' . opg_av_sql($nombre) . ', ' . $uid . ', ' . opg_av_sql('[Aventura][' . $moneda . ']') . ', '
+        . opg_av_sql(opg_ent_texto_historial($moneda, $antes, $despues, $peticion_id, $tid)) . ')'
+    );
+}
+
 /**
  * Fase de experiencia de un pago: suma newpoints (MyBB: MyISAM, sin ROLLBACK) con un
  * estado en tres pasos para no repetirla. Devuelve 'aplicado', 'dudoso' o 'error'.
  */
-function opg_ent_aplicar_xp($pago)
+function opg_ent_aplicar_xp($pago, $uid_staff = 0)
 {
     $estado = (string) $pago['xp_estado'];
     if ($estado === 'aplicado') {
@@ -703,12 +789,19 @@ function opg_ent_aplicar_xp($pago)
     if (opg_av_afectadas() === 0) {
         return 'error';   // otro proceso la está aplicando
     }
+    $antes = opg_av_uno('SELECT newpoints FROM ' . opg_av_t('users') . ' WHERE uid = ' . (int) $pago['uid'] . ' LIMIT 1');
     $ok = opg_av_w('UPDATE ' . opg_av_t('users') . ' SET newpoints = newpoints + ' . $xp . ' WHERE uid = ' . (int) $pago['uid']);
     if (!$ok) {
         opg_av_w('UPDATE ' . opg_av_t('op_aventuras_entregas_pagos') . " SET xp_estado = 'pendiente' WHERE id = " . (int) $pago['id']);
         return 'error';
     }
     opg_av_w('UPDATE ' . opg_av_t('op_aventuras_entregas_pagos') . " SET xp_estado = 'aplicado' WHERE id = " . (int) $pago['id']);
+    if ($antes) {
+        $entrega_pago = opg_ent_obtener_por_id((int) $pago['entrega_id']);
+        if ($entrega_pago) {
+            opg_ent_historial($pago['uid'], $uid_staff, 'Experiencia', $antes['newpoints'], (float) $antes['newpoints'] + $xp, $entrega_pago['peticion_id'], $entrega_pago['tid']);
+        }
+    }
     return 'aplicado';
 }
 
@@ -729,20 +822,20 @@ function opg_ent_pagar_destinatario($entrega, $av, $d, $tier, $infra, $uid_staff
         return array('estado' => 'error', 'error' => 'No se pudo registrar el pago de ' . $d['username'] . '.');
     }
     if ($pago['aplicado_at'] !== null) {
-        $x = opg_ent_aplicar_xp($pago);
+        $x = opg_ent_aplicar_xp($pago, $uid_staff);
         return array('estado' => $x === 'aplicado' ? 'omitido' : 'error', 'error' => $x === 'aplicado' ? '' : 'La experiencia de ' . $d['username'] . ' necesita revisión.');
     }
 
     opg_av_iniciar();
     $ficha = opg_av_uno(
-        'SELECT fid, nombre, oficios, nivelnarrador, expNarradorMensualActual FROM ' . opg_av_t('op_fichas') . ' WHERE fid = ' . $uid . ' LIMIT 1 FOR UPDATE'
+        'SELECT fid, nombre, oficios, nivelnarrador, expNarradorMensualActual, nika, berries, kuro FROM ' . opg_av_t('op_fichas') . ' WHERE fid = ' . $uid . ' LIMIT 1 FOR UPDATE'
     );
     if (!$ficha) {
         opg_av_revertir();
         return array('estado' => 'error', 'error' => $d['username'] . ' no tiene ficha.');
     }
     if ($d['rol'] === 'narrador') {
-        $c = opg_rec_calcular_narrador($ficha, (float) $d['porcentaje'], $tier, $ficha['expNarradorMensualActual']);
+        $c = opg_rec_calcular_narrador($ficha, (float) $d['porcentaje'], $tier, $ficha['expNarradorMensualActual'], !empty($d['principal']));
     } else {
         $c = opg_rec_calcular_jugador($ficha, (float) $d['porcentaje'], $tier, $infra, $d['rep']);
     }
@@ -759,17 +852,28 @@ function opg_ent_pagar_destinatario($entrega, $av, $d, $tier, $infra, $uid_staff
         return array('estado' => 'omitido', 'error' => '');
     }
     $ok = opg_av_w('UPDATE ' . opg_av_t('op_fichas') . ' SET ' . implode(', ', $c['sets_ficha']) . ' WHERE fid = ' . $uid);
-    if ($ok && $d['rol'] === 'narrador') {
+    if ($ok && $d['rol'] === 'narrador' && $c['cofre_cantidad'] > 0) {
         $ok = opg_ent_dar_objeto($uid, $c['cofre'], $c['cofre_cantidad']);
     }
     if (!$ok) {
         opg_av_revertir();
         return array('estado' => 'error', 'error' => 'No se pudo pagar a ' . $d['username'] . '.');
     }
+    // Historial de la ficha: [Aventura][Nikas], [Aventura][Berries] y [Aventura][Kuros] (la experiencia se anota al aplicarla).
+    $cambios_historial = array(
+        'Nikas' => array((int) $ficha['nika'], isset($c['nikas']) ? (int) $c['nikas'] : 0),
+        'Berries' => array((int) $ficha['berries'], isset($c['berries']) ? (int) $c['berries'] : 0),
+        'Kuros' => array((int) $ficha['kuro'], isset($c['kuros']) ? (int) $c['kuros'] : 0),
+    );
+    foreach ($cambios_historial as $moneda => $par) {
+        if ($par[1] !== 0) {
+            opg_ent_historial($uid, $uid_staff, $moneda, $par[0], $par[0] + $par[1], $entrega['peticion_id'], $entrega['tid']);
+        }
+    }
     opg_av_confirmar();
 
     $pago = opg_av_uno('SELECT * FROM ' . $tabla . ' WHERE entrega_id = ' . (int) $entrega['id'] . ' AND uid = ' . $uid . ' LIMIT 1');
-    $x = opg_ent_aplicar_xp($pago);
+    $x = opg_ent_aplicar_xp($pago, $uid_staff);
     opg_ent_log_pago($d['rol'], $uid_staff, $d['username'], $uid, $entrega['tid'], $tier, $c, $entrega['peticion_id'], $entrega['id']);
     return array('estado' => 'pagado', 'error' => $x === 'aplicado' ? '' : 'La experiencia de ' . $d['username'] . ' necesita revisión.');
 }
@@ -877,6 +981,11 @@ function opg_ent_pagar($entrega_id, $ajustes_entrada, $uid_staff)
     }
     $ajustes = $a['ajustes'];
 
+    // La entrega queda a nombre del narrador principal elegido en la revisión.
+    if ((int) $a['principal'] > 0 && (int) $a['principal'] !== (int) $entrega['narrador_uid']) {
+        opg_av_w('UPDATE ' . opg_av_t('op_aventuras_entregas') . ' SET narrador_uid = ' . (int) $a['principal'] . ' WHERE id = ' . (int) $entrega_id);
+    }
+
     // Congela tier, inframundo y ajustes la primera vez, para que reanudar no cambie montos.
     if (!is_array($entrega['ajustes'])) {
         opg_av_w(
@@ -948,9 +1057,13 @@ function opg_ent_xp_dudosa($entrega_id, $uid_destinatario, $decision, $uid_staff
         return opg_av_fallo(409, array('Ese pago no tiene experiencia en duda.'));
     }
     if ($decision === 'aplicar') {
+        $antes = opg_av_uno('SELECT newpoints FROM ' . opg_av_t('users') . ' WHERE uid = ' . (int) $uid_destinatario . ' LIMIT 1');
         $ok = opg_av_w('UPDATE ' . opg_av_t('users') . ' SET newpoints = newpoints + ' . (int) $pago['xp_cantidad'] . ' WHERE uid = ' . (int) $uid_destinatario);
         if (!$ok) {
             return opg_av_fallo(500, array('No se pudo aplicar la experiencia.'));
+        }
+        if ($antes) {
+            opg_ent_historial($uid_destinatario, $uid_staff, 'Experiencia', $antes['newpoints'], (float) $antes['newpoints'] + (int) $pago['xp_cantidad'], $entrega['peticion_id'], $entrega['tid']);
         }
     }
     opg_av_w('UPDATE ' . $tabla . " SET xp_estado = 'aplicado' WHERE id = " . (int) $pago['id'] . " AND xp_estado IN ('dudoso', 'aplicando')");

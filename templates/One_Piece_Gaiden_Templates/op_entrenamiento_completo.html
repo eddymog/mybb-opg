@@ -22,6 +22,18 @@
 			font-family: InterRegular !important;
 		}
 		
+		.entreno-acciones {
+			display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 16px;
+		}
+
+		.entreno-acciones .entreno-button {
+			padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; text-shadow: 1px 1px 1px black;
+		}
+
+		.entreno-acciones .entreno-button:disabled {
+			opacity: .6; cursor: default;
+		}
+
 		.entreno-button:hover {
 			background-color: #df7416 !important;
 		}
@@ -43,6 +55,7 @@
 						</div>
 						<div style="display: none">
 							<form id="form" method="post" action="entrenamiento.php">
+								<input type="hidden" name="my_post_key" value="{$mybb->post_code}">
 								<input type="text" name="culminar" id="culminar" value="1">
 								<input type="hidden" name="reentrenar" id="reentrenar" value="0">
 							</form>
@@ -61,14 +74,13 @@
 						</div>
 						<div class="poneglyph">
 						<div style=" margin: 0 auto; ">
-							<div class="texto-top">¡Felicidades!<br>¡Has ganado {$experiencia} puntos de experiencia!</div>
+							<div class="texto-top">¡Felicidades!<br>¡Has ganado {$recompensa_txt} puntos de experiencia!</div>
 							<div id="myGif"><img style="border: 2px solid black; " src="/images/op/uploads/EntrenamientoCompletado_One_Piece_Gaiden_Foro_Rol.gif" /></div>
-							<div style=" text-align: center;margin-top: 12px; ">
-								<button class="entreno-button" type="button" onclick="enviarCulminar(false);">Completar Entrenamiento</button>
-								<button class="entreno-button" type="button" onclick="enviarCulminar(true);" style="margin-left: 10px;">Completar y volver a entrenar</button>
-							</div>
 						</div>
-						
+					</div>
+					<div class="entreno-acciones">
+						<button class="entreno-button" type="button" onclick="enviarCulminar(false);">Completar Entrenamiento</button>
+						<button class="entreno-button" type="button" onclick="enviarCulminar(true);">Completar y volver a entrenar</button>
 					</div>
 					</div>
 				</div>

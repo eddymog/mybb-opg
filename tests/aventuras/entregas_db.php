@@ -81,8 +81,19 @@ sql("UPDATE mybb_op_peticionAventuras SET aventura_url = NULL WHERE id = $otra")
 prueba('typeahead: vuelve a ofrecerlo al soltarlo', in_array(201, array_map(function ($t) { return $t['tid']; }, opg_ent_temas_buscar('otra', $av, 8)['temas'])), true);
 
 // ── Enviar ───────────────────────────────────────────────────────────────────
-$base = array('tema' => '200', 'resumen' => 'Ganaron los héroes.', 'reputacion' => 'positiva');
-prueba('enviar: solo el narrador asignado', array(opg_ent_enviar($S, $base, 3)['codigo'], opg_ent_enviar($S, $base, 5)['codigo'], opg_ent_enviar($S, $base, 0)['codigo']), array(403, 403, 403));
+$base = array('tema' => '200', 'resumen' => 'Ganaron los héroes.', 'reputacion' => 'positiva', 'confirmar_grupo' => '1');
+// Cualquier jugador o el narrador pueden entregar; un ajeno o un invitado no.
+prueba('enviar: un ajeno y un invitado no pueden', array(opg_ent_enviar($S, $base, 9)['codigo'], opg_ent_enviar($S, $base, 0)['codigo']), array(403, 403));
+prueba('enviar: los jugadores y el narrador pueden entregar', array(opg_ent_puede_enviar(opg_av_obtener($S), 3), opg_ent_puede_enviar(opg_av_obtener($S), 5), opg_ent_puede_enviar(opg_av_obtener($S), 8), opg_ent_puede_enviar(opg_av_obtener($S), 9)), array(true, true, true, false));
+prueba('enviar: sin confirmar con el grupo se rechaza (también un jugador)', array(opg_ent_enviar($S, array_merge($base, array('confirmar_grupo' => '')), 8)['codigo'], opg_ent_enviar($S, array_merge($base, array('confirmar_grupo' => '')), 3)['codigo']), array(422, 422));
+// Entrega hecha por un jugador: se guarda quién la envió y el narrador sigue siendo el de la aventura
+$SP = nueva_sol(3, 0, 8, array(3, 5));
+crear_tema(270, 40, 'Aventura entregada por un jugador');
+$rp = opg_ent_enviar($SP, array('tema' => '270', 'resumen' => 'La entrega la hace un jugador.', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 3);
+$ep = opg_ent_obtener($SP);
+prueba('enviar: un jugador entrega y queda registrado', array($rp['ok'], $ep['enviado_por'], $ep['narrador_uid']), array(true, 3, 8));
+sql("DELETE FROM mybb_op_aventuras_entregas WHERE peticion_id = $SP");
+sql("DELETE FROM mybb_op_peticionAventuras WHERE id = $SP");
 prueba('enviar: solicitud inexistente', opg_ent_enviar(99999, $base, 8)['codigo'], 404);
 foreach (array('tema' => '', 'resumen' => '   ', 'reputacion' => 'ninguna') as $k => $v) {
     prueba("enviar sin '$k' válido", opg_ent_enviar($S, array_merge($base, array($k => $v)), 8)['codigo'], 422);
@@ -117,8 +128,8 @@ prueba('rechazar otra vez', opg_ent_rechazar($E, 'x', 50)['codigo'], 409);
 prueba('rechazar libera la entrega pero el tema sigue vinculado a su solicitud', array(opg_ent_tema_valido(200, opg_av_obtener($S2), 9)['ok'], opg_ent_tema_valido(200, opg_av_obtener($S), 8)['ok']), array(false, true));
 $f = opg_ent_form($S, 8);
 prueba('el formulario de corrección precarga el tema y el resumen', array($f['ok'], $f['tema']['tid'], $f['resumen'], $f['reputacion']), array(true, 200, 'Ganaron los héroes.', 'positiva'));
-prueba('formulario: solo el narrador', opg_ent_form($S, 3)['ok'], false);
-$r = opg_ent_enviar($S, array('tema' => '200', 'resumen' => 'Ahora con más detalle.', 'reputacion' => 'negativa'), 8);
+prueba('formulario: el narrador y los jugadores sí, un ajeno no', array(opg_ent_form($S, 8)['ok'], opg_ent_form($S, 3)['ok'], opg_ent_form($S, 9)['ok']), array(true, true, false));
+$r = opg_ent_enviar($S, array('tema' => '200', 'resumen' => 'Ahora con más detalle.', 'reputacion' => 'negativa', 'confirmar_grupo' => '1'), 8);
 $e = opg_ent_obtener_por_id($E);
 prueba('reenviar: vuelve a pendiente con un intento más y sin motivo', array($r['ok'], $r['id'], $e['estado'], $e['intentos'], $e['motivo_rechazo'], $e['reputacion']), array(true, $E, 'pendiente', 2, '', 'negativa'));
 
@@ -160,7 +171,7 @@ $por6 = array(); foreach ($a6['destinatarios'] as $d) { $por6[$d['uid']] = $d; }
 prueba('el porcentaje del cliente se ignora', $por6[3]['porcentaje'], 100.0);
 // Narrador explícito de la entrega sin posts y participantes sin posts.
 $S3 = nueva_sol(3, 0, 9, array(3, 10));
-$E3 = opg_ent_enviar($S3, array('tema' => '203', 'resumen' => 'x', 'reputacion' => 'positiva'), 9)['id'];
+$E3 = opg_ent_enviar($S3, array('tema' => '203', 'resumen' => 'x', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 9)['id'];
 sql("UPDATE mybb_op_peticionAventuras SET narrador_uid = 8, narrador_fid = 8, narrador_nombre = 'Robin' WHERE id = $S3");
 $a7 = opg_ent_analizar($E3, array());
 $por7 = array(); foreach ($a7['destinatarios'] as $d) { $por7[$d['uid']] = $d; }
@@ -171,7 +182,7 @@ $S4 = nueva_sol(3, 0, 9, array(3));
 sql("UPDATE mybb_op_peticionAventuras SET narrador_uid = 9, narrador_fid = 9 WHERE id = $S4");
 crear_tema(204, 40, 'Aventura vacía');
 // Un tema sin posts no es un error de elección, pero sí del análisis
-$E4 = (int) opg_ent_enviar($S4, array('tema' => '204', 'resumen' => 'x', 'reputacion' => 'positiva'), 9)['id'];
+$E4 = (int) opg_ent_enviar($S4, array('tema' => '204', 'resumen' => 'x', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 9)['id'];
 prueba('un tema sin posts no se puede analizar', opg_ent_analizar($E4, array())['codigo'], 422);
 
 echo "  (parte 3a completa)\n";

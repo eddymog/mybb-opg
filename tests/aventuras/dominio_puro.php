@@ -27,6 +27,9 @@ function is_staff($u) { return in_array($u, $GLOBALS['roles']['staff']); }
 function is_narra($u) { return in_array($u, $GLOBALS['roles']['narra']); }
 
 require __DIR__ . '/../../inc/plugins/lib/aventuras.php';
+require_once __DIR__ . '/../../inc/plugins/lib/recompensas_aventura.php';
+require_once __DIR__ . '/../../inc/plugins/lib/aventuras_entregas.php';
+require_once __DIR__ . '/../../inc/plugins/lib/aventuras_vistas.php';
 
 $fallos = 0;
 $total = 0;
@@ -225,5 +228,21 @@ prueba('consola: puede ver el estado 5', $c, array('pa.estado = 5'));
 prueba('consola: sin filtros no restringe', opg_av_condiciones_listado(array(), true), array());
 
 // ── Resultado ────────────────────────────────────────────────────────────────
+// ── Experiencia de narrador del mes (pestaña Mis aventuras) ─────────────────
+$exp_n = array('nivel' => 'Estudioso', 'exp' => 120.0, 'limite' => 675, 'restante' => 555.0, 'reinicio' => '1 de noviembre');
+$h_exp = opg_av_v_exp_narrador($exp_n);
+prueba('exp narrador: cifra, nivel y reinicio', array(strpos($h_exp, '<b>120 / 675</b>') !== false, strpos($h_exp, 'Estudioso') !== false, strpos($h_exp, 'Te quedan 555') !== false, strpos($h_exp, '1 de noviembre') !== false), array(true, true, true, true));
+$h_tope = opg_av_v_exp_narrador(array('nivel' => '', 'exp' => 675.0, 'limite' => 675, 'restante' => 0, 'reinicio' => '1 de noviembre'));
+prueba('exp narrador: al tope avisa de los Kuros y marca la cifra', array(strpos($h_tope, 'ta-cifra-tope') !== false, strpos($h_tope, 'Kuros') !== false, strpos($h_tope, 'Nivel de narrador') !== false), array(true, true, false));
+prueba('exp narrador: sin datos no muestra nada', opg_av_v_exp_narrador(null), '');
+
+// ── Historial de la ficha: [Aventura][Moneda] ───────────────────────────────
+prueba('historial: nikas', opg_ent_texto_historial('Nikas', 10, 15, 12, 345), 'Nikas: 10->15 (5) · Aventura #12 · tema #345');
+prueba('historial: berries', opg_ent_texto_historial('Berries', 1500000, 2750000, 12, 345), 'Berries: 1500000->2750000 (1250000) · Aventura #12 · tema #345');
+prueba('historial: kuros', opg_ent_texto_historial('Kuros', 3, 5, 12, 345), 'Kuros: 3->5 (2) · Aventura #12 · tema #345');
+prueba('historial: experiencia con decimales (newpoints)', opg_ent_texto_historial('Experiencia', '14217.58', 14337.58, 12, 345), 'Experiencia: 14217.58->14337.58 (120) · Aventura #12 · tema #345');
+prueba('historial: sin ceros de más', array(opg_ent_num_historial('100.00'), opg_ent_num_historial(87.5), opg_ent_num_historial(0), opg_ent_num_historial('14217.580')), array('100', '87.5', '0', '14217.58'));
+prueba('historial: lo lee la misma expresión que usa la ficha (portada.js)', preg_match('/Nikas:\s*(-?\d+)->(-?\d+)\s*\((-?\d+)\)/', opg_ent_texto_historial('Nikas', 10, 15, 1, 2), $mh) ? array($mh[1], $mh[2], $mh[3]) : null, array('10', '15', '5'));
+
 echo ($fallos === 0 ? 'OK' : 'CON FALLOS') . ": $total pruebas, $fallos fallos\n";
 exit($fallos === 0 ? 0 : 1);

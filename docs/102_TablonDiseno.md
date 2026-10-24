@@ -160,7 +160,8 @@ orientada a tareas, sin perder la estética de `style.md`.
 - El indicador superior cambia con el selector de papel. Como narrador se reduce
   a un mensaje neutral sin cifras de bloqueo.
 - Cada chip de participante puede incluir `2/3 solitarias · 3/4 total` o un aviso
-  de cupo agotado.
+  de cupo agotado. Con los límites desactivados (`OPG_AV_LIMITES_ACTIVOS = false`,
+  estado actual) muestra solo los conteos, `2 solitarias · 3 total`, sin tope ni aviso.
 - El pie del formulario contiene el aviso de elegibilidad inmediatamente antes
   del botón. Si el servidor indica exceso, el botón está deshabilitado.
 - El error también se anuncia en `aria-live` y enlaza o enfoca el participante

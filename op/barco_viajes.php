@@ -208,7 +208,14 @@ if ($action === 'get_data') {
 
     // Navigator levels
     $maxNavegante = 0; $maxTimonel = 0; $maxCartografo = 0;
-    $q = $db->query("SELECT fid, oficios FROM mybb_op_fichas WHERE oficios LIKE '%Navegante%' AND fid IN ($crew_ids_sql)");
+    // Bonificador de oficio (d20 roll bonus): el mejor de la tripulación, calculado por miembro.
+    // No se acumula, el rango más alto sustituye al anterior:
+    //   Navegante R1/R2 = +6 | Cartógrafo R1/R2/R3 = +10/+12/+14 | Oficial de Derrota = +16
+    // (todo Cartógrafo es al menos Navegante R1; Oficial de Derrota = Timonel R3 + Cartógrafo R3 + Nv60)
+    $bonificadorOficio = 0;
+    $porcentajeOficio  = 0.0;   // reducción de tiempo de viaje del oficio (el mejor de la tripulación)
+    $oficialDerrota    = false;
+    $q = $db->query("SELECT fid, oficios, nivel FROM mybb_op_fichas WHERE oficios LIKE '%Navegante%' AND fid IN ($crew_ids_sql)");
     while ($r = $db->fetch_array($q)) {
         if (!$r['oficios']) continue;
         $of = @json_decode($r['oficios'], true);
@@ -219,30 +226,25 @@ if ($action === 'get_data') {
         if ($navNivel  > $maxNavegante)  $maxNavegante  = $navNivel;
         if ($timNivel  > $maxTimonel)    $maxTimonel    = $timNivel;
         if ($cartNivel > $maxCartografo) $maxCartografo = $cartNivel;
-    }
 
-    // Bonificador de oficio (d20 roll bonus)
-    $bonificadorOficio = 0;
-    if ($maxNavegante == 1)      $bonificadorOficio = 6;
-    elseif ($maxNavegante == 2)  $bonificadorOficio = 12;
-    elseif ($maxNavegante == 3)  $bonificadorOficio = 18;
-    elseif ($maxNavegante == 4)  $bonificadorOficio = 24;
-    elseif ($maxNavegante >= 5)  $bonificadorOficio = 32;
+        $bonoMiembro = 0;
+        if ($navNivel >= 1 || $cartNivel >= 1) $bonoMiembro = 6;
+        if ($cartNivel == 1)      $bonoMiembro = 10;
+        elseif ($cartNivel == 2)  $bonoMiembro = 12;
+        elseif ($cartNivel >= 3)  $bonoMiembro = 14;
+        $esOficial = ($timNivel >= 3 && $cartNivel >= 3 && (int)$r['nivel'] >= 60);
+        if ($esOficial) $bonoMiembro = 16;
+        if ($bonoMiembro > $bonificadorOficio) $bonificadorOficio = $bonoMiembro;
 
-    // Time reduction percentage from oficio
-    $porcentajeOficio = 0.0;
-    if ($maxCartografo == 3) {
-        if ($maxNavegante >= 5)  $porcentajeOficio = 0.50;
-        elseif ($maxTimonel == 3) $porcentajeOficio = 0.40;
-        elseif ($maxTimonel == 2) $porcentajeOficio = 0.30;
-        elseif ($maxTimonel == 1) $porcentajeOficio = 0.20;
-        else                     $porcentajeOficio = 0.05;
-    } elseif ($maxCartografo >= 1 || $maxNavegante >= 1 || $maxTimonel >= 1) {
-        if ($maxNavegante >= 5)  $porcentajeOficio = 0.50;
-        elseif ($maxTimonel == 3) $porcentajeOficio = 0.40;
-        elseif ($maxTimonel == 2) $porcentajeOficio = 0.30;
-        elseif ($maxTimonel == 1) $porcentajeOficio = 0.20;
-        else                     $porcentajeOficio = 0.05;
+        // Reducción de tiempo de viaje: Navegante R2 5% | Timonel R1/R2/R3 20/30/40% | Oficial de Derrota 50%
+        // (no se acumulan: cuenta la mayor)
+        $pctMiembro = 0.0;
+        if ($navNivel >= 2)       $pctMiembro = 0.05;
+        if ($timNivel == 1)       $pctMiembro = 0.20;
+        elseif ($timNivel == 2)   $pctMiembro = 0.30;
+        elseif ($timNivel >= 3)   $pctMiembro = 0.40;
+        if ($esOficial) { $pctMiembro = 0.50; $oficialDerrota = true; }
+        if ($pctMiembro > $porcentajeOficio) $porcentajeOficio = $pctMiembro;
     }
 
     // Maps in ship's chest
@@ -382,10 +384,8 @@ if ($action === 'get_data') {
         $horasBase = _bv_get_tiempo_ruta($partida_req, $llegada_req);
     }
     $horasConBarco = $barcoAlcancePct > 0 ? (int)round($horasBase * (1 - $barcoAlcancePct)) : $horasBase;
-    // Apply oficio time reduction
-    if ($porcentajeOficio > 0) {
-        $horasConBarco = max(1, (int)round($horasConBarco * (1 - $porcentajeOficio)));
-    }
+    // La reducción de tiempo del oficio NO se aplica aquí: se devuelve en 'porcentajeOficio'
+    // y el front la aplica una sola vez (antes se descontaba aquí y otra vez en el front).
 
     // History: last 10 naval voyages from this barco's crew
     $historial = [];
@@ -408,6 +408,8 @@ if ($action === 'get_data') {
         'maxTimonel'       => $maxTimonel,
         'maxCartografo'    => $maxCartografo,
         'bonificadorOficio'=> $bonificadorOficio,
+        'porcentajeOficio' => (int)round($porcentajeOficio * 100),
+        'oficialDerrota'   => $oficialDerrota,
         'bonusFruta'       => $bonus_fruta,
         'horasBase'        => $horasBase,
         'horasConBarco'    => $horasConBarco,

@@ -37,6 +37,9 @@ $consola_grupos = array(
         array('fa-scroll', 'Tablón de aventuras', 'Solicitudes de aventura, entregas de los narradores y ofertas de narrador.', array(
             array('Consola', 'consola_aventuras.php', 'narra'),
         )),
+        array('fa-ghost', 'Halloween 2026', 'Calabazas, premios, tienda y auditoria de la Cosecha.', array(
+            array('Gestionar', 'halloween2026.php', 'staff'),
+        )),
         array('fa-coins', 'Salarios', 'Pagos periódicos a facciones y al staff.', array(
             array('Facciones', 'salario_faccion.php'),
             array('Staff (kuros)', 'salario_staff.php', 'admin'),

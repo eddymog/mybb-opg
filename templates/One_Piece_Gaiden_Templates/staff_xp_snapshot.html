@@ -1,67 +1,136 @@
 <html>
-
 <head>
     <title>Snapshot de XP</title>
     {$headerinclude}
     <style>
-    .xp-snapshot .thirdBackground { width: 100%; max-width: 900px; gap: var(--opg-espacio-5); text-align: left; }
-    .xp-titulo { padding: var(--opg-espacio-2); }
-    .xp-titulo .barra-texto-op { font-size: 26px; letter-spacing: 2px; text-shadow: 2px 2px 0 black; }
-    .xp-descripcion { font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); text-align: left; padding: 10px 14px; line-height: 1.5; }
-    .xp-filtros { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
-    .xp-filtros select { min-height: 34px; padding: 4px 8px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; }
-    .xp-tabla { width: 100%; border-collapse: collapse; font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-tinta); }
-    .xp-tabla th { text-align: left; padding: 6px 10px; background: var(--opg-morado); color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
-    .xp-tabla th a { color: #fff; text-decoration: none; }
-    .xp-tabla td { padding: 6px 10px; }
-    .xp-tabla tbody tr:nth-child(odd)  { background: var(--opg-crema); }
-    .xp-tabla tbody tr:nth-child(even) { background: var(--opg-crema-dorada); }
+    .xp-snapshot *, .xp-snapshot *::before, .xp-snapshot *::after { box-sizing: border-box; letter-spacing: 0; }
+    .xp-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .xp-snapshot .mainBackground { max-width: 1110px; margin-inline: auto; }
+    .xp-snapshot .secondBackground, .xp-snapshot .thirdBackground { width: 100%; min-width: 0; }
+    .xp-snapshot .thirdBackground { max-width: 1030px; gap: var(--opg-espacio-5); text-align: left; }
+    .xp-cabecera { display: flex; align-items: center; gap: var(--opg-espacio-4); padding: var(--opg-espacio-4); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-textura-trama), var(--opg-naranja); box-shadow: var(--opg-sombra-offset); }
+    .xp-cabecera__icono { display: grid; place-items: center; flex: 0 0 48px; width: 48px; height: 48px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; color: var(--opg-naranja); box-shadow: 2px 2px 0 var(--opg-tinta); font-size: 23px; }
+    .xp-cabecera__texto { min-width: 0; }
+    .xp-cabecera h1 { margin: 0; color: #fff; font-family: var(--opg-fuente-titular); font-size: 25px; font-weight: normal; line-height: 1.15; text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000, 2px 2px 0 #000; }
+    .xp-cabecera p { margin: 3px 0 0; color: var(--opg-marron); font: 12px/1.4 InterMedium, var(--opg-fuente-cuerpo); }
+    .xp-cabecera .opg-volver { flex: 0 0 auto; margin-left: auto; padding: 6px 9px; border: 1px solid rgba(0, 0, 0, .35); border-radius: var(--opg-radio-sm); background: rgba(255, 255, 255, .78); }
+    .xp-herramientas { display: flex; flex-wrap: wrap; align-items: end; gap: var(--opg-espacio-3) var(--opg-espacio-5); }
+    .xp-filtro { display: flex; align-items: end; gap: var(--opg-espacio-2); margin: 0; }
+    .xp-campo { display: grid; gap: 4px; }
+    .xp-campo label { color: var(--opg-morado-texto); font: 12px InterMedium, var(--opg-fuente-cuerpo); }
+    .xp-campo select { min-width: 170px; min-height: 38px; padding: 5px 34px 5px 9px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; color: var(--opg-marron); font: 13px var(--opg-fuente-cuerpo); }
+    .xp-campo select:focus-visible, .xp-snapshot a:focus-visible, .xp-snapshot button:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+    .xp-herramientas__ayuda { flex: 1 1 360px; margin: 0; color: var(--opg-gris-texto); font: 12px/1.45 var(--opg-fuente-cuerpo); }
+    .xp-metricas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: var(--opg-sombra-offset); }
+    .xp-metrica { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: var(--opg-espacio-2); min-width: 0; padding: 10px 12px; }
+    .xp-metrica + .xp-metrica { border-left: 1px solid rgba(0, 0, 0, .25); }
+    .xp-metrica i { display: grid; place-items: center; width: 30px; height: 30px; color: var(--opg-morado-texto); font-size: 15px; }
+    .xp-metrica span { color: var(--opg-gris-texto); font: 10px InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .xp-metrica strong { display: block; overflow-wrap: anywhere; color: var(--opg-ciruela); font: 18px/1.15 var(--opg-fuente-titular); }
+    .xp-tarea { display: flex; align-items: flex-start; gap: 9px; margin: 0; padding: 9px 11px; border-left: 5px solid var(--opg-verde-exito); background: rgba(255, 255, 255, .55); color: var(--opg-marron); font: 11px/1.45 var(--opg-fuente-cuerpo); }
+    .xp-tarea--alerta { border-left-color: var(--opg-rojo-error); }
+    .xp-tarea i { margin-top: 2px; color: var(--opg-verde-exito); }
+    .xp-tarea--alerta i { color: var(--opg-rojo-error); }
+    .xp-listado__cabecera { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 4px 16px; padding-bottom: 6px; border-bottom: 4px solid var(--opg-naranja); }
+    .xp-listado__cabecera h2 { margin: 0; color: var(--opg-ciruela); font: 19px var(--opg-fuente-titular); }
+    .xp-listado__cabecera p { margin: 0; color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
+    .xp-tabla-caja { margin-top: var(--opg-espacio-3); overflow-x: auto; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-crema-clara); }
+    .xp-tabla { width: 100%; min-width: 810px; border-collapse: separate; border-spacing: 0; color: var(--opg-marron); font: 12px var(--opg-fuente-cuerpo); }
+    .xp-tabla th, .xp-tabla td { padding: 8px 10px; border-bottom: 1px solid rgba(0, 0, 0, .17); }
+    .xp-tabla thead th { padding: 0; background: var(--opg-ciruela); color: #fff; font: 10px InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .xp-tabla thead th + th { border-left: 1px solid rgba(255, 255, 255, .2); }
+    .xp-tabla tbody tr:last-child > * { border-bottom: 0; }
+    .xp-tabla tbody tr:nth-child(odd) > * { background: var(--opg-crema-clara); }
+    .xp-tabla tbody tr:nth-child(even) > * { background: var(--opg-crema-dorada); }
+    .xp-tabla tbody tr:hover > * { background: #fff; }
+    .xp-tabla .xp-ranking-col { position: sticky; left: 0; z-index: 2; width: 74px; min-width: 74px; text-align: center; }
+    .xp-tabla .xp-usuario-col { position: sticky; left: 74px; z-index: 2; min-width: 190px; text-align: left; box-shadow: 1px 0 rgba(0, 0, 0, .2); }
+    .xp-tabla tbody th { font-weight: normal; }
+    .xp-tabla thead .xp-ranking-col, .xp-tabla thead .xp-usuario-col { z-index: 3; }
     .xp-tabla .xp-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .xp-pos { color: #1b7a3a; font-weight: bold; }
-    .xp-neg { color: #b3261e; font-weight: bold; }
-    .xp-cero, .xp-nd, .xp-vacio { color: var(--opg-gris-texto); }
-    .xp-vacio { text-align: center; padding: 18px 10px; }
-    .xp-tabla-caja { overflow-x: auto; }
+    .xp-tabla .xp-ranking-col.xp-num { text-align: center; }
+    a.xp-orden:link, a.xp-orden:visited { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 7px 10px; color: #fff; text-decoration: none; }
+    a.xp-orden:hover { background: rgba(255, 255, 255, .12); }
+    a.xp-orden--activo:link, a.xp-orden--activo:visited { background: var(--opg-naranja-accion); }
+    a.xp-usuario:link, a.xp-usuario:visited { color: var(--opg-morado-texto); font-family: InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    a.xp-usuario:hover { text-decoration: underline; }
+    .xp-uid { display: inline-block; margin-left: 4px; color: var(--opg-gris-texto); font-size: 9px; white-space: nowrap; }
+    .xp-ranking { display: inline-block; min-width: 34px; padding: 2px 5px; border: 1px solid rgba(0, 0, 0, .3); border-radius: 4px; background: rgba(255, 255, 255, .58); color: var(--opg-ciruela); font-family: InterMedium, var(--opg-fuente-cuerpo); }
+    .xp-variacion { display: inline-block; min-width: 58px; padding: 2px 6px; border: 1px solid currentColor; border-radius: 4px; text-align: center; font-family: InterMedium, var(--opg-fuente-cuerpo); }
+    .xp-pos { color: #176b34; background: #e3f5e9; }
+    .xp-neg { color: #a3180b; background: #fde8e5; }
+    .xp-cero { color: var(--opg-gris-texto); background: rgba(255, 255, 255, .55); }
+    .xp-nd { min-width: 0; border-color: transparent; color: var(--opg-gris-texto); background: transparent; font-style: italic; }
+    .xp-vacio { padding: 30px 12px !important; text-align: center; color: var(--opg-gris-texto); }
+    .xp-vacio i, .xp-vacio strong, .xp-vacio span { display: block; }
+    .xp-vacio i { margin-bottom: 7px; color: var(--opg-morado-texto); font-size: 22px; }
+    .xp-vacio strong { margin-bottom: 3px; color: var(--opg-ciruela); font-family: InterMedium, var(--opg-fuente-cuerpo); }
+    .xp-listado__pie { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 8px 0 0; color: var(--opg-gris-texto); font: 10px/1.4 var(--opg-fuente-cuerpo); }
+    .xp-listado__pie span { display: inline-flex; align-items: center; gap: 5px; }
+    @media (max-width: 700px) {
+        .xp-snapshot .mainBackground, .xp-snapshot .secondBackground, .xp-snapshot .thirdBackground { width: 100%; min-width: 0; padding-inline: 8px; }
+        .xp-cabecera { align-items: flex-start; }
+        .xp-cabecera__icono { flex-basis: 40px; width: 40px; height: 40px; }
+        .xp-cabecera h1 { font-size: 20px; }
+        .xp-cabecera .opg-volver { flex-basis: 100%; margin-left: 0; text-align: center; }
+        .xp-filtro, .xp-campo { width: 100%; }
+        .xp-campo select { width: 100%; }
+        .xp-filtro .btn-op { flex: 0 0 auto; }
+        .xp-metricas { grid-template-columns: 1fr; }
+        .xp-metrica + .xp-metrica { border-top: 1px solid rgba(0, 0, 0, .25); border-left: 0; }
+    }
     </style>
 </head>
-
 <body>
     {$header}
     <div class="indice xp-snapshot">
     <div class="mainBackground">
     <div class="secondBackground">
-    <div class="thirdBackground">
-
-        <div><a class="opg-volver" href="/op/staff/consola_mod.php">&larr; Consola</a></div>
-
-        <div>
-            <div class="barra-op bbox xp-titulo"><span class="barra-texto-op">Snapshot de XP</span></div>
-            <div class="barra-espacio-op bbox xp-descripcion">
-                Experiencia (newpoints) de quienes han posteado en la zona de rol en las últimas 2 semanas. Se guarda una foto al día y se compara contra días anteriores. "n/d" significa que aún no hay una foto tan antigua para ese usuario.
+    <main class="thirdBackground">
+        <header class="xp-cabecera">
+            <span class="xp-cabecera__icono" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span>
+            <div class="xp-cabecera__texto">
+                <h1>Snapshot de XP</h1>
+                <p>Seguimiento diario de la experiencia obtenida por personajes activos en rol.</p>
             </div>
-        </div>
-
-        <div>
-            <form class="barra-espacio-op bbox xp-filtros" method="get">
-                <label for="xp-fecha">Día</label>
-                <select id="xp-fecha" name="fecha" onchange="this.form.submit()">{$selector_fecha}</select>
+            <a class="opg-volver" href="/op/staff/consola_mod.php"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Consola de staff</a>
+        </header>
+        <section class="xp-herramientas" aria-label="Fecha del informe">
+            <form class="xp-filtro" method="get">
+                <div class="xp-campo">
+                    <label for="xp-fecha">Fecha del snapshot</label>
+                    <select id="xp-fecha" name="fecha"{$xp_selector_disabled}>{$selector_fecha}</select>
+                </div>
                 <input type="hidden" name="orden" value="{$xp_orden}">
                 <input type="hidden" name="dir" value="{$xp_dir}">
-                <span>{$xp_resumen}</span>
+                <button class="btn-op btn-op--sm btn-op--primario" type="submit"{$xp_selector_disabled}><i class="fa-solid fa-filter" aria-hidden="true"></i> Ver</button>
             </form>
-        </div>
-
-        <div class="xp-tabla-caja">
-            <table class="xp-tabla">
-                <thead><tr>{$encabezados}</tr></thead>
-                <tbody>{$xp_filas}</tbody>
-            </table>
-        </div>
-
+            <p class="xp-herramientas__ayuda">Cada snapshot compara la XP actual con la captura disponible más cercana a 1, 3, 7 y 14 días antes. “n/d” indica que todavía no existe una captura anterior comparable.</p>
+        </section>
+        <section class="xp-metricas" aria-label="Resumen del snapshot">
+            <div class="xp-metrica"><i class="fa-solid fa-user-group" aria-hidden="true"></i><div><span>Personajes activos</span><strong>{$xp_total_usuarios}</strong></div></div>
+            <div class="xp-metrica"><i class="fa-solid fa-bolt" aria-hidden="true"></i><div><span>Balance XP · 7 días</span><strong>{$xp_total_ganada_7}</strong></div></div>
+            <div class="xp-metrica"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><div><span>Días de historial</span><strong>{$xp_total_fechas}</strong></div></div>
+        </section>
+        <p class="xp-tarea xp-tarea--{$xp_tarea_estado}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>{$xp_frecuencia}</span></p>
+        <section class="xp-listado" aria-labelledby="xp-listado-titulo">
+            <header class="xp-listado__cabecera">
+                <h2 id="xp-listado-titulo">Actividad por personaje</h2>
+                <p>{$xp_resumen}</p>
+            </header>
+            <div class="xp-tabla-caja" tabindex="0" aria-label="Tabla desplazable de actividad y experiencia">
+                <table class="xp-tabla">
+                    <caption class="xp-sr-only">Ranking, experiencia y variación de XP por personaje para el {$xp_fecha_legible}</caption>
+                    <thead><tr>{$encabezados}</tr></thead>
+                    <tbody>{$xp_filas}</tbody>
+                </table>
+            </div>
+            <p class="xp-listado__pie"><span><i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Ganancia de XP</span><span><i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Reducción o ajuste</span><span><i class="fa-solid fa-sort" aria-hidden="true"></i> Pulsa un encabezado para ordenar</span></p>
+        </section>
+    </main>
     </div>
     </div>
     </div>
-    </div>
+    {$footer}
 </body>
-
 </html>

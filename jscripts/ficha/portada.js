@@ -29,7 +29,7 @@
         var key    = npcs_array_json[i];
         var keyNum = FICHA.getNumericPrefix(key);
         if (keyNum !== String(query_uid)) continue;
-        $('#npcs_acompanantes').append(`<a href="/op/compas.php?npc_id=${npcs.npc_id}" target="_blank"><div class="npcBox npcItemBio" style="position:relative;background-size:cover;background:url(${npcs.avatar1});border:3px solid #8062d6;margin-right:10px;display:inline-block;"><div class="clipBox" style="background-color:#8062d6;"></div><div style="text-align:center;transform:rotate(349deg);"><span class="npcName">${npcs.nombre}</span></div></div></a>`);
+        $('#npcs_acompanantes').append(`<a href="/op/compas.php?npc_id=${npcs.npc_id}" target="_blank"><div class="npcBox npcItemBio" style="position:relative;background:url(${npcs.avatar1});background-size: cover; background-position: center; background-repeat: no-repeat;border:3px solid #8062d6;margin-right:10px;display:inline-block;"><div class="clipBox" style="background-color:#8062d6;"></div><div style="text-align:center;transform:rotate(349deg);"><span class="npcName">${npcs.nombre}</span></div></div></a>`);
       }
     }
     for (var j = 0; j < mascotas_array_json.length; j++) {
@@ -37,7 +37,7 @@
       var mkey     = mascotas_array_json[j];
       var mkeyNum  = FICHA.getNumericPrefix(mkey);
       if (mkeyNum !== String(query_uid)) continue;
-      $('#npcs_acompanantes').append(`<a href="/op/compas.php?npc_id=${mascotas.npc_id}" target="_blank"><div class="npcBox npcItemBio" style="position:relative;background-size:cover;background:url(${mascotas.avatar1});border:3px solid #ff5900;margin-right:10px;display:inline-block;"><div class="clipBox" style="background-color:#ff5900;"></div><div style="text-align:center;transform:rotate(349deg);"><span class="npcName">${mascotas.nombre}</span></div></div></a>`);
+      $('#npcs_acompanantes').append(`<a href="/op/compas.php?npc_id=${mascotas.npc_id}" target="_blank"><div class="npcBox npcItemBio" style="position:relative;background:url(${mascotas.avatar1});background-size: cover; background-position: center; background-repeat: no-repeat;border:3px solid #ff5900;margin-right:10px;display:inline-block;"><div class="clipBox" style="background-color:#ff5900;"></div><div style="text-align:center;transform:rotate(349deg);"><span class="npcName">${mascotas.nombre}</span></div></div></a>`);
     }
     if ((typeof npcs_array_json === 'undefined' || npcs_array_json.length === 0) &&
         (typeof mascotas_array_json === 'undefined' || mascotas_array_json.length === 0)) {
@@ -135,6 +135,17 @@
     return { puntos_oficio: m ? parseInt(m[3]) : 0, before: m ? parseInt(m[1]) : 0, after: m ? parseInt(m[2]) : 0 };
   }
 
+  // Descripción de una fila del historial. Las de aventura ([Aventura][...]) enlazan el tema que las generó.
+  function descripcionHistorial(categoria, input) {
+    if (String(categoria).indexOf('[Aventura]') === 0) {
+      var t = String(input).match(/tema #(\d+)/);
+      var p = String(input).match(/Aventura #(\d+)/);
+      var texto = 'Recompensa de aventura' + (p ? ' #' + p[1] : '');
+      return t ? texto + ' · <a target="_blank" href="/showthread.php?tid=' + t[1] + '">tema #' + t[1] + '</a>' : texto;
+    }
+    return categoria;
+  }
+
   function parseHistorialKuros(input, categoria) {
     if (categoria == '[Post]') {
       var threadMatch = input.match(/\[\s*(\d*)\s*\|\|\|\s*(.*?)\s*\]/);
@@ -148,7 +159,7 @@
         : `Post en tema <a target="_blank" href="/showthread.php?tid=${thread}">${title}</a>.`;
       return Object.assign({ descripcion: descripcion }, extractKurosPost(input));
     }
-    return Object.assign({ descripcion: categoria }, extractKuros(input));
+    return Object.assign({ descripcion: descripcionHistorial(categoria, input) }, extractKuros(input));
   }
 
   function parseHistorialExperiencia(input, categoria) {
@@ -165,11 +176,11 @@
       return Object.assign({ descripcion: descripcion }, extractExperienciaPost(input));
     }
     if (categoria == '[Modificación de experiencia]') return Object.assign({ descripcion: 'Modificación de atributos' }, extractExperiencia(input));
-    return Object.assign({ descripcion: categoria }, extractExperiencia(input));
+    return Object.assign({ descripcion: descripcionHistorial(categoria, input) }, extractExperiencia(input));
   }
 
-  function parseHistorialNikas(input, categoria)        { return Object.assign({ descripcion: categoria }, extractNikas(input)); }
-  function parseHistorialBerries(input, categoria)      { return Object.assign({ descripcion: categoria }, extractBerries(input)); }
+  function parseHistorialNikas(input, categoria)        { return Object.assign({ descripcion: descripcionHistorial(categoria, input) }, extractNikas(input)); }
+  function parseHistorialBerries(input, categoria)      { return Object.assign({ descripcion: descripcionHistorial(categoria, input) }, extractBerries(input)); }
   function parseHistorialPuntosOficio(input, categoria) { return Object.assign({ descripcion: categoria }, extractPuntosOficio(input)); }
 
   function cargarHistorialKuros() {

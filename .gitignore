@@ -1,7 +1,9 @@
 error_log
 *.log
 *.bak
-images/op/
+images/op/*
+!images/op/halloween2026/
+!images/op/halloween2026/**
 uploads/
 inc/plugins/logs/
 admin/backups/

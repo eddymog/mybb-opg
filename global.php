@@ -629,8 +629,6 @@ $g_creaciones_completo       = false;
 $g_creaciones_en_curso       = false;
 $g_entrenamiento_completo    = false;
 $g_entrenamiento_en_curso    = false;
-$g_entrenamiento_tecnica_completo = false;
-$g_entrenamiento_tecnica_en_curso = false;
 $g_oficio_completo           = false;
 $g_oficio_en_curso           = false;
 $g_recompensa_completa       = false;
@@ -645,7 +643,6 @@ $g_enable_hentai = 0;
 $g_sabiasque = null;
 
 $tiempo_entreno = 0;
-$tiempo_tecnicas = 0;
 $tiempo_crafteo = 0;
 $tiempo_oficio = 0;
 $tiempo_creaciones = 0;
@@ -758,27 +755,6 @@ if ($g_uid != 0) {
 				$g_oficio_completo = true;
 			} else {
 				$g_oficio_en_curso = true;
-			}
-		}
-
-		$g_query_user_tecnicas = $db->query("
-			SELECT * FROM mybb_op_tecnicas_usuarios WHERE uid='$g_uid'
-		");
-
-		while ($e = $db->fetch_array($g_query_user_tecnicas)) {
-			$efecto = 1;
-			$time_now = time();
-			
-			$tecnica_duracion = intval($e['duracion']);
-			$extra_time = $tecnica_duracion - ($tecnica_duracion * (1 / $efecto)); 
-
-			$tiempo_tecnicas = intval($e['tiempo_finaliza'] - $extra_time) * 1000;
-			$tid = $e['tid'] ?? null;
-
-			if (time() > (intval($e['tiempo_finaliza']) - $extra_time)) {
-				$g_entrenamiento_tecnica_completo = true;
-			} else {
-				$g_entrenamiento_tecnica_en_curso = true;
 			}
 		}
 

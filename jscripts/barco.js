@@ -1920,6 +1920,8 @@
     if (navPct > 0) { horas = Math.max(1, Math.round(horas * (1 - navPct / 100))); }
     if (mapaHorasReduccion    > 0) { horas = Math.max(1, horas - mapaHorasReduccion); }
     if (brujulaHorasReduccion > 0) { horas = Math.max(1, horas - brujulaHorasReduccion); }
+    // Tope de la guía: ningún viaje se reduce más del 80% del tiempo base
+    horas = Math.max(horas, Math.max(1, Math.ceil(resp.horasBase * 0.2)));
 
     var horasEl = document.getElementById('bvi-horas-display');
     if (horasEl) { horasEl.textContent = horas + ' h'; }
@@ -1963,8 +1965,8 @@
     if (resp.maxTimonel >= 1)    navOptions += '<option value="20">Timonel Nv 1 (\u221220%)</option>';
     if (resp.maxTimonel >= 2)    navOptions += '<option value="30">Timonel Nv 2 (\u221230%)</option>';
     if (resp.maxTimonel >= 3)    navOptions += '<option value="40">Timonel Nv 3 (\u221240%)</option>';
-    if (resp.maxNavegante >= 5)  navOptions += '<option value="50">Navegante M\u00e1ximo (\u221250%)</option>';
-    var selNav = (resp.maxNavegante >= 5) ? 50 : (resp.maxTimonel >= 3) ? 40 : (resp.maxTimonel >= 2) ? 30 : (resp.maxTimonel >= 1) ? 20 : (resp.maxNavegante >= 2) ? 5 : 0;
+    if (resp.oficialDerrota)     navOptions += '<option value="50">Oficial de Derrota (\u221250%)</option>';
+    var selNav = resp.porcentajeOficio || 0;
 
     // Maps options
     var mapaOpts = '<option value="" data-bonus="0" data-horas="0">Sin mapa</option>';

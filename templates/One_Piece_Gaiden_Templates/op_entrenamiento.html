@@ -22,6 +22,15 @@
 			font-family: InterRegular !important;
 		}
 		
+		.entreno-aviso {
+			box-sizing: border-box; max-width: 996px; margin: 0 auto 12px; padding: 10px 14px; border: 2px solid #000; border-radius: 10px; color: #fff; font-family: InterRegular; font-size: 15px; text-shadow: 1px 1px 1px #000; box-shadow: 4px 4px 0 #000;
+		}
+		.entreno-aviso-ok { background: var(--opg-verde-exito, #27ae60); }
+		.entreno-aviso-err { background: var(--opg-rojo-error, #dc3545); }
+		.entreno-desglose {
+			margin-top: 10px; text-align: center; font-family: InterRegular; font-size: 13px; color: var(--opg-marron, #3b1300);
+		}
+
 		.entreno-button:hover {
 			background-color: #df7416 !important;
 		}
@@ -37,17 +46,19 @@
 		<div class="mainBackground">
 			<div class="secondBackground">
 				<div class="thirdBackground">
+					{$aviso_html}
 					<div style="margin-bottom: 10px;">
 						<img src="/images/op/uploads/EntrenamientoIntensivo_One_Piece_Gaiden_Foro_Rol.jpg" />
 					</div>
 					<div style="display: none">
 						<form id="form" method="post" action="entrenamiento.php">
+								<input type="hidden" name="my_post_key" value="{$mybb->post_code}">
 							<input type="text" name="entrenar" id="entrenar" value="1">
 						</form>
 					</div>
 					<div class="poneglyph">
 						<div style=" margin: 0 auto; ">
-							<div class="texto-top">Este entrenamiento durará {$horas} horas.<br>Obtendrás {$experiencia} puntos de experiencia.</div>
+							<div class="texto-top">Este entrenamiento durará {$horas} horas.<br>Obtendrás {$experiencia_txt} puntos de experiencia.</div>
 							<div><img style="border: 2px solid black; " src="/images/op/uploads/EntrenamientoComenzar_One_Piece_Gaiden_Foro_Rol.gif" /></div>
 <!-- 							<div style=" text-align: center;margin-top: 10px; "><button class="entreno-button">Comenzar Entrenamiento</button></div> -->
 							<div style=" text-align: center;margin-top: 12px; ">
@@ -56,11 +67,11 @@
 						</div>
 						
 					</div>
+					<div class="entreno-desglose">{$desglose_html}</div>
 				</div>
 			</div>
 		 </div>
 	  </div>
-	<if $log_var !='' then><script>alert(`{$log_var}`);</script></if>
     {$reload_script}
     {$footer}
 </body>

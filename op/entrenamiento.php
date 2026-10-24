@@ -15,12 +15,36 @@ require_once "./functions/op_functions.php";
 
 global $templates, $mybb;
 
+define('ENTRENO_MSG_COOKIE', 'entrenamiento_msg');
+
+/** HTML del aviso de resultado (tipo 'ok' o 'err'); el texto se escapa aqui. */
+function entreno_aviso_html($tipo, $texto)
+{
+    return '<div class="entreno-aviso entreno-aviso-' . ($tipo === 'ok' ? 'ok' : 'err') . '" role="status">'
+        . htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8') . '</div>';
+}
+
+/** Numero para mostrar: siempre con dos decimales (18.13), como se guarda en la base de datos. */
+function entreno_num($n)
+{
+    return number_format((float) $n, 2, '.', '');
+}
+
 $entrenar = $_POST["entrenar"];
 $cancelar = $_POST["cancelar"];
 $culminar = $_POST["culminar"];
 $reentrenar = !empty($_POST["reentrenar"]); // "Culminar y volver a entrenar"
 $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
+
+// Proteccion CSRF: todo envio de este formulario lleva my_post_key.
+if (($entrenar || $cancelar || $culminar) && !verify_post_check($mybb->get_input('my_post_key'), true)) {
+    $mensaje_redireccion = "La sesión ha caducado. Recarga la página e inténtalo de nuevo.";
+    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    output_page($page);
+    exit;
+}
+$aviso_pendiente = null; // resultado de culminar: se muestra tras redirigir (cookie de un solo uso)
 
 $tecnica_en_curso = false;
 $ficha = null;
@@ -52,6 +76,7 @@ while ($f = $db->fetch_array($query_ficha)) {
 
 $nivel = intval($ficha['nivel']);
 $experiencia = $nivel / 2;
+$desglose = array('Nivel ' . $nivel . ' ÷ 2 = ' . entreno_num($nivel / 2));
 $horas = 24;
 
 $has_intensivo = false; // V042
@@ -59,11 +84,16 @@ $has_intensivo = false; // V042
 $has_intensivo_query = $db->query(" SELECT * FROM `mybb_op_virtudes_usuarios` WHERE uid='$uid' AND virtud_id='V042'; "); 
 while ($q = $db->fetch_array($has_intensivo_query)) { $has_intensivo = true; }
 
-if ($ficha['raza'] == 'Kobito') { $experiencia = $experiencia * 1.1; }
+if ($ficha['raza'] == 'Kobito') { $experiencia = $experiencia * 1.1; $desglose[] = 'Kobito ×1.1'; }
 
 if ($has_intensivo) {
     $experiencia = $experiencia * 1.25;
+    $desglose[] = 'Entrenamiento Intensivo ×1.25';
 }
+// La experiencia se redondea a dos decimales al calcularla: lo que se muestra es exactamente lo que se paga.
+$experiencia = round($experiencia, 2);
+$experiencia_txt = entreno_num($experiencia);
+$desglose_html = htmlspecialchars(implode(' · ', $desglose) . ' = ' . entreno_num($experiencia) . ' de experiencia', ENT_QUOTES, 'UTF-8');
 
 if ($g_oficio_en_curso || $g_oficio_completo) {
     echo "<script>alert('¡Vaya! Parece que ya tienes un oficio activo, así que tendrás que esperar a terminarlo antes de realizar este entrenamiento. ¡GANBARE!'); window.location.href = './../index.php';</script>";
@@ -93,14 +123,18 @@ if ($culminar) {
     // El servidor decide si se puede culminar: tiene que existir el entrenamiento y haber terminado
     // (el formulario solo pide culminar, no demuestra que haya pasado el tiempo).
     // Se borra la fila ANTES de pagar: solo quien consigue borrarla cobra, asi un doble envio no paga dos veces.
-    if ($entreno && time() > intval($entreno['timestamp_end'])) {
+    if (!$entreno) {
+        $aviso_pendiente = array('tipo' => 'err', 'texto' => 'No tenías ningún entrenamiento para completar.');
+    } else if (time() <= intval($entreno['timestamp_end'])) {
+        $aviso_pendiente = array('tipo' => 'err', 'texto' => 'Tu entrenamiento aún no ha terminado.');
+    } else {
         $db->query("DELETE FROM mybb_op_entrenamientos_usuarios WHERE id='".intval($entreno['id'])."'");
         if ($db->affected_rows() > 0) {
             $culminado = true;
 
             $nombre = $db->escape_string($ficha['nombre']);
             $old_exp = $exp_usuario;
-            $new_exp = floatval($old_exp) + (floatval($entreno['recompensa']));
+            $new_exp = round(floatval($old_exp) + floatval($entreno['recompensa']), 2);
 
             log_audit_currency($uid, $username, $uid, '[Entrenamiento][Experiencia]', 'experiencia', $new_exp);
 
@@ -109,12 +143,11 @@ if ($culminar) {
                 ('$uid', '$nombre', '2', '$old_exp->$new_exp');
             ");
 
-            $log = "Entrenamiento finalizado. \nPuntos de experiencia: $old_exp->$new_exp\n";
-            eval('$log_var = $log;');
+            $aviso_pendiente = array('tipo' => 'ok', 'texto' => '¡Entrenamiento completado! Ganaste ' . entreno_num($entreno['recompensa']) . ' puntos de experiencia (' . entreno_num($old_exp) . ' → ' . entreno_num($new_exp) . ').');
+        } else {
+            $aviso_pendiente = array('tipo' => 'err', 'texto' => 'Ese entrenamiento ya se había completado.');
         }
     }
-
-    eval('$reload_script = $reload_js;');
 
     // "Culminar y volver a entrenar": tras cobrar, se inicia otro entrenamiento (con las mismas comprobaciones de $entrenar).
     if ($culminado && $reentrenar) {
@@ -132,14 +165,34 @@ if ($entrenar) {
         output_page($page);
         exit;
     }
-    $nombre = $ficha['nombre'];
+    $nombre = $db->escape_string($ficha['nombre']);
     $duracion = $horas * 3600; // en segundos
     // $duracion = '86400'; // en segundos
     $timestamp_end = $now + intval($duracion);
     $db->query("
         INSERT INTO `mybb_op_entrenamientos_usuarios` (`uid`,`nombre`,`timestamp_end`, `duracion`, `costo_pr`, `recompensa`) VALUES ('$uid','$nombre','$timestamp_end', '$duracion', '0', '$experiencia');
     ");
+    if ($aviso_pendiente !== null && $reentrenar) {
+        $aviso_pendiente['texto'] .= ' Ya empezaste otro entrenamiento.';
+    }
     eval('$reload_script = $reload_js;');
+}
+
+// Tras culminar: se guarda el resultado y se redirige (un F5 no reenvia el formulario).
+if ($aviso_pendiente !== null) {
+    my_setcookie(ENTRENO_MSG_COOKIE, base64_encode(json_encode($aviso_pendiente)), 15, true);
+    header('Location: entrenamiento.php');
+    exit;
+}
+
+// Aviso de resultado (viene de la cookie que dejo culminar antes de redirigir).
+$aviso_html = '';
+if (!empty($mybb->cookies[ENTRENO_MSG_COOKIE])) {
+    $aviso_cookie = json_decode(base64_decode($mybb->cookies[ENTRENO_MSG_COOKIE]), true);
+    if (is_array($aviso_cookie) && isset($aviso_cookie['tipo'], $aviso_cookie['texto'])) {
+        $aviso_html = entreno_aviso_html($aviso_cookie['tipo'], $aviso_cookie['texto']);
+    }
+    my_unsetcookie(ENTRENO_MSG_COOKIE);
 }
 
 if ($ficha_existe == true && $ficha_aprobada == true) {
@@ -160,10 +213,13 @@ if ($ficha_existe == true && $ficha_aprobada == true) {
         "));
 
         $recompensa = $m['recompensa'];
+        $recompensa_txt = entreno_num($recompensa);
         $entrenamiento_duracion = intval($m['duracion']); // <--- esto se saca de la base de
         $extra_time = $entrenamiento_duracion - ($entrenamiento_duracion * (1 / $efecto)); 
         $timestamp_end = intval($m['timestamp_end']);
         $tiempo_left = (($timestamp_end) - $extra_time) * 1000; // needed for template
+        $hora_servidor = time() * 1000; // el contador del navegador se ajusta a esta hora
+        $duracion_ms = intval(($entrenamiento_duracion / $efecto) * 1000); // duracion real, para el porcentaje de la barra
 
         if (time() > ($timestamp_end - $extra_time)) {
             $mision_completa = true;

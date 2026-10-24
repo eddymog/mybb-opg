@@ -58,9 +58,13 @@ limpiar();
 for ($i = 0; $i < 3; $i++) { ins(5, 8, 1, array(5)); }
 $cuarta = ins(5, 8, 0, array(5));
 $r = opg_av_cambiar_estado($cuarta, 1, 50);
-prueba('aprobar una cuarta solitaria se rechaza', array($r['ok'], $r['codigo']), array(false, 422));
-prueba('el rechazo por límite nombra al jugador', isset($r['excedidos'][0]['nombre']) && $r['excedidos'][0]['fid'] === 5, true);
-prueba('sigue en estado 0', estado_de($cuarta), 0);
+if (OPG_AV_LIMITES_ACTIVOS) {
+    prueba('aprobar una cuarta solitaria se rechaza', array($r['ok'], $r['codigo']), array(false, 422));
+    prueba('el rechazo por límite nombra al jugador', isset($r['excedidos'][0]['nombre']) && $r['excedidos'][0]['fid'] === 5, true);
+    prueba('sigue en estado 0', estado_de($cuarta), 0);
+} else {
+    prueba('sin límites: se aprueba una cuarta solitaria', array($r['ok'], estado_de($cuarta)), array(true, 1));
+}
 sql("DELETE FROM mybb_op_peticionAventuras WHERE id = $cuarta");
 $grupal = ins(5, 8, 0, array(5, 6));
 prueba('una grupal sí se aprueba con 3 solitarias', opg_av_cambiar_estado($grupal, 1, 50)['ok'], true);

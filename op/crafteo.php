@@ -308,7 +308,7 @@ function getTiempoCreacion($oficio) {
     $map = [
         'Cocinero' => 'Chef',      'Chef' => 'Chef',         'Aprovisionador' => 'Chef',
         'Artesano' => 'Herrero',   'Herrero' => 'Herrero',   'Modista' => 'Herrero',
-        'Médico'   => 'Farmacólogo','Doctor' => 'Farmacólogo','Farmacólogo' => 'Farmacólogo',
+        'Médico'   => 'Doctor',    'Doctor' => 'Doctor',     'Farmacólogo' => 'Doctor',
         'Carpintero'=> 'Constructor','Astillero'=> 'Constructor','Constructor'=> 'Constructor',
         'Inventor' => 'Ingeniero', 'Ingeniero'=> 'Ingeniero','Biólogo'  => 'Ingeniero',
     ];
@@ -321,7 +321,7 @@ function getBerriesCosto($oficio) {
     $map = [
         'Cocinero' => 'Aprovisionador','Chef' => 'Aprovisionador','Aprovisionador'=> 'Aprovisionador',
         'Artesano' => 'Modista',       'Herrero'=> 'Modista',     'Modista'  => 'Modista',
-        'Médico'   => 'Doctor',        'Doctor' => 'Doctor',      'Farmacólogo'=> 'Doctor',
+        'Médico'   => 'Farmacólogo',   'Doctor' => 'Farmacólogo', 'Farmacólogo'=> 'Farmacólogo',
         'Carpintero'=> 'Astillero',    'Astillero'=> 'Astillero', 'Constructor'=> 'Astillero',
         'Inventor' => 'Biólogo',       'Ingeniero'=> 'Biólogo',   'Biólogo'  => 'Biólogo',
     ];
@@ -331,10 +331,9 @@ function getBerriesCosto($oficio) {
 
 function getTiempoCreacionVirtud($has_estudioso, $has_erudito) {
   
-    if ($has_estudioso) {
+    // Estudioso y Erudito: -20% de tiempo (no se acumulan)
+    if ($has_estudioso || $has_erudito) {
         return 0.8;
-    } else if ($has_erudito) {
-        return 0.9; 
     } else {
         return 1.0;
     }
@@ -342,8 +341,9 @@ function getTiempoCreacionVirtud($has_estudioso, $has_erudito) {
 }
 
 function getRecolectorDescuento() {
+    // Recolector R1: -10%. Mayorista R2/R3 (-15%/-20%) lo sustituyen, no se acumulan.
     $descuentoRecolector = (getOficiosNiveles()['Recolector'] ?? 0) >= 1 ? 0.9 : 1.0;
-    return $descuentoRecolector * getMayoristaDescuentoBerries();
+    return min($descuentoRecolector, getMayoristaDescuentoBerries());
 }
 
 function getRecolectorNivel() {
@@ -362,7 +362,7 @@ function getMayoristaDescuentoBerries() {
     $nivel = getMayoristaNivel();
     if ($nivel == 3) return 0.80; // 20% de descuento
     if ($nivel == 2) return 0.85; // 15% de descuento
-    if ($nivel == 1) return 0.90; // 10% de descuento
+    // R1 no da descuento de coste propio: el -10% ya lo da Recolector R1
     return 1.0;
 }
 
@@ -593,13 +593,15 @@ if ($accion == 'craftear') {
         if ($tieneRecolector && $esRecetaRecolector) {
             $recolectorNivel = getRecolectorNivel();
             $agresteNivel = getAgresteNivel();
-            $cantidadMaxima = ($recolectorNivel >= 2) ? 2 : 1;
+            // Recolector R2 (2 unidades): solo recetas de Recolector.
+            // Agreste (3/5/10 unidades): recetas de Recolector, Agreste y Mayorista.
+            $cantidadMaxima = ($oficioObjeto === 'Recolector' && $recolectorNivel >= 2) ? 2 : 1;
             if ($agresteNivel == 3) {
                 $cantidadMaxima = 10;
             } else if ($agresteNivel == 2) {
-                $cantidadMaxima = 5;
+                $cantidadMaxima = max($cantidadMaxima, 5);
             } else if ($agresteNivel == 1) {
-                $cantidadMaxima = 3;
+                $cantidadMaxima = max($cantidadMaxima, 3);
             }
             $cantidadCraftear = isset($_POST['cantidadCraftear']) ? intval($_POST['cantidadCraftear']) : 1;
             if ($cantidadCraftear < 1) {
@@ -718,7 +720,7 @@ if ($accion == 'craftear') {
                 if (isset($npc_oficios->{'Artesano'}->{'sub'}->{'Modista'}) && $npc_oficios->{'Artesano'}->{'sub'}->{'Modista'} > $nivelMax) $nivelMax = $npc_oficios->{'Artesano'}->{'sub'}->{'Modista'};
             }
             if ($oficio == 'Médico' || $oficio == 'Doctor' || $oficio == 'Farmacólogo') {
-                if (isset($npc_oficios->{'Médico'}->{'sub'}->{'Doctor'}) && $npc_oficios->{'Médico'}->{'sub'}->{'Doctor'} > $nivelMax) $nivelMax = $npc_oficios->{'Médico'}->{'sub'}->{'Doctor'};
+                if (isset($npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'}) && $npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'} > $nivelMax) $nivelMax = $npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'};
             }
             if ($oficio == 'Carpintero' || $oficio == 'Astillero' || $oficio == 'Constructor') {
                 if (isset($npc_oficios->{'Carpintero'}->{'sub'}->{'Astillero'}) && $npc_oficios->{'Carpintero'}->{'sub'}->{'Astillero'} > $nivelMax) $nivelMax = $npc_oficios->{'Carpintero'}->{'sub'}->{'Astillero'};
@@ -741,7 +743,7 @@ if ($accion == 'craftear') {
                 if (isset($npc_oficios->{'Artesano'}->{'sub'}->{'Herrero'}) && $npc_oficios->{'Artesano'}->{'sub'}->{'Herrero'} > $nivelMax) $nivelMax = $npc_oficios->{'Artesano'}->{'sub'}->{'Herrero'};
             }
             if ($oficio == 'Médico' || $oficio == 'Doctor' || $oficio == 'Farmacólogo') {
-                if (isset($npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'}) && $npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'} > $nivelMax) $nivelMax = $npc_oficios->{'Médico'}->{'sub'}->{'Farmacólogo'};
+                if (isset($npc_oficios->{'Médico'}->{'sub'}->{'Doctor'}) && $npc_oficios->{'Médico'}->{'sub'}->{'Doctor'} > $nivelMax) $nivelMax = $npc_oficios->{'Médico'}->{'sub'}->{'Doctor'};
             }
             if ($oficio == 'Carpintero' || $oficio == 'Astillero' || $oficio == 'Constructor') {
                 if (isset($npc_oficios->{'Carpintero'}->{'sub'}->{'Constructor'}) && $npc_oficios->{'Carpintero'}->{'sub'}->{'Constructor'} > $nivelMax) $nivelMax = $npc_oficios->{'Carpintero'}->{'sub'}->{'Constructor'};

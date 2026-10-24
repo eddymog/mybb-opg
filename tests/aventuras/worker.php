@@ -45,7 +45,7 @@ switch ($accion) {
         $r = opg_av_cambiar_estado((int) $argv[2], 1, 50);
         break;
     case 'enviar':
-        $r = opg_ent_enviar((int) $argv[2], array('tema' => $argv[3], 'resumen' => 'x', 'reputacion' => 'positiva'), (int) $argv[4]);
+        $r = opg_ent_enviar((int) $argv[2], array('tema' => $argv[3], 'resumen' => 'x', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), (int) $argv[4]);
         break;
 }
 echo json_encode(array('ok' => !empty($r['ok']), 'codigo' => isset($r['codigo']) ? $r['codigo'] : 200));

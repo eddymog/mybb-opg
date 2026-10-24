@@ -9,7 +9,7 @@
 const OPG_XP_DIAS_ACTIVIDAD = 14;           // quien posteo en rol en los ultimos N dias entra al snapshot
 const OPG_XP_DIAS_HISTORIAL = 90;           // los snapshots mas viejos se borran
 const OPG_XP_FORO_ROL = '10,';              // parentlist de los foros de rol (igual que aventuras_entregas.php)
-const OPG_XP_VENTANAS = array(1, 7, 14);    // dias que compara la pagina
+const OPG_XP_VENTANAS = array(1, 3, 7, 14); // dias que compara la pagina
 
 function opg_xp_crear_tabla()
 {

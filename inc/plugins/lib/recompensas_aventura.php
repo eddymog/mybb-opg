@@ -234,10 +234,19 @@ function opg_rec_normalizar_ajustes($ajustes, $tier_por_defecto, $reputacion_por
                     $errores[] = 'La reputación debe ser positiva, negativa o ninguna.';
                 }
             }
+            $rol = null;
+            if (isset($d['rol']) && $d['rol'] !== '') {
+                if (in_array($d['rol'], array('jugador', 'narrador', 'principal'), true)) {
+                    $rol = $d['rol'];
+                } else {
+                    $errores[] = 'El rol debe ser jugador, narrador o narrador principal.';
+                }
+            }
             $dest[$uid] = array(
                 'incluir' => !isset($d['incluir']) || opg_av_verdadero($d['incluir']),
                 'variacion' => $var,
                 'rep' => $rep,
+                'rol' => $rol,
             );
         }
     }
@@ -314,7 +323,8 @@ function opg_rec_nivel_narrador($ficha)
  * Devuelve las cantidades, los incrementos de ficha (relativos, como hoy), la
  * experiencia para mybb_users y el texto del log.
  */
-function opg_rec_calcular_narrador($ficha, $porcentaje, $tier, $exp_mensual_actual)
+/** $con_cofre: solo el narrador principal recibe los cofres; los demás narradores cobran el resto sin cofre. */
+function opg_rec_calcular_narrador($ficha, $porcentaje, $tier, $exp_mensual_actual, $con_cofre = true)
 {
     list($nivel, $conocido) = opg_rec_nivel_narrador($ficha);
     $base = OPG_REC_NARRADOR[$nivel][$tier];
@@ -345,8 +355,8 @@ function opg_rec_calcular_narrador($ficha, $porcentaje, $tier, $exp_mensual_actu
         'excedente' => (int) $excedente,
         'kuros' => $kuros,
         'nikas' => $nikas,
-        'cofre' => $base['cofre'],
-        'cofre_cantidad' => (int) $base['cofre_cantidad'],
+        'cofre' => $con_cofre ? $base['cofre'] : '',
+        'cofre_cantidad' => $con_cofre ? (int) $base['cofre_cantidad'] : 0,
         'exp_mensual_antes' => $exp_mensual_actual,
         'exp_mensual_despues' => $exp_mensual_actual + $exp_a_entregar,
         'sets_ficha' => $sets,
@@ -356,7 +366,7 @@ function opg_rec_calcular_narrador($ficha, $porcentaje, $tier, $exp_mensual_actu
 
 /**
  * Recompensas de un jugador. Oficios: Contrabandista (nivel 0 a 3 multiplica
- * las berries por 1,25, 1,50, 1,75 o 2,00) y Arqueólogo (nivel 1: x1,10 de
+ * las berries por 1,50, 1,75 o 2,00; Mercader de rango 2 o más: 1,25) y Arqueólogo (nivel 1: x1,10 de
  * experiencia; nivel 2: +1 nika). Inframundo multiplica las berries por 1,25.
  */
 function opg_rec_calcular_jugador($ficha, $porcentaje, $tier, $infra, $rep_tipo)
@@ -365,15 +375,17 @@ function opg_rec_calcular_jugador($ficha, $porcentaje, $tier, $infra, $rep_tipo)
     $oficios = (isset($ficha['oficios']) && $ficha['oficios'] !== '' && $ficha['oficios'] !== null) ? json_decode((string) $ficha['oficios'], true) : null;
     $oficios = is_array($oficios) ? $oficios : array();
 
+    // Mercader R2 (base): +25%. Contrabandista R1/R2/R3: +50%/+75%/+100% (no se acumulan).
     $nivel_contra = -1;
+    $nivel_mercader = (isset($oficios['Mercader']['nivel']) && is_numeric($oficios['Mercader']['nivel'])) ? (int) $oficios['Mercader']['nivel'] : 0;
     if (isset($oficios['Mercader']['sub']['Contrabandista']) && is_numeric($oficios['Mercader']['sub']['Contrabandista'])) {
         $nivel_contra = (int) $oficios['Mercader']['sub']['Contrabandista'];
     }
     $mult_contra = 1;
-    if ($nivel_contra === 0) { $mult_contra = 1.25; }
-    elseif ($nivel_contra === 1) { $mult_contra = 1.50; }
+    if ($nivel_contra === 1) { $mult_contra = 1.50; }
     elseif ($nivel_contra === 2) { $mult_contra = 1.75; }
-    elseif ($nivel_contra === 3) { $mult_contra = 2.00; }
+    elseif ($nivel_contra >= 3) { $mult_contra = 2.00; }
+    elseif ($nivel_mercader >= 2 && $nivel_contra >= 0) { $mult_contra = 1.25; }
 
     $nivel_arq = -1;
     if (isset($oficios['Investigador']['sub']['Arqueólogo']) && is_numeric($oficios['Investigador']['sub']['Arqueólogo'])) {
@@ -381,9 +393,9 @@ function opg_rec_calcular_jugador($ficha, $porcentaje, $tier, $infra, $rep_tipo)
     }
     $arq_xp = 1;
     $arq_nikas = 0;
-    if ($nivel_arq === 0) { $arq_xp = 1.00; }
-    elseif ($nivel_arq === 1) { $arq_xp = 1.10; }
-    elseif ($nivel_arq === 2) { $arq_nikas = 1; }
+    // Los bonos se acumulan: R1 +10% XP, R2 mantiene el XP y suma +1 Nika, R3 mantiene ambos
+    if ($nivel_arq >= 1) { $arq_xp = 1.10; }
+    if ($nivel_arq >= 2) { $arq_nikas = 1; }
 
     $exp = (int) round($base['experiencia'] * (($porcentaje * $arq_xp) / 100));
     $nikas = (int) round(($base['nikas'] + $arq_nikas) * (($porcentaje) / 100));
@@ -428,6 +440,42 @@ function opg_rec_calcular_jugador($ficha, $porcentaje, $tier, $infra, $rep_tipo)
 }
 
 // ── Reinicio mensual del tope de experiencia ───────────────────────────────
+
+/**
+ * Experiencia de narrador de un personaje este mes, para mostrarla en el tablón: acumulada, tope, lo que le queda
+ * y cuándo se reinicia. El reinicio real es perezoso (ocurre al pagar la primera entrega del mes nuevo), así que
+ * si el último reinicio guardado no es el de este mes (zona Europe/Madrid) lo acumulado se muestra como 0.
+ * Devuelve null si el personaje no tiene nada que ver con narrar.
+ */
+function opg_rec_exp_narrador_mensual($fid)
+{
+    $fid = (int) $fid;
+    if ($fid <= 0) {
+        return null;
+    }
+    $f = opg_av_uno('SELECT nivelnarrador, expNarradorMensualActual FROM ' . opg_av_t('op_fichas') . ' WHERE fid = ' . $fid . ' LIMIT 1');
+    if (!$f) {
+        return null;
+    }
+    $nivel = trim((string) $f['nivelnarrador']);
+    $guardada = (float) $f['expNarradorMensualActual'];
+    if ($nivel === '' && $guardada <= 0 && !is_narra($fid)) {
+        return null;
+    }
+    $ahora = new DateTime('now', new DateTimeZone('Europe/Madrid'));
+    $ultimo = opg_av_uno('SELECT value FROM ' . opg_av_t('settings') . " WHERE name = 'exp_narrador_ultimo_reset' LIMIT 1");
+    $vigente = !$ultimo || (string) $ultimo['value'] === $ahora->format('Y-m');
+    $exp = $vigente ? $guardada : 0.0;
+    $meses = array(1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril', 5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto', 9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre');
+    $proximo = (clone $ahora)->modify('first day of next month');
+    return array(
+        'nivel' => $nivel,
+        'exp' => $exp,
+        'limite' => OPG_REC_EXP_NARRADOR_MENSUAL,
+        'restante' => max(0, OPG_REC_EXP_NARRADOR_MENSUAL - $exp),
+        'reinicio' => '1 de ' . $meses[(int) $proximo->format('n')],
+    );
+}
 
 /**
  * Como hoy: si el mes (zona Europe/Madrid) difiere del último reinicio guardado en
@@ -536,7 +584,9 @@ function opg_rec_mensaje_resumen($datos)
                 $m .= "[*][b]Exp mensual:[/b] " . $c['exp_mensual_despues'] . " / " . OPG_REC_EXP_NARRADOR_MENSUAL . "\n";
             }
             $m .= "[*][b]Nikas:[/b] +{$c['nikas']} NK\n";
-            $m .= "[*][b]Cofres:[/b] {$c['cofre_cantidad']}x {$c['cofre']}\n";
+            if (!empty($c['cofre_cantidad'])) {
+                $m .= "[*][b]Cofres:[/b] {$c['cofre_cantidad']}x {$c['cofre']}\n";
+            }
             $m .= "[/list]\n\n";
             $m .= "[b]Bonificaciones:[/b]\n";
             $m .= "[list]\n";
@@ -574,32 +624,31 @@ function opg_rec_mensaje_resumen($datos)
             $m .= "[*][b]Experiencia:[/b] +{$c['experiencia']} EXP\n";
             $m .= "[*][b]Nikas:[/b] +{$c['nikas']} NK\n";
             $m .= "[*][b]Reputación {$txt}:[/b] +{$c['reputacion']} REP\n";
-            if ($c['infra'] && $c['nivel_contrabandista'] > -1) {
+            if ($c['infra'] && $c['mult_contrabandista'] > 1) {
                 $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']} + Inframundo 25%)\n";
             } elseif ($c['infra']) {
                 $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Bono inframundo 25%)\n";
-            } elseif ($c['nivel_contrabandista'] > -1) {
+            } elseif ($c['mult_contrabandista'] > 1) {
                 $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries (Base: {$c['berries_base']} + Contrabandista x{$c['mult_contrabandista']})\n";
             } else {
                 $m .= "[*][b]Berries:[/b] +{$c['berries']} Berries\n";
             }
             $m .= "[/list]\n\n";
-            if ($j['variacion'] != 0 || $c['nivel_contrabandista'] > -1 || $c['nivel_arqueologo'] > -1) {
+            if ($j['variacion'] != 0 || $c['mult_contrabandista'] > 1 || $c['mult_xp_arqueologo'] > 1 || $c['nikas_extra_arqueologo'] > 0) {
                 $signo = $j['variacion'] > 0 ? '+' : '';
                 $m .= "[b]Bonificaciones:[/b]\n";
                 $m .= "[list]\n";
                 if ($j['variacion'] != 0) {
                     $m .= "[*][b]Variación de post:[/b] {$signo}{$j['variacion']}%\n";
                 }
-                if ($c['nivel_contrabandista'] > -1) {
+                if ($c['mult_contrabandista'] > 1) {
                     $m .= "[*][b]Contrabandista (Nivel {$c['nivel_contrabandista']}):[/b] x{$c['mult_contrabandista']} berries\n";
                 }
-                if ($c['nivel_arqueologo'] > -1) {
-                    if ($c['nikas_extra_arqueologo'] > 0) {
-                        $m .= "[*][b]Arqueologo (Nivel {$c['nivel_arqueologo']}):[/b] +{$c['nikas_extra_arqueologo']} nika extra\n";
-                    } else {
-                        $m .= "[*][b]Arqueologo (Nivel {$c['nivel_arqueologo']}):[/b] x{$c['mult_xp_arqueologo']} XP\n";
-                    }
+                if ($c['mult_xp_arqueologo'] > 1) {
+                    $m .= "[*][b]Arqueologo (Nivel {$c['nivel_arqueologo']}):[/b] x{$c['mult_xp_arqueologo']} XP\n";
+                }
+                if ($c['nikas_extra_arqueologo'] > 0) {
+                    $m .= "[*][b]Arqueologo (Nivel {$c['nivel_arqueologo']}):[/b] +{$c['nikas_extra_arqueologo']} nika extra\n";
                 }
                 $m .= "[*][b]Porcentaje total aplicado:[/b] {$c['porcentaje']}%\n";
                 $m .= "[/list]";

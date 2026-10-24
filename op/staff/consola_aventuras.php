@@ -26,7 +26,7 @@ require_once MYBB_ROOT . 'inc/plugins/lib/aventuras_vistas_consola.php';
 global $mybb, $db, $templates, $headerinclude, $header, $footer;
 $uid = (int) $mybb->user['uid'];
 
-$ACCIONES_GET = array('tab', 'listar', 'entregas', 'narradores', 'buscar_personas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'form_retirar_oferta');
+$ACCIONES_GET = array('tab', 'listar', 'entregas', 'narradores', 'buscar_personas', 'form_denegar', 'form_editar', 'historial', 'cerrar', 'buscar_islas', 'elegir_isla', 'quitar_isla', 'form_retirar_oferta');
 $ACCIONES_POST = array('cambiar_estado', 'actualizar_datos', 'eliminar', 'retirar_oferta', 'pagar_autonarrada');
 
 // ── Utilidades de respuesta ──────────────────────────────────────────────────
@@ -334,8 +334,12 @@ switch ($accion) {
         ca_responder(opg_av_v_c_resultados_islas(opg_av_islas_buscar(ca_in('q')), $id));
 
     case 'elegir_isla':
+        // Con isla válida el campo queda solo con el chip; con una inválida vuelve el buscador.
         $isla = opg_av_isla_valida((int) ca_in('fid'));
-        ca_responder($isla ? opg_av_v_c_slot_isla($isla, $id) : '');
+        ca_responder(opg_av_v_c_campo_isla($isla ? $isla : null, $id));
+
+    case 'quitar_isla':
+        ca_responder(opg_av_v_c_campo_isla(null, $id));
 
     case 'historial':
         ca_av($id);

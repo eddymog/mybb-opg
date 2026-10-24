@@ -77,6 +77,10 @@
         form.querySelectorAll('.ta-normal-only input, .ta-normal-only select, .ta-normal-only textarea, .ta-normal-only button').forEach(function (control) {
             control.disabled = !!auto;
         });
+        // Año y estación solo se envían en las crónicas autonarradas.
+        form.querySelectorAll('.ta-auto-only input, .ta-auto-only select').forEach(function (control) {
+            control.disabled = !auto;
+        });
     }
 
     function prepararTipos(root) {
@@ -181,6 +185,20 @@
     });
     document.addEventListener('aventuraCreada', invalidarCache);
     document.addEventListener('aventuraCambiada', invalidarCache);
+    // Enlaces ?id=N (por ejemplo desde Novedades): lleva la vista a la solicitud resaltada.
+    function mostrarResaltada() {
+        var tarjeta = document.querySelector('.ta-resaltada');
+        if (!tarjeta) {
+            return;
+        }
+        var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        tarjeta.scrollIntoView({ block: 'center', behavior: reducir ? 'auto' : 'smooth' });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mostrarResaltada);
+    } else {
+        mostrarResaltada();
+    }
     guardarTab(tabActiva());
     prepararTipos(document);
 }());

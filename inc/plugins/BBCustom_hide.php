@@ -102,7 +102,7 @@ function BBCustom_hide_run(&$post)
         $show_hide = $hide['show_hide'];
         
         // Determinar si el usuario puede ver el contenido
-        $can_see = ($is_author || $is_closed || $show_hide);
+        $can_see = ($is_author || $show_hide);
 
         if (!$can_see) {
             // Si el usuario NO tiene permiso, eliminar el hide completamente incluyendo <br> alrededor
@@ -111,7 +111,7 @@ function BBCustom_hide_run(&$post)
         }
 
         // El usuario tiene permiso - generar el contenido
-        $content_visible = ($is_closed || $show_hide);
+        $content_visible = ($show_hide);
         
         if ($content_visible) {
             // Mostrar el contenido directamente

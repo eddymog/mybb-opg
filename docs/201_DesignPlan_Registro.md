@@ -737,6 +737,7 @@ const OPG_AV_ISLA_PADRES = [15, 16, 17, 18];
 const OPG_AV_MAX_COMENTARIO = 1000;
 const OPG_AV_MAX_NOTA_STAFF = 200;
 const OPG_AV_MAX_MOTIVO = 500;
+const OPG_AV_LIMITES_ACTIVOS = false; // false: sin límite de aventuras activas (octubre de 2026); true: aplica los dos siguientes
 const OPG_AV_MAX_SOLITARIAS = 3;
 const OPG_AV_MAX_TOTAL = 4;
 const OPG_AV_ESTADOS_ACTIVOS = [0, 1, 4];
@@ -2206,7 +2207,7 @@ configuración de §5.1. Los bloques, de arriba abajo:
    `<select>` de extra por jugadores (0 a 50); número de participantes para los
    mínimos. La misma sección muestra posts totales, válidos, mínimo requerido y
    estado "Cumple" o "No cumple". Cada cambio actualiza automáticamente el panel
-   mediante HTMX; "Actualizar vista previa" queda como acción explícita.
+   mediante HTMX. (El botón "Actualizar vista previa" se quitó: la vista previa ya se recalcula sola al cambiar cualquier ajuste.)
 3. **Destinatarios y previsualización**: una fila por destinatario, narradores
    primero, con el patrón de filas alternas (`#ffe59b`, `#ffeed2`): casilla
    "Incluir", nombre de ficha, rol, posts válidos, porcentaje y recompensas

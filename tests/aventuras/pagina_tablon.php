@@ -33,9 +33,9 @@ $r = llamar($PAG, array(), array(), 0, false, null, 'GET');
 prueba('invitado: sin permiso', $r['cuerpo'], 'SIN_PERMISO');
 $r = llamar($PAG, array(), array(), 3, false, null, 'GET');
 prueba('página completa: estado 200 y pestañas', array($r['estado'], contiene($r, 'id="ta-tabs"'), contiene($r, 'Mis aventuras'), contiene($r, 'Otras aventuras'), contiene($r, 'Solicitar aventura')), array(200, true, true, true, true));
-prueba('página completa: guía plegable y concisa de los cuatro flujos', array(contiene($r, 'class="ta-guia"'), contiene($r, 'Cómo funciona el tablón'), contiene($r, 'Mis aventuras</h3>'), contiene($r, 'Solicitar aventura</h3>'), contiene($r, 'Narradores &amp; Narrados</h3>'), contiene($r, 'Consultar aventuras</h3>')), array(true, true, true, true, true, true));
+prueba('página completa: guía plegable con una sección por pestaña', array(contiene($r, 'class="ta-guia"'), contiene($r, 'Cómo funciona el tablón'), contiene($r, 'Mis aventuras</h3>'), contiene($r, 'Solicitar aventura</h3>'), contiene($r, 'Narradores &amp; Narrados</h3>'), contiene($r, 'Otras aventuras</h3>')), array(true, true, true, true, true, true));
 prueba('la guía aparece entre el encabezado y las pestañas', strpos($r['cuerpo'], 'class="ta-encabezado"') < strpos($r['cuerpo'], 'class="ta-guia"') && strpos($r['cuerpo'], 'class="ta-guia"') < strpos($r['cuerpo'], 'id="ta-tabs"'), true);
-prueba('pestañas con respuesta inmediata, indicador y caché en memoria', array(substr_count($r['cuerpo'], 'hx-indicator="#ta-panel-cargando"'), substr_count($r['cuerpo'], 'hx-sync="#ta-panel:replace"'), contiene($r, 'id="ta-panel-cargando"'), contiene($r, 'aria-label="Cargando sección"'), contiene($r, 'id="ta-panel" aria-busy="false"'), contiene($r, 'tablon_aventuras.js?v=6')), array(4, 4, true, true, true, true));
+prueba('pestañas con respuesta inmediata, indicador y caché en memoria', array(substr_count($r['cuerpo'], 'hx-indicator="#ta-panel-cargando"'), substr_count($r['cuerpo'], 'hx-sync="#ta-panel:replace"'), contiene($r, 'id="ta-panel-cargando"'), contiene($r, 'aria-label="Cargando sección"'), contiene($r, 'id="ta-panel" aria-busy="false"'), contiene($r, 'tablon_aventuras.js?v=8')), array(4, 4, true, true, true, true));
 $js_tabs = file_get_contents(MYBB_ROOT . 'jscripts/tablon_aventuras.js');
 prueba('caché revalidada se invalida al mutar aventuras', array(strpos($js_tabs, 'mostrarCache(destino)') !== false, strpos($js_tabs, "document.addEventListener('aventuraCreada', invalidarCache)") !== false, strpos($js_tabs, "document.addEventListener('aventuraCambiada', invalidarCache)") !== false, strpos($js_tabs, "config.verb.toLowerCase() !== 'get'") !== false), array(true, true, true, true));
 prueba('cambiar de pestaña no desplaza automáticamente la página', array(strpos($js_tabs, "target.id === 'ta-panel'") === false, strpos($js_tabs, 'scrollIntoView') === false), array(true, true));
@@ -129,7 +129,7 @@ prueba('crear guarda la solicitud con el creador de la sesión', array((int) $f[
 prueba('crear: el mismo envío dos veces seguidas es un conflicto', p('crear', $valida)['estado'], 409);
 prueba('crear sin ficha aprobada: 403', p('crear', $valida, 7)['estado'], 403);
 prueba('mis_activas: indicador informativo sin reemplazar el botón', array(contiene(g('mis_activas'), 'id="ta-activas"'), contiene(g('mis_activas'), 'id="ta-enviar"')), array(true, false));
-prueba('mis_activas cuenta la solicitud pendiente (grupal: 0 solitarias, 1 en total)', array(contiene(g('mis_activas'), '<b>0 / 3</b>'), contiene(g('mis_activas'), '<b>1 / 4</b>')), array(true, true));
+prueba('mis_activas cuenta la solicitud pendiente (grupal: 0 solitarias, 1 en total)', array(contiene(g('mis_activas'), OPG_AV_LIMITES_ACTIVOS ? '<b>0 / 3</b>' : '<b>0</b>'), contiene(g('mis_activas'), OPG_AV_LIMITES_ACTIVOS ? '<b>1 / 4</b>' : '<b>1</b>')), array(true, true));
 
 // ── Listados y XSS ───────────────────────────────────────────────────────────
 $r = g('tab', array('tab' => 'mias'));
@@ -224,7 +224,9 @@ prueba('Mis aventuras ofrece búsqueda reactiva por número de solicitud', array
 $r = g('form_vincular', array('id' => $A), 8);
 prueba('formulario de vincular: buscador de tema', array(contiene($r, 'name="q"'), contiene($r, 'action=buscar_temas&amp;destino=tema&amp;id=' . $A)), array(true, true));
 prueba('vincular: rechaza al ajeno', contiene(g('form_vincular', array('id' => $A), 9), 'Ya no puedes vincular'), true);
-prueba('participante puede abrir vinculación pero no entrega', array(contiene(g('form_vincular', array('id' => $A), 5), 'action=vincular_aventura'), contiene(g('form_entrega', array('id' => $A), 5), 'name="resumen"')), array(true, false));
+prueba('aprobada sin tema: el narrador y un jugador ven Entregar y también Vincular', array(contiene(g('ver', array('id' => $A), 8), 'form_entrega'), contiene(g('ver', array('id' => $A), 8), 'form_vincular'), contiene(g('ver', array('id' => $A), 5), 'form_entrega'), contiene(g('ver', array('id' => $A), 5), 'form_vincular')), array(true, true, true, true));
+prueba('participante puede abrir vinculación y también la entrega (con la casilla de confirmación del grupo)', array(contiene(g('form_vincular', array('id' => $A), 5), 'action=vincular_aventura'), contiene(g('form_entrega', array('id' => $A), 5), 'name="resumen"'), contiene(g('form_entrega', array('id' => $A), 5), 'name="confirmar_grupo"')), array(true, true, true));
+prueba('un ajeno no puede abrir la entrega', contiene(g('form_entrega', array('id' => $A), 9), 'Ya no puedes vincular ni entregar'), true);
 prueba('participante puede buscar y elegir tema', array(contiene(g('buscar_temas', array('id' => $A, 'q' => '100'), 5), 'La aventura de Alfa'), contiene(g('elegir_tema', array('id' => $A, 'tid' => 100), 5), 'name="tema" value="100"')), array(true, true));
 $r = p('vincular_aventura', array('tema' => '101'), 5, array('id' => $A));
 prueba('participante vincula y queda auditado con su UID', array($r['estado'], fila($A)['aventura_url'], (int) opg_av_uno('SELECT uid FROM mybb_op_audit_aventuras WHERE peticion_id = ' . $A . ' AND accion = \'vincular\' ORDER BY id DESC LIMIT 1')['uid']), array(200, opg_av_url_tema(101), 5));
@@ -249,12 +251,13 @@ prueba('vincular un tema inválido: 422 retarget', array(p('vincular_aventura', 
 $r = g('form_entrega', array('id' => $A), 8);
 prueba('formulario de entrega: tema vinculado precargado, resumen, reputación y datos fijos', array(contiene($r, 'name="tema" value="100"'), contiene($r, 'name="resumen"'), contiene($r, 'name="reputacion"'), contiene($r, 'Tier 3'), contiene($r, 'Robin')), array(true, true, true, true, true));
 prueba('entrega precargada tampoco muestra buscador de tema', contiene($r, 'name="q"'), false);
-prueba('enviar entrega sin resumen: 422', p('enviar_entrega', array('tema' => '100', 'resumen' => '', 'reputacion' => 'positiva'), 8, array('id' => $A))['estado'], 422);
-$r = p('enviar_entrega', array('tema' => '100', 'resumen' => 'Todo salió bien <b>x</b>', 'reputacion' => 'positiva'), 8, array('id' => $A));
+prueba('enviar entrega sin resumen: 422', p('enviar_entrega', array('tema' => '100', 'resumen' => '', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 8, array('id' => $A))['estado'], 422);
+prueba('enviar entrega sin confirmar con el grupo: 422', p('enviar_entrega', array('tema' => '100', 'resumen' => 'x', 'reputacion' => 'positiva'), 8, array('id' => $A))['estado'], 422);
+$r = p('enviar_entrega', array('tema' => '100', 'resumen' => 'Todo salió bien <b>x</b>', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 8, array('id' => $A));
 prueba('enviar entrega: tarjeta con la entrega pendiente', array($r['estado'], contiene($r, 'Entrega pendiente de revisión'), contiene($r, 'Entrega enviada')), array(200, true, true));
 prueba('después de enviar no ofrece entregar y conserva vincular mientras está aprobada', array(contiene(g('ver', array('id' => $A), 8), 'form_entrega'), contiene(g('ver', array('id' => $A), 8), 'form_vincular')), array(false, true));
 prueba('el resumen no se muestra a los jugadores en la tarjeta (solo el staff lo ve en la página de recompensas)', contiene(g('ver', array('id' => $A), 8), 'Todo salió bien'), false);
-prueba('segunda entrega: la tarjeta con aviso y conflicto', contiene(p('enviar_entrega', array('tema' => '100', 'resumen' => 'x', 'reputacion' => 'positiva'), 8, array('id' => $A)), 'Ya hay una entrega pendiente'), true);
+prueba('segunda entrega: la tarjeta con aviso y conflicto', contiene(p('enviar_entrega', array('tema' => '100', 'resumen' => 'x', 'reputacion' => 'positiva', 'confirmar_grupo' => '1'), 8, array('id' => $A)), 'Ya hay una entrega pendiente'), true);
 
 // ── Buscador de aventuras para newthread.php ────────────────────────────────
 $B1 = ins(3, 8, 1, array(3, 5), array('tier_seleccionado' => 3, 'isla_fid' => 40, 'dia' => 7));
@@ -319,7 +322,7 @@ $r = g('listar', array('ambito' => 'otras', 'q' => '#' . $A), 9);
 prueba('Otras aventuras filtra por número de solicitud', array(contiene($r, 'id="av-' . $A . '"'), contiene($r, '1 aventuras')), array(true, true));
 $r = g('mis_activas', array('detalle' => 1));
 prueba('Mis activas enumera solitarias y grupales sin limitar a 20', array(contiene($r, 'Solitarias'), contiene($r, 'Grupales'), substr_count($r['cuerpo'], '<li>')), array(true, true, 26));
-prueba('filtrar por denegadas conserva las activas', contiene(g('tab', array('tab' => 'mias', 'estado' => 'denegado')), '26 / 4 en total'), true);
+prueba('filtrar por denegadas conserva las activas', contiene(g('tab', array('tab' => 'mias', 'estado' => 'denegado')), OPG_AV_LIMITES_ACTIVOS ? '26 / 4 en total' : '26 en total'), true);
 $r = p('crear', array_merge($valida, array('dia' => '24')));
 prueba('exceder límite bloquea crear en servidor con aviso de formulario', array($r['estado'], cabecera($r, 'HX-Retarget'), contiene($r, 'No se puede enviar esta solicitud.')), array(422, '#aviso-form-crear', true));
 $r = p('crear', array_merge($valida, array('comentario' => '   ')));

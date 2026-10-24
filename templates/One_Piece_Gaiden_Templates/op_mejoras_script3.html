@@ -802,12 +802,12 @@
 	}
 
 	function openModalDesbloquearEstilo3() {
-		if (nivel >= 35 && nikas >= 100 && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
+		if (nivel >= 30 && nikas >= 100 && estilo3 == 'bloqueado' && estilo2 != 'bloqueado') {
 			if (confirm('Puedes desbloquear el tercer slot de estilo. Deberás invertir 100 nikas. ¿Estás de acuerdo?')) {
 				window.location.href = '/op/mejoras.php?accion=estilo3_desbloquear';
 			}
 		} else {
-			alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel 35 y tener más de 100 nikas.');
+			alert('Aún no puedes desbloquear el tercer estilo.\nDebes ser nivel 30 y tener más de 100 nikas.');
 		}
 	}
 		

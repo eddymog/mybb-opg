@@ -115,7 +115,7 @@ for (let i = 0; i < NPCs.length; i++) {
 	}
 	
 	$('.npcList').append(`
-	 <div class="npcBox npcItem" data-npc_id="` + NPCs[i].npc_id +`" data-faccion="` + NPCs[i].faccion +`" onclick="clickNpc(` + i +`)" style="position: relative; background-size: cover;background: url(` + NPCs[i].avatar1 +`);border: 3px solid ` + npcBoxBorderColor + `;">
+	 <div class="npcBox npcItem" data-npc_id="` + NPCs[i].npc_id +`" data-faccion="` + NPCs[i].faccion +`" onclick="clickNpc(` + i +`)" style="position: relative; background: url(` + NPCs[i].avatar1 +`);background-size: cover; background-position: center; background-repeat: no-repeat;border: 3px solid ` + npcBoxBorderColor + `;">
 		<div class="clipBox" style=" background-color: ` + clipBoxBackgroundColor + `;  "></div>
 		<div style=" text-align: center; transform: rotate(349deg); ">
 			<span class="npcName">` + NPCs[i].nombre +`</span>

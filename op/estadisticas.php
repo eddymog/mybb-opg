@@ -33,7 +33,7 @@ if ($accion === 'aventureros') {
     exit;
 }
 
-$accionesPermitidas = array('censo', 'mas-posts', 'mas-experiencia', 'mas-temas', 'comparar', 'consultar-ranking');
+$accionesPermitidas = array('censo', 'mas-posts', 'mas-experiencia', 'mas-temas', 'mas-reputacion', 'comparar', 'consultar-ranking');
 if (!in_array($accion, $accionesPermitidas, true)) {
     $accion = 'censo';
 }
@@ -43,6 +43,9 @@ if (!in_array($tiempo, array(1, 2, 7, 14, 28), true)) {
 }
 $timestamp = time() - ($tiempo * 24 * 3600);
 $dateformat = date("Y-m-d H:i:s", $timestamp);
+
+// Cuentas que no aparecen ni cuentan en ninguna pagina de estadisticas (rankings, censo, totales y buscador).
+define('ESTADISTICAS_UIDS_OCULTOS', '974, 973, 258, 5');
 
 function queryUsersFaccion($faccion) {
     global $db, $timestamp;
@@ -55,6 +58,7 @@ function queryUsersFaccion($faccion) {
         INNER JOIN mybb_users as users ON users.uid = fichas.fid
         WHERE p.dateline > $timestamp
         AND fichas.faccion = '$faccion'                                                             
+        AND p.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
         AND f.parentlist LIKE '10,%'
         GROUP BY fichas.nombre
         ORDER BY p.username) t;
@@ -68,6 +72,7 @@ function queryNumeroPostsTotal() {
         INNER JOIN mybb_threads as t ON p.tid = t.tid 
         INNER JOIN mybb_forums as f ON t.fid = f.fid 
         WHERE p.dateline > $timestamp
+        AND p.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
     ");
 }
 
@@ -79,6 +84,7 @@ function queryNumeroPosts() {
         INNER JOIN mybb_forums as f ON t.fid = f.fid 
         WHERE p.dateline > $timestamp
         AND f.parentlist LIKE '10,%'
+        AND p.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
     ");
 }
 
@@ -90,6 +96,7 @@ function queryNumeroUsuarios() {
         INNER JOIN mybb_forums as f ON t.fid = f.fid 
         WHERE p.dateline > $timestamp
         AND f.parentlist LIKE '10,%'
+        AND p.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
         GROUP BY p.username;
     ");
 }
@@ -282,7 +289,8 @@ if ($mybb->get_input('ajax') === 'buscar-personajes') {
     $porId = ctype_digit($termino) ? ' OR f.fid=' . (int)$termino : '';
     $queryBusqueda = $db->query("SELECT f.fid, f.nombre, f.apodo
         FROM mybb_op_fichas f
-        WHERE f.nombre LIKE '%{$like}%' OR f.apodo LIKE '%{$like}%'{$porId}
+        WHERE (f.nombre LIKE '%{$like}%' OR f.apodo LIKE '%{$like}%'{$porId})
+        AND f.fid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
         ORDER BY f.nombre ASC LIMIT 10");
     $resultados = array();
     while ($fichaBusqueda = $db->fetch_array($queryBusqueda)) {
@@ -668,7 +676,7 @@ if ($accion == 'censo') {
             INNER JOIN mybb_threads t ON t.tid = p.tid
             INNER JOIN mybb_forums f ON f.fid = t.fid
             INNER JOIN mybb_op_fichas fi ON fi.fid = p.uid
-            WHERE p.dateline > {$timestamp} AND f.parentlist LIKE '10,%'
+            WHERE p.dateline > {$timestamp} AND f.parentlist LIKE '10,%' AND p.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
             GROUP BY p.uid ORDER BY valor DESC, p.uid ASC");
         $liderCenso = 0;
         $lideresCenso = 0;
@@ -926,6 +934,10 @@ $topTemasRol = '';
 $podioTemasRol = '';
 $posicionTemasRol = '';
 $metaTemasRol = '';
+$topReputacion = '';
+$podioReputacion = '';
+$posicionReputacion = '';
+$metaReputacion = '';
 
 if (in_array($accion, array('mas-posts', 'comparar', 'consultar-ranking'), true)) {
     $queryRankingPosts = $db->query("
@@ -940,6 +952,7 @@ if (in_array($accion, array('mas-posts', 'comparar', 'consultar-ranking'), true)
         WHERE fo.parentlist LIKE '10,%'
         GROUP BY p.uid
     ) rp ON rp.uid = u.uid
+    WHERE u.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
     ORDER BY valor DESC, fi.nombre ASC, u.uid ASC
 ");
     $rankingPosts = estadisticasConstruirRanking($queryRankingPosts, 'entero', 'posts', (int)$uid);
@@ -953,7 +966,7 @@ if (in_array($accion, array('mas-experiencia', 'comparar', 'consultar-ranking'),
     SELECT u.uid, u.username, u.avatar, u.newpoints AS valor, fi.nombre, fi.apodo
     FROM mybb_users u
     INNER JOIN mybb_op_fichas fi ON fi.fid = u.uid
-    WHERE u.uid NOT IN (92, 966, 152, 121, 850)
+    WHERE u.uid NOT IN (92, 966, 152, 121, 850, " . ESTADISTICAS_UIDS_OCULTOS . ")
     ORDER BY u.newpoints DESC, fi.nombre ASC, u.uid ASC
 ");
     $rankingExperiencia = estadisticasConstruirRanking($queryRankingExperiencia, 'experiencia', 'EXP', (int)$uid);
@@ -974,6 +987,7 @@ if (in_array($accion, array('mas-temas', 'comparar', 'consultar-ranking'), true)
         WHERE fo.parentlist LIKE '10,%'
         GROUP BY t.uid
     ) rt ON rt.uid = u.uid
+    WHERE u.uid NOT IN (" . ESTADISTICAS_UIDS_OCULTOS . ")
     ORDER BY valor DESC, fi.nombre ASC, u.uid ASC
 ");
     $rankingTemas = estadisticasConstruirRanking($queryRankingTemas, 'entero', 'temas', (int)$uid);
@@ -981,6 +995,28 @@ if (in_array($accion, array('mas-temas', 'comparar', 'consultar-ranking'), true)
     $topTemasRol = $rankingTemas['lista'];
     $posicionTemasRol = $rankingTemas['personal'];
     $metaTemasRol = $rankingTemas['meta'];
+}
+
+if ($accion === 'mas-reputacion') {
+    // Misma reputacion que muestra la ficha (personaje.php): V017 la sube un 10% y D013 la baja un 10%.
+    // TRUNCATE(x, 0) equivale al intval() de la ficha. Mismas cuentas excluidas que en el ranking de experiencia.
+    $queryRankingReputacion = $db->query("
+    SELECT u.uid, u.username, u.avatar, fi.nombre, fi.apodo,
+        TRUNCATE(CASE
+            WHEN EXISTS (SELECT 1 FROM mybb_op_virtudes_usuarios v WHERE v.uid = u.uid AND v.virtud_id = 'V017') THEN fi.reputacion * 1.10
+            WHEN EXISTS (SELECT 1 FROM mybb_op_virtudes_usuarios v WHERE v.uid = u.uid AND v.virtud_id = 'D013') THEN fi.reputacion * 0.9
+            ELSE fi.reputacion
+        END, 0) AS valor
+    FROM mybb_users u
+    INNER JOIN mybb_op_fichas fi ON fi.fid = u.uid
+    WHERE u.uid NOT IN (92, 966, 152, 121, 850, " . ESTADISTICAS_UIDS_OCULTOS . ")
+    ORDER BY valor DESC, fi.nombre ASC, u.uid ASC
+");
+    $rankingReputacion = estadisticasConstruirRanking($queryRankingReputacion, 'entero', 'rep', (int)$uid);
+    $podioReputacion = $rankingReputacion['podio'];
+    $topReputacion = $rankingReputacion['lista'];
+    $posicionReputacion = $rankingReputacion['personal'];
+    $metaReputacion = $rankingReputacion['meta'];
 }
 
 $comparacionResultado = '';

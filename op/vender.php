@@ -16,7 +16,7 @@ $cantidad_vender = max(1, (int)$mybb->get_input('cantidad_vender'));
 if (!$objeto_id) { echo json_encode(['error' => 'Parámetro inválido']); exit; }
 
 // Precio de venta según oficio Mercader
-$q_ficha = $db->simple_select('op_fichas', 'berries, oficios', "fid='$uid'");
+$q_ficha = $db->simple_select('op_fichas', 'berries, oficios, nivel', "fid='$uid'");
 $ficha   = $db->fetch_array($q_ficha);
 if (!$ficha) { echo json_encode(['error' => 'Ficha no encontrada']); exit; }
 
@@ -29,6 +29,14 @@ if (isset($oficios_obj->{'Mercader'})) {
         if ($nivel == 1) $precioVentaPct = 1.42857143;
         if ($nivel == 2) $precioVentaPct = 1.25;
         if ($nivel == 3) $precioVentaPct = 1.1111111117;
+    }
+    // Magnate (grado): Mercader con Comerciante R3 y Contrabandista R3 a nivel 60 o más vende al 100%
+    $sub_merc = $oficios_obj->{'Mercader'}->{'sub'} ?? null;
+    if ($sub_merc
+        && intval($sub_merc->{'Comerciante'} ?? 0) >= 3
+        && intval($sub_merc->{'Contrabandista'} ?? 0) >= 3
+        && intval($ficha['nivel']) >= 60) {
+        $precioVentaPct = 1.0;
     }
 }
 

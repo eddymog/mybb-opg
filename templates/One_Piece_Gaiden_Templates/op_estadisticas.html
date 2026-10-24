@@ -221,6 +221,9 @@
 						<if $accion == 'mas-temas' then>
 						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--temas">Top 20 · Más Temas de rol</h1>
 						</if>
+						<if $accion == 'mas-reputacion' then>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--experiencia">Top 20 · Más Reputación</h1>
+						</if>
 						<if $accion == 'comparar' then>
 						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--experiencia">Comparar personajes</h1>
 						</if>
@@ -237,6 +240,7 @@
 											<option value='mas-posts'>Más Posts</option>
 											<option value='mas-experiencia'>Más Experiencia</option>
 											<option value='mas-temas'>Más Temas</option>
+											<option value='mas-reputacion'>Más Reputación</option>
 											<option value='comparar'>Comparar</option>
 											<option value='consultar-ranking'>Consultar clasificación</option>
 											<option value='aventureros'>Aventureros</option>
@@ -403,6 +407,17 @@
 									<h2 class="ranking-lista-titulo">Resto del Top 20</h2>
 									<div class="ranking-lista">{$topTemasRol}</div>
 									{$posicionTemasRol}
+								</div>
+							</section>
+							</if>
+							<if $accion == 'mas-reputacion' then>
+							<section class="estadisticas-rankings" aria-label="Top 20 de personajes con más reputación">
+								<div class="ranking-panel">
+									<div class="ranking-contexto">{$metaReputacion}</div>
+									<div class="ranking-podio">{$podioReputacion}</div>
+									<h2 class="ranking-lista-titulo">Resto del Top 20</h2>
+									<div class="ranking-lista">{$topReputacion}</div>
+									{$posicionReputacion}
 								</div>
 							</section>
 							</if>

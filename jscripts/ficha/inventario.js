@@ -618,6 +618,11 @@
       if (n == 2) pct = 1.25;
       if (n == 3) pct = 1.1111111117;
     }
+    // Magnate (grado): Comerciante R3 + Contrabandista R3 a nivel 60 o más vende al 100% (igual que vender.php)
+    if (sub && (parseInt(sub.Comerciante) || 0) >= 3 && (parseInt(sub.Contrabandista) || 0) >= 3 &&
+        typeof nivel !== 'undefined' && parseInt(nivel) >= 60) {
+      pct = 1.0;
+    }
     return pct;
   }
 

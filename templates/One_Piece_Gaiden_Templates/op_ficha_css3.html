@@ -1186,6 +1186,19 @@
 	top: -44px;
 	left: 10px;
 	line-height: 18px;
+	/* #npcs_acompanantes lleva white-space: nowrap (para el scroll horizontal) y el nombre lo heredaba:
+	   un nombre largo se salia de la imagen. Ahora se parte en un maximo de dos lineas. */
+	white-space: normal;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	overflow: hidden;
+	box-sizing: border-box;
+	max-width: 130px;
+	margin: 0 auto;
+	padding: 0 4px 0 0; /* sitio a la derecha para text-shadow; sin relleno abajo para que no asome una tercera linea */
+	overflow-wrap: anywhere;
 }
 	  
   .avatar_repu_2, .avatar_biografia, .avatar_repu_1 {

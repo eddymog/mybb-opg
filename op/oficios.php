@@ -39,11 +39,35 @@ function oficios_efecto_codigo($db, $uid)
 
 global $templates, $mybb;
 
+define('OFICIOS_MSG_COOKIE', 'oficios_msg');
+
+/** HTML del aviso de resultado (tipo 'ok' o 'err'); el texto se escapa aqui. */
+function oficios_aviso_html($tipo, $texto)
+{
+    return '<div class="entreno-aviso entreno-aviso-' . ($tipo === 'ok' ? 'ok' : 'err') . '" role="status">'
+        . htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8') . '</div>';
+}
+
+/** Numero para mostrar: sin ceros de mas (18.125, no 18.1250000). */
+function oficios_num($n)
+{
+    return rtrim(rtrim(number_format((float) $n, 3, '.', ''), '0'), '.');
+}
+
 $entrenar = $_POST["entrenar"];
 $cancelar = $_POST["cancelar"];
 $culminar = $_POST["culminar"];
 $reentrenar = !empty($_POST["reentrenar"]); // "Culminar y seguir con otra leccion"
 $oficioNumber = $_POST["oficio"];
+
+// Proteccion CSRF: todo envio de este formulario lleva my_post_key.
+if (($entrenar || $cancelar || $culminar) && !verify_post_check($mybb->get_input('my_post_key'), true)) {
+    $mensaje_redireccion = "La sesión ha caducado. Recarga la página e inténtalo de nuevo.";
+    eval("\$page = \"".$templates->get("op_redireccion")."\";");
+    output_page($page);
+    exit;
+}
+$aviso_pendiente = null; // resultado de culminar: se muestra tras redirigir (cookie de un solo uso)
 
 if ($g_ficha['muerto'] == '1') {
     $mensaje_redireccion = "Estás muerto, no puedes acceder a esta página.";
@@ -103,11 +127,13 @@ if ($has_sin_oficio) {
 
 $duracion_horas = 24.0;
 $puntos_oficio_recompensa = 100 + (5 * intval($nivel));
+$desglose = array('Base 100 + 5 × nivel ' . intval($nivel) . ' = ' . oficios_num($puntos_oficio_recompensa));
 
-if ($ficha['raza'] == 'Kobito') { $puntos_oficio_recompensa = $puntos_oficio_recompensa * 1.1; }
-if ($has_polivalente) { $puntos_oficio_recompensa = $puntos_oficio_recompensa + (5 * intval($nivel)); }
-if ($has_erudito) { $puntos_oficio_recompensa = $puntos_oficio_recompensa + (5 * intval($nivel)); }
-if ($has_trabajador) { $puntos_oficio_recompensa = $puntos_oficio_recompensa * 1.5; }
+if ($ficha['raza'] == 'Kobito') { $puntos_oficio_recompensa = $puntos_oficio_recompensa * 1.1; $desglose[] = 'Kobito ×1.1'; }
+if ($has_polivalente) { $puntos_oficio_recompensa = $puntos_oficio_recompensa + (5 * intval($nivel)); $desglose[] = 'Polivalente +' . (5 * intval($nivel)); }
+if ($has_erudito) { $puntos_oficio_recompensa = $puntos_oficio_recompensa + (5 * intval($nivel)); $desglose[] = 'Erudito +' . (5 * intval($nivel)); }
+if ($has_trabajador) { $puntos_oficio_recompensa = $puntos_oficio_recompensa * 1.5; $desglose[] = 'Trabajador ×1.5'; }
+$desglose_html = htmlspecialchars(implode(' · ', $desglose) . ' = ' . oficios_num($puntos_oficio_recompensa) . ' puntos de oficio', ENT_QUOTES, 'UTF-8');
 
 $duracion = $duracion_horas * 3600; // en segundos
 
@@ -139,11 +165,15 @@ if ($culminar) {
     // El servidor decide si se puede culminar: tiene que existir la leccion y haber terminado, con el mismo
     // calculo de tiempo que muestra la pagina (el codigo activo la acorta).
     // Se borra la fila ANTES de pagar: solo quien consigue borrarla cobra, asi un doble envio no paga dos veces.
-    if ($entreno) {
+    if (!$entreno) {
+        $aviso_pendiente = array('tipo' => 'err', 'texto' => 'No tenías ninguna lección para completar.');
+    } else {
         $efecto_culminar = oficios_efecto_codigo($db, $uid);
         $duracion_entreno = intval($entreno['duracion']);
         $fin_efectivo = intval($entreno['timestamp_end']) - ($duracion_entreno - ($duracion_entreno * (1 / $efecto_culminar)));
-        if (time() > $fin_efectivo) {
+        if (time() <= $fin_efectivo) {
+            $aviso_pendiente = array('tipo' => 'err', 'texto' => 'Tu lección aún no ha terminado.');
+        } else {
             $db->query("DELETE FROM mybb_op_oficios_usuarios WHERE id='".intval($entreno['id'])."'");
             if ($db->affected_rows() > 0) {
                 $culminado = true;
@@ -160,13 +190,12 @@ if ($culminar) {
                     ('$uid', '$nombre', 'oficio', '$experienciaDeEntreno', '$old_exp->$new_exp');
                 ");
 
-                $log = "Lección finalizada. \nPuntos de oficio: $old_exp->$new_exp\n";
-                eval('$log_var = $log;');
+                $aviso_pendiente = array('tipo' => 'ok', 'texto' => '¡Lección completada! Ganaste ' . oficios_num($experienciaDeEntreno) . ' puntos de oficio (' . oficios_num($old_exp) . ' → ' . oficios_num($new_exp) . ').');
+            } else {
+                $aviso_pendiente = array('tipo' => 'err', 'texto' => 'Esa lección ya se había completado.');
             }
         }
     }
-
-    eval('$reload_script = $reload_js;');
 
     // "Culminar y seguir con otra leccion": tras cobrar, se inicia otra (con las mismas comprobaciones de $entrenar).
     if ($culminado && $reentrenar) {
@@ -188,7 +217,27 @@ if ($entrenar) {
     $db->query("
         INSERT INTO `mybb_op_oficios_usuarios` (`uid`,`nombre`,`oficio`,`timestamp_end`, `duracion`, `experiencia`) VALUES ('$uid','oficio','1','$timestamp_end', '$duracion', '$puntos_oficio_recompensa');
     ");
+    if ($aviso_pendiente !== null && $reentrenar) {
+        $aviso_pendiente['texto'] .= ' Ya empezaste otra lección.';
+    }
     eval('$reload_script = $reload_js;');
+}
+
+// Tras culminar: se guarda el resultado y se redirige (un F5 no reenvia el formulario).
+if ($aviso_pendiente !== null) {
+    my_setcookie(OFICIOS_MSG_COOKIE, base64_encode(json_encode($aviso_pendiente)), 15, true);
+    header('Location: oficios.php');
+    exit;
+}
+
+// Aviso de resultado (viene de la cookie que dejo culminar antes de redirigir).
+$aviso_html = '';
+if (!empty($mybb->cookies[OFICIOS_MSG_COOKIE])) {
+    $aviso_cookie = json_decode(base64_decode($mybb->cookies[OFICIOS_MSG_COOKIE]), true);
+    if (is_array($aviso_cookie) && isset($aviso_cookie['tipo'], $aviso_cookie['texto'])) {
+        $aviso_html = oficios_aviso_html($aviso_cookie['tipo'], $aviso_cookie['texto']);
+    }
+    my_unsetcookie(OFICIOS_MSG_COOKIE);
 }
 
 if ($ficha_existe == true && $ficha_aprobada == true) {
@@ -211,6 +260,8 @@ if ($ficha_existe == true && $ficha_aprobada == true) {
         $extra_time = $oficio_duracion - ($oficio_duracion * (1 / $efecto)); 
         $timestamp_end = intval($m['timestamp_end']);
         $tiempo_left = (($timestamp_end) - $extra_time) * 1000; // needed for template
+        $hora_servidor = time() * 1000; // el contador del navegador se ajusta a esta hora
+        $duracion_ms = intval(($oficio_duracion / $efecto) * 1000); // duracion real, para el porcentaje de la barra
 
         if (time() > ($timestamp_end - $extra_time)) {
             $oficio_completo = true;

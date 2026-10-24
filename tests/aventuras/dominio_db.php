@@ -151,11 +151,20 @@ prueba('un uid del cliente no cambia al creador', opg_av_validar_solicitud(entra
 // ── Listados: Mis aventuras y Otras aventuras ────────────────────────────────
 limpiar();
 for ($i = 0; $i < 3; $i++) { ins(3, 8, array(0, 1, 4)[$i], array(3)); }
-prueba('crear cuarta solitaria se rechaza antes de insertar', crear_ok(entrada_b(array('participantes' => array())), 3)['codigo'], 422);
-prueba('con tres solitarias puede crear una grupal', crear_ok(entrada_b(), 3)['ok'], true);
-prueba('crear quinta total se rechaza antes de insertar', crear_ok(entrada_b(array('dia' => 30)), 3)['codigo'], 422);
-prueba('rechazo no añade solicitudes', (int) una('SELECT COUNT(*) AS n FROM mybb_op_peticionAventuras')['n'], 4);
-prueba('narrador tampoco puede añadir un jugador con cupo lleno', crear_ok(entrada_a(array('participantes' => array(3), 'dia' => 31)), 8)['codigo'], 422);
+if (OPG_AV_LIMITES_ACTIVOS) {
+    prueba('crear cuarta solitaria se rechaza antes de insertar', crear_ok(entrada_b(array('participantes' => array())), 3)['codigo'], 422);
+    prueba('con tres solitarias puede crear una grupal', crear_ok(entrada_b(), 3)['ok'], true);
+    prueba('crear quinta total se rechaza antes de insertar', crear_ok(entrada_b(array('dia' => 30)), 3)['codigo'], 422);
+    prueba('rechazo no añade solicitudes', (int) una('SELECT COUNT(*) AS n FROM mybb_op_peticionAventuras')['n'], 4);
+    prueba('narrador tampoco puede añadir un jugador con cupo lleno', crear_ok(entrada_a(array('participantes' => array(3), 'dia' => 31)), 8)['codigo'], 422);
+} else {
+    // Sin límites (OPG_AV_LIMITES_ACTIVOS = false): ninguna de estas solicitudes se rechaza por cupo.
+    prueba('sin límites: se puede crear una cuarta solitaria', crear_ok(entrada_b(array('participantes' => array())), 3)['ok'], true);
+    prueba('sin límites: se puede crear una grupal con tres solitarias', crear_ok(entrada_b(), 3)['ok'], true);
+    prueba('sin límites: se puede crear una quinta en total', crear_ok(entrada_b(array('dia' => 30)), 3)['ok'], true);
+    prueba('sin límites: las tres nuevas se insertan', (int) una('SELECT COUNT(*) AS n FROM mybb_op_peticionAventuras')['n'], 6);
+    prueba('sin límites: un narrador puede añadir un jugador con muchas activas', crear_ok(entrada_a(array('participantes' => array(3), 'dia' => 31)), 8)['ok'], true);
+}
 limpiar();
 // Para el usuario 5: A creador (estado 0), B participante (1), C narrador (1), D ajena (1), E sin narrador de otros (4), F sin narrador mía (4), G borrado (5), H denegada de otros (2), I antigua sin isla ni día de otros (3)
 $A = ins(5, 8, 0, array(5));
@@ -212,7 +221,7 @@ limpiar();
 for ($i = 0; $i < 3; $i++) { ins(5, 8, 1, array(5)); }
 prueba('3 solitarias activas', opg_av_contar_activas(5), array(3, 3));
 $nueva_sol = ins(5, 8, 0, array(5));
-prueba('una cuarta solitaria excede', count(opg_av_validar_limites(opg_av_obtener($nueva_sol))), 1);
+prueba(OPG_AV_LIMITES_ACTIVOS ? 'una cuarta solitaria excede' : 'sin límites: una cuarta solitaria no excede', count(opg_av_validar_limites(opg_av_obtener($nueva_sol))), OPG_AV_LIMITES_ACTIVOS ? 1 : 0);
 prueba('la solicitud que se aprueba no se cuenta a sí misma', opg_av_contar_activas(5, $nueva_sol), array(3, 3));
 sql("DELETE FROM mybb_op_peticionAventuras WHERE id = $nueva_sol");   // la cuarta solitaria no se aprobó
 $nueva_grupal = ins(5, 8, 0, array(5, 6));
@@ -221,8 +230,8 @@ prueba('una grupal sí cabe con 3 solitarias', count(opg_av_validar_limites(opg_
 limpiar();
 for ($i = 0; $i < 4; $i++) { ins(5, 8, 1, array(5, 6)); }
 prueba('4 grupales activas', opg_av_contar_activas(5), array(0, 4));
-prueba('una quinta grupal excede para los dos participantes', count(opg_av_validar_limites(opg_av_obtener(ins(5, 8, 0, array(5, 6))))), 2);
-prueba('una solitaria con 4 grupales excede el total', count(opg_av_validar_limites(opg_av_obtener(ins(5, 8, 0, array(5))))), 1);
+prueba(OPG_AV_LIMITES_ACTIVOS ? 'una quinta grupal excede para los dos participantes' : 'sin límites: una quinta grupal no excede', count(opg_av_validar_limites(opg_av_obtener(ins(5, 8, 0, array(5, 6))))), OPG_AV_LIMITES_ACTIVOS ? 2 : 0);
+prueba(OPG_AV_LIMITES_ACTIVOS ? 'una solitaria con 4 grupales excede el total' : 'sin límites: una solitaria con 4 grupales no excede', count(opg_av_validar_limites(opg_av_obtener(ins(5, 8, 0, array(5))))), OPG_AV_LIMITES_ACTIVOS ? 1 : 0);
 // El narrador no cuenta la aventura que narra
 limpiar();
 for ($i = 0; $i < 4; $i++) { ins(3, 5, 1, array(3, 6)); }

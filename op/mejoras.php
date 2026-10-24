@@ -345,7 +345,7 @@ if ($accion == 'estilo2_desbloquear') {
 
 if ($accion == 'estilo3_desbloquear') {
     $nikasNuevo = $nikas - 100;
-    if ($nikasNuevo >= 0 && $nivel >= 35 && $ficha['estilo3'] == 'bloqueado') {
+    if ($nikasNuevo >= 0 && $nivel >= 30 && $ficha['estilo3'] == 'bloqueado') {
         $db->query(" UPDATE `mybb_op_fichas` SET `estilo3`='no_bloqueado' WHERE `fid`='$user_uid'; ");
         log_audit($user_uid, $username, $user_uid, '[Mejoras][Estilo 3]', "$nikas->$nikasNuevo (Gasto: 100).");
         log_audit_currency($user_uid, $username, $user_uid, '[Mejoras][Estilo 3 Mejora]', 'nikas', $nikasNuevo);

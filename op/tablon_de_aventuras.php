@@ -1,5 +1,30 @@
 <?php
 $GLOBALS['ta_boot_fase'] = 'inicio';
+
+/** ¿Quien entra es staff? Solo el staff ve el detalle técnico de un error (rutas, mensajes de PHP o de la base de datos). */
+function ta_detalle_error_visible()
+{
+    try {
+        return function_exists('is_staff') && isset($GLOBALS['mybb']) && is_object($GLOBALS['mybb'])
+            && (int) $GLOBALS['mybb']->user['uid'] > 0
+            && (is_staff((int) $GLOBALS['mybb']->user['uid']) || (function_exists('is_mod') && is_mod((int) $GLOBALS['mybb']->user['uid'])));
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/** Bloque HTML con el detalle técnico, ya escapado. $traza vacío si no hay. */
+function ta_detalle_error_html($titulo, $mensaje, $archivo, $linea, $traza = '')
+{
+    $raiz = defined('MYBB_ROOT') ? MYBB_ROOT : '';
+    $archivo = $raiz !== '' && strpos((string) $archivo, $raiz) === 0 ? substr((string) $archivo, strlen($raiz)) : (string) $archivo;
+    $texto = $titulo . "\n" . $mensaje . "\n" . $archivo . ':' . $linea . ($traza !== '' ? "\n\n" . $traza : '');
+    return '<div style="margin-top:20px;padding:14px;border:2px solid #000;border-radius:10px;background:#fff3cd;color:#3b1300;text-align:left">'
+        . '<strong>Detalle técnico (solo lo ve el staff)</strong>'
+        . '<pre style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;font:13px/1.45 monospace;color:#000">'
+        . htmlspecialchars($texto, ENT_QUOTES, 'UTF-8') . '</pre></div>';
+}
+
 register_shutdown_function(function () {
     $error = error_get_last();
     if (!$error || !in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR), true)) {
@@ -16,7 +41,9 @@ register_shutdown_function(function () {
     echo '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Error del tablón</title></head>'
         . '<body><main style="max-width:720px;margin:48px auto;padding:24px;font:16px/1.5 sans-serif">'
         . '<h1>No se pudo cargar el tablón</h1><p>Fase: <strong>' . htmlspecialchars($fase, ENT_QUOTES, 'UTF-8') . '</strong>'
-        . '<br>Código: <strong>' . $codigo . '</strong></p></main></body></html>';
+        . '<br>Código: <strong>' . $codigo . '</strong></p>'
+        . (ta_detalle_error_visible() ? ta_detalle_error_html('Error fatal de PHP', $error['message'], $error['file'], $error['line']) : '')
+        . '</main></body></html>';
 });
 
 /**
@@ -57,13 +84,13 @@ $uid = (int) $mybb->user['uid'];
 $ACCIONES_GET = array(
     'tab', 'buscar_fichas', 'buscar_modo_vista', 'elegir_ficha', 'buscar_islas', 'elegir_isla', 'mis_activas', 'listar', 'sin_narrador',
     'contar_propuestas', 'narradores_disponibles', 'form_oferta', 'ver', 'form_editar', 'form_postular', 'form_renunciar',
-    'form_vincular', 'form_entrega', 'buscar_temas', 'elegir_tema', 'quitar_chip', 'quitar_isla', 'cerrar_modal', 'form_participante', 'quitar_narrador', 'quitar_tema', 'buscar_aventuras',
+    'form_vincular', 'form_entrega', 'form_completar', 'buscar_temas', 'elegir_tema', 'quitar_chip', 'quitar_isla', 'cerrar_modal', 'form_participante', 'quitar_narrador', 'quitar_tema', 'buscar_aventuras',
     'notificaciones', 'historial_usuario', 'validar_cupos',
 );
 $ACCIONES_POST = array(
-    'crear', 'editar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega',
+    'crear', 'editar', 'completar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega',
     'ofrecerme_narrador', 'renovar_oferta', 'retirar_oferta',
-    'aceptar_propuesta', 'rechazar_propuesta', 'retirar_propuesta', 'leer_notificacion',
+    'aceptar_propuesta', 'rechazar_propuesta', 'retirar_propuesta', 'leer_notificacion', 'leer_todas_notificaciones',
 );
 
 // ── Utilidades de respuesta ──────────────────────────────────────────────────
@@ -293,7 +320,7 @@ function ta_panel($tab, $uid, $resaltar = 0)
     $filtros = ta_filtros($uid, 'mias');
     $pagina = $resaltar ? opg_av_pagina_de($resaltar, $filtros) : max(1, (int) ta_in('pagina', '1'));
     $estadisticas = opg_av_estadisticas($filtros);
-    return opg_av_v_panel_mias($filtros, opg_av_listar($filtros, $pagina), $ctx, !empty($estadisticas['hay_alguna']), $estadisticas, opg_av_activas_listar($uid));
+    return opg_av_v_panel_mias($filtros, opg_av_listar($filtros, $pagina), $ctx, !empty($estadisticas['hay_alguna']), $estadisticas, opg_av_activas_listar($uid), opg_rec_exp_narrador_mensual($uid));
 }
 
 function ta_panel_modo_vista($ficha)
@@ -356,6 +383,9 @@ if ($accion === '') {
         error_log('[tablon_de_aventuras] ' . get_class($e) . ': ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
         http_response_code(500);
         $mensaje = '<div class="error"><p>El tablón de aventuras no pudo cargarse. El error quedó registrado para su revisión.</p></div>';
+        if (ta_detalle_error_visible()) {
+            $mensaje .= ta_detalle_error_html(get_class($e), $e->getMessage(), $e->getFile(), $e->getLine(), substr($e->getTraceAsString(), 0, 2500));
+        }
         output_page('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Tablón de aventuras</title>'
             . $headerinclude . '</head><body>' . $header . '<main style="max-width:900px;margin:40px auto;padding:20px">'
             . $mensaje . '</main>' . $footer . '</body></html>');
@@ -413,7 +443,7 @@ switch ($accion) {
         $cupos = opg_av_cupos_participantes($participantes, count($participantes), $id);
         ta_responder(opg_av_v_estado_cupos($cupos, ta_in('rol') === 'narrador' ? 'narrador' : 'jugador', $id, null, true));
 
-    // Buscador de newthread.php: las aventuras que el usuario narra y aún no tienen tema.
+    // Buscador de newthread.php: las aventuras en las que el usuario juega o narra y aún no tienen tema (no hace falta que estén aprobadas).
     case 'buscar_aventuras':
         ta_responder(opg_av_v_resultados_aventuras(opg_av_aventuras_de_narrador($uid, ta_in('q'), (int) ta_in('prefijo'))));
 
@@ -443,7 +473,7 @@ switch ($accion) {
             $estadisticas = opg_av_estadisticas($filtros);
             $panel = $ambito === 'otras'
                 ? opg_av_v_panel_otras($filtros, $res, $ctx, $estadisticas)
-                : opg_av_v_panel_mias($filtros, $res, $ctx, !empty($estadisticas['hay_alguna']), $estadisticas, opg_av_activas_listar($uid));
+                : opg_av_v_panel_mias($filtros, $res, $ctx, !empty($estadisticas['hay_alguna']), $estadisticas, opg_av_activas_listar($uid), opg_rec_exp_narrador_mensual($uid));
             ta_responder($panel, 200, array('HX-Push-Url' => $push));
         }
         ta_responder('<div class="ta-lista" id="ta-lista-' . $ambito . '" '
@@ -567,8 +597,8 @@ switch ($accion) {
         }
         $entrada = array(
             'tipo' => ta_in('tipo', OPG_AV_TIPO_NORMAL),
-            'rol' => ta_in('rol'), 'participantes' => ta_in_lista('participantes'), 'tiene_narrador' => ta_in('tiene_narrador'),
-            'narrador_fid' => ta_in('narrador_fid'), 'idea' => ta_in('idea'), 'isla_fid' => ta_in('isla_fid'), 'dia' => ta_in('dia'),
+            'rol' => ta_in('rol'), 'participantes' => ta_in_lista('participantes'), 'tiene_narrador' => ta_in('tiene_narrador'), 'confirma_narrador' => ta_in('confirma_narrador'),
+            'narrador_fid' => ta_in('narrador_fid'), 'idea' => ta_in('idea'), 'isla_fid' => ta_in('isla_fid'), 'dia' => ta_in('dia'), 'ano' => ta_in('ano'), 'estacion' => ta_in('estacion'),
             'tier' => ta_in('tier'), 'comentario' => ta_in('comentario'), 'inframundo' => ta_in('inframundo'),
         );
         $v = opg_av_validar_solicitud($entrada, $uid);
@@ -585,11 +615,28 @@ switch ($accion) {
         }
         ta_responder(opg_av_v_form_solicitud(opg_av_form_desde_av($av), 'editar', $id, array(), ta_yo($uid)));
 
+    case 'form_completar':
+        $av = ta_av($id);
+        if (!opg_av_puede_completar_fecha($av, $uid)) {
+            ta_responder(ta_tarjeta_con_aviso(opg_av_v_tarjeta($av, $ctx), $id, opg_av_v_aviso('err', 'A esta solicitud ya no le falta la isla ni el día, o no eres parte de ella.')));
+        }
+        ta_responder(opg_av_v_form_completar($av));
+
+    case 'completar':
+        $r = opg_av_completar_fecha($id, array('isla_fid' => ta_in('isla_fid'), 'dia' => ta_in('dia')), $uid);
+        if (empty($r['ok'])) {
+            if ($r['codigo'] === 409 || $r['codigo'] === 403) {
+                ta_responder(ta_tarjeta_con_aviso(opg_av_v_tarjeta(ta_av($id), $ctx), $id, opg_av_v_aviso('err', $r['errores'])), 200, array('HX-Retarget' => '#av-' . $id, 'HX-Reswap' => 'outerHTML'));
+            }
+            ta_error($r['codigo'], $r['errores'], '#aviso-form-' . $id);
+        }
+        ta_responder(ta_tarjeta_con_aviso(opg_av_v_tarjeta(ta_av($id), $ctx), $id, opg_av_v_aviso('ok', 'Datos completados.')), 200, array('HX-Trigger' => 'aventuraCambiada'));
+
     case 'editar':
         $entrada = array(
             'tipo' => ta_in('tipo', OPG_AV_TIPO_NORMAL),
-            'rol' => ta_in('rol'), 'participantes' => ta_in_lista('participantes'), 'tiene_narrador' => ta_in('tiene_narrador'),
-            'narrador_fid' => ta_in('narrador_fid'), 'idea' => ta_in('idea'), 'isla_fid' => ta_in('isla_fid'), 'dia' => ta_in('dia'),
+            'rol' => ta_in('rol'), 'participantes' => ta_in_lista('participantes'), 'tiene_narrador' => ta_in('tiene_narrador'), 'confirma_narrador' => ta_in('confirma_narrador'),
+            'narrador_fid' => ta_in('narrador_fid'), 'idea' => ta_in('idea'), 'isla_fid' => ta_in('isla_fid'), 'dia' => ta_in('dia'), 'ano' => ta_in('ano'), 'estacion' => ta_in('estacion'),
             'tier' => ta_in('tier'), 'comentario' => ta_in('comentario'), 'inframundo' => ta_in('inframundo'),
         );
         $r = opg_av_editar($id, $entrada, $uid);
@@ -644,6 +691,10 @@ switch ($accion) {
         ta_exigir(opg_av_notificacion_leer((int) ta_in('notificacion_id'), $uid));
         ta_responder(opg_av_v_novedades_panel(opg_av_notificaciones_listar($uid), opg_av_notificaciones_contar($uid)));
 
+    case 'leer_todas_notificaciones':
+        ta_exigir(opg_av_notificaciones_leer_todas($uid));
+        ta_responder(opg_av_v_novedades_panel(opg_av_notificaciones_listar($uid), opg_av_notificaciones_contar($uid)));
+
     case 'form_renunciar':
         $av = ta_av($id);
         if ($av['narrador_uid'] !== $uid || !in_array($av['estado'], array(0, 1), true)) {
@@ -676,8 +727,7 @@ switch ($accion) {
             && $av['tid_vinculado'] > 0 && empty($av['autonarrada']['entregada_at'])
             && $av['autonarrada']['estado_pago'] === 'pendiente';
         $puede = $accion === 'form_vincular' ? opg_av_puede_vincular($av, $uid)
-            : ($puede_auto || (!opg_av_es_autonarrada($av) && $av['narrador_uid'] === $uid
-                && $av['estado'] === 1 && (!$entrega || $entrega['estado'] === 'rechazada')));
+            : ($puede_auto || (!opg_av_es_autonarrada($av) && opg_ent_puede_enviar($av, $uid, $entrega)));
         if (!$puede) {
             ta_responder(ta_tarjeta_con_aviso(opg_av_v_tarjeta($av, $ctx), $id, opg_av_v_aviso('err', 'Ya no puedes vincular ni entregar esta aventura.')));
         }
@@ -751,7 +801,7 @@ switch ($accion) {
                 opg_av_v_aviso('ok', 'Autonarrada entregada: queda pendiente de revisión del Staff.')), 200,
                 array('HX-Trigger' => 'aventuraCambiada'));
         }
-        $r = opg_ent_enviar($id, array('tema' => ta_in('tema'), 'resumen' => ta_in('resumen'), 'reputacion' => ta_in('reputacion')), $uid);
+        $r = opg_ent_enviar($id, array('tema' => ta_in('tema'), 'resumen' => ta_in('resumen'), 'reputacion' => ta_in('reputacion'), 'confirmar_grupo' => ta_in('confirmar_grupo')), $uid);
         if (empty($r['ok'])) {
             if ($r['codigo'] === 409 || $r['codigo'] === 403) {
                 $av = ta_av($id);

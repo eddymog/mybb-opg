@@ -26,7 +26,7 @@
             <div class="tooltiptext item-tooltip" style="position: absolute;top: 60px;left: 452px;z-index: 9999;box-shadow: 0 0 10px rgba(0, 0, 0, 0);">
                 <div style="font-size: 15px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-top-left-radius: 6px;border: 0px;border-top-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;">Experiencia</div>
                 <div><img src=""></div>
-                <div style="font-family: InterRegular;padding: 5px;text-align: justify;">- Has acumulado un total de {$usuario['newpoints']} puntos de experiencia.<br>- Esta semana has acumulado {$experiencia_limite['experiencia_semanal']} de {$newpoints_limite_semanal_actual} puntos de experiencia.<br>- Necesitas {$expRem} puntos de experiencia para subir al siguiente nivel.</div>
+                <div style="font-family: InterRegular;padding: 5px;text-align: justify;">{$op_exp_resumen_html}</div>
 				 <if $is_owner then><div style="font-family: InterRegular;padding: 5px;text-align: justify;margin: auto;"><button id="limite_nivel">Nivel Máximo: {$ficha['limite_nivel']}. ¡SUBIR LÍMITE DE NIVEL!</button></div></if>
 				<div style="font-size: 9px;font-family: moonGetHeavy;letter-spacing: 1px;text-align: center;background-color: #faa500;border-bottom-left-radius: 6px;border: 0px;border-bottom-right-radius: 6px;padding: 3px;text-shadow: 1px 1px 3px black;"></div>
 			</div>

@@ -873,7 +873,7 @@ function berriesDescontado(oficio) {
 	const map = {
 		'Cocinero': 'Aprovisionador', 'Chef': 'Aprovisionador', 'Aprovisionador': 'Aprovisionador',
 		'Artesano': 'Modista',        'Herrero': 'Modista',      'Modista': 'Modista',
-		'Médico':   'Doctor',         'Doctor': 'Doctor',        'Farmacólogo': 'Doctor',
+		'Médico':   'Farmacólogo',    'Doctor': 'Farmacólogo',   'Farmacólogo': 'Farmacólogo',
 		'Carpintero':'Astillero',      'Astillero': 'Astillero',  'Constructor': 'Astillero',
 		'Inventor': 'Biólogo',         'Ingeniero': 'Biólogo',    'Biólogo': 'Biólogo',
 	};
@@ -888,7 +888,7 @@ function getTiempoCreacion(oficio) {
 	const map = {
 		'Cocinero': 'Chef',         'Chef': 'Chef',          'Aprovisionador': 'Chef',
 		'Artesano': 'Herrero',      'Herrero': 'Herrero',    'Modista': 'Herrero',
-		'Médico':   'Farmacólogo',  'Doctor': 'Farmacólogo', 'Farmacólogo': 'Farmacólogo',
+		'Médico':   'Doctor',       'Doctor': 'Doctor',      'Farmacólogo': 'Doctor',
 		'Carpintero':'Constructor', 'Astillero':'Constructor','Constructor': 'Constructor',
 		'Inventor': 'Ingeniero',    'Ingeniero': 'Ingeniero','Biólogo': 'Ingeniero',
 	};
@@ -915,14 +915,15 @@ function getMayoristaDescuentoBerries(ofics) {
 	const nivel = getOficiosNivelesJS(ofics)['Mayorista'] || 0;
 	if (nivel >= 3) return 0.80;
 	if (nivel >= 2) return 0.85;
-	if (nivel >= 1) return 0.90;
+	// R1 no da descuento de coste propio: el -10% ya lo da Recolector R1
 	return 1.0;
 }
 
 function getRecolectorDescuentoJS(ofics) {
 	const n = getOficiosNivelesJS(ofics);
 	const recolector = (n['Recolector'] || 0) >= 1 ? 0.9 : 1.0;
-	return recolector * getMayoristaDescuentoBerries(ofics);
+	// Recolector R1 y Mayorista R2/R3 no se acumulan: se toma el mejor
+	return Math.min(recolector, getMayoristaDescuentoBerries(ofics));
 }
 
 function getMayoristaReduccionTiempoJS(ofics) {
@@ -947,10 +948,8 @@ function getDescuento(nivel) {
 			
 function getTiempoCreacionVirtud() {
   
-    if (has_estudioso) {
+    if (has_estudioso || has_erudito) {
         return 0.8;
-    } else if (has_erudito) {
-        return 0.9; 
     } else {
         return 1;
     }
@@ -960,6 +959,10 @@ function getTiempoCreacionVirtud() {
 let oficiosCount = Object.keys(oficios).length;
 	
 function getCantidadMaximaCrafteo(objetoId) {
+	// Los NPC craftean siempre 1 unidad (el servidor ignora la cantidad en esa rama)
+	if (selectedActor.type === 'npc') {
+		return 1;
+	}
 	// Solo las recetas de Recolector, Agreste y Mayorista permiten craftear varias unidades
 	let objetoCantidad = (objetos_json[objetoId] && objetos_json[objetoId][0]) ? objetos_json[objetoId][0] : null;
 	if (!objetoCantidad || ['Recolector', 'Agreste', 'Mayorista'].indexOf(objetoCantidad.oficio) === -1) {
@@ -976,16 +979,16 @@ function getCantidadMaximaCrafteo(objetoId) {
 		}
 	}
 	
-	// Base: 1 item, Recolector nivel 2+: 2 items
-	let cantidadMax = (recolectorNivel >= 2) ? 2 : 1;
-	
-	// Agreste aumenta la cantidad: nivel 1 = 3, nivel 2 = 5, nivel 3 = 10
+	// Base: 1 item. Recolector nivel 2+: 2 items, solo en recetas de Recolector
+	let cantidadMax = (objetoCantidad.oficio === 'Recolector' && recolectorNivel >= 2) ? 2 : 1;
+
+	// Agreste aumenta la cantidad en Recolector, Agreste y Mayorista: nivel 1 = 3, nivel 2 = 5, nivel 3 = 10
 	if (agresteNivel == 3) {
 		cantidadMax = 10;
 	} else if (agresteNivel == 2) {
-		cantidadMax = 5;
+		cantidadMax = Math.max(cantidadMax, 5);
 	} else if (agresteNivel == 1) {
-		cantidadMax = 3;
+		cantidadMax = Math.max(cantidadMax, 3);
 	}
 	
 	return cantidadMax;

@@ -22,6 +22,15 @@
 			font-family: InterRegular !important;
 		}
 		
+		.entreno-aviso {
+			box-sizing: border-box; max-width: 996px; margin: 0 auto 12px; padding: 10px 14px; border: 2px solid #000; border-radius: 10px; color: #fff; font-family: InterRegular; font-size: 15px; text-shadow: 1px 1px 1px #000; box-shadow: 4px 4px 0 #000;
+		}
+		.entreno-aviso-ok { background: var(--opg-verde-exito, #27ae60); }
+		.entreno-aviso-err { background: var(--opg-rojo-error, #dc3545); }
+		.entreno-desglose {
+			margin-top: 10px; text-align: center; font-family: InterRegular; font-size: 13px; color: var(--opg-marron, #3b1300);
+		}
+
 		.entreno-button:hover {
 			background-color: #ee3d3d !important;
 		}
@@ -37,12 +46,14 @@
 		<div class="mainBackground">
 			<div class="secondBackground">
 				<div class="thirdBackground">
+					{$aviso_html}
 					<div id="entreno-page" style="display: none;">
 						<div style="margin-bottom: 10px;">
 							<img src="/images/op/uploads/LecciónProfesional_One_Piece_Gaiden_Foro_Rol.jpg" />
 						</div>
 						<div style="display: none">
 							<form id="form" method="post" action="oficios.php">
+								<input type="hidden" name="my_post_key" value="{$mybb->post_code}">
 								<input class="button" type="text" name="cancelar" id="cancelar" value="1">
 							</form>
 						</div>
@@ -95,6 +106,9 @@
 		}
 		
 		var end = new Date({$tiempo_left});
+		// El reloj del jugador puede estar adelantado o atrasado: se mide el desfase contra la hora del servidor.
+		var desfase = (Number('{$hora_servidor}') || Date.now()) - Date.now();   // sin dato del servidor, desfase 0
+		var duracionMs = Number('{$duracion_ms}') || 86400000;   // sin dato, 24 h
 
 		
 		var _second = 1000;
@@ -104,18 +118,15 @@
 		var timer;
 
 		function showRemaining() {
-			var now = new Date();
-			var distance = end - now;
-			let  end_now = (end - new Date()) / 1000; 
-			let percLeft = Math.floor(((86400 - end_now) / 86400) * 100);
-			
-			if (distance < 1000 && distance > 1) {
-				location.reload(true);
-				return;
-			}
-			if (distance < 0) {
+			var distance = end - (Date.now() + desfase);
+			var percLeft = Math.min(100, Math.max(0, Math.floor(((duracionMs - distance) / duracionMs) * 100)));
+
+			if (distance <= 0) {
+				// Terminado segun la hora del servidor: se espera un instante y se recarga para mostrar el boton de completar.
 				clearInterval(timer);
 				document.getElementById('countdown').innerHTML = '0 dias, 0 horas, 0 minutos y 0 segundos';
+				$('#entreno-page').css('display', 'block');
+				setTimeout(function () { location.reload(); }, 1500);
 				return;
 			}
 			var days = Math.floor(distance / _day);
