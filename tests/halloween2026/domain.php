@@ -34,10 +34,14 @@ hlw_expect(opg_hlw_event_day(strtotime('2026-10-27 05:00:00 UTC')) === '2026-10-
 hlw_expect(opg_hlw_forum_is_role(10, '', $config), 'El FID raiz no cuenta como rol.');
 hlw_expect(opg_hlw_forum_is_role(44, '1,10,44', $config), 'Un descendiente de rol no cuenta.');
 hlw_expect(!opg_hlw_forum_is_role(110, '1,110', $config), 'Coincidencia parcial de FID aceptada.');
-hlw_expect(opg_hlw_thread_reward(1, $config)['amount'] === 2, 'Tema Comun con recompensa incorrecta.');
-hlw_expect(opg_hlw_thread_reward(3, $config)['amount'] === 2, 'Aventura con recompensa incorrecta.');
-hlw_expect(opg_hlw_thread_reward(15, $config)['amount'] === 3, 'Spooky no sustituye la recompensa normal.');
-hlw_expect(opg_hlw_thread_reward(0, $config)['amount'] === 0, 'Un tema sin prefijo recibe recompensa.');
+hlw_expect(opg_hlw_thread_reward('Una aventura en Dressrosa', $config)['amount'] === 2, 'Un tema normal debe dar 2.');
+hlw_expect(opg_hlw_thread_reward('', $config)['amount'] === 2, 'Un tema sin titulo especial debe dar 2.');
+hlw_expect(opg_hlw_thread_reward('[Spooky] La casa maldita', $config)['amount'] === 3, '[Spooky] debe dar 3.');
+hlw_expect(opg_hlw_thread_reward('  [spooky]  noche de brujas', $config)['amount'] === 3, '[spooky] en minusculas y con espacios debe dar 3.');
+hlw_expect(opg_hlw_thread_reward('La casa [ SPOOKY ] de Brook', $config)['amount'] === 3, '[ SPOOKY ] en mitad del titulo debe dar 3.');
+hlw_expect(opg_hlw_thread_reward('Spooky sin corchetes', $config)['amount'] === 2, 'Sin corchetes no es Spooky.');
+hlw_expect(opg_hlw_thread_reward('Cuento (Spooky)', $config)['amount'] === 2, 'Con parentesis no es Spooky.');
+hlw_expect(opg_hlw_title_is_spooky('&#91;Spooky&#93; escapado') === true, 'Las entidades HTML deben decodificarse.');
 
 $testConfig = $config;
 $testConfig['status'] = 'draft';

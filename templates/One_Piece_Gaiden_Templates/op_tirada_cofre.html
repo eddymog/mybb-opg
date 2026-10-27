@@ -1292,7 +1292,8 @@
             'CFD002': 'Cofre de Dial T2',
             'CFD003': 'Cofre de Dial T3',
             'CFD004': 'Cofre de Dial T4',
-            'CRM003': 'Barril Rescatado'
+            'CRM003': 'Barril Rescatado',
+            'CFRHLW': 'Cofre Calabaza'
         };
         return tiposCofre[tier] || 'Cofre Desconocido';
     }
@@ -1334,9 +1335,84 @@
         document.body.style.overflow = 'hidden';
     }
 
+    // ===== VIDEO DE APERTURA (cofres especiales) =====
+    // Se reproduce cuando el servidor responde (el clic en el cofre ya permitio el sonido automatico). Si el
+    // premio tiene su propio video (el susto), solo se ve ese; si no, el video del cofre. La recompensa no se
+    // muestra hasta que el video termina.
+    // Se reproduce cada vez que se abre el cofre. El archivo se sube a /images/op/halloween2026/.
+    var videosCofre = { 'CFRHLW': '/images/op/halloween2026/cofre-calabaza.mp4' };
+    // Video "susto" segun el objeto que sale: sustituye al video del cofre.
+    var videosRecompensa = { 'CALPOD': '/images/op/halloween2026/cofre-susto.mp4' };
+    var videoActivo = false;
+    var recompensaPendiente = null;
+
+    // Video propio del premio: por id (sin importar mayusculas ni sufijos como CALPODX2) o, si el id no coincide,
+    // por el nombre del objeto que devuelve el servidor.
+    function videoDePremio(data) {
+        var id = String((data && data.objeto_id) || '').trim().toUpperCase();
+        var nombre = String((data && data.objeto) || '').toLowerCase();
+        console.log('Premio recibido: objeto_id=' + id + ', nombre=' + nombre);
+        if (id.indexOf('CALPOD') === 0 || nombre.indexOf('calabaza podrida') !== -1) {
+            return videosRecompensa['CALPOD'];
+        }
+        return null;
+    }
+
+    function mostrarVideoCofre(src) {
+        var overlay = document.createElement('div');
+        overlay.id = 'chest-video-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+        var video = document.createElement('video');
+        video.src = src;
+        video.autoplay = true;
+        video.playsInline = true;
+        // Tamano de la ventana del video: ancho maximo 560px (90% en pantallas pequenas) y como mucho el 60% del alto.
+        video.style.cssText = 'width:min(560px,90vw);max-height:60vh;background:#000;border:3px solid #000;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.6);';
+        video.addEventListener('ended', cerrarVideoCofre);
+        // Si el archivo no existe o no se puede reproducir, no se bloquea la apertura.
+        video.addEventListener('error', function () {
+            var codigo = video.error ? video.error.code : 'desconocido';
+            console.error('No se pudo reproducir el video del cofre: ' + src + ' (codigo ' + codigo + '; 4 = no existe o formato no compatible)');
+            cerrarVideoCofre();
+        });
+        overlay.appendChild(video);
+        document.body.appendChild(overlay);
+        videoActivo = true;
+        var intento = video.play();
+        if (intento && intento.catch) {
+            intento.catch(function () {
+                // El navegador bloqueo el sonido automatico: se reproduce sin sonido y se activan los controles.
+                video.muted = true;
+                video.controls = true;
+                // Sin boton "Saltar": si ni siquiera asi arranca, se sigue a la recompensa para no dejar al usuario atascado.
+                video.play().catch(cerrarVideoCofre);
+            });
+        }
+    }
+
+    function quitarVideoCofre() {
+        var overlay = document.getElementById('chest-video-overlay');
+        if (overlay) {
+            var video = overlay.querySelector('video');
+            if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+            if (overlay.parentNode) { overlay.parentNode.removeChild(overlay); }
+        }
+        videoActivo = false;
+    }
+
+    function cerrarVideoCofre() {
+        quitarVideoCofre();
+        if (recompensaPendiente) {
+            var datos = recompensaPendiente;
+            recompensaPendiente = null;
+            showReward(datos);
+        }
+    }
+
     function startChestOpening() {
         if (isChestOpening) return;
         isChestOpening = true;
+
 
         var chestContainer = document.getElementById('chest-container');
         var chestFront = document.getElementById('chest-front');
@@ -1388,8 +1464,14 @@
                         // Actualizar estadísticas locales
                         updateLocalStats(data);
                         
-                        // Mostrar recompensa
-                        showReward(data);
+                        // Mostrar recompensa (si hay video en marcha, espera a que termine o se salte)
+                        var videoPremio = videoDePremio(data) || (currentChestData ? videosCofre[currentChestData.id] : null);
+                        if (videoPremio) {
+                            recompensaPendiente = data;
+                            mostrarVideoCofre(videoPremio);
+                        } else {
+                            showReward(data);
+                        }
                     } catch (e) {
                         console.error('Error al procesar respuesta:', e);
                         closeChestModal();
@@ -1508,6 +1590,7 @@
     }
 
     function updateLocalStats(data) {
+        if (data && data.oculto) { return; } // cofres sin historial: tampoco suman a los contadores
         cofres_abiertos = parseInt(cofres_abiertos) + 1;
         cofres_abiertos_id = parseInt(cofres_abiertos_id) + 1;
         
@@ -1544,6 +1627,7 @@
     }
 
     function addToResultsList(data) {
+        if (data && data.oculto) { return; } // cofres sin historial
         var timestamp = new Date().toLocaleString('es-es');
         var tipoCofre = getTipoCofreName(data.tier);
         
@@ -1562,6 +1646,8 @@
     }
 
     function closeChestModal() {
+        quitarVideoCofre();
+        recompensaPendiente = null;
         var modal = document.getElementById('chest-opening-modal');
         var chestStage = document.getElementById('chest-animation-stage');
         var rewardDisplay = document.getElementById('reward-display');

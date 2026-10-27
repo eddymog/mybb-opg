@@ -11,3 +11,7 @@ admin/backups/
 config.php
 inc/debug_log.txt
 *.gz
+# Videos del evento (pesados): se suben al servidor a mano, no al repositorio
+images/op/halloween2026/*.mp4
+# Documentacion interna (diseño, guias y migraciones SQL): no se muestra en Git
+/docs/

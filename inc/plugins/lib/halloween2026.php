@@ -18,11 +18,33 @@ function opg_hlw_escape($value)
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function opg_hlw_tables_ready()
+/** Tablas del evento que existen (una sola consulta por peticion). */
+function opg_hlw_known_tables()
 {
     global $db;
+    static $tables = null;
+    if ($tables !== null) {
+        return $tables;
+    }
+    $tables = array();
+    $like = $db->escape_string_like($db->table_prefix . 'op_halloween2026_') . '%';
+    $query = $db->write_query("SHOW TABLES LIKE '{$like}'");
+    while ($row = $db->fetch_array($query)) {
+        $tables[] = reset($row);
+    }
+    return $tables;
+}
+
+function opg_hlw_table_exists($name)
+{
+    global $db;
+    return in_array($db->table_prefix . 'op_halloween2026_' . $name, opg_hlw_known_tables(), true);
+}
+
+function opg_hlw_tables_ready()
+{
     foreach (array('config', 'saldos', 'movimientos', 'publicaciones', 'bonos_diarios') as $table) {
-        if (!$db->table_exists('op_halloween2026_' . $table)) {
+        if (!opg_hlw_table_exists($table)) {
             return false;
         }
     }
@@ -125,21 +147,27 @@ function opg_hlw_event_day($timestamp, $timezone = 'Europe/Madrid')
     }
 }
 
-function opg_hlw_thread_reward($prefixId, $config)
+/**
+ * ¿El titulo lleva la marca [Spooky]? No es un prefijo de MyBB: se escribe en el titulo al crear el tema.
+ * Ignora mayusculas, espacios alrededor y dentro de los corchetes, y las entidades HTML que MyBB guarda.
+ */
+function opg_hlw_title_is_spooky($subject)
 {
-    $settings = isset($config['settings']) && is_array($config['settings'])
-        ? $config['settings'] : array();
-    $prefixId = (int)$prefixId;
-    if ($prefixId === (int)($settings['spooky_prefix_id'] ?? 15)) {
+    $subject = html_entity_decode((string)$subject, ENT_QUOTES, 'UTF-8');
+    return preg_match('/\[\s*spooky\s*\]/iu', $subject) === 1;
+}
+
+/**
+ * Recompensa por crear un tema en zona de rol: 2 Calabazas, o 3 si el titulo lleva [Spooky].
+ * El primer post del tema NO suma ademas la Calabaza de "post en zona de rol".
+ * $config se conserva por compatibilidad con los llamadores.
+ */
+function opg_hlw_thread_reward($subject, $config = null)
+{
+    if (opg_hlw_title_is_spooky($subject)) {
         return array('amount' => 3, 'type' => 'spooky', 'label' => 'Tema Spooky');
     }
-    if (in_array($prefixId, array(
-        (int)($settings['common_prefix_id'] ?? 1),
-        (int)($settings['adventure_prefix_id'] ?? 3),
-    ), true)) {
-        return array('amount' => 2, 'type' => 'thread', 'label' => 'Tema nuevo');
-    }
-    return array('amount' => 0, 'type' => 'thread', 'label' => '');
+    return array('amount' => 2, 'type' => 'thread', 'label' => 'Tema nuevo');
 }
 
 function opg_hlw_live_test_context($publication, $config = null)
@@ -312,7 +340,7 @@ function opg_hlw_load_post_context($pid)
     $threads = $db->table_prefix . 'threads';
     $forums = $db->table_prefix . 'forums';
     $query = $db->write_query("SELECT p.pid,p.tid,p.uid,p.dateline,p.visible AS post_visible,
-        t.fid,t.firstpost,t.prefix,t.visible AS thread_visible,f.parentlist
+        t.fid,t.firstpost,t.prefix,t.subject,t.visible AS thread_visible,f.parentlist
         FROM `{$posts}` p
         INNER JOIN `{$threads}` t ON t.tid=p.tid
         INNER JOIN `{$forums}` f ON f.fid=t.fid
@@ -440,17 +468,20 @@ function opg_hlw_reconcile_post($pid, $reason = 'hook')
         return;
     }
 
-    opg_hlw_add_movement(array(
-        'uid' => (int)$publication['uid'], 'amount' => 1, 'bucket' => 'earned',
-        'source_type' => 'post', 'source_id' => (string)$pid,
-        'source_pid' => (int)$pid, 'source_tid' => (int)$publication['tid'],
-        'idempotency_key' => $movementContext['key_prefix'] . ':post:' . (int)$pid,
-        'note' => $movementContext['note_prefix'] . 'Publicacion en zona de rol',
-        'metadata' => $movementContext['metadata'],
-    ));
+    // El primer post de un tema se paga solo como tema nuevo (2 o 3 Calabazas), sin la Calabaza de post.
+    if ((int)$publication['is_first_post'] !== 1) {
+        opg_hlw_add_movement(array(
+            'uid' => (int)$publication['uid'], 'amount' => 1, 'bucket' => 'earned',
+            'source_type' => 'post', 'source_id' => (string)$pid,
+            'source_pid' => (int)$pid, 'source_tid' => (int)$publication['tid'],
+            'idempotency_key' => $movementContext['key_prefix'] . ':post:' . (int)$pid,
+            'note' => $movementContext['note_prefix'] . 'Publicacion en zona de rol',
+            'metadata' => $movementContext['metadata'],
+        ));
+    }
 
     if ((int)$publication['is_first_post'] === 1) {
-        $threadReward = opg_hlw_thread_reward((int)$publication['original_prefix_id'], $config);
+        $threadReward = opg_hlw_thread_reward($context['subject'] ?? '', $config);
         if ($threadReward['amount'] > 0) {
             opg_hlw_add_movement(array(
                 'uid' => (int)$publication['uid'], 'amount' => $threadReward['amount'], 'bucket' => 'earned',
@@ -578,6 +609,17 @@ function opg_hlw_balance($uid)
     }
     $query = $db->simple_select('op_halloween2026_saldos', '*', "uid='" . (int)$uid . "'", array('limit' => 1));
     return $db->fetch_array($query) ?: $empty;
+}
+
+/** Interruptor de los secretos ocultos (config_json.secrets_enabled). Apagado por defecto. */
+function opg_hlw_set_secrets_enabled($enabled)
+{
+    global $db;
+    $value = $enabled ? 'true' : 'false';
+    $table = opg_hlw_table('config');
+    $db->write_query("UPDATE `{$table}` SET config_json=JSON_SET(COALESCE(config_json,JSON_OBJECT()),
+        '$.secrets_enabled',{$value}), updated_at=UTC_TIMESTAMP() WHERE id=1");
+    opg_hlw_config(true);
 }
 
 function opg_hlw_set_store_enabled($enabled)

@@ -122,6 +122,11 @@ $cff010_chain = [
 // $cofre_id = 'CFR001';
 // $tirada_cofre = 'true';
 
+// Cofres que se pueden abrir pero no aparecen en el historial ni en los contadores (la tirada si queda
+// registrada en mybb_op_tirada_cofre para auditoria). Halloween 2026: Cofre Calabaza.
+$cofres_sin_historial = array('CFRHLW');
+$cofres_sin_historial_sql = "'" . implode("','", $cofres_sin_historial) . "'";
+
 $tirada_cofre_resultado = '';
 
 $cofres_abiertos = '0';
@@ -157,10 +162,10 @@ $cofre_decrease_id = '0';
 $cofres_globales_array = array();
 $cofres_propios_array = array();
 
-$cofres_globales_query = $db->query(" SELECT * FROM `mybb_op_tirada_cofre` WHERE `uid` <> 850 ORDER BY ID DESC LIMIT 200; ");
-$cofres_propios_query = $db->query(" SELECT * FROM `mybb_op_tirada_cofre` WHERE `uid`='$uid' ORDER BY ID DESC LIMIT 50; ");
+$cofres_globales_query = $db->query(" SELECT * FROM `mybb_op_tirada_cofre` WHERE `uid` <> 850 AND `tier` NOT IN ($cofres_sin_historial_sql) ORDER BY ID DESC LIMIT 200; ");
+$cofres_propios_query = $db->query(" SELECT * FROM `mybb_op_tirada_cofre` WHERE `uid`='$uid' AND `tier` NOT IN ($cofres_sin_historial_sql) ORDER BY ID DESC LIMIT 50; ");
 
-$cofres_abiertos_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` ");
+$cofres_abiertos_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier` NOT IN ($cofres_sin_historial_sql) ");
 $cofre_basico_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR001'; ");
 $cofre_decente_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR002'; ");
 $cofre_gigante_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR003'; ");
@@ -197,7 +202,7 @@ $cofre_decrease_query = $db->query("
     (`tier`='CFR009' AND objeto_id='CFR008') OR
     (`tier`='CFR010' AND objeto_id='CFR009'); ");
 
-$cofres_abiertos_id_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE uid='$uid' ");
+$cofres_abiertos_id_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE uid='$uid' AND `tier` NOT IN ($cofres_sin_historial_sql) ");
 $cofre_basico_id_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR001' AND uid='$uid'; ");
 $cofre_decente_id_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR002' AND uid='$uid'; ");
 $cofre_gigante_id_query = $db->query(" SELECT count(*) AS total FROM `mybb_op_tirada_cofre` WHERE `tier`='CFR003' AND uid='$uid'; ");
@@ -279,7 +284,7 @@ $cofres_propios_json = json_encode($cofres_propios_array);
 
 // Inventario de cofres del usuario para el frontend
 $cff010_ids_sql  = "'" . implode("','", array_keys($cff010_chain)) . "'";
-$cofres_ids_list = "'CFR001','CFR002','CFR003','CFR004','CFR005','CFR006','CFR007','CFR008','CFR009','CFR010',$cff010_ids_sql,'INV001','INV002','INV003','INV004','INV005','CFD002','CFD003','CFD004','CRM003','CFN002','CFN003','CFN004','CFN005','CFN006','CFN007','CFN008','CFN009','KTC001'";
+$cofres_ids_list = "'CFR001','CFR002','CFR003','CFR004','CFR005','CFR006','CFR007','CFR008','CFR009','CFR010',$cff010_ids_sql,'INV001','INV002','INV003','INV004','INV005','CFD002','CFD003','CFD004','CRM003','CFN002','CFN003','CFN004','CFN005','CFN006','CFN007','CFN008','CFN009','KTC001','CFRHLW'";
 $query_inventario_cofres = $db->query("
     SELECT o.*, i.cantidad FROM `mybb_op_objetos` o
     INNER JOIN `mybb_op_inventario` i ON o.`objeto_id` = i.`objeto_id`
@@ -584,6 +589,7 @@ if ($tirada_cofre == 'true') {
         $response['success']   = true;
         $response['objeto']    = $objeto;
         $response['objeto_id'] = $objeto_id;
+        $response['oculto']    = in_array($cofre_id, $cofres_sin_historial, true); // el navegador no lo anade al historial ni a los contadores
         echo json_encode($response);
         return;
     }

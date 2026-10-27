@@ -8,6 +8,7 @@ require_once './../functions/op_functions.php';
 require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026.php';
 require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026_store.php';
 require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026_stats.php';
+require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026_secretos.php';
 
 global $mybb, $db, $templates, $header, $headerinclude, $footer;
 $staffUid = (int)$mybb->user['uid'];
@@ -63,17 +64,11 @@ function opg_hlw_staff_preflight($uid)
     $before = opg_hlw_balance($uid);
     $token = opg_hlw_purchase_token();
     $keyPrefix = 'halloween2026:preflight:' . $uid . ':' . $token;
-    $normalReward = opg_hlw_thread_reward(
-        (int)($config['settings']['common_prefix_id'] ?? 1),
-        $config
-    );
-    $spookyReward = opg_hlw_thread_reward(
-        (int)($config['settings']['spooky_prefix_id'] ?? 15),
-        $config
-    );
+    $normalReward = opg_hlw_thread_reward('Tema de prueba', $config);
+    $spookyReward = opg_hlw_thread_reward('[Spooky] Tema de prueba', $config);
     $scenarios = array(
         array('type' => 'post', 'amount' => 1, 'label' => 'Post de rol'),
-        array('type' => $normalReward['type'], 'amount' => (int)$normalReward['amount'], 'label' => 'Tema Comun o Aventura'),
+        array('type' => $normalReward['type'], 'amount' => (int)$normalReward['amount'], 'label' => 'Tema nuevo en zona de rol'),
         array('type' => $spookyReward['type'], 'amount' => (int)$spookyReward['amount'], 'label' => 'Tema Spooky'),
         array('type' => 'daily', 'amount' => 1, 'label' => 'Primer post diario'),
     );
@@ -346,6 +341,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'open_store') {
             opg_hlw_set_store_enabled(true);
             $message = opg_hlw_staff_message('success', 'La tienda ha quedado abierta.');
+        } elseif ($action === 'forgive_secret_alerts') {
+            opg_hlw_secret_alerts_forgive($mybb->get_input('uid', MyBB::INPUT_INT));
+            $message = opg_hlw_staff_message('success', 'Alertas perdonadas: el usuario puede volver a descubrir secretos.');
+        } elseif ($action === 'enable_secrets') {
+            opg_hlw_set_secrets_enabled(true);
+            $message = opg_hlw_staff_message('success', 'El descubrimiento de secretos queda habilitado para todos los usuarios.');
+        } elseif ($action === 'disable_secrets') {
+            opg_hlw_set_secrets_enabled(false);
+            $message = opg_hlw_staff_message('success', 'El descubrimiento de secretos queda deshabilitado: solo pueden descubrirlos las cuentas de prueba (315 y 172).');
         } elseif ($action === 'schedule_event') {
             $currentConfig = opg_hlw_config(true);
             if (!empty($currentConfig['settings']['live_test']['enabled'])) {
@@ -493,6 +497,31 @@ if ($mybb->get_input('audit', MyBB::INPUT_INT) === 1) {
         . '<span><strong>' . $audit['missing_threads'] . '</strong> temas sin recompensa de ' . $audit['expected_threads'] . '</span>'
         . '<small>No se ha modificado ningun saldo.</small></section>';
 }
+$secretsOn = opg_hlw_secrets_enabled($config);
+$alertRows = opg_hlw_secret_alerts_list(50);
+$alertsHtml = '';
+if (opg_hlw_secrets_ready()) {
+    $alertsHtml = '<section class="hlw-audit"><div><p>Secretos ocultos</p><h2>Alertas de reclamos sospechosos</h2></div>';
+    if (!opg_hlw_secrets_alerts_ready()) {
+        $alertsHtml .= '<small>Falta la tabla de alertas: ejecuta <b>docs/halloween2026_secretos_alertas_migration.sql</b>.</small>';
+    } elseif (!$alertRows) {
+        $alertsHtml .= '<small>Sin alertas.</small>';
+    } else {
+        $types = array('senuelo' => 'Señuelo (bloquea)', 'rapido' => 'Reclamo demasiado rapido', 'codigo' => 'Codigo invalido');
+        $alertsHtml .= '<div class="hlw-staff-results">';
+        foreach ($alertRows as $alert) {
+            $alertsHtml .= '<div><strong>' . opg_hlw_escape($alert['nombre'] !== null && $alert['nombre'] !== '' ? $alert['nombre'] : 'Usuario ' . (int)$alert['uid'])
+                . ' (UID ' . (int)$alert['uid'] . ')</strong> - ' . opg_hlw_escape($types[$alert['tipo']] ?? $alert['tipo'])
+                . '<br><small>' . opg_hlw_escape(opg_hlw_secret_date($alert['created_at'])) . ' - IP ' . opg_hlw_escape($alert['ip']) . ' - ' . opg_hlw_escape($alert['detalle'])
+                . '<br>' . opg_hlw_escape($alert['user_agent']) . '</small>'
+                . '<form method="post"><input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '">'
+                . '<input type="hidden" name="action" value="forgive_secret_alerts"><input type="hidden" name="uid" value="' . (int)$alert['uid'] . '">'
+                . '<button type="submit">Perdonar alertas de este usuario</button></form></div>';
+        }
+        $alertsHtml .= '</div>';
+    }
+    $alertsHtml .= '</section>';
+}
 $staffContent = $message
     . '<section class="hlw-staff-overview"><div><small>Calabazas obtenidas</small><strong>' . number_format($summary['earned'], 0, ',', '.') . '</strong></div>'
     . '<div><small>Participantes</small><strong>' . number_format($summary['participants'], 0, ',', '.') . '</strong></div>'
@@ -502,7 +531,10 @@ $staffContent = $message
         . '<button type="submit">Activar recompensas automaticas</button></form>' : '') . '</div>'
     . '<div><small>Estado de tienda</small><strong>' . ($storeOpen ? 'Abierta' : 'Cerrada') . '</strong>'
     . (!$storeOpen ? '<form method="post"><input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '"><input type="hidden" name="action" value="open_store">'
-        . '<button type="submit">Abrir despues de la prueba</button></form>' : '') . '</div></section>'
+        . '<button type="submit">Abrir despues de la prueba</button></form>' : '') . '</div>'
+    . '<div><small>Descubrir secretos</small><strong>' . ($secretsOn ? 'Habilitado para todos' : 'Solo cuentas 315 y 172') . '</strong>'
+    . '<form method="post"><input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '"><input type="hidden" name="action" value="' . ($secretsOn ? 'disable_secrets' : 'enable_secrets') . '">'
+    . '<button type="submit">' . ($secretsOn ? 'Volver al modo de prueba' : 'Habilitar para todos') . '</button></form></div></section>'
     . ($config['status'] === 'draft' ? '<section class="hlw-preflight"><div><p>Comprobacion segura</p><h2>Prueba previa con UID 315</h2>'
         . '<span>Simula las recompensas y valida el catalogo dentro de una transaccion que siempre termina con ROLLBACK.</span></div>'
         . '<form method="post"><input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '">'
@@ -511,6 +543,7 @@ $staffContent = $message
     . $liveTestHtml
     . '<div class="hlw-audit-link"><a href="' . opg_hlw_staff_url(array('audit' => 1, 'uid' => $targetUid)) . '"><i class="fa-solid fa-magnifying-glass"></i> Comprobar recompensas sin modificar datos</a></div>'
     . $auditHtml
+    . $alertsHtml
     . '<section class="hlw-staff-search"><div><h2>Buscar personaje</h2><p>Nombre, apodo o FID.</p></div><form method="get">'
     . '<input type="search" name="q" value="' . opg_hlw_escape($queryText) . '" minlength="3" placeholder="Nombre o FID"><button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button></form>'
     . '<div class="hlw-staff-results">' . $resultsHtml . '</div></section>' . $targetHtml;

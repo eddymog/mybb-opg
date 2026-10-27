@@ -705,3 +705,222 @@ evento y comprobar la fecha, reduciendo el coste después del 9 de noviembre.
   y si su almacenamiento permite incluirlo en la misma transacción.
 - Auditar los helpers de entrega del cofre `CFRHLW`, Nikas y Berries antes de
   habilitar compras reales.
+- Los secretos ocultos (sección 21) están pendientes de diseño técnico e
+  implementación; la lista de ubicaciones es un estimado.
+
+## 21. Secretos ocultos
+
+**Estado: completo.** El sistema está terminado y están implementados los 30 secretos
+(tabla 21.3). Para cambiar o añadir alguno, el procedimiento está en 21.5. La operación diaria (interruptor, pruebas, reseteo, alertas y despliegue) está
+en `docs/106_Operacion_Halloween.md`.
+
+### 21.1 Reglas
+
+- Hay **30 secretos** repartidos por el foro.
+- Cada secreto se descubre **haciendo clic** en una parte oculta de una página
+  o sección del foro. No son iconos ni píxeles que buscar.
+- Los secretos son **globales**: cualquier usuario puede descubrir cualquiera,
+  aunque otra persona ya lo haya hecho. Cada usuario lo reclama una sola vez.
+- Premios por secreto:
+  - **Primera persona en descubrirlo:** 1 Cofre Calabaza (`CFRHLW`).
+  - **Quienes lo descubren después:** 1 Calabaza Maldita.
+- Esto sustituye el reparto anterior (15 secretos de 1 a 5 Calabazas y 5 de
+  1 Papeleta).
+
+### 21.2 Página del evento
+
+Dos secciones nuevas:
+
+1. **Mis secretos descubiertos:** los secretos que ha encontrado el usuario
+   conectado y cuándo. Los que aún no ha encontrado se muestran como casillas
+   bloqueadas, sin revelar dónde están.
+2. **Quién descubrió cada secreto primero:** por cada secreto descubierto, el
+   usuario que lo encontró primero y la fecha. Los que nadie ha encontrado
+   aparecen sin descubrir.
+
+### 21.3 Secretos implementados
+
+Todos dan el mismo premio: la primera persona en descubrirlo recibe 1 Cofre Calabaza y
+las siguientes, 1 Calabaza Maldita. Las claves son las del catálogo
+(`opg_hlw_secret_catalog()` en `inc/plugins/lib/halloween2026_secretos.php`).
+
+| # | Clave | Nombre | Dónde y cómo se descubre | Tipo |
+|---|---|---|---|---|
+| 1 | `hs-k7q2m9` | El Luffy gris | Botón gris de Luffy en el índice, junto al de Discord | clic |
+| 2 | `hs-p4x8d1` | El título escondido | Imagen del título de la quinta categoría del índice | clic |
+| 3 | `hs-m2c6w5` | La palabra mágica | Escribir «calabaza» en el chatbox del índice | chat |
+| 4 | `hs-r9t3b6` | El primer puesto | Primer puesto del podio de «Más experiencia», en Estadísticas | enlace |
+| 5 | `hs-d3k7a9` | La calabaza podrida | Objeto Calabaza Podrida, en la página de Objetos | clic delegado |
+| 6 | `hs-h6j2q4` | La tirada de prueba | Botón «Tirada de prueba» de la página del Haki del Rey | clic delegado |
+| 7 | `hs-g7w4e8` | El baúl animado | GIF de cofres de la página de tiradas de cofres | clic delegado |
+| 8 | `hs-q4x7n2` | La granada de humo | Objeto Granada de Humo, en la página de Objetos | clic delegado |
+| 9 | `hs-w9m3k6` | El dial abrasador | Objeto Dial Abrasador, en la página de Objetos | clic delegado |
+| 10 | `hs-t2u5l9` | La contraseña del evento | Escribir «halloween2026» en el chatbox del índice | chat |
+| 11 | `hs-b1y6s4` | El banner de los NPCs | Banner de la cabecera de la página de NPCs (`compas.php`) | clic |
+| 12 | `hs-c8z2f7` | El adorno del carrito | Imagen decorativa del carrito de la Tienda del evento | clic delegado |
+| 13 | `hs-s9p3v1` | El primer cofre de la tienda | Comprar un Cofre Calabaza en la Tienda del evento | compra |
+| 14 | `hs-f3d8m1` | El nombre del encabezado | Tu nombre en el encabezado (`#ficha`), en cualquier página | clic delegado, global |
+| 15 | `hs-n5k9r3` | El fantasma de la cabecera | Icono del fantasma de la cabecera de la página del evento | clic |
+| 16 | `hs-j4h8t5` | El mar profundo | Imagen de Deep Ocean en el índice | enlace |
+| 17 | `hs-a2e6c9` | La fruta murciélago | Batto Batto no Mi, en la página de Akumas | clic delegado |
+| 18 | `hs-u6r1q8` | La fruta araña | Kumo Kumo no Mi, en la página de Akumas | clic delegado |
+| 19 | `hs-y3l8e5` | El defecto pesimista | Defecto Pesimista (D046), en el registro de virtudes (`registro_virtudes.php`) | clic delegado |
+| 20 | `hs-v7n2z4` | El mar del norte | Botón «North Blue» del mapa del mundo (`mapa_mundo.php`) | clic delegado |
+| 21 | `hs-z5q9d2` | El segundo rostro de Barbanieves | Segundo avatar de la ficha de Barbanieves, en la página de NPCs (`compas.php`) | clic delegado |
+| 22 | `hs-b4t6x9` | La apariencia de Lisstez | Apartado «Apariencia» de la ficha de Lisstez M. Shingehardz, en la página de NPCs (`compas.php`) | clic delegado con condición |
+| 23 | `hs-e8m5j3` | El capitán de la portada | Imagen de Lance Turner, en la página de la Prensa Rosa (`prensarosa.php`) | clic delegado |
+| 24 | `hs-k2d7p6` | La recompensa de los treinta días | Recompensa de 30 días, en la página de recompensas (`/op/recompensas.php`) | clic delegado |
+| 25 | `hs-m9c4h2` | El icono del oficio | Icono de Puntos de Oficio de la portada de una ficha, en `personaje.php` | clic delegado |
+| 26 | `hs-r6u3b8` | El saldo de los Kuros | Icono de Kuros del «Saldo actual», en la tienda de Kuros (`/op/tienda_kuros.php`) | clic delegado con selector hermano |
+| 27 | `hs-l5g7y1` | El enlace escondido | Enlace puesto en un mensaje del foro (`/op/descubrir.php?c=ficha-belica-asfixia`) | enlace |
+| 28 | `hs-v4d9s2` | La puerta de la beta | Enlace puesto en un mensaje del foro (`/op/descubrir.php?c=beta-opg`) | enlace |
+| 29 | `hs-x2j6c4` | El secreto de las razas | Enlace puesto en la enciclopedia de razas (`/op/descubrir.php?c=enciclopedia-razas`) | enlace |
+| 30 | `hs-m8q2t7` | La muerte más épica | Enlace puesto en el tema de El Despertar de Norfeo (`/op/descubrir.php?c=la-muerte-mas-epica`) | enlace |
+
+Tipos: **clic** (elemento que existe al cargar la página), **clic delegado** (elemento creado
+con JavaScript después de cargar, el clic se escucha en todo el documento y no se bloquea),
+**enlace** (se reclama y después se sigue al enlace), **chat** y **compra** (se detectan en
+el servidor, sin clic) y **global** (vale en todas las páginas).
+
+Secretos de **enlace** (del 27 al 30): sin página ni selector. Se descubren siguiendo un enlace normal
+puesto en un mensaje (`/op/descubrir.php?c=CODIGO`). El código lo eliges tú: minúsculas,
+números y guiones (de 6 a 40 caracteres), p. ej. `ficha-belica-asfixia`, y distinto de la clave interna. Abrir el enlace no reclama nada: la página
+enseña un botón y solo reclama al pulsarlo (con protección CSRF), así que una vista previa
+del enlace o una imagen que apunte a él no dan premios. El enlace puede repartirse: cada
+usuario lo descubre una sola vez. Valen las reglas de siempre (interruptor, cuentas de
+prueba, bloqueos). Para crear otro, una entrada con `tipo => 'link'`, `codigo` e `imagen`.
+
+Condición sobre otro elemento (el 22: el apartado «Apariencia» es el mismo para todos los NPCs y
+solo vale cuando el nombre mostrado en la ficha es el de Lisstez): la entrada lleva
+`condicion => array(selector, texto)`. Se comprueba al hacer clic, no al cargar la página.
+
+Páginas que comparten el mismo `THIS_SCRIPT` se distinguen con `archivo`
+(`tirada_rey.php` y `tirada_cofre.php`, `compas.php` y `companeros.php`,
+`/op/halloween2026.php` y `/op/staff/halloween2026.php`).
+
+### 21.4 Estimación inicial de ubicaciones (referencia)
+
+Esta lista fue la primera idea de 20 ubicaciones. **No es la lista vigente** (esa es la
+tabla 21.3): se conserva solo como referencia de las ideas iniciales: los 30 secretos ya están implementados.
+
+| # | Ubicación |
+|---|---|
+| 1 | Página del NPC Jonethanthony |
+| 2 | Clic en la Akuma de sangre, en la página de Akumas |
+| 3 | Imagen de la temporada en el índice |
+| 4 | Banner del evento |
+| 5 | Botón de Estadísticas de Pruebas Personales |
+| 6 | Cofre Calabaza en la página de Objetos |
+| 7 | Akuma Horo Horo |
+| 8 | Akuma de sombra |
+| 9 | Escribir "halloween" en el chatbox (hecho como «halloween2026», secreto 10) |
+| 10 | Clic en Barbanieves |
+| 11 | Akuma de huesos |
+| 12 | Clic en el NPC Samira |
+| 13 | "¿Sabías que?" de Robin |
+| 14 | Enlace en el evento de Halloween anterior |
+| 15 | Acto Maléfico, en Virtudes |
+| 16 | Botón Índice, junto al de Discord (hecho, secreto 1) |
+| 17 | Clic en el solecito del header |
+| 18 | Guía de Muerte y Resurrección |
+| 19 | Subforo de la Grand Line |
+| 20 | Banner de Halloween |
+
+### 21.5 Implementación
+
+| Pieza | Archivo |
+|---|---|
+| Tabla de descubrimientos | `docs/halloween2026_secretos_migration.sql` |
+| Tabla de alertas (señuelos y sospechosos) | `docs/halloween2026_secretos_alertas_migration.sql` |
+| Catálogo, reclamo, códigos de visita, señuelos y alertas | `inc/plugins/lib/halloween2026_secretos.php` |
+| Respuesta JSON (nombre neutro a propósito) | `op/ajuste_indice.php` |
+| Script del navegador (se escribe dentro de la pagina) | `inc/plugins/lib/halloween2026_cliente.php` |
+| Carga del script solo donde hace falta | hook `pre_output_page` en `inc/plugins/opg_halloween2026.php` |
+| Pestaña Secretos de la página del evento | `opg_hlw_render_secrets()` en `op/halloween2026.php` |
+| Interruptor y lista de alertas | `op/staff/halloween2026.php` |
+| Pruebas | `tests/halloween2026/secretos.php` |
+
+Quién puede descubrir:
+
+- Con el interruptor de la consola de staff apagado (valor por defecto), solo las
+  cuentas de prueba 315 y 172 (`OPG_HLW_SECRET_TESTERS`), en cualquier momento.
+- Encendido, cualquier usuario con personaje elegible mientras el evento esté
+  activo y dentro de la ventana de obtención.
+- Ver la pestaña Secretos no depende del interruptor.
+
+Premios: el primero recibe 1 `CFRHLW`; los demás, 1 Calabaza por el libro de
+movimientos (`source_type = 'secret'`, clave de idempotencia por secreto y
+usuario). Todo en una transacción.
+
+Para añadir un secreto de clic: una entrada en `opg_hlw_secret_catalog()` con
+clave, número, nombre, pista, `pagina` (el `THIS_SCRIPT` donde vive) y
+`selector` (un selector CSS que encuentre el elemento en la plantilla). La
+plantilla no se toca: no lleva ningún id ni atributo.
+
+Secretos sobre elementos que se crean con JavaScript después de cargar la página
+(el 5, el objeto Calabaza Podrida en `objetos.php`, `#CALPOD`): la entrada lleva
+`delegar => true`. El script escucha el clic en todo el documento y comprueba
+si cae dentro del selector, sin bloquear el clic del elemento.
+
+Páginas que comparten `THIS_SCRIPT` (`opg/tirada_cofre.php` declara por error
+`tirada_rey.php`, igual que la del Haki del Rey): la entrada del catálogo lleva
+`archivo => 'tirada_rey.php'` y solo vale si se está ejecutando ese archivo
+(`basename($_SERVER['SCRIPT_NAME'])`).
+
+Secretos que son un enlace (por ejemplo el 4, el primer puesto del podio de
+«Más experiencia»): la entrada lleva `navegar => true`. El script reclama el
+secreto y, al cerrar la felicitación, sigue al enlace; un clic con Ctrl, Mayús o
+Cmd conserva el comportamiento normal. Si el secreto solo vale en una vista de
+la página se añade `cuando => array(parametro => valor)`, que se compara con los
+parámetros de la petición.
+
+Secreto de tipo `visita` (disponible, ahora sin ninguno activo): la entrada lleva
+`tipo => 'visita'`, `pagina` e `imagen`. El hook `pre_output_page` lo reclama en
+el servidor al cargar la página (solo con una petición GET de una página HTML
+completa) y pasa el resultado al script, que solo muestra la felicitación.
+No lleva código de visita ni señuelos: la visita es el propio secreto.
+
+Secreto de tipo `chat` (el 3, escribir «calabaza» en el chat del índice): la
+entrada lleva `tipo => 'chat'`, `vigilar` (zona del chat) e `imagen`. Lo detecta
+el servidor con el hook `rt_chat_commit_message_insert` de RT Chat, cuando el
+mensaje público ya está guardado, y deja el resultado en una cookie de 90 s
+que el script del índice recoge para mostrar la felicitación.
+
+### 21.6 Medidas contra trampas
+
+El objetivo es subir el esfuerzo y dejar rastro, no hacerlo imposible: nada de
+lo que se ejecuta en el navegador es seguro.
+
+0. **Disimulo del script y de la configuración.** El script no es un archivo aparte:
+   se escribe dentro de la página, ya compacto, sin comentarios y sin palabras del
+   evento (los textos del modal los pone el servidor). La página solo lleva un
+   billete opaco (cifrado con libsodium, con el usuario, la página y los parámetros
+   de la visita). La configuración (códigos, selectores y textos de apoyo) no va en
+   el HTML: el script la pide al servidor (`op/ajuste_indice.php`, petición `c`) cuando
+   alguien interactúa con la página, o a los 4 s, y llega cifrada con un XOR derivado
+   del billete, sin estructura de JSON ni claves con nombre. Los resultados de un
+   reclamo viajan como listas sin nombres de campo. El código de visita conserva la
+   hora de carga de la página, por eso el tiempo mínimo se cuenta desde ahí.
+1. **Sin pistas en el HTML.** Ningún atributo, clase ni id habla de secretos
+   ni marca los elementos: el script los encuentra con selectores CSS que van
+   dentro de la configuración de cada visita. El script y la dirección del
+   servidor tienen nombres neutros y el hook no deja mensajes. El motivo de un
+   rechazo solo se devuelve a las cuentas de prueba.
+2. **Prueba de visita.** Al cargar la página, el servidor genera un código
+   cifrado y autenticado (libsodium `secretbox`) por cada secreto real y por
+   cada señuelo. Contiene usuario, secreto, hora y si es señuelo; el
+   navegador solo ve texto opaco. El reclamo se acepta solo si el código se
+   abre, es del usuario, no ha caducado (12 h) y pasó al menos 1,5 s desde la
+   carga. La clave de cifrado sale de la configuración de la base de datos.
+3. **Señuelos con alarma.** Se emiten 3 señuelos por página. El script crea
+   para ellos un elemento oculto fuera de pantalla, con un id aleatorio
+   distinto en cada visita (`#v` + 6 hex), que un usuario no puede pulsar. Reclamar uno
+   registra una alerta, bloquea al usuario para todos los secretos y
+   responde igual que "cerrado". Las cuentas de prueba nunca se bloquean.
+4. **Auditoría.** `mybb_op_halloween2026_secretos_alertas` guarda usuario,
+   tipo (`senuelo`, `rapido`, `codigo`), IP y navegador. La consola de staff
+   lista las últimas 50 y permite perdonar a un usuario, lo que le quita el
+   bloqueo.
+
+Pendiente, no hecho: rastro del ratón, límite de peticiones por usuario y
+comprobación de varias cuentas con la misma IP.

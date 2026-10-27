@@ -10,6 +10,7 @@ if (!defined('OPG_HLW_THEME_TID')) {
 }
 
 require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026.php';
+require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026_secretos.php';
 
 $plugins->add_hook('datahandler_post_insert_post_end', 'opg_hlw_hook_post');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'opg_hlw_hook_post');
@@ -26,6 +27,74 @@ $plugins->add_hook('class_moderation_delete_thread_start', 'opg_hlw_hook_reverse
 $plugins->add_hook('class_moderation_move_simple', 'opg_hlw_hook_move');
 $plugins->add_hook('class_moderation_move_thread_redirect', 'opg_hlw_hook_move');
 $plugins->add_hook('class_moderation_move_threads', 'opg_hlw_hook_move');
+$plugins->add_hook('pre_output_page', 'opg_hlw_hook_secret_script');
+$plugins->add_hook('rt_chat_commit_message_insert', 'opg_hlw_hook_chat_secret');
+
+/**
+ * Secretos ocultos: en las paginas que tengan alguno pendiente para este usuario, escribe al final un pequeño script en la propia
+ * pagina (no un archivo aparte) con un billete opaco. La configuracion (codigos y selectores) no va en el HTML: el script la pide
+ * al servidor cuando alguien interactua con la pagina, y llega cifrada. Solo se añade a quien puede descubrir y aun tiene algo.
+ */
+function opg_hlw_hook_secret_script($page)
+{
+    global $mybb;
+    $uid = (int)$mybb->user['uid'];
+    $position = opg_hlw_secret_insert_position($page);
+    // Solo paginas HTML, y no peticiones que no sean un GET normal.
+    if ($position === false || $uid <= 0 || !defined('THIS_SCRIPT') || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+        return $page;
+    }
+    $pageEntries = opg_hlw_secret_page_entries(THIS_SCRIPT);
+    // Atajo sin consultas: si lo unico que queda en esta pagina son secretos globales que el navegador ya dice tener, no hay nada que hacer.
+    if (!opg_hlw_secret_pending_by_cookie($pageEntries)) {
+        return $page;
+    }
+    if (!opg_hlw_secrets_ready()) {
+        return $page;
+    }
+    $config = opg_hlw_config();
+    if (!opg_hlw_secrets_open($config, $uid) || !opg_hlw_eligible_character($uid)) {
+        return $page;
+    }
+    $found = opg_hlw_secret_mine($uid);
+    // Recuerda en el navegador los secretos ya descubiertos (para el atajo de arriba), solo si ha cambiado.
+    $numbers = array();
+    foreach (opg_hlw_secret_catalog() as $key => $secret) {
+        if (isset($found[$key])) {
+            $numbers[] = (int)$secret['numero'];
+        }
+    }
+    sort($numbers);
+    if ($numbers !== opg_hlw_secret_cookie_found() && !headers_sent()) {
+        setcookie('ei_g', implode('.', $numbers), array('expires' => time() + 31536000, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => false, 'samesite' => 'Lax'));
+    }
+    // ¿Queda algo pendiente en esta pagina? Si el usuario ya descubrio todo lo de aqui, no se añade nada.
+    if (array_diff_key($pageEntries, $found) === array()) {
+        return $page;
+    }
+    require_once MYBB_ROOT . 'inc/plugins/lib/halloween2026_cliente.php';
+    $ticket = opg_hlw_secret_ticket($uid, THIS_SCRIPT, (string)($_SERVER['SCRIPT_NAME'] ?? ''), opg_hlw_secret_condition_params());
+    return substr_replace($page, opg_hlw_client_script($ticket, (string)$mybb->post_code), $position, 0);
+}
+
+/**
+ * Secreto del chat: cuando RT Chat acaba de guardar un mensaje publico con la palabra, se reclama el secreto en el
+ * servidor y el resultado se deja en una cookie de 90 s que el script del indice recoge para mostrar la felicitacion.
+ * Un fallo aqui nunca debe romper el chat.
+ */
+function opg_hlw_hook_chat_secret(&$data)
+{
+    global $mybb;
+    try {
+        $uid = (int)($data['uid'] ?? 0);
+        if ($uid <= 0 || $uid !== (int)$mybb->user['uid'] || $mybb->get_input('to_uid', MyBB::INPUT_INT) !== 0) {
+            return;
+        }
+        opg_hlw_secret_set_result_cookie(opg_hlw_secret_claim_chat($uid, (string)($data['message'] ?? '')));
+    } catch (Throwable $e) {
+        // Silencioso: el chat sigue funcionando.
+    }
+}
 
 function opg_halloween2026_info()
 {

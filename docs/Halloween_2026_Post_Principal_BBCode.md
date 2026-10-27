@@ -57,9 +57,9 @@ Y ahora dejamos la presentación oficial en manos de Oda-sensei.
 Estas recompensas se añadirán directamente a vuestra Tienda del Evento. No es necesario reclamarlas.
 
 [list]
-[*][b]1 post:[/b] 1 Calabaza. Solo en zonas de rol.
-[*][b]1 tema nuevo:[/b] 2 Calabazas. Solo temas Comunes y Aventuras.
-[*][b]1 tema nuevo con etiqueta Spooky:[/b] 3 Calabazas en total. No se acumula con la recompensa de tema nuevo.
+[*][b]1 post:[/b] 1 Calabaza. Solo en zonas de rol. El primer post de un tema nuevo no cuenta como post: ese se paga como tema nuevo.
+[*][b]1 tema nuevo:[/b] 2 Calabazas. Cualquier tema nuevo en una zona de rol.
+[*][b]1 tema nuevo con [Spooky] en el título:[/b] 3 Calabazas en total. Escribe [Spooky] en el título al crear el tema, con o sin mayúsculas. No se acumula con la recompensa de tema nuevo.
 [*][b]Primer post diario:[/b] 1 Calabaza adicional. Reinicio diario a las 06:00, hora peninsular española.
 [*][b]Regalo impredecible de Kuro:[/b] cantidad sorpresa de Calabazas. Puede obtenerse más de una vez.
 [/list]
@@ -88,12 +88,16 @@ Enlace o captura:
 [hr]
 [align=center][img=20x20]https://onepiecegaiden.com/images/op/uploads/TituloDestacado_One_Piece_Gaiden_Foro_Rol.png[/img] [b][size=x-large]¡SECRETOS OCULTOS![/size][/b] [img=20x20]https://onepiecegaiden.com/images/op/uploads/TituloDestacado_One_Piece_Gaiden_Foro_Rol.png[/img][/align]
 
-Habrá [b]10 secretos[/b], representados mediante pequeños iconos o incluso píxeles, escondidos en distintas páginas y secciones del foro. Cada secreto recompensará únicamente a la primera persona que lo encuentre y pulse sobre él.
+Habrá [b]30 secretos[/b] escondidos en distintas páginas y secciones del foro. No son iconos ni píxeles que buscar: cada secreto se descubre [b]haciendo clic[/b] en ciertas partes ocultas del foro. Explora, prueba y pulsa donde menos lo esperes.
 
-La Tienda del Evento registrará automáticamente los secretos encontrados. La página de estadísticas mostrará quién descubrió primero cada uno.
+Los secretos son [b]globales[/b]: cualquiera puede descubrirlos y reclamarlos, aunque otra persona ya lo haya hecho antes. Eso sí, [b]quien lo descubra primero[/b] se llevará un premio especial.
 
-[b]Premios:[/b]
+[b]Premios por secreto:[/b]
 [list]
-[*]15 secretos concederán entre 1 y 5 Calabazas según la dificultad de su escondite.
-[*]5 secretos concederán 1 Papeleta para el sorteo del evento.
+[*][b]Primera persona en descubrirlo:[/b] 1 Cofre Calabaza.
+[*][b]Quienes lo descubran después:[/b] 1 Calabaza Maldita.
 [/list]
+
+En la página del evento tendrás una sección con [b]tus secretos descubiertos[/b] y otra con [b]quién descubrió cada secreto por primera vez[/b].
+
+[size=small][b]Nota:[/b] Está prohibido utilizar la consola de programación del navegador para intentar descubrir secretos, y quien lo haga será gravemente sancionado. Se ha hecho un esfuerzo enorme para esconder estos secretos y se ha escondido el código para que sea difícil de conseguir. Además, se han agregado herramientas para detectar el uso de la consola de Chrome, se está trackeando cómo se llega a estos secretos y se han creado señuelos/trampas que parecen secretos como cualquier otro, pero que solo se pueden descubrir a través de la consola. Al descubrirlos se registrará y no se podrán reclamar más premios. ¡Disfrutemos el jueguito, jeje![/size]

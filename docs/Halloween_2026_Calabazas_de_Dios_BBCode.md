@@ -62,7 +62,7 @@ A continuación se enumeran las formas mediante las cuales podéis obtener calab
 [*][color=#27ae60][b]1 tema nuevo:[/b] 2 Calabazas.[/color] Solo temas Comunes y Aventuras.
 [*][color=#27ae60][b]1 tema nuevo temático:[/b] 3 Calabazas.[/color] Solo con la etiqueta Spooky.
 [*][color=#27ae60][b]Primer post diario:[/b] 1 Calabaza.[/color] Reinicio diario a las 06:00, hora de España.
-[*][color=#27ae60][b]Secretos ocultos en el foro:[/b] ???[/color] Hay 20 premios ocultos.
+[*][color=#27ae60][b]Secretos ocultos en el foro:[/b] ???[/color] Hay 30 premios ocultos.
 [*][color=#27ae60][b]Regalo impredecible de Kuro:[/b] ??? Calabazas.[/color] Repetible.
 [*][color=#dc3545][b]Concurso de Historias de Miedo:[/b] 10 Calabazas.[/color]
 [*][color=#dc3545][b]Concurso de Monstruos Salvajes:[/b] 10 Calabazas.[/color]
