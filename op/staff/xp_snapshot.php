@@ -2,7 +2,7 @@
 /**
  * Staff - Snapshot diario de XP (newpoints) de quienes postearon en rol en las ultimas 2 semanas.
  * Los datos los guarda la tarea op_xp_snapshot (inc/tasks/op_xp_snapshot.php).
- * Muestra un dia a elegir, ordenable, con la XP ganada en 1, 3, 7 y 14 dias.
+ * Muestra un dia a elegir, ordenable, con la XP ganada en 1, 3, 7, 14 y 30 dias.
  */
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'xp_snapshot.php');
@@ -39,7 +39,8 @@ if (!in_array($fecha, $fechas, true)) {
 }
 
 $columnas = array('ranking' => 'Ranking', 'username' => 'Usuario', 'newpoints' => 'XP actual', 'posts' => 'Posts (14d)',
-    'gan_1' => 'Ganada 1d', 'gan_3' => 'Ganada 3d', 'gan_7' => 'Ganada 7d', 'gan_14' => 'Ganada 14d');
+    'gan_1' => 'Ganada 1d', 'gan_3' => 'Ganada 3d', 'gan_7' => 'Ganada 7d', 'gan_14' => 'Ganada 14d',
+    'gan_30' => 'Ganada 30D');
 $orden = isset($_GET['orden']) && isset($columnas[$_GET['orden']]) ? $_GET['orden'] : 'gan_7';
 $dir = isset($_GET['dir']) && $_GET['dir'] === 'asc' ? 'asc' : 'desc';
 
@@ -98,11 +99,12 @@ foreach ($filas as $f) {
         . '<td class="xp-num">' . xp_gan($f['gan_1']) . '</td>'
         . '<td class="xp-num">' . xp_gan($f['gan_3']) . '</td>'
         . '<td class="xp-num">' . xp_gan($f['gan_7']) . '</td>'
-        . '<td class="xp-num">' . xp_gan($f['gan_14']) . '</td></tr>';
+        . '<td class="xp-num">' . xp_gan($f['gan_14']) . '</td>'
+        . '<td class="xp-num">' . xp_gan($f['gan_30']) . '</td></tr>';
     if ($f['gan_7'] !== null) { $total_ganada_7 += $f['gan_7']; }
 }
 if ($xp_filas === '') {
-    $xp_filas = '<tr><td colspan="8" class="xp-vacio"><i class="fa-solid fa-camera" aria-hidden="true"></i><strong>Todavía no hay snapshots</strong><span>La tarea “OPG: Snapshot diario de XP” guardará una captura al ejecutarse.</span></td></tr>';
+    $xp_filas = '<tr><td colspan="9" class="xp-vacio"><i class="fa-solid fa-camera" aria-hidden="true"></i><strong>Todavía no hay snapshots</strong><span>La tarea “OPG: Snapshot diario de XP” guardará una captura al ejecutarse.</span></td></tr>';
 }
 
 $selector_fecha = '';

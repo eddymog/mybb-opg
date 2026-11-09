@@ -254,9 +254,9 @@ array(
     'common_prefix_id' => 1,
     'adventure_prefix_id' => 3,
     'spooky_prefix_id' => 15,
-    'main_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9471',
-    'stories_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9535',
-    'monsters_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9536',
+    'main_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9567',
+    'stories_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9568',
+    'monsters_thread_url' => 'https://onepiecegaiden.com/showthread.php?tid=9569',
 );
 ```
 

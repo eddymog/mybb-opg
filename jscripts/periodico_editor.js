@@ -55,7 +55,7 @@
     }
 
     function bloqueVacio(tipo) {
-        return { tipo: tipo, contenido: { titular: '', bajada: '', pie: '', autor: '', etiqueta: '', entradilla: '', titulo: '', cuerpo: '', nombre: '', recompensa: '', enlace: '', imagen: '', enlace_relacionado: '', imagenes: [], izquierda: '', derecha: '' } };
+        return { tipo: tipo, contenido: { titular: '', bajada: '', pie: '', autor: '', etiqueta: '', entradilla: '', titulo: '', cuerpo: '', nombre: '', recompensa: '', enlace: '', imagen: '', enlace_relacionado: '', imagenes: [], izquierda: '', derecha: '', canon: false } };
     }
 
     function sincronizar() {
@@ -96,6 +96,21 @@
     function renderCabecera() {
         var meta = crear('section', 'opg-card periodico-editor__meta');
         meta.appendChild(crear('h2', '', 'Datos de la edición'));
+        meta.appendChild(crear('p', 'periodico-editor__destino periodico-editor__destino--' + (datos.publicacion === 'prensa_rosa' ? 'prensa-rosa' : 'periodico'), 'Destino público: ' + (datos.publicacion === 'prensa_rosa' ? 'Prensa Rosa' : 'El Gaviotazo') + '. Se define al crear la edición.'));
+        var articulos = [];
+        datos.paginas.forEach(function (pagina) {
+            pagina.bloques.forEach(function (bloque) {
+                if (bloque.tipo !== 'separador' && bloque.tipo !== 'wanted') { articulos.push(bloque); }
+            });
+        });
+        var canon = articulos.filter(function (bloque) { return bloque.contenido && bloque.contenido.canon === true; }).length;
+        var continuidad = crear('div', 'periodico-editor__resumen-canon');
+        continuidad.appendChild(crear('strong', '', 'Continuidad: ' + canon + ' de ' + articulos.length + ' artículos Canon'));
+        var accionesCanon = crear('div', 'periodico-editor__acciones-inline');
+        accionesCanon.appendChild(boton('Marcar todos Canon', 'opg-chip', function () { articulos.forEach(function (bloque) { bloque.contenido.canon = true; }); sincronizar(); render(); }));
+        accionesCanon.appendChild(boton('Marcar todos No canon', 'opg-chip', function () { articulos.forEach(function (bloque) { bloque.contenido.canon = false; }); sincronizar(); render(); }));
+        continuidad.appendChild(accionesCanon);
+        meta.appendChild(continuidad);
         var fila = crear('div', 'periodico-editor__fila');
         campo(fila, 'Número', datos.numero, function (valor) { datos.numero = parseInt(valor, 10) || 0; }, 'number');
         campo(fila, 'Titular', datos.titulo, function (valor) { datos.titulo = valor; });
@@ -180,6 +195,11 @@
             }
             cabecera.appendChild(accionesBloque);
             tarjeta.appendChild(cabecera);
+            if (bloque.tipo !== 'separador' && bloque.tipo !== 'wanted') {
+                var continuidad = crear('div', 'periodico-editor__continuidad');
+                seleccionar(continuidad, 'Continuidad de la noticia', bloque.contenido.canon === true ? '1' : '0', [{ valor: '0', texto: 'No canon' }, { valor: '1', texto: 'Canon' }], function (valor) { bloque.contenido.canon = valor === '1'; });
+                tarjeta.appendChild(continuidad);
+            }
             var cuerpo = crear('div', 'periodico-editor__campos periodico-editor__campos--' + bloque.tipo);
             renderContenidoBloque(bloque, cuerpo, indice);
             tarjeta.appendChild(cuerpo);

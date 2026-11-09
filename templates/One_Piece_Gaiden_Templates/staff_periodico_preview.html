@@ -1,13 +1,13 @@
 <html>
 <head>
-    <title>Vista previa · El Gaviotazo</title>
+    <title>Vista previa · {$publicacion_nombre}</title>
     <meta name="robots" content="noindex,nofollow">
     {$headerinclude}
-    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico.css?v=3">
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico.css?v=6">
 </head>
 <body>
 {$header}
-<div class="indice"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+<div class="indice {$publicacion_clase}"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
     {$periodico_html}
 </div></div></div></div>
 {$footer}

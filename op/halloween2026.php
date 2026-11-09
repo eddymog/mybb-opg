@@ -53,12 +53,11 @@ function opg_hlw_page_pagination($view, $page, $perPage, $total)
     return $html . '</nav>';
 }
 
-function opg_hlw_render_event($config)
+function opg_hlw_render_event()
 {
-    $settings = $config['settings'];
-    $main = opg_hlw_escape($settings['main_thread_url'] ?? 'https://onepiecegaiden.com/showthread.php?tid=9471');
-    $stories = opg_hlw_escape($settings['stories_thread_url'] ?? 'https://onepiecegaiden.com/showthread.php?tid=9535');
-    $monsters = opg_hlw_escape($settings['monsters_thread_url'] ?? 'https://onepiecegaiden.com/showthread.php?tid=9536');
+    $main = 'https://onepiecegaiden.com/showthread.php?tid=9567';
+    $stories = 'https://onepiecegaiden.com/showthread.php?tid=9568';
+    $monsters = 'https://onepiecegaiden.com/showthread.php?tid=9569';
     return '<section class="hlw-event-hero">'
         . '<img src="/images/op/halloween2026/portada-evento.jpg" alt="La Cosecha de Calabazas Malditas" fetchpriority="high" style="object-position:center 38%">'
         . '<div class="hlw-event-hero__shade"></div><div class="hlw-event-hero__content"><p>26 OCT - 16 NOV</p>'
@@ -75,7 +74,7 @@ function opg_hlw_render_event($config)
         . '<li><time>18-23 NOV</time><div><strong>Votaciones</strong><span>La comunidad elige a sus favoritos.</span></div></li>'
         . '<li><time>24 NOV</time><div><strong>Ganadores</strong><span>Los nombres quedan para la posteridad.</span></div></li></ol></div>'
         . '<aside class="hlw-links"><h3>Cuaderno de bitácora</h3>'
-        . '<a href="' . $main . '"><i class="fa-solid fa-scroll" aria-hidden="true"></i><span><strong>Tema principal</strong><small>Reglas, anuncios y novedades</small></span><i class="fa-solid fa-arrow-right"></i></a>'
+        . '<a href="' . $main . '"><i class="fa-solid fa-ghost" aria-hidden="true"></i><span><strong>Tema principal</strong><small>Reglas, anuncios y novedades</small></span><i class="fa-solid fa-arrow-right"></i></a>'
         . '<a href="' . $stories . '"><i class="fa-solid fa-book-skull" aria-hidden="true"></i><span><strong>Historias de miedo</strong><small>Concurso de relatos siniestros</small></span><i class="fa-solid fa-arrow-right"></i></a>'
         . '<a href="' . $monsters . '"><i class="fa-solid fa-paw" aria-hidden="true"></i><span><strong>Monstruos salvajes</strong><small>Concurso de criaturas aterradoras</small></span><i class="fa-solid fa-arrow-right"></i></a>'
         . '</aside></section>';
@@ -361,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $mybb->get_input('action') === 'pur
     }
 }
 
-if ($view === 'evento') $content = opg_hlw_render_event(opg_hlw_config());
+if ($view === 'evento') $content = opg_hlw_render_event();
 elseif ($view === 'estadisticas') $content = opg_hlw_render_stats();
 elseif ($view === 'tienda') $content = opg_hlw_render_store($uid, $message);
 elseif ($view === 'secretos') $content = opg_hlw_render_secrets($uid);
@@ -393,7 +392,7 @@ if ($eventNow < $eventStart) {
     $hlw_event_state_class = 'is-active';
 } else {
     $hlw_event_state = 'Cosecha finalizada';
-    $hlw_event_timing = 'Finalizó el 16 de noviembre';
+    $hlw_event_timing = 'Finalizó el 17 de noviembre';
     $hlw_event_state_class = 'is-ended';
 }
 $hlw_balance = opg_hlw_page_num($balance['saldo']);

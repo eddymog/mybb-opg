@@ -14,35 +14,24 @@
 				font-size: 18px;
 				margin: 0;
 			}
-			
+
 			.censo-titulo-grupo {
 				font-family: moonGetHeavy; font-size: 22px; color: white; text-align: center; background-color: #00bbed; height: 34px; text-shadow: 1px 1px 3px black; border-start-start-radius: 10px; border-start-end-radius: 10px; border: 2px solid black; position: relative;
 			}
-			
+
 			.censo-bottom {
 				font-family: moonGetHeavy; font-size: 14px; color: white; text-align: center; background-color: #00bbed; height: 22px; text-shadow: 1px 1px 3px black; border-end-start-radius: 10px; border-end-end-radius: 10px; border: 2px solid black; display: flex; justify-content: space-around;
 			}
+
+			.imagenTitulo1 { position: absolute; width: 40px; top: -3px; left: 11px; }
+			.imagenTitulo2 { position: absolute; width: 40px; top: -3px; left: 250px; }
+			.censo-grid-fila { display: flex; flex-direction: row; justify-content: space-between; gap: 20px; }
+			.censo-grid-fila + .censo-grid-fila { margin-top: 22px; }
+			.censo-tarjeta { width: 300px; min-width: 0; }
 			
 			.userPosts:even {
 				background-color: red;
 			}
-			
-			.imagenTitulo1 {
-				position: absolute;
-				width: 40px;
-				top: -3px;
-				left: 11px;
-			}
-			
-			.imagenTitulo2 {
-				position: absolute;
-				width: 40px;
-				top: -3px;
-				left: 250px;
-			}
-			.censo-grid-fila { display: flex; flex-direction: row; justify-content: space-between; gap: 20px; }
-			.censo-grid-fila + .censo-grid-fila { margin-top: 22px; }
-			.censo-tarjeta { width: 300px; min-width: 0; }
 
 			.estadisticas-rankings { margin-top: 20px; text-align: left; }
 			.rankings-titulo { margin: 0; padding: 9px 13px; color: #fff; background: var(--opg-naranja, #ff8500); border: 2px solid #111; border-radius: 6px 6px 0 0; font: 16px moonGetHeavy; letter-spacing: 0; text-transform: uppercase; text-shadow: 1px 1px 1px #000; }
@@ -154,13 +143,180 @@
 			.duelo-barra__lado i { display: block; height: 100%; background: var(--opg-naranja, #ff8500); }
 			.duelo-barra__lado--rival i { background: var(--opg-azul, #00bbed); }
 			.duelo-estadistica__unidad { display: block; margin-top: 3px; color: #777; font: 8px InterRegular, Arial, sans-serif; text-align: center; text-transform: uppercase; }
-			.consulta-rankings { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid #111; }
-			.consulta-rankings > div { display: flex; padding: 14px; flex-direction: column; align-items: center; gap: 3px; background: var(--opg-crema, #fff5d9); }
-			.consulta-rankings > div + div { border-left: 1px solid rgba(0,0,0,.2); }
-			.consulta-rankings span { font: 11px moonGetHeavy; }
-			.consulta-rankings strong { color: var(--opg-morado-texto, #6736a5); font: 24px moonGetHeavy; }
-			.consulta-rankings small { color: #666; font: 11px InterRegular, Arial, sans-serif; }
+			.consulta-expediente { margin-top: 14px; }
+			.consulta-expediente .consulta-personaje { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; gap: 15px; margin: 0; padding: 14px 16px; border: 3px solid #111; border-radius: 6px 6px 0 0; background: var(--opg-ciruela, #2e152d); }
+			.consulta-expediente .consulta-personaje img { width: 78px; height: 78px; border: 3px solid #111; }
+			.consulta-expediente .consulta-personaje small { color: var(--opg-naranja, #ff8500); font: 9px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.consulta-expediente .consulta-personaje h2 { min-width: 0; margin: 0; line-height: 1; }
+			.consulta-expediente .consulta-personaje h2 a { display: block; color: #fff !important; font: 22px moonGetHeavy, Arial, sans-serif; text-decoration: none; }
+			.consulta-expediente .consulta-personaje h2 a:hover { color: var(--opg-crema-dorada, #f5d89a) !important; text-decoration: underline; text-underline-offset: 3px; }
+			.consulta-expediente .consulta-personaje span { color: #ddd; font: 10px InterRegular, Arial, sans-serif; }
+			.consulta-personaje .consulta-personaje__ficha { display: inline-flex; padding: 8px 11px; align-items: center; gap: 7px; border: 2px solid #111; border-radius: 4px; color: #111 !important; background: var(--opg-crema-dorada, #f5d89a); font: 10px InterMedium, Arial, sans-serif; text-decoration: none; white-space: nowrap; }
+			.consulta-personaje .consulta-personaje__ficha:hover { background: #fff; }
+			.consulta-rankings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px; border: 3px solid #111; border-top: 0; background: var(--opg-crema-dorada, #f5d89a); }
+			.consulta-ranking { min-width: 0; border: 2px solid #111; border-radius: 5px; background: #fff; box-shadow: 4px 4px 0 rgba(0,0,0,.2); overflow: hidden; }
+			.consulta-ranking > header { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; min-height: 46px; padding: 8px 11px; box-sizing: border-box; align-items: center; gap: 8px; border-bottom: 2px solid #111; box-shadow: inset 6px 0 var(--ranking-acento); }
+			.consulta-ranking > header > i { color: var(--ranking-acento); font-size: 18px; text-align: center; }
+			.consulta-ranking > header span { font: 11px moonGetHeavy, Arial, sans-serif; text-transform: uppercase; }
+			.consulta-ranking > header strong { color: #fff; background: var(--ranking-acento); padding: 4px 7px; border: 1px solid #111; border-radius: 3px; font: 15px moonGetHeavy, Arial, sans-serif; text-shadow: 1px 1px #111; }
+			.consulta-ranking__valor { display: flex; padding: 13px 14px 8px; align-items: baseline; gap: 7px; }
+			.consulta-ranking__valor span { margin-right: auto; color: #666; font: 9px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.consulta-ranking__valor strong { color: var(--opg-ciruela, #2e152d); font: 25px moonGetHeavy, Arial, sans-serif; }
+			.consulta-ranking__valor small { color: #666; font: 9px InterRegular, Arial, sans-serif; }
+			.consulta-ranking__progreso { padding: 0 14px 12px; }
+			.consulta-ranking__progreso > div { height: 9px; border: 1px solid #111; border-radius: 5px; background: #e4dde6; overflow: hidden; }
+			.consulta-ranking__progreso > div i { display: block; height: 100%; background: var(--ranking-acento); }
+			.consulta-ranking__progreso p { display: flex; margin: 7px 0 0; justify-content: space-between; gap: 8px; color: #666; font: 9px InterRegular, Arial, sans-serif; }
+			.consulta-ranking__progreso p strong { color: var(--ranking-acento); font: 11px InterMedium, Arial, sans-serif; }
+			.consulta-ranking__rival { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 9px; align-items: center; padding: 10px 14px; border-top: 1px solid #ccc; background: #f3eef5; }
+			.consulta-ranking__rival img { width: 40px; height: 40px; border: 2px solid #111; border-radius: 4px; object-fit: cover; }
+			.consulta-ranking__rival > div { display: grid; min-width: 0; gap: 2px; }
+			.consulta-ranking__rival small { color: #777; font: 8px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.consulta-ranking__rival a, .consulta-ranking__rival b { overflow: hidden; color: var(--opg-morado-texto, #6736a5); font: 11px InterMedium, Arial, sans-serif; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+			.consulta-ranking__rival a:hover { color: var(--opg-naranja, #d86d00); text-decoration: underline; }
+			.consulta-ranking__rival span { color: #666; font: 9px InterRegular, Arial, sans-serif; }
+			.consulta-ranking__rival--lider > i { color: #d29a00; font-size: 25px; text-align: center; }
+			.consulta-cambiar { margin-top: 14px; border: 3px solid #111; border-radius: 6px; background: #fff; box-shadow: 4px 4px 0 rgba(0,0,0,.22); overflow: hidden; }
+			.consulta-cambiar > summary { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; min-height: 58px; padding: 9px 14px; box-sizing: border-box; align-items: center; gap: 10px; color: #fff; background: var(--opg-ciruela, #2e152d); cursor: pointer; }
+			.consulta-cambiar > summary::-webkit-details-marker { display: none; }
+			.consulta-cambiar__icono { display: grid; width: 32px; height: 32px; place-items: center; border: 2px solid #111; border-radius: 4px; color: #111; background: var(--opg-naranja, #ff8500); }
+			.consulta-cambiar__texto { display: grid; min-width: 0; gap: 2px; }
+			.consulta-cambiar__texto strong { font: 12px moonGetHeavy, Arial, sans-serif; }
+			.consulta-cambiar__texto small { color: #ddd; font: 9px InterRegular, Arial, sans-serif; }
+			.consulta-cambiar > summary > i:last-child { transition: transform .2s ease; }
+			.consulta-cambiar[open] > summary > i:last-child { transform: rotate(180deg); }
+			.consulta-cambiar .estadisticas-buscador { align-items: start; padding: 16px; border: 0; border-top: 2px solid #111; background: #fff; }
+			.consulta-cambiar .estadisticas-buscador__campo > i { position: absolute; z-index: 2; top: 12px; left: 13px; color: var(--opg-morado-texto, #6736a5); pointer-events: none; }
+			.consulta-cambiar .estadisticas-buscador input[type="search"] { height: 44px; padding-left: 39px; font-size: 14px; }
+			.consulta-cambiar .estadisticas-resultados { top: 47px; }
+			.estadisticas-buscador__estado { display: block; min-height: 15px; margin-top: 5px; color: #666; font: 9px/1.4 InterRegular, Arial, sans-serif; }
+			.estadisticas-buscador__estado.is-error { color: #b62d2d; font-family: InterMedium, Arial, sans-serif; }
+			.estadisticas-buscador__estado.is-ready { color: #237a3b; font-family: InterMedium, Arial, sans-serif; }
+			.consulta-cambiar .button-op-custom { display: inline-flex; min-height: 44px; padding: 8px 15px; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+			.consulta-cambiar .button-op-custom:disabled { opacity: .45; filter: grayscale(1); cursor: not-allowed; }
+
+			.estadisticas-page .thirdBackground { width: 100%; max-width: 1180px; box-sizing: border-box; text-align: left; }
+			.estadisticas-contenido { width: 100%; min-width: 0; }
+			.estadisticas-navegacion { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+			.estadisticas-navegacion label { display: flex; align-items: stretch; border: 2px solid var(--opg-tinta, #111); border-radius: 5px; overflow: hidden; }
+			.estadisticas-navegacion label > span { display: grid; min-width: 62px; padding: 0 10px; place-items: center; color: #fff; background: var(--opg-morado, #8f59f7); font: 11px moonGetHeavy, Arial, sans-serif; text-shadow: 1px 1px #000; }
+			.estadisticas-navegacion select { min-width: 210px; min-height: 38px; padding: 6px 34px 6px 10px; border: 0; border-radius: 0; color: var(--opg-marron, #3b2417); background-color: #fff; font: 12px InterMedium, Arial, sans-serif; }
+			.censo-hero { display: grid; grid-template-columns: minmax(240px, 360px) minmax(0, 1fr); align-items: center; border: 3px solid var(--opg-tinta, #111); border-radius: 7px; color: #fff; background: var(--opg-ciruela, #2e152d); box-shadow: 6px 6px 0 var(--opg-tinta, #111); overflow: hidden; }
+			.censo-hero__marca { display: block; width: 100%; max-height: 150px; padding: 12px; box-sizing: border-box; object-fit: contain; background: var(--opg-crema-dorada, #f5d89a); }
+			.censo-hero__texto { min-width: 0; padding: 18px 22px; border-left: 3px solid var(--opg-tinta, #111); }
+			.censo-hero__texto > span, .censo-eyebrow { display: block; margin-bottom: 3px; color: var(--opg-naranja, #ff8900); font: 10px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-hero h1 { margin: 0; color: #fff; font: 28px/1.05 moonGetHeavy, Arial, sans-serif; letter-spacing: 0; text-shadow: 2px 2px #000; }
+			.censo-hero p { max-width: 640px; margin: 7px 0 0; color: #eee; font: 12px/1.5 InterRegular, Arial, sans-serif; }
+			.censo-seccion h2 { margin: 0; color: var(--opg-ciruela, #2e152d); font: 21px moonGetHeavy, Arial, sans-serif; letter-spacing: 0; }
+			.censo-seccion__cabecera p { margin: 3px 0 0; color: var(--opg-gris-texto, #666); font: 11px/1.4 InterRegular, Arial, sans-serif; }
+			.censo-resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 22px; border: 2px solid var(--opg-tinta, #111); background: #fff; }
+			.censo-kpi { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 8px; align-items: center; min-width: 0; padding: 14px; border-left: 1px solid rgba(0,0,0,.3); }
+			.censo-kpi:first-child { border-left: 0; }
+			.censo-kpi > i { color: var(--opg-naranja, #ff8900); font-size: 22px; text-align: center; }
+			.censo-kpi > div { display: grid; min-width: 0; gap: 2px; }
+			.censo-kpi span:first-child { color: var(--opg-gris-texto, #666); font: 9px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-kpi strong { color: var(--opg-ciruela, #2e152d); font: 25px moonGetHeavy, Arial, sans-serif; }
+			.censo-kpi small { color: var(--opg-gris-texto, #666); font: 8px InterRegular, Arial, sans-serif; }
+			.censo-resumen__foro { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-top: 2px solid var(--opg-tinta, #111); color: var(--opg-marron, #3b2417); background: var(--opg-crema-dorada, #f5d89a); font: 10px InterRegular, Arial, sans-serif; }
+			.censo-personal { display: grid; grid-template-columns: minmax(210px, .8fr) minmax(0, 2fr); margin-top: 14px; border: 2px solid var(--opg-tinta, #111); border-radius: 6px; box-shadow: 4px 4px 0 rgba(0,0,0,.3); overflow: hidden; }
+			.censo-personal__cabecera { display: flex; padding: 14px 16px; flex-direction: column; justify-content: center; color: #fff; background: var(--opg-morado, #8f59f7); }
+			.censo-personal__cabecera span { font: 10px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-personal__cabecera strong { margin-top: 3px; font: 17px moonGetHeavy, Arial, sans-serif; text-shadow: 1px 1px #000; }
+			.censo-personal__cabecera small { margin-top: 5px; font: 9px/1.4 InterRegular, Arial, sans-serif; }
+			.censo-personal__datos { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); background: #fff; }
+			.censo-personal__datos > div { display: flex; min-width: 0; padding: 12px; flex-direction: column; justify-content: center; border-left: 1px solid rgba(0,0,0,.25); }
+			.censo-personal__datos span:first-child { color: var(--opg-gris-texto, #666); font: 9px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-personal__datos strong { margin: 3px 0; color: var(--opg-ciruela, #2e152d); font: 20px moonGetHeavy, Arial, sans-serif; }
+			.censo-personal__rivales { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border-top: 2px solid var(--opg-tinta, #111); background: var(--opg-tinta, #111); }
+			.censo-personal__rivales > span { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; padding: 9px 12px; background: var(--opg-crema-dorada, #f5d89a); }
+			.censo-personal__rivales small { grid-column: 1 / -1; color: var(--opg-gris-texto, #666); font: 8px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-personal__rivales a { overflow: hidden; color: var(--opg-morado-texto, #6736a5) !important; font: 11px InterMedium, Arial, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+			.censo-personal__rivales b { font: 10px InterRegular, Arial, sans-serif; white-space: nowrap; }
+			.censo-seccion { margin-top: 26px; }
+			.censo-seccion__cabecera { display: flex; justify-content: space-between; align-items: end; gap: 16px; padding-bottom: 9px; border-bottom: 4px solid var(--opg-naranja, #ff8900); }
+			.censo-herramientas { display: grid; grid-template-columns: minmax(220px, 1fr) 190px auto; gap: 8px; margin-top: 12px; }
+			.censo-busqueda { position: relative; }
+			.censo-busqueda i { position: absolute; top: 50%; left: 12px; color: var(--opg-gris-texto, #666); transform: translateY(-50%); }
+			.censo-busqueda input, .censo-orden select { width: 100%; min-height: 40px; box-sizing: border-box; border: 2px solid var(--opg-tinta, #111); border-radius: 4px; color: var(--opg-marron, #3b2417); background: #fff; font: 11px InterRegular, Arial, sans-serif; }
+			.censo-busqueda input { padding: 7px 10px 7px 36px; }
+			.censo-orden { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch; }
+			.censo-orden span { display: grid; padding: 0 8px; place-items: center; border: 2px solid var(--opg-tinta, #111); border-right: 0; border-radius: 4px 0 0 4px; color: #fff; background: var(--opg-ciruela, #2e152d); font: 8px InterMedium, Arial, sans-serif; text-transform: uppercase; }
+			.censo-orden select { border-radius: 0 4px 4px 0; }
+			.censo-limpiar { display: inline-flex; min-height: 40px; padding: 7px 11px; align-items: center; justify-content: center; gap: 6px; border: 2px solid var(--opg-tinta, #111); border-radius: 4px; color: #fff; background: var(--opg-naranja, #ff8900); font: 10px InterMedium, Arial, sans-serif; cursor: pointer; }
+			.censo-limpiar:hover { background: var(--opg-naranja-hover, #dc822a); }
+			.censo-filtros { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin: 10px 0; border: 2px solid var(--opg-tinta, #111); border-radius: 5px; background: var(--opg-tinta, #111); gap: 1px; overflow: hidden; }
+			.censo-filtro { display: flex; min-width: 0; min-height: 40px; padding: 6px 8px; align-items: center; justify-content: center; gap: 6px; border: 0; color: var(--opg-marron, #3b2417); background: #fff; font: 9px InterMedium, Arial, sans-serif; cursor: pointer; }
+			.censo-filtro > i { flex: 0 0 auto; width: 8px; height: 8px; border: 1px solid rgba(0,0,0,.45); border-radius: 50%; background: var(--faccion-color); }
+			.censo-filtro span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.censo-filtro small { display: grid; flex: 0 0 auto; min-width: 19px; height: 19px; padding: 0 3px; box-sizing: border-box; place-items: center; border-radius: 10px; color: var(--opg-gris-texto, #666); background: rgba(0,0,0,.08); font: 7px InterMedium, Arial, sans-serif; }
+			.censo-filtro:hover, .censo-filtro.is-active { color: #fff; background: var(--opg-morado, #8f59f7); }
+			.censo-filtro:hover small, .censo-filtro.is-active small { color: #fff; background: rgba(0,0,0,.22); }
+			.censo-tabla-wrap { border: 2px solid var(--opg-tinta, #111); overflow-x: auto; }
+			.censo-tabla { width: 100%; min-width: 940px; border-collapse: collapse; color: var(--opg-marron, #3b2417); background: #fff; table-layout: fixed; }
+			.censo-tabla th { padding: 9px 8px; color: #fff; background: var(--opg-ciruela, #2e152d); font: 9px InterMedium, Arial, sans-serif; text-align: left; text-transform: uppercase; }
+			.censo-tabla th:nth-child(1) { width: 54px; }.censo-tabla th:nth-child(2) { width: 25%; }.censo-tabla th:nth-child(3) { width: 120px; }.censo-tabla th:nth-child(n+4):nth-child(-n+8) { width: 62px; text-align: center; }.censo-tabla th:nth-child(9) { width: 125px; }
+			.censo-tabla td { padding: 8px; border-top: 1px solid rgba(0,0,0,.2); font: 11px InterRegular, Arial, sans-serif; vertical-align: middle; }
+			.censo-tabla td:nth-child(n+4):nth-child(-n+8) { font: 13px moonGetHeavy, Arial, sans-serif; text-align: center; }
+			.censo-tabla tbody tr:nth-child(even) { background: var(--opg-crema, #fff5d9); }
+			.censo-tabla tbody tr:hover { background: var(--opg-crema-dorada, #f5d89a); }
+			.censo-tabla tr[hidden] { display: none !important; }
+			.censo-puesto { color: var(--opg-morado-texto, #6736a5); font: 14px moonGetHeavy, Arial, sans-serif; }
+			.censo-personaje { display: flex; min-width: 0; align-items: center; gap: 9px; color: var(--opg-morado-texto, #6736a5) !important; text-decoration: none !important; }
+			.censo-personaje img { flex: 0 0 auto; width: 42px; height: 42px; border: 2px solid var(--opg-tinta, #111); border-radius: 4px; object-fit: cover; background: #fff; }
+			.censo-personaje span { display: flex; min-width: 0; flex-direction: column; }
+			.censo-personaje strong, .censo-personaje small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+			.censo-personaje strong { font: 11px InterMedium, Arial, sans-serif; }
+			.censo-personaje small { color: var(--opg-gris-texto, #666); font: 8px InterRegular, Arial, sans-serif; }
+			.censo-faccion-chip { display: inline-block; max-width: 100%; padding: 4px 6px; overflow: hidden; border-left: 4px solid var(--faccion-color); color: var(--opg-marron, #3b2417); background: rgba(0,0,0,.06); font: 8px InterMedium, Arial, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+			.censo-tabla time { color: var(--opg-gris-texto, #666); font-size: 9px; }
+			.censo-vacio td, .censo-sin-resultados { padding: 24px; color: var(--opg-gris-texto, #666); font: italic 11px InterRegular, Arial, sans-serif; text-align: center; }
+			.censo-sin-resultados { margin: 0; border: 2px solid var(--opg-tinta, #111); border-top: 0; background: #fff; }
+			.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+
+			@media (max-width: 850px) {
+				.censo-filtros { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+				.censo-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+				.censo-kpi:nth-child(3) { border-left: 0; border-top: 1px solid rgba(0,0,0,.3); }
+				.censo-kpi:nth-child(4) { border-top: 1px solid rgba(0,0,0,.3); }
+				.censo-personal { grid-template-columns: 1fr; }
+				.censo-personal__datos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+				.censo-personal__datos > div:first-child { border-left: 0; }
+				.censo-personal__datos > div:nth-child(4) { border-top: 1px solid rgba(0,0,0,.25); border-left: 0; }
+				.censo-personal__datos > div:nth-child(5), .censo-personal__datos > div:nth-child(6) { border-top: 1px solid rgba(0,0,0,.25); }
+			}
 			@media (max-width: 650px) {
+				.censo-filtros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+				.estadisticas-page .mainBackground, .estadisticas-page .secondBackground, .estadisticas-page .thirdBackground { width: 100%; min-width: 0; padding-inline: 8px; }
+				.censo-hero { grid-template-columns: 1fr; }
+				.censo-hero__marca { max-height: 100px; }
+				.censo-hero__texto { padding: 14px; border-top: 3px solid var(--opg-tinta, #111); border-left: 0; }
+				.censo-hero h1 { font-size: 22px; }
+				.estadisticas-navegacion { justify-content: stretch; }
+				.estadisticas-navegacion label, .estadisticas-navegacion select { width: 100%; }
+				.censo-kpi { grid-template-columns: 25px minmax(0, 1fr); padding: 10px 8px; }
+				.censo-kpi > i { font-size: 16px; }.censo-kpi strong { font-size: 19px; }
+				.censo-personal__datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+				.censo-personal__datos > div:nth-child(odd) { border-left: 0; }
+				.censo-personal__datos > div:nth-child(n+3) { border-top: 1px solid rgba(0,0,0,.25); }
+				.censo-personal__rivales { grid-template-columns: 1fr; }
+				.censo-seccion__cabecera { align-items: flex-start; flex-direction: column; gap: 2px; }
+				.censo-herramientas { grid-template-columns: minmax(0, 1fr) auto; }
+				.censo-busqueda { grid-column: 1 / -1; }
+				.censo-orden { min-width: 0; }.censo-orden > span { display: none; }.censo-orden select { border-radius: 4px; }
+				.censo-limpiar span { display: none; }
+				.censo-tabla-wrap { box-shadow: inset -12px 0 12px -14px rgba(0,0,0,.8); }
+				.censo-tabla th:nth-child(1), .censo-tabla td:nth-child(1) { position: sticky; left: 0; z-index: 2; }
+				.censo-tabla th:nth-child(2), .censo-tabla td:nth-child(2) { position: sticky; left: 54px; z-index: 2; }
+				.censo-tabla th:nth-child(1), .censo-tabla th:nth-child(2) { z-index: 3; background: var(--opg-ciruela, #2e152d); }
+				.censo-tabla td:nth-child(1), .censo-tabla td:nth-child(2) { background: #fff; }
+				.censo-tabla tr:nth-child(even) td:nth-child(1), .censo-tabla tr:nth-child(even) td:nth-child(2) { background: var(--opg-crema, #fff5d9); }
+			}
+			@media (prefers-reduced-motion: reduce) { .censo-filtro, .censo-limpiar { transition: none; } }
+			@media (max-width: 650px) {
+				.censo-progreso { grid-template-columns: 1fr; gap: 0; }
+				.censo-progreso__titulo { justify-content: center; }
+				.censo-progreso__contador { justify-content: center; padding: 8px 10px 3px; }
+				.censo-progreso__mensaje { padding: 5px 10px 10px; border-left: 0; text-align: center; }
 				.estadisticas-rankings { margin-top: 30px; }
 				.ranking-lista { grid-template-columns: 1fr; }
 				.ranking-fila { grid-template-columns: 82px minmax(0, 1fr); min-height: 90px; padding: 7px; }
@@ -179,10 +335,6 @@
 				.estadisticas-buscador, .comparacion-fila, .consulta-rankings { grid-template-columns: 1fr; }
 				.comparacion-fila b { text-align: left; }
 				.consulta-rankings > div + div { border-top: 1px solid rgba(0,0,0,.2); border-left: 0; }
-				.censo-progreso { grid-template-columns: 1fr; gap: 0; }
-				.censo-progreso__titulo { justify-content: center; }
-				.censo-progreso__contador { justify-content: center; padding: 8px 10px 3px; }
-				.censo-progreso__mensaje { padding: 5px 10px 10px; border-left: 0; text-align: center; }
 				.ranking-rivales { grid-template-columns: 1fr; }
 				.duelo-arena { grid-template-columns: 1fr 72px 1fr; }
 				.duelo-luchador, .duelo-luchador--rival { display: flex; padding: 10px 6px; flex-direction: column; text-align: center; }
@@ -195,6 +347,12 @@
 				.duelo-marcador small { grid-column: 1; font-size: 7px; }
 				.duelo-estadistica__cabecera { grid-template-columns: 1fr 90px 1fr; }
 				.duelo-valor { font-size: 12px; }
+				.consulta-expediente .consulta-personaje { grid-template-columns: 62px minmax(0, 1fr); padding: 10px; }
+				.consulta-expediente .consulta-personaje img { width: 58px; height: 58px; }
+				.consulta-expediente .consulta-personaje h2 a { font-size: 16px; }
+				.consulta-personaje .consulta-personaje__ficha { display: none; }
+				.consulta-rankings { grid-template-columns: 1fr; padding: 8px; }
+				.consulta-ranking__progreso p { flex-direction: column; gap: 2px; }
 			}
 
 		</style>
@@ -228,7 +386,7 @@
 						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--experiencia">Comparar personajes</h1>
 						</if>
 						<if $accion == 'consultar-ranking' then>
-						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--temas">Consultar clasificación</h1>
+						<h1 class="rankings-titulo rankings-titulo--banner rankings-titulo--temas">Clasificación del personaje</h1>
 						</if>
 						<div style="display: flex; flex-direction: column;">
 							<div style="display: flex; flex-direction: row">
@@ -242,7 +400,7 @@
 											<option value='mas-temas'>Más Temas</option>
 											<option value='mas-reputacion'>Más Reputación</option>
 											<option value='comparar'>Comparar</option>
-											<option value='consultar-ranking'>Consultar clasificación</option>
+											<option value='consultar-ranking'>Mi clasificación</option>
 											<option value='aventureros'>Aventureros</option>
 										</select>
 									</div>
@@ -271,110 +429,28 @@
 							<br>
 
 							<if $accion == 'censo' then>
-
 								<div style="display: flex; flex-direction: column;">
-								
 									<div class="censo-grid-fila">
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" style="background-color: #ff0909">
-												<span><img class="imagenTitulo1" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Piratas
-												<span><img class="imagenTitulo2" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$pirataUsuariosStr}
-											</div>
-											<div class="censo-bottom" style="background-color: #ff0909">
-												<div style=" margin-top: 2px; ">{$pirataUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsPirata} Posts</div>
-											</div>
-										</div>
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" >
-												<span><img class="imagenTitulo1" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Marines
-												<span><img class="imagenTitulo2" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$marineUsuariosStr}
-											</div>
-											<div class="censo-bottom">
-												<div style=" margin-top: 2px; ">{$marineUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsMarine} Posts</div>
-											</div>
-										</div>
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" style="background-color: #0d114b">
-												<span><img class="imagenTitulo1" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Cipher Pol
-												<span><img class="imagenTitulo2" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$cipherPolUsuariosStr}
-											</div>
-											<div class="censo-bottom" style="background-color: #0d114b">
-												<div style=" margin-top: 2px; ">{$cipherPolUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsCP} Posts</div>
-											</div>
-										</div>
-										
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo" style="background-color: #ff0909"><span><img class="imagenTitulo1" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Piratas<span><img class="imagenTitulo2" src="/images/op/uploads/PirataLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$pirataUsuariosStr}</div><div class="censo-bottom" style="background-color: #ff0909"><div style=" margin-top: 2px; ">{$pirataUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsPirata} Posts</div></div></div>
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo"><span><img class="imagenTitulo1" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Marines<span><img class="imagenTitulo2" src="/images/op/uploads/MarineLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$marineUsuariosStr}</div><div class="censo-bottom"><div style=" margin-top: 2px; ">{$marineUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsMarine} Posts</div></div></div>
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo" style="background-color: #0d114b"><span><img class="imagenTitulo1" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Cipher Pol<span><img class="imagenTitulo2" src="/images/op/uploads/GobiernoLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$cipherPolUsuariosStr}</div><div class="censo-bottom" style="background-color: #0d114b"><div style=" margin-top: 2px; ">{$cipherPolUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsCP} Posts</div></div></div>
 									</div>
 									<div class="censo-grid-fila">
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" style="background-color: #e1b078">
-												<span><img class="imagenTitulo1" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Revos
-												<span><img class="imagenTitulo2" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$revoUsuariosStr}
-											</div>
-											<div class="censo-bottom" style="background-color: #e1b078">
-												<div style=" margin-top: 2px; ">{$revoUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsRevo} Posts</div>
-											</div>
-										</div>
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" style="background-color: #00f700">
-												<span><img class="imagenTitulo1" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Cazadores
-												<span><img class="imagenTitulo2" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$cazarrecompensasUsuariosStr}
-											</div>
-											<div class="censo-bottom" style="background-color: #00f700">
-												<div style=" margin-top: 2px; ">{$cazarrecompensasUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsCaza} Posts</div>
-											</div>
-										</div>
-										
-										<div class="censo-tarjeta">
-											<div class="censo-titulo-grupo" style="background-color: #ff17fc">
-												<span><img class="imagenTitulo1" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-												Civil
-												<span><img class="imagenTitulo2" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>
-											</div>
-											<div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">
-												{$civilUsuariosStr}
-											</div>
-											<div class="censo-bottom" style="background-color: #ff17fc">
-												<div style=" margin-top: 2px; ">{$civilUsuarios} Usuarios</div>
-												<div style=" margin-top: 2px; ">{$totalNumPostsCivil} Posts</div>
-											</div>
-										</div>
-										
-									</div>
-									<div style="display: flex; flex-direction: row;">
-
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo" style="background-color: #e1b078"><span><img class="imagenTitulo1" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Revos<span><img class="imagenTitulo2" src="/images/op/uploads/RevolucionarioLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$revoUsuariosStr}</div><div class="censo-bottom" style="background-color: #e1b078"><div style=" margin-top: 2px; ">{$revoUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsRevo} Posts</div></div></div>
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo" style="background-color: #00f700"><span><img class="imagenTitulo1" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Cazadores<span><img class="imagenTitulo2" src="/images/op/uploads/CazadorLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$cazarrecompensasUsuariosStr}</div><div class="censo-bottom" style="background-color: #00f700"><div style=" margin-top: 2px; ">{$cazarrecompensasUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsCaza} Posts</div></div></div>
+										<div class="censo-tarjeta"><div class="censo-titulo-grupo" style="background-color: #ff17fc"><span><img class="imagenTitulo1" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span>Civil<span><img class="imagenTitulo2" src="/images/op/uploads/CivilLogo_One_Piece_Gaiden_Foro_Rol.png"></span></div><div style=" height: 325px; background-color: #b8a1e1;overflow: auto; ">{$civilUsuariosStr}</div><div class="censo-bottom" style="background-color: #ff17fc"><div style=" margin-top: 2px; ">{$civilUsuarios} Usuarios</div><div style=" margin-top: 2px; ">{$totalNumPostsCivil} Posts</div></div></div>
 									</div>
 								</div>
 
+								<if $mostrarActividadPersonaje then>
+								<section class="censo-seccion" aria-labelledby="censo-personajes-titulo" id="censo-personajes">
+									<header class="censo-seccion__cabecera"><div><span class="censo-eyebrow">Últimos 28 días</span><h2 id="censo-personajes-titulo">Actividad por personaje</h2><p>Las ventanas son acumulativas y se actualizan con cada visita.</p></div><p id="censo-resultados-texto" aria-live="polite"></p></header>
+									<div class="censo-herramientas"><label class="censo-busqueda"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="sr-only">Buscar personaje</span><input type="search" id="censo-buscar" placeholder="Buscar personaje, usuario o facción"></label><label class="censo-orden"><span>Ordenar por</span><select id="censo-orden"><option value="posts-28">28 días</option><option value="posts-14">14 días</option><option value="posts-7">7 días</option><option value="posts-2">48 horas</option><option value="posts-1">24 horas</option><option value="recent">Actividad reciente</option><option value="name">Nombre</option></select></label><button type="button" class="censo-limpiar" id="censo-limpiar" title="Restaurar filtros"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span>Restaurar</span></button></div>
+									<div class="censo-filtros" aria-label="Filtrar por facción"><button type="button" class="censo-filtro censo-filtro--todas is-active" data-censo-filter="all" aria-pressed="true">Todas</button>{$censoFiltrosFaccionHtml}</div>
+									<div class="censo-tabla-wrap" tabindex="0" aria-label="Tabla desplazable de actividad"><table class="censo-tabla"><thead><tr><th>Puesto 28 d</th><th>Personaje</th><th>Facción</th><th>24 h</th><th>48 h</th><th>7 días</th><th>14 días</th><th>28 días</th><th>Última actividad</th></tr></thead><tbody id="censo-filas">{$censoPersonajesHtml}</tbody></table></div>
+									<p class="censo-sin-resultados" id="censo-sin-resultados" hidden>No hay personajes que coincidan con estos filtros.</p>
+								</section>
+								</if>
 							</if>
 
 							<if $accion == 'mas-posts' then>
@@ -433,14 +509,17 @@
 							</section>
 							</if>
 							<if $accion == 'consultar-ranking' then>
-							<section class="estadisticas-herramienta" aria-label="Consultar clasificación de un personaje">
-								<form class="estadisticas-buscador" method="get" autocomplete="off">
-									<input type="hidden" name="accion" value="consultar-ranking">
-									<input type="hidden" name="consultar_fid" id="consultar-fid" value="{$consultarFid}">
-									<div class="estadisticas-buscador__campo"><input type="search" class="personaje-typeahead" value="{$consultarTexto}" placeholder="Buscar nombre, apodo o FID" data-fid="consultar-fid" aria-label="Personaje que consultar"><div class="estadisticas-resultados"></div></div>
-									<button class="button-op-custom" type="submit">Consultar</button>
-								</form>
+							<section class="estadisticas-herramienta" aria-label="Clasificación personal del personaje">
 								{$consultaRankingResultado}
+								<details class="consulta-cambiar">
+									<summary><span class="consulta-cambiar__icono"><i class="fa fa-search" aria-hidden="true"></i></span><span class="consulta-cambiar__texto"><strong>Consultar otro personaje</strong><small>Busca por nombre, apodo o número de ficha</small></span><i class="fa fa-chevron-down" aria-hidden="true"></i></summary>
+									<form class="estadisticas-buscador" method="get" autocomplete="off" data-require-selection="true">
+										<input type="hidden" name="accion" value="consultar-ranking">
+										<input type="hidden" name="consultar_fid" id="consultar-fid" value="">
+										<div class="estadisticas-buscador__campo"><i class="fa fa-user" aria-hidden="true"></i><input type="search" class="personaje-typeahead" value="" placeholder="Ej.: Revan, Kuro o 10" data-fid="consultar-fid" data-submit-on-select="false" aria-label="Personaje que consultar" aria-describedby="consultar-estado"><div class="estadisticas-resultados"></div><small class="estadisticas-buscador__estado" id="consultar-estado" aria-live="polite">Escribe al menos 3 letras o introduce un FID.</small></div>
+										<button class="button-op-custom" type="submit" disabled><i class="fa fa-folder-open" aria-hidden="true"></i> Abrir expediente</button>
+									</form>
+								</details>
 							</section>
 							</if>
 						</div>
@@ -451,66 +530,181 @@
 	    </div>
 
 		{$footer}
-	</body>
-	<script>
-		function onChangeTiempo(tiempo) {
-			console.log(tiempo);
-			window.location.href = window.location.pathname + '?accion={$accion}&tiempo=' + tiempo.value;
-		}
-		
-		function onChangeAccion(accion) {
-			console.log(accion);
-			if (accion.value === 'aventureros') {
-				window.location.href = '/op/aventuras_personaje.php';
-				return;
+		<script>
+			function onChangeTiempo(tiempo) {
+				window.location.href = window.location.pathname + '?accion={$accion}&tiempo=' + tiempo.value;
 			}
-			window.location.href = window.location.pathname + '?accion=' + accion.value + '&tiempo={$tiempo}';
-		}
-		
-		var selectTiempo = document.getElementById("select-tiempo");
-		if (selectTiempo) selectTiempo.value = "{$tiempo}";
-		document.getElementById("select-accion").value = "{$accion}";
-		document.querySelectorAll('.personaje-typeahead').forEach(function (input) {
-			var resultados = input.parentElement.querySelector('.estadisticas-resultados');
-			var fidInput = document.getElementById(input.getAttribute('data-fid'));
-			var temporizador;
-			input.addEventListener('input', function () {
-				fidInput.value = '';
-				clearTimeout(temporizador);
-				var termino = input.value.trim();
-				if (termino.length < 3 && !/^\d+$/.test(termino)) {
-					resultados.innerHTML = '';
+
+			function onChangeAccion(accion) {
+				if (accion.value === 'aventureros') {
+					window.location.href = '/op/aventuras_personaje.php';
 					return;
 				}
-				temporizador = setTimeout(function () {
-					fetch('/op/estadisticas.php?ajax=buscar-personajes&q=' + encodeURIComponent(termino), { credentials: 'same-origin' })
-						.then(function (respuesta) { return respuesta.json(); })
-						.then(function (items) {
-							resultados.innerHTML = '';
-							items.forEach(function (item) {
-								var boton = document.createElement('button');
-								boton.type = 'button';
-								boton.className = 'estadisticas-resultado';
-								boton.textContent = item.label;
-								boton.addEventListener('click', function () {
-									input.value = item.label;
-									fidInput.value = item.fid;
-									resultados.innerHTML = '';
-									input.form.submit();
+				window.location.href = window.location.pathname + '?accion=' + accion.value + '&tiempo={$tiempo}';
+			}
+			var selectTiempo = document.getElementById('select-tiempo');
+			if (selectTiempo) selectTiempo.value = '{$tiempo}';
+			document.getElementById("select-accion").value = "{$accion}";
+
+			(function () {
+				var cuerpo = document.getElementById('censo-filas');
+				var buscar = document.getElementById('censo-buscar');
+				var ordenar = document.getElementById('censo-orden');
+				var limpiar = document.getElementById('censo-limpiar');
+				var contador = document.getElementById('censo-resultados-texto');
+				var vacio = document.getElementById('censo-sin-resultados');
+				if (!cuerpo || !buscar || !ordenar) return;
+
+				var filas = Array.prototype.slice.call(cuerpo.querySelectorAll('[data-censo-row]'));
+				var tieneFilas = filas.length > 0;
+				var filtro = 'all';
+				function normalizar(texto) {
+					var valor = String(texto || '').toLocaleLowerCase('es');
+					return valor.normalize ? valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : valor;
+				}
+				function seleccionarFiltro(nuevoFiltro) {
+					filtro = nuevoFiltro || 'all';
+					document.querySelectorAll('[data-censo-filter]').forEach(function (boton) {
+						var activo = boton.getAttribute('data-censo-filter') === filtro;
+						boton.classList.toggle('is-active', activo);
+						boton.setAttribute('aria-pressed', activo ? 'true' : 'false');
+					});
+				}
+				function comparar(a, b) {
+					var modo = ordenar.value;
+					if (modo === 'name') return normalizar(a.getAttribute('data-name')).localeCompare(normalizar(b.getAttribute('data-name')), 'es');
+					var atributo = modo === 'recent' ? 'data-recent' : 'data-' + modo;
+					var diferencia = Number(b.getAttribute(atributo)) - Number(a.getAttribute(atributo));
+					return diferencia || normalizar(a.getAttribute('data-name')).localeCompare(normalizar(b.getAttribute('data-name')), 'es');
+				}
+				function actualizar() {
+					var termino = normalizar(buscar.value.trim());
+					filas.sort(comparar).forEach(function (fila) { cuerpo.appendChild(fila); });
+					var visibles = 0;
+					filas.forEach(function (fila) {
+						var coincideFaccion = filtro === 'all' || fila.getAttribute('data-faction') === filtro;
+						var coincideTexto = !termino || normalizar(fila.getAttribute('data-name')).indexOf(termino) !== -1;
+						fila.hidden = !(coincideFaccion && coincideTexto);
+						if (!fila.hidden) visibles++;
+					});
+					if (contador) contador.textContent = visibles + (visibles === 1 ? ' personaje' : ' personajes');
+					if (vacio) vacio.hidden = visibles !== 0 || !tieneFilas;
+				}
+
+				document.querySelectorAll('[data-censo-filter]').forEach(function (boton) {
+					boton.addEventListener('click', function () {
+						seleccionarFiltro(boton.getAttribute('data-censo-filter'));
+						actualizar();
+					});
+				});
+				buscar.addEventListener('input', actualizar);
+				ordenar.addEventListener('change', actualizar);
+				if (limpiar) limpiar.addEventListener('click', function () {
+					buscar.value = '';
+					ordenar.value = 'posts-28';
+					seleccionarFiltro('all');
+					actualizar();
+					buscar.focus();
+				});
+				seleccionarFiltro('all');
+				actualizar();
+			})();
+
+			document.querySelectorAll('.personaje-typeahead').forEach(function (input) {
+				var campo = input.parentElement;
+				var resultados = campo.querySelector('.estadisticas-resultados');
+				var estado = campo.querySelector('.estadisticas-buscador__estado');
+				var fidInput = document.getElementById(input.getAttribute('data-fid'));
+				var formulario = input.form;
+				var botonSubmit = formulario.querySelector('[type="submit"]');
+				var requiereSeleccion = formulario.getAttribute('data-require-selection') === 'true';
+				var submitAlSeleccionar = input.getAttribute('data-submit-on-select') !== 'false';
+				var temporizador;
+				var solicitud = 0;
+
+				function actualizarEstado(texto, clase) {
+					if (!estado) return;
+					estado.textContent = texto;
+					estado.classList.remove('is-error', 'is-ready');
+					if (clase) estado.classList.add(clase);
+				}
+
+				function actualizarBoton() {
+					if (requiereSeleccion && botonSubmit) botonSubmit.disabled = !/^\d+$/.test(fidInput.value);
+				}
+
+				input.addEventListener('input', function () {
+					var termino = input.value.trim();
+					var esFid = /^\d+$/.test(termino);
+					fidInput.value = esFid ? termino : '';
+					actualizarBoton();
+					clearTimeout(temporizador);
+					solicitud++;
+					resultados.innerHTML = '';
+
+					if (termino === '') {
+						actualizarEstado('Escribe al menos 3 letras o introduce un FID.');
+						return;
+					}
+					if (termino.length < 3 && !esFid) {
+						actualizarEstado('Escribe al menos 3 letras para buscar.', 'is-error');
+						return;
+					}
+
+					actualizarEstado(esFid ? 'FID #' + termino + ' listo. También puedes elegir el resultado sugerido.' : 'Buscando personaje...');
+					var idSolicitud = solicitud;
+					temporizador = setTimeout(function () {
+						fetch('/op/estadisticas.php?ajax=buscar-personajes&q=' + encodeURIComponent(termino), { credentials: 'same-origin' })
+							.then(function (respuesta) {
+								if (!respuesta.ok) throw new Error('No se pudo completar la búsqueda.');
+								return respuesta.json();
+							})
+							.then(function (items) {
+								if (idSolicitud !== solicitud) return;
+								resultados.innerHTML = '';
+								if (!items.length) {
+									actualizarEstado(esFid ? 'Puedes abrir directamente el FID #' + termino + '.' : 'No encontramos coincidencias.', esFid ? 'is-ready' : 'is-error');
+									return;
+								}
+								actualizarEstado(esFid ? 'Puedes abrir el FID o seleccionar su ficha.' : 'Selecciona una ficha de la lista.');
+								items.forEach(function (item) {
+									var boton = document.createElement('button');
+									boton.type = 'button';
+									boton.className = 'estadisticas-resultado';
+									boton.textContent = item.label;
+									boton.addEventListener('click', function () {
+										input.value = item.label;
+										fidInput.value = item.fid;
+										resultados.innerHTML = '';
+										actualizarEstado('Ficha seleccionada: ' + item.label, 'is-ready');
+										actualizarBoton();
+										if (submitAlSeleccionar) formulario.submit();
+									});
+									resultados.appendChild(boton);
 								});
-								resultados.appendChild(boton);
+							})
+							.catch(function () {
+								if (idSolicitud !== solicitud) return;
+								actualizarEstado('No se pudo completar la búsqueda. Inténtalo de nuevo.', 'is-error');
 							});
-						});
-				}, 250);
+					}, 250);
+				});
+
+				if (requiereSeleccion) {
+					formulario.addEventListener('submit', function (evento) {
+						if (/^\d+$/.test(fidInput.value)) return;
+						evento.preventDefault();
+						actualizarEstado('Selecciona una ficha antes de abrir el expediente.', 'is-error');
+						input.focus();
+					});
+				}
+				actualizarBoton();
 			});
-		});
 		document.addEventListener('click', function (evento) {
 			if (!evento.target.closest('.estadisticas-buscador__campo')) {
 				document.querySelectorAll('.estadisticas-resultados').forEach(function (lista) { lista.innerHTML = ''; });
 			}
-		});
-		$('.duracion').map((i) => {
-			$('.duracion')[i].innerHTML = $("#select-tiempo").find("option[value='{$tiempo}']").text();
-		});
-	</script>
-</html>
+			});
+		</script>
+	</body>
+	</html>

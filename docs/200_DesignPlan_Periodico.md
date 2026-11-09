@@ -1,17 +1,21 @@
-# Periódico: plan de diseño
+# Publicaciones del foro: plan de diseño
 
 > Depende de: [100_Requirements_Periodico.md](100_Requirements_Periodico.md)
 >
-> **Estado: por implementar.** El periódico actual sigue siendo estático en
-> `templates/One_Piece_Gaiden_Templates/op_periodico.html` hasta completar la
-> migración descrita en §9.
+> **Estado: implementado.** El mismo CMS sirve El Gaviotazo y Prensa Rosa. La
+> La migración incremental de producción ya fue aplicada. El esquema final
+> para instalaciones nuevas permanece en `docs/periodico_migration.sql`.
 
 ## 1. Objetivo
 
-Reemplazar el periódico hardcodeado por un CMS editorial pequeño y específico
-para OPG. El staff administra ediciones desde `/op/staff/`; el público solo
-lee ediciones publicadas o archivadas. El contenido se representa con bloques
-JSON de esquema fijo, no con HTML libre.
+Reemplazar las publicaciones hardcodeadas por un CMS editorial pequeño y
+específico para OPG. El staff administra ediciones de El Gaviotazo y Prensa
+Rosa desde la misma herramienta; el público solo lee ediciones publicadas o
+archivadas de su publicación. El contenido se representa con bloques JSON de
+esquema fijo, no con HTML libre.
+
+El destino se elige al crear la edición y queda bloqueado posteriormente. Los
+números, slugs, edición publicada y archivo se administran por publicación.
 
 La edición de una publicación existente queda permitida por requisito. La
 auditoría guarda una instantánea anterior y posterior de los metadatos o el
@@ -26,6 +30,7 @@ versión.
 | `op/staff/periodico.php` | Listado de ediciones y acciones de crear, duplicar, publicar y archivar. | Nuevo |
 | `op/staff/periodico_editar.php` | Editor de una edición, páginas y bloques. | Nuevo |
 | `op/periodico.php` | Obtiene una edición pública o archivada y delega el render al helper. | Editado |
+| `op/prensarosa.php` | Usa el mismo renderer con identidad visual rosa y conserva el contenido estático como respaldo hasta la primera publicación CMS. | Editado |
 | `templates/One_Piece_Gaiden_Templates/staff_periodico_listado.html` | Pantalla de listado staff. | Nuevo |
 | `templates/One_Piece_Gaiden_Templates/staff_periodico_editor.html` | Editor staff y preview. | Nuevo |
 | `templates/One_Piece_Gaiden_Templates/op_periodico.html` | Shell público con el HTML renderizado por el helper. Reemplaza las noticias estáticas. | Editado |
@@ -33,7 +38,6 @@ versión.
 | `jscripts/periodico.css` | Renderer público editorial. | Nuevo |
 | `jscripts/periodico_editor.css` | Panel staff OPG. | Nuevo |
 | `docs/periodico_migration.sql` | Creación de tablas e índices. | Nuevo |
-| `op/staff/periodico_importar_legacy.php` | Importador de una sola ejecución para el template actual. Se elimina o desactiva tras usarlo. | Nuevo |
 
 Los nuevos JS se cargan con query string de versión y no contienen variables
 que empiecen por `$`, por la evaluación de templates de MyBB.
@@ -45,6 +49,7 @@ que empiecen por `$`, por la evaluación de templates de MyBB.
 ```sql
 CREATE TABLE mybb_op_periodicos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  publicacion ENUM('periodico','prensa_rosa') NOT NULL DEFAULT 'periodico',
   slug VARCHAR(100) NOT NULL,
   numero INT UNSIGNED NOT NULL,
   titulo VARCHAR(255) NOT NULL,
@@ -58,15 +63,15 @@ CREATE TABLE mybb_op_periodicos (
   fecha_creacion DATETIME NOT NULL,
   fecha_actualizacion DATETIME NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY slug (slug),
-  UNIQUE KEY numero (numero),
-  KEY estado_fecha (estado, fecha_publicacion)
+  UNIQUE KEY publicacion_slug (publicacion, slug),
+  UNIQUE KEY publicacion_numero (publicacion, numero),
+  KEY publicacion_estado_fecha (publicacion, estado, fecha_publicacion)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-`numero` se escribe manualmente, pero la restricción única es la autoridad
-final: el formulario valida primero y el servidor captura un duplicado de
-base para devolver un mensaje entendible.
+`numero` se escribe manualmente. La combinación de publicación y número, y la
+de publicación y slug, son únicas. Así ambas cabeceras pueden tener una
+edición número 1 sin colisionar.
 
 ### 3.2 Páginas, bloques y auditoría
 
@@ -160,7 +165,10 @@ Reglas comunes:
 ## 5. Contratos de bloques
 
 El JSON queda normalizado y con estas claves. Campos opcionales se guardan
-como cadena vacía o lista vacía, no se omiten arbitrariamente.
+como cadena vacía o lista vacía, no se omiten arbitrariamente. Cada bloque
+editorial incluye además `canon` como booleano; si falta en contenido
+histórico, se normaliza a `false`. Vive en `contenido_json` porque puede variar
+entre artículos de una misma edición y no necesita una columna adicional.
 
 ```json
 {
@@ -227,14 +235,17 @@ El formulario envía páginas y bloques como arrays estructurados. JavaScript
 solo mantiene el orden y el estado visual; el servidor recalcula `orden` al
 persistir, por lo que un cliente manipulado no puede crear huecos ni duplicados.
 
-### 6.3 Público: `op/periodico.php`
+### 6.3 Público: `op/periodico.php` y `op/prensarosa.php`
 
-- Sin parámetros: consulta la última fila con `estado='publicado'` por
-  `fecha_publicacion DESC, id DESC`.
+- Cada ruta fija su publicación antes de consultar. Sin parámetros, consulta
+  la última fila de ese medio con `estado='publicado'`.
 - `?edicion=N`: carga por `numero`; `?slug=X`: carga por slug. Solo acepta
-  `publicado` o `archivado`.
+  `publicado` o `archivado` de la publicación correspondiente.
 - Si no encuentra edición: muestra un estado vacío editorial, sin errores PHP.
-- El archivo se obtiene con consulta paginada y filtro opcional `anio=YYYY`.
+- El archivo se separa por publicación y admite el filtro opcional
+  `anio=YYYY`.
+- Hasta que se publique la primera edición rosa desde el CMS,
+  `op/prensarosa.php` conserva como respaldo la edición estática existente.
 
 La página no necesita JavaScript para mostrar contenido. JavaScript puede
 mejorar la navegación de páginas, pero todos los datos se entregan renderizados

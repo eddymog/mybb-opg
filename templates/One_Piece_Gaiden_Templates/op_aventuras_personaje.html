@@ -16,7 +16,7 @@
     .aventuras-tab:hover { transform: scale(1.05); background: var(--opg-crema-dorada); }
     .aventuras-tab[aria-selected=true] { color: #fff; background: var(--opg-morado); text-shadow: 1px 1px 1px black; }
     .aventuras-contenido { display: flex; flex-direction: column; gap: var(--opg-espacio-4); padding: 0; }
-    .vista-solo-lista, .vista-solo-autonarradas { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
+    .vista-solo-lista, .vista-solo-autonarradas, .vista-solo-top { display: flex; flex-direction: column; gap: var(--opg-espacio-4); }
     .aventuras-filtros { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto; gap: var(--opg-espacio-2); align-items: start; }
     .personaje-buscador { min-width: 0; }
     .personaje-buscador input[type=search] { width: 100%; height: 38px; box-sizing: border-box; font: 13px var(--opg-fuente-cuerpo); color: var(--opg-marron); background: #fff; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); padding: 6px 10px; }
@@ -70,6 +70,11 @@
     .aventura-accion { justify-self: end; }
     .paginacion { display: flex; justify-content: space-between; align-items: center; gap: var(--opg-espacio-3); color: var(--opg-marron); font: 13px var(--opg-fuente-cuerpo); }
     .ranking-aventuras { scroll-margin-top: 18px; }
+    .ranking-top-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: var(--opg-tinta); gap: 1px; overflow: hidden; }
+    .ranking-top-nav a { display: flex; min-height: 38px; padding: 7px 12px; box-sizing: border-box; align-items: center; justify-content: center; gap: 7px; color: var(--opg-marron); background: #fff; font: 12px InterMedium, var(--opg-fuente-cuerpo); text-decoration: none; }
+    .ranking-top-nav a:hover, .ranking-top-nav a:focus-visible { color: #fff; background: var(--opg-morado); }
+    .ranking-columnas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--opg-espacio-4); align-items: start; }
+    .ranking-columnas .ranking-aventuras { display: flex; min-width: 0; flex-direction: column; }
     .ranking-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-top: 0; }
     .ranking-lista > .opg-vacio { padding: var(--opg-espacio-4); }
     .ranking-fila { display: grid; grid-template-columns: 34px minmax(220px, 1fr) 105px 105px 82px; gap: 10px; align-items: center; min-height: 52px; padding: 7px 12px; }
@@ -85,6 +90,14 @@
     .ranking-total { border-left: 1px solid rgba(0,0,0,.18); }
     .ranking-encabezado h2 { margin: 0; padding: 7px 11px; color: #fff; background: var(--opg-naranja); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md) var(--opg-radio-md) 0 0; font-family: var(--opg-fuente-titular); font-size: 14px; font-weight: normal; letter-spacing: 1px; text-transform: uppercase; text-shadow: 1px 1px 1px black; }
     .ranking-encabezado p { margin: 0; padding: 7px 11px; color: var(--opg-marron); background: var(--opg-crema); border-right: 2px solid var(--opg-tinta); border-left: 2px solid var(--opg-tinta); font: 12px var(--opg-fuente-cuerpo); }
+    .ranking-columnas .ranking-fila { grid-template-columns: 28px minmax(0, 1fr) repeat(2, 49px) 43px; gap: 6px; padding: 7px 8px; }
+    .ranking-columnas .ranking-personaje { min-width: 0; overflow-wrap: anywhere; }
+    .ranking-columnas .ranking-cifra small, .ranking-columnas .ranking-total small { font-size: 8px; text-align: center; }
+    @media (max-width: 860px) {
+        .ranking-columnas { grid-template-columns: minmax(0, 1fr); }
+        .ranking-columnas .ranking-fila { grid-template-columns: 34px minmax(180px, 1fr) repeat(3, 74px); gap: 10px; padding: 7px 12px; }
+        .ranking-columnas .ranking-cifra small, .ranking-columnas .ranking-total small { font-size: 10px; }
+    }
     @media (max-width: 760px) {
         .aventuras-conteo { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
         .aventuras-conteo__item, .aventuras-conteo__item:nth-child(3n) { border-right: 1px solid rgba(0,0,0,.14); border-bottom: 1px solid rgba(0,0,0,.14); }
@@ -107,6 +120,7 @@
         .aventura-principal, .aventura-jugadores, .aventura-detalle, .aventura-accion { grid-column: 1; }
         .aventura-accion { justify-self: start; }
         .ranking-fila { grid-template-columns: 28px 1fr repeat(3, 52px); gap: 6px; padding: 7px 6px; }
+        .ranking-columnas .ranking-fila { grid-template-columns: 28px minmax(0, 1fr) repeat(3, 52px); gap: 6px; padding: 7px 6px; }
         .ranking-cifra small, .ranking-total small { font-size: 8px; }
     }
     </style>
@@ -121,7 +135,7 @@
                     <h1>Aventuras</h1>
                     <p x-show="vista === 'lista'">{$aventuras_resultado}</p>
                     <p x-show="vista === 'autonarradas'" x-cloak>{$aventuras_autonarradas_resultado}</p>
-                    <p x-show="vista === 'top'" x-cloak>Personajes con más aventuras en progreso y finalizadas.</p>
+                    <p x-show="vista === 'top'" x-cloak>Clasificación de aventureros y narradores por aventuras en progreso y finalizadas.</p>
                 </div>
                 <div class="aventuras-tabs" role="tablist" aria-label="Vista de aventuras">
                     <button type="button" class="aventuras-tab" role="tab" :aria-selected="vista === 'lista'" @click="vista = 'lista'; location.hash = 'lista-aventuras'">
@@ -176,13 +190,28 @@
                 </div>
                 {$aventuras_autonarradas_paginacion}
             </section>
-            <section class="ranking-aventuras vista-solo-top" id="top-aventureros" x-show="vista === 'top'" x-cloak>
-                <div class="ranking-encabezado">
-                    <h2 class="barra-op bbox">Top 20 de aventureros</h2>
-                    <p>Ordenado por la suma de aventuras en progreso y finalizadas.</p>
+            <div class="vista-solo-top" x-show="vista === 'top'" x-cloak>
+                <nav class="ranking-top-nav" aria-label="Rankings de aventuras">
+                    <a href="#top-aventureros"><i class="fa-solid fa-compass" aria-hidden="true"></i> Aventureros</a>
+                    <a href="#top-narradores"><i class="fa-solid fa-book-open-reader" aria-hidden="true"></i> Narradores</a>
+                </nav>
+                <div class="ranking-columnas">
+                    <section class="ranking-aventuras" id="top-aventureros">
+                        <div class="ranking-encabezado">
+                            <h2 class="barra-op bbox">Top 20 de aventureros</h2>
+                            <p>Ordenado por la suma de aventuras en progreso y finalizadas.</p>
+                        </div>
+                        <div class="ranking-lista">{$aventuras_top_20}</div>
+                    </section>
+                    <section class="ranking-aventuras" id="top-narradores">
+                        <div class="ranking-encabezado">
+                            <h2 class="barra-op bbox">Top 20 de narradores</h2>
+                            <p>Ordenado por las aventuras convencionales narradas que están en progreso o finalizadas.</p>
+                        </div>
+                        <div class="ranking-lista">{$aventuras_top_narradores}</div>
+                    </section>
                 </div>
-                <div class="ranking-lista">{$aventuras_top_20}</div>
-            </section>
+            </div>
             </div>
         </div>
     </div></div></div></div>

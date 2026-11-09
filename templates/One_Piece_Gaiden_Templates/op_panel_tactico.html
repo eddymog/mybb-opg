@@ -1,0 +1,32 @@
+<html>
+<head>
+    <title>{$pt_title} - {$pt_thread_subject}</title>
+    {$headerinclude}
+</head>
+<body>
+{$header}
+<div class="indice pt-page"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+    <main class="pt-shell">
+        <header class="pt-header">
+            <div class="pt-header__icon"><i class="fa-solid fa-compass-drafting" aria-hidden="true"></i></div>
+            <div class="pt-header__title">
+                <p>Registro mecanico del tema</p>
+                <h1>Panel tactico</h1>
+                <a href="{$pt_thread_url}"><i class="fa-solid fa-arrow-left"></i> {$pt_thread_subject}</a>
+            </div>
+            <div class="pt-index-state {$pt_index_status_class}">
+                <span><i class="fa-solid fa-circle"></i> {$pt_index_status}</span>
+                <small>{$pt_index_detail}</small>
+                <small>{$pt_last_indexed}</small>
+            </div>
+        </header>
+
+        {$pt_notice}
+        {$pt_reindex}
+        {$pt_summary}
+        <div class="pt-content">{$pt_content}</div>
+    </main>
+</div></div></div></div>
+{$footer}
+</body>
+</html>

@@ -7,6 +7,15 @@
 > **Estado: por implementar.** Ninguna fase cambia el periódico público hasta
 > que la fase 6 haya validado la importación del contenido estático actual.
 
+> **Ampliación Prensa Rosa:** la implementación comparte dominio, editor y
+> renderer mediante `op_periodicos.publicacion`. La migración incremental de
+> producción ya fue aplicada y retirada; el esquema final está documentado en
+> `docs/periodico_migration.sql`.
+>
+> **Continuidad editorial:** cada bloque guarda `canon` dentro de
+> `contenido_json`. El valor ausente se interpreta como `false`, por lo que no
+> requiere una migración SQL adicional.
+
 ## 1. Preparación
 
 1. Crear una copia de

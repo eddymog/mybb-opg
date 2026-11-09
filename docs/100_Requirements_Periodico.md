@@ -8,16 +8,26 @@ los carteles wanted viven en `jscripts/periodico.js`. Publicar una noticia
 exige editar código o templates, no hay borradores ni historial editorial y
 el contenido está mezclado con la presentación.
 
-Este documento define un sistema editorial para que el staff pueda crear,
-guardar, previsualizar, publicar y archivar ediciones de *El Gaviotazo* desde
-una herramienta propia. El público consulta la última edición publicada y el
-archivo histórico.
+Este documento define un sistema editorial compartido para que el staff pueda
+crear, guardar, previsualizar, publicar y archivar ediciones de *El Gaviotazo*
+y *Prensa Rosa* desde una herramienta propia. Cada publicación conserva su
+portada, archivo, numeración e identidad visual independientes.
 
 ## 2. Decisiones tomadas
 
 - La gestión vive en `/op/staff/periodico.php`.
 - El periódico público sigue en `/op/periodico.php`; sin parámetro muestra la
   última edición publicada.
+- Prensa Rosa sigue en `/op/prensarosa.php` y usa el mismo CMS y renderer, con
+  una paleta editorial propia.
+- Toda edición declara obligatoriamente su destino: `periodico` o
+  `prensa_rosa`. Todos sus artículos pertenecen a ese medio y el destino se
+  muestra tanto en el listado como en el editor.
+- El destino se elige al crear la edición y después es inmutable. Para mover
+  contenido a otro medio se crea o duplica una edición en el destino correcto.
+- Cada bloque editorial declara si es `Canon` o `No canon`. `No canon` es el
+  valor predeterminado y el estado se muestra en el editor y al público.
+- Número y slug son únicos dentro de cada publicación, no globalmente.
 - El número de edición se escribe manualmente en el editor. Debe ser único y
   validarse antes de guardar o publicar.
 - El contenido editorial se guarda en la base de datos. No se guardan páginas
@@ -57,14 +67,14 @@ de CSS y bloques arbitrarios de HTML o JavaScript.
 
 | Tabla | Responsabilidad | Campos mínimos |
 |---|---|---|
-| `mybb_op_periodicos` | Metadatos y ciclo de vida de una edición. | `id`, `slug`, `numero`, `titulo`, `subtitulo`, `portada`, `tema`, `estado`, `fecha_publicacion`, `autor_uid`, `firma_visible`, timestamps. |
+| `mybb_op_periodicos` | Metadatos y ciclo de vida de una edición. | `id`, `publicacion`, `slug`, `numero`, `titulo`, `subtitulo`, `portada`, `tema`, `estado`, `fecha_publicacion`, `autor_uid`, `firma_visible`, timestamps. |
 | `mybb_op_periodico_paginas` | Páginas de una edición y su orden. | `id`, `periodico_id`, `orden`, `titulo`, `tema`. |
 | `mybb_op_periodico_bloques` | Bloques ordenados dentro de una página. | `id`, `pagina_id`, `orden`, `tipo`, `contenido_json`. |
 | `mybb_op_periodico_auditoria` | Rastro de cambios relevantes. | `id`, `periodico_id`, `uid`, `accion`, `detalle_json`, `fecha`. |
 
-La migración debe indexar `estado`/`fecha_publicacion`, `periodico_id` y
-`pagina_id`. El `slug` es único y estable: una edición archivada mantiene su
-URL.
+La migración debe indexar `publicacion`/`estado`/`fecha_publicacion`,
+`periodico_id` y `pagina_id`. La combinación de `publicacion` y `slug` es
+única y estable: una edición archivada mantiene su URL.
 
 ### 4.1 Estados
 
@@ -72,8 +82,9 @@ URL.
 - `publicado`: visible públicamente y en el archivo.
 - `archivado`: visible en el archivo, pero no es la edición actual.
 
-Solo una edición es la portada pública actual. Al publicar una nueva, la
-anterior pasa a `archivado`, sin borrar sus páginas ni bloques.
+Solo una edición por publicación es su portada pública actual. Al publicar una
+nueva, la anterior del mismo medio pasa a `archivado`, sin afectar la portada
+del otro medio ni borrar páginas o bloques.
 
 ## 5. Bloques de la primera versión
 
@@ -126,12 +137,14 @@ staff, nunca como HTML sin filtrar.
 ## 7. Render público
 
 - `/op/periodico.php` muestra la última edición publicada.
+- `/op/prensarosa.php` muestra la última edición publicada de Prensa Rosa.
 - `/op/periodico.php?edicion=N`, o un slug equivalente, muestra una edición
   publicada o archivada del archivo.
 - Una edición inexistente, borrador o no autorizada responde como no
   encontrada, sin filtrar contenido.
 - La navegación entre páginas se genera desde `mybb_op_periodico_paginas`, no
   desde elementos hardcodeados en JavaScript.
+- Los archivos públicos se filtran por publicación y nunca mezclan ediciones.
 - El archivo es una lista compacta de ediciones con número, fecha, portada y
   titular; permite filtrar por año sin cargar el contenido completo de todas
   las ediciones.
@@ -147,6 +160,10 @@ La primera edición en la base debe recrear el contenido existente de
 textos, imágenes y wanted congelados. Antes de retirar las noticias del
 template se conserva una copia y se valida el render migrado: mismo número y
 orden de páginas, titulares, cuerpos, imágenes, enlaces y carteles wanted.
+
+La edición estática inicial de Prensa Rosa se importó como ocho artículos
+`Canon`. Tras validar y publicar la edición migrada se retiraron el importador,
+el template estático y su JavaScript para evitar dos fuentes de contenido.
 
 ## 9. Requisitos no funcionales
 
@@ -180,3 +197,9 @@ orden de páginas, titulares, cuerpos, imágenes, enlaces y carteles wanted.
 8. La edición migrada desde el template actual conserva el mismo número y orden
    de páginas, titulares, cuerpos, imágenes, enlaces y wanted antes de retirar
    las noticias hardcodeadas.
+9. Publicar una edición de Prensa Rosa no archiva ni modifica la portada de El
+   Gaviotazo, y viceversa.
+10. El listado y el editor identifican de forma inequívoca el destino público
+    de cada edición y Prensa Rosa utiliza su paleta propia.
+11. Una noticia nueva es `No canon` salvo que el editor la marque como
+    `Canon`; ambas condiciones se distinguen en el editor y en la vista pública.

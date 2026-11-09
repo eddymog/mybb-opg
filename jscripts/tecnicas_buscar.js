@@ -72,14 +72,14 @@
         : '<span class="tb-tid">' + tidText + '</span>';
     }
 
-    var editBtn = '';
+    var acciones = '';
+    if (tec.tid) {
+      acciones += '<a class="tb-card-action" href="/op/historial_tecnicas.php?q=' + encodeURIComponent(tec.tid) + '&amp;periodo=todo">' +
+        '<i class="fa fa-history" aria-hidden="true"></i> Ver historial</a>';
+    }
     if (TB.isStaff && tec.tid) {
-      var tidEsc = escapeHtml(tec.tid);
-      editBtn = '<div style="margin-top:10px;text-align:center;">' +
-        '<a href="/op/staff/tecnicas_modificar.php?tecnica_id=' + tidEsc + '" ' +
-        'style="display:inline-block;background:linear-gradient(135deg,#e53935,#b71c1c);color:#fff;font-weight:bold;font-size:13px;padding:8px 20px;border-radius:20px;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.4);">' +
-        '&#x270F; Editar t&#xE9;cnica' +
-        '</a></div>';
+      acciones += '<a class="tb-card-action tb-card-action--edit" href="/op/staff/tecnicas_modificar.php?tecnica_id=' + encodeURIComponent(tec.tid) + '">' +
+        '<i class="fa fa-pencil" aria-hidden="true"></i> Editar técnica</a>';
     }
 
     return '<div class="tb-card">' +
@@ -90,7 +90,7 @@
       (costes ? '<div class="tb-card-costes">' + costes + '</div>' : '') +
       (tec.descripcion ? '<div class="tb-card-descripcion">' + escapeHtml(tec.descripcion) + '</div>' : '') +
       '<div class="tb-card-efectos">' + efectosTexto + '</div>' +
-      editBtn +
+      (acciones ? '<div class="tb-card-actions">' + acciones + '</div>' : '') +
     '</div>';
   }
 

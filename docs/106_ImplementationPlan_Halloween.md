@@ -458,9 +458,9 @@ renderizarán Evento, Estadísticas, Tienda ni Actividad.
 
 La cabecera muestra estado, fechas, saldo cuando proceda y enlaces a:
 
-- evento: `showthread.php?tid=9471`;
-- historias: `showthread.php?tid=9535`;
-- monstruos: `showthread.php?tid=9536`.
+- evento: `showthread.php?tid=9567`;
+- historias: `showthread.php?tid=9568`;
+- monstruos: `showthread.php?tid=9569`.
 
 Cada estado controla acciones en servidor:
 

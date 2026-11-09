@@ -105,6 +105,64 @@
 		.mainBackground { background-color: #571945; }
 		.secondBackground { background-color: #430d34; }
 		.thirdBackground { background-color: #2f0f26; }
+
+		.kuros-cupo {
+			margin-top: 18px;
+			border: 2px solid #111;
+			border-radius: 7px;
+			color: #2f0f26;
+			background: #fff;
+			overflow: hidden;
+		}
+
+		.kuros-cupo > summary {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto auto;
+			min-height: 62px;
+			padding: 10px 16px;
+			box-sizing: border-box;
+			align-items: center;
+			gap: 14px;
+			color: #fff;
+			background: #6842a0;
+			cursor: pointer;
+			list-style: none;
+		}
+
+		.kuros-cupo > summary::-webkit-details-marker { display: none; }
+		.kuros-cupo__titulo { display: flex; min-width: 0; align-items: center; gap: 10px; }
+		.kuros-cupo__titulo > i { color: #ff9400; font-size: 23px; }
+		.kuros-cupo__titulo strong { display: block; font: 20px moonGetHeavy, Arial, sans-serif; text-shadow: 1px 1px 1px #111; }
+		.kuros-cupo__titulo span { display: block; margin-top: 2px; color: #eee4fa; font: 12px InterRegular, Arial, sans-serif; }
+		.kuros-cupo__resumen { font: 13px InterRegular, Arial, sans-serif; text-align: right; }
+		.kuros-cupo__resumen strong { color: #ffd36a; }
+		.kuros-cupo__flecha { transition: transform .2s ease; }
+		.kuros-cupo[open] .kuros-cupo__flecha { transform: rotate(180deg); }
+
+		.kuros-cupo__contenido { padding: 15px; background: #f7f2fb; }
+		.kuros-cupo__periodo { display: flex; margin-bottom: 12px; justify-content: space-between; gap: 12px; color: #5a4c5b; font: 12px InterRegular, Arial, sans-serif; }
+		.kuros-cupo__periodo strong { color: #2f0f26; }
+		.kuros-cupo__lista { border: 1px solid #b8a9c0; background: #fff; }
+		.kuros-cupo__fila { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(160px, 2fr) 92px; min-height: 52px; padding: 8px 12px; box-sizing: border-box; align-items: center; gap: 14px; border-top: 1px solid #ddd3e2; }
+		.kuros-cupo__fila:first-child { border-top: 0; }
+		.kuros-cupo__nombre strong { display: block; font: 13px InterMedium, Arial, sans-serif; }
+		.kuros-cupo__nombre span, .kuros-cupo__disponibles span { color: #756b77; font: 10px InterRegular, Arial, sans-serif; }
+		.kuros-cupo__barra { height: 10px; border: 1px solid #2f0f26; border-radius: 5px; background: #e5ddea; overflow: hidden; }
+		.kuros-cupo__barra i { display: block; height: 100%; background: #ff8900; }
+		.kuros-cupo__disponibles { text-align: right; }
+		.kuros-cupo__disponibles strong { display: block; color: #6842a0; font: 17px moonGetHeavy, Arial, sans-serif; }
+		.kuros-cupo__fila.is-agotado { background: #f1edf3; }
+		.kuros-cupo__fila.is-agotado .kuros-cupo__barra i { background: #8a7f8e; }
+		.kuros-cupo__fila.is-agotado .kuros-cupo__disponibles strong { color: #8a2734; }
+		.kuros-cupo__nota { margin: 11px 0 0; color: #756b77; font: 11px InterRegular, Arial, sans-serif; }
+
+		@media (max-width: 700px) {
+			.kuros-cupo > summary { grid-template-columns: minmax(0, 1fr) auto; }
+			.kuros-cupo__resumen { display: none; }
+			.kuros-cupo__periodo { flex-direction: column; gap: 4px; }
+			.kuros-cupo__fila { grid-template-columns: minmax(0, 1fr) 70px; gap: 8px 12px; }
+			.kuros-cupo__barra { grid-column: 1 / -1; grid-row: 2; }
+		}
 	</style>
 </head>
 
@@ -165,6 +223,22 @@
 					
 					
 				</div>
+
+				<details class="kuros-cupo">
+					<summary>
+						<div class="kuros-cupo__titulo">
+							<i class="fa fa-cube" aria-hidden="true"></i>
+							<div><strong>Límite mensual de cofres</strong><span>Consulta tus compras y el cupo disponible.</span></div>
+						</div>
+						<div class="kuros-cupo__resumen"><strong>{$cofresMensualesTotal} cofres</strong> comprados · Reinicio: {$cofresReinicioTexto}</div>
+						<i class="fa fa-chevron-down kuros-cupo__flecha" aria-hidden="true"></i>
+					</summary>
+					<div class="kuros-cupo__contenido">
+						<div class="kuros-cupo__periodo"><span><strong>Periodo actual:</strong> {$cofresPeriodoTexto}</span><span><strong>Próximo reinicio:</strong> {$cofresReinicioTexto}, hora de Madrid</span></div>
+						<div class="kuros-cupo__lista">{$cofresMensualesHtml}</div>
+						<p class="kuros-cupo__nota">Puedes comprar hasta 5 unidades mensuales de cada cofre, desde el básico hasta el cobrizo. El cofre argénteo no tiene este límite.</p>
+					</div>
+				</details>
 				
 				<div style="display: flex;margin-top: 15px;flex-direction: row;">
 					
@@ -199,7 +273,6 @@ let cofre1_count = '{$cofre1_count}';
 let cofre2_count = '{$cofre2_count}';
 let cofre3_count = '{$cofre3_count}';
 let cofre4_count = '{$cofre4_count}';
-let cofre5_count = '{$cofre5_count}';
 	
 let saldoActual = {$ficha['kuro']};
 let saldoRestante = {$ficha['kuro']};
@@ -407,22 +480,28 @@ function comprarItems() {
 			alert('Solo puedes comprar un máximo de 5 cofres cobrizos al mes.');
 			return;
 		}
-		if (listaDeCompras['CFR005'] && (listaDeCompras['CFR005'].cantidad + parseInt(cofre5_count) > 5)) {
-			alert('Solo puedes comprar un máximo de 5 cofres argénteos al mes.');
-			return;
-		}
-		
 		if (confirm('¿Estás de acuerdo con esta compra de ' + comprasTotal + ' Kuros?')) {
 
-			$.post("/op/tienda_kuros.php", { 
-				accion: 'comprar',
-				comprasTotal: parseInt(comprasTotal.replace(/\./g, '')),
-				listaDeCompras: listaDeCompras,
-				listaDeComprasKeys: Object.keys(listaDeCompras)
-			}, function( data ) { 
-				console.log(data);
-				alert('¡Compra realizada! Serás redirigido al índice.');
+			$.ajax({
+				url: "/op/tienda_kuros.php",
+				method: "POST",
+				dataType: "json",
+				data: {
+					accion: 'comprar',
+					my_post_key: '{$mybb->post_code}',
+					comprasTotal: parseInt(comprasTotal.replace(/\./g, '')),
+					listaDeCompras: listaDeCompras,
+					listaDeComprasKeys: Object.keys(listaDeCompras)
+				}
+			}).done(function(data) {
+				if (!data || !data.success) {
+					alert(data && data.message ? data.message : 'No se pudo completar la compra.');
+					return;
+				}
+				alert(data.message + ' La tienda se actualizará ahora.');
 				window.location = "/op/tienda_kuros.php";
+			}).fail(function() {
+				alert('No se pudo completar la compra. Recarga la página e inténtalo de nuevo.');
 			});
 		}
 		

@@ -1,0 +1,176 @@
+<html>
+<head>
+    <title>Historial de Técnicas</title>
+    {$headerinclude}
+    <style>
+    .ct-pagina *, .ct-pagina *::before, .ct-pagina *::after { box-sizing: border-box; letter-spacing: 0; }
+    .ct-pagina .thirdBackground { width: 100%; max-width: 1120px; gap: var(--opg-espacio-5); text-align: left; }
+    .ct-cabecera { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 18px; padding: 20px 22px; border: 2px solid var(--opg-tinta); border-bottom: 6px solid var(--opg-naranja); background: var(--opg-ciruela); box-shadow: var(--opg-sombra-offset); color: #fff; }
+    .ct-cabecera__eyebrow { display: block; margin-bottom: 4px; color: var(--opg-naranja); font: 12px InterMedium,var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .ct-cabecera h1 { margin: 0; color: #fff; font: 31px/1.05 var(--opg-fuente-titular); text-shadow: 2px 2px 0 #000; }
+    .ct-cabecera p { max-width: 720px; margin: 8px 0 0; color: rgba(255,255,255,.8); font: 13px/1.5 var(--opg-fuente-cuerpo); }
+    .ct-cabecera__enlaces { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+    .ct-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 39px; padding: 8px 12px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); font: 12px InterMedium,var(--opg-fuente-cuerpo); text-decoration: none; cursor: pointer; }
+    .ct-btn--primario { background: var(--opg-naranja-accion); color: #fff; box-shadow: 2px 2px 0 #000; }
+    .ct-btn--secundario { background: #fff; color: var(--opg-ciruela); }
+    .ct-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .ct-btn:focus-visible, .ct-filtros input:focus-visible, .ct-filtros select:focus-visible, .ct-filtros-avanzados summary:focus-visible, .ct-detalles summary:focus-visible, .ct-control:focus-visible, .ct-filtro-chip:focus-visible { outline: none; box-shadow: var(--opg-foco); }
+
+    .ct-filtros { padding: 15px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: var(--opg-sombra-offset); }
+    .ct-filtros-principales { display: grid; grid-template-columns: minmax(250px,2fr) repeat(3,minmax(125px,.8fr)) auto; align-items: end; gap: 10px; }
+    .ct-campo { display: grid; min-width: 0; gap: 5px; }
+    .ct-campo label { color: var(--opg-ciruela); font: 10px InterMedium,var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .ct-campo input, .ct-campo select { width: 100%; min-width: 0; min-height: 39px; padding: 7px 10px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-sm); background: #fff; color: var(--opg-marron); font: 12px var(--opg-fuente-cuerpo); }
+    .ct-busqueda { position: relative; }
+    .ct-busqueda i { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); color: var(--opg-gris-texto); pointer-events: none; }
+    .ct-busqueda input { padding-left: 35px; }
+    .ct-filtros-avanzados { margin-top: 12px; border-top: 1px solid rgba(0,0,0,.2); }
+    .ct-filtros-avanzados > summary { display: flex; align-items: center; gap: 8px; width: max-content; max-width: 100%; padding: 11px 2px 2px; color: var(--opg-morado-texto); font: 11px InterMedium,var(--opg-fuente-cuerpo); cursor: pointer; list-style: none; }
+    .ct-filtros-avanzados > summary::-webkit-details-marker { display: none; }
+    .ct-filtros-avanzados > summary .ct-chevron { margin-left: 3px; }
+    .ct-filtros-avanzados[open] > summary .ct-chevron { transform: rotate(180deg); }
+    .ct-filtros-avanzados__grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; padding-top: 12px; }
+    .ct-filtros-activos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+    .ct-filtro-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 28px; padding: 4px 8px; border: 1px solid var(--opg-morado-texto); border-radius: 4px; background: #fff; color: var(--opg-morado-texto); font: 10px InterMedium,var(--opg-fuente-cuerpo); text-decoration: none; }
+    .ct-filtro-chip:hover { background: var(--opg-crema-dorada); }
+    .ct-limpiar { margin-left: 3px; color: #9a271d; font: 10px InterMedium,var(--opg-fuente-cuerpo); }
+
+    .ct-resultados-barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 9px; border-bottom: 4px solid var(--opg-naranja); }
+    .ct-total { margin: 0; color: var(--opg-gris-texto); font: 12px var(--opg-fuente-cuerpo); }
+    .ct-controles { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+    .ct-control { min-height: 31px; padding: 5px 8px; border: 1px solid rgba(0,0,0,.35); border-radius: 4px; background: #fff; color: var(--opg-ciruela); font: 10px InterMedium,var(--opg-fuente-cuerpo); cursor: pointer; }
+    .ct-control:hover { background: var(--opg-crema-dorada); }
+    .ct-lista { display: grid; gap: 12px; }
+    .ct-grupo-fecha { display: flex; align-items: center; gap: 12px; margin: 9px 0 -2px; color: var(--opg-ciruela); font: 16px var(--opg-fuente-titular); }
+    .ct-grupo-fecha::after { content: ''; flex: 1; height: 2px; background: rgba(0,0,0,.22); }
+    .ct-entrada { overflow: hidden; scroll-margin-top: 12px; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); background: var(--opg-crema-clara); box-shadow: var(--opg-sombra-offset); }
+    .ct-entrada:target { outline: 4px solid var(--opg-naranja); outline-offset: 3px; }
+    .ct-entrada__cabecera { display: flex; justify-content: space-between; gap: 16px; padding: 14px 16px; }
+    .ct-entrada h3 { margin: 3px 0 7px; color: var(--opg-ciruela); font: 20px/1.15 var(--opg-fuente-titular); overflow-wrap: anywhere; }
+    .ct-accion { display: inline-block; color: var(--opg-morado-texto); font: 10px InterMedium,var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .ct-accion--nueva { color: #176b34; }
+    .ct-meta, .ct-campos { display: flex; flex-wrap: wrap; gap: 5px; }
+    .ct-campos { margin-top: 7px; }
+    .ct-campos span { color: var(--opg-gris-texto); font: 10px var(--opg-fuente-cuerpo); }
+    .ct-campos span:not(:last-child)::after { content: '·'; margin-left: 5px; }
+    .ct-chip { display: inline-flex; align-items: center; gap: 4px; min-height: 23px; padding: 3px 7px; border: 1px solid rgba(0,0,0,.3); border-radius: 4px; background: rgba(255,255,255,.62); color: var(--opg-marron); font: 10px InterMedium,var(--opg-fuente-cuerpo); }
+    .ct-chip--id { background: var(--opg-ciruela); color: #fff; }
+    .ct-chip--aprendida { border-color: #25763f; background: #dff2e5; color: #176b34; }
+    .ct-chip--historico { border-color: #8b6d36; background: #f5e7bd; color: #665020; }
+    .ct-fecha { flex: 0 0 auto; text-align: right; color: var(--opg-gris-texto); font: 11px var(--opg-fuente-cuerpo); }
+    .ct-fecha strong, .ct-fecha span { display: block; }
+    .ct-fecha strong { color: var(--opg-marron); }
+    .ct-detalles { border-top: 1px solid rgba(0,0,0,.2); }
+    .ct-detalles summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px; background: var(--opg-crema-dorada); color: var(--opg-morado-texto); font: 12px InterMedium,var(--opg-fuente-cuerpo); cursor: pointer; list-style: none; }
+    .ct-detalles summary::-webkit-details-marker { display: none; }
+    .ct-detalles summary span { display: inline-flex; align-items: center; gap: 7px; }
+    .ct-chevron { transition: transform .18s ease; }
+    .ct-detalles[open] .ct-chevron { transform: rotate(180deg); }
+    .ct-detalles__cuerpo { display: grid; gap: 10px; padding: 13px 16px 15px; background: #fff; }
+    .ct-diferencia { display: grid; gap: 5px; }
+    .ct-diferencia > strong { color: var(--opg-ciruela); font: 11px InterMedium,var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .ct-comparacion { display: grid; grid-template-columns: minmax(0,1fr) 24px minmax(0,1fr); align-items: stretch; gap: 7px; }
+    .ct-comparacion > div { min-width: 0; }
+    .ct-comparacion > div > span { display: block; margin-bottom: 3px; color: var(--opg-gris-texto); font: 9px InterMedium,var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .ct-comparacion > i { align-self: center; text-align: center; color: var(--opg-naranja); }
+    .ct-valor, .ct-legacy { min-height: 34px; padding: 8px 10px; border-left: 4px solid rgba(0,0,0,.28); background: var(--opg-crema); color: var(--opg-marron); font: 12px/1.5 var(--opg-fuente-cuerpo); overflow-wrap: anywhere; }
+    .ct-valor--antes { border-left-color: #a3180b; background: #fde8e5; }
+    .ct-valor--nuevo { border-left-color: #176b34; background: #e3f5e9; }
+    .ct-vacio { color: var(--opg-gris-texto); font-style: italic; }
+    .ct-nota-historica { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; border-left: 4px solid #8b6d36; background: #fff6dc; color: #665020; font: 11px/1.45 var(--opg-fuente-cuerpo); }
+    .ct-entrada__pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 4px; border-top: 1px solid rgba(0,0,0,.14); color: var(--opg-gris-texto); font: 10px var(--opg-fuente-cuerpo); }
+    .ct-entrada__pie nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+    .ct-entrada__pie a { color: var(--opg-morado-texto); text-decoration: none; }
+    .ct-entrada__pie a:hover { text-decoration: underline; }
+    .ct-sin-resultados { display: grid; justify-items: center; gap: 7px; padding: 45px 20px; border: 2px dashed rgba(0,0,0,.35); text-align: center; color: var(--opg-gris-texto); }
+    .ct-sin-resultados > i { color: var(--opg-morado-texto); font-size: 23px; }
+    .ct-sin-resultados strong { color: var(--opg-ciruela); font: 18px var(--opg-fuente-titular); }
+    .ct-paginacion { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--opg-gris-texto); font: 12px var(--opg-fuente-cuerpo); }
+    @media (max-width: 900px) {
+        .ct-filtros-principales { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        .ct-filtros-principales .ct-campo:first-child { grid-column: 1 / -1; }
+        .ct-filtros-avanzados__grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 700px) {
+        .ct-pagina .mainBackground, .ct-pagina .secondBackground, .ct-pagina .thirdBackground { width: 100%; min-width: 0; padding-inline: 8px; }
+        .ct-cabecera { grid-template-columns: 1fr; }
+        .ct-cabecera__enlaces { justify-content: flex-start; }
+        .ct-filtros-principales, .ct-filtros-avanzados__grid { grid-template-columns: 1fr; }
+        .ct-filtros-principales .ct-campo:first-child { grid-column: auto; }
+        .ct-filtros-principales .ct-btn { width: 100%; }
+        .ct-resultados-barra, .ct-entrada__pie { align-items: flex-start; flex-direction: column; }
+        .ct-controles, .ct-entrada__pie nav { justify-content: flex-start; }
+        .ct-entrada__cabecera { align-items: flex-start; }
+        .ct-comparacion { grid-template-columns: 1fr; }
+        .ct-comparacion > i { transform: rotate(90deg); }
+        .ct-paginacion { align-items: stretch; }
+    }
+    </style>
+</head>
+<body>
+    {$header}
+    <div class="indice ct-pagina">
+    <div class="mainBackground">
+    <div class="secondBackground">
+    <main class="thirdBackground">
+        <header class="ct-cabecera">
+            <div>
+                <span class="ct-cabecera__eyebrow">Actualizaciones del sistema</span>
+                <h1>Historial de Técnicas</h1>
+                <p>Consulta las incorporaciones y ajustes del catálogo. Los registros modernos muestran exactamente qué había antes y qué valor tiene ahora cada campo.</p>
+            </div>
+            <nav class="ct-cabecera__enlaces" aria-label="Enlaces de técnicas">
+                <a class="ct-btn ct-btn--secundario" href="/op/tecnicas.php"><i class="fa-solid fa-book" aria-hidden="true"></i> Archivo</a>
+                <a class="ct-btn ct-btn--secundario" href="/op/tecnicas_buscar.php"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscador</a>
+            </nav>
+        </header>
+
+        <form class="ct-filtros" method="get" action="/op/historial_tecnicas.php">
+            <div class="ct-filtros-principales">
+                <div class="ct-campo">
+                    <label for="ct-q">Técnica</label>
+                    <div class="ct-busqueda"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="ct-q" type="search" name="q" value="{$cambios_tecnicas_q}" placeholder="Nombre, ID o contenido del cambio"></div>
+                </div>
+                <div class="ct-campo"><label for="ct-periodo">Periodo</label><select id="ct-periodo" name="periodo"><option value="7"{$ct_periodo_7}>7 días</option><option value="30"{$ct_periodo_30}>30 días</option><option value="90"{$ct_periodo_90}>90 días</option><option value="todo"{$ct_periodo_todo}>Todo el historial</option></select></div>
+                <div class="ct-campo"><label for="ct-accion">Acción</label><select id="ct-accion" name="accion"><option value="todas"{$ct_accion_todas}>Todas</option><option value="creada"{$ct_accion_creada}>Nuevas</option><option value="modificada"{$ct_accion_modificada}>Modificadas</option></select></div>
+                <div class="ct-campo"><label for="ct-orden">Orden</label><select id="ct-orden" name="orden"><option value="recientes"{$ct_orden_recientes}>Más recientes</option><option value="antiguos"{$ct_orden_antiguos}>Más antiguos</option></select></div>
+                <button class="ct-btn ct-btn--primario" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Aplicar</button>
+            </div>
+            <details class="ct-filtros-avanzados"{$ct_avanzados_open}>
+                <summary><i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtros avanzados <i class="fa-solid fa-chevron-down ct-chevron" aria-hidden="true"></i></summary>
+                <div class="ct-filtros-avanzados__grid">
+                    <div class="ct-campo"><label for="ct-estilo">Estilo</label><select id="ct-estilo" name="estilo">{$ct_opciones_estilo}</select></div>
+                    <div class="ct-campo"><label for="ct-rama">Rama</label><select id="ct-rama" name="rama">{$ct_opciones_rama}</select></div>
+                    <div class="ct-campo"><label for="ct-tier">Tier</label><select id="ct-tier" name="tier">{$ct_opciones_tier}</select></div>
+                    <div class="ct-campo"><label for="ct-clase">Clase</label><select id="ct-clase" name="clase">{$ct_opciones_clase}</select></div>
+                    <div class="ct-campo"><label for="ct-tipo">Tipo</label><select id="ct-tipo" name="tipo">{$ct_opciones_tipo}</select></div>
+                    <div class="ct-campo"><label for="ct-campo">Campo modificado</label><select id="ct-campo" name="campo">{$ct_opciones_campo}</select></div>
+                    <div class="ct-campo"><label for="ct-autor">Responsable</label><select id="ct-autor" name="autor">{$ct_opciones_autor}</select></div>
+                    <div class="ct-campo"><label for="ct-formato">Tipo de registro</label><select id="ct-formato" name="formato"><option value="todos"{$ct_formato_todos}>Todos</option><option value="estructurado"{$ct_formato_estructurado}>Comparación moderna</option><option value="legacy"{$ct_formato_legacy}>Registro histórico</option></select></div>
+                    {$ct_campo_personal}
+                </div>
+            </details>
+            <div class="ct-filtros-activos" aria-label="Filtros activos">{$cambios_tecnicas_chips}</div>
+        </form>
+
+        <div class="ct-resultados-barra">
+            <p class="ct-total">{$cambios_tecnicas_resumen}</p>
+            {$ct_controles_resultados}
+        </div>
+        <section class="ct-lista" aria-label="Historial de cambios">{$cambios_tecnicas_filas}</section>
+        {$cambios_tecnicas_paginacion}
+    </main>
+    </div>
+    </div>
+    </div>
+    <script>
+    document.querySelectorAll('[data-ct-details]').forEach(function (boton) {
+        boton.addEventListener('click', function () {
+            var abrir = boton.getAttribute('data-ct-details') === 'open';
+            document.querySelectorAll('.ct-lista .ct-detalles').forEach(function (detalle) { detalle.open = abrir; });
+        });
+    });
+    </script>
+    {$footer}
+</body>
+</html>

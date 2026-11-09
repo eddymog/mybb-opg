@@ -35,14 +35,26 @@ function opg_periodico_slug($texto)
     return trim(substr($texto, 0, 100), '-') ?: 'edicion';
 }
 
-function opg_periodico_bloque_vacio_portada()
+function opg_periodico_publicacion($publicacion)
 {
-    return array('tipo' => 'portada', 'contenido' => array('titular' => '', 'bajada' => '', 'cuerpo' => '', 'imagen' => '', 'pie' => '', 'autor' => '', 'etiqueta' => ''));
+    return $publicacion === 'prensa_rosa' ? 'prensa_rosa' : 'periodico';
 }
 
-function opg_periodico_edicion_vacia()
+function opg_periodico_publicacion_nombre($publicacion)
 {
-    return array('titulo' => '', 'subtitulo' => '', 'numero' => '', 'slug' => '', 'portada' => '', 'tema' => 'clasico', 'firma_visible' => 'Big News Morgans', 'paginas' => array(array('titulo' => '', 'tema' => '', 'bloques' => array(opg_periodico_bloque_vacio_portada()))));
+    return opg_periodico_publicacion($publicacion) === 'prensa_rosa' ? 'Prensa Rosa' : 'El Gaviotazo';
+}
+
+function opg_periodico_bloque_vacio_portada()
+{
+    return array('tipo' => 'portada', 'contenido' => array('titular' => '', 'bajada' => '', 'cuerpo' => '', 'imagen' => '', 'pie' => '', 'autor' => '', 'etiqueta' => '', 'canon' => false));
+}
+
+function opg_periodico_edicion_vacia($publicacion = 'periodico')
+{
+    $publicacion = opg_periodico_publicacion($publicacion);
+    $firma = $publicacion === 'prensa_rosa' ? 'Queen of Hearts Reporter' : 'Big News Morgans';
+    return array('publicacion' => $publicacion, 'titulo' => '', 'subtitulo' => '', 'numero' => '', 'slug' => '', 'portada' => '', 'tema' => 'clasico', 'firma_visible' => $firma, 'paginas' => array(array('titulo' => '', 'tema' => '', 'bloques' => array(opg_periodico_bloque_vacio_portada()))));
 }
 
 function opg_periodico_validar_bloque($bloque, &$errores)
@@ -51,13 +63,14 @@ function opg_periodico_validar_bloque($bloque, &$errores)
     $tipo = isset($bloque['tipo']) ? trim($bloque['tipo']) : '';
     $contenido = isset($bloque['contenido']) && is_array($bloque['contenido']) ? $bloque['contenido'] : array();
     if (!in_array($tipo, $tipos, true)) { $errores[] = 'Tipo de bloque no válido.'; return null; }
-    $limites = array('titular' => 255, 'bajada' => 500, 'pie' => 500, 'autor' => 120, 'etiqueta' => 80, 'entradilla' => 500, 'titulo' => 255, 'cuerpo' => 30000, 'nombre' => 120, 'recompensa' => 120, 'enlace' => 500, 'imagen' => 500, 'enlace_relacionado' => 500);
+    $limites = array('titular' => 255, 'bajada' => 500, 'pie' => 500, 'autor' => 255, 'etiqueta' => 80, 'entradilla' => 500, 'titulo' => 255, 'cuerpo' => 30000, 'nombre' => 120, 'recompensa' => 120, 'enlace' => 500, 'imagen' => 500, 'enlace_relacionado' => 500);
     $normalizado = array();
     foreach ($limites as $clave => $limite) {
         $valor = isset($contenido[$clave]) ? trim((string) $contenido[$clave]) : '';
         if (my_strlen($valor) > $limite) { $errores[] = 'Un campo del bloque ' . $tipo . ' supera su longitud máxima.'; }
         $normalizado[$clave] = $valor;
     }
+    $normalizado['canon'] = !empty($contenido['canon']);
     if (!opg_periodico_url_imagen_valida($normalizado['imagen'])) { $errores[] = 'La imagen de un bloque no es válida.'; }
     if (!opg_periodico_enlace_valido($normalizado['enlace']) || !opg_periodico_enlace_valido($normalizado['enlace_relacionado'])) { $errores[] = 'Un enlace de bloque no es válido.'; }
     if ($tipo === 'wanted') {
@@ -87,6 +100,11 @@ function opg_periodico_validar_payload($payload, &$errores)
     $errores = array();
     if (!is_array($payload)) { $errores[] = 'Datos de edición inválidos.'; return null; }
     $datos = array();
+    $publicacion = isset($payload['publicacion']) ? trim((string) $payload['publicacion']) : '';
+    if (!in_array($publicacion, array('periodico', 'prensa_rosa'), true)) {
+        $errores[] = 'Selecciona una publicación válida.';
+    }
+    $datos['publicacion'] = opg_periodico_publicacion($publicacion);
     $datos['numero'] = isset($payload['numero']) ? (int) $payload['numero'] : 0;
     $datos['titulo'] = isset($payload['titulo']) ? trim((string) $payload['titulo']) : '';
     $datos['subtitulo'] = isset($payload['subtitulo']) ? trim((string) $payload['subtitulo']) : '';
@@ -94,7 +112,8 @@ function opg_periodico_validar_payload($payload, &$errores)
     $datos['portada'] = isset($payload['portada']) ? trim((string) $payload['portada']) : '';
     $temas_permitidos = array('clasico', 'pirata', 'marine', 'revolucionario', 'cipher-pol', 'civil');
     $datos['tema'] = isset($payload['tema']) && in_array($payload['tema'], $temas_permitidos, true) ? $payload['tema'] : 'clasico';
-    $datos['firma_visible'] = isset($payload['firma_visible']) ? trim((string) $payload['firma_visible']) : 'Big News Morgans';
+    $firma_defecto = $datos['publicacion'] === 'prensa_rosa' ? 'Queen of Hearts Reporter' : 'Big News Morgans';
+    $datos['firma_visible'] = isset($payload['firma_visible']) ? trim((string) $payload['firma_visible']) : $firma_defecto;
     if ($datos['numero'] < 1) { $errores[] = 'El número de edición es obligatorio.'; }
     if ($datos['titulo'] === '' || my_strlen($datos['titulo']) > 255) { $errores[] = 'El título es obligatorio y debe tener menos de 256 caracteres.'; }
     if (my_strlen($datos['subtitulo']) > 500 || my_strlen($datos['firma_visible']) > 120) { $errores[] = 'Un metadato supera su longitud máxima.'; }
@@ -138,7 +157,8 @@ function opg_periodico_conflicto($db, $datos, $id = 0)
     $excluir = $id ? " AND id!='{$id}'" : '';
     $numero = (int) $datos['numero'];
     $slug = $db->escape_string($datos['slug']);
-    $q = $db->simple_select('op_periodicos', 'id', "(numero='{$numero}' OR slug='{$slug}'){$excluir}", array('limit' => 1));
+    $publicacion = $db->escape_string(opg_periodico_publicacion($datos['publicacion'] ?? 'periodico'));
+    $q = $db->simple_select('op_periodicos', 'id', "publicacion='{$publicacion}' AND (numero='{$numero}' OR slug='{$slug}'){$excluir}", array('limit' => 1));
     return (bool) $db->fetch_array($q);
 }
 
@@ -162,7 +182,11 @@ function opg_periodico_guardar($db, $id, $datos, $uid)
 {
     $ahora = date('Y-m-d H:i:s'); $id = (int) $id;
     $antes = $id ? opg_periodico_cargar($db, $id) : null;
-    $fila = array('slug' => $db->escape_string($datos['slug']), 'numero' => $datos['numero'], 'titulo' => $db->escape_string($datos['titulo']), 'subtitulo' => $db->escape_string($datos['subtitulo']), 'portada' => $db->escape_string($datos['portada']), 'tema' => $db->escape_string($datos['tema']), 'firma_visible' => $db->escape_string($datos['firma_visible']), 'fecha_actualizacion' => $ahora);
+    if ($antes) {
+        // El destino se decide al crear la edición y no puede cambiarse al editarla.
+        $datos['publicacion'] = opg_periodico_publicacion($antes['publicacion'] ?? 'periodico');
+    }
+    $fila = array('publicacion' => $db->escape_string(opg_periodico_publicacion($datos['publicacion'] ?? 'periodico')), 'slug' => $db->escape_string($datos['slug']), 'numero' => $datos['numero'], 'titulo' => $db->escape_string($datos['titulo']), 'subtitulo' => $db->escape_string($datos['subtitulo']), 'portada' => $db->escape_string($datos['portada']), 'tema' => $db->escape_string($datos['tema']), 'firma_visible' => $db->escape_string($datos['firma_visible']), 'fecha_actualizacion' => $ahora);
     $db->write_query('START TRANSACTION');
     if ($id) { $db->update_query('op_periodicos', $fila, "id='{$id}'"); opg_periodico_borrar_contenido($db, $id); }
     else { $fila['estado'] = 'borrador'; $fila['autor_uid'] = (int) $uid; $fila['fecha_creacion'] = $ahora; $id = (int) $db->insert_query('op_periodicos', $fila); }
@@ -175,9 +199,10 @@ function opg_periodico_guardar($db, $id, $datos, $uid)
     return $id;
 }
 
-function opg_periodico_buscar_publico($db, $numero = 0, $slug = '')
+function opg_periodico_buscar_publico($db, $numero = 0, $slug = '', $publicacion = 'periodico')
 {
-    $where = ($numero > 0 || $slug !== '') ? "estado IN ('publicado','archivado')" : "estado='publicado'";
+    $publicacion = $db->escape_string(opg_periodico_publicacion($publicacion));
+    $where = "publicacion='{$publicacion}' AND " . (($numero > 0 || $slug !== '') ? "estado IN ('publicado','archivado')" : "estado='publicado'");
     if ($numero > 0) { $where .= " AND numero='" . (int) $numero . "'"; }
     elseif ($slug !== '') { $where .= " AND slug='" . $db->escape_string($slug) . "'"; }
     $q = $db->simple_select('op_periodicos', 'id', $where, array('order_by' => 'fecha_publicacion', 'order_dir' => 'DESC', 'limit' => 1));
@@ -196,7 +221,8 @@ function opg_periodico_cambiar_estado($db, $id, $estado, $uid)
     $fila = array('estado' => $db->escape_string($estado), 'fecha_actualizacion' => $ahora);
     $db->write_query('START TRANSACTION');
     if ($estado === 'publicado') {
-        $anteriores = $db->simple_select('op_periodicos', 'id,estado', "estado='publicado' AND id!='{$id}'");
+        $publicacion = $db->escape_string(opg_periodico_publicacion($edicion['publicacion'] ?? 'periodico'));
+        $anteriores = $db->simple_select('op_periodicos', 'id,estado', "publicacion='{$publicacion}' AND estado='publicado' AND id!='{$id}'");
         while ($anterior = $db->fetch_array($anteriores)) {
             $anterior_id = (int) $anterior['id'];
             $db->update_query('op_periodicos', array('estado' => 'archivado', 'fecha_actualizacion' => $ahora), "id='{$anterior_id}'");
@@ -210,19 +236,22 @@ function opg_periodico_cambiar_estado($db, $id, $estado, $uid)
     return true;
 }
 
-function opg_periodico_listar($db, $filtro = '')
+function opg_periodico_listar($db, $filtro = '', $publicacion = '')
 {
-    $where = '';
-    if (in_array($filtro, array('borrador', 'publicado', 'archivado'), true)) { $where = "estado='" . $db->escape_string($filtro) . "'"; }
+    $condiciones = array();
+    if (in_array($filtro, array('borrador', 'publicado', 'archivado'), true)) { $condiciones[] = "estado='" . $db->escape_string($filtro) . "'"; }
+    if (in_array($publicacion, array('periodico', 'prensa_rosa'), true)) { $condiciones[] = "publicacion='" . $db->escape_string($publicacion) . "'"; }
+    $where = implode(' AND ', $condiciones);
     $resultado = $db->simple_select('op_periodicos', '*', $where, array('order_by' => 'numero', 'order_dir' => 'DESC'));
     $ediciones = array();
     while ($fila = $db->fetch_array($resultado)) { $ediciones[] = $fila; }
     return $ediciones;
 }
 
-function opg_periodico_archivo_publico($db, $anio = 0)
+function opg_periodico_archivo_publico($db, $anio = 0, $publicacion = 'periodico')
 {
-    $where = "estado IN ('publicado','archivado')";
+    $publicacion = $db->escape_string(opg_periodico_publicacion($publicacion));
+    $where = "publicacion='{$publicacion}' AND estado IN ('publicado','archivado')";
     if ($anio >= 2000 && $anio <= 9999) { $where .= " AND YEAR(fecha_publicacion)='" . (int) $anio . "'"; }
     $resultado = $db->simple_select('op_periodicos', 'numero,slug,titulo,portada,fecha_publicacion', $where, array('order_by' => 'fecha_publicacion', 'order_dir' => 'DESC'));
     $ediciones = array();
@@ -245,23 +274,27 @@ function opg_periodico_render_bloque($bloque)
     $tipo = $bloque['tipo']; $c = $bloque['contenido'];
     if ($tipo === 'separador') { return '<hr class="periodico-separador">'; }
     if ($tipo === 'wanted') { return '<aside class="periodico-wanted"><img src="' . opg_periodico_esc($c['imagen']) . '" alt="' . opg_periodico_esc($c['nombre']) . '"><div><strong>WANTED</strong><h3>' . opg_periodico_esc($c['nombre']) . '</h3><p>' . opg_periodico_esc($c['recompensa']) . '</p></div></aside>'; }
+    $canon = !empty($c['canon']);
+    $estado_canon = '<span class="periodico-canon periodico-canon--' . ($canon ? 'si' : 'no') . '">' . ($canon ? 'Canon' : 'No canon') . '</span>';
     if ($tipo === 'galeria') {
         $imagenes = '';
         foreach ((array) $c['imagenes'] as $imagen) { if ($imagen !== '') { $imagenes .= '<img src="' . opg_periodico_esc($imagen) . '" alt="' . opg_periodico_esc($c['titulo']) . '">'; } }
-        return '<section class="periodico-bloque periodico-bloque--galeria"><h2>' . opg_periodico_esc($c['titulo']) . '</h2><div class="periodico-galeria">' . $imagenes . '</div><div class="periodico-cuerpo">' . opg_periodico_render_bbcode($c['cuerpo']) . '</div></section>';
+        return '<section class="periodico-bloque periodico-bloque--galeria">' . $estado_canon . '<h2>' . opg_periodico_esc($c['titulo']) . '</h2><div class="periodico-galeria">' . $imagenes . '</div><div class="periodico-cuerpo">' . opg_periodico_render_bbcode($c['cuerpo']) . '</div></section>';
     }
     if ($tipo === 'dos_columnas') {
-        return '<section class="periodico-bloque periodico-bloque--dos-columnas"><h2>' . opg_periodico_esc($c['titulo']) . '</h2><div class="periodico-columnas"><div>' . opg_periodico_render_bbcode($c['izquierda']) . '</div><div>' . opg_periodico_render_bbcode($c['derecha']) . '</div></div></section>';
+        return '<section class="periodico-bloque periodico-bloque--dos-columnas">' . $estado_canon . '<h2>' . opg_periodico_esc($c['titulo']) . '</h2><div class="periodico-columnas"><div>' . opg_periodico_render_bbcode($c['izquierda']) . '</div><div>' . opg_periodico_render_bbcode($c['derecha']) . '</div></div></section>';
     }
     $titulo = !empty($c['titular']) ? $c['titular'] : $c['titulo'];
     $imagen = !empty($c['imagen']) ? '<figure><img src="' . opg_periodico_esc($c['imagen']) . '" alt="' . opg_periodico_esc($titulo) . '"><figcaption>' . opg_periodico_esc($c['pie']) . '</figcaption></figure>' : '';
     $enlace = !empty($c['enlace_relacionado']) ? '<a class="periodico-enlace" href="' . (ctype_digit($c['enlace_relacionado']) ? '/showthread.php?tid=' . (int) $c['enlace_relacionado'] : opg_periodico_esc($c['enlace_relacionado'])) . '">Ver tema relacionado</a>' : '';
-    return '<article class="periodico-bloque periodico-bloque--' . opg_periodico_esc($tipo) . '"><h2>' . opg_periodico_esc($titulo) . '</h2>' . (!empty($c['bajada']) || !empty($c['entradilla']) ? '<p class="periodico-entradilla">' . opg_periodico_esc(!empty($c['bajada']) ? $c['bajada'] : $c['entradilla']) . '</p>' : '') . $imagen . '<div class="periodico-cuerpo">' . opg_periodico_render_bbcode($c['cuerpo']) . '</div>' . $enlace . '</article>';
+    return '<article class="periodico-bloque periodico-bloque--' . opg_periodico_esc($tipo) . '">' . $estado_canon . '<h2>' . opg_periodico_esc($titulo) . '</h2>' . (!empty($c['bajada']) || !empty($c['entradilla']) ? '<p class="periodico-entradilla">' . opg_periodico_esc(!empty($c['bajada']) ? $c['bajada'] : $c['entradilla']) . '</p>' : '') . $imagen . '<div class="periodico-cuerpo">' . opg_periodico_render_bbcode($c['cuerpo']) . '</div>' . $enlace . '</article>';
 }
 
 function opg_periodico_render_edicion($edicion)
 {
-    $html = '<section class="periodico-edicion tema-' . opg_periodico_esc($edicion['tema']) . '"><header class="periodico-masthead"><span>EL GAVIOTAZO</span><h1>' . opg_periodico_esc($edicion['titulo']) . '</h1><p>' . opg_periodico_esc($edicion['subtitulo']) . '</p><small>Edición ' . (int) $edicion['numero'] . ' · ' . opg_periodico_esc($edicion['firma_visible']) . '</small></header>';
+    $publicacion = opg_periodico_publicacion($edicion['publicacion'] ?? 'periodico');
+    $nombre_publicacion = opg_periodico_publicacion_nombre($publicacion);
+    $html = '<section class="periodico-edicion publicacion-' . str_replace('_', '-', $publicacion) . ' tema-' . opg_periodico_esc($edicion['tema']) . '"><header class="periodico-masthead"><span>' . opg_periodico_esc(mb_strtoupper($nombre_publicacion)) . '</span><h1>' . opg_periodico_esc($edicion['titulo']) . '</h1><p>' . opg_periodico_esc($edicion['subtitulo']) . '</p><small>Edición ' . (int) $edicion['numero'] . ' · ' . opg_periodico_esc($edicion['firma_visible']) . '</small></header>';
     foreach ($edicion['paginas'] as $indice => $pagina) { $html .= '<section class="periodico-pagina" id="pagina-' . ($indice + 1) . '">'; foreach ($pagina['bloques'] as $bloque) { $html .= opg_periodico_render_bloque($bloque); } $html .= '</section>'; }
     return $html . '</section>';
 }

@@ -24,6 +24,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'tecnicas_modificar.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/tecnicas_cambios.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -93,7 +94,8 @@ if ($mybb->request_method == 'post') {
             }
         }
 
-        $existe = (bool) $db->fetch_field($db->query("SELECT tid FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid) . "'"), 'tid');
+        $anterior = $db->fetch_array($db->query("SELECT * FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid) . "'"));
+        $existe = (bool) $anterior;
 
         $set = array();
         foreach ($campos as $col => $val) {
@@ -112,9 +114,8 @@ if ($mybb->request_method == 'post') {
             $db->query("INSERT INTO `mybb_op_tecnicas` (`" . implode('`, `', $cols) . "`) VALUES (" . implode(', ', $vals) . ")");
         }
 
-        $log_texto = "Técnica {$tid} (" . ($existe ? 'modificada' : 'creada') . " por {$mybb->user['username']}): nombre={$nombre}, clase={$clase}, tipo={$tipo}.";
-        $db->query("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
-            . "('" . (int) $uid . "', '" . $db->escape_string($mybb->user['username']) . "', 'Apertura', '" . $db->escape_string($log_texto) . "')");
+        $nuevo = $db->fetch_array($db->query("SELECT * FROM `mybb_op_tecnicas` WHERE tid='" . $db->escape_string($tid) . "'"));
+        opg_tecnicas_registrar_cambio($tid, $anterior ?: null, $nuevo, $uid, $mybb->user['username'], 'Editor de técnicas');
     }
 
     my_setcookie(TECNICAS_MSG_COOKIE, base64_encode(json_encode(array(

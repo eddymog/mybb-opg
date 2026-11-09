@@ -279,6 +279,55 @@ if ($aventuras_top_20 === '') {
     $aventuras_top_20 = '<p class="opg-vacio">Todavía no hay aventuras en progreso o finalizadas.</p>';
 }
 
+// Ranking de narradores: mismo criterio que el de aventureros, contando una
+// aventura convencional por narrador cuando está en progreso o finalizada.
+$aventuras_top_narradores = '';
+$queryRankingNarradores = $db->query("SELECT
+        pa.`narrador_fid` AS fid,
+        MAX(pa.`narrador_nombre`) AS narrador_nombre,
+        f.`nombre`, f.`apodo`,
+        SUM(CASE WHEN pa.`estado` = 1 THEN 1 ELSE 0 END) AS progreso,
+        SUM(CASE WHEN pa.`estado` = 3 THEN 1 ELSE 0 END) AS finalizadas,
+        COUNT(*) AS total
+    FROM `{$tablaAventuras}` pa
+    LEFT JOIN `{$tablaFichas}` f ON f.`fid` = pa.`narrador_fid`
+    WHERE pa.`estado` IN (1, 3)
+      AND pa.`narrador_fid` IS NOT NULL
+      AND pa.`narrador_fid` > 0
+      AND NOT ({$condicionAutonarrada})
+    GROUP BY pa.`narrador_fid`, f.`nombre`, f.`apodo`
+    ORDER BY total DESC, finalizadas DESC, f.`nombre` ASC, pa.`narrador_fid` ASC
+    LIMIT 20");
+
+$puestoNarrador = 0;
+while ($narradorRanking = $db->fetch_array($queryRankingNarradores)) {
+    $puestoNarrador++;
+    $fidNarrador = (int)$narradorRanking['fid'];
+    $nombreNarrador = trim((string)($narradorRanking['nombre'] ?? ''));
+    $apodoNarrador = trim((string)($narradorRanking['apodo'] ?? ''));
+    if ($nombreNarrador === '') {
+        $nombreNarrador = trim((string)($narradorRanking['narrador_nombre'] ?? ''));
+    }
+    if ($nombreNarrador === '') {
+        $nombreNarrador = 'Ficha #' . $fidNarrador;
+    } elseif ($apodoNarrador !== '' && $apodoNarrador !== $nombreNarrador) {
+        $nombreNarrador .= ' · ' . $apodoNarrador;
+    }
+    $progresoNarrador = (int)$narradorRanking['progreso'];
+    $finalizadasNarrador = (int)$narradorRanking['finalizadas'];
+    $totalNarrador = (int)$narradorRanking['total'];
+    $aventuras_top_narradores .= '<div class="ranking-fila ranking-fila--narrador">'
+        . '<span class="ranking-puesto">' . $puestoNarrador . '</span>'
+        . '<a class="ranking-personaje" href="/op/personaje.php?uid=' . $fidNarrador . '">' . aventuras_e($nombreNarrador) . ' <small>#' . $fidNarrador . '</small></a>'
+        . '<span class="ranking-cifra"><strong>' . $progresoNarrador . '</strong><small>En progreso</small></span>'
+        . '<span class="ranking-cifra"><strong>' . $finalizadasNarrador . '</strong><small>Finalizadas</small></span>'
+        . '<span class="ranking-total"><strong>' . $totalNarrador . '</strong><small>Total</small></span>'
+        . '</div>';
+}
+if ($aventuras_top_narradores === '') {
+    $aventuras_top_narradores = '<p class="opg-vacio">Todavía no hay narradores con aventuras en progreso o finalizadas.</p>';
+}
+
 function aventuras_renderizar_fila($aventura, $estados, $personajeFid)
 {
     $jugadores = aventuras_jugadores($aventura['jugadores_json'] ?? '[]');

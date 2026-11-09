@@ -11,6 +11,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'log_consola_mod.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/tecnicas_cambios.php';
 
 global $templates, $mybb, $db;
 $uid = (int)$mybb->user['uid'];
@@ -47,6 +48,11 @@ $query_log = $db->query("
 $logs = '';
 while ($l = $db->fetch_array($query_log)) {
     $tiempo = htmlspecialchars(my_date('relative', strtotime($l['tiempo'])), ENT_QUOTES, 'UTF-8');
+    $detalle_log = $l['log'];
+    $cambio_tecnica = opg_tecnicas_interpretar_log($detalle_log);
+    if ($cambio_tecnica && $cambio_tecnica['formato'] === 'estructurado') {
+        $detalle_log = opg_tecnicas_cambio_a_texto($cambio_tecnica);
+    }
     $logs .= '<div class="log-fila">'
         . '<div class="log-cabecera">'
         . '<span class="log-id">#' . (int)$l['id'] . '</span>'
@@ -54,7 +60,7 @@ while ($l = $db->fetch_array($query_log)) {
         . '<span class="log-razon">' . htmlspecialchars($l['razon'], ENT_QUOTES, 'UTF-8') . '</span>'
         . '<span class="log-tiempo">' . $tiempo . '</span>'
         . '</div>'
-        . '<div class="log-detalle">' . nl2br(htmlspecialchars($l['log'], ENT_QUOTES, 'UTF-8')) . '</div>'
+        . '<div class="log-detalle">' . nl2br(htmlspecialchars($detalle_log, ENT_QUOTES, 'UTF-8')) . '</div>'
         . '</div>';
 }
 if ($logs === '') {

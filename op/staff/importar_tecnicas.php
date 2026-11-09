@@ -7,6 +7,7 @@ define('THIS_SCRIPT', 'importar_tecnicas.php');
 require_once "./../../global.php";
 require "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/tecnicas_cambios.php';
 
 global $templates, $mybb, $db;
 $uid = (int)$mybb->user['uid'];
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv']) && $_FILES['c
             }
             // Actualizar por tid
             $tid = $row['tid'];
+            $anterior = $db->fetch_array($db->query("SELECT * FROM `$table` WHERE `tid`='$tid' LIMIT 1"));
             $update = $row;
             unset($update['tid']);
             $set = [];
@@ -68,6 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['csv']) && $_FILES['c
             }
             $set_sql = implode(',', $set);
             $db->write_query("UPDATE `$table` SET $set_sql WHERE `tid`='$tid'");
+            if ($anterior) {
+                $nuevo = $db->fetch_array($db->query("SELECT * FROM `$table` WHERE `tid`='$tid' LIMIT 1"));
+                opg_tecnicas_registrar_cambio($tid, $anterior, $nuevo, $uid, $mybb->user['username'], 'Importación CSV');
+            }
             $count++;
         }
         $mensaje = "<div style='color:green'>Se han actualizado $count técnicas correctamente.</div>";

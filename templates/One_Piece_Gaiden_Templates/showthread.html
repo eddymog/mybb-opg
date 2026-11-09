@@ -37,6 +37,7 @@
 	<div style="display:flex;align-items:center;gap:8px;" class="float_right">
 		<div id="modoNoche" style="cursor:pointer;line-height:0;"></div>
 		<a id="modoLectura" onclick="toggleModoLectura();return false;" href="#" class="button new_reply_button bradius"><span>LECTURA</span></a>
+		{$op_panel_tactico_link}
 		{$newreply}
 	</div>
 	{$ratethread}
@@ -314,6 +315,10 @@
 			$('blockquote.mycode_quote').css({'background-color':'#ffe0f0','color':'#4a1060','border-color':'#c870a0'});
 			$('blockquote.mycode_quote cite').css({'color':'#4a1060','border-bottom-color':'#c870a0'});
 			$('blockquote.mycode_quote cite > span').css('color', '#7a2080');
+			// Bloques de codigo ([code]): fondo oscuro y texto claro (por defecto son blancos y el texto heredado del mensaje no se ve)
+			$('.codeblock').css({'background-color':'#2a203a','color':'#d9d6d6','border-color':'#4a3a62'});
+			$('.codeblock .title').css({'color':'#d9d6d6','border-bottom-color':'#4a3a62'});
+			$('.codeblock code').css('color', '#e8dfe4');
 			$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_dia" src="/images/op/misc/ModoDia_One_Piece_Gaiden_Foro_Rol.png">');
 		} else {
 			$('.post_body').css('color', 'black');
@@ -326,6 +331,9 @@
 			$('blockquote.mycode_quote').css({'background-color':'#fff','color':'','border-color':'#ccc'});
 			$('blockquote.mycode_quote cite').css({'color':'','border-bottom-color':'#ccc'});
 			$('blockquote.mycode_quote cite > span').css('color', '#666');
+			$('.codeblock').css({'background-color':'#fff','color':'','border-color':'#ddd'});
+			$('.codeblock .title').css({'color':'','border-bottom-color':'#ddd'});
+			$('.codeblock code').css('color', '');
 			$('#modoNoche').html('<img onclick="toggleModoNoche()" class="modo_noche" src="/images/op/misc/ModoNoche_One_Piece_Gaiden_Foro_Rol.png">');
 		}
 	}

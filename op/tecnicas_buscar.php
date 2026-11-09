@@ -86,7 +86,7 @@ if ($hay_busqueda) {
     $where = ['1=1'];
 
     if ($f_nombre !== '') {
-        $where[] = "LOWER(nombre) LIKE LOWER('%$f_nombre%')";
+        $where[] = "(LOWER(nombre) LIKE LOWER('%$f_nombre%') OR LOWER(tid) LIKE LOWER('%$f_nombre%'))";
     }
     if (!empty($f_clases)) {
         $quoted  = implode(',', array_map(function($v) { return "'" . $v . "'"; }, $f_clases));

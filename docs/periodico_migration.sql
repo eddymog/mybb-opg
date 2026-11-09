@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS mybb_op_periodicos (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  publicacion ENUM('periodico','prensa_rosa') NOT NULL DEFAULT 'periodico',
   slug VARCHAR(100) NOT NULL,
   numero INT UNSIGNED NOT NULL,
   titulo VARCHAR(255) NOT NULL,
@@ -13,9 +14,9 @@ CREATE TABLE IF NOT EXISTS mybb_op_periodicos (
   fecha_creacion DATETIME NOT NULL,
   fecha_actualizacion DATETIME NOT NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY slug (slug),
-  UNIQUE KEY numero (numero),
-  KEY estado_fecha (estado, fecha_publicacion)
+  UNIQUE KEY publicacion_slug (publicacion, slug),
+  UNIQUE KEY publicacion_numero (publicacion, numero),
+  KEY publicacion_estado_fecha (publicacion, estado, fecha_publicacion)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS mybb_op_periodico_paginas (

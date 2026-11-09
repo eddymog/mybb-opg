@@ -17,6 +17,9 @@ if (!opg_periodico_puede_editar((int) $mybb->user['uid'])) {
 $id = $mybb->get_input('id', MyBB::INPUT_INT);
 $edicion = opg_periodico_cargar($db, $id);
 if (!$edicion) { error('No se encontró esa edición.'); }
+$publicacion = opg_periodico_publicacion($edicion['publicacion'] ?? 'periodico');
+$publicacion_nombre = opg_periodico_publicacion_nombre($publicacion);
+$publicacion_clase = 'publicacion-' . str_replace('_', '-', $publicacion);
 
 $errores = array();
 if ($mybb->request_method === 'post') {
@@ -25,9 +28,16 @@ if ($mybb->request_method === 'post') {
     if ($accion === 'guardar' || $accion === 'publicar' || $accion === 'preview') {
         $json = $mybb->get_input('edicion_json', MyBB::INPUT_STRING);
         $payload = json_decode($json, true);
+        if (is_array($payload)) {
+            // El destino almacenado manda aunque el navegador conserve un JS anterior.
+            $payload['publicacion'] = $publicacion;
+        }
         $datos = opg_periodico_validar_payload($payload, $errores);
+        if ($datos) {
+            $datos['publicacion'] = $publicacion;
+        }
         if ($datos && opg_periodico_conflicto($db, $datos, $id)) {
-            $errores[] = 'El número o la dirección web ya pertenece a otra edición.';
+            $errores[] = 'El número o la dirección web ya pertenece a otra edición de esta publicación.';
         } elseif ($datos) {
             if ($accion === 'preview') {
                 $edicion_preview = array_merge($edicion, $datos);
@@ -47,6 +57,7 @@ if ($mybb->request_method === 'post') {
 }
 
 $editor = array(
+    'publicacion' => opg_periodico_publicacion($edicion['publicacion'] ?? 'periodico'),
     'numero' => (int) $edicion['numero'], 'titulo' => $edicion['titulo'], 'subtitulo' => $edicion['subtitulo'],
     'slug' => $edicion['slug'], 'portada' => $edicion['portada'], 'tema' => $edicion['tema'],
     'firma_visible' => $edicion['firma_visible'], 'paginas' => $edicion['paginas']

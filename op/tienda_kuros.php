@@ -18,10 +18,10 @@ require_once "./functions/op_functions.php";
 
 $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
-$accion = $_POST["accion"];
+$accion = isset($_POST["accion"]) ? $_POST["accion"] : '';
 $comprasTotal = 0;
-$listaDeCompras = $_POST["listaDeCompras"];
-$listaDeComprasKeys = $_POST["listaDeComprasKeys"];
+$listaDeCompras = isset($_POST["listaDeCompras"]) && is_array($_POST["listaDeCompras"]) ? $_POST["listaDeCompras"] : array();
+$listaDeComprasKeys = isset($_POST["listaDeComprasKeys"]) && is_array($_POST["listaDeComprasKeys"]) ? $_POST["listaDeComprasKeys"] : array();
 $ficha = null;
 
 if ($g_ficha['muerto'] == '1') {
@@ -50,15 +50,95 @@ while ($q = $db->fetch_array($query_objetos)) {
 $objetos_array_json = json_encode($objetos_array);
 $objetos_json = json_encode($objetos);
 
+function tiendaKurosPeriodoMensual() {
+    $madrid = new DateTimeZone('Europe/Madrid');
+    $ahora = new DateTimeImmutable('now', $madrid);
+    $inicio = $ahora->modify('first day of this month')->setTime(0, 0, 0);
+    $fin = $inicio->modify('+1 month');
+
+    return array(
+        'inicio' => $inicio,
+        'fin' => $fin,
+        'inicio_timestamp' => $inicio->getTimestamp(),
+        'fin_timestamp' => $fin->getTimestamp(),
+    );
+}
+
+function tiendaKurosComprasMensuales($uid, $periodo) {
+    global $db;
+
+    $conteos = array(
+        'CFR001' => 0,
+        'CFR002' => 0,
+        'CFR003' => 0,
+        'CFR004' => 0,
+    );
+    $uid = (int)$uid;
+    $inicio = (int)$periodo['inicio_timestamp'];
+    $fin = (int)$periodo['fin_timestamp'];
+    $query = $db->query("SELECT log
+        FROM mybb_op_audit_general
+        WHERE categoria = '[Kuros]'
+          AND user_uid = '{$uid}'
+          AND tiempo >= FROM_UNIXTIME({$inicio})
+          AND tiempo < FROM_UNIXTIME({$fin})
+          AND log REGEXP 'CFR00[1-4]:[[:space:]]*[0-9]+'");
+
+    while ($fila = $db->fetch_array($query)) {
+        if (preg_match_all('/\\b(CFR00[1-4]):\\s*(\\d+)\\s*;/', $fila['log'], $coincidencias, PREG_SET_ORDER)) {
+            foreach ($coincidencias as $coincidencia) {
+                $conteos[$coincidencia[1]] += (int)$coincidencia[2];
+            }
+        }
+    }
+
+    return $conteos;
+}
+
+function tiendaKurosResponder($success, $message) {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array('success' => (bool)$success, 'message' => $message));
+    exit;
+}
+
+$periodoCofres = tiendaKurosPeriodoMensual();
+$comprasMensualesCofres = tiendaKurosComprasMensuales($uid, $periodoCofres);
+
 if ($accion == 'comprar' && $uid != '0') {
+
+    if (!verify_post_check($mybb->get_input('my_post_key'), true)) {
+        tiendaKurosResponder(false, 'La sesión ha caducado. Recarga la página e inténtalo de nuevo.');
+    }
 
     $should_cancel = false;
     $logObj = "";
 
+    $listaDeComprasKeys = array_values(array_unique($listaDeComprasKeys));
+
     foreach ($listaDeComprasKeys as $objKey) {
-        if (intval($listaDeCompras[$objKey]['cantidad']) <= 0) { $should_cancel = true; }
+        if (!isset($objetos[$objKey][0], $listaDeCompras[$objKey]['cantidad'])) {
+            $should_cancel = true;
+            continue;
+        }
+        $cantidad = (int)$listaDeCompras[$objKey]['cantidad'];
+        if ($cantidad <= 0 || $cantidad > 10) { $should_cancel = true; }
     }
-    if ($should_cancel == true) { return; }
+    if ($should_cancel == true || empty($listaDeComprasKeys)) {
+        tiendaKurosResponder(false, 'La lista de compra no es válida. Recarga la página e inténtalo de nuevo.');
+    }
+
+    $nombresCofres = array(
+        'CFR001' => 'básicos',
+        'CFR002' => 'decentes',
+        'CFR003' => 'gigantes',
+        'CFR004' => 'cobrizos',
+    );
+    foreach ($nombresCofres as $cofreId => $cofreNombre) {
+        $cantidadSolicitada = isset($listaDeCompras[$cofreId]['cantidad']) ? (int)$listaDeCompras[$cofreId]['cantidad'] : 0;
+        if ($cantidadSolicitada > 0 && $comprasMensualesCofres[$cofreId] + $cantidadSolicitada > 5) {
+            tiendaKurosResponder(false, "Solo puedes comprar un máximo de 5 cofres {$cofreNombre} durante este mes.");
+        }
+    }
 
     foreach ($listaDeComprasKeys as $objKey) {
         $comprasTotal += (intval($objetos[$objKey][0]['berries']) * $listaDeCompras[$objKey]['cantidad']);
@@ -99,9 +179,10 @@ if ($accion == 'comprar' && $uid != '0') {
         // $db->query(" UPDATE `mybb_op_fichas` SET kuro='$nuevosKuros' WHERE `fid`='$uid'; ");
 
         log_audit_currency($uid, $username, $uid, '[Tienda Kuros][Kuros]', 'kuros', $nuevosKuros);
+        tiendaKurosResponder(true, '¡Compra realizada!');
     }
 
-    return;
+    tiendaKurosResponder(false, 'No tienes suficientes Kuros para completar esta compra.');
 }
 
 function darObjeto($objeto_id, $cantidadExtra) {
@@ -160,87 +241,35 @@ function darExp($expNueva) {
 
 $reload_js = "";
 
+$cofre1_count = (int)$comprasMensualesCofres['CFR001'];
+$cofre2_count = (int)$comprasMensualesCofres['CFR002'];
+$cofre3_count = (int)$comprasMensualesCofres['CFR003'];
+$cofre4_count = (int)$comprasMensualesCofres['CFR004'];
+$cofresMensualesTotal = $cofre1_count + $cofre2_count + $cofre3_count + $cofre4_count;
 
-$cofre1_count = 0;
-$cofre2_count = 0;
-$cofre3_count = 0;
-$cofre4_count = 0;
-$cofre5_count = 0;
+$mesesEspanol = array(1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre');
+$ultimoDiaPeriodo = $periodoCofres['fin']->modify('-1 day');
+$cofresPeriodoTexto = $periodoCofres['inicio']->format('j') . '–' . $ultimoDiaPeriodo->format('j') . ' de ' . $mesesEspanol[(int)$periodoCofres['inicio']->format('n')] . ' de ' . $periodoCofres['inicio']->format('Y');
+$cofresReinicioTexto = $periodoCofres['fin']->format('j') . ' de ' . $mesesEspanol[(int)$periodoCofres['fin']->format('n')] . ' a las 00:00';
 
-$cofre1_count_query = $db->query("SELECT
-  SUM(CAST(
-    SUBSTRING(
-      log,
-      LOCATE('CFR001: ', log) + 8,
-      LOCATE(';', log, LOCATE('CFR001: ', log)) - (LOCATE('CFR001: ', log) + 8)
-    ) AS UNSIGNED
-  )) AS total_cofres
-FROM mybb_op_audit_general
-WHERE categoria = '[Kuros]'
-  AND log LIKE '%CFR001: %'
-  AND tiempo >= NOW() - INTERVAL 1 MONTH
-  AND user_uid = '$uid'");
-while ($q = $db->fetch_array($cofre1_count_query)) { $cofre1_count = $q['total_cofres']; }
-
-$cofre2_count_query = $db->query("SELECT
-  SUM(CAST(
-    SUBSTRING(
-      log,
-      LOCATE('CFR002: ', log) + 8,
-      LOCATE(';', log, LOCATE('CFR002: ', log)) - (LOCATE('CFR002: ', log) + 8)
-    ) AS UNSIGNED
-  )) AS total_cofres
-FROM mybb_op_audit_general
-WHERE categoria = '[Kuros]'
-  AND log LIKE '%CFR002: %'
-  AND tiempo >= NOW() - INTERVAL 1 MONTH
-  AND user_uid = '$uid'");
-while ($q = $db->fetch_array($cofre2_count_query)) {  $cofre2_count = $q['total_cofres']; }
-
-$cofre3_count_query = $db->query("SELECT
-  SUM(CAST(
-    SUBSTRING(
-      log,
-      LOCATE('CFR003: ', log) + 8,
-      LOCATE(';', log, LOCATE('CFR003: ', log)) - (LOCATE('CFR003: ', log) + 8)
-    ) AS UNSIGNED
-  )) AS total_cofres
-FROM mybb_op_audit_general
-WHERE categoria = '[Kuros]'
-  AND log LIKE '%CFR003: %'
-  AND tiempo >= NOW() - INTERVAL 1 MONTH
-  AND user_uid = '$uid'");
-while ($q = $db->fetch_array($cofre3_count_query)) {  $cofre3_count = $q['total_cofres']; }     
-
-$cofre4_count_query = $db->query("SELECT
-  SUM(CAST(
-    SUBSTRING(
-      log,
-      LOCATE('CFR004: ', log) + 8,
-      LOCATE(';', log, LOCATE('CFR004: ', log)) - (LOCATE('CFR004: ', log) + 8)
-    ) AS UNSIGNED
-  )) AS total_cofres
-FROM mybb_op_audit_general
-WHERE categoria = '[Kuros]'
-  AND log LIKE '%CFR004: %'
-  AND tiempo >= NOW() - INTERVAL 1 MONTH
-  AND user_uid = '$uid'");
-while ($q = $db->fetch_array($cofre4_count_query)) {  $cofre4_count = $q['total_cofres']; }     
-
-$cofre5_count_query = $db->query("SELECT
-  SUM(CAST(
-    SUBSTRING(
-      log,
-      LOCATE('CFR005: ', log) + 8,
-      LOCATE(';', log, LOCATE('CFR005: ', log)) - (LOCATE('CFR005: ', log) + 8)
-    ) AS UNSIGNED
-  )) AS total_cofres
-FROM mybb_op_audit_general
-WHERE categoria = '[Kuros]'
-  AND log LIKE '%CFR005: %'
-  AND tiempo >= NOW() - INTERVAL 1 MONTH
-  AND user_uid = '$uid'");
-while ($q = $db->fetch_array($cofre5_count_query)) {  $cofre5_count = $q['total_cofres']; }         
+$cofresNombres = array(
+    'CFR001' => 'Cofre básico',
+    'CFR002' => 'Cofre decente',
+    'CFR003' => 'Cofre gigante',
+    'CFR004' => 'Cofre cobrizo',
+);
+$cofresMensualesHtml = '';
+foreach ($cofresNombres as $cofreId => $cofreNombre) {
+    $comprados = (int)$comprasMensualesCofres[$cofreId];
+    $disponibles = max(0, 5 - $comprados);
+    $porcentaje = min(100, $comprados * 20);
+    $agotadoClase = $disponibles === 0 ? ' is-agotado' : '';
+    $cofresMensualesHtml .= '<div class="kuros-cupo__fila' . $agotadoClase . '">'
+        . '<div class="kuros-cupo__nombre"><strong>' . $cofreNombre . '</strong><span>' . $comprados . ' de 5 comprados</span></div>'
+        . '<div class="kuros-cupo__barra" role="progressbar" aria-label="' . $cofreNombre . '" aria-valuemin="0" aria-valuemax="5" aria-valuenow="' . $comprados . '"><i style="width:' . $porcentaje . '%"></i></div>'
+        . '<div class="kuros-cupo__disponibles"><strong>' . $disponibles . '</strong><span>disponibles</span></div>'
+        . '</div>';
+}
 
 
 

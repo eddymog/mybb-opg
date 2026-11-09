@@ -133,9 +133,9 @@ historial del usuario.
 
 Enlaces iniciales:
 
-- tema principal: `https://onepiecegaiden.com/showthread.php?tid=9471`;
-- concurso de historias: `https://onepiecegaiden.com/showthread.php?tid=9535`;
-- concurso de monstruos: `https://onepiecegaiden.com/showthread.php?tid=9536`.
+- tema principal: `https://onepiecegaiden.com/showthread.php?tid=9567`;
+- concurso de historias: `https://onepiecegaiden.com/showthread.php?tid=9568`;
+- concurso de monstruos: `https://onepiecegaiden.com/showthread.php?tid=9569`.
 
 Toda `/op/halloween2026.php`, incluidas las vistas **Evento** y
 **Estadísticas**, requiere una sesión válida y una ficha activa y aprobada.

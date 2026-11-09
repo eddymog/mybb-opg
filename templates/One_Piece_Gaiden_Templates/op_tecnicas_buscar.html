@@ -49,6 +49,10 @@
     .tb-dano-match{background:rgba(218,144,57,.2);border-radius:3px;padding:0 2px;color:#f0c040}
     .tb-tid{font-family:moonGetHeavy;font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid #555;color:#888;text-transform:uppercase;letter-spacing:.5px}
     .tb-tid--link{color:#fee140;border-color:#fee140;text-decoration:none}
+    .tb-card-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .tb-card-action{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:1px solid #565675;border-radius:4px;background:#24243d;color:#ddd;font:11px InterMedium;text-decoration:none}
+    .tb-card-action:hover{border-color:#fee140;color:#fee140}
+    .tb-card-action--edit{border-color:#b71c1c;background:#b71c1c;color:#fff;font-weight:bold}
     .tb-empty{text-align:center;color:#555;font-family:InterRegular;padding:40px 0;font-size:15px}
     .tb-banner{height:60px;border-radius:6px;margin-bottom:16px;display:flex;align-items:center;padding-left:20px}
     .tb-banner-title{font-family:moonGetHeavy;font-size:28px;color:white;text-shadow:2px 2px 4px black}
@@ -109,8 +113,8 @@
               <h3><i class="fa fa-filter"></i> Filtros</h3>
 
               <div class="tb-grupo">
-                <label class="tb-label">Nombre</label>
-                <input id="tb_nombre" class="tb-input" type="text" name="nombre" value="{$f_nombre}" placeholder="Buscar por nombre..." autocomplete="off" />
+                <label class="tb-label">Nombre o ID</label>
+                <input id="tb_nombre" class="tb-input" type="text" name="nombre" value="{$f_nombre}" placeholder="Buscar por nombre o ID..." autocomplete="off" />
               </div>
 
               <div class="tb-grupo">

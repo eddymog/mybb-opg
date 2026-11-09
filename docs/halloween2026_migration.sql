@@ -146,10 +146,10 @@ INSERT IGNORE INTO `mybb_op_halloween2026_config` (
     1,
     'Europe/Madrid',
     '2026-10-26 05:00:00',
-    '2026-11-10 05:00:00',
-    '2026-11-16 23:00:00',
+    '2026-11-18 05:00:00',
+    '2026-11-17 23:00:00',
     '2026-10-26 05:00:00',
-    '2026-11-16 23:00:00',
+    '2026-11-17 23:00:00',
     'draft',
     JSON_OBJECT(
         'role_root_fid', 10,
@@ -157,9 +157,9 @@ INSERT IGNORE INTO `mybb_op_halloween2026_config` (
         'adventure_prefix_id', 3,
         'spooky_prefix_id', 15,
         'store_enabled', false,
-        'main_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9471',
-        'stories_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9535',
-        'monsters_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9536'
+        'main_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9567',
+        'stories_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9568',
+        'monsters_thread_url', 'https://onepiecegaiden.com/showthread.php?tid=9569'
     ),
     UTC_TIMESTAMP()
 );

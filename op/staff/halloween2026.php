@@ -299,22 +299,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         : (!empty($result['ok']) ? 'Premio concedido correctamente.' : 'No se pudo conceder el premio.')
                 );
             }
-        } elseif ($action === 'gift') {
-            $amount = max(1, min(10000, $mybb->get_input('amount', MyBB::INPUT_INT)));
-            $distribution = preg_replace('/[^a-zA-Z0-9_-]/', '', $mybb->get_input('distribution'));
-            if ($distribution === '' || !opg_hlw_eligible_character($targetUid)) {
-                $message = opg_hlw_staff_message('error', 'Indica un personaje y un identificador de reparto.');
-            } else {
-                $result = opg_hlw_add_movement(array(
-                    'uid' => $targetUid, 'amount' => $amount, 'bucket' => 'earned',
-                    'source_type' => 'gift', 'source_id' => $distribution,
-                    'idempotency_key' => 'halloween2026:gift:' . $distribution . ':' . $targetUid,
-                    'actor_uid' => $staffUid, 'note' => 'Regalo impredecible de Kuro',
-                ));
-                $message = opg_hlw_staff_message(!empty($result['ok']) ? 'success' : 'error',
-                    !empty($result['duplicate']) ? 'Este reparto ya se aplico al personaje.'
-                        : (!empty($result['ok']) ? 'Regalo registrado.' : 'No se pudo registrar el regalo.'));
-            }
         } elseif ($action === 'adjust') {
             $amount = $mybb->get_input('amount', MyBB::INPUT_INT);
             $reason = trim($mybb->get_input('reason'));
@@ -403,12 +387,8 @@ if ($target) {
                 . ($given ? 'Entregado' : 'Conceder una vez') . '</small></button></form>';
         }
         $token = function_exists('random_bytes') ? bin2hex(random_bytes(8)) : sha1(uniqid('', true));
-        $targetHtml .= '</div><div class="hlw-staff-forms"><form method="post"><h3>Regalo de Kuro</h3>'
-            . '<input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '"><input type="hidden" name="action" value="gift">'
-            . '<input type="hidden" name="uid" value="' . $targetUid . '"><label>Cantidad<input type="number" name="amount" min="1" max="10000" required></label>'
-            . '<label>Identificador del reparto<input type="text" name="distribution" maxlength="80" placeholder="kuro-2026-10-31-a" required></label>'
-            . '<button class="hlw-button hlw-button--primary" type="submit">Conceder regalo</button></form>'
-            . '<form method="post"><h3>Ajuste manual</h3><input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '">'
+        $targetHtml .= '</div><div class="hlw-staff-forms"><form method="post"><h3>Ajuste manual</h3>'
+            . '<input type="hidden" name="my_post_key" value="' . opg_hlw_escape($mybb->post_code) . '">'
             . '<input type="hidden" name="action" value="adjust"><input type="hidden" name="uid" value="' . $targetUid . '">'
             . '<input type="hidden" name="token" value="' . opg_hlw_escape($token) . '"><label>Cantidad con signo<input type="number" name="amount" required></label>'
             . '<label>Motivo<input type="text" name="reason" maxlength="255" required></label>'

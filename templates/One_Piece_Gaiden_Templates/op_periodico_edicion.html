@@ -1,12 +1,12 @@
 <html>
 <head>
-    <title>{$periodico_titulo} - El Gaviotazo</title>
+    <title>{$periodico_titulo} - {$publicacion_nombre}</title>
     {$headerinclude}
-    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico.css?v=3">
+    <link rel="stylesheet" href="{$mybb->asset_url}/jscripts/periodico.css?v=6">
 </head>
 <body>
 {$header}
-<div class="indice"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
+<div class="indice {$publicacion_clase}"><div class="mainBackground"><div class="secondBackground"><div class="thirdBackground">
     {$periodico_html}
     <aside class="periodico-archivo"><h2>Archivo</h2><div>{$archivo_html}</div></aside>
 </div></div></div></div>

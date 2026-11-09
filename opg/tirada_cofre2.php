@@ -349,6 +349,7 @@ function darObjetoFid($objeto_id, $fid) {
 
 function darObjeto($objeto_id, $cantidadNueva) {
     global $db, $uid;
+    $cantidadNueva = max(1, intval($cantidadNueva));
     $cantidadActual = '0';
     $has_objeto = false;
     $inventario_actual = $db->query("SELECT * FROM mybb_op_inventario WHERE uid='$uid' AND objeto_id='$objeto_id'");
@@ -362,7 +363,7 @@ function darObjeto($objeto_id, $cantidadNueva) {
     } else {
         $db->query("
             INSERT INTO `mybb_op_inventario` (`objeto_id`, `uid`, `cantidad`) VALUES
-            ('$objeto_id', '$uid', '1');
+            ('$objeto_id', '$uid', '$cantidadNueva');
         ");
     }
 }

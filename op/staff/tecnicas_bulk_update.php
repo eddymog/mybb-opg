@@ -4,6 +4,7 @@ define('THIS_SCRIPT', 'tecnicas_bulk_update.php');
 require_once "./../../global.php";
 require_once "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/tecnicas_cambios.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -45,6 +46,7 @@ foreach ($payload as $row) {
         continue;
     }
     $tid_safe = $db->escape_string($tid);
+    $anterior = $db->fetch_array($db->query("SELECT * FROM mybb_op_tecnicas WHERE tid = '$tid_safe' LIMIT 1"));
 
     $sets = [];
     foreach ($campos_permitidos as $campo) {
@@ -69,6 +71,8 @@ foreach ($payload as $row) {
             if ($pm) { $cols[] = $pm[1]; $vals[] = $pm[2]; }
         }
         $db->write_query("INSERT INTO mybb_op_tecnicas (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ")");
+        $nuevo = $db->fetch_array($db->query("SELECT * FROM mybb_op_tecnicas WHERE tid = '$tid_safe' LIMIT 1"));
+        opg_tecnicas_registrar_cambio($tid, null, $nuevo, $uid, $mybb->user['username'], 'Edición masiva');
         $actualizadas++;
         continue;
     }
@@ -76,6 +80,8 @@ foreach ($payload as $row) {
     if (empty($sets)) continue;
 
     $db->write_query("UPDATE mybb_op_tecnicas SET " . implode(', ', $sets) . " WHERE tid = '$tid_safe' LIMIT 1");
+    $nuevo = $db->fetch_array($db->query("SELECT * FROM mybb_op_tecnicas WHERE tid = '$tid_safe' LIMIT 1"));
+    opg_tecnicas_registrar_cambio($tid, $anterior ?: null, $nuevo, $uid, $mybb->user['username'], 'Edición masiva');
     $actualizadas++;
 }
 

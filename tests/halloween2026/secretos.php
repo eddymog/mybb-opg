@@ -357,6 +357,9 @@ hlw_expect(opg_hlw_secret_client_result(array())[0] === 'closed', 'Sin estado se
 $script = opg_hlw_client_script($ticket, 'clave');
 hlw_expect(strpos($script, '<script>') === 0 && substr($script, -9) === '</script>', 'El script se escribe inline.');
 hlw_expect(strpos($script, $ticket) !== false && strpos($script, "'clave'") !== false, 'El script lleva el billete y la clave de sesion.');
+hlw_expect(strpos($script, "c.addEventListener('click',cl)") !== false, 'El boton de confirmacion cierra el modal.');
+hlw_expect(strpos($script, 'x.target===m') === false, 'Pulsar el fondo no cierra el modal.');
+hlw_expect(strpos($script, "x.key==='Escape'") === false, 'Escape no cierra el modal.');
 // Las palabras se buscan con un billete fijo: el real es aleatorio y podria contener cualquier secuencia de letras por azar.
 $neutral = opg_hlw_client_script('AAAAAAAAAAAAAAAA', 'clave');
 foreach (array('secret', 'señuelo', 'senuelo', 'halloween', 'hlw', 'calabaza', 'premio', 'felicid', 'descubier', 'prensa', 'indice-extra') as $word) {
