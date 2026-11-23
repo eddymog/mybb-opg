@@ -80,7 +80,7 @@ Work on this project follows a small team model, whether it is done by one agent
 - Tasks are GitHub issues, one at a time.
 - Read the acceptance criteria before starting and before closing.
 - Commit regularly: small commits, tests passing, issue number in the message (`Área: what was done (#n)`).
-- Only the QA role approves, and an issue is closed only after approval. Developers commit on their issue branch and never push to `main` themselves; after the QA approves and `sh tests/run_all.sh` is green, the Orchestrator merges into `main` and pushes (standing permission from the user). Never force-push, and never run `scripts/deploy_changed.sh` or any other command that publishes to the production server: deploying is the user's job.
+- Only the QA role approves, and an issue is closed only after approval. Developers commit on their issue branch and never push to `main` themselves; after the QA approves and `sh tests/run_all.sh` is green, the Orchestrator merges into `main` and pushes (standing permission from the user). Never force-push. Deployment follows the section "Deployment After Code Changes".
 - Every issue has a lane (trivial, normal or large) that sets how much of the process applies, and a rollback plan when it touches templates, SQL or data. See `docs/agents/process.md`.
 - The PM creates, grooms and reorders issues on its own, without asking for approval (standing permission from the user).
 - Issue template, labels and `gh` commands are in `docs/agents/process.md`. The repository is `eddymog/mybb-opg` (public: never put credentials or private data in an issue).
@@ -112,6 +112,8 @@ Work on this project follows a small team model, whether it is done by one agent
 - After completing and validating any code-level change, run `scripts/deploy_changed.sh` so the changed files are uploaded to the SFTP server.
 - Review the complete file list printed by the script before confirming the upload. Its exclusions come from `.vscode/sftp.json`.
 - Never add remote deletion behavior to this deployment flow. A documentation-only change does not require deployment.
+- In the issue loop, only the Orchestrator deploys, after the QA approved and the work was merged. Run the script with `--dry-run` first to review the list, then publish with `--yes` passing the issue's changed files explicitly (after a commit, the script's automatic detection finds nothing).
+- **Hold the deployment and tell the user** when the issue has coupled steps: templates (the template sync imports an uploaded template into the database within about 10 seconds, so uploading it activates it), SQL migrations, plugin activation, a data-migration script, or an issue that must go live together with another one. The user decides when and in which order.
 
 ## Security Rules for New Code
 

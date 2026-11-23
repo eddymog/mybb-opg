@@ -128,7 +128,7 @@ gh issue close <n> --comment "Aprobada por QA. Cubre los requisitos X."
 - Un commit por paso coherente y verde (por ejemplo: pruebas, luego implementación, luego plantilla).
 - Los commits se hacen en la rama de trabajo de la issue (`issue-<n>-<tema>`) cuando varios agentes trabajan a la vez, y en la rama actual si se trabaja en solitario.
 - **Fusión y push (permiso permanente del usuario).** Los Developers solo hacen commit en la rama de su issue. Cuando el QA aprueba y `sh tests/run_all.sh` está en verde, el Orchestrator fusiona en `main` y hace el push. Nunca se hace `push --force`.
-- **El despliegue a producción no entra en ese permiso.** Subir archivos al servidor (por ejemplo con `scripts/deploy_changed.sh`), importar plantillas o ejecutar SQL lo hace el usuario.
+- **Despliegue.** Tras la fusión, el Orchestrator publica los archivos de la issue con `scripts/deploy_changed.sh` (primero `--dry-run` para revisar la lista y después `--yes` con los archivos de la issue), como pide `AGENTS.md`. **Lo retiene y avisa al usuario** si la issue tiene pasos acoplados: plantillas (al subirlas, `template_sync` las importa a la base en unos 10 segundos y quedan activas), migraciones SQL, activar un plugin, un script de migración de datos o una puesta en marcha conjunta con otra issue. Ese orden lo decide el usuario. Los Developers nunca despliegan.
 
 ## 5. Carriles según el tamaño del cambio
 
@@ -292,7 +292,7 @@ Todos los informes se publican como comentarios de la issue, para que el histori
 
 - Ejecutar migraciones o escribir en producción sin aprobación expresa para esa acción concreta.
 - Fusionar o hacer push a la rama principal sin la aprobación del QA y la puerta de verde, o hacer `push --force`.
-- Desplegar a producción (`scripts/deploy_changed.sh`, subir archivos o plantillas, ejecutar SQL): lo hace el usuario.
+- Desplegar a producción antes de la aprobación del QA y la fusión, desplegar un cambio con pasos acoplados (plantillas, SQL, activación de plugins, migraciones de datos) sin que el usuario lo decida, o ejecutar SQL en producción.
 - Imprimir, guardar o versionar credenciales.
 - Cerrar una issue con un criterio de aceptación sin cumplir o sin evidencia.
 - Trabajar en dos issues a la vez o acumular trabajo sin commit.
