@@ -109,7 +109,15 @@ $E = $r['id'];
 $e = opg_ent_obtener_por_id($E);
 prueba('enviar: crea la entrega pendiente y conserva al narrador', array($r['ok'], $e['estado'], $e['tid'], $e['tema_nombre'], $e['reputacion'], $e['intentos'], $e['narrador_uid']), array(true, 'pendiente', 200, 'Una aventura de prueba', 'positiva', 1, 8));
 prueba('enviar: la solicitud sigue en 1 y se vincula el tema', array(estado_de($S), fila($S)['aventura_url']), array(1, 'https://onepiecegaiden.com/showthread.php?tid=200'));
+// Aviso entrega_enviada (#11). Aquí no hay tabla global: va a la tabla antigua del tablón (respaldo de #9).
+$avisos_entrega = function ($clave) {
+    return array_map('intval', array_column(opg_av_todos('SELECT uid FROM mybb_op_aventuras_notificaciones WHERE clave_evento = '
+        . opg_av_sql($clave) . " AND tipo = 'entrega_enviada' ORDER BY uid"), 'uid'));
+};
+prueba('enviar: avisa a los demás participantes, sin el autor ni el staff', $avisos_entrega("entrega:$E:enviada"), array(3, 5, 6));
+prueba('enviar: reintentar el aviso no lo duplica', array(opg_ent_avisar_enviada(opg_av_obtener($S), $E, 1, 8), $avisos_entrega("entrega:$E:enviada")), array(true, array(3, 5, 6)));
 prueba('enviar: otra entrega para la misma solicitud', opg_ent_enviar($S, $base, 8)['codigo'], 409);
+prueba('enviar: un envío rechazado no avisa otra vez', $avisos_entrega("entrega:$E:enviada"), array(3, 5, 6));
 $S2 = nueva_sol(3, 0, 9, array(3));
 prueba('enviar: el mismo tema en otra solicitud', opg_ent_enviar($S2, $base, 9)['codigo'], 422);
 prueba('conteo de entregas', opg_ent_conteos(), array('pendiente' => 1, 'rechazada' => 0, 'entregada' => 0));
@@ -132,6 +140,7 @@ prueba('formulario: el narrador y los jugadores sí, un ajeno no', array(opg_ent
 $r = opg_ent_enviar($S, array('tema' => '200', 'resumen' => 'Ahora con más detalle.', 'reputacion' => 'negativa', 'confirmar_grupo' => '1'), 8);
 $e = opg_ent_obtener_por_id($E);
 prueba('reenviar: vuelve a pendiente con un intento más y sin motivo', array($r['ok'], $r['id'], $e['estado'], $e['intentos'], $e['motivo_rechazo'], $e['reputacion']), array(true, $E, 'pendiente', 2, '', 'negativa'));
+prueba('reenviar: nuevo aviso con el número de intento en la clave', $avisos_entrega("entrega:$E:enviada:2"), array(3, 5, 6));
 
 // ── Análisis ─────────────────────────────────────────────────────────────────
 prueba('analizar una inexistente', opg_ent_analizar(99999, array())['codigo'], 404);

@@ -400,7 +400,30 @@ function opg_ent_enviar($peticion_id, $entrada, $uid)
     }
     opg_av_auditar($peticion_id, $uid, 'enviar_entrega', null, array('entrega' => $entrega_id, 'tid' => $tid, 'tema' => $tema['nombre'], 'reputacion' => $reputacion, 'reenvio' => (bool) $previa, 'confirmo_grupo' => true));
     opg_av_confirmar();
+    opg_ent_avisar_enviada($av, $entrega_id, $previa ? (int) $previa['intentos'] + 1 : 1, $uid);
     return array('ok' => true, 'id' => $entrega_id);
+}
+
+/** Clave de evento del aviso de entrega: la del primer envío y, en un reenvío tras un rechazo, con su número de intento. */
+function opg_ent_clave_enviada($entrega_id, $intento)
+{
+    $clave = 'entrega:' . (int) $entrega_id . ':enviada';
+    return (int) $intento > 1 ? $clave . ':' . (int) $intento : $clave;
+}
+
+/**
+ * Aviso entrega_enviada a los demás participantes (creador, narrador y jugadores, sin quien envía): issue #11, 208
+ * apartado 9.1. El staff no recibe aviso, sigue con su contador de entregas pendientes. Va después de confirmar, con UNA
+ * sola llamada a opg_notificar: un fallo (o un interbloqueo) del aviso no puede revertir la entrega ya guardada.
+ */
+function opg_ent_avisar_enviada($av, $entrega_id, $intento, $uid)
+{
+    try {
+        return opg_av_notificar_partes($av, (int) $uid, 'entrega_enviada', opg_ent_clave_enviada($entrega_id, $intento),
+            array('entrega_id' => (int) $entrega_id));
+    } catch (Throwable $e) {
+        return false;
+    }
 }
 
 // ── Rechazo (el staff) ──────────────────────────────────────────────────────
