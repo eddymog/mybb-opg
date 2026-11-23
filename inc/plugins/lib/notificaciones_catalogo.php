@@ -16,7 +16,7 @@
  *
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
- *   tid (tema del foro), nombre (personaje relacionado en la Bitacora).
+ *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario).
  */
 
 if (!defined('IN_MYBB')) {
@@ -111,6 +111,24 @@ function opg_notif_url_ofertas($d)
 function opg_notif_url_bitacora($d)
 {
     return 'op/bitacora.php';
+}
+
+function opg_notif_url_ficha($d)
+{
+    $fid = (int) opg_notif_dato($d, 'fid', 0);
+    return $fid > 0 ? 'op/personaje.php?uid=' . $fid : '';
+}
+
+function opg_notif_url_ficha_crear($d)
+{
+    return 'op/ficha_crear.php';
+}
+
+/** «Nombre» del personaje de una ficha, o "tu personaje" si no se guardo. */
+function opg_notif_nombre_personaje($d)
+{
+    $nombre = opg_notif_dato($d, 'nombre');
+    return $nombre !== '' ? '«' . $nombre . '»' : 'tu personaje';
 }
 
 // ── Catalogo ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -297,6 +315,24 @@ function opg_notif_catalogo()
                 return 'Se retiró a ' . opg_notif_dato($d, 'nombre', 'un personaje') . ' como narrador de ' . opg_notif_nombre_tema($d) . '.';
             },
             'url' => 'opg_notif_url_bitacora',
+        ),
+
+        // ── Ficha (fichas en cola del staff) ──
+        'ficha_aprobada' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-id-card',
+            'texto' => function ($d, $n) {
+                return 'Se aprobó la ficha de ' . opg_notif_nombre_personaje($d) . '. Ya puedes empezar a rolear.';
+            },
+            'url' => 'opg_notif_url_ficha',
+        ),
+        'ficha_rechazada' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'importante', 'agrupable' => false,
+            'icono' => 'fa-id-card',
+            'texto' => function ($d, $n) {
+                return 'Se rechazó la ficha de ' . opg_notif_nombre_personaje($d) . ' y se borró. Puedes crear una nueva.';
+            },
+            'url' => 'opg_notif_url_ficha_crear',
         ),
     );
     return $catalogo;
