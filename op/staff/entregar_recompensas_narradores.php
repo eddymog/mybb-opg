@@ -29,6 +29,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'entregar_recompensas_narradores.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/recompensas_avisos.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -120,6 +121,7 @@ if ($mybb->request_method == 'post') {
     $nikasNew = $nikas + $tramo['nikas'] + $tramo['nikas_bonus'][$narradorMult] + round($tramo['nikas'] * $usuariosMult);
 
     $db->query("UPDATE `mybb_op_fichas` SET `nika`='" . (int) $nikasNew . "' WHERE `fid`='" . $db->escape_string($ficha_id) . "'");
+    $ficha_actualizada = (int) $db->affected_rows() > 0;
     $db->query("UPDATE `mybb_users` SET `newpoints`='" . $db->escape_string($newpointsNew) . "' WHERE `uid`='" . $db->escape_string($ficha_id) . "'");
 
     $tidUrl = "<a href='https://onepiecegaiden.com/showthread.php?tid={$tid}' target='_blank'>{$tid}</a>";
@@ -143,6 +145,14 @@ if ($mybb->request_method == 'post') {
     }
 
     log_audit($uid, $username, '[Entregas][Aventura Narradores]', $db->escape_string($textoLog));
+
+    // Aviso recompensa_entregada (issue #20), solo si la ficha cambio de verdad. Clave: el id de la fila de auditoria.
+    $audit_id = (int) $db->insert_id();
+    if ($ficha_actualizada) {
+        opg_rec_avisar((int) $ficha_id, 'recompensa_entregada',
+            opg_rec_datos_recompensa(array('xp' => $newpointsNew - $newpoints, 'nikas' => $nikasNew - $nikas), 'narrar la aventura ' . $accion, $tid, 'cofre ' . $tramo['cofre_label']),
+            opg_rec_clave_entrega('narrador', $audit_id, (int) $ficha_id, $tid, $accion, TIME_NOW), $uid);
+    }
 
     echo json_encode(array('ok' => true, 'timestamp' => time()));
     exit;

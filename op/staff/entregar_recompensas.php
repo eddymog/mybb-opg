@@ -27,6 +27,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'entregar_recompensas.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/recompensas_avisos.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -133,6 +134,7 @@ if ($mybb->request_method == 'post') {
     }
 
     $db->query("UPDATE `mybb_op_fichas` SET `nika`='" . (int) $nikasNew . "', `berries`='" . (int) $berriesNew . "', `reputacion`='" . (int) $reputacionNew . "'{$repuAlignDb} WHERE `fid`='" . $db->escape_string($ficha_id) . "'");
+    $ficha_actualizada = (int) $db->affected_rows() > 0;
     $db->query("UPDATE `mybb_users` SET `newpoints`='" . $db->escape_string($newpointsNew) . "' WHERE `uid`='" . $db->escape_string($ficha_id) . "'");
 
     $textoLog = "
@@ -148,6 +150,17 @@ if ($mybb->request_method == 'post') {
         {$arqueologoTxt} <br>
     ";
     log_audit($uid, $username, '[Entregas][Autonarrada]', $db->escape_string($textoLog));
+
+    // Aviso recompensa_entregada (issue #20), solo si la ficha cambio de verdad. Clave: el id de la fila de auditoria.
+    $audit_id = (int) $db->insert_id();
+    if ($ficha_actualizada) {
+        opg_rec_avisar((int) $ficha_id, 'recompensa_entregada',
+            opg_rec_datos_recompensa(array(
+                'xp' => $newpointsNew - $newpoints, 'nikas' => $nikasNew - $nikas,
+                'berries' => $berriesNew - $berries, 'reputacion' => $tramo['reputacion'],
+            ), 'aventura autonarrada ' . $accion, $tid, ''),
+            opg_rec_clave_entrega('autonarrada', $audit_id, (int) $ficha_id, $tid, $accion, TIME_NOW), $uid);
+    }
 
     echo json_encode(array('ok' => true, 'timestamp' => time()));
     exit;
