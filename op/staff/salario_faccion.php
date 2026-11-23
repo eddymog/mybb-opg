@@ -20,6 +20,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'salario_faccion.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/salario_faccion.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -33,41 +34,21 @@ if (!is_mod($uid) && !is_staff($uid)) {
 
 define('SALARIO_FACCION_MSG_COOKIE', 'salario_faccion_msg');
 
-// ── POST: repartir ───────────────────────────────────────────────────────────
+// ── POST: ejecutar o reintentar la semana vigente ───────────────────────────
 
 if ($mybb->request_method == 'post') {
     verify_post_check($mybb->get_input('my_post_key'));
 
-    $error = '';
-    $pagados = 0;
-
-    if (!function_exists('op_facciones_sueldos_semanales')) {
-        $error = 'No se pudo repartir: el plugin OPG Facciones no está activo.';
-    } else {
-        $salarios = op_facciones_sueldos_semanales();
-        if (empty($salarios)) {
-            $error = 'No hay ningún rango con sueldo_semanal configurado (Configuración del foro → OPG Facciones).';
-        } else {
-            $rangos = array_map(array($db, 'escape_string'), array_keys($salarios));
-            $query_rango = $db->query("SELECT * FROM `mybb_op_fichas` WHERE rango IN ('" . implode("','", $rangos) . "')");
-
-            while ($q = $db->fetch_array($query_rango)) {
-                $user_fid = (int) $q['fid'];
-                $faccion  = $q['faccion'];
-                $nuevo    = intval($q['berries']) + $salarios[$q['rango']];
-                log_audit_currency($uid, $username, $user_fid, "[Salarios][{$faccion}]", 'berries', $nuevo);
-                $pagados++;
-            }
-
-            $log_texto = "[Salario Rangos] Última vez entregados por {$username} ({$uid}) a las: " . date('Y-m-d H:i:s') . " — {$pagados} personajes.";
-            $db->query("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
-                . "('" . $uid . "', '" . $db->escape_string($username) . "', 'Salario Facción', '" . $db->escape_string($log_texto) . "')");
-        }
+    $resultado = opg_sf_repartir($uid, $username, 'manual', TIME_NOW);
+    $error = $resultado['ok'] ? '' : $resultado['mensaje'];
+    $texto = $resultado['mensaje'];
+    if ($resultado['codigo'] === 'repartido') {
+        $texto .= ' Total entregado: ' . number_format((int) $resultado['total'], 0, ',', '.') . ' berries.';
     }
 
     my_setcookie(SALARIO_FACCION_MSG_COOKIE, base64_encode(json_encode(array(
         'tipo'  => $error !== '' ? 'err' : 'ok',
-        'texto' => $error !== '' ? $error : "Salarios entregados a {$pagados} personajes.",
+        'texto' => $error !== '' ? $error : $texto,
     ))), 15, true);
     header('Location: salario_faccion.php');
     exit;
@@ -87,10 +68,42 @@ if (!empty($mybb->cookies[SALARIO_FACCION_MSG_COOKIE])) {
     my_unsetcookie(SALARIO_FACCION_MSG_COOKIE);
 }
 
+$semana_actual = opg_sf_semana_madrid(TIME_NOW);
+$proximo_pago = opg_sf_proximo_pago_madrid(TIME_NOW);
+$sf_semana_actual = htmlspecialchars(date('d/m/Y', strtotime($semana_actual)), ENT_QUOTES, 'UTF-8');
+$sf_proximo_pago = htmlspecialchars($proximo_pago->format('d/m/Y \a \l\a\s H:i'), ENT_QUOTES, 'UTF-8');
+$sf_proximo_pago_timestamp = (int) $proximo_pago->getTimestamp();
+
+$tarea = $db->fetch_array($db->simple_select('tasks', 'enabled', "file='op_salario_faccion'", array('limit' => 1)));
+$sf_estado_automatico = $tarea && (int) $tarea['enabled'] === 1
+    ? 'Automatización activa'
+    : 'Automatización pendiente de activar';
+
 $salarios_entregados = '';
-$query_salarios = $db->query("SELECT * FROM `mybb_op_audit_consola_mod` WHERE log LIKE '%[Salario Rangos]%' ORDER BY tiempo DESC LIMIT 10");
-while ($q = $db->fetch_array($query_salarios)) {
-    $salarios_entregados .= '<div class="sf-fila">' . htmlspecialchars($q['log'], ENT_QUOTES, 'UTF-8') . '</div>';
+if ($db->table_exists('op_salario_faccion_repartos')) {
+    $query_salarios = $db->simple_select('op_salario_faccion_repartos', '*', "estado='completado'", array(
+        'order_by' => 'semana_inicio', 'order_dir' => 'DESC', 'limit' => 10,
+    ));
+    while ($q = $db->fetch_array($query_salarios)) {
+        $origen = $q['origen'] === 'automatico' ? 'Automático' : 'Manual';
+        $salarios_entregados .= '<div class="sf-fila"><strong>Semana del '
+            . htmlspecialchars(date('d/m/Y', strtotime($q['semana_inicio'])), ENT_QUOTES, 'UTF-8') . '</strong>'
+            . '<span>' . $origen . ' · ' . (int) $q['pagados'] . ' personajes · '
+            . number_format((int) $q['total'], 0, ',', '.') . ' berries · '
+            . htmlspecialchars($q['ejecutor'], ENT_QUOTES, 'UTF-8') . '</span></div>';
+    }
+}
+
+// Conserva visibles los repartos anteriores a la automatización.
+if (substr_count($salarios_entregados, 'class="sf-fila"') < 10) {
+    $limite_legacy = 10 - substr_count($salarios_entregados, 'class="sf-fila"');
+    $query_legacy = $db->query("SELECT `log` FROM `mybb_op_audit_consola_mod`
+        WHERE `log` LIKE '%[Salario Rangos]%' AND `log` NOT LIKE '%[Salario Rangos][Semana %'
+        ORDER BY `tiempo` DESC LIMIT {$limite_legacy}");
+    while ($q = $db->fetch_array($query_legacy)) {
+        $salarios_entregados .= '<div class="sf-fila sf-fila--legacy"><strong>Registro anterior</strong><span>'
+            . htmlspecialchars($q['log'], ENT_QUOTES, 'UTF-8') . '</span></div>';
+    }
 }
 if ($salarios_entregados === '') {
     $salarios_entregados = '<p class="opg-vacio">Todavía no se repartió ningún salario de facción.</p>';

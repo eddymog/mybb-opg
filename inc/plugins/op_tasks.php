@@ -3,7 +3,7 @@
  * OPG - Tareas en segundo plano (op_tasks)
  *
  * Registra las tareas programadas del foro: `op_worldtick` (inc/tasks/op_worldtick.php, rango,
- * fama y nivel de los personajes), `aventurasux` y `op_xp_snapshot`.
+ * fama y nivel de los personajes), `aventurasux`, `op_xp_snapshot` y el salario de facción.
  *
  * Los entrenamientos (experiencia, oficios y tecnicas) NO se resuelven en segundo plano: el
  * jugador los reclama a mano en su pagina.
@@ -17,7 +17,7 @@ function op_tasks_info()
 {
     return array(
         'name'          => 'OPG - Tareas en segundo plano (worldtick)',
-        'description'   => 'Registra las tareas programadas del foro (rango, fama y nivel, mantenimiento de aventuras y snapshot de XP).',
+        'description'   => 'Registra las tareas programadas del foro (progresión, aventuras, XP y salario de facción).',
         'website'       => '',
         'author'        => 'Cascabelles',
         'authorsite'    => '',
@@ -73,6 +73,17 @@ if (defined('IN_ADMINCP')) {
             'enabled'     => 1,
             'logging'     => 1,
         ));
+        op_tasks_asegurar_tarea('op_salario_faccion', array(
+            'title'       => 'OPG: Salario semanal de facción',
+            'description' => 'Entrega los salarios cada lunes a las 06:00 de Madrid.',
+            'minute'      => '0',
+            'hour'        => '*',
+            'day'         => '*',
+            'month'       => '*',
+            'weekday'     => '*',
+            'enabled'     => 1,
+            'logging'     => 1,
+        ));
     }
 
     function op_tasks_is_installed()
@@ -85,7 +96,7 @@ if (defined('IN_ADMINCP')) {
     function op_tasks_uninstall()
     {
         global $db;
-        $db->delete_query('tasks', "file IN ('op_worldtick','aventurasux','op_xp_snapshot')");
+        $db->delete_query('tasks', "file IN ('op_worldtick','aventurasux','op_xp_snapshot','op_salario_faccion')");
     }
 
     function op_tasks_activate() { op_tasks_install(); }

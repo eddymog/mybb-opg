@@ -21,6 +21,13 @@
     .aviso.err { background: var(--opg-rojo-error); }
 
     .sf-panel-cuerpo { padding: var(--opg-espacio-5) var(--opg-espacio-4); text-align: center; }
+    .sf-estado { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
+    .sf-estado > div { padding: var(--opg-espacio-3); background: var(--opg-crema); }
+    .sf-estado > div + div { border-left: 1px solid rgba(0, 0, 0, .25); }
+    .sf-estado small, .sf-estado strong { display: block; }
+    .sf-estado small { margin-bottom: 4px; color: var(--opg-gris-texto); font: 10px InterMedium, var(--opg-fuente-cuerpo); text-transform: uppercase; }
+    .sf-estado strong { color: var(--opg-ciruela); font: 14px var(--opg-fuente-cuerpo); }
+    .sf-cuenta-atras { display: block; min-height: 18px; margin-top: 6px; color: var(--opg-morado); font: 12px InterMedium, var(--opg-fuente-cuerpo); }
 
     .sf-lista-titulo {
         display: inline-block; margin: 0 0 var(--opg-espacio-4); font-family: var(--opg-fuente-titular); font-weight: normal;
@@ -29,7 +36,11 @@
     }
     .sf-lista { display: flex; flex-direction: column; border: 2px solid var(--opg-tinta); border-radius: var(--opg-radio-md); overflow: hidden; }
     .sf-lista > .opg-vacio { padding: var(--opg-espacio-4); }
-    .sf-fila { padding: var(--opg-espacio-2) var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .sf-fila { display: flex; justify-content: space-between; gap: var(--opg-espacio-3); padding: var(--opg-espacio-2) var(--opg-espacio-3); font-family: var(--opg-fuente-cuerpo); font-size: 13px; color: var(--opg-marron); }
+    .sf-fila > strong { color: var(--opg-ciruela); }
+    .sf-fila > span { text-align: right; }
+    .sf-fila--legacy { display: block; }
+    .sf-fila--legacy > strong, .sf-fila--legacy > span { display: block; text-align: left; }
     .sf-fila:nth-child(odd)  { background: var(--opg-crema); }
     .sf-fila:nth-child(even) { background: var(--opg-crema-dorada); }
     .sf-fila + .sf-fila { border-top: 1px solid rgba(0, 0, 0, .15); }
@@ -37,6 +48,10 @@
     @media (max-width: 700px) {
         .salario-staff .secondBackground, .salario-staff .thirdBackground { padding: 10px; }
         .sf-titulo .barra-texto-op { font-size: 20px; }
+        .sf-estado { grid-template-columns: 1fr; }
+        .sf-estado > div + div { border-left: 0; border-top: 1px solid rgba(0, 0, 0, .25); }
+        .sf-fila { flex-direction: column; }
+        .sf-fila > span { text-align: left; }
     }
     </style>
 </head>
@@ -53,20 +68,31 @@
         <div>
             <div class="barra-op bbox sf-titulo"><span class="barra-texto-op">Salario de facción</span></div>
             <div class="barra-espacio-op bbox sf-descripcion">
-                Paga el sueldo semanal a todos los personajes con un rango de facción pagado. Los montos se configuran en
-                Configuración del foro &rarr; OPG Facciones (columna <code>sueldo_semanal</code> de cada rango) — no hay nada que elegir acá.
+                El sueldo se entrega automáticamente cada lunes a las 06:00, hora de Madrid. Los montos se configuran en
+                Configuración del foro &rarr; OPG Facciones (columna <code>sueldo_semanal</code> de cada rango).
             </div>
         </div>
+
+        <section class="sf-estado" aria-label="Estado de la automatización">
+            <div><small>Estado</small><strong>{$sf_estado_automatico}</strong></div>
+            <div><small>Semana vigente</small><strong>Desde {$sf_semana_actual}</strong></div>
+            <div>
+                <small>Próximo pago</small>
+                <strong>{$sf_proximo_pago}, Madrid</strong>
+                <span class="sf-cuenta-atras" data-proximo-pago="{$sf_proximo_pago_timestamp}">Calculando tiempo restante...</span>
+            </div>
+        </section>
 
         <if $msg_ok != '' then><p class="aviso ok">{$msg_ok}</p></if>
         <if $msg_err != '' then><p class="aviso err">{$msg_err}</p></if>
 
         <div>
-            <div class="barra-op bbox sf-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Repartir</span></div>
+            <div class="barra-op bbox sf-titulo" style="padding: 3px 8px 4px;"><span class="barra-texto-op" style="font-size: 15px;">Ejecución manual</span></div>
             <div class="barra-espacio-op bbox sf-panel-cuerpo">
-                <form method="post" onsubmit="return confirm('¿Entregar el salario semanal a todos los personajes con rango pagado?');">
+                <p>Úsalo para ejecutar o reintentar el reparto de la semana vigente. Si ya se completó, no volverá a pagar.</p>
+                <form method="post" onsubmit="return confirm('¿Ejecutar el salario de la semana vigente? Los pagos ya realizados no se duplicarán.');">
                     <input type="hidden" name="my_post_key" value="{$post_key}">
-                    <button class="btn-op btn-op--hero btn-op--secundario">Entregar salarios</button>
+                    <button class="btn-op btn-op--hero btn-op--secundario">Ejecutar salario semanal</button>
                 </form>
             </div>
         </div>
@@ -80,6 +106,50 @@
     </div>
     </div>
     </div>
+    <script>
+    (function () {
+        var contador = document.querySelector('.sf-cuenta-atras[data-proximo-pago]');
+        if (!contador) {
+            return;
+        }
+
+        var destino = Number(contador.getAttribute('data-proximo-pago')) * 1000;
+        var recargaProgramada = false;
+
+        function dosDigitos(valor) {
+            return String(valor).padStart(2, '0');
+        }
+
+        function actualizarCuenta() {
+            var restante = destino - Date.now();
+            if (!Number.isFinite(restante)) {
+                contador.textContent = 'No se pudo calcular el tiempo restante.';
+                return;
+            }
+            if (restante <= 0) {
+                contador.textContent = 'La entrega se está procesando...';
+                if (!recargaProgramada) {
+                    recargaProgramada = true;
+                    window.setTimeout(function () { window.location.reload(); }, 5000);
+                }
+                return;
+            }
+
+            var segundosTotales = Math.floor(restante / 1000);
+            var dias = Math.floor(segundosTotales / 86400);
+            var horas = Math.floor((segundosTotales % 86400) / 3600);
+            var minutos = Math.floor((segundosTotales % 3600) / 60);
+            var segundos = segundosTotales % 60;
+            var prefijoDias = dias > 0 ? dias + ' d · ' : '';
+
+            contador.textContent = 'Faltan ' + prefijoDias + dosDigitos(horas) + ' h · '
+                + dosDigitos(minutos) + ' min · ' + dosDigitos(segundos) + ' s';
+        }
+
+        actualizarCuenta();
+        window.setInterval(actualizarCuenta, 1000);
+    }());
+    </script>
     {$footer}
 </body>
 

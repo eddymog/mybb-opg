@@ -980,6 +980,47 @@ Key game-relevant columns:
 
 These tables are not in `rovddqmy_op.sql`. They come from the idempotent migrations in `docs/*.sql`, which the user runs. Types and defaults are copied from the migration files; check the file for the exact definition. Tables already described elsewhere in this document are not repeated here.
 
+#### `mybb_op_salario_faccion_repartos`
+One idempotent summary row per Madrid salary week.
+Migration: `docs/salario_faccion_automatico_migration.sql`  |  Engine: InnoDB
+PK: `semana_inicio`
+
+| Column | Type | Default | Notes |
+|--------|------|---------|-------|
+| `semana_inicio` | date | - | Monday at the 06:00 Madrid boundary |
+| `origen` | varchar(16) | - | `automatico` or `manual` |
+| `ejecutor_uid` | int(11) | 0 | 0 for the scheduled task |
+| `ejecutor` | varchar(100) | - |  |
+| `estado` | varchar(16) | 'procesando' |  |
+| `pagados` | int(11) | 0 |  |
+| `total` | bigint(20) | 0 | Total berries granted |
+| `created_at` | timestamp | CURRENT_TIMESTAMP |  |
+| `completado_at` | timestamp | NULL | (nullable) |
+
+Indexes: `estado`
+
+#### `mybb_op_salario_faccion_pagos`
+Per-character ledger for automatic and manual faction salary batches.
+Migration: `docs/salario_faccion_automatico_migration.sql`  |  Engine: InnoDB
+PK: `id`
+
+| Column | Type | Default | Notes |
+|--------|------|---------|-------|
+| `id` | bigint unsigned | auto |  |
+| `semana_inicio` | date | - | Salary week |
+| `fid` | int(11) | - | Character UID |
+| `faccion` | varchar(30) | - | Snapshot at payment time |
+| `rango` | varchar(255) | - | Snapshot at payment time |
+| `monto` | int(11) | - | Berries granted |
+| `saldo_antes` | int(11) | - |  |
+| `saldo_despues` | int(11) | - |  |
+| `origen` | varchar(16) | - | `automatico` or `manual` |
+| `ejecutor_uid` | int(11) | 0 |  |
+| `ejecutor` | varchar(100) | - |  |
+| `created_at` | timestamp | CURRENT_TIMESTAMP |  |
+
+Indexes: `unique semana_inicio, fid`; `fid`; `created_at`
+
 #### `mybb_op_afiliados`
 Affiliate and partner site links shown on the forum.
 Migration: `docs/afiliados_migration.sql`  |  Engine: InnoDB
