@@ -309,10 +309,12 @@ esperar(strpos(registro_leer(), 'enlace') !== false, 'url externa: se registra')
 // Tablas ausentes: false, sin consultas de escritura y sin error registrado.
 $db = doble_nuevo();
 $db->tablas = false;
+opg_notif_tablas_listas(true);
 esperar(opg_notificar(3, 'aventura_aprobada', array(), array('clave' => 'k')) === false, 'tablas ausentes: false');
 esperar(count($db->sentencias) === 0 && registro_leer() === '', 'tablas ausentes: sin consultas ni errores visibles');
 $db = doble_nuevo();
 $db->tablas = array('op_notificaciones');
+opg_notif_tablas_listas(true);
 esperar(opg_notificar(3, 'aventura_aprobada', array(), array('clave' => 'k')) === false, 'falta la tabla del contador: false');
 
 // Error de MySQL al insertar: false y registro, sin excepcion.
