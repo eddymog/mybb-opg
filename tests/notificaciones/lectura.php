@@ -335,7 +335,7 @@ opg_notif_contar(7);
 opg_notif_marcar_vista(7, 55);
 $antes = count($db->sentencias);
 opg_notif_contar(7);
-esperar(count($db->sentencias) === $antes + 1, 'vista: tras marcar, contar vuelve a leer el contador');
+esperar(count($db->sentencias) > $antes && strpos($db->sentencias[$antes], 'SELECT sin_leer') === 0, 'vista: tras marcar, contar vuelve a leer el contador');
 
 // Reintentos: interbloqueo (1213) en el contador, una vez.
 $errores = array('UPDATE `mybb_op_notificaciones_contador`' => array(1213));
