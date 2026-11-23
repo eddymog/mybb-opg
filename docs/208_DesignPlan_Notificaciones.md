@@ -158,24 +158,28 @@ Opciones de `opg_notificar`:
 5. Incremento atómico:
 
 ```sql
-UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = sin_leer + 1, importantes = importantes + :imp, actualizado = :ahora
- WHERE uid = :uid;
+INSERT INTO mybb_op_notificaciones_contador (uid, sin_leer, importantes, actualizado)
+VALUES (:uid, 1, :imp, :ahora)
+ON DUPLICATE KEY UPDATE sin_leer = sin_leer + 1, importantes = importantes + :imp;
 ```
 
 `:imp` vale 1 si el tipo es `importante` en el catálogo y 0 si no. Así la campana puede indicar que
 hay algo importante sin leer leyendo la misma fila, sin consultas extra (requisito 18).
 
-Si el `UPDATE` no afecta ninguna fila (el contador no existe todavía), se crea
-con un recuento, que ya incluye la notificación recién insertada:
+Es **una sola sentencia relativa** que crea la fila si no existe y la incrementa si existe. No se usa
+un `UPDATE` seguido de un `INSERT ... SELECT` para crear el contador: bajo concurrencia, dos
+transacciones que avisan a usuarios distintos sin contador previo se interbloquean (el `UPDATE` sin fila
+toma un bloqueo de hueco y el `INSERT` espera al del otro), MySQL revierte la transacción entera de quien
+llama y el aviso queda a medias. Lo midió el QA de la issue #3 (298 interbloqueos de 300 iteraciones).
 
-```sql
-INSERT INTO mybb_op_notificaciones_contador (uid, sin_leer, importantes, actualizado)
-SELECT :uid, COUNT(*), COALESCE(SUM(importancia = 'importante'), 0), :ahora FROM mybb_op_notificaciones
- WHERE uid = :uid AND leida_en IS NULL
-ON DUPLICATE KEY UPDATE sin_leer = VALUES(sin_leer), importantes = VALUES(importantes),
-                        actualizado = VALUES(actualizado);
-```
+Consecuencia: un contador recién creado por esta sentencia empieza en el valor de ese primer aviso y no
+cuenta notificaciones no leídas que ya existieran sin contador. Eso solo puede ocurrir con las
+notificaciones copiadas desde el Tablón (issue de migración), cuyo script **reconcilia** el contador de los
+usuarios afectados al terminar (apartado 9.1). Una notificación nueva nunca existe sin su contador.
+
+**Qué significa `actualizado`:** es la fecha de creación o de la última **reconciliación** del contador (el
+recuento desde las filas), no la de cada incremento. Los envíos y los marcados no la tocan. Así la
+autoreparación de las 24 horas (apartado 5.5) revisa cada contador como mucho una vez al día.
 
 ### 5.3 Flujo de una notificación agrupable
 
@@ -217,7 +221,7 @@ Si `affected_rows` es 1:
 
 ```sql
 UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = GREATEST(sin_leer - 1, 0), importantes = GREATEST(importantes - :imp, 0), actualizado = :ahora
+   SET sin_leer = GREATEST(sin_leer - 1, 0), importantes = GREATEST(importantes - :imp, 0)
  WHERE uid = :uid;
 ```
 
@@ -232,14 +236,15 @@ origen si está activo, y resta el número de filas afectadas:
 
 ```sql
 UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = GREATEST(sin_leer - :n, 0), importantes = GREATEST(importantes - :nimp, 0),
-       actualizado = :ahora WHERE uid = :uid;
+   SET sin_leer = GREATEST(sin_leer - :n, 0), importantes = GREATEST(importantes - :nimp, 0)
+ WHERE uid = :uid;
 ```
 
 `:nimp` es cuántas de las filas marcadas eran importantes; se cuentan dentro de la misma transacción, antes del `UPDATE`.
 
 Ambas operaciones corren en una transacción corta para que fila y contador no
-queden a medias.
+queden a medias. Si MySQL revierte esa transacción por un interbloqueo o una espera agotada (errores 1213 y
+1205), la operación se reintenta hasta 2 veces antes de devolver `false`.
 
 ### 5.5 Autoreparación
 
