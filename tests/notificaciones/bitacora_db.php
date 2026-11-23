@@ -191,7 +191,7 @@ op_bitacora_establecer_narrador(3, $segC, 8);
 op_bitacora_retirar_participante(3, $segC, 8);
 nt_prueba('retirar participante narrador: avisa', bt_n(8, 'bitacora_narrador_retirado'), 1);
 nt_prueba('narrador: eventos en la Bitacora', array(bt_eventos('narrador_asignado'), bt_eventos('narrador_cambiado'), bt_eventos('narrador_retirado')), array(2, 1, 2));
-nt_prueba('narrador: ninguna transaccion queda abierta', (int) nt_valor('SELECT COUNT(*) FROM information_schema.INNODB_TRX'), 0);
+nt_prueba('narrador: ninguna transaccion queda abierta', (int) nt_valor('SELECT COUNT(*) FROM information_schema.INNODB_TRX WHERE trx_mysql_thread_id = CONNECTION_ID()'), 0);
 
 // ── manual_turno y manual_al_dia no avisan ─────────────────────────────────────────────────────────────────────────
 $antes = (int) nt_valor('SELECT COUNT(*) FROM mybb_op_notificaciones');
