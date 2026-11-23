@@ -619,5 +619,523 @@ function opg_notif_envio_contador($uids, $imp, $ahora)
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // 3. Lectura (issue #4): opg_notif_contar, opg_notif_listar, opg_notif_marcar_vista, opg_notif_marcar_todas y
-//    opg_notif_reconciliar van a partir de aqui.
+//    opg_notif_reconciliar (208, apartados 5.4 y 5.5).
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+//
+// Convenciones de la lectura:
+//  - El uid lo pone quien llama y sale SIEMPRE de la sesion ($mybb->user['uid']); aqui solo se valida. Todas las
+//    consultas filtran por ese uid, asi que nadie lee ni marca filas ajenas.
+//  - Ninguna funcion lanza excepciones ni escribe salida: los errores se registran con error_log. Con las tablas ausentes
+//    (error 1146, despliegue a medias) se devuelve cero o una lista vacia sin registrar nada (requisito 37).
+//  - Los marcados y la reconciliacion abren su PROPIA transaccion corta (opg_notif_transaccion). Por eso no deben
+//    llamarse con una transaccion abierta: el START TRANSACTION confirmaria la de quien llama. Se llaman desde las
+//    acciones de la pagina, que no abren transacciones.
+//  - Orden de bloqueo, el mismo que el del envio: primero las filas de notificaciones (en las agrupables, entrando por el
+//    indice unico, como su INSERT ... ON DUPLICATE KEY UPDATE) y despues la del contador. Los marcados no usan bloqueos de
+//    rango (FOR UPDATE de un rango), que frenaban las inserciones de los envios. La reconciliacion solo bloquea el contador
+//    y lee las filas sin bloquearlas. Los interbloqueos que aun pueden darse (un envio que agrupa dos temas del mismo
+//    usuario en una transaccion) los absorben los reintentos: InnoDB revierte la transaccion mas ligera, la del marcado.
+
+/** Tamano de pagina de la lista (requisito 13) y maximo que se admite. */
+const OPG_NOTIF_LIMITE = 30;
+const OPG_NOTIF_LIMITE_MAX = 100;
+/** Reintentos de una transaccion de lectura revertida por interbloqueo (1213) o espera agotada (1205). */
+const OPG_NOTIF_REINTENTOS = 2;
+/** Antiguedad maxima de la ultima reconciliacion del contador antes de recontar (requisito 33). */
+const OPG_NOTIF_RECONCILIAR_CADA = 86400;
+/** Largo maximo de la clave de una agrupable antes del sufijo ":leida:ID" (128 - 17). */
+const OPG_NOTIF_MAX_CLAVE_AGRUPABLE = 111;
+
+// ── 3.1 Ayudantes puros ─────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Categorias validas (las del catalogo). Es la lista fija contra la que se validan los filtros. */
+function opg_notif_categorias()
+{
+    return array('aventuras', 'ficha', 'recompensas', 'tecnicas', 'peticiones', 'temas');
+}
+
+/** Origenes validos. */
+function opg_notif_origenes()
+{
+    return array('gestion', 'usuario', 'sistema');
+}
+
+/**
+ * Filtros normalizados, o null si alguno no es valido (y entonces no se consulta nada).
+ *
+ *   categoria    una de opg_notif_categorias()
+ *   origen       uno de opg_notif_origenes()
+ *   estado       'sin_leer' | 'leidas'
+ *   importancia  'importante' | 'normal'
+ *
+ * Un valor vacio ('' o null) es "Todas" y se omite. $permitidos son las claves que admite la funcion que llama: una
+ * clave desconocida o no permitida invalida el filtro entero, para que un filtro mal escrito nunca se convierta en
+ * "todas" (en marcar_todas eso marcaria de mas).
+ */
+function opg_notif_filtros($filtros, $permitidos)
+{
+    if ($filtros === null) {
+        return array();
+    }
+    if (!is_array($filtros)) {
+        return null;
+    }
+    $listas = array(
+        'categoria' => opg_notif_categorias(),
+        'origen' => opg_notif_origenes(),
+        'estado' => array('sin_leer', 'leidas'),
+        'importancia' => array('importante', 'normal'),
+    );
+    $limpios = array();
+    foreach ($filtros as $clave => $valor) {
+        if (!is_string($clave) || !isset($listas[$clave]) || !in_array($clave, $permitidos, true)) {
+            return null;
+        }
+        if ($valor === '' || $valor === null) {
+            continue;
+        }
+        if (!is_string($valor) || !in_array($valor, $listas[$clave], true)) {
+            return null;
+        }
+        $limpios[$clave] = $valor;
+    }
+    return $limpios;
+}
+
+/** Condiciones SQL (" AND ...") de unos filtros ya normalizados por opg_notif_filtros. */
+function opg_notif_filtros_sql($filtros)
+{
+    $sql = '';
+    foreach (array('categoria', 'origen') as $columna) {
+        if (isset($filtros[$columna])) {
+            $sql .= ' AND ' . $columna . ' = ' . opg_notif_sql_texto($filtros[$columna]);
+        }
+    }
+    if (isset($filtros['estado'])) {
+        $sql .= $filtros['estado'] === 'sin_leer' ? ' AND leida_en IS NULL' : ' AND leida_en IS NOT NULL';
+    }
+    if (isset($filtros['importancia'])) {
+        $sql .= ' AND importancia = ' . opg_notif_sql_texto($filtros['importancia']);
+    }
+    return $sql;
+}
+
+/**
+ * Cursor de la lista: el par (created_at, id) de la ultima fila mostrada, como texto "FECHA_ID" (el parametro `antes` de
+ * la pagina, por ejemplo "1760000000_812") o como arreglo de dos enteros. Devuelve array(created_at, id), null si esta
+ * vacio (primera pagina) o false si no es valido.
+ */
+function opg_notif_cursor($cursor)
+{
+    if ($cursor === null || $cursor === '') {
+        return null;
+    }
+    if (is_string($cursor)) {
+        if (!preg_match('/^([0-9]{1,10})_([0-9]{1,10})$/D', $cursor, $m)) {
+            return false;
+        }
+        $cursor = array($m[1], $m[2]);
+    }
+    if (!is_array($cursor) || count($cursor) !== 2) {
+        return false;
+    }
+    $cursor = array_values($cursor);
+    $fecha = $cursor[0];
+    if (is_string($fecha) && preg_match('/^[0-9]{1,10}$/D', $fecha)) {
+        $fecha = (int) $fecha;
+    }
+    if (!is_int($fecha) || $fecha < 0 || $fecha > OPG_NOTIF_UID_MAX) {
+        return false;
+    }
+    $id = opg_notif_uid($cursor[1]);
+    return $id > 0 ? array($fecha, $id) : false;
+}
+
+/** Texto del cursor para pedir la pagina siguiente. */
+function opg_notif_cursor_texto($fecha, $id)
+{
+    return (int) $fecha . '_' . (int) $id;
+}
+
+/** Filas por pagina: el valor indicado (1 a 100) o 30. */
+function opg_notif_limite($limite)
+{
+    if (is_string($limite) && preg_match('/^[0-9]{1,6}$/D', $limite)) {
+        $limite = (int) $limite;
+    }
+    if (!is_int($limite) || $limite < 1) {
+        return OPG_NOTIF_LIMITE;
+    }
+    return min($limite, OPG_NOTIF_LIMITE_MAX);
+}
+
+/** Fila de la lista con los tipos convertidos y los datos decodificados (sin datos_json crudo ni clave de evento). */
+function opg_notif_fila_lista($f)
+{
+    $datos = isset($f['datos_json']) && $f['datos_json'] !== null ? json_decode((string) $f['datos_json'], true) : null;
+    return array(
+        'id' => (int) $f['id'],
+        'tipo' => (string) $f['tipo'],
+        'categoria' => (string) $f['categoria'],
+        'origen' => (string) $f['origen'],
+        'importancia' => (string) $f['importancia'],
+        'agrupable' => (int) $f['agrupable'] === 1,
+        'actor_uid' => (int) $f['actor_uid'],
+        'url' => $f['url'] === null ? null : (string) $f['url'],
+        'cantidad' => (int) $f['cantidad'],
+        'datos' => is_array($datos) ? $datos : array(),
+        'created_at' => (int) $f['created_at'],
+        'leida_en' => $f['leida_en'] === null ? null : (int) $f['leida_en'],
+        'leida' => $f['leida_en'] !== null,
+    );
+}
+
+/** Registra un error de lectura salvo el de tabla ausente (1146), que es un despliegue a medias y no se registra. */
+function opg_notif_log_lectura($funcion, $e)
+{
+    if ((int) $e->getCode() !== 1146) {
+        opg_notif_log($funcion . ': ' . $e->getMessage());
+    }
+}
+
+// ── 3.2 Transaccion corta con reintentos ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ejecuta $trabajo dentro de START TRANSACTION ... COMMIT. Si MySQL la revierte por interbloqueo (1213) o espera agotada
+ * (1205), incluso en el COMMIT, se deshace entera (ROLLBACK) y se repite, hasta OPG_NOTIF_REINTENTOS veces, con una pausa
+ * corta y aleatoria para que los dos procesos no vuelvan a chocar al mismo tiempo. Con cualquier otro error, o con los
+ * reintentos agotados, se deshace, se registra y se da por fallida. Asi nunca queda la fila marcada sin su contador ni al
+ * reves: los contadores quedan exactos aunque la operacion falle.
+ *
+ * Devuelve array(true, resultado del trabajo) o array(false, null). No lanza excepciones.
+ */
+function opg_notif_transaccion($funcion, $trabajo)
+{
+    for ($intento = 0; ; $intento++) {
+        try {
+            opg_notif_w('START TRANSACTION');
+            $resultado = $trabajo();
+            opg_notif_w('COMMIT');
+            return array(true, $resultado);
+        } catch (Throwable $e) {
+            opg_notif_deshacer();
+            $codigo = (int) $e->getCode();
+            if (($codigo === 1213 || $codigo === 1205) && $intento < OPG_NOTIF_REINTENTOS) {
+                usleep(mt_rand(1000, 10000) * ($intento + 1));
+                continue;
+            }
+            if ($codigo !== 1146) {
+                opg_notif_log($funcion . ': ' . $e->getMessage() . ($intento > 0 ? " (tras $intento reintentos)" : '') . '; no se cambio nada');
+            }
+            return array(false, null);
+        }
+    }
+}
+
+/** ROLLBACK que nunca falla (tras un 1213 MySQL ya revirtio, y el ROLLBACK no hace nada). */
+function opg_notif_deshacer()
+{
+    global $db;
+    try {
+        $db->write_query('ROLLBACK', 1);
+    } catch (Throwable $e) {
+        // Nada mas que hacer: la conexion se cerrara con la transaccion revertida.
+    }
+}
+
+/** SET de "marcar como vista": fecha de lectura y, en las agrupables, la clave liberada con el sufijo ":leida:ID". */
+function opg_notif_sql_marcar($ahora)
+{
+    // LEFT(...) deja sitio al sufijo aunque la clave venga de fuera de opg_notificar (por ejemplo una copia del Tablon);
+    // el id hace unica la clave resultante.
+    return 'SET leida_en = ' . (int) $ahora . ', clave_evento = IF(agrupable = 1, CONCAT(LEFT(clave_evento, ' . OPG_NOTIF_MAX_CLAVE_AGRUPABLE
+        . "), ':leida:', id), clave_evento)";
+}
+
+/**
+ * Marca UNA agrupable no leida y devuelve las filas afectadas (0 o 1). Primero la bloquea entrando por el indice unico
+ * (uid, clave_evento) y despues la actualiza por clave primaria, en el MISMO orden que el envio: el INSERT ... ON DUPLICATE
+ * KEY UPDATE de una agrupable bloquea primero la entrada del indice unico y despues la fila. Si el marcado bloqueara la
+ * fila por clave primaria y despues reescribiera la clave en el indice unico, los dos se cruzarian.
+ *
+ * Una por una y en el orden del indice (ver opg_notif_marcar_todas): la clave nueva "K:leida:ID" se inserta en el indice
+ * unico justo despues de K, en el hueco anterior a la siguiente clave del usuario. Si el marcado ya tuviera bloqueada esa
+ * siguiente clave mientras un envio espera por ella, InnoDB interbloquearia a los dos (medido en lectura_db.php).
+ */
+function opg_notif_marcar_agrupable($uid, $id, $clave, $ahora)
+{
+    global $db;
+    $N = opg_notif_t('op_notificaciones');
+    opg_notif_filas('SELECT id FROM ' . $N . ' WHERE uid = ' . (int) $uid . ' AND clave_evento = ' . opg_notif_sql_texto($clave) . ' FOR UPDATE');
+    opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . ' WHERE id = ' . (int) $id . ' AND uid = ' . (int) $uid . ' AND leida_en IS NULL');
+    return max(0, (int) $db->affected_rows());
+}
+
+/** Resta $n no leidas y $imp importantes del contador, sin bajar de cero (las columnas son UNSIGNED: nunca se resta de mas). */
+function opg_notif_restar_contador($uid, $n, $imp)
+{
+    opg_notif_w('UPDATE ' . opg_notif_t('op_notificaciones_contador') . ' SET sin_leer = sin_leer - LEAST(sin_leer, ' . (int) $n
+        . '), importantes = importantes - LEAST(importantes, ' . (int) $imp . ') WHERE uid = ' . (int) $uid);
+}
+
+// ── 3.3 Contador ────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Cache por peticion de los contadores (requisito 32): uid => array('sin_leer' => n, 'importantes' => n). */
+function &opg_notif_contadores_cache()
+{
+    static $cache = array();
+    return $cache;
+}
+
+/** Olvida el contador cacheado de un uid (o de todos), para que la siguiente llamada a opg_notif_contar lo vuelva a leer. */
+function opg_notif_contar_olvidar($uid = null)
+{
+    $cache = &opg_notif_contadores_cache();
+    if ($uid === null) {
+        $cache = array();
+    } else {
+        unset($cache[opg_notif_uid($uid)]);
+    }
+}
+
+/**
+ * No leidas del usuario: array('sin_leer' => n, 'importantes' => n) (requisitos 18 y 30 a 33).
+ *
+ * Una sola consulta por clave primaria del contador, cacheada por peticion (la segunda llamada no consulta). Se
+ * autorrepara (208, apartado 5.5): si falta la fila o su ultima reconciliacion (`actualizado`) tiene mas de 24 horas,
+ * llama a opg_notif_reconciliar, que recuenta y reescribe la fila; asi un desfase dura como mucho un dia y cada contador
+ * se recuenta como mucho una vez al dia. Los envios y los marcados no tocan `actualizado`.
+ *
+ * Con un uid no valido, sin $db, con las tablas ausentes o ante un error devuelve ceros (el error se registra, salvo el de
+ * tabla ausente), y ese valor tambien se cachea para no repetir la consulta en la misma peticion.
+ */
+function opg_notif_contar($uid)
+{
+    global $db;
+    $vacio = array('sin_leer' => 0, 'importantes' => 0);
+    $uid = opg_notif_uid($uid);
+    if ($uid <= 0 || !is_object($db)) {
+        return $vacio;
+    }
+    $cache = &opg_notif_contadores_cache();
+    if (isset($cache[$uid])) {
+        return $cache[$uid];
+    }
+    try {
+        $filas = opg_notif_filas('SELECT sin_leer, importantes, actualizado FROM ' . opg_notif_t('op_notificaciones_contador') . ' WHERE uid = ' . $uid);
+    } catch (Throwable $e) {
+        opg_notif_log_lectura('opg_notif_contar', $e);
+        $cache[$uid] = $vacio;
+        return $vacio;
+    }
+    if (!$filas || (int) $filas[0]['actualizado'] < opg_notif_ahora() - OPG_NOTIF_RECONCILIAR_CADA) {
+        $r = opg_notif_reconciliar($uid);
+        if ($r !== false) {
+            return $r;
+        }
+    }
+    $valor = $filas ? array('sin_leer' => max(0, (int) $filas[0]['sin_leer']), 'importantes' => max(0, (int) $filas[0]['importantes'])) : $vacio;
+    $cache[$uid] = $valor;
+    return $valor;
+}
+
+/**
+ * Recuenta las no leidas del usuario y reescribe su contador (sin_leer, importantes y actualizado = ahora). Devuelve el
+ * recuento (y lo deja en la cache de la peticion) o false si fallo.
+ *
+ * Como no pisa un incremento concurrente: en una transaccion corta, primero BLOQUEA la fila del contador
+ * (SELECT ... FOR UPDATE) y despues cuenta las filas con una lectura sin bloqueo (la instantanea de la transaccion se toma
+ * en ese COUNT, despues de tener el bloqueo). Un envio o un marcado escriben su fila antes que el contador:
+ *  - si ya habian confirmado, el COUNT los ve y su cambio del contador ya estaba hecho: el valor nuevo los incluye;
+ *  - si aun no habian confirmado, el COUNT no ve su fila y su cambio del contador espera al bloqueo: se aplica despues,
+ *    sobre el valor recontado.
+ * En los dos casos el resultado es exacto. Como el COUNT no bloquea filas, no se interbloquea con ellos.
+ *
+ * Limite conocido: un envio en autocommit (sin transaccion de quien llama) confirma la fila y el contador en dos
+ * sentencias. Si la reconciliacion cuenta justo entre las dos, el contador queda una por encima (nunca por debajo) hasta
+ * la siguiente reconciliacion. Con el envio dentro de una transaccion no ocurre.
+ */
+function opg_notif_reconciliar($uid)
+{
+    global $db;
+    $uid = opg_notif_uid($uid);
+    if ($uid <= 0 || !is_object($db)) {
+        return false;
+    }
+    $ahora = opg_notif_ahora();
+    list($ok, $valor) = opg_notif_transaccion('opg_notif_reconciliar', function () use ($uid, $ahora) {
+        $C = opg_notif_t('op_notificaciones_contador');
+        opg_notif_filas('SELECT uid FROM ' . $C . ' WHERE uid = ' . $uid . ' FOR UPDATE');
+        $f = opg_notif_filas("SELECT COUNT(*) AS n, COALESCE(SUM(importancia = 'importante'), 0) AS i FROM " . opg_notif_t('op_notificaciones')
+            . ' WHERE uid = ' . $uid . ' AND leida_en IS NULL');
+        $n = $f ? (int) $f[0]['n'] : 0;
+        $i = $f ? (int) $f[0]['i'] : 0;
+        opg_notif_w('INSERT INTO ' . $C . ' (uid, sin_leer, importantes, actualizado) VALUES (' . $uid . ', ' . $n . ', ' . $i . ', ' . (int) $ahora . ')'
+            . ' ON DUPLICATE KEY UPDATE sin_leer = VALUES(sin_leer), importantes = VALUES(importantes), actualizado = VALUES(actualizado)');
+        return array('sin_leer' => $n, 'importantes' => $i);
+    });
+    $cache = &opg_notif_contadores_cache();
+    if (!$ok) {
+        unset($cache[$uid]);
+        return false;
+    }
+    $cache[$uid] = $valor;
+    return $valor;
+}
+
+// ── 3.4 Lista ───────────────────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Una pagina de notificaciones del usuario (requisitos 13 y 34; 208 apartado 8).
+ *
+ * $filtros  'categoria', 'origen', 'estado' ('sin_leer' | 'leidas') e 'importancia', de las listas fijas
+ *           (opg_notif_filtros). Vacio: todas.
+ * $cursor   null para la primera pagina, o el 'cursor' que devolvio la pagina anterior ("FECHA_ID" o array(fecha, id)).
+ * $limite   filas por pagina (30 por defecto, 100 como mucho).
+ *
+ * Una sola consulta, sin uniones, por los indices (uid, created_at, id) o sus equivalentes por categoria, origen y no
+ * leidas, ordenada por created_at DESC, id DESC (una agrupable con actividad nueva sube al principio). Se pide una fila de
+ * mas para saber si hay otra pagina, y el cursor es un rango sobre (created_at, id), estable aunque lleguen avisos nuevos.
+ * Solo lee: abrir la lista no marca nada (requisito 15).
+ *
+ * Devuelve array('filas' => [...], 'hay_mas' => bool, 'cursor' => "FECHA_ID" de la ultima fila o null), con cada fila
+ * como opg_notif_fila_lista. Un uid no valido o las tablas ausentes dan la lista vacia; un filtro o cursor no valido, o un
+ * error de MySQL (registrado), dan false.
+ */
+function opg_notif_listar($uid, $filtros = array(), $cursor = null, $limite = OPG_NOTIF_LIMITE)
+{
+    global $db;
+    $vacio = array('filas' => array(), 'hay_mas' => false, 'cursor' => null);
+    $filtros = opg_notif_filtros($filtros, array('categoria', 'origen', 'estado', 'importancia'));
+    $cursor = opg_notif_cursor($cursor);
+    if ($filtros === null || $cursor === false) {
+        return false;
+    }
+    $uid = opg_notif_uid($uid);
+    if ($uid <= 0 || !is_object($db)) {
+        return $vacio;
+    }
+    $limite = opg_notif_limite($limite);
+    $sql = 'SELECT id, tipo, categoria, origen, importancia, agrupable, actor_uid, url, cantidad, datos_json, created_at, leida_en FROM '
+        . opg_notif_t('op_notificaciones') . ' WHERE uid = ' . $uid . opg_notif_filtros_sql($filtros);
+    if ($cursor !== null) {
+        // (created_at, id) < (fecha, id) escrito como rango sobre created_at, que MySQL 5.7 si resuelve con el indice.
+        $sql .= ' AND created_at <= ' . $cursor[0] . ' AND (created_at < ' . $cursor[0] . ' OR id < ' . $cursor[1] . ')';
+    }
+    $sql .= ' ORDER BY created_at DESC, id DESC LIMIT ' . ($limite + 1);
+    try {
+        $filas = opg_notif_filas($sql);
+    } catch (Throwable $e) {
+        opg_notif_log_lectura('opg_notif_listar', $e);
+        return (int) $e->getCode() === 1146 ? $vacio : false;
+    }
+    $hay_mas = count($filas) > $limite;
+    $filas = array_map('opg_notif_fila_lista', array_slice($filas, 0, $limite));
+    $ultima = $filas ? $filas[count($filas) - 1] : null;
+    return array('filas' => $filas, 'hay_mas' => $hay_mas, 'cursor' => $hay_mas ? opg_notif_cursor_texto($ultima['created_at'], $ultima['id']) : null);
+}
+
+// ── 3.5 Marcar como vista ───────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Marca una notificacion del usuario como vista (208, apartado 5.4). Devuelve true solo si paso de no leida a leida.
+ *
+ * En una transaccion corta:
+ *  1. Lee por clave primaria, sin bloquear, la fila si es de $uid y no esta leida (una ajena, inexistente o ya leida
+ *     termina aqui sin tocar nada: pulsar Visto dos veces descuenta una sola vez). Asi se sabe su importancia y su clave.
+ *  2. Si es agrupable, la bloquea por el indice unico antes de actualizarla, en el orden del envio
+ *     (opg_notif_marcar_agrupable).
+ *  3. El UPDATE repite "id, uid y leida_en IS NULL": si otro proceso la marco entretanto afecta a 0 filas y no se resta
+ *     nada. En las agrupables reescribe la clave a "...:leida:ID", para que el siguiente evento del grupo cree una fila
+ *     nueva.
+ *  4. Resta uno del contador (y de importantes si lo era).
+ * Se reintenta ante 1213 y 1205 (ver opg_notif_transaccion).
+ * Una notificacion leida no vuelve a no leida: no hay funcion para eso.
+ */
+function opg_notif_marcar_vista($uid, $id)
+{
+    global $db;
+    $uid = opg_notif_uid($uid);
+    $id = opg_notif_uid($id);
+    if ($uid <= 0 || $id <= 0 || !is_object($db)) {
+        return false;
+    }
+    $ahora = opg_notif_ahora();
+    list($ok, $cambio) = opg_notif_transaccion('opg_notif_marcar_vista', function () use ($db, $uid, $id, $ahora) {
+        $N = opg_notif_t('op_notificaciones');
+        $donde = ' WHERE id = ' . $id . ' AND uid = ' . $uid . ' AND leida_en IS NULL';
+        $f = opg_notif_filas('SELECT agrupable, clave_evento, importancia FROM ' . $N . $donde);
+        if (!$f) {
+            return false;
+        }
+        if ((int) $f[0]['agrupable'] === 1) {
+            $afectadas = opg_notif_marcar_agrupable($uid, $id, $f[0]['clave_evento'], $ahora);
+        } else {
+            opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . $donde);
+            $afectadas = (int) $db->affected_rows();
+        }
+        if ($afectadas !== 1) {
+            return false;
+        }
+        opg_notif_restar_contador($uid, 1, $f[0]['importancia'] === 'importante' ? 1 : 0);
+        return true;
+    });
+    opg_notif_contar_olvidar($uid);
+    return $ok && $cambio === true;
+}
+
+/**
+ * Marca como vistas todas las no leidas del usuario, o solo las del filtro activo ('categoria' y 'origen', de las listas
+ * fijas; cualquier otra clave o valor no valido devuelve false sin marcar nada). Devuelve cuantas marco o false.
+ *
+ * En una transaccion corta:
+ *  1. Lee, SIN bloquear, los id, la importancia y la clave de las no leidas del filtro, en el orden del indice unico.
+ *  2. Marca las agrupables una por una en ese orden (opg_notif_marcar_agrupable) y las demas por clave primaria, en
+ *     bloques separados de importantes y normales. Cada UPDATE repite "uid = ... AND leida_en IS NULL": una fila que otro
+ *     proceso marco entretanto no cuenta, asi que las filas afectadas son exactamente las que pasaron de no leida a leida
+ *     en esta llamada, y se sabe cuantas eran importantes.
+ *  3. Resta esas cantidades del contador.
+ * No se usa un SELECT ... FOR UPDATE del rango: sus bloqueos de hueco detenian las inserciones de un envio simultaneo al
+ * mismo usuario mientras el envio ya tenia bloqueado el contador, e InnoDB interbloqueaba a los dos (y a veces revertia
+ * la transaccion del envio, medido en lectura_db.php). Marcando por clave primaria solo se bloquean las filas marcadas.
+ * Un aviso que llega durante la llamada no se marca (el usuario aun no lo habia visto). Se reintenta ante 1213 y 1205.
+ */
+function opg_notif_marcar_todas($uid, $filtros = array())
+{
+    global $db;
+    $uid = opg_notif_uid($uid);
+    $filtros = opg_notif_filtros($filtros, array('categoria', 'origen'));
+    if ($uid <= 0 || $filtros === null || !is_object($db)) {
+        return false;
+    }
+    $ahora = opg_notif_ahora();
+    list($ok, $marcadas) = opg_notif_transaccion('opg_notif_marcar_todas', function () use ($db, $uid, $filtros, $ahora) {
+        $N = opg_notif_t('op_notificaciones');
+        $donde = ' WHERE uid = ' . $uid . ' AND leida_en IS NULL';
+        $ids = array('importante' => array(), 'normal' => array());
+        $afectadas = array('importante' => 0, 'normal' => 0);
+        $filas = opg_notif_filas('SELECT id, importancia, agrupable, clave_evento FROM ' . $N . $donde . opg_notif_filtros_sql($filtros) . ' ORDER BY clave_evento');
+        foreach ($filas as $f) {
+            $clase = $f['importancia'] === 'importante' ? 'importante' : 'normal';
+            if ((int) $f['agrupable'] === 1) {
+                $afectadas[$clase] += opg_notif_marcar_agrupable($uid, (int) $f['id'], $f['clave_evento'], $ahora);
+            } else {
+                $ids[$clase][] = (int) $f['id'];
+            }
+        }
+        foreach ($ids as $clase => $lista) {
+            sort($lista, SORT_NUMERIC);
+            foreach (array_chunk($lista, OPG_NOTIF_LOTE) as $bloque) {
+                opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . $donde . ' AND id IN (' . implode(',', $bloque) . ')');
+                $afectadas[$clase] += max(0, (int) $db->affected_rows());
+            }
+        }
+        $total = $afectadas['importante'] + $afectadas['normal'];
+        if ($total > 0) {
+            opg_notif_restar_contador($uid, $total, $afectadas['importante']);
+        }
+        return $total;
+    });
+    opg_notif_contar_olvidar($uid);
+    return $ok ? (int) $marcadas : false;
+}
