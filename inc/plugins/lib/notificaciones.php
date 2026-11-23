@@ -630,8 +630,11 @@ function opg_notif_envio_contador($uids, $imp, $ahora)
 //  - Los marcados y la reconciliacion abren su PROPIA transaccion corta (opg_notif_transaccion). Por eso no deben
 //    llamarse con una transaccion abierta: el START TRANSACTION confirmaria la de quien llama. Se llaman desde las
 //    acciones de la pagina, que no abren transacciones.
-//  - Orden de bloqueo, el mismo que el del envio: primero las filas de notificaciones y despues la del contador. La
-//    reconciliacion solo bloquea el contador y lee las filas sin bloquearlas.
+//  - Orden de bloqueo, el mismo que el del envio: primero las filas de notificaciones (en las agrupables, entrando por el
+//    indice unico, como su INSERT ... ON DUPLICATE KEY UPDATE) y despues la del contador. Los marcados no usan bloqueos de
+//    rango (FOR UPDATE de un rango), que frenaban las inserciones de los envios. La reconciliacion solo bloquea el contador
+//    y lee las filas sin bloquearlas. Los interbloqueos que aun pueden darse (un envio que agrupa dos temas del mismo
+//    usuario en una transaccion) los absorben los reintentos: InnoDB revierte la transaccion mas ligera, la del marcado.
 
 /** Tamano de pagina de la lista (requisito 13) y maximo que se admite. */
 const OPG_NOTIF_LIMITE = 30;
