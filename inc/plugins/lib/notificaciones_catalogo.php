@@ -333,7 +333,7 @@ function opg_notif_texto($tipo, $datos, $cantidad = 1)
     }
     $datos = is_array($datos) ? $datos : array();
     $texto = (string) call_user_func($def['texto'], $datos, $def['agrupable'] ? (int) $cantidad : 1);
-    return htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars($texto, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
 /**
@@ -352,19 +352,33 @@ function opg_notif_url($tipo, $datos)
 
 /**
  * Indica si un enlace es una ruta interna: relativa ("op/x.php?id=1") o absoluta del sitio ("/op/x.php").
- * Rechaza esquemas (http:, javascript:, data:, mailto:), URLs sin esquema ("//host"), barras invertidas,
- * espacios y caracteres de control.
+ *
+ * Lista blanca estricta sobre la cadena ya normalizada: se decodifican las entidades HTML (con "&amp;#106;" o "&#x6A;"
+ * alguien podria esconder un esquema que el navegador leeria como "javascript:") hasta que la cadena no cambie, y se valida
+ * el resultado. Solo se aceptan letras, numeros y "_ - . / ~ %" en la ruta, con una consulta opcional ("? = & + [ ] ,") y un
+ * ancla opcional. Sin ":" no hay esquema posible, y sin espacios, controles, comillas, "<", ">" ni barras invertidas;
+ * tampoco se acepta "//" al inicio. Cualquier otra cosa se rechaza.
+ *
+ * Como se guarda y se escapa el enlace: el catalogo genera la URL CRUDA ("showthread.php?tid=7&action=newpost") y asi se
+ * guarda; se escapa una sola vez al imprimirla en un atributo, con htmlspecialchars(..., ENT_QUOTES) y no con
+ * htmlspecialchars_uni (que deja pasar las entidades numericas). Si llegara ya con "&amp;" tambien es valida, porque se
+ * decodifica antes de comprobarla.
  */
 function opg_notif_url_interna($url)
 {
     if (!is_string($url) || $url === '' || strlen($url) > 500) {
         return false;
     }
-    if (preg_match('/[\x00-\x20\x7f\\\\]/', $url)) {
+    $normal = $url;
+    for ($i = 0; $i < 10; $i++) {
+        $siguiente = html_entity_decode($normal, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if ($siguiente === $normal) {
+            break;
+        }
+        $normal = $siguiente;
+    }
+    if ($i === 10 || strpos($normal, '//') === 0) {
         return false;
     }
-    if (strpos($url, '//') === 0 || preg_match('/^[a-z][a-z0-9+.\-]*:/i', $url)) {
-        return false;
-    }
-    return true;
+    return preg_match('@^/?[A-Za-z0-9_.%~-]+(?:/[A-Za-z0-9_.%~-]*)*(?:\?[A-Za-z0-9_.%~/=&+\[\],-]*)?(?:#[A-Za-z0-9_-]*)?$@D', $normal) === 1;
 }

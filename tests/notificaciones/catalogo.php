@@ -107,6 +107,34 @@ foreach (array('http://evil.com/x', 'https://evil.com', '//evil.com/x', 'javascr
 }
 nc_expect(opg_notif_url_interna(null) === false && opg_notif_url_interna(array()) === false, 'Valores que no son texto no son internos.');
 
+// Esquemas escondidos con entidades HTML, mayusculas, tabuladores y doble codificacion (defecto D1 del QA)
+$hostiles = array(
+    '&amp;#106;avascript:alert(1)', '&#106;avascript:alert(1)', '&#x6A;avascript:alert(1)', 'javascript&#58;alert(1)',
+    'javascript&colon;alert(1)', "java\tscript:alert(1)", 'java&#9;script:alert(1)', 'JaVaScRiPt:alert(1)',
+    'data:text/html,<b>x</b>', 'vbscript:msgbox(1)', '//evil.com', '/\\evil.com', '/&#92;evil.com', '&#47;/evil.com',
+    'http://evil.com', 'https://evil.com', "op/bitacora.php\n", "op/bi\ttacora.php", "op/bitacora.php\r\nLocation: x",
+    '&amp;amp;#106;avascript:alert(1)', '&amp;amp;amp;#x6A;avascript:alert(1)', '&#0106;avascript:x',
+    'x:y', 'op/x.php?a="onmouseover="x', 'op/x.php?a=<b>', "op/x.php?a='b", '/op/\\x', "\xC3\x28",
+    '', ' ', null, array(), 5, true, new stdClass(),
+);
+foreach ($hostiles as $h) {
+    nc_expect(opg_notif_url_interna($h) === false, 'Debe rechazar: ' . json_encode($h, JSON_PARTIAL_OUTPUT_ON_ERROR));
+}
+// Enlaces legitimos (los que genera el catalogo, crudos o ya con &amp;)
+foreach (array(
+    'op/tablon_de_aventuras.php?id=5', 'op/tablon_de_aventuras.php?tab=narradores', 'showthread.php?tid=7&amp;action=newpost',
+    'showthread.php?tid=7&action=newpost', 'op/bitacora.php', '/op/bitacora.php', 'op/bitacora.php#fin', 'op/x.php?a[]=1&b=a%20b',
+) as $ok) {
+    nc_expect(opg_notif_url_interna($ok) === true, 'Debe aceptar: ' . $ok);
+}
+// Todo enlace que genera el catalogo pasa por la validacion y sale igual
+nc_expect(opg_notif_url('bitacora_post', array('tid' => 7)) === 'showthread.php?tid=7&action=newpost', 'bitacora_post: enlace crudo, sin &amp; guardado.');
+nc_expect(htmlspecialchars(opg_notif_url('bitacora_post', array('tid' => 7)), ENT_QUOTES, 'UTF-8') === 'showthread.php?tid=7&amp;action=newpost', 'bitacora_post: se escapa una sola vez al imprimir.');
+
+// UTF-8 invalido en los datos: el texto no queda vacio (defecto D2 del QA)
+$inv = opg_notif_texto('aventura_aprobada', array('peticion_id' => 7, 'tema' => "Isla\xC3\x28"), 1);
+nc_expect($inv !== '' && strpos($inv, 'Isla') !== false, 'UTF-8 invalido: el texto no debe quedar vacio.');
+
 if ($failures) {
     foreach ($failures as $m) echo "FALLO: $m\n";
     exit(1);
