@@ -12,6 +12,7 @@ define('THIS_SCRIPT', 'tecnicas_aprender.php');
 require_once "./../../global.php";
 require "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/posesiones_avisos.php";
 
 global $templates, $mybb;
 $uid = $mybb->user['uid'];
@@ -39,6 +40,9 @@ if ($accion && $tecnicas && $staff && $razon && $ficha_id && (is_mod($uid) || is
     // split comma delimited string to an array
     $tecnicas_array = preg_split('/(\s*,*\s*)*,+(\s*,*\s*)*/', trim($tecnicas));
     $log = "Cambios de técnicas para entrenar para ficha de UID: $ficha_id (" . $f_var['nombre'] . "):\n";
+    // Para el aviso al dueño (issue #21): solo lo que la escritura realmente cambio.
+    $avisar_ids = array();
+    $avisar_huellas = array();
     foreach ($tecnicas_array as $tec) {
         $clean_tec = trim($tec);
         if ($clean_tec != "") {
@@ -48,6 +52,7 @@ if ($accion && $tecnicas && $staff && $razon && $ficha_id && (is_mod($uid) || is
                     INSERT INTO `mybb_op_tec_para_aprender` (`tid`, `uid`) VALUES 
                     ('$clean_tec', '$ficha_id');
                 ");
+                if ((int) $db->affected_rows() > 0) { $avisar_ids[] = $clean_tec; $avisar_huellas[] = 'i' . (int) $db->insert_id(); }
                 $log_short = "Cambios de técnicas para aprender para ficha de UID: $ficha_id (" . $f_var['nombre'] . "):\n" . "-- $accion técnica ID: $tec\n";
                 $log .= "-- $accion técnica ID: $tec\n";
 
@@ -60,6 +65,8 @@ if ($accion && $tecnicas && $staff && $razon && $ficha_id && (is_mod($uid) || is
                 $db->query(" 
                     DELETE FROM `mybb_op_tec_para_aprender` WHERE tid='$clean_tec' AND uid='$ficha_id'; 
                 ");
+                $borradas = (int) $db->affected_rows();
+                if ($borradas > 0) { $avisar_ids[] = $clean_tec; $avisar_huellas[] = 'd' . $clean_tec . ':' . $borradas; }
                 $log .= "-- $accion técnica ID: $tec\n";
                 $log_short = "Cambios de técnicas para aprender para ficha de UID: $ficha_id (" . $f_var['nombre'] . "):\n" . "-- $accion técnica ID: $tec\n";
 
@@ -69,6 +76,11 @@ if ($accion && $tecnicas && $staff && $razon && $ficha_id && (is_mod($uid) || is
                 ");      
             }
         }
+    }
+
+    // Un solo aviso con todo el lote; si falla, no afecta al cambio (nunca lanza).
+    if (!empty($f_var)) {
+        opg_pos_avisar('tecnica', (int) $f_var['fid'], opg_pos_accion($accion), $avisar_ids, $avisar_huellas, $uid, 'por_aprender');
     }
 
     eval('$log_var = $log;');

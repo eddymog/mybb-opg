@@ -28,6 +28,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'tecnicas_ficha.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/posesiones_avisos.php";
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -73,6 +74,9 @@ if ($mybb->request_method == 'post') {
         $tecnicas_array = preg_split('/(\s*,*\s*)*,+(\s*,*\s*)*/', $tecnicas);
         $cambios = array();
         $ficha_id_esc = $db->escape_string($ficha_id);
+        // Para el aviso al dueño (issue #21): solo lo que la escritura realmente cambio.
+        $avisar_ids = array();
+        $avisar_huellas = array();
 
         foreach ($tecnicas_array as $tec) {
             $clean_tec = trim($tec);
@@ -81,8 +85,11 @@ if ($mybb->request_method == 'post') {
 
             if ($accion === 'Añadir') {
                 $db->query("INSERT INTO `mybb_op_tec_aprendidas` (`tid`, `uid`) VALUES ('{$clean_tec_esc}', '{$ficha_id_esc}')");
+                if ((int) $db->affected_rows() > 0) { $avisar_ids[] = $clean_tec; $avisar_huellas[] = 'i' . (int) $db->insert_id(); }
             } else { // Remover
                 $db->query("DELETE FROM `mybb_op_tec_aprendidas` WHERE tid='{$clean_tec_esc}' AND uid='{$ficha_id_esc}'");
+                $borradas = (int) $db->affected_rows();
+                if ($borradas > 0) { $avisar_ids[] = $clean_tec; $avisar_huellas[] = 'd' . $clean_tec . ':' . $borradas; }
             }
             $cambios[] = "{$accion} técnica ID: {$clean_tec}";
         }
@@ -92,6 +99,8 @@ if ($mybb->request_method == 'post') {
             $db->query("INSERT INTO `mybb_op_audit_consola_tec_mod` (`staff`, `razon`, `log`) VALUES "
                 . "('{$uid}', '" . $db->escape_string($razon) . "', '" . $db->escape_string($log) . "')");
         }
+        // Un solo aviso con todo el lote; si falla, no afecta al cambio (nunca lanza).
+        opg_pos_avisar('tecnica', (int) $f_var['fid'], opg_pos_accion($accion), $avisar_ids, $avisar_huellas, $uid);
     }
 
     my_setcookie(TECNICAS_FICHA_MSG_COOKIE, base64_encode(json_encode(array(

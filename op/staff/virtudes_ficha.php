@@ -31,6 +31,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'virtudes_ficha.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/posesiones_avisos.php";
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -77,6 +78,9 @@ if ($mybb->request_method == 'post') {
         $virtudes_array = preg_split('/(\s*,*\s*)*,+(\s*,*\s*)*/', $virtudes);
         $cambios = array();
         $ficha_id_esc = $db->escape_string($ficha_id);
+        // Para el aviso al dueño (issue #21): solo lo que la escritura realmente cambio.
+        $avisar_ids = array();
+        $avisar_huellas = array();
 
         foreach ($virtudes_array as $virtud) {
             $clean_virtud = trim($virtud);
@@ -85,8 +89,11 @@ if ($mybb->request_method == 'post') {
 
             if ($accion === 'Añadir') {
                 $db->query("INSERT INTO `mybb_op_virtudes_usuarios` (`virtud_id`, `uid`) VALUES ('{$clean_virtud_esc}', '{$ficha_id_esc}')");
+                if ((int) $db->affected_rows() > 0) { $avisar_ids[] = $clean_virtud; $avisar_huellas[] = 'i' . (int) $db->insert_id(); }
             } else { // Remover
                 $db->query("DELETE FROM `mybb_op_virtudes_usuarios` WHERE virtud_id='{$clean_virtud_esc}' AND uid='{$ficha_id_esc}'");
+                $borradas = (int) $db->affected_rows();
+                if ($borradas > 0) { $avisar_ids[] = $clean_virtud; $avisar_huellas[] = 'd' . $clean_virtud . ':' . $borradas; }
             }
             $cambios[] = "{$accion} virtud ID: {$clean_virtud}";
         }
@@ -97,6 +104,8 @@ if ($mybb->request_method == 'post') {
             $db->query("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
                 . "('{$uid}', '" . $db->escape_string($username) . "', '" . $db->escape_string($razon) . "', '" . $db->escape_string($log) . "')");
         }
+        // Un solo aviso con todo el lote; si falla, no afecta al cambio (nunca lanza).
+        opg_pos_avisar('virtud', (int) $f_var['fid'], opg_pos_accion($accion), $avisar_ids, $avisar_huellas, $uid);
     }
 
     my_setcookie(VIRTUDES_FICHA_MSG_COOKIE, base64_encode(json_encode(array(
