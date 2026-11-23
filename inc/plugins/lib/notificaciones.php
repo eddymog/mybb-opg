@@ -14,7 +14,7 @@
  *
  * Convenciones:
  *  - Codigo compatible con PHP 7.4. Usa el $db global de MyBB (inc/db_mysqli.php): write_query, escape_string,
- *    affected_rows, insert_id, fetch_array, table_exists y table_prefix.
+ *    affected_rows, insert_id, fetch_array, error_number, error_string y table_prefix (no table_exists: ver opg_notif_tablas_listas).
  *  - Todas las consultas van por write_query(..., 1): por la conexion de escritura (la misma de una transaccion abierta
  *    por quien llama, asi que el aviso entra y se revierte con ella) y sin el error de MyBB que detiene la pagina.
  *  - Ninguna funcion de envio lanza excepciones ni escribe salida: los errores se registran con error_log y se devuelve
