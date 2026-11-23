@@ -180,12 +180,165 @@ function op_bitacora_actualizar_esquema()
     }
 }
 
+// ── Notificaciones globales (issue #12; 208, apartado 9.2) ──────────────────────────────────────────────────────────
+//
+// Los eventos siguen escribiéndose en mybb_op_bitacora_eventos (Historial de actividad) y, además, se avisan con
+// opg_notificar (lib/notificaciones.php) con origen usuario:
+//  - post_publicado: tipo agrupable bitacora_post, agrupado por tid, a los seguidores del tema salvo el autor.
+//  - ronda_narrada_iniciada: bitacora_ronda_iniciada a los seguidores cuyo narrador es el autor del post.
+//  - narrador_asignado, narrador_cambiado y narrador_retirado: al narrador afectado (y al anterior en un cambio). El
+//    propietario del seguimiento es el actor, así que no recibe su propio aviso.
+//  - manual_turno y manual_al_dia no avisan: son acciones del propio usuario sobre su seguimiento.
+// Reglas: solo se avisa de un evento realmente nuevo (el INSERT IGNORE de un post ya procesado no repite el aviso); se
+// avisa DESPUÉS del COMMIT de la acción (nunca dentro de una transacción propia de la Bitácora) y con UNA sola llamada
+// por tema y tipo, con todos los destinatarios (la librería los ordena y los parte en bloques de 200). Un fallo del aviso
+// queda registrado por la librería y nunca impide publicar ni guardar el cambio.
+
+/** ¿Está disponible el sistema global (librería cargada y tablas creadas)? */
+function op_bitacora_notif_disponible()
+{
+    if (!function_exists('opg_notificar') && defined('MYBB_ROOT')
+        && is_file(MYBB_ROOT . 'inc/plugins/lib/notificaciones.php')) {
+        require_once MYBB_ROOT . 'inc/plugins/lib/notificaciones.php';
+    }
+    return function_exists('opg_notif_tablas_listas') && opg_notif_tablas_listas();
+}
+
+/**
+ * ¿Pueden los invitados ver el foro? Solo entonces se guarda el título del tema en el aviso (requisito 50: el texto dice
+ * "el tema #tid" en otro caso). Usa los permisos de MyBB del grupo de invitados (gid 1); sin ellos, false.
+ */
+function op_bitacora_notif_foro_publico($fid)
+{
+    global $cache, $forum_cache, $fpermcache;
+    static $resultado = array();
+    $fid = (int)$fid;
+    if ($fid <= 0) {
+        return false;
+    }
+    if (!array_key_exists($fid, $resultado)) {
+        $resultado[$fid] = false;
+        try {
+            if (function_exists('fetch_forum_permissions') && function_exists('usergroup_permissions')) {
+                if (!is_array($forum_cache) && function_exists('cache_forums')) {
+                    $forum_cache = cache_forums();
+                }
+                if (!is_array($fpermcache) && is_object($cache)) {
+                    $fpermcache = $cache->read('forumpermissions');
+                }
+                $permisos = fetch_forum_permissions($fid, '1', usergroup_permissions('1'));
+                $resultado[$fid] = is_array($permisos) && !empty($permisos['canview'])
+                    && !empty($permisos['canviewthreads']);
+            }
+        } catch (Throwable $e) {
+            $resultado[$fid] = false;
+        }
+    }
+    return $resultado[$fid];
+}
+
+/** Datos del tema para el aviso: tid y, si el tema está visible en un foro público, su título. */
+function op_bitacora_notif_tema($tid)
+{
+    global $db;
+    $tid = (int)$tid;
+    $datos = array('tid' => $tid);
+    $opciones = array();
+    $query = $db->simple_select('threads', 'fid,subject,visible', "tid='{$tid}'", array('limit' => 1));
+    $thread = $db->fetch_array($query);
+    if ($thread && (int)$thread['visible'] === 1 && op_bitacora_notif_foro_publico((int)$thread['fid'])) {
+        $datos['tema'] = (string)$thread['subject'];
+        $opciones['tema_publico'] = true;
+    }
+    return array($datos, $opciones);
+}
+
+/** Nombre del personaje (ficha o, si no tiene, usuario) para el dato 'nombre' del aviso. */
+function op_bitacora_notif_nombre($uid)
+{
+    global $db;
+    $uid = (int)$uid;
+    if ($uid <= 0) {
+        return '';
+    }
+    $users = $db->table_prefix . 'users';
+    $fichas = $db->table_prefix . 'op_fichas';
+    $query = $db->query("SELECT f.nombre, u.username
+        FROM `{$users}` u
+        LEFT JOIN `{$fichas}` f ON f.fid = u.uid
+        WHERE u.uid = {$uid}
+        LIMIT 1");
+    $row = $db->fetch_array($query);
+    return $row ? op_bitacora_nombre_ficha($row, $uid) : '';
+}
+
+/**
+ * Envía los avisos pendientes de una acción, ya fuera de su transacción. Cada elemento de $avisos es
+ * array('tipo' => ..., 'destinatarios' => uid[], 'tid' => ..., 'actor' => uid, 'clave' => ..., 'nombre_uid' => uid)
+ * y se convierte en UNA llamada a opg_notificar (un tema por llamada). Nunca lanza excepciones.
+ */
+function op_bitacora_notificar($avisos)
+{
+    if (empty($avisos)) {
+        return;
+    }
+    try {
+        if (!op_bitacora_notif_disponible()) {
+            return;
+        }
+        foreach ($avisos as $aviso) {
+            $destinatarios = array_values(array_filter(array_map('intval', (array)$aviso['destinatarios'])));
+            if (empty($destinatarios) || (int)$aviso['tid'] <= 0) {
+                continue;
+            }
+            list($datos, $opciones) = op_bitacora_notif_tema((int)$aviso['tid']);
+            if (!empty($aviso['nombre_uid'])) {
+                $nombre = op_bitacora_notif_nombre((int)$aviso['nombre_uid']);
+                if ($nombre !== '') {
+                    $datos['nombre'] = $nombre;
+                }
+            }
+            $opciones['actor'] = (int)$aviso['actor'];
+            if (isset($aviso['clave'])) {
+                $opciones['clave'] = (string)$aviso['clave'];
+            } else {
+                $opciones['agrupar_por'] = (int)$aviso['tid'];
+            }
+            opg_notificar($destinatarios, (string)$aviso['tipo'], $datos, $opciones);
+        }
+    } catch (Throwable $e) {
+        error_log('[op_bitacora] aviso no enviado: ' . $e->getMessage());
+    }
+}
+
+/** Aviso de un cambio de narrador (evento ya registrado con id $eventoId), o null si no hay evento nuevo. */
+function op_bitacora_aviso_narrador($tipoEvento, $eventoId, $tid, $ownerUid, $narradorUid, $destinatarios)
+{
+    $tipos = array(
+        'narrador_asignado' => 'bitacora_narrador_asignado',
+        'narrador_cambiado' => 'bitacora_narrador_cambiado',
+        'narrador_retirado' => 'bitacora_narrador_retirado',
+    );
+    if ((int)$eventoId <= 0 || !isset($tipos[$tipoEvento])) {
+        return null;
+    }
+    return array(
+        'tipo' => $tipos[$tipoEvento],
+        'destinatarios' => $destinatarios,
+        'tid' => (int)$tid,
+        'actor' => (int)$ownerUid,
+        'clave' => 'bitacora:evento:' . (int)$eventoId,
+        'nombre_uid' => (int)$narradorUid,
+    );
+}
+
+/** Registra un evento y devuelve su id, o 0 si no se insertó (ya existía o faltan las tablas). */
 function op_bitacora_registrar_evento($seguimientoId, $tipo, $actorUid = 0, $relacionadoUid = 0, $pid = null, $datos = null, $creadoEn = null)
 {
     global $db;
     $seguimientoId = (int)$seguimientoId;
     if ($seguimientoId <= 0 || !$db->table_exists('op_bitacora_eventos')) {
-        return;
+        return 0;
     }
 
     $tipoSql = $db->escape_string((string)$tipo);
@@ -197,8 +350,10 @@ function op_bitacora_registrar_evento($seguimientoId, $tipo, $actorUid = 0, $rel
         (`seguimiento_id`, `tipo`, `actor_uid`, `relacionado_uid`, `pid`, `datos`, `creado_en`)
         VALUES ({$seguimientoId}, '{$tipoSql}', " . (int)$actorUid . ', '
         . (int)$relacionadoUid . ", {$pidSql}, {$datosSql}, {$creadoEn})");
+    return $db->affected_rows() > 0 ? (int)$db->insert_id() : 0;
 }
 
+/** Registra el inicio de ronda narrada y devuelve los uid de los seguidores cuyo evento es nuevo (para su aviso). */
 function op_bitacora_registrar_rondas_narradas($tid, $narradorUid, $pid, $fecha)
 {
     global $db;
@@ -206,18 +361,23 @@ function op_bitacora_registrar_rondas_narradas($tid, $narradorUid, $pid, $fecha)
     $narradorUid = (int)$narradorUid;
     $pid = (int)$pid;
     if ($tid <= 0 || $narradorUid <= 0 || $pid <= 0 || !$db->table_exists('op_bitacora_eventos')) {
-        return;
+        return array();
     }
 
     $query = $db->simple_select(
         'op_temas_seguidos',
-        'id',
+        'id,personaje_uid',
         "tid='{$tid}' AND narrador_uid='{$narradorUid}' AND personaje_uid!='{$narradorUid}'"
             . " AND ronda_inicio_pid<'{$pid}'"
     );
-    while ($seguimientoId = $db->fetch_field($query, 'id')) {
-        op_bitacora_registrar_evento(
-            (int)$seguimientoId,
+    $seguimientos = array();
+    while ($row = $db->fetch_array($query)) {
+        $seguimientos[] = $row;
+    }
+    $destinatarios = array();
+    foreach ($seguimientos as $row) {
+        $nuevo = op_bitacora_registrar_evento(
+            (int)$row['id'],
             'ronda_narrada_iniciada',
             $narradorUid,
             $narradorUid,
@@ -225,9 +385,14 @@ function op_bitacora_registrar_rondas_narradas($tid, $narradorUid, $pid, $fecha)
             null,
             $fecha
         );
+        if ($nuevo > 0) {
+            $destinatarios[] = (int)$row['personaje_uid'];
+        }
     }
+    return $destinatarios;
 }
 
+/** Registra la publicación en cada seguimiento del tema y devuelve los uid cuyo evento es nuevo (para su aviso). */
 function op_bitacora_registrar_actividad_post($tid, $autorUid, $pid, $fecha = null)
 {
     global $db;
@@ -236,17 +401,22 @@ function op_bitacora_registrar_actividad_post($tid, $autorUid, $pid, $fecha = nu
     $pid = (int)$pid;
     $fecha = $fecha === null ? TIME_NOW : (int)$fecha;
     if ($tid <= 0 || $autorUid <= 0 || $pid <= 0 || !$db->table_exists('op_bitacora_eventos')) {
-        return;
+        return array();
     }
 
     $query = $db->simple_select(
         'op_temas_seguidos',
-        'id',
+        'id,personaje_uid',
         "tid='{$tid}' AND personaje_uid!='{$autorUid}'"
     );
-    while ($seguimientoId = $db->fetch_field($query, 'id')) {
-        op_bitacora_registrar_evento(
-            (int)$seguimientoId,
+    $seguimientos = array();
+    while ($row = $db->fetch_array($query)) {
+        $seguimientos[] = $row;
+    }
+    $destinatarios = array();
+    foreach ($seguimientos as $row) {
+        $nuevo = op_bitacora_registrar_evento(
+            (int)$row['id'],
             'post_publicado',
             $autorUid,
             $autorUid,
@@ -254,7 +424,11 @@ function op_bitacora_registrar_actividad_post($tid, $autorUid, $pid, $fecha = nu
             null,
             $fecha
         );
+        if ($nuevo > 0) {
+            $destinatarios[] = (int)$row['personaje_uid'];
+        }
     }
+    return $destinatarios;
 }
 
 function op_bitacora_normalizar_ids($ids)
@@ -1191,11 +1365,24 @@ function op_bitacora_procesar_post($pid, $fechaActividad = null)
         );
     }
     op_bitacora_propagar_participante($tid, $uid);
-    op_bitacora_registrar_actividad_post($tid, $uid, $pid, $postFecha);
-    op_bitacora_registrar_rondas_narradas($tid, $uid, $pid, $postFecha);
+    $seguidores = op_bitacora_registrar_actividad_post($tid, $uid, $pid, $postFecha);
+    $narrados = op_bitacora_registrar_rondas_narradas($tid, $uid, $pid, $postFecha);
 
     $db->write_query('COMMIT');
     op_bitacora_invalidar_cache_header_tids(array($tid), $uid);
+
+    // Avisos fuera de la transacción: un fallo o un interbloqueo del aviso no puede revertir la publicación.
+    op_bitacora_notificar(array(
+        array('tipo' => 'bitacora_post', 'destinatarios' => $seguidores, 'tid' => $tid, 'actor' => $uid),
+        array(
+            'tipo' => 'bitacora_ronda_iniciada',
+            'destinatarios' => $narrados,
+            'tid' => $tid,
+            'actor' => $uid,
+            'clave' => 'bitacora:ronda:' . $pid,
+            'nombre_uid' => $uid,
+        ),
+    ));
 }
 
 function op_bitacora_agregar_tema($ownerUid, $tid, $estadoInicial)
@@ -1388,12 +1575,16 @@ function op_bitacora_retirar_participante($ownerUid, $seguimientoId, $participan
         "seguimiento_id='{$id}' AND participante_uid='{$participanteUid}'"
     );
     $actualizacion = array('actualizado_en' => TIME_NOW);
+    $aviso = null;
     if ((int)($seguimiento['narrador_uid'] ?? 0) === $participanteUid) {
         $actualizacion['narrador_uid'] = 0;
-        op_bitacora_registrar_evento($id, 'narrador_retirado', $ownerUid, $participanteUid);
+        $eventoId = op_bitacora_registrar_evento($id, 'narrador_retirado', $ownerUid, $participanteUid);
+        $aviso = op_bitacora_aviso_narrador('narrador_retirado', $eventoId, (int)$seguimiento['tid'], $ownerUid,
+            $participanteUid, array($participanteUid));
     }
     $db->update_query('op_temas_seguidos', $actualizacion, "id='{$id}'");
     $db->write_query('COMMIT');
+    op_bitacora_notificar($aviso ? array($aviso) : array());
 
     return array('ok' => true, 'code' => 'participante_retirado');
 }
@@ -1423,17 +1614,23 @@ function op_bitacora_establecer_narrador($ownerUid, $seguimientoId, $narradorUid
         'narrador_uid' => $narradorUid,
         'actualizado_en' => TIME_NOW,
     ), "id='{$id}'");
+    $aviso = null;
     if ($narradorAnterior !== $narradorUid) {
-        op_bitacora_registrar_evento(
+        $tipoEvento = $narradorAnterior > 0 ? 'narrador_cambiado' : 'narrador_asignado';
+        $eventoId = op_bitacora_registrar_evento(
             $id,
-            $narradorAnterior > 0 ? 'narrador_cambiado' : 'narrador_asignado',
+            $tipoEvento,
             $ownerUid,
             $narradorUid,
             null,
             $narradorAnterior > 0 ? json_encode(array('anterior_uid' => $narradorAnterior)) : null
         );
+        // Un cambio avisa al nuevo narrador y al anterior; una asignación, solo al nuevo.
+        $aviso = op_bitacora_aviso_narrador($tipoEvento, $eventoId, (int)$seguimiento['tid'], $ownerUid, $narradorUid,
+            $narradorAnterior > 0 ? array($narradorUid, $narradorAnterior) : array($narradorUid));
     }
     $db->write_query('COMMIT');
+    op_bitacora_notificar($aviso ? array($aviso) : array());
 
     return array('ok' => true, 'code' => 'narrador_actualizado');
 }
@@ -1453,7 +1650,10 @@ function op_bitacora_quitar_narrador($ownerUid, $seguimientoId)
         'actualizado_en' => TIME_NOW,
     ), "id='{$id}'");
     if ($narradorAnterior > 0) {
-        op_bitacora_registrar_evento($id, 'narrador_retirado', $ownerUid, $narradorAnterior);
+        $eventoId = op_bitacora_registrar_evento($id, 'narrador_retirado', $ownerUid, $narradorAnterior);
+        $aviso = op_bitacora_aviso_narrador('narrador_retirado', $eventoId, (int)$seguimiento['tid'], $ownerUid,
+            $narradorAnterior, array($narradorAnterior));
+        op_bitacora_notificar($aviso ? array($aviso) : array());
     }
 
     return array('ok' => true, 'code' => 'narrador_quitado');
