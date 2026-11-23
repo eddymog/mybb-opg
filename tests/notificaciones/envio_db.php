@@ -16,38 +16,63 @@ require __DIR__ . '/bootstrap_db.php';
 require_once MYBB_ROOT . 'inc/plugins/lib/notificaciones.php';
 
 const NT_BASE = 'opg_notif_n03';
-const NT_CONC_CLAVES = 40;
-const NT_CONC_GRUPO = 30;
+/** Iteraciones por proceso en cada escenario de concurrencia. */
+const NT_CONC_ITER = 150;
 
-// ── Proceso trabajador de la prueba de concurrencia ─────────────────────────────────────────────────────────────────
+// ── Proceso trabajador de las pruebas de concurrencia ───────────────────────────────────────────────────────────────
+
+/**
+ * Destinatarios y avisos de cada escenario. Cada iteracion es una "accion" de quien llama (tabla accion_conc), dentro de
+ * una transaccion: INSERT parte 1, uno o dos opg_notificar, INSERT parte 2, COMMIT. Si MySQL revirtiera la transaccion
+ * (interbloqueo), la parte 2 se confirmaria sola y el padre veria la accion a medias. El escenario agrupables_ac corre en
+ * autocommit (ver la nota de la seccion 7).
+ */
+function nt_escenario_avisos($esc, $proc, $k)
+{
+    $a = $proc === 'A';
+    switch ($esc) {
+        case 'distintos': // usuarios distintos, sin contador previo, uno por iteracion y proceso
+            return array(array(20000 + 2 * $k + ($a ? 0 : 1), 'aventura_denegada', array('clave' => "dist:$k")));
+        case 'mismo': // el mismo usuario sin contador previo: un aviso propio y otro comun a los dos procesos
+            return array(array(30000, 'aventura_denegada', array('clave' => "mismo:$proc:$k")),
+                array(30000, 'aventura_aprobada', array('clave' => "mismo:comun:$k")));
+        case 'solapados': // lotes que se solapan, pasados en ordenes opuestos; a menudo solo entra una parte
+            return array(array($a ? range(40000, 40011) : array_reverse(range(40006, 40017)), 'aventura_denegada', array('clave' => "sol:$k")));
+        case 'agrupables': // dos personas publican a la vez en el mismo tema: mismos destinatarios, sin contador previo
+            return array(array($a ? range(50000, 50007) : array_reverse(range(50000, 50007)), 'bitacora_post', array('agrupar_por' => 9)));
+        case 'agrupables_ac': // el mismo tema y, ademas, un tema propio para los mismos destinatarios (en autocommit)
+            $todos = $a ? range(51000, 51007) : array_reverse(range(51000, 51007));
+            return array(array($todos, 'bitacora_post', array('agrupar_por' => 9)), array($todos, 'bitacora_post', array('agrupar_por' => $a ? 10 : 11)));
+    }
+    return array();
+}
 
 if (isset($argv[1]) && $argv[1] === '--trabajador') {
+    list(, , $esc, $proc, $barrera) = $argv;
     $GLOBALS['nt_base'] = NT_BASE;
+    nt_estricto(false); // como MyBB con $hide_errors: los errores se ven en el resultado, no como excepciones
     $db = nt_conectar();
     nt_registro_iniciar();
-    $soy_a = $argv[2] === 'A';
-    // A envia a 100..105 y B a 102..107: los lotes se solapan y a menudo solo entra una parte de cada uno.
-    $uids = $soy_a ? range(100, 105) : range(102, 107);
-    while (!file_exists($argv[3])) {
+    $tx = $esc !== 'agrupables_ac';
+    while (!file_exists($barrera)) {
         usleep(200);
     }
     $nuevas = 0;
-    $errores = 0;
-    for ($k = 1; $k <= NT_CONC_CLAVES; $k++) {
-        $r = opg_notificar($uids, 'aventura_denegada', array('peticion_id' => $k), array('clave' => 'conc:' . $k, 'actor' => 1));
-        $r === false ? $errores++ : $nuevas += $r;
-    }
-    $grupo = 0;
-    // Mismo grupo (tid 9) para los dos y, entre medias, un grupo propio (A el 10, B el 11) con los mismos destinatarios:
-    // es el caso en que un ON DUPLICATE KEY UPDATE multifila se interbloquea.
-    $propio = $soy_a ? 10 : 11;
-    for ($k = 1; $k <= NT_CONC_GRUPO; $k++) {
-        foreach (array(9, $propio) as $tid) {
-            $r = opg_notificar(range(100, 107), 'bitacora_post', array('tid' => $tid), array('agrupar_por' => $tid, 'actor' => 1));
-            $r === false ? $errores++ : $grupo += $r;
+    $errores = array();
+    for ($k = 1; $k <= NT_CONC_ITER; $k++) {
+        $ok = (!$tx || $db->write_query('START TRANSACTION', 1) !== false)
+            && $db->write_query("INSERT INTO accion_conc (esc, proc, k, parte) VALUES ('$esc', '$proc', $k, 1)", 1) !== false;
+        foreach (nt_escenario_avisos($esc, $proc, $k) as $av) {
+            $r = opg_notificar($av[0], $av[1], array('tid' => 9), $av[2] + array('actor' => 1));
+            $r === false ? $errores[] = "k=$k opg_notificar false" : $nuevas += $r;
+        }
+        $ok = $ok && $db->write_query("INSERT INTO accion_conc (esc, proc, k, parte) VALUES ('$esc', '$proc', $k, 2)", 1) !== false;
+        $ok = (!$tx || $db->write_query('COMMIT', 1) !== false) && $ok;
+        if (!$ok) {
+            $errores[] = "k=$k SQL " . $db->error_number() . ' ' . $db->error_string();
         }
     }
-    echo json_encode(array('nuevas' => $nuevas, 'grupo' => $grupo, 'errores' => $errores, 'registro' => nt_registro_leer())), "\n";
+    echo json_encode(array('nuevas' => $nuevas, 'errores' => $errores, 'registro' => nt_registro_leer())), "\n";
     exit(0);
 }
 
@@ -113,11 +138,36 @@ nt_prueba('silenciosa: no crea nada', opg_notificar(3, 'aventura_aprobada', arra
 nt_prueba('silenciosa: ninguna fila', filas("uid = 3 AND clave_evento = 'x:2'"), 0);
 nt_prueba('destinatario 0: devuelve 0', opg_notificar(array(0), 'aventura_aprobada', array(), array('clave' => 'x:3')), 0);
 
-// El contador ausente se crea con TODAS las no leidas (por ejemplo filas migradas sin contador), incluida la nueva.
+// El contador ausente se crea con el aviso nuevo (upsert relativo, 208 apartado 5.2 corregido): no recuenta filas que ya
+// existieran sin contador (solo pasa con las migradas del Tablon, cuyo script reconcilia al terminar).
 nt_sql("INSERT INTO $N (uid, tipo, categoria, origen, importancia, clave_evento, created_at) VALUES (20, 'aventura_denegada', 'aventuras', 'gestion', 'importante', 'm:1', 1)");
-nt_sql("INSERT INTO $N (uid, tipo, categoria, origen, importancia, clave_evento, created_at, leida_en) VALUES (20, 'aventura_denegada', 'aventuras', 'gestion', 'importante', 'm:2', 1, 5)");
 opg_notificar(20, 'aventura_aprobada', array(), array('clave' => 'm:3'));
-nt_prueba('contador ausente: recuento de las no leidas mas la nueva (2, 1)', contador(20), array(2, 1));
+nt_prueba('contador ausente: se crea con el aviso nuevo (1, 0)', contador(20), array(1, 0));
+nt_prueba('contador ausente: actualizado = fecha de creacion', abs((int) nt_valor("SELECT actualizado FROM $C WHERE uid = 20") - time()) < 5, true);
+// Los envios no tocan `actualizado` (es la fecha de creacion o de la ultima reconciliacion).
+nt_sql("UPDATE $C SET actualizado = 12345 WHERE uid IN (10, 20)");
+opg_notificar(array(10, 20), 'aventura_denegada', array(), array('clave' => 'm:4'));
+nt_prueba('actualizado: el incremento no lo toca', array((int) nt_valor("SELECT actualizado FROM $C WHERE uid = 10"), (int) nt_valor("SELECT actualizado FROM $C WHERE uid = 20")), array(12345, 12345));
+nt_prueba('actualizado: pero si suma', array(contador(10), contador(20)), array(array(3, 2), array(2, 1)));
+nt_sql("DELETE FROM $N WHERE uid = 20 AND clave_evento = 'm:1'");
+
+// D7: la clave no distingue mayusculas (colacion _ci) y la misma clave con otro tipo se ignora y se registra.
+nt_registro_leer();
+opg_notificar(21, 'aventura_aprobada', array(), array('clave' => 'Caso:1'));
+nt_prueba('clave: otras mayusculas cuentan como la misma clave', opg_notificar(21, 'aventura_aprobada', array(), array('clave' => 'caso:1')), 0);
+nt_ok(strpos(nt_registro_leer(), 'Caso:1') !== false, 'clave: el conflicto de mayusculas se registra');
+nt_prueba('clave: la misma clave con otro tipo se ignora', opg_notificar(21, 'aventura_denegada', array(), array('clave' => 'Caso:1')), 0);
+nt_ok(strpos(nt_registro_leer(), 'aventura_aprobada') !== false, 'clave: el conflicto de tipo se registra');
+nt_prueba('clave: la fila original queda igual', nt_una("SELECT tipo, clave_evento FROM $N WHERE uid = 21"), array('tipo' => 'aventura_aprobada', 'clave_evento' => 'Caso:1'));
+nt_prueba('clave: agrupable con la clave de otro tipo no la toca', opg_notificar(21, 'bitacora_post', array(), array('clave' => 'Caso:1')), 0);
+nt_ok(strpos(nt_registro_leer(), 'otro tipo') !== false, 'clave: el conflicto del agrupable se registra');
+nt_prueba('clave: la fila de otro tipo sigue con cantidad 1', (int) nt_valor("SELECT cantidad FROM $N WHERE uid = 21"), 1);
+nt_prueba('clave: contador sin cambios', contador(21), array(1, 0));
+
+// D5: INF o NAN se descartan y se registran; el aviso se envia con el resto de los datos.
+nt_prueba('INF/NAN: el aviso se envia', opg_notificar(22, 'aventura_denegada', array('tier' => INF, 'dias' => NAN, 'actor' => 'Garp'), array('clave' => 'nan:1')), 1);
+nt_prueba('INF/NAN: datos guardados sin los no finitos', nt_valor("SELECT datos_json FROM $N WHERE uid = 22"), '{"actor":"Garp"}');
+nt_ok(strpos(nt_registro_leer(), 'no finito') !== false, 'INF/NAN: se registra');
 
 // ── 2. Lotes ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -309,54 +359,139 @@ nt_sql("RENAME TABLE mybb_op_contador_aparte TO $C");
 opg_notif_tablas_listas(true);
 nt_prueba('tablas de vuelta: funciona', opg_notificar(62, 'aventura_aprobada', array(), array('clave' => 'f:4')), 1);
 
-// ── 7. Concurrencia: dos procesos envian los mismos eventos a la vez ────────────────────────────────────────────────
+// ── 7. Concurrencia: dos procesos reales, dentro de transacciones ───────────────────────────────────────────────────
+//
+// Escenarios (NT_CONC_ITER acciones por proceso): usuarios distintos sin contador previo, el mismo usuario sin contador
+// previo, lotes parciales que se solapan pasados en ordenes opuestos, y agrupables del mismo tema. Se exige 0 errores,
+// 0 interbloqueos, 0 acciones a medias, que cada fila nueva la cuente un solo proceso y 0 desfases.
+//
+// Nota (riesgo de InnoDB que queda fuera del contador): si dos transacciones crean a la vez la MISMA fila agrupable nueva
+// y la que gano inserta despues, dentro de la misma transaccion, otra clave del mismo usuario que queda justo antes en el
+// indice unico, InnoDB las interbloquea (la insercion choca con el bloqueo que espera la otra). Medido: 1 de cada 150
+// acciones, solo en la primera. Por eso tema comun mas tema propio se prueba en autocommit (agrupables_ac).
 
-// Los contadores ya existen (con cero): asi la prueba mide el caso habitual, incremento relativo de filas nuevas.
-// (La creacion del contador desde cero se prueba arriba en un solo proceso; ver la nota del informe sobre ese caso.)
-nt_sql("INSERT INTO $C (uid, sin_leer, importantes, actualizado) SELECT 100 + n, 0, 0, 1 FROM (SELECT 0 n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3"
-    . ' UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7) x');
-$barrera = tempnam(sys_get_temp_dir(), 'opg_nt_barrera_');
-unlink($barrera);
-$procesos = array();
-foreach (array('A', 'B') as $nombre) {
-    $tuberias = array();
-    $p = proc_open(array(PHP_BINARY, __FILE__, '--trabajador', $nombre, $barrera), array(1 => array('pipe', 'w'), 2 => array('pipe', 'w')), $tuberias);
-    $procesos[$nombre] = array($p, $tuberias);
-}
-usleep(300000);
-touch($barrera);
-$res = array();
-foreach ($procesos as $nombre => $pr) {
-    $salida = stream_get_contents($pr[1][1]);
-    $errores = stream_get_contents($pr[1][2]);
-    proc_close($pr[0]);
-    $res[$nombre] = json_decode(trim($salida), true);
-    if (!is_array($res[$nombre])) {
-        echo "Trabajador $nombre sin respuesta valida: $salida $errores\n";
+nt_sql('CREATE TABLE accion_conc (esc VARCHAR(16) NOT NULL, proc CHAR(1) NOT NULL, k INT NOT NULL, parte TINYINT NOT NULL, PRIMARY KEY (esc, proc, k, parte)) ENGINE=InnoDB');
+
+/** Lanza los dos trabajadores del escenario a la vez y devuelve sus resultados. */
+function nt_concurrencia($esc)
+{
+    $barrera = tempnam(sys_get_temp_dir(), 'opg_nt_barrera_');
+    unlink($barrera);
+    $procesos = array();
+    foreach (array('A', 'B') as $proc) {
+        $tuberias = array();
+        $p = proc_open(array(PHP_BINARY, __FILE__, '--trabajador', $esc, $proc, $barrera), array(1 => array('pipe', 'w'), 2 => array('pipe', 'w')), $tuberias);
+        $procesos[$proc] = array($p, $tuberias);
     }
-}
-@unlink($barrera);
-$ra = $res['A'] ?: array('nuevas' => -1, 'grupo' => -1, 'errores' => -1, 'registro' => '');
-$rb = $res['B'] ?: array('nuevas' => -1, 'grupo' => -1, 'errores' => -1, 'registro' => '');
-nt_prueba('concurrencia: sin errores', array($ra['errores'], $rb['errores']), array(0, 0));
-nt_prueba('concurrencia: nada registrado', trim($ra['registro'] . $rb['registro']), '');
-nt_prueba('concurrencia: una fila por destinatario y clave (8 x 40)', filas("clave_evento LIKE 'conc:%'"), 8 * NT_CONC_CLAVES);
-nt_prueba('concurrencia: sin duplicados', (int) nt_valor("SELECT COUNT(*) FROM (SELECT uid, clave_evento FROM $N WHERE clave_evento LIKE 'conc:%' GROUP BY uid, clave_evento HAVING COUNT(*) > 1) d"), 0);
-nt_prueba('concurrencia: cada fila nueva la conto un solo proceso', $ra['nuevas'] + $rb['nuevas'], 8 * NT_CONC_CLAVES);
-nt_prueba('concurrencia agrupable: una fila por destinatario', filas("clave_evento = 'bitacora_post:9'"), 8);
-nt_prueba('concurrencia agrupable: filas de los grupos propios', filas("clave_evento IN ('bitacora_post:10', 'bitacora_post:11') AND cantidad = " . NT_CONC_GRUPO), 16);
-nt_prueba('concurrencia agrupable: cada fila nueva la conto un solo proceso', $ra['grupo'] + $rb['grupo'], 24);
-nt_prueba('concurrencia agrupable: cantidad = eventos de los dos', (int) nt_valor("SELECT MIN(cantidad) FROM $N WHERE clave_evento = 'bitacora_post:9'") . '/'
-    . (int) nt_valor("SELECT MAX(cantidad) FROM $N WHERE clave_evento = 'bitacora_post:9'"), (2 * NT_CONC_GRUPO) . '/' . (2 * NT_CONC_GRUPO));
-$desfases = array();
-for ($u = 100; $u <= 107; $u++) {
-    $real = nt_una("SELECT COUNT(*) AS n, COALESCE(SUM(importancia = 'importante'), 0) AS i FROM $N WHERE uid = $u AND leida_en IS NULL");
-    if (contador($u) !== array((int) $real['n'], (int) $real['i'])) {
-        $desfases[] = "$u: contador " . json_encode(contador($u)) . ' real ' . json_encode(array((int) $real['n'], (int) $real['i']));
+    usleep(300000);
+    touch($barrera);
+    $res = array();
+    foreach ($procesos as $proc => $pr) {
+        $salida = stream_get_contents($pr[1][1]);
+        $errores = stream_get_contents($pr[1][2]);
+        proc_close($pr[0]);
+        $r = json_decode(trim($salida), true);
+        $res[$proc] = is_array($r) ? $r : array('nuevas' => -1000, 'errores' => array("sin respuesta: $salida $errores"), 'registro' => '');
     }
+    @unlink($barrera);
+    return $res;
 }
-nt_prueba('concurrencia: contadores exactos (ni duplicados ni negativos)', $desfases, array());
-nt_prueba('concurrencia: contador de 100 = 40 importantes + 3 agrupadas', contador(100), array(NT_CONC_CLAVES + 3, NT_CONC_CLAVES));
+
+/** Compara cada contador del rango con el recuento real de sus filas no leidas. */
+function nt_desfases($desde, $hasta)
+{
+    global $N, $C;
+    $real = array();
+    foreach (nt_filas_todas("SELECT uid, COUNT(*) AS n, SUM(importancia = 'importante') AS i FROM $N WHERE uid BETWEEN $desde AND $hasta AND leida_en IS NULL GROUP BY uid") as $f) {
+        $real[(int) $f['uid']] = array((int) $f['n'], (int) $f['i']);
+    }
+    $cont = array();
+    foreach (nt_filas_todas("SELECT uid, sin_leer, importantes FROM $C WHERE uid BETWEEN $desde AND $hasta") as $f) {
+        $cont[(int) $f['uid']] = array((int) $f['sin_leer'], (int) $f['importantes']);
+    }
+    $mal = array();
+    foreach ($real + $cont as $uid => $x) {
+        $r = isset($real[$uid]) ? $real[$uid] : array(0, 0);
+        $c = isset($cont[$uid]) ? $cont[$uid] : array(0, 0);
+        if ($r !== $c) {
+            $mal[] = "$uid: contador " . json_encode($c) . ' real ' . json_encode($r);
+        }
+    }
+    return $mal;
+}
+function nt_filas_todas($sql)
+{
+    $r = nt_sql($sql);
+    $out = array();
+    while ($f = mysqli_fetch_assoc($r)) {
+        $out[] = $f;
+    }
+    return $out;
+}
+
+// Para el escenario de lotes parciales, algunos avisos ya existen antes (con su contador) para 40008 y 40014.
+for ($k = 3; $k <= NT_CONC_ITER; $k += 3) {
+    opg_notificar(array(40008, 40014), 'aventura_denegada', array('tid' => 9), array('clave' => "sol:$k", 'actor' => 1));
+}
+$previas_sol = filas('uid BETWEEN 40000 AND 40017');
+
+$rangos = array('distintos' => array(20000, 29999), 'mismo' => array(30000, 30000), 'solapados' => array(40000, 40017), 'agrupables' => array(50000, 50007),
+    'agrupables_ac' => array(51000, 51007));
+foreach ($rangos as $esc => $rango) {
+    $res = nt_concurrencia($esc);
+    $errores = array_merge($res['A']['errores'], $res['B']['errores']);
+    nt_prueba("concurrencia $esc: 0 errores e interbloqueos", array_slice($errores, 0, 3), array());
+    nt_prueba("concurrencia $esc: nada registrado", trim($res['A']['registro'] . $res['B']['registro']), '');
+    $medias = (int) nt_valor("SELECT COUNT(*) FROM (SELECT proc, k FROM accion_conc WHERE esc = '$esc' GROUP BY proc, k HAVING COUNT(*) <> 2) x");
+    $completas = (int) nt_valor("SELECT COUNT(*) FROM (SELECT proc, k FROM accion_conc WHERE esc = '$esc' GROUP BY proc, k HAVING COUNT(*) = 2) x");
+    nt_prueba("concurrencia $esc: 0 acciones a medias", $medias, 0);
+    nt_prueba("concurrencia $esc: todas las acciones completas", $completas, 2 * NT_CONC_ITER);
+    $filas = filas("uid BETWEEN {$rango[0]} AND {$rango[1]}") - ($esc === 'solapados' ? $previas_sol : 0);
+    nt_prueba("concurrencia $esc: cada fila nueva la conto un solo proceso", $res['A']['nuevas'] + $res['B']['nuevas'], $filas);
+    nt_prueba("concurrencia $esc: 0 desfases (sin_leer e importantes = COUNT real)", nt_desfases($rango[0], $rango[1]), array());
+}
+nt_prueba('concurrencia distintos: una fila y un contador por accion', array(filas('uid BETWEEN 20000 AND 29999'), (int) nt_valor("SELECT COUNT(*) FROM $C WHERE uid BETWEEN 20000 AND 29999")),
+    array(2 * NT_CONC_ITER, 2 * NT_CONC_ITER));
+nt_prueba('concurrencia mismo: avisos propios de los dos y comunes una vez', filas('uid = 30000'), 3 * NT_CONC_ITER);
+nt_prueba('concurrencia mismo: contador exacto', contador(30000), array(3 * NT_CONC_ITER, 2 * NT_CONC_ITER));
+nt_prueba('concurrencia solapados: una fila por destinatario y clave', filas("clave_evento LIKE 'sol:%'"), 18 * NT_CONC_ITER);
+nt_prueba('concurrencia solapados: sin duplicados',
+    (int) nt_valor("SELECT COUNT(*) FROM (SELECT uid, clave_evento FROM $N WHERE clave_evento LIKE 'sol:%' GROUP BY uid, clave_evento HAVING COUNT(*) > 1) d"), 0);
+nt_prueba('concurrencia agrupables: tema comun, una fila por destinatario con la cantidad de los dos',
+    nt_valor("SELECT CONCAT(COUNT(*), '/', MIN(cantidad), '/', MAX(cantidad)) FROM $N WHERE uid BETWEEN 50000 AND 50007 AND clave_evento = 'bitacora_post:9'"), '8/' . (2 * NT_CONC_ITER) . '/' . (2 * NT_CONC_ITER));
+nt_prueba('concurrencia agrupables: contador 1 por destinatario', contador(50003), array(1, 0));
+nt_prueba('concurrencia agrupables_ac: tema comun',
+    nt_valor("SELECT CONCAT(COUNT(*), '/', MIN(cantidad), '/', MAX(cantidad)) FROM $N WHERE uid BETWEEN 51000 AND 51007 AND clave_evento = 'bitacora_post:9'"), '8/' . (2 * NT_CONC_ITER) . '/' . (2 * NT_CONC_ITER));
+nt_prueba('concurrencia agrupables_ac: temas propios, una fila por destinatario',
+    nt_valor("SELECT CONCAT(COUNT(*), '/', MIN(cantidad), '/', MAX(cantidad)) FROM $N WHERE uid BETWEEN 51000 AND 51007 AND clave_evento IN ('bitacora_post:10', 'bitacora_post:11')"), '16/' . NT_CONC_ITER . '/' . NT_CONC_ITER);
+nt_prueba('concurrencia agrupables_ac: contador 3 por destinatario', contador(51003), array(3, 0));
+
+// ── 8. Una transaccion abierta que crea un contador no bloquea los envios a otros usuarios (requisito 36) ──────────
+
+$principal = $db;
+$principal->write_query('START TRANSACTION');
+nt_prueba('bloqueo: la transaccion abierta crea el contador de 60000', opg_notificar(60000, 'aventura_denegada', array(), array('clave' => 'bl:1')), 1);
+$otra = nt_conectar();
+$otra->write_query('SET SESSION innodb_lock_wait_timeout = 2');
+$GLOBALS['db'] = $otra;
+$t0 = microtime(true);
+$r1 = opg_notificar(60001, 'aventura_denegada', array(), array('clave' => 'bl:2'));
+$r2 = opg_notificar(array(59999, 60002, 60003), 'aventura_aprobada', array(), array('clave' => 'bl:3'));
+$r3 = opg_notificar(60005, 'bitacora_post', array('tid' => 9), array('agrupar_por' => 9));
+$espera = microtime(true) - $t0;
+$GLOBALS['db'] = $principal;
+nt_prueba('bloqueo: otra sesion envia a usuarios vecinos sin esperar', array($r1, $r2, $r3), array(1, 3, 1));
+nt_ok($espera < 1.0, 'bloqueo: los envios de la otra sesion no esperan a la transaccion (' . round($espera * 1000) . ' ms)');
+nt_prueba('bloqueo: nada registrado', nt_registro_leer(), '');
+$principal->write_query('ROLLBACK');
+$otra->close();
+
+// ── 9. Transaccion revertida que creo el contador: no deja ni la notificacion ni el contador ──────────────────────
+
+nt_prueba('revertida: no queda la notificacion', filas('uid = 60000'), 0);
+nt_prueba('revertida: no queda el contador', contador(60000), null);
+nt_prueba('revertida: lo enviado por la otra sesion se conserva', array(contador(60001), contador(59999), contador(60005)), array(array(1, 1), array(1, 0), array(1, 0)));
+nt_prueba('revertida: sin desfases en el rango', nt_desfases(59990, 60010), array());
 
 nt_borrar();
 nt_resumen('envio_db');

@@ -47,6 +47,7 @@ class DobleDb
     public $sentencias = array();
     public $responder;
     public $tablas = true;
+    public $comprobaciones = array();
     public $lanzar = false;
     public $ocultar = array();
     private $afectadas = 0;
@@ -55,8 +56,18 @@ class DobleDb
 
     public function query($sql, $hide_errors = 0, $write_query = 0)
     {
-        $this->sentencias[] = $sql;
         $this->ocultar[] = (int) $hide_errors;
+        if (strpos($sql, 'SELECT 1 FROM ') === 0) {
+            // Comprobacion de tablas de la libreria: no cuenta como sentencia de la prueba.
+            $this->comprobaciones[] = $sql;
+            $faltan = $this->tablas === false || (is_array($this->tablas) && !in_array('op_notificaciones_contador', $this->tablas, true));
+            if ($faltan) {
+                $this->error = 'tabla inexistente';
+                return false;
+            }
+            return new ArrayIterator(array());
+        }
+        $this->sentencias[] = $sql;
         if ($this->lanzar) {
             throw new RuntimeException('excepcion simulada de mysqli');
         }
@@ -87,7 +98,10 @@ class DobleDb
     public function affected_rows() { return $this->afectadas; }
     public function insert_id() { return $this->id; }
     public function error_string() { return $this->error; }
-    public function table_exists($t) { return is_array($this->tablas) ? in_array($t, $this->tablas, true) : $this->tablas; }
+    public function table_exists($t)
+    {
+        throw new RuntimeException('la libreria no debe usar table_exists() (en MyBB consulta sin ocultar errores)');
+    }
 }
 
 function doble_nuevo($responder = null)
@@ -98,6 +112,10 @@ function doble_nuevo($responder = null)
     opg_notif_tablas_listas(true);
     registro_leer();
     return $db;
+}
+function contadores($db)
+{
+    return array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'INSERT INTO `mybb_op_notificaciones_contador`') === 0; }));
 }
 function inserciones($db)
 {
@@ -189,11 +207,10 @@ esperar($d['tema'] === 'Aventura', 'tema: sin tid (aventura del Tablon) lo decid
 
 // ── 5. Envio: forma de las sentencias ───────────────────────────────────────────────────────────────────────────────
 
-// Lote de tres destinatarios, todos nuevos: una sola insercion multifila y un UPDATE relativo del contador.
+// Lote de tres destinatarios, todos nuevos: una sola insercion multifila y un upsert relativo del contador.
 $db = doble_nuevo(function ($sql) {
     if (stripos($sql, 'INSERT IGNORE') === 0) return array('afectadas' => 2, 'id' => 40);
-    if (stripos($sql, 'UPDATE') === 0) return array('afectadas' => 2);
-    return array();
+    return array('afectadas' => 2);
 });
 $r = opg_notificar(array(9, 4, 2, 4), 'aventura_denegada', array('peticion_id' => 5, 'actor' => "O'Neil"), array('clave' => 'aventura:5:denegada', 'actor' => 9, 'url' => 'op/x.php?a=1&amp;b=2'));
 esperar($r === 2, 'lote: devuelve las filas nuevas (sin el actor)');
@@ -205,71 +222,81 @@ esperar(isset($ins[0]) && strpos($ins[0], "O\\'Neil") !== false, 'lote: datos es
 esperar(isset($ins[0]) && strpos($ins[0], "'op/x.php?a=1&b=2'") !== false, 'lote: enlace guardado decodificado');
 esperar(isset($ins[0]) && strpos($ins[0], "'importante'") !== false && strpos($ins[0], "'gestion'") !== false && strpos($ins[0], "'aventuras'") !== false,
     'lote: categoria, origen e importancia copiados del catalogo');
-$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE `mybb_op_notificaciones_contador`') === 0; }));
-esperar(count($upd) === 1 && strpos($upd[0], 'sin_leer = sin_leer + 1') !== false && strpos($upd[0], 'importantes = importantes + 1') !== false
-    && strpos($upd[0], 'uid IN (2,4)') !== false, 'lote: contador con incremento relativo, importante +1, solo de los nuevos');
-esperar(!array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT') === 0 && strpos($s, 'contador') !== false; }),
-    'lote: no lee el contador antes de escribirlo');
+$cont = contadores($db);
+esperar(count($cont) === 1 && strpos($cont[0], 'VALUES (2, 1, 1, ') !== false && strpos($cont[0], '),(4, 1, 1, ') !== false
+    && strpos($cont[0], 'ON DUPLICATE KEY UPDATE sin_leer = sin_leer + 1, importantes = importantes + VALUES(importantes)') !== false,
+    'lote: un solo upsert relativo del contador, importante +1, solo de los nuevos y en orden de uid');
+esperar(isset($cont[0]) && strpos(substr($cont[0], strpos($cont[0], 'ON DUPLICATE')), 'actualizado') === false, 'lote: el upsert no toca actualizado');
+esperar(!array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE') === 0 || (stripos($s, 'SELECT') === 0 && strpos($s, 'contador') !== false); }),
+    'lote: ni UPDATE ni lectura del contador');
 esperar(!in_array(0, $db->ocultar, true), 'todas las consultas ocultan el error de MyBB (no detienen la pagina)');
 
 // Tipo normal (no importante): importantes + 0.
 $db = doble_nuevo(function ($sql) { return array('afectadas' => 1, 'id' => 3); });
 opg_notificar(5, 'aventura_aprobada', array(), array('clave' => 'k:1'));
-$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE') === 0; }));
-esperar(count($upd) === 1 && strpos($upd[0], 'importantes = importantes + 0') !== false && strpos($upd[0], 'uid IN (5)') !== false, 'normal: importantes + 0');
+$cont = contadores($db);
+esperar(count($cont) === 1 && strpos($cont[0], 'VALUES (5, 1, 0, ') !== false, 'normal: el contador se crea o sube con importantes + 0');
+esperar(count($db->sentencias) === 2, 'normal: un aviso cuesta un INSERT y un upsert del contador');
 $ins = inserciones($db);
 esperar(isset($ins[0]) && strpos($ins[0], ', NULL, 1, NULL, ') !== false, 'normal: sin enlace ni datos se guardan NULL');
 
-// Repetido: la insercion no afecta filas, el contador no se toca.
+// Repetido: la insercion no afecta filas; el contador no se toca; se busca un conflicto de tipo (sin encontrarlo).
 $db = doble_nuevo(function ($sql) { return array('afectadas' => 0, 'id' => 0); });
 esperar(opg_notificar(5, 'aventura_aprobada', array(), array('clave' => 'k:1')) === 0, 'repetido: devuelve 0');
-esperar(count($db->sentencias) === 1, 'repetido: solo la insercion, sin tocar el contador');
-
-// Contador ausente: se crea con un recuento que incluye la fila nueva.
+esperar(count(contadores($db)) === 0, 'repetido: sin tocar el contador');
+esperar(registro_leer() === '', 'repetido del mismo tipo: nada que registrar');
+// Repetido con la clave usada por otro tipo o con otras mayusculas: se registra el conflicto.
 $db = doble_nuevo(function ($sql) {
-    if (stripos($sql, 'INSERT IGNORE') === 0) return array('afectadas' => 1, 'id' => 8);
+    if (stripos($sql, 'SELECT uid, tipo') === 0) return array('filas' => array(array('uid' => 5, 'tipo' => 'aventura_denegada', 'clave_evento' => 'K:1')));
     return array('afectadas' => 0);
 });
-esperar(opg_notificar(5, 'aventura_aprobada', array(), array('clave' => 'k:2')) === 1, 'contador ausente: devuelve 1');
-$crear = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'INSERT INTO `mybb_op_notificaciones_contador`') === 0; }));
-esperar(count($crear) === 1 && strpos($crear[0], 'COUNT(*)') !== false && strpos($crear[0], 'leida_en IS NULL') !== false
-    && strpos($crear[0], 'ON DUPLICATE KEY UPDATE') !== false, 'contador ausente: INSERT ... SELECT COUNT(*) de las no leidas');
+esperar(opg_notificar(5, 'aventura_aprobada', array(), array('clave' => 'k:1')) === 0, 'conflicto: devuelve 0');
+$sel = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT uid, tipo') === 0; }));
+esperar(count($sel) === 1 && strpos($sel[0], "tipo <> 'aventura_aprobada'") !== false && strpos($sel[0], 'BINARY') !== false, 'conflicto: busca otro tipo u otras mayusculas');
+esperar(strpos(registro_leer(), 'aventura_denegada') !== false, 'conflicto: se registra');
 
 // Lote parcial: se identifican las nuevas por clave y por id desde el primero insertado.
 $db = doble_nuevo(function ($sql) {
     if (stripos($sql, 'INSERT IGNORE') === 0) return array('afectadas' => 1, 'id' => 50);
     if (stripos($sql, 'SELECT @@') === 0) return array('filas' => array(array('modo' => 1)));
-    if (stripos($sql, 'SELECT') === 0) return array('filas' => array(array('id' => 50, 'uid' => 6)));
-    if (stripos($sql, 'UPDATE') === 0) return array('afectadas' => 1);
-    return array();
+    if (stripos($sql, 'SELECT id, uid') === 0) return array('filas' => array(array('id' => 50, 'uid' => 6)));
+    return array('afectadas' => 1);
 });
 esperar(opg_notificar(array(3, 6), 'aventura_aprobada', array(), array('clave' => 'k:3')) === 1, 'lote parcial: devuelve 1');
 $sel = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT id, uid') === 0; }));
-esperar(count($sel) === 1 && strpos($sel[0], "clave_evento = 'k:3'") !== false && strpos($sel[0], 'id >= 50') !== false && strpos($sel[0], 'LIMIT 1') !== false,
-    'lote parcial: consulta por clave, id >= primer id insertado, limite = filas insertadas');
-$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE') === 0; }));
-esperar(count($upd) === 1 && strpos($upd[0], 'uid IN (6)') !== false, 'lote parcial: el contador sube solo para la nueva');
+esperar(count($sel) === 1 && strpos($sel[0], "clave_evento = 'k:3'") !== false && strpos($sel[0], 'id >= 50') !== false
+    && strpos($sel[0], 'ORDER BY id LIMIT 1') !== false, 'lote parcial: consulta por clave, id >= primer id, de menor a mayor, limite = insertadas');
+$cont = contadores($db);
+esperar(count($cont) === 1 && strpos($cont[0], 'VALUES (6, 1, 0, ') !== false && strpos($cont[0], '(3,') === false, 'lote parcial: el contador sube solo para la nueva');
+$sel = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT uid, tipo') === 0; }));
+esperar(count($sel) === 1 && strpos($sel[0], 'uid IN (3)') !== false, 'lote parcial: el conflicto se busca solo entre las ignoradas');
 
 // Agrupable: ON DUPLICATE KEY UPDATE en una sentencia; 2 filas afectadas = actualizada, no suma al contador.
 $db = doble_nuevo(function ($sql) { return array('afectadas' => 2, 'id' => 1); });
 esperar(opg_notificar(5, 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7, 'actor' => 3)) === 0, 'agrupable actualizada: devuelve 0');
 esperar(count($db->sentencias) === 1, 'agrupable actualizada: una sola sentencia');
-esperar(strpos($db->sentencias[0], 'ON DUPLICATE KEY UPDATE cantidad = cantidad + 1') !== false && strpos($db->sentencias[0], 'actor_uid = VALUES(actor_uid)') !== false
-    && strpos($db->sentencias[0], 'created_at = VALUES(created_at)') !== false && strpos($db->sentencias[0], "'bitacora_post:7'") !== false,
-    'agrupable: suma cantidad, guarda el ultimo actor y renueva la fecha');
+esperar(strpos($db->sentencias[0], 'cantidad = IF(tipo = VALUES(tipo), cantidad + 1, cantidad)') !== false
+    && strpos($db->sentencias[0], 'actor_uid = IF(tipo = VALUES(tipo), VALUES(actor_uid), actor_uid)') !== false
+    && strpos($db->sentencias[0], 'created_at = IF(tipo = VALUES(tipo), VALUES(created_at), created_at)') !== false
+    && strpos($db->sentencias[0], "'bitacora_post:7'") !== false, 'agrupable: suma cantidad, guarda el ultimo actor y renueva la fecha (si es del mismo tipo)');
+$db = doble_nuevo(function ($sql) { return array('afectadas' => 0, 'id' => 1); });
+esperar(opg_notificar(5, 'bitacora_post', array('tid' => 7), array('clave' => 'k:1')) === 0, 'agrupable con clave de otro tipo: no cuenta');
+esperar(strpos(registro_leer(), 'otro tipo') !== false, 'agrupable con clave de otro tipo: se registra');
 $db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => 1, 'id' => 9) : array('afectadas' => 1); });
-esperar(opg_notificar(5, 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'agrupable insertada: devuelve 1 y sube el contador');
+esperar(opg_notificar(5, 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'agrupable insertada: devuelve 1');
+esperar(count(contadores($db)) === 1, 'agrupable insertada: sube el contador');
 // Lote agrupable de 3 destinatarios: una sentencia atomica por destinatario (la multifila se interbloquea, ver la
 // libreria); el de en medio es nuevo (1 fila afectada) y los otros suman (2). El contador: una sentencia, solo el nuevo.
 $db = doble_nuevo(function ($sql) {
-    if (stripos($sql, 'INSERT') === 0) return array('afectadas' => strpos($sql, 'VALUES (2,') !== false ? 1 : 2, 'id' => 70);
+    if (strpos($sql, 'op_notificaciones` (') !== false) return array('afectadas' => strpos($sql, 'VALUES (2,') !== false ? 1 : 2, 'id' => 70);
     return array('afectadas' => 1);
 });
-esperar(opg_notificar(array(1, 2, 3), 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'lote agrupable: 1 nueva');
+esperar(opg_notificar(array(3, 2, 1), 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'lote agrupable: 1 nueva');
 $ins = inserciones($db);
 esperar(count($ins) === 3 && substr_count(implode('', $ins), '),(') === 0, 'lote agrupable: una sentencia de una fila por destinatario');
-$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE `mybb_op_notificaciones_contador`') === 0; }));
-esperar(count($upd) === 1 && strpos($upd[0], 'uid IN (2)') !== false, 'lote agrupable: un solo UPDATE del contador, solo del nuevo');
+esperar(count($ins) === 3 && strpos($ins[0], 'VALUES (1,') !== false && strpos($ins[2], 'VALUES (3,') !== false, 'lote agrupable: en orden de uid');
+$cont = contadores($db);
+esperar(count($cont) === 1 && strpos($cont[0], 'VALUES (2, 1, 0, ') !== false && substr_count($cont[0], '),(') === 0, 'lote agrupable: un solo upsert del contador, solo del nuevo');
 esperar(!array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT') === 0; }), 'lote agrupable: no necesita consultas de identificacion');
 // affected_rows imposible: se registra y ese destinatario no suma al contador.
 $db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => 3, 'id' => 1) : array('afectadas' => 1); });
@@ -278,18 +305,18 @@ esperar(strpos(registro_leer(), 'inesperadas') !== false, 'agrupable: affected_r
 esperar(count($db->sentencias) === 2, 'agrupable: affected_rows fuera de rango no toca el contador');
 // Error a mitad de un lote agrupable: las filas ya creadas suben su contador y se devuelve false.
 $db = doble_nuevo(function ($sql) {
-    if (stripos($sql, 'INSERT') === 0) return strpos($sql, 'VALUES (2,') !== false ? false : array('afectadas' => 1, 'id' => 1);
+    if (strpos($sql, 'op_notificaciones` (') !== false) return strpos($sql, 'VALUES (2,') !== false ? false : array('afectadas' => 1, 'id' => 1);
     return array('afectadas' => 1);
 });
 esperar(opg_notificar(array(1, 2, 3), 'bitacora_post', array(), array('agrupar_por' => 7)) === false, 'agrupable: error a mitad devuelve false');
-$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE') === 0; }));
-esperar(count($upd) === 1 && strpos($upd[0], 'uid IN (1)') !== false, 'agrupable: error a mitad, la fila ya creada lleva su contador');
+$cont = contadores($db);
+esperar(count($cont) === 1 && strpos($cont[0], 'VALUES (1, 1, 0, ') !== false && substr_count($cont[0], '),(') === 0, 'agrupable: error a mitad, la fila ya creada lleva su contador');
 esperar(strpos(registro_leer(), 'error simulado') !== false, 'agrupable: error a mitad se registra');
 
 // Lotes grandes: bloques de 200.
-$db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => substr_count($sql, '),(') + 1, 'id' => 1) : array('afectadas' => substr_count($sql, ',') + 1); });
+$db = doble_nuevo(function ($sql) { return array('afectadas' => substr_count($sql, '),(') + 1, 'id' => 1); });
 esperar(opg_notificar(range(1, 450), 'aventura_aprobada', array(), array('clave' => 'k:9')) === 450, 'lote grande: cuenta todas');
-esperar(count(inserciones($db)) === 3, 'lote grande: bloques de 200 (3 inserciones para 450)');
+esperar(count(inserciones($db)) === 3 && count(contadores($db)) === 3, 'lote grande: bloques de 200 (3 inserciones y 3 upserts para 450)');
 
 // ── 6. Errores y casos limite ───────────────────────────────────────────────────────────────────────────────────────
 
@@ -336,9 +363,26 @@ esperar(opg_notificar(3, 'aventura_aprobada', array(), array('clave' => 'k')) ==
 esperar(strpos(registro_leer(), 'error simulado') !== false, 'error SQL al insertar: se registra el mensaje de MySQL');
 
 // Error al actualizar el contador: false y registro.
-$db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => 1, 'id' => 1) : false; });
+$db = doble_nuevo(function ($sql) { return strpos($sql, 'contador') === false ? array('afectadas' => 1, 'id' => 1) : false; });
 esperar(opg_notificar(3, 'aventura_aprobada', array(), array('clave' => 'k')) === false, 'error SQL en el contador: false');
-esperar(registro_leer() !== '', 'error SQL en el contador: se registra');
+esperar(strpos(registro_leer(), 'error simulado') !== false, 'error SQL en el contador: se registra');
+
+// D5: INF o NAN se descartan (solo ese valor) y se registran; el resto de los datos se guarda.
+$db = doble_nuevo(function ($sql) { return array('afectadas' => 1, 'id' => 1); });
+esperar(opg_notificar(3, 'aventura_aprobada', array('tier' => INF, 'dias' => NAN, 'actor' => 'Garp'), array('clave' => 'k')) === 1, 'INF/NAN: el aviso se envia');
+$ins = inserciones($db);
+esperar(isset($ins[0]) && strpos($ins[0], 'Garp') !== false && strpos($ins[0], 'tier') === false && strpos($ins[0], 'dias') === false, 'INF/NAN: se guardan los demas datos');
+$reg = registro_leer();
+esperar(strpos($reg, "'tier'") !== false && strpos($reg, "'dias'") !== false && strpos($reg, 'no finito') !== false, 'INF/NAN: se registra cada valor descartado');
+esperar(opg_notif_datos_json(array('x' => NAN)) === false && strpos(registro_leer(), 'no se pudo codificar') !== false,
+    'datos_json: si json_encode falla devuelve false y lo registra (no guarda los datos vacios en silencio)');
+
+// D4: la comprobacion de tablas no usa table_exists() (el doble lanza si se llama) y oculta el error de MyBB.
+$db = doble_nuevo(function ($sql) { return array('afectadas' => 1, 'id' => 1); });
+esperar(opg_notif_tablas_listas(true) === true && count($db->comprobaciones) === 2 && !in_array(0, $db->ocultar, true),
+    'tablas: una consulta propia con hide_errors');
+esperar(strpos($db->comprobaciones[0], 'LIMIT 0') !== false && strpos($db->comprobaciones[0], '`mybb_op_notificaciones`') !== false
+    && strpos($db->comprobaciones[0], '`mybb_op_notificaciones_contador`') !== false, 'tablas: comprueba las dos tablas sin leer filas');
 
 // mysqli en modo estricto (PHP 8.1+) lanza excepciones: se capturan.
 $db = doble_nuevo();

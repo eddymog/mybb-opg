@@ -72,7 +72,12 @@ function opg_notif_log($mensaje)
 
 /**
  * Indica si existen las dos tablas (despliegue a medias: requisito 37). Se comprueba una vez por peticion;
- * $reiniciar = true vuelve a mirar (lo usan las pruebas). Si el $db no sabe comprobarlo (dobles de pruebas), se supone que si.
+ * $reiniciar = true vuelve a mirar (lo usan las pruebas).
+ *
+ * No se usa $db->table_exists(): en inc/db_mysqli.php llama a get_version() y a query() SIN ocultar errores, y con la
+ * conexion caida (y mysqli sin excepciones) MyBB mostraria su error SQL y terminaria la pagina. En su lugar se lanza una
+ * sola consulta propia por write_query(..., 1), que no devuelve filas (LIMIT 0) y falla con el error 1146 si falta
+ * cualquiera de las dos tablas; cualquier fallo (o excepcion de mysqli en modo estricto) se toma como "no estan".
  */
 function opg_notif_tablas_listas($reiniciar = false)
 {
@@ -86,8 +91,8 @@ function opg_notif_tablas_listas($reiniciar = false)
             return false;
         }
         try {
-            $listas = !method_exists($db, 'table_exists')
-                || ((bool) $db->table_exists('op_notificaciones') && (bool) $db->table_exists('op_notificaciones_contador'));
+            $listas = $db->write_query('SELECT 1 FROM ' . opg_notif_t('op_notificaciones') . ', ' . opg_notif_t('op_notificaciones_contador')
+                . ' LIMIT 0', 1) !== false;
         } catch (Throwable $e) {
             $listas = false;
         }
@@ -95,15 +100,33 @@ function opg_notif_tablas_listas($reiniciar = false)
     return $listas;
 }
 
-/** Ejecuta una consulta por la conexion de escritura. Si falla, lanza RuntimeException (la captura quien la llama). */
+/**
+ * Ejecuta una consulta por la conexion de escritura. Si falla, lanza RuntimeException con el numero y el mensaje de MySQL
+ * (la captura opg_notificar). Ante un interbloqueo (1213) el mensaje avisa de que MySQL revirtio la transaccion entera de
+ * quien llama, si tenia una abierta.
+ */
 function opg_notif_w($sql)
 {
     global $db;
     $r = $db->write_query($sql, 1);
     if ($r === false) {
-        throw new RuntimeException('error SQL: ' . (method_exists($db, 'error_string') ? $db->error_string() : '?'));
+        $numero = method_exists($db, 'error_number') ? (int) $db->error_number() : 0;
+        throw new RuntimeException('error SQL ' . $numero . ': ' . (method_exists($db, 'error_string') ? $db->error_string() : '?'), $numero);
     }
     return $r;
+}
+
+/** Texto para el registro de una excepcion; marca los errores que revierten o pueden revertir la transaccion de quien llama. */
+function opg_notif_mensaje_error($e)
+{
+    $codigo = (int) $e->getCode();
+    $extra = '';
+    if ($codigo === 1213) {
+        $extra = ' (interbloqueo: MySQL revirtio la transaccion de quien llama, si habia una abierta)';
+    } elseif ($codigo === 1205) {
+        $extra = ' (espera de bloqueo agotada: se revirtio la sentencia; la transaccion de quien llama sigue abierta)';
+    }
+    return $e->getMessage() . $extra;
 }
 
 /** Todas las filas de una consulta (por la conexion de escritura). */
@@ -175,6 +198,12 @@ function opg_notif_normalizar_destinatarios($destinatarios, $actor = 0, $incluir
  *   deja sitio al sufijo ":leida:ID" con el que "marcar como vista" libera la clave (208, apartado 5.4), y no puede
  *   contener ese sufijo.
  * Solo se admiten letras, numeros y "_ . : -": la clave nunca necesita escaparse, aunque se escapa igual.
+ *
+ * Como se compara: la unicidad es la del indice (uid, clave_evento), con la colacion de la tabla (utf8mb4_unicode_ci),
+ * asi que NO distingue mayusculas: "Caso:1" y "caso:1" son la misma clave. Y la clave no incluye el tipo: si ya existe
+ * una fila con esa clave para ese destinatario, el aviso nuevo se ignora aunque sea de otro tipo (en un agrupable, la
+ * fila de otro tipo no se toca). Esos conflictos se registran con error_log (ver opg_notif_envio_conflictos). Para
+ * evitarlos, la clave empieza por el modulo o el tipo y lleva el id del objeto ("entrega:812:entregada").
  */
 function opg_notif_clave_evento($tipo, $def, $opciones)
 {
@@ -249,6 +278,11 @@ function opg_notif_preparar_datos($datos)
         if (is_bool($valor)) {
             $valor = $valor ? 1 : 0;
         }
+        if (is_float($valor) && !is_finite($valor)) {
+            // json_encode no sabe codificar INF ni NAN: se descarta ese valor (y solo ese) y se registra.
+            opg_notif_log("dato '$clave' descartado: numero no finito");
+            continue;
+        }
         if (is_int($valor) || is_float($valor)) {
             $limpios[$clave] = $valor;
             continue;
@@ -271,14 +305,21 @@ function opg_notif_preparar_datos($datos)
     return $limpios;
 }
 
-/** JSON de los datos (sin escapar unicode; UTF-8 roto se sustituye), o null si no hay datos. */
+/**
+ * JSON de los datos (sin escapar unicode; UTF-8 roto se sustituye), null si no hay datos, o false si json_encode no pudo
+ * codificarlos (se registra el motivo y el aviso no se envia: nunca se guardan los datos vacios en silencio).
+ */
 function opg_notif_datos_json($datos)
 {
     if (!$datos) {
         return null;
     }
     $json = json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-    return is_string($json) ? $json : null;
+    if (!is_string($json)) {
+        opg_notif_log('datos_json no se pudo codificar: ' . json_last_error_msg());
+        return false;
+    }
+    return $json;
 }
 
 // ── 2.2 Datos que dependen de la base ───────────────────────────────────────────────────────────────────────────────
@@ -337,8 +378,8 @@ function opg_notif_preparar_datos_envio($datos, $opciones)
  * Devuelve cuantas notificaciones nuevas creo (int; una agrupable que solo sumo un evento no cuenta) o false si hubo un
  * error, que queda registrado. Nunca lanza excepciones. Con las tablas ausentes devuelve false sin registrar nada.
  *
- * Contador: sube solo por las filas realmente nuevas, con sentencias relativas (sin_leer = sin_leer + 1), sin leer antes
- * de escribir. Si el contador del destinatario no existe, se crea con un recuento que ya incluye el aviso nuevo.
+ * Contador: sube solo por las filas realmente nuevas, con un unico INSERT ... ON DUPLICATE KEY UPDATE relativo por bloque
+ * (sin_leer = sin_leer + 1), sin leer antes de escribir: crea la fila con 1 si no existe (ver opg_notif_envio_contador).
  */
 function opg_notificar($destinatarios, $tipo, $datos = array(), $opciones = array())
 {
@@ -380,6 +421,9 @@ function opg_notificar($destinatarios, $tipo, $datos = array(), $opciones = arra
             }
         }
         $json = opg_notif_datos_json(opg_notif_preparar_datos_envio($datos, $opciones));
+        if ($json === false) {
+            return false;
+        }
         $imp = $def['importancia'] === 'importante' ? 1 : 0;
         $ahora = opg_notif_ahora();
 
@@ -393,7 +437,7 @@ function opg_notificar($destinatarios, $tipo, $datos = array(), $opciones = arra
         }
         return $nuevas;
     } catch (Throwable $e) {
-        opg_notif_log('opg_notificar(' . (is_string($tipo) ? $tipo : '?') . '): ' . $e->getMessage());
+        opg_notif_log('opg_notificar(' . (is_string($tipo) ? $tipo : '?') . '): ' . opg_notif_mensaje_error($e));
         return false;
     }
 }
@@ -409,6 +453,14 @@ function opg_notificar($destinatarios, $tipo, $datos = array(), $opciones = arra
  *   la vez en grupos vecinos (por ejemplo dos temas con los mismos seguidores), InnoDB la interbloquea (medido en
  *   MySQL 5.7: varios interbloqueos cada 400 sentencias; la de una fila, ninguno), y un interbloqueo revierte la
  *   transaccion entera de quien llama. El incremento del contador sigue siendo una sola sentencia para todo el bloque.
+ *   Si la fila existente con esa clave es de OTRO tipo, el IF(tipo = VALUES(tipo), ...) la deja intacta (0 filas
+ *   afectadas) y se registra el conflicto.
+ * Los uid llegan ordenados de menor a mayor, asi que todas las sentencias bloquean las filas en el mismo orden.
+ *
+ * Riesgo que queda (propio de InnoDB, no del contador): si dos transacciones abiertas crean a la vez la MISMA fila nueva
+ * (misma clave y destinatario) y la que gana inserta despues, en esa misma transaccion, otra clave del mismo destinatario
+ * que queda justo antes en el indice unico, InnoDB interbloquea las dos. Medido en pruebas: 1 de cada 150 acciones, solo
+ * al crear el grupo. Se registra con el aviso de transaccion revertida (opg_notif_mensaje_error).
  */
 function opg_notif_envio_insertar($uids, $tipo, $def, $actor, $clave, $url, $json, $ahora)
 {
@@ -424,11 +476,15 @@ function opg_notif_envio_insertar($uids, $tipo, $def, $actor, $clave, $url, $jso
         try {
             foreach ($uids as $uid) {
                 opg_notif_w('INSERT INTO ' . opg_notif_t('op_notificaciones') . $columnas . '(' . (int) $uid . ', ' . $fijo . ')'
-                    . ' ON DUPLICATE KEY UPDATE cantidad = cantidad + 1, actor_uid = VALUES(actor_uid), url = VALUES(url),'
-                    . ' datos_json = VALUES(datos_json), created_at = VALUES(created_at)');
+                    . ' ON DUPLICATE KEY UPDATE cantidad = IF(tipo = VALUES(tipo), cantidad + 1, cantidad),'
+                    . ' actor_uid = IF(tipo = VALUES(tipo), VALUES(actor_uid), actor_uid), url = IF(tipo = VALUES(tipo), VALUES(url), url),'
+                    . ' datos_json = IF(tipo = VALUES(tipo), VALUES(datos_json), datos_json),'
+                    . ' created_at = IF(tipo = VALUES(tipo), VALUES(created_at), created_at)');
                 $afectadas = (int) $db->affected_rows();
                 if ($afectadas === 1) {
                     $nuevos[] = (int) $uid;
+                } elseif ($afectadas === 0) {
+                    opg_notif_log("opg_notificar($tipo): la clave $clave del uid $uid ya la usa un aviso de otro tipo; el evento se ignora");
                 } elseif ($afectadas !== 2) {
                     opg_notif_log("opg_notificar($tipo): filas afectadas inesperadas ($afectadas) para el uid $uid; su contador no se toca");
                 }
@@ -453,14 +509,39 @@ function opg_notif_envio_insertar($uids, $tipo, $def, $actor, $clave, $url, $jso
     if ($insertadas < 0 || $insertadas > $n) {
         throw new RuntimeException("filas afectadas inesperadas ($insertadas para $n destinatarios); el contador no se toca");
     }
-    if ($insertadas === 0) {
-        return array();
-    }
     if ($insertadas === $n) {
         return $uids;
     }
-    $primer_id = method_exists($db, 'insert_id') ? (int) $db->insert_id() : 0;
-    return opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id);
+    $nuevos = array();
+    if ($insertadas > 0) {
+        $primer_id = method_exists($db, 'insert_id') ? (int) $db->insert_id() : 0;
+        $nuevos = opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id);
+    }
+    opg_notif_envio_conflictos(array_values(array_diff($uids, $nuevos)), $tipo, $clave);
+    return $nuevos;
+}
+
+/**
+ * (Privada del envio.) Solo cuando se ignoraron filas (la clave ya existia): busca si la fila existente es de otro tipo
+ * o tiene la clave con otras mayusculas y, si es asi, lo registra. Una consulta por el indice unico, sin bloqueos, que no
+ * se ejecuta en el caso normal (todas las filas nuevas). Nunca hace fallar el envio.
+ */
+function opg_notif_envio_conflictos($ignorados, $tipo, $clave)
+{
+    if (!$ignorados) {
+        return;
+    }
+    try {
+        $filas = opg_notif_filas('SELECT uid, tipo, clave_evento FROM ' . opg_notif_t('op_notificaciones') . ' WHERE clave_evento = '
+            . opg_notif_sql_texto($clave) . ' AND uid IN (' . implode(',', array_map('intval', $ignorados)) . ') AND (tipo <> '
+            . opg_notif_sql_texto($tipo) . ' OR BINARY clave_evento <> BINARY ' . opg_notif_sql_texto($clave) . ') LIMIT 5');
+    } catch (Throwable $e) {
+        return;
+    }
+    foreach ($filas as $f) {
+        opg_notif_log("opg_notificar($tipo): la clave $clave del uid " . (int) $f['uid'] . ' ya existe como ' . $f['clave_evento']
+            . ' (tipo ' . $f['tipo'] . '); el aviso nuevo se ignora');
+    }
 }
 
 /**
@@ -475,11 +556,12 @@ function opg_notif_envio_insertar($uids, $tipo, $def, $actor, $clave, $url, $jso
  * inserto de verdad. Cualquier otra fila con la misma clave y uno de estos destinatarios tiene un id menor (de una
  * sentencia anterior) o mayor que todos los de este bloque (de una posterior). Por eso las nuevas son exactamente las
  * $insertadas filas de menor id con id >= primer_id. Con el modo 2 (intercalado) el resultado puede no ser exacto bajo
- * concurrencia: se registra un aviso y el desfase lo corrige la reconciliacion del contador.
+ * concurrencia: se registra un aviso (una vez por peticion) y el desfase lo corrige la reconciliacion del contador.
  */
 function opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id)
 {
     static $modo = null;
+    static $avisado = false;
     if ($modo === null) {
         try {
             $f = opg_notif_filas('SELECT @@innodb_autoinc_lock_mode AS modo');
@@ -488,7 +570,8 @@ function opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id)
             $modo = -1;
         }
     }
-    if ($modo !== 0 && $modo !== 1) {
+    if ($modo !== 0 && $modo !== 1 && !$avisado) {
+        $avisado = true;
         opg_notif_log("innodb_autoinc_lock_mode = $modo: las filas nuevas de un lote parcial se identifican de forma aproximada");
     }
     $filas = opg_notif_filas('SELECT id, uid FROM ' . opg_notif_t('op_notificaciones') . ' WHERE clave_evento = ' . opg_notif_sql_texto($clave)
@@ -506,46 +589,32 @@ function opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id)
 }
 
 /**
- * (Privada del envio.) Suma un aviso al contador de cada uid (todos reciben el mismo tipo, asi que el incremento es igual):
- * una sola sentencia relativa, sin leer antes (requisito 36). Los uid sin fila de contador se crean con un recuento de
- * sus no leidas, que ya incluye el aviso recien insertado (208, apartado 5.2).
+ * (Privada del envio.) Suma un aviso al contador de cada uid con UNA sola sentencia relativa para todo el bloque
+ * (requisito 36, 208 apartado 5.2):
  *
- * Caso limite conocido: solo cuando el destinatario aun NO tiene contador y, en el mismo instante, otro proceso le crea
- * otro aviso distinto, el recuento puede incluir la fila del otro antes de que este sume la suya (el contador queda uno
- * por encima). No hay forma exacta sin abrir una transaccion propia (que confirmaria la de quien llama); lo corrige la
- * reconciliacion del contador (opg_notif_reconciliar, issue #4). Con el contador ya creado, todo es exacto.
+ *   INSERT INTO contador (uid, sin_leer, importantes, actualizado) VALUES (u1, 1, imp, ahora), (u2, 1, imp, ahora)...
+ *   ON DUPLICATE KEY UPDATE sin_leer = sin_leer + 1, importantes = importantes + VALUES(importantes)
+ *
+ * Si el contador no existe se crea con este aviso (1) y, si existe, se incrementa; nunca se lee antes. Cada uid aparece
+ * una vez (todos reciben el mismo tipo, asi que el incremento es igual) y la lista va ordenada de menor a mayor, para que
+ * dos lotes que se solapan bloqueen las filas en el mismo orden y no se interbloqueen.
+ *
+ * No se usa UPDATE seguido de INSERT ... SELECT COUNT(*): el UPDATE que no encuentra fila deja un bloqueo de hueco y,
+ * dentro de transacciones, dos envios a usuarios distintos sin contador se interbloqueaban y bloqueaban a otros usuarios
+ * (rechazo del QA de la issue #3). Tampoco se toca `actualizado`: significa creacion o ultima reconciliacion (5.5).
+ * Consecuencia aceptada en 208: un contador nuevo no cuenta filas no leidas que ya existieran sin contador (solo las
+ * copiadas del Tablon, cuyo script de migracion reconcilia al terminar).
  */
 function opg_notif_envio_contador($uids, $imp, $ahora)
 {
-    global $db;
-    $lista = implode(',', array_map('intval', $uids));
-    opg_notif_w('UPDATE ' . opg_notif_t('op_notificaciones_contador') . ' SET sin_leer = sin_leer + 1, importantes = importantes + '
-        . ($imp ? 1 : 0) . ', actualizado = ' . (int) $ahora . ' WHERE uid IN (' . $lista . ')');
-    $actualizados = (int) $db->affected_rows();
-    if ($actualizados >= count($uids)) {
-        return;
+    $uids = array_values(array_unique(array_map('intval', $uids)));
+    sort($uids, SORT_NUMERIC);
+    $filas = array();
+    foreach ($uids as $uid) {
+        $filas[] = '(' . $uid . ', 1, ' . ($imp ? 1 : 0) . ', ' . (int) $ahora . ')';
     }
-    if (count($uids) === 1) {
-        $faltan = $uids;
-    } else {
-        $existen = array();
-        foreach (opg_notif_filas('SELECT uid FROM ' . opg_notif_t('op_notificaciones_contador') . ' WHERE uid IN (' . $lista . ')') as $f) {
-            $existen[(int) $f['uid']] = true;
-        }
-        $faltan = array();
-        foreach ($uids as $uid) {
-            if (!isset($existen[(int) $uid])) {
-                $faltan[] = (int) $uid;
-            }
-        }
-        if (!$faltan) {
-            return;
-        }
-    }
-    opg_notif_w('INSERT INTO ' . opg_notif_t('op_notificaciones_contador') . ' (uid, sin_leer, importantes, actualizado)'
-        . " SELECT uid, COUNT(*), COALESCE(SUM(importancia = 'importante'), 0), " . (int) $ahora . ' FROM ' . opg_notif_t('op_notificaciones')
-        . ' WHERE uid IN (' . implode(',', $faltan) . ') AND leida_en IS NULL GROUP BY uid'
-        . ' ON DUPLICATE KEY UPDATE sin_leer = VALUES(sin_leer), importantes = VALUES(importantes), actualizado = VALUES(actualizado)');
+    opg_notif_w('INSERT INTO ' . opg_notif_t('op_notificaciones_contador') . ' (uid, sin_leer, importantes, actualizado) VALUES '
+        . implode(',', $filas) . ' ON DUPLICATE KEY UPDATE sin_leer = sin_leer + 1, importantes = importantes + VALUES(importantes)');
 }
 
 // ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
