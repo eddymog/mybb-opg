@@ -94,7 +94,7 @@ comprobar(!empty($info['name']) && !empty($info['version']) && ($info['compatibi
 $fuente = file_get_contents($ruta_plugin);
 comprobar(strpos($fuente, 'add_hook') === false, 'el plugin no registra hooks todavia (issue #6)');
 comprobar(strpos($fuente, "\xE2\x80\x94") === false, 'sin rayas largas');
-comprobar(strpos($fuente, 'migration.sql') === false, 'el plugin no lee docs/notificaciones_migration.sql');
+comprobar(!preg_match('/file_get_contents|fopen|\bfile\s*\(|require|include/', preg_replace('#/\*.*?\*/#s', '', $fuente)), 'el plugin no lee archivos (docs/ no se despliega)');
 
 // Referencia: la migracion de docs/ en la base de referencia.
 q("USE `$ref`");
