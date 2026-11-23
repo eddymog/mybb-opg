@@ -1,6 +1,6 @@
 # Requisitos: Sistema global de notificaciones
 
-Estado: **requisitos revisados contra el código, pendientes del visto bueno del usuario**. Diseño en `208_DesignPlan_Notificaciones.md` y plan de implementación en `308_ImplementationPlan_Notificaciones.md`. Aún no hay implementación.
+Estado: **implementado** (issues #1 a #15 y #28 fusionadas en `main`; cierre en la issue #16). Diseño en `208_DesignPlan_Notificaciones.md`, plan de implementación en `308_ImplementationPlan_Notificaciones.md` y guía de operación, con la comprobación de los criterios del apartado 11, en `108_Operacion_Notificaciones.md`.
 
 ## 1. Propósito
 
@@ -314,24 +314,26 @@ foráneas, como en el resto del proyecto. La creación se entrega en un
 
 ## 11. Criterios de aceptación
 
-- [ ] Una acción de cada módulo conectado en la primera entrega (Tablón y Bitácora) genera su notificación.
-- [ ] Reintentar la misma acción no duplica la notificación.
-- [ ] El header muestra el número correcto, lo oculta en cero y muestra "99+" desde 100.
-- [ ] El header ejecuta una sola consulta por clave primaria y ninguna para invitados.
-- [ ] Abrir `/op/notificaciones.php` no cambia el contador.
-- [ ] Pulsar **Visto** en una notificación baja el contador en uno, y volver a pulsarlo no lo baja de nuevo.
-- [ ] **Marcar todas como vistas** deja el contador en cero (o descuenta solo la categoría filtrada).
-- [ ] Las notificaciones nuevas llegadas mientras la página estaba abierta siguen
+- [x] Una acción de cada módulo conectado en la primera entrega (Tablón y Bitácora) genera su notificación.
+- [x] Reintentar la misma acción no duplica la notificación.
+- [x] El header muestra el número correcto, lo oculta en cero y muestra "99+" desde 100.
+- [x] El header ejecuta una sola consulta por clave primaria y ninguna para invitados.
+- [x] Abrir `/op/notificaciones.php` no cambia el contador.
+- [x] Pulsar **Visto** en una notificación baja el contador en uno, y volver a pulsarlo no lo baja de nuevo.
+- [x] **Marcar todas como vistas** deja el contador en cero (o descuenta solo la categoría filtrada).
+- [x] Las notificaciones nuevas llegadas mientras la página estaba abierta siguen
       contando al recargar, y las no leídas permanecen aunque se visite la página.
-- [ ] La lista pagina por id y mantiene el filtro de categoría.
-- [ ] Un fallo al insertar una notificación no impide completar el pago, la
+- [x] La lista pagina por id y mantiene el filtro de categoría.
+- [x] Un fallo al insertar una notificación no impide completar el pago, la
       aprobación ni el cambio de ficha que la originó.
-- [ ] Con las tablas ausentes el foro carga con normalidad y la campana muestra cero.
-- [ ] Las notificaciones del Tablón de aventuras se ven en la página global con su
+- [x] Con las tablas ausentes el foro carga con normalidad y la campana muestra cero.
+- [x] Las notificaciones del Tablón de aventuras se ven en la página global con su
       fecha y su estado originales.
-- [ ] El contador se autorepara si se altera manualmente.
-- [ ] La tarea de limpieza respeta 90 días y 500 filas por usuario.
-- [ ] La página funciona en móvil, con modo oscuro y sin desbordamiento horizontal.
+- [x] El contador se autorepara si se altera manualmente.
+- [x] La tarea de limpieza respeta 90 días y 500 filas por usuario.
+- [x] La página funciona en móvil, con modo oscuro y sin desbordamiento horizontal.
+
+Comprobados uno por uno en la issue #16 (ver la tabla con la issue que cumple cada criterio en `108_Operacion_Notificaciones.md`, apartado 10). El último (móvil y modo oscuro) está cumplido por revisión de la hoja de estilos y queda pendiente de una comprobación visual en navegador y móvil.
 
 ## 12. Decisiones y pendientes
 
@@ -397,6 +399,14 @@ Decisiones tomadas:
     búsqueda en el historial, API REST de notificaciones, métricas internas,
     recordatorio de turno de la Bitácora y avisos de eventos temporales. Se
     pueden recuperar más adelante si el usuario lo pide.
+
+Decisiones finales de la implementación (detalle en el apartado 15 de `208` y en `108_Operacion_Notificaciones.md`):
+
+12. **Retención (requisito 29):** la limpieza vive en una tarea propia (`inc/tasks/notificaciones.php`), no en la tarea existente del Tablón, con topes por ejecución.
+13. **Contador:** `actualizado` es la fecha de la última reconciliación; un contador nuevo no cuenta filas sin leer anteriores a él (solo las migradas del Tablón, que se reconcilian al terminar la migración).
+14. **Marcar todas** marca las no leídas del filtro en el momento de pulsar; las que lleguen durante la llamada no se marcan.
+15. **Catálogo:** 19 tipos (14 del Tablón, incluido `entrega_enviada`, y 5 de la Bitácora). El filtro de origen ofrece Todas, De gestión y De usuarios; los de origen `sistema` solo salen en Todas.
+16. **Riesgo residual aceptado:** interbloqueo al crear por primera vez la fila agrupable, que solo pierde ese aviso (se registra) porque los módulos avisan fuera de sus transacciones.
 
 Sin pendientes por ahora.
 

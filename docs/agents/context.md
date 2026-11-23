@@ -81,7 +81,7 @@ Each one keeps its logic in `inc/plugins/lib/`, its pages in `op/`, its tables i
 ### Aventuras (tablón and console)
 - **Pages:** `op/tablon_de_aventuras.php` (users and narrators) and the staff console. Libraries: `aventuras.php`, `aventuras_entregas.php`, `aventuras_vistas.php`, `aventuras_vistas_consola.php`, `recompensas_aventura.php`.
 - **Flow:** a user opens an adventure request (`mybb_op_peticionAventuras`), narrators offer or are proposed, staff approves, the adventure runs in a thread (`mybb_threads.prefix` 3), the narrator delivers (`mybb_op_aventuras_entregas`) and rewards are paid (`..._entregas_pagos`). Self-narrated adventures have their own table (`mybb_op_aventuras_autonarradas`).
-- **Notifications:** its own table, `mybb_op_aventuras_notificaciones` (a global system is only designed, see below).
+- **Notifications:** sends and reads through the global notification system (see "Notifications" below). `opg_av_notificar*` in `lib/aventuras.php` are wrappers around `opg_notificar()`; they fall back to the old table `mybb_op_aventuras_notificaciones` only when the global tables do not exist.
 - **Tests:** `tests/aventuras/` includes real-MySQL tests.
 
 ### Halloween 2026 event
@@ -113,8 +113,16 @@ Each one keeps its logic in `inc/plugins/lib/`, its pages in `op/`, its tables i
 ### Crews and affiliates
 - Tables `mybb_op_tripulaciones` and `..._solicitudes` (crews), `mybb_op_afiliados` and `..._rate_limit` (affiliates; staff tool `gestionar_afiliados.php`).
 
-### Notifications (design only)
-- `docs/108_Requirements_Notificaciones.md` and `docs/208_DesignPlan_Notificaciones.md` describe one global system (table, `opg_notificar()` library, `/op/notificaciones.php`, header counter). Nothing global exists yet.
+### Notifications
+- **What:** one global system. Any module calls `opg_notificar($uids, $tipo, $datos, $opciones)`; the user sees a bell in the header (unread count, one primary-key query, none for guests) and the page `op/notificaciones.php` (list, filters, **Visto** and **Marcar todas** over HTMX). Documents: `docs/108_Requirements_Notificaciones.md`, `208_DesignPlan_Notificaciones.md`, `308_ImplementationPlan_Notificaciones.md`; operations guide `docs/108_Operacion_Notificaciones.md` (types, how to add one, deployment order, known limits).
+- **Pieces:** plugin `inc/plugins/opg_notificaciones.php` (creates the tables, installs the bell template and the `{$op_notificaciones_header}` marker in `header`; hooks `global_start` and `global_intermediate`); libraries `inc/plugins/lib/notificaciones.php` (send, count, list, mark, reconcile), `notificaciones_catalogo.php` (types, pure logic), `notificaciones_vistas.php` (HTML), `notificaciones_migracion.php`; page `op/notificaciones.php`; templates `op_notificaciones.html`, `op_notificaciones_header.html`, `header.html`; styles `jscripts/notificaciones.css`; daily task `inc/tasks/notificaciones.php`; staff migration `op/staff/migrar_notificaciones.php`.
+- **Tables:** `mybb_op_notificaciones` and `mybb_op_notificaciones_contador` (`docs/notificaciones_migration.sql`). The task is registered with `docs/notificaciones_tarea_migration.sql`.
+- **Rules:** only `opg_notificar()` inserts into the table (the Tablón migration is the one exception). It never throws: it logs with `error_log` (prefix `[notificaciones]`) and returns `false`, so a failed notice never blocks the action. Use a stable `clave` (unique per `uid` + `clave_evento`, case-insensitive, not tied to the type), one call per action with all recipients, and send user-origin notices (Bitácora) after the module's own `COMMIT`. The recipient uid always comes from the session, never from the request.
+- **Catalog:** 19 types (14 Tablón, 5 Bitácora), declared once in `opg_notif_catalogo()`. Adding a type needs no SQL: add the entry, a test, and the `opg_notificar` call. Only `bitacora_post` is groupable (one unread row per thread with `cantidad`; **Visto** rewrites its key to `...:leida:ID` so the next event opens a new row).
+- **Counter:** `mybb_op_notificaciones_contador` is incremented by one relative upsert and self-repairs: `opg_notif_contar()` recounts when the row is missing or `actualizado` (last reconciliation) is older than 24 h; the task recounts active users. To force a recount: `UPDATE mybb_op_notificaciones_contador SET actualizado = 0 WHERE uid = N`.
+- **Retention:** task `notificaciones` (04:30 daily): deletes rows older than 90 days (read or not), keeps at most 500 per user, reconciles counters.
+- **Tests:** `tests/notificaciones/` (pure tests run in the gate; `*_db.php` need real MySQL, run `sh tests/run_all.sh --db --area notificaciones`). `rendimiento_db.php` is manual (`--medir`).
+- **Known limits:** residual InnoDB deadlock when two open transactions create the same groupable row at once (only that notice is lost and logged); in autocommit the counter can be one above until the next reconciliation; uninstalling the plugin does not drop tables.
 
 ## Templates and Deployment
 
@@ -161,6 +169,7 @@ Plain scripts in `tests/<area>/`, run with `php`. Real-MySQL tests use the throw
 | Training | `entrenamientos_usuarios`, `crafteo_usuarios`, `crafteo_npcs`, `creacion_usuarios`, `oficios_usuarios` | All time-gated with `timestamp_end`. `entrenamientos_usuarios` has unique `uid` (one active per user) |
 | World | `islas`, `isla_eventos`, `viajes`, `razas`, `barcos`, `mapa_posiciones`, `misiones_lista` | `isla_eventos` has season enum. `barcos` defines ship stats. `mapa_posiciones` stores % coordinates |
 | Gacha | `tirada_akumas`, `tirada_cofre`, `tirada_haki`, `tirada_rey`, `cofres` | `cofres` is the loot table (weighted by `peso`). Roll results in `tirada_*` tables |
+| Notifications | `notificaciones`, `notificaciones_contador` | One row per notice (unique `uid` + `clave_evento`) and one counter row per user. See `docs/108_Operacion_Notificaciones.md` |
 | Adventures | `peticionAventuras`, `peticionAventuras_meta`, `narradores_disponibles`, `aventuras_entregas`, `aventuras_entregas_pagos`, `aventuras_autonarradas`, `aventuras_participantes`, `aventuras_propuestas_narrador`, `aventuras_notificaciones`, `audit_aventuras` | `estado`: 0=created, 1=approved, 2=denied, 3=finished, 4=pending narrator, 5=deletion request. Newer tables come from migrations |
 | Halloween 2026 | `halloween2026_config`, `_saldos`, `_movimientos`, `_publicaciones`, `_bonos_diarios`, `_tienda_items`, `_compras`, `_compra_lineas`, `_secretos`, `_secretos_alertas` | Event window and flags in `_config`; currency ledger in `_movimientos` |
 | Newspaper | `periodicos`, `periodico_paginas`, `periodico_bloques`, `periodico_auditoria` | Editions, pages, blocks and an audit trail |

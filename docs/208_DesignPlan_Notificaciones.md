@@ -3,9 +3,11 @@
 > Depende de:
 > [108_Requirements_Notificaciones.md](108_Requirements_Notificaciones.md)
 >
-> **Estado: por implementar.** Este documento describe la arquitectura y el
-> orden de construcción; no implica que las tablas o archivos existan aún.
-> Las tareas concretas, su orden y sus criterios de aceptación están en
+> **Estado: implementado** (issues #1 a #15 y #28 fusionadas en `main`; cierre en la issue #16). Los apartados
+> describen el diseño; donde la implementación final difiere, el apartado lo dice con una nota "Implementación final"
+> y el resumen está en el apartado 15. La guía de operación, con lo que existe en el código, es
+> [108_Operacion_Notificaciones.md](108_Operacion_Notificaciones.md).
+> Las tareas concretas y sus criterios están en
 > [308_ImplementationPlan_Notificaciones.md](308_ImplementationPlan_Notificaciones.md).
 
 ## 1. Objetivo
@@ -61,6 +63,8 @@ con pendientes e historial y los envoltorios que ya usan los llamadores.
 | `op/staff/migrar_notificaciones.php` | Copia por lotes de las notificaciones del Tablón | Nuevo |
 | `inc/plugins/lib/aventuras.php` | `opg_av_notificar*` pasan a envoltorios | Modificar |
 | `inc/plugins/op_bitacora/functions.php` | Eventos de la Bitácora llaman a `opg_notificar` | Modificar |
+| `inc/plugins/lib/notificaciones_migracion.php` | Lógica de la copia de las notificaciones del Tablón (la usa `migrar_notificaciones.php`) | Nuevo (no estaba en el diseño) |
+| `jscripts/notificaciones.css` | Estilos de la página | Nuevo (no estaba en el diseño) |
 | `tests/notificaciones/*.php` | Pruebas puras y con base de datos | Nuevo |
 
 Los nombres de plantilla y la creación de tablas siguen las convenciones del
@@ -152,9 +156,17 @@ Opciones de `opg_notificar`:
 4. Para cada destinatario cuya fila se insertó de verdad, incrementar el
    contador. Como `INSERT IGNORE` no dice qué filas entraron, se hace así:
    - Si el lote es de un solo destinatario, `affected_rows` basta.
-   - Si el lote es mayor, se vuelve a consultar por `clave_evento` y `created_at`
-     el conjunto realmente nuevo (consulta por el índice único), y se incrementa
+   - Si el lote es mayor, se averigua el conjunto realmente nuevo y se incrementa
      solo esos.
+
+   > **Implementación final.** No se consulta por `clave_evento` y `created_at`: otro
+   > proceso que enviara el mismo evento en el mismo segundo tendría la misma clave
+   > y la misma fecha, y las dos llamadas subirían el contador del mismo
+   > destinatario. Se usa `insert_id()` de la sentencia (InnoDB reserva un bloque de
+   > ids consecutivo y exclusivo por sentencia con `innodb_autoinc_lock_mode` 0 o 1,
+   > el valor por defecto de MySQL 5.7): las nuevas son las `affected_rows` filas de
+   > menor id con id >= `insert_id`. Con el modo 2 se registra un aviso y el desfase
+   > lo corrige la reconciliación. Ver `opg_notif_envio_identificar()`.
 5. Incremento atómico:
 
 ```sql
@@ -183,7 +195,16 @@ autoreparación de las 24 horas (apartado 5.5) revisa cada contador como mucho u
 
 ### 5.3 Flujo de una notificación agrupable
 
-Una sola sentencia por destinatario (o una multifila para un lote):
+> **Implementación final.** Es **una sentencia atómica por destinatario**, no una multifila:
+> con dos procesos sumando a la vez en grupos vecinos (por ejemplo dos temas con los mismos
+> seguidores) la variante multifila interbloquea en InnoDB (medido en MySQL 5.7), y un
+> interbloqueo revierte la transacción entera de quien llama. El incremento del contador sí
+> es una sola sentencia para todo el bloque. Además, `categoria`, `origen` e `importancia`
+> salen del catálogo (no son literales) y el `ON DUPLICATE KEY UPDATE` solo actúa si el tipo
+> de la fila existente es el mismo (`IF(tipo = VALUES(tipo), ...)`): si es de otro tipo
+> la deja intacta (0 filas afectadas) y se registra el conflicto.
+
+Una sola sentencia por destinatario (versión de diseño; ver la nota anterior):
 
 ```sql
 INSERT INTO mybb_op_notificaciones
@@ -242,6 +263,13 @@ UPDATE mybb_op_notificaciones_contador
 ```
 
 `:imp` es la importancia de la fila marcada; se lee por clave primaria dentro de la misma transacción corta.
+
+> **Implementación final.** La resta usa `LEAST` (`sin_leer - LEAST(sin_leer, :n)`), porque las
+> columnas son UNSIGNED y `GREATEST(x - n, 0)` fallaría con un resultado negativo. Las agrupables
+> se bloquean primero por el índice único (`uid, clave_evento`), una por una y en el orden del
+> índice, igual que el envío; **Marcar todas** no es un único `UPDATE` por rango sino marcados por
+> clave primaria en bloques (sin `SELECT ... FOR UPDATE` de rango, cuyos bloqueos de hueco frenaban
+> los envíos). Un aviso que llega durante la llamada no se marca.
 
 Si es 0 (ya estaba leída o no es suya), no se toca el contador. Eso hace que
 pulsar **Visto** dos veces no descuente dos veces y que un usuario no pueda
@@ -308,8 +336,9 @@ Reglas:
 - Las categorías son: `aventuras`, `ficha`, `recompensas`, `tecnicas`,
   `peticiones`, `temas`.
 
-Tipos iniciales: los 13 del Tablón (`invitacion_nueva`, `candidatura_nueva`,
-`propuesta_*`, `aventura_aprobada`, `aventura_denegada`, `narrador_salio`,
+Tipos iniciales: los 14 del Tablón (`invitacion_nueva`, `candidatura_nueva`,
+cinco `propuesta_*` (aceptada, rechazada, retirada, cancelada, vencida),
+`aventura_aprobada`, `aventura_denegada`, `narrador_salio`, `entrega_enviada` (issue #11),
 `entrega_rechazada`, `recompensas_entregadas`, `oferta_por_vencer`) y, de la
 Bitácora, `bitacora_post`, `bitacora_ronda_iniciada`, `bitacora_narrador_asignado`,
 `bitacora_narrador_cambiado` y `bitacora_narrador_retirado`. Los demás
@@ -337,8 +366,13 @@ visual concreto se resuelve al implementar, con prueba en móvil.
 - Usuarios: 1 consulta `SELECT sin_leer, importantes, actualizado ... WHERE uid = ?`.
 - Resto de la petición: el valor queda en una variable estática; no se vuelve a
   consultar aunque lo pida otra parte de la página.
-- Si falta la tabla (despliegue a medias), una comprobación estática con
-  `table_exists` devuelve 0 y el header sale vacío.
+- Si falta la tabla (despliegue a medias), una comprobación una vez por petición
+  (`opg_notif_tablas_listas()`) devuelve 0 y la campana sale sin insignia.
+  Implementación final: no se usa `$db->table_exists()` (con la conexión caída
+  mostraría el error SQL de MyBB y terminaría la página); se lanza una consulta
+  propia que falla con el error 1146 si falta alguna tabla.
+- El plugin registra también `global_start`, que añade la plantilla de la campana a
+  `$templatelist` para que se cargue con las globales, sin consulta propia.
 
 ### 7.3 Plantilla
 
@@ -384,7 +418,10 @@ Detalles:
   `opg_av_notificar_partes(...)` mantienen su firma y llaman a `opg_notificar`.
   La `clave_evento` actual se conserva; `peticion_id` se guarda en `datos_json`.
 - `opg_av_notificaciones_contar/listar/leer` leen de la tabla global filtrando
-  por `categoria = 'aventuras'`.
+  por `categoria = 'aventuras'` **y** el tipo `recompensas_entregadas`, que el
+  catálogo pone en la categoría `recompensas` y el panel Novedades sigue mostrando
+  (constante `OPG_AV_NOTIF_TIPOS_EXTRA`). Si las tablas globales no existen, los
+  envoltorios caen a la tabla antigua (funciones `*_antigua`).
 - La acción `leer_notificacion` del Tablón llama a `opg_notif_marcar_vista`.
 - Cuando alguien envía una entrega, `opg_ent_enviar` notifica a los demás
   participantes de la aventura. El staff no recibe notificación: sigue usando el
@@ -416,7 +453,14 @@ Detalles:
   (`op_bitacora_lecturas`) dejan de usarse para el header cuando la campana
   esté estable (fase 4). El estado de turno y los conteos propios no cambian.
 - Para limitar el coste de un tema con muchos seguidores, el lote se divide en
-  bloques de 200 destinatarios por sentencia.
+  bloques de 200 destinatarios (el contador, una sentencia por bloque; las
+  agrupables, una sentencia por destinatario).
+- **Implementación final.** Los avisos se envían después del `COMMIT` de la
+  acción, con un tema por llamada (`op_bitacora_notificar()`), y los datos llevan
+  `tid`, `tema` (solo si el foro es público) y `nombre`. Los eventos de narrador
+  usan la clave `bitacora:evento:ID`. El aviso de "novedad pendiente" se retiró en
+  la issue #13; la columna `ultima_novedad_en` y las tablas de lectura se conservan
+  sin escribirse.
 
 ### 9.3 Herramientas de gestión (futuro)
 
@@ -453,7 +497,9 @@ La limpieza nunca se ejecuta durante una petición del usuario.
 - `opg_notificar` envuelve su cuerpo en `try`/`catch`, registra el error con
   `error_log` y devuelve `false`; la acción original continúa.
 - Si la acción original revierte su transacción, la notificación también, porque
-  se inserta dentro de ella.
+  se inserta dentro de ella. Implementación final: así es en el Tablón (una llamada
+  por acción, dentro de la transacción de la acción). La Bitácora, en cambio,
+  avisa **fuera** de sus transacciones (apartado 5.3).
 
 ## 12. Orden de implementación
 
@@ -517,3 +563,25 @@ y, donde hace falta, con base real).
   un tema por llamada, así que solo se pierde esa sentencia y queda registrada.
 - **Coexistencia en el header.** La posición exacta de la campana junto al
   bloque de la Bitácora y su ancho en móvil se deciden con el diseño visual.
+
+## 15. Decisiones finales de la implementación
+
+Resumen de lo que difiere o se añadió respecto al diseño original (el detalle está en las notas
+"Implementación final" de cada apartado y en la guía de operación):
+
+1. **Contador:** un único `INSERT ... ON DUPLICATE KEY UPDATE` relativo, sin leer antes; `actualizado` es la fecha de la última
+   reconciliación (no de cada incremento). La autoreparación se hace en `opg_notif_contar` (24 horas) y en la tarea diaria.
+2. **Agrupables:** una sentencia por destinatario, con el tipo comprobado dentro del `ON DUPLICATE KEY UPDATE`.
+3. **Lotes parciales:** las filas nuevas se identifican con `insert_id()`, no por clave y fecha.
+4. **Marcado:** transacción corta con reintentos (2) ante 1213 y 1205, orden de bloqueo igual al del envío y sin bloqueos de rango.
+5. **Tablas ausentes:** comprobación propia en lugar de `table_exists`; el foro carga y la campana sale en cero.
+6. **Header:** la campana siempre es visible; lo que se oculta en cero es la insignia. Hooks `global_start` y `global_intermediate`.
+7. **Tablón:** 14 tipos (se añadió `entrega_enviada`); respaldo a la tabla antigua si no existen las tablas globales; el panel
+   Novedades se conserva filtrado por `aventuras` más `recompensas_entregadas`.
+8. **Bitácora:** avisos fuera de sus transacciones y un tema por llamada; el aviso de novedad pendiente se retiró.
+9. **Retención:** tarea propia (`inc/tasks/notificaciones.php`, 04:30) con topes por ejecución; no reutiliza la tarea del Tablón.
+10. **Rendimiento (#15, Docker, 500.000 filas):** página 0,75 ms, header 0,2 ms, marcar una 1 ms; no hizo falta ningún índice nuevo.
+11. **Riesgo residual:** interbloqueo al crear por primera vez la fila agrupable (apartados 5.3 y 14), aceptado.
+12. **Fuera de alcance, confirmado:** herramientas de gestión (fichas, técnicas, objetos, cofres, peticiones), avisos masivos y
+    canales externos. El sistema queda preparado: basta añadir un tipo al catálogo y una llamada a `opg_notificar` (guía de operación,
+    apartados 3 y 4).

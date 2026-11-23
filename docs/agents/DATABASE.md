@@ -1119,7 +1119,7 @@ PK: `id`
 Indexes: `unique peticion_id, pendiente_narrador_uid`; `peticion_id, estado`; `narrador_uid, estado`; `estado, expires_at`
 
 #### `mybb_op_aventuras_notificaciones`
-Tablón notifications per user, with a unique event key (a global notification system is only designed).
+Old Tablón notifications per user, with a unique event key. Since the global system (`mybb_op_notificaciones`) the Tablón sends and reads there; this table is kept as a fallback when the global tables do not exist and as the source of `op/staff/migrar_notificaciones.php`, which copies it without modifying it.
 Migration: `docs/aventuras_ux_migration.sql`  |  Engine: InnoDB
 PK: `id`
 
@@ -1138,6 +1138,48 @@ PK: `id`
 | `attempts` | tinyint unsigned | 0 |  |
 
 Indexes: `unique clave_evento, uid`; `uid, read_at, created_at`; `sent_at, attempts`
+
+#### `mybb_op_notificaciones`
+Global notifications, one row per notice and recipient. Only `opg_notificar()` inserts here (plus the one-time Tablón migration). Never delete by hand without reconciling the counter.
+Migration: `docs/notificaciones_migration.sql` (also created by the plugin `opg_notificaciones`)  |  Engine: InnoDB, utf8mb4_unicode_ci
+PK: `id`
+
+| Column | Type | Default | Notes |
+|--------|------|---------|-------|
+| `id` | int unsigned | auto |  |
+| `uid` | int unsigned | - | Recipient. Equals the character id |
+| `tipo` | varchar(48) | - | Catalog key (`opg_notif_catalogo()`) |
+| `categoria` | varchar(24) | - | Copy of the catalog: aventuras, ficha, recompensas, tecnicas, peticiones, temas |
+| `origen` | varchar(8) | - | gestion, usuario or sistema (copy of the catalog) |
+| `importancia` | varchar(10) | 'normal' | normal or importante (copy of the catalog) |
+| `agrupable` | tinyint unsigned | 0 | 1 if events are summed into one row (`cantidad`) |
+| `actor_uid` | int unsigned | 0 | Who caused it; 0 = system |
+| `clave_evento` | varchar(128) | - | Event key. Unique per `uid`, case-insensitive. Groupable rows get `:leida:ID` appended when marked as seen |
+| `url` | varchar(255) | - | (nullable) Internal route; the catalog builds it when empty |
+| `cantidad` | int unsigned | 1 | Events summed into a groupable row |
+| `datos_json` | text | - | (nullable) Only data needed to write the text (peticion_id, tema, isla, tier, actor, narrador, motivo, dias, tid, nombre). Never HTML |
+| `created_at` | int unsigned | - | Creation, or last activity for a groupable row (it orders the list) |
+| `leida_en` | int unsigned | - | (nullable) NULL = unread. Never goes back to NULL |
+| `sent_at` | int unsigned | - | (nullable) Reserved for external channels |
+| `attempts` | tinyint unsigned | 0 | Reserved |
+
+Indexes: `unique uid, clave_evento` (`uq_evento_destinatario`); `uid, created_at, id`; `uid, categoria, created_at, id`; `uid, origen, created_at, id`; `uid, leida_en, created_at, id`; `created_at`
+
+Retention: the daily task deletes rows older than 90 days (read or not) and keeps at most 500 per user.
+
+#### `mybb_op_notificaciones_contador`
+Materialized unread counter, one row per user (what the header reads, by primary key).
+Migration: `docs/notificaciones_migration.sql`  |  Engine: InnoDB, utf8mb4_unicode_ci
+PK: `uid`
+
+| Column | Type | Default | Notes |
+|--------|------|---------|-------|
+| `uid` | int unsigned | - |  |
+| `sin_leer` | int unsigned | 0 | Unread notices |
+| `importantes` | int unsigned | 0 | Of the unread, how many are `importante` |
+| `actualizado` | int unsigned | - | Creation or last reconciliation (recount), not each increment. Older than 24 h triggers a recount; setting it to 0 forces one |
+
+Sends and marks change it with relative updates; `opg_notif_reconciliar()` recounts from the rows under a row lock.
 
 #### `mybb_op_temas_seguidos`
 Threads a user follows in the Bitácora, with turn state.
@@ -1723,6 +1765,9 @@ mybb_op_peticionAventuras.id ─ mybb_op_aventuras_participantes.peticion_id (1:
                 ├── mybb_op_aventuras_entregas.peticion_id (1:N)
                 ├── mybb_op_aventuras_autonarradas.peticion_id (1:1, self-narrated)
                 └── mybb_op_aventuras_notificaciones.peticion_id (1:N)
+
+mybb_users.uid ──┬── mybb_op_notificaciones.uid (1:N, recipient; unique with clave_evento)
+                 └── mybb_op_notificaciones_contador.uid (1:1, unread counter)
 
 mybb_users.uid ──┬── mybb_op_halloween2026_saldos.uid (1:1, Calabaza balance)
                  ├── mybb_op_halloween2026_movimientos.uid (1:N, ledger)
