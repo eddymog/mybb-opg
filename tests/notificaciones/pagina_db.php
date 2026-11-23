@@ -81,7 +81,7 @@ nt_prueba('invitado en HTMX: HX-Redirect sin consultas', array(cabecera($r, 'HX-
 // ── Contrato de las acciones ─────────────────────────────────────────────────
 nt_prueba('accion sin HTMX: 404', llamar(3, array('action' => 'listar'))['estado'], 404);
 nt_prueba('accion desconocida: 404', llamar(3, array('action' => 'visto'), true)['estado'], 404);
-nt_prueba('POST: 404 (las acciones de cambio son de #8)', llamar(3, array('action' => 'listar'), true, 'POST')['estado'], 404);
+nt_prueba('POST de una accion de lectura: 404', llamar(3, array('action' => 'listar'), true, 'POST')['estado'], 404);
 nt_prueba('mas con bloque desconocido: 404', llamar(3, array('action' => 'mas', 'bloque' => 'x', 'antes' => '1_1'), true)['estado'], 404);
 nt_prueba('mas sin cursor o con cursor no valido: 404', array(llamar(3, array('action' => 'mas', 'bloque' => 'pendientes'), true)['estado'],
     llamar(3, array('action' => 'mas', 'bloque' => 'pendientes', 'antes' => "1' OR 1"), true)['estado']), array(404, 404));

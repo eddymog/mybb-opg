@@ -4,7 +4,7 @@
  * pagina_db.php con nt_preparar), y devuelve JSON con estado, cabeceras, cuerpo y las sentencias SQL que lanzo la pagina.
  * Mismo enfoque que tests/aventuras/harness_pagina.php.
  *
- *   php harness_pagina.php '<json>'   json: base, uid, get, metodo, server
+ *   php harness_pagina.php '<json>'   json: base, uid, get, metodo, server (HTTP_X_POST_KEY para la clave CSRF)
  */
 $p = json_decode($argv[1], true);
 require __DIR__ . '/bootstrap_db.php';
@@ -38,6 +38,12 @@ class PlantillasFalsas
     }
 }
 $templates = new PlantillasFalsas();
+// Clave CSRF (issue #8): la de MyBB compara con generate_post_check(); aqui, con la post_code de la sesion falsa.
+function verify_post_check($clave, $silencioso = false) { global $mybb; return is_string($clave) && $clave !== '' && $clave === $mybb->post_code; }
+// El plugin de la campana, como en el foro con el plugin activo (sus hooks no se ejecutan aqui).
+class PluginsFalsos { public function add_hook($h, $f) {} }
+$plugins = new PluginsFalsos();
+require_once MYBB_ROOT . 'inc/plugins/opg_notificaciones.php';
 
 // header() no guarda nada en CLI: se reemplaza por una funcion que lo registra.
 $GLOBALS['cabeceras'] = array();
