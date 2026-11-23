@@ -23,6 +23,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'salario_staff.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/recompensas_avisos.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -139,6 +140,7 @@ function salario_staff_q($sql)
 
 /**
  * Suma `$monto` kuros a la ficha $fid. Debe llamarse dentro de una transacción.
+ * Devuelve el id del pago en `mybb_op_salario_staff_pagos` (la clave del aviso salario_recibido).
  * El saldo se lee con FOR UPDATE y el UPDATE es relativo, así que el log nunca
  * guarda un saldo viejo aunque otro proceso toque los kuros a la vez.
  */
@@ -161,6 +163,7 @@ function salario_staff_pagar($staff_uid, $staff_username, $fid, $nombre, $monto,
 
     salario_staff_q("INSERT INTO `mybb_op_salario_staff_pagos` (`pagador_uid`, `pagador`, `uid`, `nombre`, `monto`, `tipo`, `saldo_antes`, `saldo_despues`) VALUES "
         . "({$staff_uid}, '" . $db->escape_string($staff_username) . "', {$fid}, '" . $db->escape_string($nombre) . "', {$monto}, '" . $db->escape_string($tipo) . "', {$antes}, {$despues})");
+    return (int) $db->insert_id();
 }
 
 function salario_staff_kuros($n)
@@ -194,7 +197,7 @@ if ($mybb->request_method == 'post') {
             $pagos = array();
             while ($row = $db->fetch_array($q_roles)) {
                 $r = salario_staff_rol($row, $SALARIO_ADMIN_GROUPS, $SALARIO_STAFF_GROUPS, $SALARIO_NARRA_GROUPS);
-                if ($r['monto'] > 0) { $pagos[] = array('row' => $row, 'monto' => $r['monto']); }
+                if ($r['monto'] > 0) { $pagos[] = array('row' => $row, 'monto' => $r['monto'], 'rol' => $r['rol']); }
             }
 
             if (empty($pagos)) {
@@ -205,10 +208,14 @@ if ($mybb->request_method == 'post') {
                     salario_staff_q("START TRANSACTION");
                     $nombres_id = array();
                     $total = 0;
+                    $avisos = array();
+                    $primer_pago = 0;
                     foreach ($pagos as $p) {
                         $fid = (int) $p['row']['uid'];
                         $monto = (int) $p['monto'];
-                        salario_staff_pagar($uid, $username, $fid, $p['row']['nombre'], $monto, 'rol');
+                        $pago_id = salario_staff_pagar($uid, $username, $fid, $p['row']['nombre'], $monto, 'rol');
+                        $primer_pago = $primer_pago ?: $pago_id;
+                        $avisos[] = array('uid' => $fid, 'monto' => $monto, 'concepto' => 'salario de staff, ' . $p['rol']);
                         $total += $monto;
                         // Nombre escapado a mano porque el log se guarda y se pinta como HTML de
                         // verdad (el link es intencional, igual que en log_entregas.php).
@@ -219,6 +226,12 @@ if ($mybb->request_method == 'post') {
                     salario_staff_q("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
                         . "('" . $uid . "', '" . $db->escape_string($username) . "', 'Salario Roles', '" . $db->escape_string($log_texto) . "')");
                     salario_staff_q("COMMIT");
+
+                    // Aviso salario_recibido (issue #20) tras el COMMIT: uno por destinatario y pago, con la clave del
+                    // primer pago del lote. Nunca lanza: un fallo del aviso no afecta al pago ya confirmado.
+                    if ($primer_pago > 0) {
+                        opg_rec_avisar_salarios($avisos, 'Kuros', opg_rec_clave_salario_staff($primer_pago), $uid);
+                    }
 
                     $ok = 'Se pagó a ' . count($pagos) . ' miembros del staff (' . salario_staff_kuros($total) . ' kuros en total).';
                     $omitidos = count($uids_seleccionados) - count($pagos);
@@ -254,7 +267,7 @@ if ($mybb->request_method == 'post') {
                 } else {
                     try {
                         salario_staff_q("START TRANSACTION");
-                        salario_staff_pagar($uid, $username, $uid_pagar, $row['nombre'], $amount, 'uid');
+                        $pago_id = salario_staff_pagar($uid, $username, $uid_pagar, $row['nombre'], $amount, 'uid');
 
                         // Nombre escapado a mano: el log se guarda y se pinta como HTML de verdad
                         // (ver el mismo criterio en la rama "lote" de arriba y en log_entregas.php).
@@ -263,6 +276,12 @@ if ($mybb->request_method == 'post') {
                         salario_staff_q("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
                             . "('" . $uid . "', '" . $db->escape_string($username) . "', 'Salario Roles UID', '" . $db->escape_string($log_texto) . "')");
                         salario_staff_q("COMMIT");
+
+                        // Aviso salario_recibido (issue #20) tras el COMMIT, con el id de este pago como clave.
+                        if ($pago_id > 0) {
+                            opg_rec_avisar_salarios(array(array('uid' => $uid_pagar, 'monto' => $amount, 'concepto' => 'pago de staff')),
+                                'Kuros', opg_rec_clave_salario_staff($pago_id), $uid);
+                        }
 
                         $ok = '+' . salario_staff_kuros($amount) . ' kuros entregados a ' . $row['nombre'] . '.';
                     } catch (Throwable $e) {

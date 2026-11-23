@@ -4,6 +4,7 @@ define('THIS_SCRIPT', 'berries_masivo.php');
 require_once "./../../global.php";
 require "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/recompensas_avisos.php';
 
 $uid = $mybb->user['uid'];
 $username = $mybb->user['username'];
@@ -49,6 +50,7 @@ $q = $db->query("SELECT fid, nombre, berries FROM mybb_op_fichas");
 
 $total = 0;
 $log_lines = [];
+$cobraron = []; // fichas cuyo saldo cambio de verdad: reciben el aviso del lote (issue #20)
 $signo = $cantidad >= 0 ? '+' : '';
 
 while ($row = $db->fetch_array($q)) {
@@ -60,12 +62,20 @@ while ($row = $db->fetch_array($q)) {
 
     if (!$dry_run) {
         $db->query("UPDATE mybb_op_fichas SET berries='$berries_nuevos' WHERE fid='$fid'");
+        if ($cantidad > 0 && (int) $db->affected_rows() > 0) { $cobraron[] = $fid; }
         log_audit_currency($uid, $username, $fid, '[Migración][Berries Masivo]', 'berries', $berries_nuevos);
         echo "<p class='ok'>FID $fid ($nombre): berries $berries_actuales → $berries_nuevos ({$signo}{$cantidad}).</p>";
         $log_lines[] = "FID {$fid} ({$row['nombre']}): berries {$berries_actuales} -> {$berries_nuevos} ({$signo}{$cantidad})";
     } else {
         echo "<p class='info'>FID $fid ($nombre): berries $berries_actuales → $berries_nuevos ({$signo}{$cantidad}) (simulado).</p>";
     }
+}
+
+// Aviso recompensa_entregada (issue #20): una sola notificacion por ficha y lote, con una sola llamada para todo el
+// lote. Solo cuando se suma (una resta no es una recompensa). Clave: quien ejecuto el lote y cuando.
+if (!$dry_run && $cobraron) {
+    opg_rec_avisar($cobraron, 'recompensa_entregada', opg_rec_datos_recompensa(array('berries' => $cantidad), 'entrega masiva de Berries'),
+        opg_rec_clave_berries_masivo($uid, TIME_NOW), (int) $uid);
 }
 
 echo "<hr><p>Fichas afectadas: $total | Cantidad aplicada por ficha: {$signo}{$cantidad}</p>";
