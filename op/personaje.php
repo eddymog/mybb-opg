@@ -27,6 +27,9 @@ require_once "./../global.php";
 require_once "./functions/op_functions.php";
 require_once MYBB_ROOT."inc/plugins/lib/spoiler.php";
 require_once MYBB_ROOT."inc/plugins/lib/banda_sonora.php";
+require_once MYBB_ROOT."inc/plugins/lib/haki_canje.php";
+require_once MYBB_ROOT."inc/plugins/lib/elemento_canje.php";
+require_once MYBB_ROOT."inc/plugins/lib/arma_canje.php";
 
 // ─── Parámetros ──────────────────────────────────────────────────────────────
 $query_uid = $mybb->get_input('uid');
@@ -1061,6 +1064,200 @@ if ($is_owner && $accion === 'ticket_reset') {
     exit;
 }
 
+// ─── Canje de Tirada de Haki del Rey (THR001, AJAX, solo owner) ───────────────
+if ($is_owner && $accion === 'canjear_haki') {
+    while (ob_get_level()) ob_end_clean();
+    header('Content-Type: application/json');
+
+    if (!verify_post_check($mybb->get_input('my_post_key'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'La sesión ha caducado. Recarga la página e inténtalo de nuevo.']);
+        exit;
+    }
+
+    $ch_ficha = $db->fetch_array($db->query("SELECT * FROM mybb_op_fichas WHERE fid='$user_uid' LIMIT 1"));
+    if (!$ch_ficha) {
+        echo json_encode(['ok' => false, 'error' => 'Ficha no encontrada.']);
+        exit;
+    }
+    if (in_array($ch_ficha['aprobada_por'], array('sin_aprobar', 'pendiente_reset'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'Tu ficha no está aprobada. No puedes usar este objeto hasta que se resuelva.']);
+        exit;
+    }
+
+    $ch_item = OPG_HAKI_CANJE_ITEM;
+    $ch_fila = $db->fetch_array($db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ch_item' LIMIT 1"));
+    if (!$ch_fila || (int)$ch_fila['cantidad'] < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes la Tirada de Haki del Rey en tu inventario.']);
+        exit;
+    }
+
+    $ch_val = opg_haki_canje_validar($ch_ficha, (string)$mybb->get_input('haki'));
+    if (!$ch_val['ok']) {
+        echo json_encode(['ok' => false, 'error' => $ch_val['error']]);
+        exit;
+    }
+
+    // 1) Consumir el objeto de forma atómica (dos clics o dos pestañas no lo gastan dos veces)
+    $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad-1 WHERE uid='$user_uid' AND objeto_id='$ch_item' AND cantidad>0");
+    if ($db->affected_rows() < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes la Tirada de Haki del Rey en tu inventario.']);
+        exit;
+    }
+
+    // 2) Aplicar el premio solo si la ficha no ha cambiado desde que se leyó
+    $ch_col = $ch_val['col'];
+    $ch_actual = (int)$ch_val['actual'];
+    $ch_nuevo = (int)$ch_val['nuevo'];
+    $db->query("UPDATE mybb_op_fichas SET `$ch_col`='$ch_nuevo' WHERE fid='$user_uid' AND `$ch_col`='$ch_actual'");
+    if ($db->affected_rows() < 1) {
+        $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad+1 WHERE uid='$user_uid' AND objeto_id='$ch_item'");
+        echo json_encode(['ok' => false, 'error' => 'Tu ficha ha cambiado mientras se procesaba el canje. No se ha gastado el objeto, inténtalo de nuevo.']);
+        exit;
+    }
+
+    // 3) Limpiar la fila si era la última unidad
+    $db->query("DELETE FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ch_item' AND cantidad<=0");
+
+    if ($ch_val['modo'] === 'tirada') {
+        $ch_msg = "Has obtenido 1 Lanzada de Haki del Rey (ahora tienes $ch_nuevo).";
+        $ch_log = "Canje de Tirada de Haki del Rey: hao_chance $ch_actual->$ch_nuevo.";
+    } else {
+        $ch_nombres = ['kenbun' => 'Kenbunshoku', 'buso' => 'Busoshoku', 'hao' => 'Haoshoku'];
+        $ch_msg = "Tu " . $ch_nombres[$ch_col] . " Haki sube al nivel $ch_nuevo.";
+        $ch_log = "Canje de Tirada de Haki del Rey: $ch_col $ch_actual->$ch_nuevo (sin coste de Nikas).";
+    }
+    log_audit($user_uid, $db->escape_string($username), '[Ítem][Haki del Rey]', $db->escape_string($ch_log));
+    echo json_encode(['ok' => true, 'modo' => $ch_val['modo'], 'mensaje' => $ch_msg]);
+    exit;
+}
+
+// ─── Canje del Pergamino de Estilo Elemental (PEESP001, AJAX, solo owner) ──────
+if ($is_owner && $accion === 'canjear_elemento') {
+    while (ob_get_level()) ob_end_clean();
+    header('Content-Type: application/json');
+
+    if (!verify_post_check($mybb->get_input('my_post_key'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'La sesión ha caducado. Recarga la página e inténtalo de nuevo.']);
+        exit;
+    }
+
+    $ce_ficha = $db->fetch_array($db->query("SELECT * FROM mybb_op_fichas WHERE fid='$user_uid' LIMIT 1"));
+    if (!$ce_ficha) {
+        echo json_encode(['ok' => false, 'error' => 'Ficha no encontrada.']);
+        exit;
+    }
+    if (in_array($ce_ficha['aprobada_por'], array('sin_aprobar', 'pendiente_reset'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'Tu ficha no está aprobada. No puedes usar este objeto hasta que se resuelva.']);
+        exit;
+    }
+
+    $ce_item = OPG_ELEMENTO_CANJE_ITEM;
+    $ce_fila = $db->fetch_array($db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ce_item' LIMIT 1"));
+    if (!$ce_fila || (int)$ce_fila['cantidad'] < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes el Pergamino de Estilo Elemental en tu inventario.']);
+        exit;
+    }
+
+    $ce_val = opg_elemento_canje_validar($ce_ficha['elementos'], (string)$mybb->get_input('elemento'));
+    if (!$ce_val['ok']) {
+        echo json_encode(['ok' => false, 'error' => $ce_val['error']]);
+        exit;
+    }
+    $ce_elemento = $ce_val['elemento']; // validado contra el catálogo: Piro, Aqua, Aero, Electro o Cryo
+
+    // 1) Consumir el objeto de forma atómica
+    $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad-1 WHERE uid='$user_uid' AND objeto_id='$ce_item' AND cantidad>0");
+    if ($db->affected_rows() < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes el Pergamino de Estilo Elemental en tu inventario.']);
+        exit;
+    }
+
+    // 2) Desbloquear el elemento solo si sigue sin tenerlo (dos clics no lo desbloquean dos veces)
+    $ce_json = $db->escape_string($ce_val['elementos_json']);
+    $db->query("UPDATE mybb_op_fichas SET elementos='$ce_json' WHERE fid='$user_uid' AND COALESCE(JSON_EXTRACT(elementos, '$.$ce_elemento'), 0) <> 1");
+    if ($db->affected_rows() < 1) {
+        $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad+1 WHERE uid='$user_uid' AND objeto_id='$ce_item'");
+        echo json_encode(['ok' => false, 'error' => 'Tu ficha ha cambiado mientras se procesaba el canje. No se ha gastado el objeto, inténtalo de nuevo.']);
+        exit;
+    }
+
+    // 3) Enseñar Dominio y Recubrimiento del elemento (sin duplicar si ya los tenía)
+    foreach ($ce_val['tids'] as $ce_tid) {
+        $db->query("INSERT INTO mybb_op_tec_aprendidas (tid, uid) SELECT '$ce_tid', '$user_uid' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM mybb_op_tec_aprendidas WHERE tid='$ce_tid' AND uid='$user_uid')");
+    }
+
+    // 4) Limpiar la fila si era la última unidad
+    $db->query("DELETE FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ce_item' AND cantidad<=0");
+
+    log_audit($user_uid, $db->escape_string($username), '[Ítem][Estilo Elemental]', $db->escape_string("Canje de Pergamino de Estilo Elemental: elemento $ce_elemento desbloqueado, técnicas " . implode(' y ', $ce_val['tids']) . " aprendidas."));
+    echo json_encode(['ok' => true, 'mensaje' => "Has desbloqueado el elemento $ce_elemento y aprendido Dominio $ce_elemento y Recubrimiento $ce_elemento."]);
+    exit;
+}
+
+// ─── Canje de Tickets de Arma (TARM001 a TARM005, AJAX, solo owner) ───────────
+if ($is_owner && $accion === 'canjear_arma') {
+    while (ob_get_level()) ob_end_clean();
+    header('Content-Type: application/json');
+
+    if (!verify_post_check($mybb->get_input('my_post_key'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'La sesión ha caducado. Recarga la página e inténtalo de nuevo.']);
+        exit;
+    }
+
+    $ca_ticket = (string)$mybb->get_input('ticket');
+    $ca_val = opg_arma_canje_validar($ca_ticket, (string)$mybb->get_input('arma'));
+    if (!$ca_val['ok']) {
+        echo json_encode(['ok' => false, 'error' => $ca_val['error']]);
+        exit;
+    }
+    // ticket y arma ya están validados contra la lista fija (solo letras y números)
+    $ca_arma = $ca_val['objeto_id'];
+
+    $ca_ficha = $db->fetch_array($db->query("SELECT aprobada_por FROM mybb_op_fichas WHERE fid='$user_uid' LIMIT 1"));
+    if (!$ca_ficha) {
+        echo json_encode(['ok' => false, 'error' => 'Ficha no encontrada.']);
+        exit;
+    }
+    if (in_array($ca_ficha['aprobada_por'], array('sin_aprobar', 'pendiente_reset'), true)) {
+        echo json_encode(['ok' => false, 'error' => 'Tu ficha no está aprobada. No puedes usar este objeto hasta que se resuelva.']);
+        exit;
+    }
+
+    $ca_fila = $db->fetch_array($db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ca_ticket' LIMIT 1"));
+    if (!$ca_fila || (int)$ca_fila['cantidad'] < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes ese ticket en tu inventario.']);
+        exit;
+    }
+
+    // El arma tiene que existir en el catálogo, para no dejar un objeto huérfano en el inventario
+    $ca_obj = $db->fetch_array($db->query("SELECT nombre FROM mybb_op_objetos WHERE objeto_id='$ca_arma' LIMIT 1"));
+    if (!$ca_obj) {
+        echo json_encode(['ok' => false, 'error' => 'Esa arma no está disponible ahora mismo. No se ha gastado el ticket.']);
+        exit;
+    }
+
+    // 1) Consumir el ticket de forma atómica
+    $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad-1 WHERE uid='$user_uid' AND objeto_id='$ca_ticket' AND cantidad>0");
+    if ($db->affected_rows() < 1) {
+        echo json_encode(['ok' => false, 'error' => 'No tienes ese ticket en tu inventario.']);
+        exit;
+    }
+
+    // 2) Dar el arma: sumar si ya la tiene, crearla si no
+    $db->query("UPDATE mybb_op_inventario SET cantidad=cantidad+1 WHERE uid='$user_uid' AND objeto_id='$ca_arma'");
+    if ($db->affected_rows() < 1) {
+        $db->query("INSERT INTO mybb_op_inventario (objeto_id, uid, cantidad) VALUES ('$ca_arma', '$user_uid', 1) ON DUPLICATE KEY UPDATE cantidad=cantidad+1");
+    }
+
+    // 3) Limpiar la fila del ticket si era la última unidad
+    $db->query("DELETE FROM mybb_op_inventario WHERE uid='$user_uid' AND objeto_id='$ca_ticket' AND cantidad<=0");
+
+    $ca_nombre = $ca_obj['nombre'];
+    log_audit($user_uid, $db->escape_string($username), '[Ítem][Ticket de Arma]', $db->escape_string("Canje de $ca_ticket: $ca_arma ($ca_nombre)."));
+    echo json_encode(['ok' => true, 'mensaje' => 'Has obtenido: ' . $ca_nombre . '.']);
+    exit;
+}
+
 // ─── Staff: modificar inventario (AJAX) ──────────────────────────────────────
 if ($accion == 'staff_inventario_mod' && (is_staff($user_uid) || is_mod($user_uid))) {
     while (ob_get_level()) { ob_end_clean(); }
@@ -1777,11 +1974,20 @@ while ($q = $db->fetch_array($query_historial_all)) {
     }
 }
 
-$historial_kuro_json          = json_encode($historial_kuro_array);
-$historial_experiencia_json   = json_encode($historial_experiencia_array);
-$historial_nikas_json         = json_encode($historial_nikas_array);
-$historial_berries_json       = json_encode($historial_berries_array);
-$historial_puntos_oficio_json = json_encode($historial_puntos_oficio_array);
+// El JSON se inserta dentro de JSON.parse(`...`) en el template: en un template literal, \" pasa a ser " y rompe el JSON
+// (por ejemplo, un titulo de tema con comillas), y una comilla invertida o ${ cortaria o inyectaria codigo. Se escapan aqui.
+if (!function_exists('op_json_para_plantilla_js')) {
+    function op_json_para_plantilla_js($data, $flags = 0) {
+        $json = json_encode($data, $flags);
+        return str_replace(array('\\', '`', '${'), array('\\\\', '\\`', '\\${'), $json);
+    }
+}
+
+$historial_kuro_json          = op_json_para_plantilla_js($historial_kuro_array);
+$historial_experiencia_json   = op_json_para_plantilla_js($historial_experiencia_array);
+$historial_nikas_json         = op_json_para_plantilla_js($historial_nikas_array);
+$historial_berries_json       = op_json_para_plantilla_js($historial_berries_array);
+$historial_puntos_oficio_json = op_json_para_plantilla_js($historial_puntos_oficio_array);
 
 // ─── Modal Ticket Reset ───────────────────────────────────────────────────────
 if (!function_exists('treset_belica_opts')) {
@@ -2706,14 +2912,243 @@ document.getElementById("tresetModal").addEventListener("click",function(e){
 </script>';
 }
 
+// ─── Canje de Tirada de Haki del Rey (THR001) y Pergamino Elemental (PEESP001): estilos compartidos ───────────
+$canje_css = '<style>
+#hcanjeModal,#ecanjeModal,.acanje-modal{position:fixed;z-index:99999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;}
+.hcanje-box{background:#111827;border:2px solid #ea580c;border-radius:12px;padding:22px;max-width:460px;width:100%;color:#e5e7eb;}
+.hcanje-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.hcanje-title{font-family:moonGetHeavy,Arial;color:#fb923c;font-size:18px;}
+.hcanje-x{color:#6b7280;font-size:30px;line-height:1;cursor:pointer;}
+.hcanje-x:hover{color:#f9fafb;}
+.hcanje-txt{font-size:14px;line-height:1.5;margin:0 0 12px;}
+.hcanje-op{display:block;padding:8px 10px;margin-bottom:6px;border:1px solid #374151;border-radius:6px;cursor:pointer;font-size:14px;}
+.hcanje-op:hover{border-color:#ea580c;}
+.hcanje-off{opacity:.5;cursor:not-allowed;}
+.hcanje-btn{display:block;width:100%;margin-top:10px;padding:9px;border:none;border-radius:6px;background:#ea580c;color:#fff;font-family:moonGetHeavy,Arial;cursor:pointer;}
+.hcanje-btn:disabled{opacity:.6;cursor:default;}
+.hcanje-msg{margin-top:10px;font-size:14px;}
+.hcanje-err{color:#fca5a5;}
+.hcanje-ok{color:#86efac;}
+.hcanje-sel{width:100%;padding:8px;margin-bottom:6px;border:1px solid #374151;border-radius:6px;background:#1f2937;color:#e5e7eb;font-size:14px;}
+</style>';
+
+if (!function_exists('op_canje_css_una_vez')) {
+    // Los modales de canje comparten estilos: se escriben una sola vez aunque el usuario tenga varios objetos canjeables
+    function op_canje_css_una_vez($css) {
+        static $emitido = false;
+        if ($emitido) return '';
+        $emitido = true;
+        return $css;
+    }
+}
+
+// ─── Canje de Tirada de Haki del Rey (THR001): modal del inventario ───────────
+if ($is_owner && isset($objetos[OPG_HAKI_CANJE_ITEM])) {
+    $canje_info = opg_haki_canje_opciones($ficha);
+    $canje_nombres = ['kenbun' => 'Kenbunshoku Haki', 'buso' => 'Busoshoku Haki', 'hao' => 'Haoshoku Haki'];
+    if ($canje_info['modo'] === 'tirada') {
+        $canje_cuerpo = '<p class="hcanje-txt">Vas a canjear la Tirada de Haki del Rey. Obtendrás <strong>+1 Lanzada de Haki del Rey</strong> (ahora tienes '.(int)$canje_info['hao_chance'].') para usar en la tirada de Haki del Rey.</p>'
+            .'<button type="button" class="hcanje-btn" onclick="submitCanjeHaki()">CANJEAR</button>';
+    } else {
+        $canje_cuerpo = '<p class="hcanje-txt">Ya tienes Haki del Rey. Elige qué Haki despertado quieres subir <strong>1 nivel</strong>, sin gastar Nikas.</p>';
+        foreach ($canje_info['opciones'] as $col => $op) {
+            $canje_cuerpo .= '<label class="hcanje-op'.($op['ok'] ? '' : ' hcanje-off').'">'
+                .'<input type="radio" name="canje_haki" value="'.$col.'"'.($op['ok'] ? '' : ' disabled').'> '
+                .'<strong>'.$canje_nombres[$col].'</strong>: '
+                .($op['ok'] ? 'nivel '.(int)$op['actual'].' &rarr; '.(int)$op['siguiente'] : htmlspecialchars($op['motivo'], ENT_QUOTES, 'UTF-8'))
+                .'</label>';
+        }
+        $canje_cuerpo .= $canje_info['puede']
+            ? '<button type="button" class="hcanje-btn" onclick="submitCanjeHaki()">CANJEAR</button>'
+            : '<p class="hcanje-txt">Ahora mismo ninguno de tus Hakis puede subir de nivel con este objeto. No se gastará.</p>';
+    }
+    $op_ficha_reset_panel .= op_canje_css_una_vez($canje_css) . '
+<div id="hcanjeModal">
+    <div class="hcanje-box">
+        <div class="hcanje-head">
+            <span class="hcanje-title">TIRADA DE HAKI DEL REY</span>
+            <span class="hcanje-x" onclick="closeCanjeHaki()">&times;</span>
+        </div>
+        '.$canje_cuerpo.'
+        <div id="hcanje-msg" class="hcanje-msg"></div>
+    </div>
+</div>
+<script>
+function openCanjeHaki(){ document.getElementById("hcanjeModal").style.display="flex"; }
+function closeCanjeHaki(){ document.getElementById("hcanjeModal").style.display="none"; }
+document.getElementById("hcanjeModal").addEventListener("click",function(e){ if(e.target===this) closeCanjeHaki(); });
+function submitCanjeHaki(){
+    var msg=document.getElementById("hcanje-msg"), btn=document.querySelector("#hcanjeModal .hcanje-btn");
+    var sel=document.querySelector("#hcanjeModal input[name=canje_haki]:checked");
+    if(document.querySelector("#hcanjeModal input[name=canje_haki]") && !sel){
+        msg.className="hcanje-msg hcanje-err"; msg.textContent="Elige qué Haki quieres subir."; return;
+    }
+    var fd=new FormData();
+    fd.append("accion","canjear_haki");
+    fd.append("my_post_key","'.htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8').'");
+    if(sel) fd.append("haki", sel.value);
+    btn.disabled=true; btn.textContent="Canjeando...";
+    fetch("/op/personaje.php?uid="+encodeURIComponent(query_uid),{method:"POST",body:fd,credentials:"same-origin"})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d.ok){
+                msg.className="hcanje-msg hcanje-ok"; msg.textContent=d.mensaje;
+                setTimeout(function(){ location.reload(); },1400);
+            } else {
+                msg.className="hcanje-msg hcanje-err"; msg.textContent=d.error||"Error desconocido.";
+                btn.disabled=false; btn.textContent="CANJEAR";
+            }
+        })
+        .catch(function(){ msg.className="hcanje-msg hcanje-err"; msg.textContent="Error de conexión."; btn.disabled=false; btn.textContent="CANJEAR"; });
+}
+</script>';
+}
+
+if ($is_owner && isset($objetos[OPG_ELEMENTO_CANJE_ITEM])) {
+    $elem_estado = opg_elemento_canje_estado($ficha['elementos']);
+    $elem_libres = opg_elemento_canje_disponibles($ficha['elementos']);
+    $elem_cuerpo = '';
+    if (!$elem_libres) {
+        $elem_cuerpo = '<p class="hcanje-txt">Ya tienes los 5 elementos desbloqueados, así que este pergamino no se puede canjear.</p>';
+    } else {
+        $elem_cuerpo = '<p class="hcanje-txt">Elige el elemento que quieres desbloquear. Aprenderás también su <strong>Dominio</strong> y su <strong>Recubrimiento</strong>.</p>';
+        foreach ($elem_estado as $nombre => $tiene) {
+            $elem_cuerpo .= '<label class="hcanje-op'.($tiene ? ' hcanje-off' : '').'">'
+                .'<input type="radio" name="canje_elemento" value="'.$nombre.'"'.($tiene ? ' disabled' : '').'> '
+                .'<strong>'.$nombre.'</strong>'.($tiene ? ': ya lo tienes' : '')
+                .'</label>';
+        }
+        $elem_cuerpo .= '<button type="button" class="hcanje-btn" onclick="submitCanjeElemento()">CANJEAR</button>';
+    }
+    $op_ficha_reset_panel .= op_canje_css_una_vez($canje_css) . '
+<div id="ecanjeModal">
+    <div class="hcanje-box">
+        <div class="hcanje-head">
+            <span class="hcanje-title">PERGAMINO DE ESTILO ELEMENTAL</span>
+            <span class="hcanje-x" onclick="closeCanjeElemento()">&times;</span>
+        </div>
+        '.$elem_cuerpo.'
+        <div id="ecanje-msg" class="hcanje-msg"></div>
+    </div>
+</div>
+<script>
+function openCanjeElemento(){ document.getElementById("ecanjeModal").style.display="flex"; }
+function closeCanjeElemento(){ document.getElementById("ecanjeModal").style.display="none"; }
+document.getElementById("ecanjeModal").addEventListener("click",function(e){ if(e.target===this) closeCanjeElemento(); });
+function submitCanjeElemento(){
+    var msg=document.getElementById("ecanje-msg"), btn=document.querySelector("#ecanjeModal .hcanje-btn");
+    var sel=document.querySelector("#ecanjeModal input[name=canje_elemento]:checked");
+    if(!sel){ msg.className="hcanje-msg hcanje-err"; msg.textContent="Elige qué elemento quieres desbloquear."; return; }
+    var fd=new FormData();
+    fd.append("accion","canjear_elemento");
+    fd.append("my_post_key","'.htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8').'");
+    fd.append("elemento", sel.value);
+    btn.disabled=true; btn.textContent="Canjeando...";
+    fetch("/op/personaje.php?uid="+encodeURIComponent(query_uid),{method:"POST",body:fd,credentials:"same-origin"})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d.ok){
+                msg.className="hcanje-msg hcanje-ok"; msg.textContent=d.mensaje;
+                setTimeout(function(){ location.reload(); },1400);
+            } else {
+                msg.className="hcanje-msg hcanje-err"; msg.textContent=d.error||"Error desconocido.";
+                btn.disabled=false; btn.textContent="CANJEAR";
+            }
+        })
+        .catch(function(){ msg.className="hcanje-msg hcanje-err"; msg.textContent="Error de conexión."; btn.disabled=false; btn.textContent="CANJEAR"; });
+}
+</script>';
+}
+
+// Tickets de Arma: un modal por cada ticket que el usuario tenga
+$arma_tickets = [];
+if ($is_owner) {
+    foreach ([1, 2, 3, 4, 5] as $arma_t) {
+        if (isset($objetos['TARM00'.$arma_t])) $arma_tickets[] = $arma_t;
+    }
+}
+if ($arma_tickets) {
+    $arma_ids = [];
+    foreach ($arma_tickets as $arma_t) {
+        foreach (opg_arma_canje_opciones('TARM00'.$arma_t) as $arma_id) $arma_ids[] = "'".$db->escape_string($arma_id)."'";
+    }
+    $arma_info = [];
+    $arma_q = $db->query("SELECT objeto_id, nombre, subcategoria FROM mybb_op_objetos WHERE objeto_id IN (".implode(',', $arma_ids).")");
+    while ($ar = $db->fetch_array($arma_q)) $arma_info[$ar['objeto_id']] = $ar;
+
+    $arma_html = '';
+    foreach ($arma_tickets as $arma_t) {
+        $ticket_id = 'TARM00'.$arma_t;
+        $grupos = [];
+        foreach (opg_arma_canje_opciones($ticket_id) as $arma_id) {
+            if (!isset($arma_info[$arma_id])) continue;
+            $grupos[$arma_info[$arma_id]['subcategoria']][] = $arma_info[$arma_id];
+        }
+        if (!$grupos) {
+            $cuerpo = '<p class="hcanje-txt">No hay armas de Tier '.$arma_t.' disponibles para canjear ahora mismo.</p>';
+        } else {
+            $cuerpo = '<p class="hcanje-txt">Elige el arma de <strong>Tier '.$arma_t.'</strong> que quieres obtener. El ticket se gasta al confirmar.</p>'
+                .'<select class="hcanje-sel" id="acanje-sel-'.$ticket_id.'"><option value="">Elige un arma...</option>';
+            foreach ($grupos as $sub => $lista) {
+                $cuerpo .= '<optgroup label="'.htmlspecialchars($sub, ENT_QUOTES, 'UTF-8').'">';
+                foreach ($lista as $o) {
+                    $cuerpo .= '<option value="'.htmlspecialchars($o['objeto_id'], ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($o['nombre'], ENT_QUOTES, 'UTF-8').'</option>';
+                }
+                $cuerpo .= '</optgroup>';
+            }
+            $cuerpo .= '</select><button type="button" class="hcanje-btn" onclick="submitCanjeArma(\''.$ticket_id.'\')">CANJEAR</button>';
+        }
+        $arma_html .= '
+<div id="acanjeModal-'.$ticket_id.'" class="acanje-modal" style="display:none">
+    <div class="hcanje-box">
+        <div class="hcanje-head">
+            <span class="hcanje-title">TICKET DE ARMA TIER '.$arma_t.'</span>
+            <span class="hcanje-x" onclick="closeCanjeArma(\''.$ticket_id.'\')">&times;</span>
+        </div>
+        '.$cuerpo.'
+        <div id="acanje-msg-'.$ticket_id.'" class="hcanje-msg"></div>
+    </div>
+</div>';
+    }
+    $op_ficha_reset_panel .= op_canje_css_una_vez($canje_css) . $arma_html . '
+<script>
+function openCanjeArma(t){ document.getElementById("acanjeModal-"+t).style.display="flex"; }
+function closeCanjeArma(t){ document.getElementById("acanjeModal-"+t).style.display="none"; }
+document.querySelectorAll(".acanje-modal").forEach(function(m){ m.addEventListener("click",function(e){ if(e.target===this) this.style.display="none"; }); });
+function submitCanjeArma(t){
+    var msg=document.getElementById("acanje-msg-"+t), btn=document.querySelector("#acanjeModal-"+t+" .hcanje-btn");
+    var sel=document.getElementById("acanje-sel-"+t);
+    if(!sel || !sel.value){ msg.className="hcanje-msg hcanje-err"; msg.textContent="Elige qué arma quieres obtener."; return; }
+    var fd=new FormData();
+    fd.append("accion","canjear_arma");
+    fd.append("my_post_key","'.htmlspecialchars($mybb->post_code, ENT_QUOTES, 'UTF-8').'");
+    fd.append("ticket", t);
+    fd.append("arma", sel.value);
+    btn.disabled=true; btn.textContent="Canjeando...";
+    fetch("/op/personaje.php?uid="+encodeURIComponent(query_uid),{method:"POST",body:fd,credentials:"same-origin"})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d.ok){
+                msg.className="hcanje-msg hcanje-ok"; msg.textContent=d.mensaje;
+                setTimeout(function(){ location.reload(); },1400);
+            } else {
+                msg.className="hcanje-msg hcanje-err"; msg.textContent=d.error||"Error desconocido.";
+                btn.disabled=false; btn.textContent="CANJEAR";
+            }
+        })
+        .catch(function(){ msg.className="hcanje-msg hcanje-err"; msg.textContent="Error de conexión."; btn.disabled=false; btn.textContent="CANJEAR"; });
+}
+</script>';
+}
+
 // ─── Catálogos (estilos/oficios/disciplinas) desde BD, para JS ─────────────────
 // Usados por el <script> inline de op_personaje.html: estilos/oficios para
 // jscripts/ficha/belicas.js y jscripts/ficha/oficios.js, y disciplinas para
 // que jscripts/ficha/belicas.js genere la rejilla de op_ficha_belico.html
 // dinámicamente (número de casillas variable, no fijo a 12).
-$op_img_estilos_json = json_encode(op_ficha_estilos_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-$op_img_oficios_json = json_encode(op_ficha_oficios_catalogo_imagenes(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-$op_disciplinas_catalogo_json = json_encode(op_ficha_disciplinas_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$op_img_estilos_json = op_json_para_plantilla_js(op_ficha_estilos_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$op_img_oficios_json = op_json_para_plantilla_js(op_ficha_oficios_catalogo_imagenes(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+$op_disciplinas_catalogo_json = op_json_para_plantilla_js(op_ficha_disciplinas_catalogo(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 // Requisitos (nivel y nikas) para desbloquear los slots de estilo, de la BD (admin > Costes), para belicas.js.
 $op_costes_estilo_unlock = op_ficha_estilo_unlock_cost_new();
 $op_req_estilos_json = json_encode(array(

@@ -361,6 +361,15 @@ for (let i = 0; i < objetos_array_json.length; i++) {
 
 	<if $is_owner then>
 		ventaHtml = `<button onclick="venderItem('` + objetoId + `');" class="button">Vender Item por ` + parseInt((parseInt(objeto.berries) / {$precioVentaPct}) + 1).toLocaleString('es-es') + `B</button>`;
+		if (/^TARM00[1-5]$/.test(objetoId)) {
+			usarHtml = `<button onclick="openCanjeArma('` + objetoId + `');" style="background:#ea580c;color:#fff;padding:5px 0;border:none;cursor:pointer;font-family:moonGetHeavy;font-size:11px;letter-spacing:.5px;width:100%;border-radius:4px;margin-top:3px;">CANJEAR</button>`;
+		}
+		if (objetoId === 'PEESP001') {
+			usarHtml = `<button onclick="openCanjeElemento();" style="background:#ea580c;color:#fff;padding:5px 0;border:none;cursor:pointer;font-family:moonGetHeavy;font-size:11px;letter-spacing:.5px;width:100%;border-radius:4px;margin-top:3px;">CANJEAR</button>`;
+		}
+		if (objetoId === 'THR001') {
+			usarHtml = `<button onclick="openCanjeHaki();" style="background:#ea580c;color:#fff;padding:5px 0;border:none;cursor:pointer;font-family:moonGetHeavy;font-size:11px;letter-spacing:.5px;width:100%;border-radius:4px;margin-top:3px;">CANJEAR</button>`;
+		}
 		if (objetoId === 'TNP001') {
 			usarHtml = `<button onclick="openResetModal();" style="background:#ea580c;color:#fff;padding:5px 0;border:none;cursor:pointer;font-family:moonGetHeavy;font-size:11px;letter-spacing:.5px;width:100%;border-radius:4px;margin-top:3px;">UTILIZAR</button>`;
 		}
