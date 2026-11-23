@@ -159,7 +159,7 @@ else
 
     es_ayudante() {
         case "$(basename "$1")" in
-            bootstrap_*.php|harness_*.php|worker.php|http.php|probar_esquema.php) return 0 ;;
+            *bootstrap*.php|harness_*.php|worker.php|http.php|probar_esquema.php) return 0 ;;
         esac
         # Partes de otra prueba (se cargan desde ella y por separado solo dicen "Ejecuta tests/...")
         grep -q "empty(\$GLOBALS\['continuar'\])" "$1" && return 0

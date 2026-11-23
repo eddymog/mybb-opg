@@ -199,7 +199,7 @@ Este es el requisito más importante del sistema.
 32. **Caché por petición:** el valor se lee una sola vez por petición, aunque lo
     pidan varias partes de la página.
 33. **Autoreparación:** si falta la fila del contador, o su última
-    actualización supera las 24 horas, se recalcula con un `COUNT` acotado por
+    reconciliación (el recuento desde las filas) supera las 24 horas, se recalcula con un `COUNT` acotado por
     los índices y se vuelve a guardar. Un desfase nunca debe persistir.
 34. **Lista:** una única consulta indexada por `(uid, id)` (y `(uid, leida_en, id)`
     para las no leídas), sin uniones; los
