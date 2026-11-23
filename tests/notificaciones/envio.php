@@ -259,19 +259,32 @@ esperar(strpos($db->sentencias[0], 'ON DUPLICATE KEY UPDATE cantidad = cantidad 
     'agrupable: suma cantidad, guarda el ultimo actor y renueva la fecha');
 $db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => 1, 'id' => 9) : array('afectadas' => 1); });
 esperar(opg_notificar(5, 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'agrupable insertada: devuelve 1 y sube el contador');
-// Lote agrupable 3 destinatarios: 1 insertada y 2 actualizadas = 5 filas afectadas.
+// Lote agrupable de 3 destinatarios: una sentencia atomica por destinatario (la multifila se interbloquea, ver la
+// libreria); el de en medio es nuevo (1 fila afectada) y los otros suman (2). El contador: una sentencia, solo el nuevo.
 $db = doble_nuevo(function ($sql) {
-    if (stripos($sql, 'INSERT') === 0) return array('afectadas' => 5, 'id' => 70);
-    if (stripos($sql, 'SELECT @@') === 0) return array('filas' => array(array('modo' => 1)));
-    if (stripos($sql, 'SELECT') === 0) return array('filas' => array(array('id' => 70, 'uid' => 2)));
+    if (stripos($sql, 'INSERT') === 0) return array('afectadas' => strpos($sql, 'VALUES (2,') !== false ? 1 : 2, 'id' => 70);
     return array('afectadas' => 1);
 });
-esperar(opg_notificar(array(1, 2, 3), 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'lote agrupable: 2N - afectadas = 1 nueva');
-esperar(count(inserciones($db)) === 1, 'lote agrupable: una sola sentencia');
-// affected_rows imposible: se registra y devuelve false.
-$db = doble_nuevo(function ($sql) { return array('afectadas' => 7, 'id' => 1); });
-esperar(opg_notificar(array(1, 2), 'bitacora_post', array(), array('agrupar_por' => 7)) === false, 'agrupable: affected_rows fuera de rango es false');
-esperar(strpos(registro_leer(), 'opg_notificar') !== false, 'agrupable: affected_rows fuera de rango se registra');
+esperar(opg_notificar(array(1, 2, 3), 'bitacora_post', array('tid' => 7), array('agrupar_por' => 7)) === 1, 'lote agrupable: 1 nueva');
+$ins = inserciones($db);
+esperar(count($ins) === 3 && substr_count(implode('', $ins), '),(') === 0, 'lote agrupable: una sentencia de una fila por destinatario');
+$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE `mybb_op_notificaciones_contador`') === 0; }));
+esperar(count($upd) === 1 && strpos($upd[0], 'uid IN (2)') !== false, 'lote agrupable: un solo UPDATE del contador, solo del nuevo');
+esperar(!array_filter($db->sentencias, function ($s) { return stripos($s, 'SELECT') === 0; }), 'lote agrupable: no necesita consultas de identificacion');
+// affected_rows imposible: se registra y ese destinatario no suma al contador.
+$db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => 3, 'id' => 1) : array('afectadas' => 1); });
+esperar(opg_notificar(array(1, 2), 'bitacora_post', array(), array('agrupar_por' => 7)) === 0, 'agrupable: affected_rows fuera de rango no cuenta como nueva');
+esperar(strpos(registro_leer(), 'inesperadas') !== false, 'agrupable: affected_rows fuera de rango se registra');
+esperar(count($db->sentencias) === 2, 'agrupable: affected_rows fuera de rango no toca el contador');
+// Error a mitad de un lote agrupable: las filas ya creadas suben su contador y se devuelve false.
+$db = doble_nuevo(function ($sql) {
+    if (stripos($sql, 'INSERT') === 0) return strpos($sql, 'VALUES (2,') !== false ? false : array('afectadas' => 1, 'id' => 1);
+    return array('afectadas' => 1);
+});
+esperar(opg_notificar(array(1, 2, 3), 'bitacora_post', array(), array('agrupar_por' => 7)) === false, 'agrupable: error a mitad devuelve false');
+$upd = array_values(array_filter($db->sentencias, function ($s) { return stripos($s, 'UPDATE') === 0; }));
+esperar(count($upd) === 1 && strpos($upd[0], 'uid IN (1)') !== false, 'agrupable: error a mitad, la fila ya creada lleva su contador');
+esperar(strpos(registro_leer(), 'error simulado') !== false, 'agrupable: error a mitad se registra');
 
 // Lotes grandes: bloques de 200.
 $db = doble_nuevo(function ($sql) { return stripos($sql, 'INSERT') === 0 ? array('afectadas' => substr_count($sql, '),(') + 1, 'id' => 1) : array('afectadas' => substr_count($sql, ',') + 1); });

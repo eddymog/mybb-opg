@@ -399,36 +399,59 @@ function opg_notificar($destinatarios, $tipo, $datos = array(), $opciones = arra
 }
 
 /**
- * (Privada del envio.) Inserta un bloque en una sola sentencia multifila y devuelve los uid cuya fila es NUEVA.
- * - Normal: INSERT IGNORE. Una fila que ya existia con esa clave no se toca.
- * - Agrupable: INSERT ... ON DUPLICATE KEY UPDATE (cantidad + 1, ultimo actor, datos y fecha renovada). MySQL cuenta 1
- *   fila afectada por insercion y 2 por actualizacion, asi que las nuevas son 2N - afectadas (208, apartado 5.3).
- * Si entran todas o ninguna no hace falta mas. Si entran solo algunas, ver opg_notif_envio_identificar().
+ * (Privada del envio.) Inserta un bloque y devuelve los uid cuya fila es NUEVA (el contador solo sube por esas).
+ *
+ * - Normal: un solo INSERT IGNORE multifila para todo el bloque (requisito 35). Una fila que ya existia con esa clave no
+ *   se toca. Si entran todas o ninguna no hace falta mas; si entran solo algunas, ver opg_notif_envio_identificar().
+ * - Agrupable: INSERT ... ON DUPLICATE KEY UPDATE (cantidad + 1, ultimo actor, datos y fecha renovada), UNA sentencia
+ *   atomica POR DESTINATARIO (208, apartado 5.3). MySQL cuenta 1 fila afectada si inserto y 2 si actualizo, asi que cada
+ *   sentencia dice con exactitud si su fila es nueva. No se usa la variante multifila porque, con dos procesos sumando a
+ *   la vez en grupos vecinos (por ejemplo dos temas con los mismos seguidores), InnoDB la interbloquea (medido en
+ *   MySQL 5.7: varios interbloqueos cada 400 sentencias; la de una fila, ninguno), y un interbloqueo revierte la
+ *   transaccion entera de quien llama. El incremento del contador sigue siendo una sola sentencia para todo el bloque.
  */
 function opg_notif_envio_insertar($uids, $tipo, $def, $actor, $clave, $url, $json, $ahora)
 {
     global $db;
     $agrupable = !empty($def['agrupable']);
+    $columnas = ' (uid, tipo, categoria, origen, importancia, agrupable, actor_uid, clave_evento, url, cantidad, datos_json, created_at) VALUES ';
     $fijo = opg_notif_sql_texto($tipo) . ', ' . opg_notif_sql_texto($def['categoria']) . ', ' . opg_notif_sql_texto($def['origen'])
         . ', ' . opg_notif_sql_texto($def['importancia']) . ', ' . ($agrupable ? 1 : 0) . ', ' . (int) $actor . ', '
         . opg_notif_sql_texto($clave) . ', ' . opg_notif_sql_texto($url) . ', 1, ' . opg_notif_sql_texto($json) . ', ' . (int) $ahora;
+
+    if ($agrupable) {
+        $nuevos = array();
+        try {
+            foreach ($uids as $uid) {
+                opg_notif_w('INSERT INTO ' . opg_notif_t('op_notificaciones') . $columnas . '(' . (int) $uid . ', ' . $fijo . ')'
+                    . ' ON DUPLICATE KEY UPDATE cantidad = cantidad + 1, actor_uid = VALUES(actor_uid), url = VALUES(url),'
+                    . ' datos_json = VALUES(datos_json), created_at = VALUES(created_at)');
+                $afectadas = (int) $db->affected_rows();
+                if ($afectadas === 1) {
+                    $nuevos[] = (int) $uid;
+                } elseif ($afectadas !== 2) {
+                    opg_notif_log("opg_notificar($tipo): filas afectadas inesperadas ($afectadas) para el uid $uid; su contador no se toca");
+                }
+            }
+        } catch (Throwable $e) {
+            // Las filas ya creadas de este bloque llevan su contador antes de devolver el error.
+            if ($nuevos) {
+                opg_notif_envio_contador($nuevos, $def['importancia'] === 'importante' ? 1 : 0, $ahora);
+            }
+            throw $e;
+        }
+        return $nuevos;
+    }
+
     $filas = array();
     foreach ($uids as $uid) {
         $filas[] = '(' . (int) $uid . ', ' . $fijo . ')';
     }
-    $sql = ($agrupable ? 'INSERT INTO ' : 'INSERT IGNORE INTO ') . opg_notif_t('op_notificaciones')
-        . ' (uid, tipo, categoria, origen, importancia, agrupable, actor_uid, clave_evento, url, cantidad, datos_json, created_at) VALUES '
-        . implode(',', $filas);
-    if ($agrupable) {
-        $sql .= ' ON DUPLICATE KEY UPDATE cantidad = cantidad + 1, actor_uid = VALUES(actor_uid), url = VALUES(url),'
-            . ' datos_json = VALUES(datos_json), created_at = VALUES(created_at)';
-    }
-    opg_notif_w($sql);
-    $afectadas = (int) $db->affected_rows();
+    opg_notif_w('INSERT IGNORE INTO ' . opg_notif_t('op_notificaciones') . $columnas . implode(',', $filas));
+    $insertadas = (int) $db->affected_rows();
     $n = count($uids);
-    $insertadas = $agrupable ? 2 * $n - $afectadas : $afectadas;
-    if ($insertadas < 0 || $insertadas > $n || ($agrupable && $afectadas < $n)) {
-        throw new RuntimeException("filas afectadas inesperadas ($afectadas para $n destinatarios); el contador no se toca");
+    if ($insertadas < 0 || $insertadas > $n) {
+        throw new RuntimeException("filas afectadas inesperadas ($insertadas para $n destinatarios); el contador no se toca");
     }
     if ($insertadas === 0) {
         return array();
@@ -486,6 +509,11 @@ function opg_notif_envio_identificar($uids, $clave, $insertadas, $primer_id)
  * (Privada del envio.) Suma un aviso al contador de cada uid (todos reciben el mismo tipo, asi que el incremento es igual):
  * una sola sentencia relativa, sin leer antes (requisito 36). Los uid sin fila de contador se crean con un recuento de
  * sus no leidas, que ya incluye el aviso recien insertado (208, apartado 5.2).
+ *
+ * Caso limite conocido: solo cuando el destinatario aun NO tiene contador y, en el mismo instante, otro proceso le crea
+ * otro aviso distinto, el recuento puede incluir la fila del otro antes de que este sume la suya (el contador queda uno
+ * por encima). No hay forma exacta sin abrir una transaccion propia (que confirmaria la de quien llama); lo corrige la
+ * reconciliacion del contador (opg_notif_reconciliar, issue #4). Con el contador ya creado, todo es exacto.
  */
 function opg_notif_envio_contador($uids, $imp, $ahora)
 {
