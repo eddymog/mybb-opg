@@ -17,7 +17,7 @@
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
  *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
- *   resumen, categoria y resultado (peticiones).
+ *   resumen, categoria y resultado (peticiones), fruta (nombre de la Akuma).
  */
 
 if (!defined('IN_MYBB')) {
@@ -147,6 +147,13 @@ function opg_notif_nombre_personaje($d)
 {
     $nombre = opg_notif_dato($d, 'nombre');
     return $nombre !== '' ? '«' . $nombre . '»' : 'tu personaje';
+}
+
+/** «Nombre» de la fruta de un aviso de Akuma, o $defecto si no se guardo. */
+function opg_notif_nombre_fruta($d, $defecto)
+{
+    $fruta = opg_notif_dato($d, 'fruta');
+    return $fruta !== '' ? 'la Akuma «' . $fruta . '»' : $defecto;
 }
 
 // ── Catalogo ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -372,6 +379,24 @@ function opg_notif_catalogo()
                 return 'Se rechazó la ficha de ' . opg_notif_nombre_personaje($d) . ' y se borró. Puedes crear una nueva.';
             },
             'url' => 'opg_notif_url_ficha_crear',
+        ),
+
+        // ── Akuma (editor de ficha del staff, issue #18) ──
+        'akuma_asignada' => array(
+            'categoria' => 'tecnicas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-apple-whole',
+            'texto' => function ($d, $n) {
+                return 'Se te asignó ' . opg_notif_nombre_fruta($d, 'una Akuma') . '. Revisa tu ficha.';
+            },
+            'url' => 'opg_notif_url_ficha',
+        ),
+        'akuma_retirada' => array(
+            'categoria' => 'tecnicas', 'origen' => 'gestion', 'importancia' => 'importante', 'agrupable' => false,
+            'icono' => 'fa-apple-whole',
+            'texto' => function ($d, $n) {
+                return 'Se te retiró ' . opg_notif_nombre_fruta($d, 'tu Akuma') . '.';
+            },
+            'url' => 'opg_notif_url_ficha',
         ),
     );
     return $catalogo;

@@ -241,6 +241,11 @@ if ($mybb->request_method == 'post') {
 
         if ($set_parts) {
             $db->query("UPDATE `mybb_op_fichas` SET " . implode(', ', $set_parts) . " WHERE `fid`='" . $db->escape_string($ficha_id) . "'");
+            // Akuma asignada o retirada: avisar al dueño solo si el UPDATE cambió la fila (issue #18). Nunca falla.
+            if (array_key_exists('akuma', $cambiados) && (int) $db->affected_rows() > 0 && is_file(MYBB_ROOT . 'inc/plugins/lib/akuma_avisos.php')) {
+                require_once MYBB_ROOT . 'inc/plugins/lib/akuma_avisos.php';
+                opg_akuma_avisar_cambio((int) $f_var['fid'], $f_var['akuma'], $cambiados['akuma'], $uid);
+            }
         }
 
         // secret1: si se activa la identidad secreta y todavía no existe su
