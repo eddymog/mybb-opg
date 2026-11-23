@@ -155,7 +155,8 @@ if (isset($argv[1]) && $argv[1] === '--bloqueo') {
         }
     }
     $otra->write_query('UPDATE mybb_op_notificaciones_contador SET sin_leer = sin_leer WHERE uid = ' . (int) $uid, 1);
-    touch($listo);
+    // Una sola escritura (touch() crea el archivo y despues cambia su fecha: si el padre lo borra en medio, avisa).
+    file_put_contents($listo, '1');
     $res = array();
     if ($modo === 'espera') {
         usleep((int) ((float) $x * 1000000));
@@ -457,14 +458,14 @@ function nt_bloqueo($modo, $uid, $x)
     while (!file_exists($listo) && microtime(true) - $t0 < 10) {
         usleep(1000);
     }
-    @unlink($listo);
-    return array($p, $tuberias);
+    return array($p, $tuberias, $listo);
 }
 function nt_bloqueo_fin($b)
 {
     $salida = stream_get_contents($b[1][1]);
     $errores = stream_get_contents($b[1][2]);
     $codigo = proc_close($b[0]);
+    @unlink($b[2]);
     $r = json_decode(trim($salida), true);
     return is_array($r) ? $r : array('sin respuesta' => "codigo $codigo, salida: $salida, errores: $errores");
 }
