@@ -1,0 +1,36 @@
+<html lang="es">
+<head>
+<title>Notificaciones - {$bbname_html}</title>
+{$headerinclude}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/fontawesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css">
+<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"selfRequestsOnly":true,"historyCacheSize":0,"defaultSwapStyle":"innerHTML","responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"403|404|5..","swap":true,"target":"#nt-avisos","error":true}]}'>
+<link rel="stylesheet" href="{$asset_url}/jscripts/notificaciones.css?v=1">
+</head>
+<body class="nt-pagina-notificaciones" hx-headers='{"X-Post-Key":"{$post_key}"}'>
+{$header}
+<div class="indice nt-pagina">
+<div class="mainBackground">
+<div class="secondBackground">
+<div class="thirdBackground">
+
+    <header class="nt-encabezado">
+        <span class="nt-encabezado-icono" aria-hidden="true"><i class="fa-solid fa-bell"></i></span>
+        <h1>Notificaciones</h1>
+    </header>
+
+    <div class="nt-avisos" id="nt-avisos" aria-live="polite"></div>
+
+    <div class="nt-cargando htmx-indicator" id="nt-cargando" role="status" aria-label="Cargando notificaciones"></div>
+
+    <div id="nt-contenido" hx-indicator="#nt-cargando" hx-sync="this:replace">{$contenido_html}</div>
+
+</div>
+</div>
+</div>
+</div>
+<script src="{$htmx_url}" defer></script>
+{$footer}
+</body>
+</html>
