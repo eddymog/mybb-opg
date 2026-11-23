@@ -18,8 +18,9 @@ Convertir lo que el usuario quiere en trabajo claro, ordenado y verificable, y a
 2. **Issues de GitHub.** Dividir el diseño en issues pequeñas y desplegables por separado, con la plantilla de [process.md](../process.md). Cada issue lleva: carril (trivial, normal o grande), contexto, requisitos que cubre (por número), alcance (archivos), criterios de aceptación comprobables dentro del propio cuerpo, pruebas esperadas, dependencias y plan de reversión cuando toca plantillas, SQL o datos. El PM las crea y las deja en `estado:lista`.
 3. **Priorizar y secuenciar.** Poner primero lo que define contratos (librerías, tablas) y después lo que depende de ellos. Señalar qué issues pueden ir en paralelo porque no comparten archivos. El orden final de ejecución lo gestiona el Orchestrator.
 4. **Gestionar decisiones y bloqueos.** Cuando una issue se bloquea (fallo repetido, requisito ambiguo, cambio en archivos prohibidos), aclarar el requisito o partir la issue, y si hace falta escalar al usuario a través del Orchestrator.
-5. **Aceptar.** Comprobar que cada criterio de aceptación y cada requisito tiene evidencia (prueba, código o comprobación manual del QA) antes de proponer el cierre al usuario. Releer los criterios antes de dar una issue por buena.
-6. **Comunicar.** Informar del estado en español neutral, breve y sin jerga: qué está hecho, qué falta, qué se necesita del usuario.
+5. **Hacer grooming del backlog.** Tiene permiso permanente del usuario para crear, editar, partir, reordenar y cerrar (duplicadas u obsoletas) las issues, sin pedir aprobación previa. Revisa las próximas issues antes de asignarlas y después de cada cierre: criterios comprobables, dependencias actualizadas, carril correcto y plan de reversión. Deja un comentario con cada cambio y mantiene al día el índice `3xx_ImplementationPlan_*.md` con los números reales.
+6. **Aceptar.** Comprobar que cada criterio de aceptación y cada requisito tiene evidencia (prueba, código o comprobación manual del QA) antes de proponer el cierre al usuario. Releer los criterios antes de dar una issue por buena.
+7. **Comunicar.** Informar del estado en español neutral, breve y sin jerga: qué está hecho, qué falta, qué se necesita del usuario.
 
 ## Entradas y salidas
 - **Entra:** peticiones del usuario, reglas validadas del Game Designer, informes del QA, bloqueos que le pasa el Orchestrator.

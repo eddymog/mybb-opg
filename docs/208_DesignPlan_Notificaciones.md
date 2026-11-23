@@ -5,6 +5,8 @@
 >
 > **Estado: por implementar.** Este documento describe la arquitectura y el
 > orden de construcción; no implica que las tablas o archivos existan aún.
+> Las tareas concretas, su orden y sus criterios de aceptación están en
+> [308_ImplementationPlan_Notificaciones.md](308_ImplementationPlan_Notificaciones.md).
 
 ## 1. Objetivo
 
@@ -54,7 +56,8 @@ con pendientes e historial y los envoltorios que ya usan los llamadores.
 | `templates/One_Piece_Gaiden_Templates/op_notificaciones.html` | Estructura de la página | Nuevo |
 | `templates/One_Piece_Gaiden_Templates/op_notificaciones_header.html` | Campana del header | Nuevo |
 | `templates/One_Piece_Gaiden_Templates/header.html` | Variable `{$op_notificaciones_header}` junto a `{$op_temas_header}` | Modificar |
-| `docs/notificaciones_migration.sql` | Tablas, índices y tarea programada, idempotente | Nuevo |
+| `docs/notificaciones_migration.sql` | Tablas e índices, idempotente | Nuevo |
+| `docs/notificaciones_tarea_migration.sql` | Registro de la tarea programada, idempotente | Nuevo |
 | `op/staff/migrar_notificaciones.php` | Copia por lotes de las notificaciones del Tablón | Nuevo |
 | `inc/plugins/lib/aventuras.php` | `opg_av_notificar*` pasan a envoltorios | Modificar |
 | `inc/plugins/op_bitacora/functions.php` | Eventos de la Bitácora llaman a `opg_notificar` | Modificar |
@@ -96,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `mybb_op_notificaciones` (
 CREATE TABLE IF NOT EXISTS `mybb_op_notificaciones_contador` (
   `uid`         INT UNSIGNED NOT NULL,
   `sin_leer`    INT UNSIGNED NOT NULL DEFAULT 0,
+  `importantes` INT UNSIGNED NOT NULL DEFAULT 0,        -- de las no leídas, cuántas son importantes
   `actualizado` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -155,18 +159,22 @@ Opciones de `opg_notificar`:
 
 ```sql
 UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = sin_leer + 1, actualizado = :ahora
+   SET sin_leer = sin_leer + 1, importantes = importantes + :imp, actualizado = :ahora
  WHERE uid = :uid;
 ```
+
+`:imp` vale 1 si el tipo es `importante` en el catálogo y 0 si no. Así la campana puede indicar que
+hay algo importante sin leer leyendo la misma fila, sin consultas extra (requisito 18).
 
 Si el `UPDATE` no afecta ninguna fila (el contador no existe todavía), se crea
 con un recuento, que ya incluye la notificación recién insertada:
 
 ```sql
-INSERT INTO mybb_op_notificaciones_contador (uid, sin_leer, actualizado)
-SELECT :uid, COUNT(*), :ahora FROM mybb_op_notificaciones
+INSERT INTO mybb_op_notificaciones_contador (uid, sin_leer, importantes, actualizado)
+SELECT :uid, COUNT(*), COALESCE(SUM(importancia = 'importante'), 0), :ahora FROM mybb_op_notificaciones
  WHERE uid = :uid AND leida_en IS NULL
-ON DUPLICATE KEY UPDATE sin_leer = VALUES(sin_leer), actualizado = VALUES(actualizado);
+ON DUPLICATE KEY UPDATE sin_leer = VALUES(sin_leer), importantes = VALUES(importantes),
+                        actualizado = VALUES(actualizado);
 ```
 
 ### 5.3 Flujo de una notificación agrupable
@@ -209,9 +217,11 @@ Si `affected_rows` es 1:
 
 ```sql
 UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = GREATEST(sin_leer - 1, 0), actualizado = :ahora
+   SET sin_leer = GREATEST(sin_leer - 1, 0), importantes = GREATEST(importantes - :imp, 0), actualizado = :ahora
  WHERE uid = :uid;
 ```
+
+`:imp` es la importancia de la fila marcada; se lee por clave primaria dentro de la misma transacción corta.
 
 Si es 0 (ya estaba leída o no es suya), no se toca el contador. Eso hace que
 pulsar **Visto** dos veces no descuente dos veces y que un usuario no pueda
@@ -222,8 +232,11 @@ origen si está activo, y resta el número de filas afectadas:
 
 ```sql
 UPDATE mybb_op_notificaciones_contador
-   SET sin_leer = GREATEST(sin_leer - :n, 0), actualizado = :ahora WHERE uid = :uid;
+   SET sin_leer = GREATEST(sin_leer - :n, 0), importantes = GREATEST(importantes - :nimp, 0),
+       actualizado = :ahora WHERE uid = :uid;
 ```
+
+`:nimp` es cuántas de las filas marcadas eran importantes; se cuentan dentro de la misma transacción, antes del `UPDATE`.
 
 Ambas operaciones corren en una transacción corta para que fila y contador no
 queden a medias.
@@ -232,9 +245,9 @@ queden a medias.
 
 `opg_notif_contar($uid)`:
 
-1. Lee `(sin_leer, actualizado)` por clave primaria.
+1. Lee `(sin_leer, importantes, actualizado)` por clave primaria.
 2. Si la fila no existe, o `actualizado` tiene más de 24 horas, ejecuta
-   `opg_notif_reconciliar($uid)`: `COUNT(*)` de las no leídas por el índice
+   `opg_notif_reconciliar($uid)`: `COUNT(*)` de las no leídas (y de las importantes) por el índice
    `(uid, leida_en, id)` y reescribe la fila.
 3. Cachea el resultado en una variable estática de la petición.
 
@@ -272,7 +285,7 @@ Reglas:
   enlaces que no se pueden reconstruir.
 - Un tipo desconocido se muestra con el texto "Actualización" y sin enlace.
 - Las categorías son: `aventuras`, `ficha`, `recompensas`, `tecnicas`,
-  `peticiones`, `temas`, `tripulacion`, `sistema`.
+  `peticiones`, `temas`.
 
 Tipos iniciales: los 13 del Tablón (`invitacion_nueva`, `candidatura_nueva`,
 `propuesta_*`, `aventura_aprobada`, `aventura_denegada`, `narrador_salio`,
@@ -300,7 +313,7 @@ visual concreto se resuelve al implementar, con prueba en móvil.
 ### 7.2 Costo por petición
 
 - Invitados: 0 consultas.
-- Usuarios: 1 consulta `SELECT sin_leer, actualizado ... WHERE uid = ?`.
+- Usuarios: 1 consulta `SELECT sin_leer, importantes, actualizado ... WHERE uid = ?`.
 - Resto de la petición: el valor queda en una variable estática; no se vuelve a
   consultar aunque lo pida otra parte de la página.
 - Si falta la tabla (despliegue a medias), una comprobación estática con
@@ -396,7 +409,7 @@ por destinatario con el resumen del cambio, no una por cada fila de la ficha.
 
 ## 10. Retención y mantenimiento
 
-Tarea programada `notificaciones` (en `mybb_tasks`, diaria, de madrugada):
+Tarea programada `notificaciones` (en `mybb_tasks`, diaria, de madrugada). Se registra con una migración idempotente aparte (`docs/notificaciones_tarea_migration.sql`, mismo patrón que `aventuras_ux_migration.sql`) y solo cuando existe el archivo `inc/tasks/notificaciones.php`, para que el planificador de MyBB no apunte a un archivo ausente:
 
 1. Elimina las notificaciones de más de 90 días, leídas o no, en lotes de 1000 con `LIMIT`.
 2. Para cada usuario con más de 500 notificaciones, elimina las más antiguas,
@@ -434,7 +447,7 @@ La limpieza nunca se ejecuta durante una petición del usuario.
 5. **Mantenimiento.** Tarea de retención y reconciliación.
 6. **Herramientas de gestión (futuro, fuera de la primera entrega).** Conectar una
    a una las herramientas del apartado 7 de los requisitos (ficha, recompensas,
-   técnicas y objetos, cofres, peticiones, tripulación, sistema). El sistema
+   técnicas y objetos, cofres, peticiones). El sistema
    queda preparado: bastará añadir un tipo al catálogo y una llamada a
    `opg_notificar` en cada herramienta.
 
@@ -462,6 +475,7 @@ y, donde hace falta, con base real).
     negativo ni desfasado.
   - Tablas ausentes: el header devuelve vacío sin error.
   - Fallo de inserción: la acción original se completa.
+- **Entorno:** las pruebas con base de datos usan el MySQL 5.7 de pruebas descrito en `tests/aventuras/bootstrap_db.php` (producción es 5.7: no hay `JSON_TABLE`) y se lanzan con `sh tests/run_all.sh --db`.
 - **Rendimiento:** con 10.000 usuarios y 500.000 filas, el header añade menos de
   2 ms y la página de notificaciones responde en menos de 100 ms (objetivos del
   apartado 6 de los requisitos).

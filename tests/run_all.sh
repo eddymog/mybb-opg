@@ -13,6 +13,7 @@
 #   sh tests/run_all.sh                 comprobaciones y pruebas sin base de datos
 #   sh tests/run_all.sh --rapido        solo las comprobaciones 1 a 4 (sin ejecutar pruebas)
 #   sh tests/run_all.sh --db            tambien las pruebas con MySQL de pruebas (ver tests/aventuras/bootstrap_db.php)
+#   sh tests/run_all.sh --area NOMBRE   en la parte de pruebas, solo las de tests/NOMBRE/ (las comprobaciones 1 a 4 se hacen igual)
 #   sh tests/run_all.sh --base REF      compara contra REF en lugar de HEAD
 #   sh tests/run_all.sh --archivos "a.php b.php"   usa esta lista como archivos cambiados (para CI o para probar el arnes)
 #
@@ -28,15 +29,17 @@ cd "$(dirname "$0")/.." || exit 1
 BASE=HEAD
 RAPIDO=0
 RUN_DB=0
+AREA=""
 ARCHIVOS_FIJOS=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --rapido) RAPIDO=1 ;;
         --db) RUN_DB=1 ;;
+        --area) shift; AREA="$1" ;;
         --base) shift; BASE="$1" ;;
         --archivos) shift; ARCHIVOS_FIJOS="$1" ;;
-        -h|--help|--ayuda) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help|--ayuda) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "Opcion desconocida: $1 (usa --ayuda)"; exit 2 ;;
     esac
     shift
@@ -159,7 +162,7 @@ else
             bootstrap_*.php|harness_*.php|worker.php|http.php|probar_esquema.php) return 0 ;;
         esac
         # Partes de otra prueba (se cargan desde ella y por separado solo dicen "Ejecuta tests/...")
-        grep -q "GLOBALS\['continuar'\]" "$1" && return 0
+        grep -q "empty(\$GLOBALS\['continuar'\])" "$1" && return 0
         return 1
     }
     necesita_db() {
@@ -189,6 +192,7 @@ else
     OMITIDAS_DB=0
     for dir in tests/*/; do
         dir=${dir%/}
+        if [ -n "$AREA" ] && [ "$dir" != "tests/$AREA" ]; then continue; fi
         if [ -f "$dir/run.sh" ]; then
             ejecutar "$dir/run.sh" sh "$dir/run.sh"
             continue

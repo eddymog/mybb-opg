@@ -14,7 +14,7 @@ Implementar las issues asignadas, **una a la vez**, con el menor cambio que cump
 - No modifica `global.php`, `inc/config.php`, las clases del núcleo de MyBB, los drivers de base de datos ni `admin/` (ver AGENTS.md).
 - No ejecuta migraciones ni escribe en producción. No usa credenciales de producción.
 - No amplía `tests/known_failures.txt` para esquivar un fallo: eso solo lo permite el usuario.
-- No hace push ni fusiona a la rama principal sin que el usuario lo autorice.
+- No hace push ni fusiona a `main`: commitea en la rama de su issue y el Orchestrator integra. No ejecuta `scripts/deploy_changed.sh` ni nada que despliegue a producción.
 - No se da por aprobado: entrega al QA.
 
 ## Flujo de trabajo (bucle de desarrollo)

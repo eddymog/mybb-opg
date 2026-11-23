@@ -134,6 +134,11 @@ Plain scripts in `tests/<area>/`, run with `php`. Real-MySQL tests use the throw
 ### Quick Reference
 
 - **72 `mybb_op_*` tables in the March 2026 dump**, plus the tables created by the migrations in `docs/*.sql` (listed in `DATABASE.md`, section "Tables Added by Migrations"). Mixed InnoDB/MyISAM, no foreign key constraints
+- Character ID (`fid`) equals user ID (`uid`): one character per account
+- Audit tables `mybb_op_audit_*` log actions (general, stats, crafting, training, missions, rewards, etc.)
+- Technique IDs: `D***` (defects), `V***` (virtues), `T***` (techniques)
+- JSON columns `oficios`, `belicas`, `estilos`, `elementos` and `equipamiento` on `mybb_op_fichas` store skill trees and loadouts as native MySQL JSON
+- Time-gated systems use `timestamp_end` (Unix timestamp) for training and crafting queues
 - **2 database triggers:** `u_fichas_triggers` (snapshots character changes → `mybb_audit_op_fichas`) and `u_users_triggers` (logs `newpoints` changes → `mybb_audit_users`)
 - **Custom columns on MyBB core tables:**
   - `mybb_posts.faccionsecreta` (varchar 80): secret faction override per post
@@ -173,6 +178,7 @@ Plain scripts in `tests/<area>/`, run with `php`. Real-MySQL tests use the throw
 3. On each request, `$session->init()` reads cookie, calls `load_user($uid, $loginkey)`, queries `mybb_users` + `mybb_userfields`
 4. `$mybb->user` populated with full user record; `$mybb->usergroup` has permissions
 5. CSRF: `generate_post_check()` creates token from user salt + timestamp; `verify_post_check()` validates on POST
+6. `$mybb->user['uid']` is the current user (0 = guest). The permission helpers (`is_staff`, `is_narra`, `is_mod`, `is_user`, `does_ficha_exist`) are in "Shared Game Functions".
 
 ### API Authentication (separate)
 - `/api/index.php` implements JWT auth
@@ -180,6 +186,7 @@ Plain scripts in `tests/<area>/`, run with `php`. Real-MySQL tests use the throw
 - Subsequent requests send `Authorization: Bearer <token>` header
 - `bearer_uid()` decodes JWT and returns `uid`
 - `jwt_sign()` and `jwt_payload()` handle token creation/validation
+- Endpoints are in `/api/`: the router `api/index.php` plus `auth`, `ficha`, `threads`, `thread` and `new_reply`. Responses are JSON.
 
 ## Key Entry Points
 
@@ -271,7 +278,7 @@ All 16 live in `inc/plugins/` and hook into the post parser:
 | `log_audit($uid, $username, $categoria, $log)` | Log to `mybb_op_audit_general` |
 | `log_audit_currency($uid, $username, $user_uid, $cat, $currency, $amount)` | Log currency changes |
 | `is_staff($uid)` | Staff check (hardcoded UIDs + groups 4, 6, 14, 16) |
-| `is_narra($uid)` | Narrator check (group 15) |
+| `is_narra($uid)` | Narrator check (group 15 in `additionalgroups`) |
 | `is_mod($uid)` | Moderator check |
 | `is_user($uid)` | Admin check (UIDs 1, 3, 6, 7, 9) |
 | `is_peti_mod($uid)` | Petition moderator (UID 1 only) |
@@ -282,3 +289,105 @@ All 16 live in `inc/plugins/` and hook into the post parser:
 **File: `op/functions/security_monitor.php`**
 - Rate limiting and security monitoring
 - Logs to `mybb_op_security_log`
+
+## Reference: Structure, Lifecycle and Recipes
+
+Consulted on demand (`AGENTS.md` keeps only the short version).
+
+### Full Directory Structure
+
+```
+/                        → Root-level MyBB page scripts (index.php, showthread.php, member.php, etc.)
+/op/                     → Custom game system (~116 PHP pages)
+/op/personaje.php        → Main character sheet page (~196KB, with a large inline script). op/ficha.php is an obsolete 301 redirect to it
+/op/staff/               → Staff/admin tools (~85 files)
+/op/functions/           → Shared game functions (op_functions.php, security_monitor.php, punkrecords_*.php)
+/op/punkrecords/         → Guides (Markdown) indexed by the PunkRecords assistant
+/op/legacy/              → Old one-off migration scripts
+/opg/                    → Gacha/roll systems (cofres, akumas, haki, rey)
+/api/                    → REST API: router (index.php) plus auth, ficha, threads, thread, new_reply (JWT auth)
+/inc/                    → MyBB core includes
+/inc/plugins/            → MyBB plugins (op_*, opg_*, rt_*, newpoints, accountswitcher...) + 16 custom BBCode processors (BBCustom_*.php)
+/inc/plugins/lib/        → Shared feature libraries (aventuras*, halloween2026*, periodico, panel_tactico, haki_canje, elemento_canje, arma_canje, ...)
+/inc/datahandlers/       → Data validation classes (post, user, PM, etc.)
+/inc/cachehandlers/      → Cache backend implementations
+/inc/db_*.php            → Database driver abstractions
+/jscripts/               → Client-side JS (maps, cards, calculators, character sheet modules in jscripts/ficha/)
+/templates/              → Local copies of MyBB templates and stylesheets (see "Templates" in Working Conventions)
+/tests/                  → Plain PHP/JS test scripts, one folder per area
+/docs/                   → Requirements, design plans, guides and SQL migrations (gitignored, local only)
+/images/                 → Static assets
+/uploads/                → User uploads (gitignored)
+/cache/                  → Template/data cache
+/admin/                  → MyBB admin control panel
+/archive/, /work/        → Old snapshots and scratch material, not part of the running site
+```
+
+### Request Lifecycle
+
+Every page follows this flow:
+
+1. Page script defines `IN_MYBB`, `THIS_SCRIPT`, and `$templatelist`
+2. Includes `./global.php` → which includes `inc/init.php`
+3. `init.php` bootstraps: error handler → core MyBB class → config → database → templates → cache → plugins → language
+4. `global.php` initializes session via `$session->init()`, sets CSRF token via `$mybb->post_code`
+5. Page logic runs using globals: `$mybb`, `$db`, `$cache`, `$templates`, `$plugins`, `$lang`
+6. Templates rendered via `eval('$var = "'.$templates->get('template_name').'";')`
+7. `output_page()` sends response, shutdown functions execute
+
+Game pages in `/op/` follow a similar but simpler pattern:
+```php
+define("IN_MYBB", 1);
+define('THIS_SCRIPT', 'filename.php');
+require_once "./../global.php";
+require "./../inc/config.php";
+require_once "./functions/op_functions.php";
+```
+
+### Key Globals
+
+- `$mybb`: Core MyBB instance. `$mybb->user` has current user, `$mybb->input` has sanitized request data, `$mybb->settings` has board config
+- `$db`: Database instance. Methods: `query()`, `simple_select()`, `fetch_array()`, `insert_query()`, `update_query()`, `write_query()`
+- `$templates`: Template engine. `$templates->get('name')` returns template HTML
+- `$plugins`: Plugin system. `$plugins->run_hooks('hook_name')` triggers hook callbacks
+- `$lang`: Language system
+- `$cache`: Data cache system
+
+### All Known Gotchas
+
+Deployment details are in "Templates and Deployment" and the external database is under "External Service Integrations".
+
+1. **`op/personaje.php` is ~196KB**: the character sheet page, mixing PHP, AJAX endpoints and a large inline script. Read it by sections. Its template (`op_personaje.html`) embeds data in JavaScript, so see the JSON rule in Working Conventions.
+2. **`op/ficha.php` is an obsolete 301 redirect** to `op/personaje.php`. Do not add logic there.
+3. **`member.php` is ~100KB**: heavily customized beyond standard MyBB.
+4. **`op/crafteo.php` has `THIS_SCRIPT = 'viajes.php'`**: copy-paste error in the define, does not affect functionality.
+5. **SQL queries use string interpolation**: not parameterized; escape or validate every value when modifying queries.
+6. **Templates use `eval()`**: standard MyBB behavior, not a bug.
+7. **JWT secret is `'test'`** in `/api/index.php`: insecure, intended for development only.
+8. **CORS reflects any `Origin`** in the API: no domain restriction.
+
+### Plugin System
+
+Plugins register hooks via `$plugins->add_hook('hook_name', 'callback_function', $priority)`. Hooks fire at defined points in the request lifecycle (e.g., `global_start`, `index_start`, `parse_message_start`, `pre_output_page`).
+
+Feature plugins follow the `op_*` / `opg_*` naming and keep their logic in `inc/plugins/lib/`: `op_bitacora`, `op_temas_tracker`, `op_modo_espejo`, `op_niveles`, `op_fama`, `op_facciones`, `op_solicitudes_creacion`, `opg_halloween2026`, `opg_panel_tactico`, plus the chat (`rt_chat`) and the NewPoints currency plugin.
+
+### Common Tasks
+
+#### Adding a new game page in `/op/`
+Follow the existing pattern: define `IN_MYBB`, require `global.php`, `config.php`, and `op_functions.php`. Use `$db` for queries and check `$mybb->user['uid']` for auth.
+
+#### Adding a new staff tool
+Create a file in `/op/staff/`. Check `is_staff($uid)` at the top. Follow existing patterns in files like `objetos_crear.php` or `tecnicas_crear.php`.
+
+#### Adding a new BBCode
+Create `inc/plugins/BBCustom_name.php`. Hook into `parse_message` or `parse_message_start`. Use regex to find/replace your tag in the post content. See `BBCustom_dado.php` (308 lines) for a clean example.
+
+#### Modifying character sheet data
+The main character table is `mybb_op_fichas`. The display logic and the sheet's AJAX actions are in `op/personaje.php`, with its JavaScript modules in `jscripts/ficha/`. Creation logic is in `op/ficha_crear.php`. Stats are columns directly on the fichas table. **Warning:** Any UPDATE on `mybb_op_fichas` fires the `u_fichas_triggers` database trigger, which writes a snapshot row to `mybb_audit_op_fichas`.
+
+#### Adding an item redemption (canje) to the sheet inventory
+Copy the pattern of `haki_canje`, `elemento_canje` or `arma_canje`: a pure library in `inc/plugins/lib/` with its test, an AJAX action in `op/personaje.php` (CSRF check, atomic consumption, refund on failure, audit entry), a modal built in PHP, and a button in `templates/One_Piece_Gaiden_Templates/op_ficha_inventario.html` (remember the template must be uploaded to MyBB).
+
+#### Adding a feature library
+Put the logic in `inc/plugins/lib/<feature>.php` as pure functions where possible, add `tests/<feature>/` in the same change, keep the page or plugin thin, and add a migration in `docs/<feature>_migration.sql` if it needs tables.

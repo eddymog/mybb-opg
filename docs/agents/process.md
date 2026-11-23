@@ -1,6 +1,6 @@
 # Proceso de trabajo
 
-Cómo se pasa de una idea a una funcionalidad entregada en One Piece Gaiden. Lo siguen por igual una sola persona, un solo agente o varios agentes coordinados. Las reglas técnicas están en [AGENTS.md](AGENTS.md) y las responsabilidades de cada rol en [roles/](roles/).
+Cómo se pasa de una idea a una funcionalidad entregada en One Piece Gaiden. Lo siguen por igual una sola persona, un solo agente o varios agentes coordinados. Las reglas técnicas están en [AGENTS.md](../../AGENTS.md) y las responsabilidades de cada rol en [roles/](roles/).
 
 Reglas de oro:
 - **Las tareas son issues de GitHub, una a la vez.**
@@ -108,19 +108,18 @@ Cómo deshacerlo si algo sale mal: qué plantilla anterior restaurar, qué SQL i
 ```
 
 ### Etiquetas
-- **Tipo:** `funcionalidad`, `bug`, `mejora`, `documentación`.
-- **Estado** (una sola a la vez): `estado:lista`, `estado:en-curso`, `estado:en-revisión`, `estado:bloqueada`.
-- **Área:** una por funcionalidad (por ejemplo `area:notificaciones`).
+- **Tipo:** se usan las etiquetas que ya trae el repositorio: `enhancement` (funcionalidad o mejora), `bug` y `documentation`.
+- **Estado y área:** no hay etiquetas propias (no se han creado). El estado se anota con un comentario que empieza por `Estado:` (`lista`, `en-curso`, `en-revisión`, `bloqueada`), y el área va en el título (`[Notificaciones] ...`). Si el usuario crea etiquetas `estado:*` y `area:*` en el futuro, se pasan a usar.
 
 El cierre de la issue (estado cerrado en GitHub) significa "aprobada y entregada".
 
 ### Comandos habituales (`gh`)
 ```
-gh issue create --title "[Área] ..." --body-file cuerpo.md --label funcionalidad,estado:lista
-gh issue list --label estado:lista
+gh issue create --title "[Área] ..." --body-file cuerpo.md --label enhancement
+gh issue list
 gh issue view <n>
-gh issue edit <n> --add-label estado:en-curso --remove-label estado:lista
-gh issue comment <n> --body "..."
+gh issue edit <n> --body-file cuerpo.md
+gh issue comment <n> --body "Estado: en-curso"
 gh issue close <n> --comment "Aprobada por QA. Cubre los requisitos X."
 ```
 
@@ -128,7 +127,8 @@ gh issue close <n> --comment "Aprobada por QA. Cubre los requisitos X."
 - Mensaje corto en español, con el área y el número de la issue: `Notificaciones: crear tabla y plugin de instalación (#12)`.
 - Un commit por paso coherente y verde (por ejemplo: pruebas, luego implementación, luego plantilla).
 - Los commits se hacen en la rama de trabajo de la issue (`issue-<n>-<tema>`) cuando varios agentes trabajan a la vez, y en la rama actual si se trabaja en solitario.
-- **El push y la fusión a la rama principal los autoriza el usuario**, salvo que haya dado permiso permanente para una tarea concreta.
+- **Fusión y push (permiso permanente del usuario).** Los Developers solo hacen commit en la rama de su issue. Cuando el QA aprueba y `sh tests/run_all.sh` está en verde, el Orchestrator fusiona en `main` y hace el push. Nunca se hace `push --force`.
+- **El despliegue a producción no entra en ese permiso.** Subir archivos al servidor (por ejemplo con `scripts/deploy_changed.sh`), importar plantillas o ejecutar SQL lo hace el usuario.
 
 ## 5. Carriles según el tamaño del cambio
 
@@ -174,7 +174,15 @@ Reglas:
 - Primero las issues que definen contratos (librerías, tablas). Después las que dependen de ellas.
 - Dos issues que comparten archivos no van en paralelo.
 - Todas empiezan con `estado:lista` y criterios de aceptación comprobables.
-- **Decisión del usuario:** aprobar el conjunto de issues antes de programar.
+- **Permiso permanente del usuario:** el PM crea, edita y reorganiza las issues en GitHub **sin pedir aprobación previa**. El usuario puede revisarlas y cambiarlas cuando quiera.
+
+#### Grooming (PM)
+El PM mantiene el backlog limpio de forma continua, sin esperar a que se le pida:
+- Antes de asignar una issue y después de cerrar cada una, revisa las siguientes: criterios comprobables, dependencias actualizadas, carril correcto y plan de reversión.
+- Parte las issues demasiado grandes y une las que no tienen sentido por separado.
+- Cierra como duplicadas u obsoletas las que lo sean, con un comentario que lo explique.
+- Actualiza las issues cuando cambian los requisitos o el diseño, y deja un comentario con el cambio.
+- Mantiene el orden y las dependencias, y actualiza el índice `3xx_ImplementationPlan_<Tema>.md` con los números reales.
 
 ### Fase 4. Desarrollo en bucle (Developer)
 El Orchestrator asigna una issue. Por cada una, en este orden:
@@ -222,7 +230,7 @@ El Orchestrator asigna una issue. Por cada una, en este orden:
 
 El Orchestrator pasa al usuario, con el contexto mínimo para decidir, cuando:
 - Hay una decisión de reglas del juego (la plantea el Game Designer con opciones y una recomendación), de diseño visual o de producto.
-- Un cambio exige ejecutar SQL, subir un template, hacer push o tocar producción.
+- Un cambio exige ejecutar SQL, subir un template o tocar producción.
 - Una issue falla 3 veces en el bucle, no muestra progreso en 3 vueltas o el QA la rechaza 2.
 - Los requisitos son ambiguos o se contradicen.
 - Algo obligaría a modificar `global.php`, `inc/config.php`, el núcleo de MyBB o `admin/`.
@@ -232,14 +240,30 @@ El Orchestrator pasa al usuario, con el contexto mínimo para decidir, cuando:
 
 Cuando una funcionalidad se reparte entre agentes, el Orchestrator coordina.
 
-| Rol | Tipo de agente sugerido | Notas |
+El proceso y los roles no dependen de la herramienta. Lo que cambia es cómo se lanza cada rol:
+
+| Rol | Cómo se ejerce | Notas |
 |---|---|---|
-| Orchestrator | La sesión principal, o un agente propio con permisos para lanzar a otros | No escribe código |
-| PM, planificación | `Plan` (solo lectura) o la sesión principal | Devuelve el plan; las issues las crea quien coordina |
-| Game Designer | La sesión principal o `general-purpose` | Trabaja con documentos y datos que le pasa el usuario; sin acceso a producción |
-| Mapa de patrones del código | `Explore` | Localiza cómo se hace algo hoy, rápido y barato |
-| Developer | `general-purpose` con worktree aislado | Un agente por issue, con archivos propios |
-| QA | `general-purpose` con instrucciones de solo lectura y contexto limpio, o un agente propio con permisos limitados | Nunca el mismo que implementó |
+| Orchestrator | La sesión principal (o un script que lance las demás) | No escribe código |
+| PM, planificación | La sesión principal, en modo de solo lectura para planificar | Devuelve el plan; las issues las crea quien coordina |
+| Game Designer | La sesión principal o una sesión aparte | Trabaja con documentos y datos que le pasa el usuario; sin acceso a producción |
+| Mapa de patrones del código | Una sesión de búsqueda rápida y de solo lectura | Localiza cómo se hace algo hoy |
+| Developer | Una sesión por issue, en su propio worktree | Archivos propios |
+| QA | Una sesión distinta, con contexto limpio y de solo lectura | Nunca la misma que implementó |
+
+### Con Claude Code
+- Orchestrator: la sesión principal, o un agente propio con permisos para lanzar a otros.
+- PM, planificación: el agente `Plan` (solo lectura).
+- Game Designer: la sesión principal o `general-purpose`.
+- Mapa de patrones: `Explore`.
+- Developer: `general-purpose` con `isolation: "worktree"`.
+- QA: `general-purpose` con instrucciones de solo lectura y contexto limpio, o un agente propio en `.claude/agents/` con permisos limitados.
+
+### Con Codex
+- Codex lee `AGENTS.md` de la raíz y no tiene los tipos de agente anteriores: cada rol es una sesión o tarea independiente a la que se le indica el rol (`docs/agents/roles/<rol>.md`), la issue y los documentos.
+- Orchestrator: una sesión principal o un script que lance las demás en modo no interactivo (por ejemplo con `codex exec`; comprobar la sintaxis vigente en su documentación).
+- Developer y QA: sesiones distintas, cada una en su worktree o copia del repositorio. El QA se lanza en modo de solo lectura (sin permisos de escritura).
+- La puerta de verde (`sh tests/run_all.sh`), las issues con `gh` y los informes son los mismos.
 
 Reglas:
 - **Contrato primero.** La issue que define las firmas de las librerías la hace un solo agente. Hasta que esté cerrada, no se lanza nada en paralelo que dependa de ella.
@@ -267,7 +291,8 @@ Todos los informes se publican como comentarios de la issue, para que el histori
 ## 11. Cosas que nunca se hacen
 
 - Ejecutar migraciones o escribir en producción sin aprobación expresa para esa acción concreta.
-- Hacer push o fusionar a la rama principal sin que el usuario lo autorice.
+- Fusionar o hacer push a la rama principal sin la aprobación del QA y la puerta de verde, o hacer `push --force`.
+- Desplegar a producción (`scripts/deploy_changed.sh`, subir archivos o plantillas, ejecutar SQL): lo hace el usuario.
 - Imprimir, guardar o versionar credenciales.
 - Cerrar una issue con un criterio de aceptación sin cumplir o sin evidencia.
 - Trabajar en dos issues a la vez o acumular trabajo sin commit.

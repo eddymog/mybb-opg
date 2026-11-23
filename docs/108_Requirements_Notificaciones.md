@@ -1,6 +1,6 @@
 # Requisitos: Sistema global de notificaciones
 
-Estado: **borrador para revisión**. Aún no hay diseño técnico ni implementación.
+Estado: **requisitos revisados contra el código, pendientes del visto bueno del usuario**. Diseño en `208_DesignPlan_Notificaciones.md` y plan de implementación en `308_ImplementationPlan_Notificaciones.md`. Aún no hay implementación.
 
 ## 1. Propósito
 
@@ -58,7 +58,7 @@ suyo mediante gestión debe generar una notificación para ese usuario.**
 - Avisos masivos a todo el foro (anuncios). Se tratan como una herramienta
   aparte en el futuro (ver decisión 1 del apartado 12).
 - Conexión del resto de herramientas de gestión del apartado 7 (fichas,
-  recompensas, técnicas y objetos, cofres, peticiones, tripulación, sistema). Se
+  recompensas, técnicas y objetos, cofres, peticiones). Se
   hará más adelante, herramienta por herramienta; el sistema queda preparado para
   ello.
 - Preferencias por usuario para silenciar categorías.
@@ -83,8 +83,7 @@ suyo mediante gestión debe generar una notificación para ese usuario.**
   en una sección propia arriba de la lista. Los primeros avisos importantes se
   definen en [109_Requirements_Akuma.md](109_Requirements_Akuma.md).
 - **Categoría:** agrupación temática para filtrar la lista: Aventuras, Ficha,
-  Recompensas, Técnicas y objetos, Peticiones, Temas y rol (Bitácora),
-  Tripulación, Sistema.
+  Recompensas, Técnicas y objetos, Peticiones, Temas y rol (Bitácora).
 - **Leída:** una notificación pasa a *leída* únicamente cuando el usuario la
   marca como **Visto**. Abrir la página, verla en pantalla o seguir su enlace
   no la marca por sí solo.
@@ -159,7 +158,7 @@ suyo mediante gestión debe generar una notificación para ese usuario.**
 
 18. El header muestra una campana con el número de no leídas, oculto cuando es
     cero y limitado a "99+". Si entre las no leídas hay alguna importante, la campana
-    lo indica visualmente sin cambiar el número. Ocupa el espacio del header que usa la Bitácora.
+    lo indica visualmente sin cambiar el número. Comparte el espacio del header con la Bitácora (decisión 4 del apartado 12). La campana es siempre visible; lo que se oculta cuando el número es cero es la insignia con la cantidad.
 19. El valor se inyecta mediante un hook del plugin (`global_intermediate`), no
     editando `global.php`, siguiendo el patrón de `op_bitacora.php`.
 20. Los invitados no ejecutan ninguna consulta.
@@ -235,10 +234,7 @@ posteriores. Lista inicial, a completar al diseñar:
 | Técnicas y objetos | Akuma asignada, expirada o inactivada | `akumas_*.php` |
 | Cofres | Cofres repartidos | `cofres_repartir.php`, `cofres_gestion.php` |
 | Peticiones | Petición o bug respondido, aceptado o cerrado | `peticiones_admin.php`, `peticiones_bugs.php` |
-| Peticiones | Resurrección concedida | `resurreciones.php` |
 | Temas y rol (origen usuario) | Alguien publica en un tema que sigues; se inicia una ronda narrada; se asigna, cambia o retira el narrador de un tema | Eventos de `op_bitacora_registrar_evento()` en `inc/plugins/op_bitacora/functions.php` |
-| Tripulación | Cambios hechos por staff en tu tripulación o afiliado | `gestionar_afiliados.php`, módulo de tripulaciones |
-| Sistema | Avisos de staff dirigidos a un usuario | `avisos.php`, `consola_mod.php` |
 
 Reglas de este apartado:
 
@@ -276,7 +272,7 @@ mybb_op_notificaciones
   origen        VARCHAR(8)         gestion | usuario | sistema (copia del catálogo)
   importancia   VARCHAR(10)        normal | importante (copia del catálogo)
   actor_uid     INT UNSIGNED       0 = sistema
-  clave_evento  VARCHAR(96)
+  clave_evento  VARCHAR(128)       128 para que quepa el sufijo :leida:ID de las agrupables
   url           VARCHAR(255) NULL  enlace interno
   cantidad      INT UNSIGNED       1; sube en las notificaciones agrupables
   datos_json    TEXT NULL
@@ -287,9 +283,14 @@ mybb_op_notificaciones
   KEY    (uid, categoria, id)
   KEY    (uid, leida_en, id)
 
+  agrupable     TINYINT UNSIGNED   copia del catálogo; 1 en las agrupables
+  sent_at       INT UNSIGNED NULL  reservado para envíos externos (no se usa en la primera fase)
+  attempts      TINYINT UNSIGNED   reservado, igual que sent_at
+
 mybb_op_notificaciones_contador
   uid           INT UNSIGNED PK
   sin_leer      INT UNSIGNED       contador materializado de no leídas
+  importantes   INT UNSIGNED       de las no leídas, cuántas son importantes (para la campana)
   actualizado   INT UNSIGNED
 ```
 
@@ -339,29 +340,38 @@ Decisiones tomadas:
 1. **Avisos masivos:** quedan fuera de la primera base. Más adelante podrá
    crearse una herramienta de avisos para esto (por ejemplo, una tabla de
    anuncios con una sola fila y marca de visto por usuario), pero no es necesaria ahora.
+
 2. **Seguir el enlace:** no marca la notificación como leída. Solo la marca el
    botón **Visto**.
+
 3. **Novedades del Tablón:** el panel de Mis aventuras se conserva en la primera
    fase, filtrado por la categoría Aventuras, y se retira cuando la página global
    esté asentada.
+
 4. **Dónde va la campana:** en el espacio del header que hoy ocupa la Bitácora
    (`{$op_temas_header}`). El diseño debe definir cómo conviven ambos contadores
    en ese bloque y comprobar el ancho en móvil.
-6. **Solo para usuarios:** las notificaciones existen para la experiencia del
-   usuario. El staff no las necesita para trabajar: sus contadores de trabajo
-   pendiente (fichas en cola, peticiones, bugs, aventuras, entregas) se mantienen
-   aparte y no generan notificaciones. Un miembro del staff solo recibe
-   notificaciones como usuario normal (por ejemplo, si participa en una aventura).
-7. **Retención:** 90 días y 500 filas por usuario, ajustables con constantes. Las
-   no leídas también se eliminan al cumplirse el plazo.
-9b. **Orden de la lista:** una notificación agrupada que recibe un evento nuevo sube
-   al principio de la lista (se ordena por la fecha de su última actividad).
+
 5. **Qué es "de gestión" y qué es "de usuario":** las acciones de moderadores a
    notificar son las de herramientas como el Tablón de aventuras (ver
    apartado 7). Las acciones de usuarios a notificar son las de la Bitácora.
    No se usan los hooks de moderación general de MyBB (editar, mover o cerrar
    temas) en la primera fase; el responsable del proyecto indicará si más
    adelante se añaden otras acciones.
+
+6. **Solo para usuarios:** las notificaciones existen para la experiencia del
+   usuario. El staff no las necesita para trabajar: sus contadores de trabajo
+   pendiente (fichas en cola, peticiones, bugs, aventuras, entregas) se mantienen
+   aparte y no generan notificaciones. Un miembro del staff solo recibe
+   notificaciones como usuario normal (por ejemplo, si participa en una aventura).
+
+7. **Retención:** 90 días y 500 filas por usuario, ajustables con constantes. Las
+   no leídas también se eliminan al cumplirse el plazo.
+
+8. **Agrupación de publicaciones de la Bitácora:** las publicaciones nuevas en
+   un tema seguido se agrupan en una sola notificación por tema y destinatario
+   (ver requisitos 8a a 8d).
+
 9. **La Bitácora usa el sistema global para sus eventos.** Los eventos de
    `mybb_op_bitacora_eventos` (publicación en un tema seguido, inicio de ronda
    narrada, asignación, cambio o retiro de narrador) pasan a notificaciones de
@@ -372,9 +382,21 @@ Decisiones tomadas:
    propios. La lista "Historial de actividad" de cada tema también se mantiene
    en la Bitácora.
 
-8. **Agrupación de publicaciones de la Bitácora:** las publicaciones nuevas en
-   un tema seguido se agrupan en una sola notificación por tema y destinatario
-   (ver requisitos 8a a 8d).
+9b. **Orden de la lista:** una notificación agrupada que recibe un evento nuevo sube
+   al principio de la lista (se ordena por la fecha de su última actividad).
+
+10. **Qué no se notifica:** quedan fuera, y no están previstos para entregas
+    posteriores, los cambios de tripulación y afiliados, los avisos del staff
+    dirigidos a un usuario y la resurrección concedida.
+
+11. **No previstos por ahora** (descartados al revisar lo posterior a la primera
+    entrega; ver `108_Backlog_Notificaciones.md`): avisos de tiempo (entrenamiento,
+    oficio, crafteo, recompensa diaria), avisos masivos o anuncios, sustituir las
+    alertas internas de MyBB, preferencias para silenciar categorías, canales
+    externos (correo, Discord, MP), contador en vivo, resúmenes por correo,
+    búsqueda en el historial, API REST de notificaciones, métricas internas,
+    recordatorio de turno de la Bitácora y avisos de eventos temporales. Se
+    pueden recuperar más adelante si el usuario lo pide.
 
 Sin pendientes por ahora.
 
@@ -384,5 +406,5 @@ Sin pendientes por ahora.
   (patrón de caché del header y de invalidación).
 - `docs/aventuras_ux_migration.sql` y `inc/plugins/lib/aventuras.php`
   (notificaciones del Tablón que se migran).
-- Siguientes documentos previstos: `208_DesignPlan_Notificaciones.md` y
-  `308_ImplementationPlan_Notificaciones.md`.
+- `208_DesignPlan_Notificaciones.md` (diseño) y `308_ImplementationPlan_Notificaciones.md`
+  (plan de implementación, con las issues y su orden).
