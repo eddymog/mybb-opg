@@ -3,6 +3,7 @@
  * Sistema global de notificaciones: fragmentos HTML de la pagina /op/notificaciones.php (issue #7).
  *
  * Documentos: docs/108_Requirements_Notificaciones.md (apartado 5.2) y docs/208_DesignPlan_Notificaciones.md (apartado 8).
+ * Las acciones Visto y Marcar todas (issue #8) responden con estos mismos fragmentos mas la campana fuera de banda.
  * Requiere lib/notificaciones.php (lectura) y lib/notificaciones_catalogo.php (textos, iconos y enlaces).
  *
  * Organizacion del archivo:
@@ -14,8 +15,9 @@
  *  - Todo texto sale escapado. El texto del catalogo ya llega escapado de opg_notif_texto(); el resto pasa por opg_notif_v_h().
  *  - Los atributos hx-* se arman con valores de listas fijas y enteros, nunca con texto del usuario.
  *  - Sin hx-on ni expresiones (allowEval desactivado): todo son peticiones al servidor y CSS.
- *  - Nada de esto marca notificaciones como leidas: la pagina solo lee (requisito 15). Las acciones Visto y Marcar todas
- *    son de la issue #8.
+ *  - Nada de esto marca notificaciones como leidas: solo los botones Visto y Marcar todas, que hacen POST con la clave
+ *    CSRF de la cabecera X-Post-Key (requisitos 15 y 48). Los enlaces de las filas son enlaces normales: seguirlos no
+ *    marca nada.
  */
 
 if (!defined('IN_MYBB')) {
@@ -227,7 +229,38 @@ function opg_notif_v_fila($f, $ctx)
     if ($importante && !$leida) {
         $html .= '<span class="nt-etiqueta nt-etiqueta--importante">Importante</span>';
     }
-    return $html . '</p></div></li>';
+    $html .= '</p></div>';
+    if (!$leida) {
+        $html .= opg_notif_v_boton_visto((int) $f['id']);
+    }
+    return $html . '</li>';
+}
+
+/**
+ * Boton Visto de una fila sin leer (requisito 10): reemplaza la fila por la version leida que devuelve la accion `visto`.
+ * Una fila leida no tiene boton ni hay accion para volver a no leida (requisito 15).
+ */
+function opg_notif_v_boton_visto($id)
+{
+    $id = (int) $id;
+    $url = opg_notif_v_url(array('action' => 'visto', 'id' => $id));
+    return '<button type="button" class="opg-chip nt-visto" hx-post="' . opg_notif_v_h($url) . '" hx-target="#nt-n-' . $id . '"'
+        . ' hx-swap="outerHTML" hx-disabled-elt="this"><i class="fa-solid fa-check" aria-hidden="true"></i> Visto</button>';
+}
+
+/**
+ * Boton Marcar todas como vistas: marca las no leidas del filtro activo (o todas sin filtro) y recarga #nt-contenido.
+ * Pide confirmacion porque no se puede deshacer.
+ */
+function opg_notif_v_boton_todas($filtros)
+{
+    $filtrado = $filtros['categoria'] !== '' || $filtros['origen'] !== '';
+    $url = opg_notif_v_url(opg_notif_v_params($filtros, array('action' => 'todas')));
+    $pregunta = $filtrado ? '¿Marcar como vistas todas las notificaciones de este filtro?' : '¿Marcar como vistas todas tus notificaciones?';
+    return '<div class="nt-acciones"><button type="button" class="opg-chip nt-todas" hx-post="' . opg_notif_v_h($url) . '"'
+        . ' hx-target="#nt-contenido" hx-swap="innerHTML" hx-disabled-elt="this" hx-confirm="' . opg_notif_v_h($pregunta) . '">'
+        . '<i class="fa-solid fa-check-double" aria-hidden="true"></i> Marcar todas como vistas'
+        . ($filtrado ? '<span class="nt-todas-filtro"> (solo este filtro)</span>' : '') . '</button></div>';
 }
 
 /** Elemento "Cargar más" de un bloque (ultimo <li> de su lista): pide las 30 siguientes por cursor (requisito 13). */
@@ -292,12 +325,17 @@ function opg_notif_v_barra_filtros($filtros)
 }
 
 /**
- * Contenido de #nt-contenido: filtros y los tres bloques, o el estado vacio (requisito 14).
+ * Contenido de #nt-contenido: filtros, Marcar todas (si hay alguna sin leer) y los tres bloques, o el estado vacio
+ * (requisito 14).
  * $resultados: array(bloque => resultado de opg_notif_listar) para cada bloque de opg_notif_v_bloques().
  */
 function opg_notif_v_contenido($filtros, $resultados, $ctx)
 {
     $html = opg_notif_v_barra_filtros($filtros);
+    $sin_leer = !empty($resultados['importantes']['filas']) || !empty($resultados['pendientes']['filas']);
+    if ($sin_leer) {
+        $html .= opg_notif_v_boton_todas($filtros);
+    }
     $listas = '';
     foreach (array_keys(opg_notif_v_bloques()) as $bloque) {
         if (isset($resultados[$bloque])) {
@@ -312,13 +350,51 @@ function opg_notif_v_contenido($filtros, $resultados, $ctx)
     return $html . '<div class="nt-listas">' . $listas . '</div>';
 }
 
+/**
+ * Campana del header para una respuesta HTMX (208 apartado 8): el HTML de opg_notificaciones_campana_html sin su bloque
+ * <style> (que en un fragmento se insertaria como contenido normal; la hoja ya esta en la pagina) y con hx-swap-oob, para
+ * que htmx reemplace la campana del header ademas del destino de la accion. '' si no hay campana.
+ */
+function opg_notif_v_campana_oob($html)
+{
+    $html = trim((string) preg_replace('@<style\b[^>]*>.*?</style>@is', '', (string) $html));
+    if ($html === '' || strpos($html, 'id="op-notif-campana"') === false) {
+        return '';
+    }
+    if (strpos($html, 'hx-swap-oob=') === false) {
+        $html = preg_replace('/id="op-notif-campana"/', 'id="op-notif-campana" hx-swap-oob="outerHTML:#op-notif-campana"', $html, 1);
+    }
+    return $html;
+}
+
 /** Aviso de error para la zona #nt-avisos. */
 function opg_notif_v_aviso($mensaje)
 {
     return '<div class="nt-aviso" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ' . opg_notif_v_h($mensaje) . '</div>';
 }
 
-// ── 3. Destinos que ya no existen (con base de datos) ───────────────────────────────────────────────────────────────
+// ── 3. Con base de datos: una fila y los destinos que ya no existen ─────────────────────────────────────────────────
+
+/**
+ * Una notificacion del usuario por id, como opg_notif_fila_lista, para devolver la fila tras la accion `visto`. Filtra
+ * por el uid de la sesion: una ajena o inexistente da null, igual que un error (registrado).
+ */
+function opg_notif_v_leer_fila($uid, $id)
+{
+    $uid = opg_notif_uid($uid);
+    $id = opg_notif_uid($id);
+    if ($uid <= 0 || $id <= 0) {
+        return null;
+    }
+    try {
+        $filas = opg_notif_filas('SELECT id, tipo, categoria, origen, importancia, agrupable, actor_uid, url, cantidad, datos_json, created_at, leida_en FROM '
+            . opg_notif_t('op_notificaciones') . ' WHERE id = ' . $id . ' AND uid = ' . $uid);
+    } catch (Throwable $e) {
+        opg_notif_log_lectura('opg_notif_v_leer_fila', $e);
+        return null;
+    }
+    return $filas ? opg_notif_fila_lista($filas[0]) : null;
+}
 
 /**
  * Destinos borrados entre los enlaces de unas filas (requisito 16), como array("tema:5" => true, "aventura:9" => true).
