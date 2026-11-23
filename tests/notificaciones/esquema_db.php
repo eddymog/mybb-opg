@@ -38,6 +38,7 @@ function limpiar()
 {
     global $link, $base;
     mysqli_query($link, "DROP DATABASE IF EXISTS `$base`");
+    mysqli_query($link, "DROP DATABASE IF EXISTS `{$base}_v`");
 }
 function q($sql)
 {
@@ -77,7 +78,9 @@ function ejecutar_migracion($ruta)
 }
 
 limpiar();
-q("CREATE DATABASE `$base` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+// La base temporal usa latin1 a proposito: asi los valores por defecto del servidor o de
+// la base no ocultan un ENGINE, CHARSET o COLLATE ausente en la migracion (issue #28).
+q("CREATE DATABASE `$base` CHARACTER SET latin1 COLLATE latin1_swedish_ci");
 q("USE `$base`");
 
 $ruta = __DIR__ . '/../../docs/notificaciones_migration.sql';
@@ -99,6 +102,30 @@ comprobar(ejecutar_migracion($ruta) === null, 'la migracion corre sin error la s
 $n = mysqli_fetch_row(q("SELECT COUNT(*) FROM mybb_op_notificaciones"))[0];
 $c = mysqli_fetch_row(q("SELECT COUNT(*) FROM mybb_op_notificaciones_contador"))[0];
 comprobar((int) $n === 1 && (int) $c === 1, 'la segunda ejecucion no pierde datos');
+
+function problemas_motor($b)
+{
+    $out = [];
+    $n = 0;
+    $r = q("SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA='$b'");
+    while ($f = mysqli_fetch_assoc($r)) {
+        $n++;
+        if ($f['ENGINE'] !== 'InnoDB') {
+            $out[] = $f['TABLE_NAME'] . ' no es InnoDB (' . $f['ENGINE'] . ')';
+        }
+        if ($f['TABLE_COLLATION'] !== 'utf8mb4_unicode_ci') {
+            $out[] = $f['TABLE_NAME'] . ' tiene intercalacion ' . $f['TABLE_COLLATION'];
+        }
+    }
+    if ($n !== 2) {
+        $out[] = "se esperaban dos tablas y hay $n";
+    }
+    $r = q("SELECT TABLE_NAME, COLUMN_NAME, COLLATION_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$b' AND COLLATION_NAME IS NOT NULL AND COLLATION_NAME <> 'utf8mb4_unicode_ci'");
+    while ($f = mysqli_fetch_assoc($r)) {
+        $out[] = $f['TABLE_NAME'] . '.' . $f['COLUMN_NAME'] . ' tiene intercalacion ' . $f['COLLATION_NAME'];
+    }
+    return $out;
+}
 
 function columnas($tabla)
 {
@@ -178,15 +205,34 @@ foreach ($esp_idx as $nombre => $e) {
 $idx = indices('mybb_op_notificaciones_contador');
 comprobar(count($idx) === 1 && ($idx['PRIMARY']['cols'] ?? null) === ['uid'], 'contador: clave primaria (uid)');
 
-// Motor y juego de caracteres
-$r = q("SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA='$base'");
-$t = 0;
-while ($f = mysqli_fetch_assoc($r)) {
-    $t++;
-    comprobar($f['ENGINE'] === 'InnoDB', $f['TABLE_NAME'] . ' es InnoDB');
-    comprobar(strpos($f['TABLE_COLLATION'], 'utf8mb4') === 0, $f['TABLE_NAME'] . ' es utf8mb4');
+// Motor e intercalacion completos de las dos tablas
+$problemas = problemas_motor($base);
+comprobar($problemas === [], 'motor InnoDB e intercalacion utf8mb4_unicode_ci: ' . implode('; ', $problemas));
+
+// La comprobacion debe fallar con migraciones alteradas (en bases propias, tambien latin1)
+$ruta_sql = file_get_contents($ruta);
+$variantes = [
+    'sin ENGINE, CHARSET ni COLLATE' => preg_replace('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;/', ');', $ruta_sql),
+    'sin COLLATE' => str_replace(' COLLATE=utf8mb4_unicode_ci;', ';', $ruta_sql),
+    'sin CHARSET ni COLLATE' => str_replace(' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;', ';', $ruta_sql),
+    'con otra intercalacion' => str_replace('utf8mb4_unicode_ci', 'utf8mb4_general_ci', $ruta_sql),
+    'con otro motor' => str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $ruta_sql),
+];
+foreach ($variantes as $nombre => $sql_alt) {
+    comprobar($sql_alt !== $ruta_sql, "variante $nombre: realmente altera la migracion");
+    $base_v = $base . '_v';
+    q("DROP DATABASE IF EXISTS `$base_v`");
+    q("CREATE DATABASE `$base_v` CHARACTER SET latin1 COLLATE latin1_swedish_ci");
+    q("USE `$base_v`");
+    $tmp = tempnam(sys_get_temp_dir(), 'opgnotif');
+    file_put_contents($tmp, $sql_alt);
+    $err = ejecutar_migracion($tmp);
+    unlink($tmp);
+    comprobar($err === null, "variante $nombre: la migracion alterada corre ($err)");
+    comprobar(problemas_motor($base_v) !== [], "la prueba detecta la migracion $nombre");
+    q("DROP DATABASE `$base_v`");
 }
-comprobar($t === 2, 'existen exactamente las dos tablas');
+q("USE `$base`");
 
 // Clave unica (uid, clave_evento)
 q("DELETE FROM mybb_op_notificaciones");
