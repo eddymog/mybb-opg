@@ -89,7 +89,51 @@ function opg_notif_nombre_tema($d)
     return $tid > 0 ? 'el tema #' . $tid : 'un tema';
 }
 
+/** Numero con separador de miles "." y, si tiene decimales, coma y hasta dos decimales: 1.000.000 o 33,5. */
+function opg_notif_numero($valor)
+{
+    $num = is_numeric($valor) ? round((float) $valor, 2) : 0.0;
+    if ($num == floor($num)) {
+        return number_format($num, 0, ',', '.');
+    }
+    return rtrim(rtrim(number_format($num, 2, ',', '.'), '0'), ',');
+}
+
+/** Une una lista de textos: "a", "a y b", "a, b y c". */
+function opg_notif_enumerar($partes)
+{
+    $partes = array_values($partes);
+    $ultimo = array_pop($partes);
+    return $partes ? implode(', ', $partes) . ' y ' . $ultimo : (string) $ultimo;
+}
+
+/**
+ * Resumen de una recompensa (issue #20): solo los importes mayores que cero, en orden XP, Nikas, Berries, Kuros y
+ * reputacion, mas los objetos si los hay. Por ejemplo "50 XP, 5 Nikas y 1.000.000 Berries". '' si no hay nada.
+ */
+function opg_notif_resumen_importes($d)
+{
+    $etiquetas = array('xp' => ' XP', 'nikas' => ' Nikas', 'berries' => ' Berries', 'kuros' => ' Kuros', 'reputacion' => ' de reputación');
+    $partes = array();
+    foreach ($etiquetas as $clave => $etiqueta) {
+        $valor = opg_notif_dato($d, $clave, '0');
+        if (is_numeric($valor) && (float) $valor > 0) {
+            $partes[] = opg_notif_numero($valor) . $etiqueta;
+        }
+    }
+    $objetos = opg_notif_dato($d, 'objetos');
+    if ($objetos !== '') {
+        $partes[] = $objetos;
+    }
+    return $partes ? opg_notif_enumerar($partes) : '';
+}
+
 // ── Constructores de enlaces (rutas internas relativas a la raiz del foro) ──────────────────────────────────────────────
+
+function opg_notif_url_ficha($d)
+{
+    return 'op/personaje.php';
+}
 
 function opg_notif_url_aventura($d)
 {
@@ -252,6 +296,35 @@ function opg_notif_catalogo()
                 return 'Tu oferta como narrador vence en ' . ($dias > 0 ? $dias : 3) . ' días. Renuévala para seguir apareciendo.';
             },
             'url' => 'opg_notif_url_ofertas',
+        ),
+
+        // ── Recompensas y salarios entregados por el staff (issue #20) ──
+        'recompensa_entregada' => array(
+            'categoria' => 'recompensas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-gift',
+            'texto' => function ($d, $n) {
+                $resumen = opg_notif_resumen_importes($d);
+                $concepto = opg_notif_dato($d, 'concepto');
+                $tid = (int) opg_notif_dato($d, 'tid', 0);
+                return 'Recibiste ' . ($resumen !== '' ? $resumen : 'una recompensa')
+                    . ($concepto !== '' ? ' por ' . $concepto : '')
+                    . ($tid > 0 ? ' (tema #' . $tid . ')' : '') . '. Revisa tu ficha.';
+            },
+            'url' => 'opg_notif_url_ficha',
+        ),
+        'salario_recibido' => array(
+            'categoria' => 'recompensas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-sack-dollar',
+            'texto' => function ($d, $n) {
+                $monto = opg_notif_dato($d, 'monto', '0');
+                $moneda = opg_notif_dato($d, 'moneda');
+                $concepto = opg_notif_dato($d, 'concepto');
+                $importe = is_numeric($monto) && (float) $monto > 0 && $moneda !== ''
+                    ? opg_notif_numero($monto) . ' ' . $moneda . ' de salario'
+                    : 'tu salario';
+                return 'Recibiste ' . $importe . ($concepto !== '' ? ' (' . $concepto . ')' : '') . '.';
+            },
+            'url' => 'opg_notif_url_ficha',
         ),
 
         // ── Bitacora de temas ──
