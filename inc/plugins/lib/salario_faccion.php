@@ -123,6 +123,7 @@ function opg_sf_repartir($ejecutorUid, $ejecutor, $origen, $timestamp = null)
 
         $pagados = 0;
         $total = 0;
+        $avisos = array();
         while ($ficha = $db->fetch_array($query)) {
             $fid = (int) $ficha['fid'];
             $rango = (string) $ficha['rango'];
@@ -149,6 +150,7 @@ function opg_sf_repartir($ejecutorUid, $ejecutor, $origen, $timestamp = null)
                 VALUES ('{$ejecutorUid}','{$ejecutorSql}','{$fid}','{$categoria}','{$log}')");
             $pagados++;
             $total += $monto;
+            $avisos[] = array('uid' => $fid, 'monto' => $monto, 'concepto' => 'rango de facción ' . $rango);
         }
 
         opg_sf_query("UPDATE {$tablaRepartos} SET `estado`='completado',`pagados`={$pagados},`total`={$total},
@@ -157,6 +159,7 @@ function opg_sf_repartir($ejecutorUid, $ejecutor, $origen, $timestamp = null)
         opg_sf_query("INSERT INTO {$tablaConsola} (`staff`,`username`,`razon`,`log`)
             VALUES ('{$ejecutorUid}','{$ejecutorSql}','Salario Facción','{$logTexto}')");
         opg_sf_query('COMMIT');
+        opg_sf_avisar($avisos, $semana, $ejecutorUid);
 
         return opg_sf_resultado(true, 'repartido', "Salarios entregados a {$pagados} personajes.", array(
             'semana' => $semana, 'pagados' => $pagados, 'total' => $total,
@@ -169,3 +172,23 @@ function opg_sf_repartir($ejecutorUid, $ejecutor, $origen, $timestamp = null)
     }
 }
 
+
+/**
+ * Aviso salario_recibido a cada personaje que cobro (issue #20), DESPUES del COMMIT: un fallo del aviso nunca revierte
+ * ni impide el reparto. Una llamada por rango e importe (los datos del texto cambian con el importe). Clave: la semana
+ * del reparto, que solo puede pagarse una vez. Quien ejecuta a mano no recibe su propio aviso; en la tarea, el actor es 0.
+ */
+function opg_sf_avisar($avisos, $semana, $ejecutorUid)
+{
+    try {
+        if (!$avisos) {
+            return 0;
+        }
+        if (!function_exists('opg_rec_avisar_salarios')) {
+            require_once __DIR__ . '/recompensas_avisos.php';
+        }
+        return opg_rec_avisar_salarios($avisos, 'Berries', opg_rec_clave_salario_faccion($semana), (int) $ejecutorUid);
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
