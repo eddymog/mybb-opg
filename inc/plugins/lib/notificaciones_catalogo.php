@@ -16,7 +16,8 @@
  *
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
- *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario).
+ *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
+ *   resumen, categoria y resultado (peticiones).
  */
 
 if (!defined('IN_MYBB')) {
@@ -89,7 +90,24 @@ function opg_notif_nombre_tema($d)
     return $tid > 0 ? 'el tema #' . $tid : 'un tema';
 }
 
+/** Complemento de una peticion o bug, con su espacio delante: " «resumen»", " #id" si no hay resumen, o "". */
+function opg_notif_nombre_peticion($d)
+{
+    $resumen = opg_notif_dato($d, 'resumen');
+    if ($resumen !== '') {
+        return ' «' . $resumen . '»';
+    }
+    $id = (int) opg_notif_dato($d, 'peticion_id', 0);
+    return $id > 0 ? ' #' . $id : '';
+}
+
 // ── Constructores de enlaces (rutas internas relativas a la raiz del foro) ──────────────────────────────────────────────
+
+/** Historial de peticiones del usuario (lista sus peticiones y bugs, tambien los resueltos). */
+function opg_notif_url_peticiones($d)
+{
+    return 'op/peticiones_usuario.php';
+}
 
 function opg_notif_url_aventura($d)
 {
@@ -270,6 +288,27 @@ function opg_notif_catalogo()
                 return 'Tu oferta como narrador vence en ' . ($dias > 0 ? $dias : 3) . ' días. Renuévala para seguir apareciendo.';
             },
             'url' => 'opg_notif_url_ofertas',
+        ),
+
+        // ── Peticiones administrativas y bugs (issue #19) ──
+        'peticion_resuelta' => array(
+            'categoria' => 'peticiones', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-clipboard-check',
+            'texto' => function ($d, $n) {
+                $verbos = array('aceptada' => 'aceptó', 'rechazada' => 'rechazó', 'cerrada' => 'cerró');
+                $verbo = isset($verbos[opg_notif_dato($d, 'resultado')]) ? $verbos[opg_notif_dato($d, 'resultado')] : 'marcó como resuelta';
+                $categoria = opg_notif_dato($d, 'categoria');
+                return 'El staff ' . $verbo . ' tu petición' . opg_notif_nombre_peticion($d) . ($categoria !== '' ? ' (' . $categoria . ')' : '') . '.';
+            },
+            'url' => 'opg_notif_url_peticiones',
+        ),
+        'bug_resuelto' => array(
+            'categoria' => 'peticiones', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-bug',
+            'texto' => function ($d, $n) {
+                return 'El staff marcó como resuelto tu reporte de error' . opg_notif_nombre_peticion($d) . '.';
+            },
+            'url' => 'opg_notif_url_peticiones',
         ),
 
         // ── Bitacora de temas ──

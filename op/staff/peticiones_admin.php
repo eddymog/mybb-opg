@@ -31,6 +31,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'peticiones_admin.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/peticiones_avisos.php";
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -129,10 +130,11 @@ $peti_id_get = (int) $mybb->get_input('peti_id', MyBB::INPUT_INT);
 if ($accion !== '' && $peti_id_get > 0 && (is_mod($uid) || is_staff($uid)) && in_array($accion, array('resolver', 'borrar'), true)) {
     verify_post_check($mybb->get_input('my_post_key'));
 
+    // Resolver avisa al autor con peticion_resuelta; borrar es limpieza interna y no avisa (ver lib/peticiones_avisos.php).
     if ($accion === 'resolver') {
-        $db->query("UPDATE `mybb_op_peticiones` SET `resuelto`=1, `mod_uid`='{$uid}', `mod_nombre`='" . $db->escape_string($username) . "' WHERE `id`='{$peti_id_get}'");
+        opg_pet_resolver($peti_id_get, $uid, $username);
     } else {
-        $db->query("DELETE FROM `mybb_op_peticiones` WHERE `id`='{$peti_id_get}'");
+        opg_pet_borrar($peti_id_get);
     }
 
     header('Location: /op/staff/peticiones_admin.php');
