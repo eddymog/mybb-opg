@@ -1432,8 +1432,133 @@ function opg_av_historial_usuario($id, $uid)
 }
 
 // ── Notificaciones internas ─────────────────────────────────────────────────
+//
+// Desde la issue #9 el tablón usa el sistema global de notificaciones (lib/notificaciones.php; 208, apartado 9.1):
+//  - opg_av_notificar() y opg_av_notificar_partes() conservan su firma y su clave de evento, y cada acción llama a
+//    opg_notificar UNA sola vez con todos sus destinatarios. La librería los ordena, así que dos acciones simultáneas
+//    bloquean los contadores en el mismo orden y no se interbloquean (un interbloqueo revertiría la transacción entera
+//    de la acción).
+//  - Contar, listar y marcar usan la tabla global: la categoría 'aventuras' más los tipos del tablón que el catálogo
+//    pone en otra categoría (OPG_AV_NOTIF_TIPOS_EXTRA). Marcar baja también el contador global de la campana.
+//  - Respaldo de la transición: si la tabla global no existe (o la librería no se puede cargar), todo sigue usando
+//    mybb_op_aventuras_notificaciones como antes. Las funciones *_antigua son ese camino.
+
+/** Tipos del tablón con otra categoría en el catálogo que también son novedades del tablón. */
+const OPG_AV_NOTIF_TIPOS_EXTRA = array('recompensas_entregadas');
+
+/** ¿Está disponible el sistema global (librería cargada y tablas creadas)? Se comprueba una vez por petición. */
+function opg_av_notif_global()
+{
+    if (!function_exists('opg_notificar') && defined('IN_MYBB') && is_file(__DIR__ . '/notificaciones.php')) {
+        require_once __DIR__ . '/notificaciones.php';
+    }
+    return function_exists('opg_notif_tablas_listas') && opg_notif_tablas_listas();
+}
+
+/** Condición SQL de las novedades del tablón en la tabla global (valores fijos, sin datos del usuario). */
+function opg_av_notif_filtro_sql()
+{
+    return " AND (categoria = 'aventuras' OR tipo IN ('" . implode("', '", OPG_AV_NOTIF_TIPOS_EXTRA) . "'))";
+}
+
+/**
+ * Datos que guarda el aviso para redactar su texto con las claves del catálogo: peticion_id, tema (solo si el tema de
+ * la aventura está visible), isla, tier, actor (quien hizo la acción) y narrador (el de la propuesta), más lo que traiga
+ * $datos (motivo, dias, propuesta_id). Se calcula una vez por acción, no por destinatario.
+ */
+function opg_av_notif_datos($peticion_id, $actor_uid, $datos)
+{
+    $d = array();
+    $peticion_id = (int) $peticion_id;
+    $actor_uid = (int) $actor_uid;
+    $datos = (array) $datos;
+    if ($peticion_id > 0) {
+        $d['peticion_id'] = $peticion_id;
+        $r = opg_av_uno('SELECT pa.tier_seleccionado, f.name AS isla, CASE WHEN th.visible = 1 THEN th.subject ELSE NULL END AS tema FROM '
+            . opg_av_t('op_peticionAventuras') . ' pa LEFT JOIN ' . opg_av_t('forums') . ' f ON f.fid = pa.isla_fid LEFT JOIN '
+            . opg_av_t('threads') . " th ON th.tid = CAST(SUBSTRING_INDEX(pa.aventura_url, 'tid=', -1) AS UNSIGNED) WHERE pa.id = " . $peticion_id);
+        if ($r) {
+            if ((string) $r['tema'] !== '') {
+                $d['tema'] = (string) $r['tema'];
+            }
+            if ((string) $r['isla'] !== '') {
+                $d['isla'] = (string) $r['isla'];
+            }
+            if ((int) $r['tier_seleccionado'] > 0) {
+                $d['tier'] = (int) $r['tier_seleccionado'];
+            }
+        }
+    }
+    if ($actor_uid > 0) {
+        $r = opg_av_uno('SELECT COALESCE(f.nombre, u.username) AS nombre FROM ' . opg_av_t('users') . ' u LEFT JOIN '
+            . opg_av_t('op_fichas') . ' f ON f.fid = u.uid WHERE u.uid = ' . $actor_uid);
+        if ($r && (string) $r['nombre'] !== '') {
+            $d['actor'] = (string) $r['nombre'];
+        }
+    }
+    if (!empty($datos['propuesta_id'])) {
+        $r = opg_av_uno('SELECT COALESCE(f.nombre, u.username) AS nombre FROM ' . opg_av_t('op_aventuras_propuestas_narrador') . ' p LEFT JOIN '
+            . opg_av_t('users') . ' u ON u.uid = p.narrador_uid LEFT JOIN ' . opg_av_t('op_fichas') . ' f ON f.fid = p.narrador_uid WHERE p.id = '
+            . (int) $datos['propuesta_id']);
+        if ($r && (string) $r['nombre'] !== '') {
+            $d['narrador'] = (string) $r['nombre'];
+        }
+    }
+    foreach ($datos as $clave => $valor) {
+        if (!isset($d[$clave])) {
+            $d[$clave] = $valor;
+        }
+    }
+    return $d;
+}
+
+/**
+ * Un mismo aviso para varios destinatarios (sin el actor ni repetidos) con UNA sola llamada a opg_notificar.
+ * Devuelve false solo si el envío falló (queda registrado); sin destinatarios, true.
+ */
+function opg_av_notificar_varios($clave_evento, $peticion_id, $uids, $actor_uid, $tipo, $datos = array())
+{
+    $actor_uid = (int) $actor_uid;
+    $destinos = array();
+    foreach ((array) $uids as $u) {
+        $u = (int) $u;
+        if ($u > 0 && $u !== $actor_uid) {
+            $destinos[$u] = $u;
+        }
+    }
+    if (!$destinos) {
+        return true;
+    }
+    if (opg_av_notif_global()) {
+        return opg_notificar(array_values($destinos), (string) $tipo, opg_av_notif_datos($peticion_id, $actor_uid, $datos),
+            array('actor' => $actor_uid, 'clave' => (string) $clave_evento)) !== false;
+    }
+    $ok = true;
+    foreach ($destinos as $u) {
+        $ok = opg_av_notificar_antigua($clave_evento, $peticion_id, $u, $actor_uid, $tipo, $datos) && $ok;
+    }
+    return $ok;
+}
 
 function opg_av_notificar($clave_evento, $peticion_id, $uid, $actor_uid, $tipo, $datos = array())
+{
+    return opg_av_notificar_varios($clave_evento, $peticion_id, array($uid), $actor_uid, $tipo, $datos);
+}
+
+/** Avisa a todas las partes de la aventura (creador, narrador y jugadores) en una sola llamada. */
+function opg_av_notificar_partes($av, $actor_uid, $tipo, $clave_evento, $datos = array())
+{
+    $uids = array((int) $av['uid'], (int) $av['narrador_uid']);
+    foreach ($av['jugadores'] as $j) {
+        if ($j['uid'] !== null) {
+            $uids[] = (int) $j['uid'];
+        }
+    }
+    return opg_av_notificar_varios($clave_evento, $av['id'], $uids, $actor_uid, $tipo, $datos);
+}
+
+/** Respaldo: un aviso en la tabla antigua (como antes de la issue #9). */
+function opg_av_notificar_antigua($clave_evento, $peticion_id, $uid, $actor_uid, $tipo, $datos = array())
 {
     $uid = (int) $uid;
     $actor_uid = (int) $actor_uid;
@@ -1447,21 +1572,13 @@ function opg_av_notificar($clave_evento, $peticion_id, $uid, $actor_uid, $tipo, 
         . opg_av_sql((string) $tipo) . ', ' . opg_av_sql($json) . ', ' . opg_av_ahora() . ', 0)');
 }
 
-function opg_av_notificar_partes($av, $actor_uid, $tipo, $clave_evento, $datos = array())
-{
-    $uids = array((int) $av['uid'], (int) $av['narrador_uid']);
-    foreach ($av['jugadores'] as $j) {
-        if ($j['uid'] !== null) {
-            $uids[] = (int) $j['uid'];
-        }
-    }
-    foreach (array_unique(array_filter($uids)) as $destino) {
-        opg_av_notificar($clave_evento, $av['id'], $destino, $actor_uid, $tipo, $datos);
-    }
-}
-
 function opg_av_notificaciones_contar($uid)
 {
+    if (opg_av_notif_global()) {
+        $fila = opg_av_uno('SELECT COUNT(*) AS n FROM ' . opg_av_t('op_notificaciones')
+            . ' WHERE uid = ' . (int) $uid . ' AND leida_en IS NULL' . opg_av_notif_filtro_sql());
+        return $fila ? (int) $fila['n'] : 0;
+    }
     if (!opg_av_tabla_existe('op_aventuras_notificaciones')) {
         return 0;
     }
@@ -1470,14 +1587,48 @@ function opg_av_notificaciones_contar($uid)
     return $fila ? (int) $fila['n'] : 0;
 }
 
+/** Novedad de la tabla global con la forma que espera la vista (opg_av_v_novedad_fila): todo sale de datos_json. */
+function opg_av_notif_fila_global($f)
+{
+    $d = json_decode((string) $f['datos_json'], true);
+    $d = is_array($d) ? $d : array();
+    $texto = function ($clave) use ($d) {
+        return isset($d[$clave]) && is_scalar($d[$clave]) ? (string) $d[$clave] : '';
+    };
+    $pid = (int) $texto('peticion_id');
+    return array(
+        'id' => (int) $f['id'],
+        'tipo' => (string) $f['tipo'],
+        'peticion_id' => $pid,
+        'actor_uid' => (int) $f['actor_uid'],
+        'aventura' => $pid > 0 ? array('tema' => $texto('tema'), 'isla' => $texto('isla'), 'tier' => (int) $texto('tier')) : null,
+        'actor' => $texto('actor'),
+        'narrador_propuesta' => $texto('narrador'),
+        'datos' => $d,
+        'created_at' => (int) $f['created_at'],
+        'leida' => $f['leida_en'] !== null,
+    );
+}
+
 function opg_av_notificaciones_listar($uid, $limite = 30)
 {
+    $limite = max(1, min(100, (int) $limite));
+    if (opg_av_notif_global()) {
+        $filas = opg_av_todos('SELECT id, tipo, actor_uid, datos_json, created_at, leida_en FROM ' . opg_av_t('op_notificaciones')
+            . ' WHERE uid = ' . (int) $uid . opg_av_notif_filtro_sql() . ' ORDER BY created_at DESC, id DESC LIMIT ' . $limite);
+        return array_map('opg_av_notif_fila_global', $filas);
+    }
     if (!opg_av_tabla_existe('op_aventuras_notificaciones')) {
         return array();
     }
-    $limite = max(1, min(100, (int) $limite));
+    return opg_av_notificaciones_listar_antigua($uid, $limite);
+}
+
+/** Respaldo: novedades de la tabla antigua, con el contexto de cada aventura consultado al mostrar. */
+function opg_av_notificaciones_listar_antigua($uid, $limite)
+{
     $filas = opg_av_todos('SELECT * FROM ' . opg_av_t('op_aventuras_notificaciones')
-        . ' WHERE uid = ' . (int) $uid . ' ORDER BY id DESC LIMIT ' . $limite);
+        . ' WHERE uid = ' . (int) $uid . ' ORDER BY id DESC LIMIT ' . (int) $limite);
 
     // Contexto para redactar cada novedad: la aventura (tema, isla, tier), quién actuó y el narrador de la propuesta.
     $ids = array();
@@ -1540,16 +1691,36 @@ function opg_av_notificaciones_listar($uid, $limite = 30)
     return $filas;
 }
 
-/** Marca como leídas todas las novedades pendientes del usuario. */
+/**
+ * Marca como leídas todas las novedades pendientes del tablón del usuario. En la tabla global usa opg_notif_marcar_todas
+ * con la categoría 'aventuras' y marca una por una las de OPG_AV_NOTIF_TIPOS_EXTRA (así no toca las de otros módulos que
+ * compartan esa categoría); las dos bajan el contador global.
+ */
 function opg_av_notificaciones_leer_todas($uid)
 {
+    if (opg_av_notif_global()) {
+        $ok = opg_notif_marcar_todas($uid, array('categoria' => 'aventuras')) !== false;
+        $extra = opg_av_todos('SELECT id FROM ' . opg_av_t('op_notificaciones') . ' WHERE uid = ' . (int) $uid . " AND leida_en IS NULL AND tipo IN ('"
+            . implode("', '", OPG_AV_NOTIF_TIPOS_EXTRA) . "') ORDER BY id LIMIT 500");
+        foreach ($extra as $f) {
+            // false aquí también es "otro proceso la marcó antes": no es un error.
+            opg_notif_marcar_vista($uid, (int) $f['id']);
+        }
+        return $ok ? array('ok' => true) : opg_av_fallo(500, array('No se pudieron marcar las novedades.'));
+    }
     $ok = opg_av_w('UPDATE ' . opg_av_t('op_aventuras_notificaciones') . ' SET read_at = ' . opg_av_ahora()
         . ' WHERE uid = ' . (int) $uid . ' AND read_at IS NULL');
     return $ok ? array('ok' => true) : opg_av_fallo(500, array('No se pudieron marcar las novedades.'));
 }
 
+/** Marca una novedad como leída. En la tabla global, con opg_notif_marcar_vista (que también baja el contador global). */
 function opg_av_notificacion_leer($id, $uid)
 {
+    if (opg_av_notif_global()) {
+        return opg_notif_marcar_vista($uid, $id)
+            ? array('ok' => true)
+            : opg_av_fallo(404, array('La notificación no existe o ya estaba leída.'));
+    }
     $ok = opg_av_w('UPDATE ' . opg_av_t('op_aventuras_notificaciones') . ' SET read_at = ' . opg_av_ahora()
         . ' WHERE id = ' . (int) $id . ' AND uid = ' . (int) $uid . ' AND read_at IS NULL');
     if (!$ok) {
@@ -1729,11 +1900,14 @@ function opg_av_propuesta_aceptar($id, $uid)
     opg_av_auditar($p['peticion_id'], $uid, 'propuesta_aceptada', array('estado' => 4), array('estado' => 0, 'narrador' => (int) $p['narrador_uid'], 'propuesta_id' => (int) $id));
     $av = opg_av_normalizar_fila(opg_av_fila($p['peticion_id']));
     opg_av_notificar_partes($av, $uid, 'propuesta_aceptada', 'propuesta:' . (int) $id . ':aceptada', array('propuesta_id' => (int) $id));
+    opg_av_confirmar();
+    // Las canceladas van después de confirmar: cada una tiene su propia clave de evento (una llamada por propuesta), y
+    // dentro de la transacción serían varias llamadas a opg_notificar con bloqueos en orden distinto (riesgo de
+    // interbloqueo, que revertiría la aceptación). Fuera, cada envío es autónomo.
     foreach ($canceladas as $cancelada) {
         opg_av_notificar('propuesta:' . (int) $cancelada['id'] . ':cancelada', $p['peticion_id'],
             $cancelada['narrador_uid'], $uid, 'propuesta_cancelada', array('propuesta_id' => (int) $cancelada['id']));
     }
-    opg_av_confirmar();
     return array('ok' => true, 'id' => (int) $id, 'peticion_id' => (int) $p['peticion_id']);
 }
 
@@ -1780,8 +1954,8 @@ function opg_av_propuestas_vencer($ahora = null)
         . " WHERE estado = 'pendiente' AND expires_at <= $ahora LIMIT 500");
     foreach ($pendientes as $p) {
         opg_av_w('UPDATE ' . opg_av_t('op_aventuras_propuestas_narrador') . " SET estado = 'vencida', resolved_at = $ahora WHERE id = " . (int) $p['id'] . " AND estado = 'pendiente'");
-        opg_av_notificar('propuesta:' . (int) $p['id'] . ':vencida', $p['peticion_id'], $p['iniciada_por_uid'], 0, 'propuesta_vencida', array('propuesta_id' => (int) $p['id']));
-        opg_av_notificar('propuesta:' . (int) $p['id'] . ':vencida', $p['peticion_id'], $p['narrador_uid'], 0, 'propuesta_vencida', array('propuesta_id' => (int) $p['id']));
+        opg_av_notificar_varios('propuesta:' . (int) $p['id'] . ':vencida', $p['peticion_id'], array($p['iniciada_por_uid'], $p['narrador_uid']), 0,
+            'propuesta_vencida', array('propuesta_id' => (int) $p['id']));
     }
     return count($pendientes);
 }
