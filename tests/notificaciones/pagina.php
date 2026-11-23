@@ -1,11 +1,11 @@
 <?php
 /**
- * Vistas de la pagina de notificaciones (issue #7): lib/notificaciones_vistas.php, sin base de datos.
+ * Vistas de la pagina de notificaciones (issues #7 y #8): lib/notificaciones_vistas.php, sin base de datos.
  *
  *   php tests/notificaciones/pagina.php
  *
  * Las pruebas de la pagina como peticion HTTP (uid de la sesion, invitados, cursor, filtros y destinos borrados con MySQL
- * real) estan en pagina_db.php.
+ * real) estan en pagina_db.php, y las de las acciones Visto y Marcar todas en acciones_db.php.
  */
 define('IN_MYBB', 1);
 define('MYBB_ROOT', dirname(__DIR__, 2) . '/');
@@ -95,13 +95,15 @@ np('fila: fecha relativa con la completa en title', tiene($h, '>hace 2 horas</ti
 np('fila: etiqueta Importante', tiene($h, 'nt-etiqueta--importante">Importante<'), true);
 np('fila: aviso para lectores de pantalla', tiene($h, '<span class="nt-solo-lector">Sin leer: </span>'), true);
 np('fila: sin HTML de usuario sin escapar', tiene($h, '<b>'), false);
-np('fila: sin boton Visto (issue #8)', tiene($h, 'Visto'), false);
+np('fila sin leer: boton Visto que reemplaza la fila', tiene($h, '<button type="button" class="opg-chip nt-visto" hx-post="notificaciones.php?action=visto&amp;id=41" hx-target="#nt-n-41" hx-swap="outerHTML"'), true);
+np('fila: seguir el enlace no marca (enlace normal, sin hx-*)', preg_match('/<a [^>]*hx-/', $h), 0);
 
 $h = opg_notif_v_fila($f, array('borrados' => array('aventura:9' => true)) + $ctx);
 np('fila con destino borrado: texto sin enlace', array(tiene($h, '<a '), tiene($h, 'rechazó la entrega')), array(false, true));
 
 $h = opg_notif_v_fila(fila(42, 'propuesta_vencida', array('actor_uid' => 0, 'leida_en' => 1000100, 'datos_json' => '{"actor":"Nadie"}')), $ctx);
 np('fila leida: atenuada, sin etiqueta ni aviso de sin leer', array(tiene($h, 'nt-fila--leida'), tiene($h, 'Importante'), tiene($h, 'Sin leer')), array(true, false, false));
+np('fila leida: sin boton Visto ni forma de volver a no leida', array(tiene($h, 'nt-visto'), tiene($h, 'hx-post')), array(false, false));
 np('fila sin actor (sistema): no muestra actor', tiene($h, 'nt-fila-actor'), false);
 
 $h = opg_notif_v_fila(fila(43, 'tipo_retirado', array('datos_json' => '{"peticion_id":3}')), $ctx);
@@ -134,8 +136,24 @@ $h = opg_notif_v_contenido($sin, array('importantes' => $imp, 'pendientes' => $p
 $pos = array(strpos($h, 'class="nt-filtros"'), strpos($h, 'Importantes sin leer'), strpos($h, 'id="nt-t-pendientes"'), strpos($h, 'Historial reciente'));
 np('orden: filtros, importantes, pendientes, historial', $pos[0] !== false && $pos[0] < $pos[1] && $pos[1] < $pos[2] && $pos[2] < $pos[3], true);
 np('con filas: sin estado vacio', tiene($h, 'No tienes notificaciones'), false);
+np('con sin leer: Marcar todas sin filtro, con confirmacion', array(tiene($h, 'hx-post="notificaciones.php?action=todas" hx-target="#nt-contenido" hx-swap="innerHTML"'), tiene($h, 'hx-confirm="¿Marcar como vistas todas tus notificaciones?"'), tiene($h, 'solo este filtro')), array(true, true, false));
+np('Marcar todas va entre los filtros y las listas', strpos($h, 'class="nt-filtros"') < strpos($h, 'nt-todas') && strpos($h, 'nt-todas') < strpos($h, 'class="nt-listas"'), true);
+$h = opg_notif_v_contenido(array('categoria' => 'temas', 'origen' => 'usuario'), array('importantes' => $vacio, 'pendientes' => $pen, 'historial' => $vacio), $ctx);
+np('Marcar todas con filtro: solo el filtro activo', array(tiene($h, 'hx-post="notificaciones.php?categoria=temas&amp;origen=usuario&amp;action=todas"'), tiene($h, '(solo este filtro)')), array(true, true));
+$h = opg_notif_v_contenido($sin, array('importantes' => $vacio, 'pendientes' => $vacio, 'historial' => $his), $ctx);
+np('solo leidas: sin Marcar todas', tiene($h, 'nt-todas'), false);
 $h = opg_notif_v_contenido($sin, array('importantes' => $vacio, 'pendientes' => $pen, 'historial' => $vacio), $ctx);
 np('un bloque sin filas no se muestra', array(tiene($h, 'Importantes sin leer'), tiene($h, 'Historial reciente'), tiene($h, 'id="nt-lista-pendientes"')), array(false, false, true));
+
+// ── Campana fuera de banda ───────────────────────────────────────────────────
+$campana = "<style>\n.op-notif-campana { color: red; }\n</style>\n<div id=\"op-notif-campana\" class=\"op-notif-campana\"\n    hx-swap-oob=\"outerHTML:#op-notif-campana\">\n<a href=\"x\">3</a></div>";
+$oob = opg_notif_v_campana_oob($campana);
+np('campana OOB: sin el bloque style', array(tiene($oob, '<style'), tiene($oob, 'color: red')), array(false, false));
+np('campana OOB: empieza por la campana y conserva hx-swap-oob', array(substr($oob, 0, 25), substr_count($oob, 'hx-swap-oob="outerHTML:#op-notif-campana"')), array('<div id="op-notif-campana', 1));
+np('campana OOB: anade hx-swap-oob si la plantilla no lo trae', tiene(opg_notif_v_campana_oob('<div id="op-notif-campana" class="x">1</div>'), 'id="op-notif-campana" hx-swap-oob="outerHTML:#op-notif-campana"'), true);
+np('campana OOB: sin campana (plantilla vacia o sin el id)', array(opg_notif_v_campana_oob(''), opg_notif_v_campana_oob('<style>a{}</style>'), opg_notif_v_campana_oob('<div>otra</div>')), array('', '', ''));
+$tpl_campana = file_get_contents(MYBB_ROOT . 'templates/One_Piece_Gaiden_Templates/op_notificaciones_header.html');
+np('campana OOB con la plantilla real: sin style y con el destino OOB', array(tiene(opg_notif_v_campana_oob($tpl_campana), '<style'), tiene(opg_notif_v_campana_oob($tpl_campana), 'hx-swap-oob="outerHTML:#op-notif-campana"')), array(false, true));
 
 // ── Barra de filtros ─────────────────────────────────────────────────────────
 $h = opg_notif_v_barra_filtros(array('categoria' => 'temas', 'origen' => 'usuario'));
@@ -150,8 +168,9 @@ np('filtros: etiquetas De gestion y De usuarios', tiene($h, '>De gestión<') && 
 // ── Plantilla y hoja de estilos ──────────────────────────────────────────────
 $tpl = file_get_contents(MYBB_ROOT . 'templates/One_Piece_Gaiden_Templates/op_notificaciones.html');
 np('plantilla: contenedor, avisos y post key', array(tiene($tpl, 'id="nt-contenido"'), tiene($tpl, 'id="nt-avisos"'), tiene($tpl, '{"X-Post-Key":"{$post_key}"}'), tiene($tpl, '{$contenido_html}')), array(true, true, true, true));
-np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=1'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
+np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=2'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
 $css = file_get_contents(MYBB_ROOT . 'jscripts/notificaciones.css');
+np('estilos: botones Visto y Marcar todas', array(tiene($css, '.nt-visto'), tiene($css, '.nt-todas')), array(true, true));
 np('estilos: modo oscuro, movil y textos largos', array(tiene($css, 'prefers-color-scheme: dark'), tiene($css, '@media (max-width: 700px)'), tiene($css, 'overflow-wrap: anywhere')), array(true, true, true));
 
 if ($fallos) {

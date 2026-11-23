@@ -10,9 +10,12 @@
  *   (sin accion)  GET   pagina completa: filtros, importantes sin leer, pendientes e historial
  *   listar        GET   fragmento de #nt-contenido con los filtros de categoria y origen (no toca la campana)
  *   mas           GET   las 30 siguientes de un bloque, por cursor `antes=FECHA_ID`
+ *   visto         POST  marca una notificacion (`id`) y devuelve su fila leida y la campana (hx-swap-oob)        (#8)
+ *   todas         POST  marca todas las no leidas, o las del filtro activo, y devuelve #nt-contenido y la campana (#8)
  *
- * Abrir la pagina solo lee: no marca nada ni toca el contador (requisito 15). Las acciones Visto y Marcar todas (POST,
- * con clave CSRF) son de la issue #8.
+ * Abrir la pagina, filtrar o seguir un enlace solo leen: no marcan nada ni tocan el contador (requisito 15). Las acciones
+ * POST exigen la clave CSRF en la cabecera X-Post-Key (verify_post_check, requisito 48). opg_notif_marcar_vista y
+ * opg_notif_marcar_todas abren su propia transaccion corta: aqui no se abre ninguna.
  *
  * Documentos: docs/108_Requirements_Notificaciones.md (5.2 y 10) y docs/208_DesignPlan_Notificaciones.md (apartado 8).
  */
@@ -29,6 +32,7 @@ $uid = (int) $mybb->user['uid'];
 $raiz = rtrim($mybb->settings['bburl'], '/');
 
 $ACCIONES_GET = array('listar', 'mas');
+$ACCIONES_POST = array('visto', 'todas');
 
 // ── Utilidades de respuesta ──────────────────────────────────────────────────
 
@@ -93,6 +97,19 @@ function nt_contenido($uid, $filtros)
     return opg_notif_v_contenido($filtros, $leido[0], nt_ctx($leido[1]));
 }
 
+/**
+ * Campana del header actualizada, fuera de banda (hx-swap-oob), para las respuestas de `visto` y `todas`. La pinta el
+ * plugin opg_notificaciones; si no esta activo no hay campana que actualizar y se devuelve ''.
+ */
+function nt_campana_oob($uid)
+{
+    if (!function_exists('opg_notificaciones_campana_html')) {
+        return '';
+    }
+    $contador = opg_notif_contar($uid);
+    return opg_notif_v_campana_oob(opg_notificaciones_campana_html($contador['sin_leer'], $contador['importantes']));
+}
+
 /** Plantilla de la pagina; usa la copia de referencia si la base aun no la tiene (igual que el Tablon). */
 function nt_plantilla_pagina()
 {
@@ -141,13 +158,21 @@ if ($accion === '') {
     exit;
 }
 
-// ── Acciones HTMX (solo lectura) ─────────────────────────────────────────────
+// ── Acciones HTMX ────────────────────────────────────────────────────────────
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET' || !in_array($accion, $ACCIONES_GET, true) || !nt_es_htmx()) {
+$metodo = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
+$es_post = $metodo === 'POST';
+if (($metodo !== 'GET' && !$es_post) || !in_array($accion, $es_post ? $ACCIONES_POST : $ACCIONES_GET, true) || !nt_es_htmx()) {
     nt_responder(opg_notif_v_aviso('No encontrado.'), 404);
 }
 if ($uid <= 0) {
     nt_responder('', 200, array('HX-Redirect' => $raiz . '/member.php?action=login'));
+}
+if ($es_post) {
+    $clave = isset($_SERVER['HTTP_X_POST_KEY']) ? (string) $_SERVER['HTTP_X_POST_KEY'] : '';
+    if (!verify_post_check($clave, true)) {
+        nt_responder(opg_notif_v_aviso('La sesión caducó. Recarga la página e inténtalo de nuevo.'), 403);
+    }
 }
 
 $filtros = opg_notif_v_filtros_peticion($_GET);
@@ -172,6 +197,29 @@ switch ($accion) {
             nt_responder(opg_notif_v_aviso('No se pudieron cargar más notificaciones. Inténtalo de nuevo en un momento.'), 500);
         }
         nt_responder(opg_notif_v_filas($bloque, $res, $filtros, nt_ctx($res['filas'])));
+
+    case 'visto':
+        $id = ctype_digit(nt_in('id')) ? (int) nt_in('id') : 0;
+        // Solo cambia si era del usuario y no estaba leida: pulsar dos veces descuenta una sola vez, y una ajena no se toca.
+        $marcada = $id > 0 && opg_notif_marcar_vista($uid, $id);
+        $fila = opg_notif_v_leer_fila($uid, $id);
+        if ($fila === null) {
+            nt_responder(opg_notif_v_aviso('La notificación no existe.'), 404);
+        }
+        if (!$marcada && !$fila['leida']) {
+            nt_responder(opg_notif_v_aviso('No se pudo marcar la notificación. Inténtalo de nuevo en un momento.'), 500);
+        }
+        nt_responder(opg_notif_v_fila($fila, nt_ctx(array($fila))) . nt_campana_oob($uid));
+
+    case 'todas':
+        if (opg_notif_marcar_todas($uid, opg_notif_v_params($filtros)) === false) {
+            nt_responder(opg_notif_v_aviso('No se pudieron marcar las notificaciones. Inténtalo de nuevo en un momento.'), 500);
+        }
+        $html = nt_contenido($uid, $filtros);
+        if ($html === null) {
+            nt_responder(opg_notif_v_aviso('No se pudieron cargar las notificaciones. Inténtalo de nuevo en un momento.'), 500);
+        }
+        nt_responder($html . nt_campana_oob($uid));
 }
 
 nt_responder(opg_notif_v_aviso('No encontrado.'), 404);
