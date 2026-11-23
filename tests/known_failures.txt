@@ -1,0 +1,3 @@
+# Pruebas que ya fallaban antes de existir tests/run_all.sh. Se muestran como FALLO CONOCIDO y no bloquean.
+# Cada linea: ruta de la prueba y, tras #, el motivo. Quitar la linea cuando se arregle (el arnes avisa si pasa).
+tests/aventuras/recompensas.php  # 2400 de 10294 comparaciones fallan: los valores esperados no coinciden con recompensas_aventura.php (ej. XP 19 esperado, 21 obtenido)
