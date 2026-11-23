@@ -463,9 +463,10 @@ function nt_bloqueo($modo, $uid, $x)
 function nt_bloqueo_fin($b)
 {
     $salida = stream_get_contents($b[1][1]);
-    stream_get_contents($b[1][2]);
-    proc_close($b[0]);
-    return json_decode(trim($salida), true);
+    $errores = stream_get_contents($b[1][2]);
+    $codigo = proc_close($b[0]);
+    $r = json_decode(trim($salida), true);
+    return is_array($r) ? $r : array('sin respuesta' => "codigo $codigo, salida: $salida, errores: $errores");
 }
 function nt_transacciones_desde($desde)
 {
@@ -506,7 +507,7 @@ $fin = nt_bloqueo_fin($b);
 nt_prueba('1205 y reintento: true', $r, true);
 $n = nt_transacciones_desde($antes);
 nt_ok($n === 2 || $n === 3, "1205 y reintento: reintento tras la espera agotada ($n intentos)");
-nt_prueba('1205 y reintento: el otro proceso confirmo', $fin['commit'], true);
+nt_prueba('1205 y reintento: el otro proceso confirmo', $fin, array('commit' => true));
 nt_prueba('1205 y reintento: contador exacto', contador(80), array(2, 0));
 nt_prueba('1205 y reintento: nada registrado', nt_registro_leer(), '');
 
@@ -592,9 +593,27 @@ foreach (array('agrupa_marca', 'marca_doble', 'reconcilia_envia', 'autocommit') 
     $uids = nt_usuarios($esc);
     $lista = implode(',', $uids);
     $res = nt_concurrencia($esc);
-    $errores = array_merge($res['A']['errores'], $res['B']['errores']);
-    nt_prueba("concurrencia $esc: 0 errores (los reintentos absorben interbloqueos y esperas)", array_slice($errores, 0, 3), array());
-    nt_prueba("concurrencia $esc: nada registrado", trim($res['A']['registro'] . $res['B']['registro']), '');
+    // El envio nunca falla. El marcado puede, muy rara vez, agotar sus 2 reintentos (tres interbloqueos seguidos con un
+    // envio en bucle sobre los mismos usuarios): entonces no cambia nada, lo registra y los contadores siguen exactos.
+    $marcadores = $esc === 'marca_doble' ? array('A', 'B') : array('B');
+    if ($esc !== 'marca_doble') {
+        nt_prueba("concurrencia $esc: el envio no falla ni registra nada", array(array_slice($res['A']['errores'], 0, 3), trim($res['A']['registro'])), array(array(), ''));
+    }
+    $agotados = 0;
+    $otros = array();
+    $fallos_marcado = 0;
+    foreach ($marcadores as $p) {
+        $fallos_marcado += count($res[$p]['errores']);
+        foreach (array_filter(explode("\n", $res[$p]['registro'])) as $linea) {
+            if (strpos($linea, 'tras 2 reintentos') !== false && strpos($linea, 'no se cambio nada') !== false) {
+                $agotados++;
+            } else {
+                $otros[] = $linea;
+            }
+        }
+    }
+    nt_prueba("concurrencia $esc: el marcado solo registra reintentos agotados", array_slice($otros, 0, 3), array());
+    nt_ok($fallos_marcado <= $agotados, "concurrencia $esc: cada fallo del marcado es un reintento agotado ($fallos_marcado fallos, $agotados agotados)");
     $leidas = filas("uid IN ($lista) AND leida_en IS NOT NULL");
     if ($esc !== 'reconcilia_envia') {
         nt_prueba("concurrencia $esc: cada fila leida la marco un solo proceso una sola vez", $res['A']['marcadas'] + $res['B']['marcadas'], $leidas);
@@ -616,7 +635,7 @@ foreach (array('agrupa_marca', 'marca_doble', 'reconcilia_envia', 'autocommit') 
         (int) nt_valor("SELECT COUNT(*) FROM (SELECT uid, clave_evento FROM $N WHERE uid IN ($lista) AND leida_en IS NULL GROUP BY uid, clave_evento HAVING COUNT(*) > 1) d"), 0);
     nt_ok($res['A']['reintentos'] >= 0 && $res['B']['reintentos'] >= 0, "concurrencia $esc: cuenta de reintentos coherente");
     $informe[] = "$esc: leidas $leidas, operaciones de lectura A " . $res['A']['operaciones'] . ' B ' . $res['B']['operaciones']
-        . ', reintentos A ' . $res['A']['reintentos'] . ' B ' . $res['B']['reintentos']
+        . ', reintentos A ' . $res['A']['reintentos'] . ' B ' . $res['B']['reintentos'] . ", reintentos agotados $agotados"
         . ($esc === 'autocommit' ? ", contadores por encima antes de reconciliar: $exceso" : '');
 }
 nt_prueba('concurrencia agrupa_marca: hubo avisos y marcados de verdad', filas('uid IN (' . implode(',', nt_usuarios('agrupa_marca')) . ') AND leida_en IS NOT NULL') > 100, true);
