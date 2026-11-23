@@ -207,6 +207,22 @@ primero se incrementa el contador.
 > verifica con una prueba al instalar (ver apartado 13); si no se cumple, se usa
 > la variante de `SELECT` + `INSERT`/`UPDATE` dentro de una transacción.
 
+**Cómo deben avisar los módulos (issue #12).** Los avisos de origen usuario (la
+Bitácora) se envían **fuera** de las transacciones propias del módulo, después
+de su `COMMIT`, y con **un solo tema por llamada** a `opg_notificar` (todos los
+destinatarios de ese tema en la misma llamada). Así un fallo o un interbloqueo
+del aviso nunca revierte la publicación ni el cambio de narrador.
+
+**Riesgo residual de interbloqueo al crear la fila agrupable.** Cuando dos
+procesos crean a la vez, por primera vez, la misma fila agrupable (misma clave
+y destinatario) y el que gana inserta después otra clave del mismo destinatario
+que queda justo antes en el índice único, InnoDB puede interbloquearlos. Es
+inherente a InnoDB (bloqueos de inserción en el índice único), no al contador,
+y solo ocurre al crear el grupo (medido: 1 de cada 150 acciones en la prueba de
+estrés). Como el aviso va fuera de transacciones propias, en ese caso solo se
+pierde esa sentencia (ese aviso, que queda registrado con `error_log`); la
+acción del usuario ya está confirmada.
+
 ### 5.4 Marcar como vista
 
 ```sql
@@ -495,5 +511,9 @@ y, donde hace falta, con base real).
 - **Duplicidad temporal.** Durante las fases 3 y 4 el Tablón y la Bitácora
   conservan su panel o su contador anterior. Hasta retirarlos, el usuario puede
   ver el mismo aviso en dos sitios; se acepta como parte de la transición.
+- **Interbloqueo al crear la fila agrupable.** Riesgo residual, propio de
+  InnoDB, cuando dos procesos crean a la vez la misma fila agrupable (ver el
+  apartado 5.3). Se acepta: los módulos avisan fuera de sus transacciones y con
+  un tema por llamada, así que solo se pierde esa sentencia y queda registrada.
 - **Coexistencia en el header.** La posición exacta de la campana junto al
   bloque de la Bitácora y su ancho en móvil se deciden con el diseño visual.
