@@ -462,7 +462,7 @@ function op_bitacora_leer_cache_header($ownerUid)
     }
     $query = $db->simple_select(
         'op_bitacora_header_cache',
-        'conteo_turno,conteo_al_dia,ultima_novedad_en,generado_en,expira_en',
+        'conteo_turno,conteo_al_dia,generado_en,expira_en',
         "personaje_uid='{$ownerUid}'",
         array('limit' => 1)
     );
@@ -470,7 +470,6 @@ function op_bitacora_leer_cache_header($ownerUid)
     $camposRequeridos = array(
         'conteo_turno',
         'conteo_al_dia',
-        'ultima_novedad_en',
         'generado_en',
         'expira_en',
     );
@@ -481,13 +480,16 @@ function op_bitacora_leer_cache_header($ownerUid)
     return array(
         'debes_responder' => max(0, (int)$fila['conteo_turno']),
         'esperando' => max(0, (int)$fila['conteo_al_dia']),
-        'ultima_novedad_en' => max(0, (int)$fila['ultima_novedad_en']),
         'generado_en' => max(0, (int)$fila['generado_en']),
         'expira_en' => (int)$fila['expira_en'],
     );
 }
 
-function op_bitacora_guardar_cache_header($ownerUid, $conteos, $ultimaNovedad, $ttl = null)
+/**
+ * Guarda los conteos del header. La columna ultima_novedad_en se conserva en la tabla, pero ya no se escribe:
+ * el aviso de novedad pendiente lo sustituye el contador global de notificaciones (issue #13, decision 9).
+ */
+function op_bitacora_guardar_cache_header($ownerUid, $conteos, $ttl = null)
 {
     global $db;
     $ownerUid = (int)$ownerUid;
@@ -499,7 +501,6 @@ function op_bitacora_guardar_cache_header($ownerUid, $conteos, $ultimaNovedad, $
         'personaje_uid' => $ownerUid,
         'conteo_turno' => max(0, (int)($conteos['debes_responder'] ?? 0)),
         'conteo_al_dia' => max(0, (int)($conteos['esperando'] ?? 0)),
-        'ultima_novedad_en' => max(0, (int)$ultimaNovedad),
         'generado_en' => TIME_NOW,
         'expira_en' => TIME_NOW + $ttl,
     ), '', false);
@@ -512,9 +513,6 @@ function op_bitacora_invalidar_cache_header_uids($ownerUids)
     $ownerUids = op_bitacora_normalizar_ids($ownerUids);
     if (empty($ownerUids)) {
         return;
-    }
-    foreach ($ownerUids as $ownerUid) {
-        op_bitacora_ultima_novedad_pendiente($ownerUid, true);
     }
     if (!op_bitacora_cache_header_disponible()) {
         return;
@@ -732,53 +730,6 @@ function op_bitacora_novedades($ownerUid, $limiteTemas = 5)
     $resultado['total_temas'] = count($grupos);
     $resultado['grupos'] = array_slice($grupos, 0, $limiteTemas);
     return $resultado;
-}
-
-function op_bitacora_ultima_novedad_pendiente($ownerUid, $invalidar = false)
-{
-    global $db;
-    static $cache = array();
-
-    $ownerUid = (int)$ownerUid;
-    if ($invalidar) {
-        unset($cache[$ownerUid]);
-        return 0;
-    }
-    if (array_key_exists($ownerUid, $cache)) {
-        return $cache[$ownerUid];
-    }
-    $cache[$ownerUid] = 0;
-    if ($ownerUid <= 0 || !$db->table_exists('op_bitacora_eventos')
-        || !$db->table_exists('op_bitacora_lecturas')) {
-        return 0;
-    }
-
-    $cursor = op_bitacora_cargar_cursor($ownerUid);
-    $eventos = $db->table_prefix . 'op_bitacora_eventos';
-    $seguidos = $db->table_prefix . 'op_temas_seguidos';
-    $posts = $db->table_prefix . 'posts';
-    $threads = $db->table_prefix . 'threads';
-    $forums = $db->table_prefix . 'forums';
-    $query = $db->query("SELECT t.fid, MAX(e.creado_en) AS ultima_fecha,
-            MAX(e.id) AS ultimo_evento_id
-        FROM `{$eventos}` e
-        INNER JOIN `{$seguidos}` s ON s.id = e.seguimiento_id
-        INNER JOIN `{$posts}` p ON p.pid = e.pid AND p.visible = 1
-        INNER JOIN `{$threads}` t ON t.tid = s.tid AND t.visible = 1
-        INNER JOIN `{$forums}` f ON f.fid = t.fid
-        WHERE s.personaje_uid = {$ownerUid}
-          AND e.tipo = 'post_publicado'
-          AND e.id > {$cursor}
-          AND p.uid != {$ownerUid}
-          AND f.parentlist LIKE '10,%'
-        GROUP BY t.fid
-        ORDER BY ultimo_evento_id DESC");
-    while ($row = $db->fetch_array($query)) {
-        if (op_bitacora_puede_ver_foro((int)$row['fid'])) {
-            $cache[$ownerUid] = max($cache[$ownerUid], (int)$row['ultima_fecha']);
-        }
-    }
-    return $cache[$ownerUid];
 }
 
 function op_bitacora_marcar_novedades_revisadas($ownerUid)
@@ -1822,15 +1773,13 @@ function op_bitacora_obtener_resumen_header($ownerUid, $forzar = false, $conteos
         }
         $conteos = op_bitacora_resumen($ownerUid);
     }
-    $ultimaNovedad = op_bitacora_ultima_novedad_pendiente($ownerUid);
     $resultado = array(
         'debes_responder' => max(0, (int)($conteos['debes_responder'] ?? 0)),
         'esperando' => max(0, (int)($conteos['esperando'] ?? 0)),
-        'ultima_novedad_en' => max(0, (int)$ultimaNovedad),
         'generado_en' => TIME_NOW,
         'expira_en' => TIME_NOW + OP_BITACORA_HEADER_CACHE_TTL,
     );
-    op_bitacora_guardar_cache_header($ownerUid, $resultado, $ultimaNovedad);
+    op_bitacora_guardar_cache_header($ownerUid, $resultado);
     return $resultado;
 }
 
@@ -1853,10 +1802,9 @@ function op_bitacora_render_header($ownerUid, $conteos = null)
     }
     $op_temas_header_debes = (int)$resumenHeader['debes_responder'];
     $op_temas_header_esperando = (int)$resumenHeader['esperando'];
-    $ultimaNovedad = (int)$resumenHeader['ultima_novedad_en'];
-    $op_temas_header_actualizado = $ultimaNovedad > 0
-        ? '<small>Actualizado hace ' . op_bitacora_escape(op_bitacora_tiempo_transcurrido($ultimaNovedad)) . '</small>'
-        : '';
+    // El aviso de novedad pendiente se retiro (issue #13): las novedades las cuenta la campana global. La variable
+    // queda vacia para que la plantilla op_bitacora_header siga funcionando sin cambios.
+    $op_temas_header_actualizado = '';
     $op_temas_header_clase = $op_temas_header_debes > 0 ? ' op-temas-header--pendiente' : '';
     $op_temas_header_estado = $op_temas_header_debes > 0
         ? 'Tienes respuestas pendientes'
