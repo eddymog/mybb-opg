@@ -17,7 +17,7 @@
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
  *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
- *   resumen, categoria y resultado (peticiones).
+ *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres).
  */
 
 if (!defined('IN_MYBB')) {
@@ -140,7 +140,20 @@ function opg_notif_resumen_importes($d)
     return $partes ? opg_notif_enumerar($partes) : '';
 }
 
+/** "2 cofres «Nombre»", "1 cofre «Nombre»" o "2 cofres" si no se guardo el nombre (reparto de cofres). */
+function opg_notif_cantidad_cofres($d, $cantidad)
+{
+    $cofre = opg_notif_dato($d, 'cofre');
+    return $cantidad . ($cantidad > 1 ? ' cofres' : ' cofre') . ($cofre !== '' ? ' «' . $cofre . '»' : '');
+}
+
 // ── Constructores de enlaces (rutas internas relativas a la raiz del foro) ──────────────────────────────────────────────
+
+/** Inventario del propio usuario (op/inventario.php sin uid muestra el del que mira). */
+function opg_notif_url_inventario($d)
+{
+    return 'op/inventario.php';
+}
 
 /** Historial de peticiones del usuario (lista sus peticiones y bugs, tambien los resueltos). */
 function opg_notif_url_peticiones($d)
@@ -383,6 +396,28 @@ function opg_notif_catalogo()
                 return 'Recibiste ' . $importe . ($concepto !== '' ? ' (' . $concepto . ')' : '') . '.';
             },
             'url' => 'opg_notif_url_personaje',
+        ),
+
+        // ── Reparto de cofres del staff (issue #23) ──
+        'cofres_repartidos' => array(
+            'categoria' => 'recompensas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-box-open',
+            'texto' => function ($d, $n) {
+                $cantidad = max(1, (int) opg_notif_dato($d, 'cantidad', 1));
+                return 'Recibiste ' . opg_notif_cantidad_cofres($d, $cantidad) . ' en un reparto del staff. '
+                    . ($cantidad > 1 ? 'Están' : 'Está') . ' en tu inventario.';
+            },
+            'url' => 'opg_notif_url_inventario',
+        ),
+        'cofres_revertidos' => array(
+            'categoria' => 'recompensas', 'origen' => 'gestion', 'importancia' => 'importante', 'agrupable' => false,
+            'icono' => 'fa-rotate-left',
+            'texto' => function ($d, $n) {
+                $cantidad = max(1, (int) opg_notif_dato($d, 'cantidad', 1));
+                return 'El staff anuló el reparto de ' . opg_notif_cantidad_cofres($d, $cantidad)
+                    . '. Se retiraron de tu inventario los cofres de ese reparto que no habías abierto.';
+            },
+            'url' => 'opg_notif_url_inventario',
         ),
 
         // ── Bitacora de temas ──

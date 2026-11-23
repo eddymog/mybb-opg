@@ -16,6 +16,7 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'cofres_repartir.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/cofres_avisos.php";
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -124,6 +125,7 @@ if ($mybb->request_method == 'post') {
             $reversion_id = (int) $db->insert_id();
             $retirados_completos = 0;
             $casos_manuales = 0;
+            $uids_con_retirada = array();
             foreach ($detalles as $detalle) {
                 $fid = (int) $detalle['uid'];
                 $actual = (int) $detalle['cantidad_actual'];
@@ -140,6 +142,7 @@ if ($mybb->request_method == 'post') {
 
                 if ($retirada > 0 && (int) $detalle['inventario_id'] > 0) {
                     $db->query("UPDATE mybb_op_inventario SET cantidad='{$final}' WHERE id='" . (int) $detalle['inventario_id'] . "' AND uid='{$fid}'");
+                    $uids_con_retirada[] = $fid;
                 }
                 $db->query("INSERT INTO mybb_op_cofres_repartos_reversiones_detalle
                     (reversion_id,reparto_id,uid,cantidad_anterior,cantidad_retirada,cantidad_final,created_at)
@@ -163,6 +166,8 @@ if ($mybb->request_method == 'post') {
                 }
             }
             $db->write_query('COMMIT');
+            // Aviso fuera de la transaccion, una llamada para todo el lote, solo a quien se le retiro algo (lib/cofres_avisos.php).
+            opg_cof_avisar('cofres_revertidos', $uids_con_retirada, $reparto_id, $reparto['objeto_id'], $reparto['cantidad'], $uid);
             log_audit($uid, $username, '[Cofres]', "Anuló el lote #{$reparto_id} ({$reparto['cantidad']}x {$reparto['objeto_id']}). Retirados por completo: {$retirados_completos}. Casos manuales: {$casos_manuales}. Motivo: {$motivo}");
             $msg_tipo = 'ok';
             $msg_texto = "Lote #{$reparto_id} anulado: {$retirados_completos} personaje(s) resueltos automáticamente y {$casos_manuales} caso(s) pendientes de revisión manual.";
@@ -198,6 +203,7 @@ if ($mybb->request_method == 'post') {
             } else {
                 $reparto_id = (int) $db->insert_id();
                 $total = 0;
+                $uids_entregados = array();
                 foreach ($destinatarios as $f) {
                     $fid = (int) $f['fid'];
                     $row = $db->fetch_array($db->query("SELECT cantidad FROM mybb_op_inventario WHERE uid='{$fid}' AND objeto_id='{$safe_cofre}' FOR UPDATE"));
@@ -213,10 +219,13 @@ if ($mybb->request_method == 'post') {
                     $db->query("INSERT INTO mybb_op_cofres_repartos_detalle
                         (reparto_id,uid,nombre,username,cantidad_anterior,cantidad_entregada,cantidad_final,created_at)
                         VALUES ('{$reparto_id}','{$fid}','{$safe_nombre}','{$safe_recipient_username}','{$anterior}','{$cantidad}','{$final}','{$created_at}')");
+                    $uids_entregados[] = $fid;
                     $total++;
                 }
                 $db->query("UPDATE mybb_op_cofres_repartos SET total_destinatarios='{$total}' WHERE id='{$reparto_id}'");
                 $db->write_query('COMMIT');
+                // Aviso fuera de la transaccion: una llamada con todo el lote, un aviso por destinatario (lib/cofres_avisos.php).
+                opg_cof_avisar('cofres_repartidos', $uids_entregados, $reparto_id, $cofre_id, $cantidad, $uid);
                 log_audit($uid, $username, '[Cofres]', "Repartió {$cantidad}x {$safe_cofre} a {$total} fichas activas en zona de rol. Lote #{$reparto_id}.");
                 $msg_tipo = 'ok';
                 $msg_texto = "Lote #{$reparto_id}: se repartió {$cantidad}x {$cofre_id} a {$total} personaje(s) con actividad de rol durante el último mes.";

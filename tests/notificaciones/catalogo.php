@@ -22,6 +22,7 @@ $tipos = array(
     'ficha_aprobada', 'ficha_rechazada',
     'peticion_resuelta', 'bug_resuelto',
     'recompensa_entregada', 'salario_recibido',
+    'cofres_repartidos', 'cofres_revertidos',
 );
 foreach ($tipos as $t) {
     nc_expect(isset($cat[$t]), "Falta el tipo $t en el catalogo.");
