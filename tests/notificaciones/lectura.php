@@ -284,10 +284,15 @@ esperar(strpos($db->sentencias[0], 'LIMIT 101') !== false, 'listar: el limite se
 
 // ── 5. Marcar como vista ────────────────────────────────────────────────────────────────────────────────────────────
 
-/** Responde como MySQL a las sentencias del marcado; $errores: sentencia => lista de errores a devolver en orden. */
-function responder_marcado($afectadas, $importancia, &$errores)
+/**
+ * Responde como MySQL a las sentencias del marcado. La lectura inicial devuelve la fila (agrupable, clave, importancia)
+ * si $visible (por defecto, si $afectadas > 0); el UPDATE afecta a $afectadas filas. $errores: sentencia => lista de
+ * errores a devolver en orden.
+ */
+function responder_marcado($afectadas, $importancia, &$errores, $agrupable = 0, $visible = null)
 {
-    return function ($sql) use ($afectadas, $importancia, &$errores) {
+    $visible = $visible === null ? $afectadas > 0 : $visible;
+    return function ($sql) use ($afectadas, $importancia, &$errores, $agrupable, $visible) {
         foreach ($errores as $prefijo => &$lista) {
             if (strpos($sql, $prefijo) === 0 && $lista) {
                 return array('error' => array_shift($lista));
@@ -297,11 +302,11 @@ function responder_marcado($afectadas, $importancia, &$errores)
         if (strpos($sql, 'UPDATE `mybb_op_notificaciones` ') === 0) {
             return array('afectadas' => $afectadas);
         }
-        if (strpos($sql, 'SELECT importancia') === 0) {
-            return array('filas' => array(array('importancia' => $importancia)));
+        if (strpos($sql, 'SELECT agrupable, clave_evento, importancia') === 0) {
+            return array('filas' => $visible ? array(array('agrupable' => (string) $agrupable, 'clave_evento' => "bitacora_post:7", 'importancia' => $importancia)) : array());
         }
-        if (strpos($sql, 'SELECT COUNT(*)') === 0) {
-            return array('filas' => array(array('n' => (string) $afectadas, 'i' => $importancia === 'importante' ? '1' : '0')));
+        if (strpos($sql, 'SELECT id FROM') === 0) {
+            return array('filas' => array(array('id' => '55')));
         }
         return array('afectadas' => 1);
     };
@@ -310,20 +315,30 @@ function responder_marcado($afectadas, $importancia, &$errores)
 $sin = array();
 $db = doble(responder_marcado(1, 'normal', $sin));
 esperar(opg_notif_marcar_vista(7, 55) === true, 'vista: devuelve true si paso de no leida a leida');
-esperar($db->sentencias[0] === 'START TRANSACTION' && end($db->sentencias) === 'COMMIT', 'vista: transaccion corta');
+esperar($db->sentencias[0] === 'START TRANSACTION' && end($db->sentencias) === 'COMMIT' && count($db->sentencias) === 5, 'vista: transaccion corta');
+esperar($db->sentencias[1] === 'SELECT agrupable, clave_evento, importancia FROM `mybb_op_notificaciones` WHERE id = 55 AND uid = 7 AND leida_en IS NULL',
+    'vista: lee la fila por clave primaria, solo si es del usuario y no esta leida');
 esperar(preg_match("/^UPDATE `mybb_op_notificaciones` SET leida_en = \\d+, clave_evento = IF\\(agrupable = 1, CONCAT\\(LEFT\\(clave_evento, 111\\), ':leida:', id\\), clave_evento\\)"
-    . ' WHERE id = 55 AND uid = 7 AND leida_en IS NULL$/', $db->sentencias[1]) === 1, 'vista: solo si es del usuario y no estaba leida; libera la clave de las agrupables');
-esperar($db->sentencias[2] === 'SELECT importancia FROM `mybb_op_notificaciones` WHERE id = 55', 'vista: lee la importancia por clave primaria');
+    . ' WHERE id = 55 AND uid = 7 AND leida_en IS NULL$/', $db->sentencias[2]) === 1, 'vista: el UPDATE repite las condiciones; libera la clave de las agrupables');
 esperar($db->sentencias[3] === 'UPDATE `mybb_op_notificaciones_contador` SET sin_leer = sin_leer - LEAST(sin_leer, 1), importantes = importantes - LEAST(importantes, 0) WHERE uid = 7',
     'vista: resta uno sin bajar de cero (sin restar en UNSIGNED por debajo de cero)');
 $db = doble(responder_marcado(1, 'importante', $sin));
 opg_notif_marcar_vista(7, 55);
 esperar(strpos($db->sentencias[3], 'importantes = importantes - LEAST(importantes, 1)') !== false, 'vista: importante resta tambien de importantes');
+// Agrupable: primero se bloquea por el indice unico (uid, clave), como el envio, y despues se actualiza.
+$db = doble(responder_marcado(1, 'normal', $sin, 1));
+esperar(opg_notif_marcar_vista(7, 55) === true, 'vista agrupable: true');
+esperar($db->sentencias[2] === "SELECT id FROM `mybb_op_notificaciones` WHERE uid = 7 AND clave_evento = 'bitacora_post:7' FOR UPDATE"
+    && strpos($db->sentencias[3], 'UPDATE `mybb_op_notificaciones` SET') === 0 && strpos($db->sentencias[4], 'UPDATE `mybb_op_notificaciones_contador`') === 0,
+    'vista agrupable: bloquea por el indice unico antes del UPDATE');
 
 $db = doble(responder_marcado(0, 'normal', $sin));
 esperar(opg_notif_marcar_vista(7, 56) === false, 'vista: ya leida o ajena devuelve false');
-esperar(count(sentencias($db, 'UPDATE `mybb_op_notificaciones_contador`')) === 0 && count(sentencias($db, 'SELECT importancia')) === 0,
-    'vista: ya leida o ajena no toca el contador');
+esperar(count(sentencias($db, 'UPDATE')) === 0 && count($db->sentencias) === 3, 'vista: ya leida o ajena no actualiza nada');
+// Otro proceso la marco entre la lectura y el UPDATE: 0 filas afectadas, el contador no se toca.
+$db = doble(responder_marcado(0, 'importante', $sin, 0, true));
+esperar(opg_notif_marcar_vista(7, 56) === false && count(sentencias($db, 'UPDATE `mybb_op_notificaciones_contador`')) === 0,
+    'vista: marcada entretanto por otro proceso no descuenta');
 $db = doble();
 esperar(opg_notif_marcar_vista(0, 5) === false && opg_notif_marcar_vista(7, 0) === false && opg_notif_marcar_vista(7, '5 OR 1=1') === false
     && opg_notif_marcar_vista(7, array(5)) === false, 'vista: ids no validos');
@@ -379,22 +394,80 @@ esperar(opg_notif_marcar_vista(7, 55) === true && count(sentencias($db, 'START T
 
 // ── 6. Marcar todas ─────────────────────────────────────────────────────────────────────────────────────────────────
 
-$db = doble(responder_marcado(4, 'importante', $sin));
+/**
+ * Responde a marcar todas: $filas son las no leidas (id => importancia) que ve la lectura sin bloqueo; $ya_leidas, las que
+ * otro proceso marco entretanto (el UPDATE no las afecta). $errores como en responder_marcado.
+ */
+function responder_todas($filas, $ya_leidas, &$errores)
+{
+    return function ($sql) use ($filas, $ya_leidas, &$errores) {
+        foreach ($errores as $prefijo => &$lista) {
+            if (strpos($sql, $prefijo) === 0 && $lista) {
+                return array('error' => array_shift($lista));
+            }
+        }
+        unset($lista);
+        if (strpos($sql, 'SELECT id, importancia') === 0) {
+            $out = array();
+            foreach ($filas as $id => $imp) {
+                // "importante*" o "normal*": agrupable, con clave "grupo:ID".
+                $agrupable = substr($imp, -1) === '*';
+                $out[] = array('id' => (string) $id, 'importancia' => rtrim($imp, '*'), 'agrupable' => $agrupable ? '1' : '0',
+                    'clave_evento' => ($agrupable ? 'grupo:' : 'k:') . $id);
+            }
+            return array('filas' => $out);
+        }
+        if (strpos($sql, 'UPDATE `mybb_op_notificaciones` ') === 0 && preg_match('/id IN \(([0-9,]+)\)$/', $sql, $m)) {
+            return array('afectadas' => count(array_diff(explode(',', $m[1]), $ya_leidas)));
+        }
+        if (strpos($sql, 'UPDATE `mybb_op_notificaciones` ') === 0 && preg_match('/WHERE id = ([0-9]+) /', $sql, $m)) {
+            return array('afectadas' => in_array($m[1], $ya_leidas, true) ? 0 : 1);
+        }
+        return array('afectadas' => 1);
+    };
+}
+
+$db = doble(responder_todas(array(3 => 'importante', 9 => 'normal', 12 => 'normal', 20 => 'importante'), array(), $sin));
 esperar(opg_notif_marcar_todas(7, array('categoria' => 'aventuras')) === 4, 'todas: devuelve cuantas marco');
-esperar($db->sentencias[1] === "SELECT COUNT(*) AS n, COALESCE(SUM(importancia = 'importante'), 0) AS i FROM `mybb_op_notificaciones` WHERE uid = 7 AND leida_en IS NULL AND categoria = 'aventuras' FOR UPDATE",
-    'todas: cuenta y bloquea las filas del filtro antes de marcar');
-esperar(preg_match("/^UPDATE `mybb_op_notificaciones` SET leida_en = \\d+, clave_evento = .+ WHERE uid = 7 AND leida_en IS NULL AND categoria = 'aventuras'$/", $db->sentencias[2]) === 1,
-    'todas: marca solo las del filtro');
-esperar($db->sentencias[3] === 'UPDATE `mybb_op_notificaciones_contador` SET sin_leer = sin_leer - LEAST(sin_leer, 4), importantes = importantes - LEAST(importantes, 1) WHERE uid = 7',
+esperar($db->sentencias[1] === "SELECT id, importancia, agrupable, clave_evento FROM `mybb_op_notificaciones` WHERE uid = 7 AND leida_en IS NULL AND categoria = 'aventuras' ORDER BY clave_evento",
+    'todas: lee sin bloquear las no leidas del filtro (sin FOR UPDATE), en el orden del indice unico');
+esperar(preg_match("/^UPDATE `mybb_op_notificaciones` SET leida_en = \\d+, clave_evento = .+ WHERE uid = 7 AND leida_en IS NULL AND id IN \\(3,20\\)$/", $db->sentencias[2]) === 1
+    && preg_match('/ WHERE uid = 7 AND leida_en IS NULL AND id IN \(9,12\)$/', $db->sentencias[3]) === 1, 'todas: marca por clave primaria, importantes y normales por separado');
+esperar($db->sentencias[4] === 'UPDATE `mybb_op_notificaciones_contador` SET sin_leer = sin_leer - LEAST(sin_leer, 4), importantes = importantes - LEAST(importantes, 2) WHERE uid = 7',
     'todas: resta las afectadas y las importantes');
-$db = doble(responder_marcado(0, 'normal', $sin));
+esperar(count($db->sentencias) === 6 && $db->sentencias[5] === 'COMMIT', 'todas: una transaccion corta');
+// Otro proceso marco la 20 (importante) y la 9 entretanto: solo se cuentan las que esta llamada paso a leidas.
+$db = doble(responder_todas(array(3 => 'importante', 9 => 'normal', 12 => 'normal', 20 => 'importante'), array('20', '9'), $sin));
+esperar(opg_notif_marcar_todas(7) === 2, 'todas: no cuenta las que marco otro proceso');
+$restas = sentencias($db, 'UPDATE `mybb_op_notificaciones_contador`');
+esperar(strpos(end($restas), 'LEAST(sin_leer, 2), importantes = importantes - LEAST(importantes, 1)') !== false,
+    'todas: resta solo lo que esta llamada marco');
+// Agrupables: una por una, cada una bloqueada antes por el indice unico; la que otro proceso marco entretanto no cuenta.
+$db = doble(responder_todas(array(3 => 'normal*', 9 => 'importante', 12 => 'importante*', 20 => 'normal'), array('12'), $sin));
+esperar(opg_notif_marcar_todas(7) === 3, 'todas agrupables: marca 3 (la 12 ya la habia marcado otro)');
+$s = $db->sentencias;
+esperar($s[2] === "SELECT id FROM `mybb_op_notificaciones` WHERE uid = 7 AND clave_evento = 'grupo:3' FOR UPDATE"
+    && preg_match('/^UPDATE `mybb_op_notificaciones` SET .+ WHERE id = 3 AND uid = 7 AND leida_en IS NULL$/', $s[3]) === 1
+    && $s[4] === "SELECT id FROM `mybb_op_notificaciones` WHERE uid = 7 AND clave_evento = 'grupo:12' FOR UPDATE"
+    && preg_match('/ WHERE id = 12 AND uid = 7 AND leida_en IS NULL$/', $s[5]) === 1, 'todas agrupables: bloqueo por el indice unico y UPDATE, una por una');
+esperar(preg_match('/ AND id IN \(9\)$/', $s[6]) === 1 && preg_match('/ AND id IN \(20\)$/', $s[7]) === 1, 'todas agrupables: las demas por bloques');
+esperar($s[8] === 'UPDATE `mybb_op_notificaciones_contador` SET sin_leer = sin_leer - LEAST(sin_leer, 3), importantes = importantes - LEAST(importantes, 1) WHERE uid = 7',
+    'todas agrupables: resta 3 y 1 importante');
+// Lotes de 200 por sentencia.
+$muchas = array();
+for ($i = 1; $i <= 450; $i++) {
+    $muchas[$i] = 'normal';
+}
+$db = doble(responder_todas($muchas, array(), $sin));
+esperar(opg_notif_marcar_todas(7) === 450 && count(sentencias($db, 'UPDATE `mybb_op_notificaciones` ')) === 3, 'todas: marca en bloques de 200');
+$db = doble(responder_todas(array(), array(), $sin));
 esperar(opg_notif_marcar_todas(7) === 0 && count(sentencias($db, 'UPDATE')) === 0, 'todas: sin no leidas no actualiza nada');
 $db = doble();
 esperar(opg_notif_marcar_todas(7, array('categoria' => 'x')) === false && opg_notif_marcar_todas(7, array('estado' => 'sin_leer')) === false
     && opg_notif_marcar_todas(0) === false, 'todas: filtro o uid no valido');
 esperar($db->sentencias === array(), 'todas: filtro o uid no valido no consulta');
-$errores = array('SELECT COUNT(*)' => array(1213));
-$db = doble(responder_marcado(2, 'normal', $errores));
+$errores = array('UPDATE `mybb_op_notificaciones_contador`' => array(1213));
+$db = doble(responder_todas(array(4 => 'normal', 5 => 'normal'), array(), $errores));
 esperar(opg_notif_marcar_todas(7, array('origen' => 'gestion')) === 2 && count(sentencias($db, 'START TRANSACTION')) === 2, 'todas: reintento ante interbloqueo');
 
 // ── 7. Reconciliar ──────────────────────────────────────────────────────────────────────────────────────────────────

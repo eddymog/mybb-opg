@@ -849,6 +849,25 @@ function opg_notif_sql_marcar($ahora)
         . "), ':leida:', id), clave_evento)";
 }
 
+/**
+ * Marca UNA agrupable no leida y devuelve las filas afectadas (0 o 1). Primero la bloquea entrando por el indice unico
+ * (uid, clave_evento) y despues la actualiza por clave primaria, en el MISMO orden que el envio: el INSERT ... ON DUPLICATE
+ * KEY UPDATE de una agrupable bloquea primero la entrada del indice unico y despues la fila. Si el marcado bloqueara la
+ * fila por clave primaria y despues reescribiera la clave en el indice unico, los dos se cruzarian.
+ *
+ * Una por una y en el orden del indice (ver opg_notif_marcar_todas): la clave nueva "K:leida:ID" se inserta en el indice
+ * unico justo despues de K, en el hueco anterior a la siguiente clave del usuario. Si el marcado ya tuviera bloqueada esa
+ * siguiente clave mientras un envio espera por ella, InnoDB interbloquearia a los dos (medido en lectura_db.php).
+ */
+function opg_notif_marcar_agrupable($uid, $id, $clave, $ahora)
+{
+    global $db;
+    $N = opg_notif_t('op_notificaciones');
+    opg_notif_filas('SELECT id FROM ' . $N . ' WHERE uid = ' . (int) $uid . ' AND clave_evento = ' . opg_notif_sql_texto($clave) . ' FOR UPDATE');
+    opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . ' WHERE id = ' . (int) $id . ' AND uid = ' . (int) $uid . ' AND leida_en IS NULL');
+    return max(0, (int) $db->affected_rows());
+}
+
 /** Resta $n no leidas y $imp importantes del contador, sin bajar de cero (las columnas son UNSIGNED: nunca se resta de mas). */
 function opg_notif_restar_contador($uid, $n, $imp)
 {
@@ -1018,10 +1037,16 @@ function opg_notif_listar($uid, $filtros = array(), $cursor = null, $limite = OP
 /**
  * Marca una notificacion del usuario como vista (208, apartado 5.4). Devuelve true solo si paso de no leida a leida.
  *
- * En una transaccion corta: el UPDATE solo afecta a la fila si es de $uid y no estaba leida (una ajena o ya leida da 0
- * filas y no se toca nada mas: pulsar Visto dos veces descuenta una sola vez). En las agrupables reescribe la clave a
- * "...:leida:ID", para que el siguiente evento del grupo cree una fila nueva. Despues lee la importancia por clave primaria
- * y resta uno del contador (y de importantes si lo era). Se reintenta ante 1213 y 1205 (ver opg_notif_transaccion).
+ * En una transaccion corta:
+ *  1. Lee por clave primaria, sin bloquear, la fila si es de $uid y no esta leida (una ajena, inexistente o ya leida
+ *     termina aqui sin tocar nada: pulsar Visto dos veces descuenta una sola vez). Asi se sabe su importancia y su clave.
+ *  2. Si es agrupable, la bloquea por el indice unico antes de actualizarla, en el orden del envio
+ *     (opg_notif_marcar_agrupable).
+ *  3. El UPDATE repite "id, uid y leida_en IS NULL": si otro proceso la marco entretanto afecta a 0 filas y no se resta
+ *     nada. En las agrupables reescribe la clave a "...:leida:ID", para que el siguiente evento del grupo cree una fila
+ *     nueva.
+ *  4. Resta uno del contador (y de importantes si lo era).
+ * Se reintenta ante 1213 y 1205 (ver opg_notif_transaccion).
  * Una notificacion leida no vuelve a no leida: no hay funcion para eso.
  */
 function opg_notif_marcar_vista($uid, $id)
@@ -1035,12 +1060,21 @@ function opg_notif_marcar_vista($uid, $id)
     $ahora = opg_notif_ahora();
     list($ok, $cambio) = opg_notif_transaccion('opg_notif_marcar_vista', function () use ($db, $uid, $id, $ahora) {
         $N = opg_notif_t('op_notificaciones');
-        opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . ' WHERE id = ' . $id . ' AND uid = ' . $uid . ' AND leida_en IS NULL');
-        if ((int) $db->affected_rows() !== 1) {
+        $donde = ' WHERE id = ' . $id . ' AND uid = ' . $uid . ' AND leida_en IS NULL';
+        $f = opg_notif_filas('SELECT agrupable, clave_evento, importancia FROM ' . $N . $donde);
+        if (!$f) {
             return false;
         }
-        $f = opg_notif_filas('SELECT importancia FROM ' . $N . ' WHERE id = ' . $id);
-        opg_notif_restar_contador($uid, 1, ($f && $f[0]['importancia'] === 'importante') ? 1 : 0);
+        if ((int) $f[0]['agrupable'] === 1) {
+            $afectadas = opg_notif_marcar_agrupable($uid, $id, $f[0]['clave_evento'], $ahora);
+        } else {
+            opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . $donde);
+            $afectadas = (int) $db->affected_rows();
+        }
+        if ($afectadas !== 1) {
+            return false;
+        }
+        opg_notif_restar_contador($uid, 1, $f[0]['importancia'] === 'importante' ? 1 : 0);
         return true;
     });
     opg_notif_contar_olvidar($uid);
@@ -1051,9 +1085,17 @@ function opg_notif_marcar_vista($uid, $id)
  * Marca como vistas todas las no leidas del usuario, o solo las del filtro activo ('categoria' y 'origen', de las listas
  * fijas; cualquier otra clave o valor no valido devuelve false sin marcar nada). Devuelve cuantas marco o false.
  *
- * En una transaccion corta: cuenta (y bloquea, FOR UPDATE) las no leidas del filtro y cuantas son importantes, las marca
- * con el mismo UPDATE que opg_notif_marcar_vista y resta del contador las filas afectadas y las importantes. El bloqueo
- * hace que el recuento y el UPDATE vean las mismas filas aunque otro proceso envie a la vez. Se reintenta ante 1213 y 1205.
+ * En una transaccion corta:
+ *  1. Lee, SIN bloquear, los id, la importancia y la clave de las no leidas del filtro, en el orden del indice unico.
+ *  2. Marca las agrupables una por una en ese orden (opg_notif_marcar_agrupable) y las demas por clave primaria, en
+ *     bloques separados de importantes y normales. Cada UPDATE repite "uid = ... AND leida_en IS NULL": una fila que otro
+ *     proceso marco entretanto no cuenta, asi que las filas afectadas son exactamente las que pasaron de no leida a leida
+ *     en esta llamada, y se sabe cuantas eran importantes.
+ *  3. Resta esas cantidades del contador.
+ * No se usa un SELECT ... FOR UPDATE del rango: sus bloqueos de hueco detenian las inserciones de un envio simultaneo al
+ * mismo usuario mientras el envio ya tenia bloqueado el contador, e InnoDB interbloqueaba a los dos (y a veces revertia
+ * la transaccion del envio, medido en lectura_db.php). Marcando por clave primaria solo se bloquean las filas marcadas.
+ * Un aviso que llega durante la llamada no se marca (el usuario aun no lo habia visto). Se reintenta ante 1213 y 1205.
  */
 function opg_notif_marcar_todas($uid, $filtros = array())
 {
@@ -1066,25 +1108,30 @@ function opg_notif_marcar_todas($uid, $filtros = array())
     $ahora = opg_notif_ahora();
     list($ok, $marcadas) = opg_notif_transaccion('opg_notif_marcar_todas', function () use ($db, $uid, $filtros, $ahora) {
         $N = opg_notif_t('op_notificaciones');
-        $donde = ' WHERE uid = ' . $uid . ' AND leida_en IS NULL' . opg_notif_filtros_sql($filtros);
-        $f = opg_notif_filas("SELECT COUNT(*) AS n, COALESCE(SUM(importancia = 'importante'), 0) AS i FROM " . $N . $donde . ' FOR UPDATE');
-        $n = $f ? (int) $f[0]['n'] : 0;
-        $imp = $f ? (int) $f[0]['i'] : 0;
-        if ($n === 0) {
-            return 0;
+        $donde = ' WHERE uid = ' . $uid . ' AND leida_en IS NULL';
+        $ids = array('importante' => array(), 'normal' => array());
+        $afectadas = array('importante' => 0, 'normal' => 0);
+        $filas = opg_notif_filas('SELECT id, importancia, agrupable, clave_evento FROM ' . $N . $donde . opg_notif_filtros_sql($filtros) . ' ORDER BY clave_evento');
+        foreach ($filas as $f) {
+            $clase = $f['importancia'] === 'importante' ? 'importante' : 'normal';
+            if ((int) $f['agrupable'] === 1) {
+                $afectadas[$clase] += opg_notif_marcar_agrupable($uid, (int) $f['id'], $f['clave_evento'], $ahora);
+            } else {
+                $ids[$clase][] = (int) $f['id'];
+            }
         }
-        opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . $donde);
-        $afectadas = (int) $db->affected_rows();
-        if ($afectadas !== $n) {
-            // No deberia pasar (las filas estan bloqueadas): se resta lo realmente marcado y lo corrige la reconciliacion.
-            opg_notif_log("opg_notif_marcar_todas: se contaron $n no leidas y se marcaron $afectadas (uid $uid)");
-            $afectadas = max(0, $afectadas);
-            $imp = min($imp, $afectadas);
+        foreach ($ids as $clase => $lista) {
+            sort($lista, SORT_NUMERIC);
+            foreach (array_chunk($lista, OPG_NOTIF_LOTE) as $bloque) {
+                opg_notif_w('UPDATE ' . $N . ' ' . opg_notif_sql_marcar($ahora) . $donde . ' AND id IN (' . implode(',', $bloque) . ')');
+                $afectadas[$clase] += max(0, (int) $db->affected_rows());
+            }
         }
-        if ($afectadas > 0) {
-            opg_notif_restar_contador($uid, $afectadas, $imp);
+        $total = $afectadas['importante'] + $afectadas['normal'];
+        if ($total > 0) {
+            opg_notif_restar_contador($uid, $total, $afectadas['importante']);
         }
-        return $afectadas;
+        return $total;
     });
     opg_notif_contar_olvidar($uid);
     return $ok ? (int) $marcadas : false;
