@@ -57,9 +57,15 @@ class DbShim
     public function insert_id() { return mysqli_insert_id($this->link); }
     public function affected_rows() { return mysqli_affected_rows($this->link); }
     public function error_string() { return mysqli_error($this->link); }
+    public function error_number() { return mysqli_errno($this->link); }
 }
 
-$db = new DbShim('127.0.0.1', 33307, 'root', 'opgtest', 'opg_test');
+// Base de pruebas: opg_test, u otra con OPG_TEST_AV_DB (para no pisar a otra prueba que corra a la vez). Se crea si falta.
+$opg_av_base = getenv('OPG_TEST_AV_DB');
+$opg_av_base = $opg_av_base !== false && preg_match('/^opg_[a-z0-9_]+$/D', $opg_av_base) ? $opg_av_base : 'opg_test';
+$db = new DbShim('127.0.0.1', 33307, 'root', 'opgtest', '');
+$db->query('CREATE DATABASE IF NOT EXISTS `' . $opg_av_base . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+mysqli_select_db($db->link, $opg_av_base);
 $mybb = new stdClass();
 $mybb->settings = array('bburl' => 'https://onepiecegaiden.com');
 $mybb->user = array('uid' => 0, 'username' => '');
