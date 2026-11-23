@@ -17,3 +17,5 @@ images/op/halloween2026/*.mp4
 # Excepcion: el manual del agente (AGENTS.md, process.md, roles, context.md, DATABASE.md) si se versiona
 /docs/*
 !/docs/agents/
+# Worktrees temporales de los agentes
+.claude/worktrees/
