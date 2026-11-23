@@ -14,4 +14,6 @@ inc/debug_log.txt
 # Videos del evento (pesados): se suben al servidor a mano, no al repositorio
 images/op/halloween2026/*.mp4
 # Documentacion interna (diseño, guias y migraciones SQL): no se muestra en Git
-/docs/
+# Excepcion: el manual del agente (AGENTS.md, process.md, roles, context.md, DATABASE.md) si se versiona
+/docs/*
+!/docs/agents/
