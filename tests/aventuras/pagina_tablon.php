@@ -21,7 +21,7 @@ $db->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION'"
 
 $PAG = 'op/tablon_de_aventuras.php';
 $GET_ACC = array('tab', 'buscar_fichas', 'buscar_modo_vista', 'elegir_ficha', 'buscar_islas', 'elegir_isla', 'mis_activas', 'listar', 'sin_narrador', 'contar_propuestas', 'narradores_disponibles', 'form_oferta', 'ver', 'form_editar', 'form_postular', 'form_renunciar', 'form_vincular', 'form_entrega', 'buscar_temas', 'elegir_tema', 'quitar_chip', 'quitar_isla', 'cerrar_modal', 'form_participante', 'quitar_narrador', 'historial_usuario', 'notificaciones', 'validar_cupos');
-$POST_ACC = array('crear', 'editar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega', 'ofrecerme_narrador', 'renovar_oferta', 'retirar_oferta', 'aceptar_propuesta', 'rechazar_propuesta', 'retirar_propuesta', 'leer_notificacion');
+$POST_ACC = array('crear', 'editar', 'postular_narrador', 'renunciar_narrador', 'pedir_borrado', 'vincular_aventura', 'enviar_entrega', 'ofrecerme_narrador', 'renovar_oferta', 'retirar_oferta', 'aceptar_propuesta', 'rechazar_propuesta', 'retirar_propuesta', 'leer_notificacion', 'leer_todas_notificaciones');
 $todo_html = '';
 $GET_ACC[] = 'quitar_tema';
 function g($accion, $get = array(), $uid = 3) { global $PAG, $todo_html; $r = llamar($PAG, array_merge(array('action' => $accion), $get), array(), $uid, true, 'clave-valida', 'GET'); $todo_html .= $r['cuerpo']; return $r; }
