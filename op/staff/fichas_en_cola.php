@@ -13,12 +13,17 @@
  * 4. `faccion` se metía sin `urlencode()` en la URL de "Aprobar" — un
  *    nombre de facción con espacio o `&` rompía el link.
  * 5. Permisos solo se chequeaban al final; ahora es lo primero.
+ *
+ * Aprobar y borrar viven en inc/plugins/lib/fichas_cola.php, que avisa al dueño
+ * de la ficha (ficha_aprobada / ficha_rechazada, issue #17) solo si la acción
+ * cambió algo. Un fallo del aviso no impide la acción.
  */
 
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'fichas_en_cola.php');
 require_once "./../../global.php";
 require_once "./../functions/op_functions.php";
+require_once MYBB_ROOT . 'inc/plugins/lib/fichas_cola.php';
 
 global $templates, $mybb, $db;
 $uid = (int) $mybb->user['uid'];
@@ -54,14 +59,9 @@ if ($action !== '' && $fid > 0 && (is_mod($uid) || is_staff($uid))) {
             $usergroup = $legacy_usergroups[$faccion] ?? 2;
         }
 
-        $db->query("UPDATE `mybb_op_fichas` SET `aprobada_por`='" . $db->escape_string($username) . "' WHERE `aprobada_por`='sin_aprobar' AND `fid`='{$fid}'");
-        $db->query("UPDATE `mybb_users` SET `usergroup`='" . (int) $usergroup . "' WHERE `uid`='{$fid}'");
+        opg_fichas_cola_aprobar($fid, $usergroup, $uid, $username);
     } elseif ($action === 'borrar') {
-        $db->query("DELETE FROM `mybb_op_fichas` WHERE `aprobada_por`='sin_aprobar' AND `fid`='{$fid}'");
-        $db->query("DELETE FROM `mybb_op_fichas_secret` WHERE `fid`='{$fid}'");
-        $db->query("DELETE FROM `mybb_op_inventario` WHERE `uid`='{$fid}'");
-        $db->query("DELETE FROM `mybb_op_tec_aprendidas` WHERE `uid`='{$fid}'");
-        $db->query("DELETE FROM `mybb_op_virtudes_usuarios` WHERE `uid`='{$fid}'");
+        opg_fichas_cola_rechazar($fid, $uid);
     }
 
     header('Location: /op/staff/fichas_en_cola.php');
