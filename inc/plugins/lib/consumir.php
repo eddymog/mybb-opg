@@ -168,9 +168,9 @@ function opg_consumir_nota_html($tipo, $nombre)
     }
     return '<span role="note" style="display:inline-block;max-width:100%;box-sizing:border-box;vertical-align:baseline;'
         . 'margin:0 2px;padding:1px var(--opg-espacio-2, 8px);'
-        . 'border:1px dashed ' . $borde . ';border-left:3px solid ' . $borde . ';border-radius:var(--opg-radio-sm, 6px);'
+        . 'border:1px dashed ' . $borde . ';border-left:3px solid ' . $borde . ';border-radius:var(--opg-radio-md, 10px);'
         . 'background:var(--opg-crema-clara, #fff3e0);color:var(--opg-gris-texto, #5e5e5e);'
-        . 'font-family:var(--opg-fuente-cuerpo, sans-serif);font-size:12px;font-style:italic;line-height:1.5;'
+        . 'font-family:var(--opg-fuente-cuerpo, sans-serif);font-size:13px;line-height:1.5;'
         . 'text-align:left;white-space:normal;overflow-wrap:anywhere;">' . $texto . '</span>';
 }
 
