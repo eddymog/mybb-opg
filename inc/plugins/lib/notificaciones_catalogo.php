@@ -17,7 +17,7 @@
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
  *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
- *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma).
+ *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma), campos y mas (ficha modificada).
  */
 
 if (!defined('IN_MYBB')) {
@@ -488,6 +488,21 @@ function opg_notif_catalogo()
                 return 'Se rechazó la ficha de ' . opg_notif_nombre_personaje($d) . ' y se borró. Puedes crear una nueva.';
             },
             'url' => 'opg_notif_url_ficha_crear',
+        ),
+
+        // ── Ficha modificada por el staff (issue #22) ──
+        'ficha_modificada' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-pen-to-square',
+            'texto' => function ($d, $n) {
+                $campos = opg_notif_dato($d, 'campos');
+                if ($campos === '') {
+                    return 'El staff modificó tu ficha. Revísala.';
+                }
+                $mas = (int) opg_notif_dato($d, 'mas', 0);
+                return 'El staff modificó tu ficha: ' . $campos . ($mas > 0 ? ' y ' . $mas . ' más' : '') . '.';
+            },
+            'url' => 'opg_notif_url_ficha',
         ),
 
         // ── Akuma (editor de ficha del staff, issue #18) ──
