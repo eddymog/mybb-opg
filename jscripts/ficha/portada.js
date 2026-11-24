@@ -109,9 +109,10 @@
     return { kuros: m ? parseFloat(m[1]) : 0, kurosBefore: m ? parseFloat(m[2]) : 0, kurosAfter: m ? parseFloat(m[3]) : 0 };
   }
 
+  // La cantidad entre parentesis puede llevar decimales (entrenamientos, cofres): "Experiencia: 18682.76->18704.01 (21.25)".
   function extractExperiencia(input) {
-    var m = input.match(/Experiencia:\s*(-?\d+(?:\.\d+)?)->(-?\d+(?:\.\d+)?)\s*\((-?\d+)\)/);
-    return { experiencia: m ? parseInt(m[3]) : 0, experienciaBefore: m ? parseInt(m[1]) : 0, experienciaAfter: m ? parseInt(m[2]) : 0 };
+    var m = input.match(/Experiencia:\s*(-?\d+(?:\.\d+)?)->(-?\d+(?:\.\d+)?)\s*\((-?\d+(?:\.\d+)?)\)/);
+    return { experiencia: m ? parseFloat(m[3]) : 0, experienciaBefore: m ? parseFloat(m[1]) : 0, experienciaAfter: m ? parseFloat(m[2]) : 0 };
   }
 
   function extractExperienciaPost(input) {
@@ -143,6 +144,7 @@
       var texto = 'Recompensa de aventura' + (p ? ' #' + p[1] : '');
       return t ? texto + ' · <a target="_blank" href="/showthread.php?tid=' + t[1] + '">tema #' + t[1] + '</a>' : texto;
     }
+    if (String(categoria).indexOf('[Entrenamiento]') === 0) return 'Entrenamiento';
     return categoria;
   }
 
