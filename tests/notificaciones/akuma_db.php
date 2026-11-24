@@ -114,11 +114,11 @@ ak_ficha(22);
 ak_guardar_como_staff(22, 'hito');
 nt_prueba('nombre con HTML: se guarda sin etiquetas', ak_datos(22, 'akuma_asignada'), array('fid' => 22, 'fruta' => 'Hito Hito no Mi'));
 
-// ── El propio usuario (como la tirada): no se avisa ──
+// ── El propio usuario que cambia su Akuma desde el editor: tambien recibe su aviso (queda en su historial) ──
 ak_ficha(30);
 ak_guardar_como_staff(30, 'gomu', 30);
 nt_prueba('propio usuario: ficha cambiada', nt_valor('SELECT akuma FROM mybb_op_fichas WHERE fid = 30'), 'gomu');
-nt_prueba('propio usuario: sin aviso', ak_avisos(30), array());
+nt_prueba('propio usuario: recibe su aviso', ak_avisos(30), array('akuma_asignada|akuma:30:gomu:asignada:1700000000'));
 
 // ── Fallos: la accion se completa igual ──
 $db->query('RENAME TABLE mybb_op_akumas TO mybb_op_akumas_x');

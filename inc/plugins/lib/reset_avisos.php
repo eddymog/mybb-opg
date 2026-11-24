@@ -34,7 +34,7 @@ function opg_reset_aviso($reset_id, $fid, $resultado, $actor_uid, $akuma_antes =
 {
     $reset_id = (int) $reset_id;
     $fid = (int) $fid;
-    if ($reset_id <= 0 || $fid <= 0 || (int) $actor_uid === $fid || !in_array($resultado, array('aplicado', 'rechazado'), true)) {
+    if ($reset_id <= 0 || $fid <= 0 || !in_array($resultado, array('aplicado', 'rechazado'), true)) {
         return null;
     }
     $datos = array('fid' => $fid, 'reset_id' => $reset_id);

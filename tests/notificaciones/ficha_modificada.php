@@ -77,12 +77,11 @@ foreach (array_slice($campos, 0, 12, true) as $c => $n) {
 $m = opg_ficha_aviso(42, $muchos, array(), STAFF, HORA);
 fm_igual($m['datos']['mas'], 4, 'aviso: doce cambios, ocho nombres y 4 mas');
 
-// No se avisa: sin cambios, fid invalido, el propio usuario
+// No se avisa: sin cambios ni fid invalido. El propio usuario SI recibe su aviso (queda en su historial)
 fm_igual(opg_ficha_aviso(42, array(), $despues, STAFF, HORA), null, 'sin cambios: no avisa');
 fm_igual(opg_ficha_aviso(0, $cambios, $despues, STAFF, HORA), null, 'fid 0: no avisa');
-fm_igual(opg_ficha_aviso(42, $cambios, $despues, 42, HORA), null, 'propio usuario: no avisa');
+fm_igual(opg_ficha_aviso(42, $cambios, $despues, 42, HORA)['destinatario'], 42, 'propio usuario: avisa igual');
 fm_igual(opg_ficha_avisar_cambios(42, $antes, $antes, $campos, STAFF, HORA), false, 'sin cambios: el envio no hace nada');
-fm_igual(opg_ficha_avisar_cambios(42, $antes, $despues, $campos, 42, HORA), false, 'propio usuario: el envio no hace nada');
 
 // Datos sin valores, razon ni staff (requisitos 26, 27 y 50)
 fm_igual(array_keys($a['datos']), array('fid', 'campos'), 'datos: solo ficha y nombres de campo');

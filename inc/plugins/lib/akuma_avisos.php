@@ -74,7 +74,7 @@ function opg_akuma_aviso($fid, $antes, $despues, $nombre, $actor_uid, $hora)
 {
     $fid = (int) $fid;
     $tipo = opg_akuma_tipo_cambio($antes, $despues);
-    if ($fid <= 0 || $tipo === null || (int) $actor_uid === $fid) {
+    if ($fid <= 0 || $tipo === null) {
         return null;
     }
     $valor = trim((string) ($tipo === 'akuma_asignada' ? $despues : $antes));
@@ -122,7 +122,7 @@ function opg_akuma_avisar_cambio($fid, $antes, $despues, $actor_uid, $hora = nul
 {
     try {
         $tipo = opg_akuma_tipo_cambio($antes, $despues);
-        if ($tipo === null || (int) $actor_uid === (int) $fid) {
+        if ($tipo === null) {
             return false;
         }
         $nombre = opg_akuma_nombre_fruta($tipo === 'akuma_asignada' ? $despues : $antes);

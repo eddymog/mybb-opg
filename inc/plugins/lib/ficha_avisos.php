@@ -151,7 +151,8 @@ function opg_ficha_resumen_campos($nombres)
 
 /**
  * Aviso de un guardado de ficha: array('tipo', 'destinatario', 'datos', 'clave'), o null si no hay que avisar (ningun
- * campo visible cambio, fid no valido o el propio usuario hizo el cambio).
+ * campo visible cambio o fid no valido). Si quien hace el cambio es el propio dueño de la ficha tambien se avisa: queda en
+ * su historial.
  *
  * $cambios es lo que devuelve opg_ficha_cambios (columna => nombre); $despues da los valores nuevos para la marca. La clave
  * es ficha_mod:FID:MARCA, donde la marca es la hora del guardado y un resumen de los campos y sus valores nuevos: dos
@@ -160,7 +161,7 @@ function opg_ficha_resumen_campos($nombres)
 function opg_ficha_aviso($fid, $cambios, $despues, $actor_uid, $hora)
 {
     $fid = (int) $fid;
-    if ($fid <= 0 || !is_array($cambios) || !$cambios || (int) $actor_uid === $fid) {
+    if ($fid <= 0 || !is_array($cambios) || !$cambios) {
         return null;
     }
     $resumen = opg_ficha_resumen_campos(array_values($cambios));

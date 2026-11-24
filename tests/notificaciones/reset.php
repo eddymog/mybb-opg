@@ -60,8 +60,7 @@ rs_igual(opg_notif_texto('reset_aplicado', array('fid' => 1, 'akuma' => 'asignad
 rs_igual(opg_reset_aviso(7, 42, 'guardado', STAFF), null, 'resultado desconocido: no avisa');
 rs_igual(opg_reset_aviso(0, 42, 'aplicado', STAFF), null, 'reset 0: no avisa');
 rs_igual(opg_reset_aviso(7, 0, 'aplicado', STAFF), null, 'fid 0: no avisa');
-rs_igual(opg_reset_aviso(7, 42, 'aplicado', 42), null, 'propio usuario: no avisa');
-rs_igual(opg_reset_avisar(7, 42, 'aplicado', 42), false, 'propio usuario: el envio no hace nada');
+rs_igual(opg_reset_aviso(7, 42, 'aplicado', 42)['destinatario'], 42, 'propio usuario: avisa igual');
 
 // Los datos no llevan nombre del staff ni HTML
 foreach (array($a, $b, $c, $r) as $i => $av) {

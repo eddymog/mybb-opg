@@ -46,11 +46,10 @@ ak_igual($r, array('tipo' => 'akuma_retirada', 'destinatario' => 42, 'datos' => 
 ak_igual(opg_notif_texto('akuma_retirada', $r['datos']), 'Se te retiró la Akuma «Gomu Gomu no Mi».', 'retirada: texto');
 ak_igual(opg_notif_url('akuma_retirada', $r['datos']), 'op/personaje.php?uid=42', 'retirada: enlace a la ficha');
 
-// No se avisa: sin cambio, fid invalido, o el propio usuario (tirada)
+// No se avisa: sin cambio o fid invalido. El propio usuario SI recibe su aviso (queda en su historial)
 ak_igual(opg_akuma_aviso(42, 'gomu', 'gomu', 'X', STAFF, HORA), null, 'sin cambio: no avisa');
 ak_igual(opg_akuma_aviso(0, '', 'gomu', 'X', STAFF, HORA), null, 'fid 0: no avisa');
-ak_igual(opg_akuma_aviso(42, '', 'gomu', 'X', 42, HORA), null, 'propio usuario: no avisa');
-ak_igual(opg_akuma_avisar_cambio(42, '', 'gomu', 42, HORA), false, 'propio usuario: el envio no hace nada');
+ak_igual(opg_akuma_aviso(42, '', 'gomu', 'X', 42, HORA)['destinatario'], 42, 'propio usuario: avisa igual');
 ak_igual(opg_akuma_avisar_cambio(42, 'gomu', 'gomu', STAFF, HORA), false, 'sin cambio: el envio no hace nada');
 
 // Clave: usuario, fruta, evento y hora; solo caracteres validos y dentro del largo

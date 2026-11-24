@@ -125,11 +125,11 @@ opg_ficha_avisar_cambios(10, $antes, $despues, opg_ficha_campos_atributos(), STA
 opg_ficha_avisar_cambios(10, $antes, $despues, opg_ficha_campos_atributos(), STAFF, HORA + 40);
 nt_prueba('reenvio: no duplica', array(count(fm_avisos(10)), fm_contador(10)), array(3, 3));
 
-// El propio usuario: no se avisa
+// El propio usuario: tambien recibe su aviso (queda en su historial)
 fm_ficha(30);
 fm_guardar_atributos(30, array('nivel' => '5'), null, 30);
 nt_prueba('propio usuario: ficha guardada', nt_valor('SELECT nivel FROM mybb_op_fichas WHERE fid = 30'), '5');
-nt_prueba('propio usuario: sin aviso', fm_avisos(30), array());
+nt_prueba('propio usuario: recibe su aviso', fm_avisos(30), array('ficha_modificada'));
 
 // ── modificar_ficha: varias escrituras sueltas, un aviso al final; notas no cuenta ──
 $db->query("INSERT INTO mybb_sg_sg_fichas (fid, rango, edad) VALUES (50, 'Genin', '15')");
