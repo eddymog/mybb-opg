@@ -53,6 +53,35 @@
 	  .titulo-horizontal {
 		  
 	  }
+
+	  /* Tarjeta del historial de tecnicas (prefijo ht-): centrada, debajo de las imagenes */
+	  .ht-cta {
+		  display: flex; align-items: center; gap: 16px; box-sizing: border-box;
+		  width: min(640px, calc(100% - 20px)); margin: 28px auto 14px; padding: 14px 20px;
+		  border: 3px solid var(--opg-tinta, #000); border-radius: var(--opg-radio-md, 10px);
+		  background: var(--opg-morado-cta, #460c6e); box-shadow: 4px 4px 0 var(--opg-tinta, #000);
+		  color: #fff !important; text-decoration: none !important; transition: all 0.25s ease;
+	  }
+	  .ht-cta:hover { background: var(--opg-morado-cta-hover, #7e20bf); transform: scale(1.03); }
+	  .ht-cta:focus-visible { outline: 3px solid var(--opg-naranja, #ff8900); outline-offset: 3px; }
+	  .ht-cta__icono {
+		  flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;
+		  border: 3px solid var(--opg-tinta, #000); border-radius: 50%;
+		  background: var(--opg-naranja, #ff8900); color: var(--opg-tinta, #000); font-size: 22px;
+	  }
+	  .ht-cta__texto { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+	  .ht-cta__titulo {
+		  font-family: moonGetHeavy, Arial, sans-serif; font-size: 22px; line-height: 1.1; font-weight: normal;
+		  color: #fff; text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+	  }
+	  .ht-cta__desc { font-family: InterRegular, var(--opg-fuente-cuerpo, sans-serif); font-size: 13px; line-height: 1.35; color: #fff; overflow-wrap: anywhere; }
+	  .ht-cta__flecha { flex: 0 0 auto; font-size: 20px; color: var(--opg-naranja, #ff8900); transition: transform 0.25s ease; }
+	  .ht-cta:hover .ht-cta__flecha { transform: translateX(4px); }
+	  @media (max-width: 520px) {
+		  .ht-cta { gap: 12px; padding: 12px 14px; }
+		  .ht-cta__icono { width: 40px; height: 40px; font-size: 18px; }
+		  .ht-cta__titulo { font-size: 18px; }
+	  }
   </style>
 	
 	
@@ -66,9 +95,6 @@
 			<div class="thirdBackground">
 				
 				<div class="akumaBanner"></div>
-				<div style="display:flex;justify-content:flex-end;margin:10px 0;">
-					<a class="btn-op btn-op--sm btn-op--primario" href="/op/historial_tecnicas.php"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial de técnicas</a>
-				</div>
 <!-- 				/op/tecnicas.php?tipo=disciplinas -->
 				<if $tipo == '' then>
 				<div id="tecnicas-generales">
@@ -405,6 +431,15 @@
 					</div>
 				</div>
 				</if>
+
+				<a class="ht-cta" href="/op/historial_tecnicas.php">
+					<span class="ht-cta__icono"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
+					<span class="ht-cta__texto">
+						<strong class="ht-cta__titulo">Historial de técnicas</strong>
+						<span class="ht-cta__desc">Consulta qué técnicas se añadieron, cambiaron o se retiraron.</span>
+					</span>
+					<span class="ht-cta__flecha"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+				</a>
 
 			</div>
 		</div>
