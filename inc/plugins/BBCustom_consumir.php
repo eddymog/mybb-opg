@@ -21,7 +21,8 @@ if (!defined("IN_MYBB")) {
 require_once MYBB_ROOT . "inc/plugins/lib/consumir.php";
 
 // Hooks
-$plugins->add_hook("postbit", "BBCustom_consumir_run");
+// Prioridad 20, como BBCustom_dado: después de BBCustom_hide (10), para que un [consumido] dentro de un [hide] también se vea
+$plugins->add_hook("postbit", "BBCustom_consumir_run", 20);
 $plugins->add_hook('datahandler_post_insert_post_end', 'BBCustom_consumir_newpost');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'BBCustom_consumir_newpost');
 // Al editar: corre antes del UPDATE de MyBB, así el mensaje se guarda ya con los reemplazos (sin un UPDATE extra)

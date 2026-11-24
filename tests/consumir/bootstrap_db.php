@@ -69,7 +69,8 @@ function cs_preparar($base)
         "CREATE TABLE `mybb_op_hide` (`hid` INT AUTO_INCREMENT PRIMARY KEY, `tid` INT, `pid` INT, `uid` INT, `hide_counter` INT,
             `show_hide` TINYINT DEFAULT 0, `hide_uids` VARCHAR(500) NOT NULL DEFAULT '', `hide_content` MEDIUMTEXT) CHARSET=utf8mb4",
         "CREATE TABLE `mybb_op_dados` (`did` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, `tid` INT NOT NULL, `pid` INT NOT NULL,
-            `uid` INT NOT NULL, `dado_counter` INT NOT NULL, `dado_content` TEXT CHARACTER SET utf8 NOT NULL) ENGINE=MyISAM DEFAULT CHARSET=latin1",
+            `uid` INT NOT NULL, `dado_counter` INT NOT NULL, `dado_content` TEXT CHARACTER SET utf8mb4 NOT NULL) ENGINE=MyISAM DEFAULT CHARSET=latin1",
+            /* utf8mb4 en la prueba: el HTML del dado lleva emojis que el modo estricto no deja en una columna utf8 */
         "CREATE TABLE `mybb_op_tecnicas_mantenidas` (`id` INT AUTO_INCREMENT PRIMARY KEY, `uid` INT NOT NULL, `tid` INT NOT NULL,
             `tecnica_id` VARCHAR(100) NOT NULL, `pid_inicio` INT NOT NULL, `turnos` INT DEFAULT 1, `activa` TINYINT(1) DEFAULT 1)",
         "CREATE TABLE `mybb_op_tecnicas` (`tid` VARCHAR(100) NOT NULL PRIMARY KEY, `nombre` VARCHAR(255) NOT NULL DEFAULT '')",
