@@ -208,7 +208,13 @@ $alert   = '';
 $success = '';
 
 // ─── Rechazar reset ───────────────────────────────────────────────────────────
-if ($accion === 'rechazar' && $reset_id > 0) {
+// Issue #31: solo por POST con la clave CSRF (antes era un enlace GET).
+$rst_rechazo_valido = $accion === 'rechazar' && $mybb->request_method === 'post'
+    && verify_post_check($mybb->get_input('my_post_key'), true);
+if ($accion === 'rechazar' && $reset_id > 0 && !$rst_rechazo_valido) {
+    $alert = 'No se pudo rechazar: la clave de seguridad no es válida. Recarga la página e inténtalo de nuevo.';
+}
+if ($rst_rechazo_valido && $reset_id > 0) {
     $rq = $db->query("SELECT * FROM mybb_op_fichas_reset WHERE id='$reset_id' AND estado='pendiente' LIMIT 1");
     $reset = $db->fetch_array($rq);
     if ($reset) {
@@ -216,8 +222,13 @@ if ($accion === 'rechazar' && $reset_id > 0) {
         $pet_id     = (int)$reset['peticion_id'];
         $staff_esc  = $db->escape_string($username);
 
-        $db->query("UPDATE mybb_op_fichas_reset SET estado='rechazado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id'");
+        // Issue #31: solo si sigue pendiente; si otra peticion ya lo aplico o rechazo, no se devuelve el ticket.
+        $db->query("UPDATE mybb_op_fichas_reset SET estado='rechazado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id' AND estado='pendiente'");
         $rst_rechazado = (int)$db->affected_rows() > 0;
+        if (!$rst_rechazado) {
+            header("Location: /op/staff/reset_peticiones.php?id=$reset_id");
+            exit;
+        }
         $db->query("UPDATE mybb_op_peticiones SET resuelto=1, mod_uid='$uid', mod_nombre='$staff_esc' WHERE id='$pet_id'");
 
         // Return ticket to user
@@ -271,7 +282,7 @@ if ($accion === 'aplicar' && $reset_id > 0) {
         // Update propuesta from POST before applying
         $propuesta  = reset_collect_propuesta($backup, $belica_valid, $oficio_valid, $camino_valid, $orig_prop, $target_uid);
         $prop_esc   = $db->escape_string(json_encode($propuesta, JSON_UNESCAPED_UNICODE));
-        $db->query("UPDATE mybb_op_fichas_reset SET propuesta_json='$prop_esc' WHERE id='$reset_id'");
+        $db->query("UPDATE mybb_op_fichas_reset SET propuesta_json='$prop_esc' WHERE id='$reset_id' AND estado='pendiente'");
 
         // Load current ficha
         $fq = $db->query("SELECT * FROM mybb_op_fichas WHERE fid='$target_uid' LIMIT 1");
@@ -704,46 +715,53 @@ if ($accion === 'aplicar' && $reset_id > 0) {
                 }
             }
 
-            // Apply ficha changes
-            if (!empty($set_clauses)) {
-                $set_sql = implode(', ', $set_clauses);
-                $db->query("UPDATE mybb_op_fichas SET $set_sql WHERE fid='$target_uid'");
-            }
-
-            // Apply technique swap
-            $apply_tecs_perder = $propuesta['tecs_perder'] ?? [];
-            $apply_tecs_ganar  = $propuesta['tecs_ganar']  ?? [];
-            foreach ((array)$apply_tecs_perder as $tec_del) {
-                $tec_del_e = $db->escape_string($tec_del);
-                $db->query("DELETE FROM mybb_op_tec_aprendidas WHERE uid='$target_uid' AND tid='$tec_del_e'");
-            }
-            foreach ((array)$apply_tecs_ganar as $tec_add) {
-                $tec_add_e = $db->escape_string($tec_add);
-                $db->query("INSERT IGNORE INTO mybb_op_tec_aprendidas (tid, uid) VALUES ('$tec_add_e', '$target_uid')");
-            }
-            if (!empty($apply_tecs_perder)) $log_parts[] = 'tecs_perdidas:'.count($apply_tecs_perder);
-            if (!empty($apply_tecs_ganar))  $log_parts[] = 'tecs_ganadas:'.count($apply_tecs_ganar);
-
-            // Mark peticion resolved and reset applied
+            // Issue #31: marcar el reset como aplicado ANTES de tocar la ficha, solo si sigue pendiente. Si otra peticion
+            // ya lo aplico (o rechazo) entre la lectura y aqui, affected_rows es 0 y no se repite ningun cambio.
             $pet_id    = (int)$reset['peticion_id'];
             $staff_esc = $db->escape_string($username);
-            $db->query("UPDATE mybb_op_peticiones SET resuelto=1, mod_uid='$uid', mod_nombre='$staff_esc' WHERE id='$pet_id'");
-            $db->query("UPDATE mybb_op_fichas_reset SET estado='aplicado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id'");
+            $db->query("UPDATE mybb_op_fichas_reset SET estado='aplicado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id' AND estado='pendiente'");
+            $rst_aplicado = (int)$db->affected_rows() > 0;
+            if (!$rst_aplicado) {
+                $alert = 'Reset no encontrado o ya procesado.';
+            } else {
+                // Apply ficha changes
+                if (!empty($set_clauses)) {
+                    $set_sql = implode(', ', $set_clauses);
+                    $db->query("UPDATE mybb_op_fichas SET $set_sql WHERE fid='$target_uid'");
+                }
 
-            // Aviso al usuario (issue #24): una sola vez y solo si el reset cambio de estado. Si el reset reescribio la
-            // Akuma, el aviso lo menciona (no se envia ademas akuma_asignada ni akuma_retirada).
-            if ((int)$db->affected_rows() > 0 && is_file(MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php')) {
-                require_once MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php';
-                $rst_akuma_antes = (string)($ficha['akuma'] ?? '');
-                opg_reset_avisar($reset_id, $target_uid, 'aplicado', $uid, $rst_akuma_antes,
-                    ($nv_a !== $ov_a || $nv_as !== $ov_as) ? (string)$nv_a : $rst_akuma_antes);
+                // Apply technique swap
+                $apply_tecs_perder = $propuesta['tecs_perder'] ?? [];
+                $apply_tecs_ganar  = $propuesta['tecs_ganar']  ?? [];
+                foreach ((array)$apply_tecs_perder as $tec_del) {
+                    $tec_del_e = $db->escape_string($tec_del);
+                    $db->query("DELETE FROM mybb_op_tec_aprendidas WHERE uid='$target_uid' AND tid='$tec_del_e'");
+                }
+                foreach ((array)$apply_tecs_ganar as $tec_add) {
+                    $tec_add_e = $db->escape_string($tec_add);
+                    $db->query("INSERT IGNORE INTO mybb_op_tec_aprendidas (tid, uid) VALUES ('$tec_add_e', '$target_uid')");
+                }
+                if (!empty($apply_tecs_perder)) $log_parts[] = 'tecs_perdidas:'.count($apply_tecs_perder);
+                if (!empty($apply_tecs_ganar))  $log_parts[] = 'tecs_ganadas:'.count($apply_tecs_ganar);
+
+                // Mark peticion resolved (el reset ya quedo como aplicado arriba)
+                $db->query("UPDATE mybb_op_peticiones SET resuelto=1, mod_uid='$uid', mod_nombre='$staff_esc' WHERE id='$pet_id'");
+
+                // Aviso al usuario (issue #24): una sola vez y solo si el reset cambio de estado. Si el reset reescribio la
+                // Akuma, el aviso lo menciona (no se envia ademas akuma_asignada ni akuma_retirada).
+                if ($rst_aplicado && is_file(MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php')) {
+                    require_once MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php';
+                    $rst_akuma_antes = (string)($ficha['akuma'] ?? '');
+                    opg_reset_avisar($reset_id, $target_uid, 'aplicado', $uid, $rst_akuma_antes,
+                        ($nv_a !== $ov_a || $nv_as !== $ov_as) ? (string)$nv_a : $rst_akuma_antes);
+                }
+
+                $log_str = implode('; ', $log_parts) ?: 'Sin cambios de campo';
+                log_audit($uid, $username, '[Reset Build]', "Reset #$reset_id (ficha #$target_uid) aplicado: $log_str");
+
+                header("Location: /op/staff/reset_peticiones.php?success=aplicado&id=$reset_id");
+                exit;
             }
-
-            $log_str = implode('; ', $log_parts) ?: 'Sin cambios de campo';
-            log_audit($uid, $username, '[Reset Build]', "Reset #$reset_id (ficha #$target_uid) aplicado: $log_str");
-
-            header("Location: /op/staff/reset_peticiones.php?success=aplicado&id=$reset_id");
-            exit;
         }
     }
 }
@@ -1158,7 +1176,8 @@ for (var _oi = 1; _oi <= 2; _oi++) { rstUpdateOficioSlot(_oi); }
 <div class="rst-actions">
     <button type="submit" name="accion" value="guardar" class="rst-btn rst-btn-save">GUARDAR PROPUESTA</button>
     <button type="submit" name="accion" value="aplicar" class="rst-btn rst-btn-apply" onclick="return confirm(\'¿Aplicar este reset a la ficha? Esta acción no se puede deshacer.\')">APLICAR RESET</button>
-    <a href="/op/staff/reset_peticiones.php?id='.$reset_id.'&accion=rechazar" class="rst-btn rst-btn-reject" onclick="return confirm(\'¿Rechazar? El ticket se devolverá al usuario.\')">RECHAZAR Y DEVOLVER TICKET</a>
+    <input type="hidden" name="my_post_key" value="'.htmlspecialchars($mybb->post_code, ENT_QUOTES).'">
+    <button type="submit" name="accion" value="rechazar" formnovalidate class="rst-btn rst-btn-reject" onclick="return confirm(\'¿Rechazar? El ticket se devolverá al usuario.\')">RECHAZAR Y DEVOLVER TICKET</button>
 </div>
 ' : '').'
 
