@@ -47,6 +47,13 @@ $razon = addslashes($_POST["razon"]);
 
 $reload_js = "<script>window.location.href = window.location.pathname;</script>";
 
+// Ficha modificada (issue #22): esta pagina hace muchas escrituras por peticion. Se lee la fila antes de la primera y
+// despues de la ultima, y se envia UN solo aviso al final con todos los campos visibles que cambiaron. Nunca falla.
+$aviso_ficha_antes = null;
+if ($staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid)) && is_file(MYBB_ROOT . 'inc/plugins/lib/ficha_avisos.php')) {
+    require_once MYBB_ROOT . 'inc/plugins/lib/ficha_avisos.php';
+    $aviso_ficha_antes = opg_ficha_leer('mybb_sg_sg_fichas', (int) $ficha_id, opg_ficha_campos_modificar());
+}
 
 if ($especializacion && $estilo && $staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid))) {
     $db->query(" 
@@ -500,6 +507,11 @@ if ($notas && $staff && $razon && $ficha_id && (is_mod($uid) || is_staff($uid)))
 
     eval('$log_var = $log;');
     eval('$reload_script = $reload_js;');
+}
+
+if ($aviso_ficha_antes !== null) {
+    opg_ficha_avisar_cambios((int) $ficha_id, $aviso_ficha_antes,
+        opg_ficha_leer('mybb_sg_sg_fichas', (int) $ficha_id, opg_ficha_campos_modificar()), opg_ficha_campos_modificar(), $uid);
 }
 
 if (is_mod($uid) || is_staff($uid)) { 

@@ -240,6 +240,13 @@ if ($mybb->request_method == 'post') {
 
         $db->query("INSERT INTO `mybb_op_audit_consola_mod` (`staff`, `username`, `razon`, `log`) VALUES "
             . "('{$uid}', '" . $db->escape_string($username) . "', '" . $db->escape_string($razon) . "', '" . $db->escape_string($log) . "')");
+
+        // Ficha modificada: UN aviso por guardado con todos los campos visibles que cambiaron, comparando la ficha leida
+        // antes con la que quedo guardada (issue #22). Sin cambios no avisa; la akuma tiene su propio aviso. Nunca falla.
+        if (is_file(MYBB_ROOT . 'inc/plugins/lib/ficha_avisos.php')) {
+            require_once MYBB_ROOT . 'inc/plugins/lib/ficha_avisos.php';
+            opg_ficha_avisar_atributos((int) $f_var['fid'], $f_var, $u_var ? $u_var['newpoints'] : null, $uid);
+        }
     }
 
     my_setcookie(FICHA_ATRIBUTOS_MSG_COOKIE, base64_encode(json_encode(array(
