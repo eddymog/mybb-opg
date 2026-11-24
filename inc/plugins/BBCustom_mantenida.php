@@ -376,17 +376,16 @@ function BBCustom_mantenida_newpost(&$data)
             ON DUPLICATE KEY UPDATE html_content = '$html_escaped'
         ");
         
-        // Agregar [mantenida_guardado=pid] al final del mensaje
-        $message .= "\n[mantenida_guardado=$pid]";
-        
-        // Actualizar el mensaje en la BD
-        // Convertir secuencias literales de escape a saltos de línea reales
-        $message = str_replace(array('\\r\\n', '\\r', '\\n'), array("\r\n", "\r", "\n"), $message);
-        $message_escaped = $db->escape_string($message);
+        // Agregar [mantenida_guardado=pid] al final del mensaje guardado. Se añade en la propia base de datos (CONCAT)
+        // en vez de reescribir el mensaje entero desde $data->post_insert_data: ese valor llega ya escapado para SQL
+        // (escaparlo otra vez dejaba barras visibles) y no incluye lo que hayan reescrito otros plugins en este mismo
+        // post (BBCustom_dado, BBCustom_consumir); reescribirlo deshacía sus reemplazos (issue #32).
+        $pid_sql = (int)$pid;
+        $sufijo = $db->escape_string("\n[mantenida_guardado={$pid_sql}]");
         $db->query("
-            UPDATE mybb_posts 
-            SET message = '$message_escaped' 
-            WHERE pid = '$pid'
+            UPDATE mybb_posts
+            SET message = CONCAT(message, '$sufijo')
+            WHERE pid = '$pid_sql'
         ");
         
         BBCustom_mantenida_log('HTML guardado y mensaje actualizado', array('pid' => $pid));
