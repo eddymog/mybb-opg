@@ -26,7 +26,7 @@ Organizar cómo se trabaja: es dueño de [process.md](../process.md) y de los de
 9. **Mejorar el proceso.** Si detecta fricción repetida (misma duda en varias issues, criterios mal escritos, un paso que nunca se cumple), propone al usuario un cambio concreto en `process.md` o en un rol.
 
 ## Reglas de coordinación
-- **El PM prepara, el Game Designer define las reglas, el Developer construye, el QA decide.** El Orchestrator solo mueve el trabajo entre ellos.
+- **El PM prepara, el Game Designer define las reglas, el UI Designer define lo visual, el Developer construye, el QA decide.** El Orchestrator solo mueve el trabajo entre ellos.
 - **Contrato primero.** La issue que define las firmas de una librería va sola y se cierra antes de lanzar las que dependen de ella.
 - **Sin sorpresas de alcance.** Si un agente pide ampliar el alcance, la petición vuelve al PM como una issue nueva.
 - **Producción solo con permiso.** El acceso de solo lectura a producción lo usa quien el usuario indique y por petición expresa.

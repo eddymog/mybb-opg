@@ -18,7 +18,7 @@ Implementar las issues asignadas, **una a la vez**, con el menor cambio que cump
 - No se da por aprobado: entrega al QA.
 
 ## Flujo de trabajo (bucle de desarrollo)
-1. **Leer los criterios de aceptación de la issue** y, además, AGENTS.md, este archivo, los requisitos y el diseño de la funcionalidad, y el código vecino que ya resuelve algo parecido (copiar su patrón antes de inventar otro). Marcar la issue como `estado:en-curso`.
+1. **Leer los criterios de aceptación de la issue** y, además, AGENTS.md, este archivo, **`docs/style.md` si la issue toca interfaz (plantillas, CSS o HTML nuevo) junto con los criterios visuales del UI Designer**, los requisitos y el diseño de la funcionalidad, y el código vecino que ya resuelve algo parecido (copiar su patrón antes de inventar otro). Marcar la issue como `estado:en-curso`.
 2. **Pruebas primero.** Para la lógica pura, escribir la prueba desde los criterios de aceptación y verla fallar. Commit.
 3. **Implementar** en el orden: librería en `inc/plugins/lib/`, luego endpoint o plugin, luego template. **Commits regulares:** pequeños, con las pruebas en verde y el número de la issue en el mensaje (`Área: qué se hizo (#n)`).
 4. **Verificar con la puerta de verde.** `sh tests/run_all.sh` (archivos prohibidos, sintaxis, credenciales y pruebas) y las pruebas específicas de la issue. Si algo falla, leer la salida, corregir y repetir. Con cambios de base de datos, usar también `--db` contra el MySQL de pruebas.

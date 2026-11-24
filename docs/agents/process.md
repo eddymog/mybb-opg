@@ -40,12 +40,14 @@ El usuario decide en los puntos marcados como **decisión del usuario**. El rest
 | **Orchestrator** | [roles/orchestrator.md](roles/orchestrator.md) | Organiza este proceso y a los demás roles: elige la siguiente issue, asigna roles, hace cumplir las puertas y lleva el estado |
 | **Program Manager** | [roles/program-manager.md](roles/program-manager.md) | Escribe requisitos, diseña el plan y crea las issues con sus criterios de aceptación |
 | **Game Designer** | [roles/game-designer.md](roles/game-designer.md) | Convierte las ideas de reglas en reglas objetivas y equilibradas, con valores y ejemplos, y vigila que la guía coincida con el código |
+| **UI Designer** | [roles/ui-designer.md](roles/ui-designer.md) | En issues que tocan interfaz, define los criterios visuales y revisa el resultado contra `docs/style.md` |
 | **Software Developer** | [roles/software-developer.md](roles/software-developer.md) | Implementa una issue a la vez, con pruebas y commits regulares |
 | **QA Tester** | [roles/qa-tester.md](roles/qa-tester.md) | Verifica de forma independiente contra los criterios de aceptación y decide si la issue se aprueba |
 
 Cómo se reparten el trabajo:
 - **El PM prepara, el Game Designer define las reglas, el Developer construye, el QA decide.** El Orchestrator solo mueve el trabajo entre ellos y vigila que se cumpla el proceso.
 - El Game Designer interviene solo en funcionalidades que incluyen reglas de juego (puntajes, costes, recompensas, equilibrio). Las tareas puramente técnicas no pasan por él.
+- El UI Designer interviene solo en issues que tocan interfaz visible (plantillas, hojas de estilo, páginas con HTML nuevo). Antes del desarrollo añade criterios visuales a la issue; después, y antes del QA, revisa el resultado contra `docs/style.md`. No ve la página renderizada: lo que solo se comprueba en un navegador lo decide el usuario con una captura. El PM marca esas issues con "Interfaz: sí".
 - El Orchestrator es el dueño de este archivo y de los roles: los mantiene coherentes y propone cambios al usuario cuando detecta fricción. Nadie más los modifica sin su visto bueno y el del usuario.
 - Un mismo agente puede ejercer varios roles en tareas distintas, pero **nunca el Developer y el QA de la misma issue**.
 
@@ -79,6 +81,7 @@ Cada cosa que se va a implementar es una **issue de GitHub** en el repositorio d
 ```
 Título: [Área] Verbo + objeto   (por ejemplo: [Notificaciones] Crear la librería de envío)
 Carril: trivial | normal | grande
+Interfaz: sí | no   (sí si toca plantillas, CSS o HTML visible: entra el UI Designer, ver roles/ui-designer.md)
 
 ## Contexto
 Para qué sirve y enlace o nombre del documento de requisitos y diseño.
@@ -247,6 +250,7 @@ El proceso y los roles no dependen de la herramienta. Lo que cambia es cómo se 
 | Orchestrator | La sesión principal (o un script que lance las demás) | No escribe código |
 | PM, planificación | La sesión principal, en modo de solo lectura para planificar | Devuelve el plan; las issues las crea quien coordina |
 | Game Designer | La sesión principal o una sesión aparte | Trabaja con documentos y datos que le pasa el usuario; sin acceso a producción |
+| UI Designer | Una sesión de solo lectura, antes y después del Developer | Lee `docs/style.md` y el código; no escribe lógica |
 | Mapa de patrones del código | Una sesión de búsqueda rápida y de solo lectura | Localiza cómo se hace algo hoy |
 | Developer | Una sesión por issue, en su propio worktree | Archivos propios |
 | QA | Una sesión distinta, con contexto limpio y de solo lectura | Nunca la misma que implementó |
@@ -255,6 +259,7 @@ El proceso y los roles no dependen de la herramienta. Lo que cambia es cómo se 
 - Orchestrator: la sesión principal, o un agente propio con permisos para lanzar a otros.
 - PM, planificación: el agente `Plan` (solo lectura).
 - Game Designer: la sesión principal o `general-purpose`.
+- UI Designer: `general-purpose` con instrucciones de solo lectura y el rol `docs/agents/roles/ui-designer.md`.
 - Mapa de patrones: `Explore`.
 - Developer: `general-purpose` con `isolation: "worktree"`.
 - QA: `general-purpose` con instrucciones de solo lectura y contexto limpio, o un agente propio en `.claude/agents/` con permisos limitados.

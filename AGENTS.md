@@ -37,6 +37,7 @@ Read these only when the task needs them. Searching them (for example by table o
 | Where a feature lives, recipes for common tasks, the full list of gotchas | `docs/agents/context.md` (sections "Feature Systems Added in 2026", "Common Tasks", "All Known Gotchas") |
 | Tables, columns, indexes, relationships | `docs/agents/DATABASE.md` (very long: search by table) |
 | Workflow, roles, issue template, lanes | `docs/agents/process.md` and `docs/agents/roles/` |
+| Visual design: any page, template or CSS (typography, palette, tokens, components, checklist) | `docs/style.md` (read it before touching UI; the UI Designer role owns it) |
 
 ## Files/Directories to NEVER Modify
 
@@ -70,7 +71,7 @@ The full list is in `docs/agents/context.md`. These are the ones that cause the 
 
 Work on this project follows a small team model, whether it is done by one agent or several.
 
-- Roles live in `docs/agents/roles/`: `orchestrator.md`, `program-manager.md`, `game-designer.md`, `software-developer.md` and `qa-tester.md`. The Orchestrator organizes `process.md` and the other roles. The Game Designer owns game rules and player guides and only joins features that include game rules.
+- Roles live in `docs/agents/roles/`: `orchestrator.md`, `program-manager.md`, `game-designer.md`, `ui-designer.md`, `software-developer.md` and `qa-tester.md`. The Orchestrator organizes `process.md` and the other roles. The Game Designer owns game rules and player guides and only joins features that include game rules.
 - The end-to-end workflow (requirements, design, GitHub issues, development loop, QA gate, release) is in `docs/agents/process.md`.
 - This file is tool-agnostic. Claude Code reads it through the root `CLAUDE.md`, which imports it; Codex reads `AGENTS.md` directly and does not follow imports, so keep this file self-contained and under about 30 KB. Tool-specific notes go in `CLAUDE.md` or in section 9 of `docs/agents/process.md`.
 - Every agent reads this file first, then its own role file, then `docs/agents/context.md` and `docs/agents/DATABASE.md` when the task touches architecture or data, then the documents of the feature it works on.
