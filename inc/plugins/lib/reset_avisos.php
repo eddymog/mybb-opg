@@ -83,7 +83,7 @@ function opg_reset_avisar($reset_id, $fid, $resultado, $actor_uid, $akuma_antes 
             require_once $lib;
         }
         return opg_notificar($aviso['destinatario'], $aviso['tipo'], $aviso['datos'],
-            array('actor' => (int) $actor_uid, 'clave' => $aviso['clave']));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => $aviso['clave']));
     } catch (Throwable $e) {
         error_log('opg_reset_avisar: ' . $e->getMessage());
         return false;

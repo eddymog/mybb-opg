@@ -53,10 +53,10 @@ function nco_inserciones($desde)
 // ── 1. Reparto masivo: una insercion, un aviso por destinatario ─────────────────────────────────────────────────────
 $uids = array(5, 6, 7, 10);
 $desde = count($db->sentencias);
-nt_prueba('el reparto crea 3 avisos (el staff 10 queda fuera)', opg_cof_avisar('cofres_repartidos', $uids, 31, 'CFF003', 2, 10), 3);
+nt_prueba('el reparto crea 4 avisos (el staff 10 tambien recibe el suyo, para su historial)', opg_cof_avisar('cofres_repartidos', $uids, 31, 'CFF003', 2, 10), 4);
 nt_prueba('una sola insercion de avisos para todo el lote', nco_inserciones($desde), 1);
 $avisos = nco_avisos('cofres:31:repartidos');
-nt_prueba('destinatarios del reparto', array_map('intval', array_column($avisos, 'uid')), array(5, 6, 7));
+nt_prueba('destinatarios del reparto', array_map('intval', array_column($avisos, 'uid')), array(5, 6, 7, 10));
 nt_prueba('tipo, categoria, origen, importancia y actor', array($avisos[0]['tipo'], $avisos[0]['categoria'], $avisos[0]['origen'],
     $avisos[0]['importancia'], (int) $avisos[0]['actor_uid']), array('cofres_repartidos', 'recompensas', 'gestion', 'normal', 10));
 nt_prueba('datos: lote, cantidad y nombre visible, sin staff', json_decode($avisos[0]['datos_json'], true),
@@ -64,7 +64,7 @@ nt_prueba('datos: lote, cantidad y nombre visible, sin staff', json_decode($avis
 
 // ── 2. Reintentar no duplica ─────────────────────────────────────────────────────────────────────────────────────────
 nt_prueba('repetir el aviso del mismo lote no crea filas', opg_cof_avisar('cofres_repartidos', $uids, 31, 'CFF003', 2, 10), 0);
-nt_prueba('siguen 3 avisos del lote', count(nco_avisos('cofres:31:repartidos')), 3);
+nt_prueba('siguen 4 avisos del lote', count(nco_avisos('cofres:31:repartidos')), 4);
 
 // ── 3. Anulacion: otra clave, solo a quien se le retiro algo ────────────────────────────────────────────────────────
 nt_prueba('la anulacion avisa a la lista recibida', opg_cof_avisar('cofres_revertidos', array(5, 7), 31, 'CFF003', 2, 10), 2);

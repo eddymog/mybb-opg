@@ -70,10 +70,10 @@ nt_prueba('aprobar: reintento no toca el grupo', (int) nt_valor('SELECT usergrou
 nt_prueba('aprobar: reintento no duplica', array(count(fc_avisos(10)), fc_contador(10)), array(1, 1));
 nt_prueba('aprobar: el staff no se avisa a si mismo', fc_avisos(STAFF), array());
 
-// Aprobar su propia ficha (actor = dueño): no hay aviso
+// Aprobar su propia ficha (actor = dueño): el aviso llega igual, para su historial
 fc_ficha(11, 'Propia', 1700000000);
 nt_prueba('aprobar propia: cambia la ficha', opg_fichas_cola_aprobar(11, 8, 11, 'Yo'), true);
-nt_prueba('aprobar propia: sin aviso', fc_avisos(11), array());
+nt_prueba('aprobar propia: el aviso llega al propio actor', fc_avisos(11), array('ficha_aprobada|ficha:11:aprobada'));
 
 // Ficha inexistente
 nt_prueba('aprobar inexistente: false', opg_fichas_cola_aprobar(99, 8, STAFF, 'Staffer'), false);

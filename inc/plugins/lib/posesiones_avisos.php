@@ -184,7 +184,7 @@ function opg_pos_avisar($clase, $uid_dueno, $accion, $ids, $huellas, $actor_uid,
             return 0;
         }
         $momento = $momento === null ? time() : (int) $momento;
-        return opg_notificar((int) $uid_dueno, $tipo, $datos, array('actor' => (int) $actor_uid,
+        return opg_notificar((int) $uid_dueno, $tipo, $datos, array('actor' => (int) $actor_uid, 'incluir_actor' => true,
             'clave' => opg_pos_clave_aviso($tipo, $accion, $huellas, $momento)));
     } catch (Throwable $e) {
         return false;
@@ -223,7 +223,7 @@ function opg_pos_avisar_tecnicas_modificadas($tids, $actor_uid, $momento = null)
         $total = 0;
         $fallo = false;
         foreach (opg_pos_grupos_masivo($por_uid, 'modificada') as $grupo) {
-            $r = opg_notificar($grupo['uids'], 'tecnica_cambio', $grupo['datos'], array('actor' => (int) $actor_uid, 'clave' => $clave_evento));
+            $r = opg_notificar($grupo['uids'], 'tecnica_cambio', $grupo['datos'], array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => $clave_evento));
             if ($r === false) {
                 $fallo = true;
             } else {

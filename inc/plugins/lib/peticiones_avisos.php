@@ -76,7 +76,7 @@ function opg_pet_avisar_resuelta($fila, $actor_uid)
     try {
         $tipo = opg_pet_tipo_aviso(isset($fila['categoria']) ? $fila['categoria'] : '');
         return opg_notificar((int) $fila['uid'], $tipo, opg_pet_datos_aviso($fila),
-            array('actor' => (int) $actor_uid, 'clave' => opg_pet_clave_aviso($tipo, $fila['id'])));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => opg_pet_clave_aviso($tipo, $fila['id'])));
     } catch (Throwable $e) {
         return false;
     }

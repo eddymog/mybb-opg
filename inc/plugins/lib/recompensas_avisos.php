@@ -195,6 +195,7 @@ function opg_rec_avisar($destinatarios, $tipo, $datos, $clave, $actor)
         }
         return opg_notificar($destinatarios, $tipo, $datos, array(
             'actor' => (int) $actor,
+            'incluir_actor' => true,
             'clave' => $clave,
             'url'   => 'op/personaje.php',
         ));

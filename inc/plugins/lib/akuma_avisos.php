@@ -138,7 +138,7 @@ function opg_akuma_avisar_cambio($fid, $antes, $despues, $actor_uid, $hora = nul
             require_once $lib;
         }
         return opg_notificar($aviso['destinatario'], $aviso['tipo'], $aviso['datos'],
-            array('actor' => (int) $actor_uid, 'clave' => $aviso['clave']));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => $aviso['clave']));
     } catch (Throwable $e) {
         error_log('opg_akuma_avisar_cambio: ' . $e->getMessage());
         return false;

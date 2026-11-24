@@ -88,23 +88,24 @@ nt_sql("INSERT INTO mybb_op_fichas VALUES
     (13,'Koby','Marina','ReclutaM',0),(5,'Garp','Marina','Capitan',0)");
 $lunes = (new DateTimeImmutable('2026-11-23 06:00:00', new DateTimeZone('Europe/Madrid')))->getTimestamp();
 
-// Ejecutado a mano por el staff con uid 5, que tambien cobra: no recibe su propio aviso.
+// Ejecutado a mano por el staff con uid 5, que tambien cobra: recibe su propio aviso (queda en su historial).
 $r1 = opg_sf_repartir(5, 'Garp', 'manual', $lunes);
 nt_prueba('faccion: reparto hecho', array($r1['codigo'], $r1['pagados']), array('repartido', 4));
-nt_prueba('faccion: un aviso por personaje que cobro, sin el actor', rd_avisos('salario_recibido'), array(
+nt_prueba('faccion: un aviso por personaje que cobro, tambien el del actor', rd_avisos('salario_recibido'), array(
+    array(5, 'salario_faccion:2026-11-23', array('monto' => 1250000, 'moneda' => 'Berries', 'concepto' => 'rango de facción Capitan')),
     array(10, 'salario_faccion:2026-11-23', array('monto' => 10000, 'moneda' => 'Berries', 'concepto' => 'rango de facción ReclutaM')),
     array(11, 'salario_faccion:2026-11-23', array('monto' => 1250000, 'moneda' => 'Berries', 'concepto' => 'rango de facción Capitan')),
     array(13, 'salario_faccion:2026-11-23', array('monto' => 10000, 'moneda' => 'Berries', 'concepto' => 'rango de facción ReclutaM')),
 ));
-nt_prueba('faccion: texto del aviso', opg_notif_texto('salario_recibido', rd_avisos('salario_recibido')[1][2]),
+nt_prueba('faccion: texto del aviso', opg_notif_texto('salario_recibido', rd_avisos('salario_recibido')[2][2]),
     'Recibiste 1.250.000 Berries de salario (rango de facción Capitan).');
 nt_prueba('faccion: contador del destinatario', (int) nt_valor('SELECT sin_leer FROM mybb_op_notificaciones_contador WHERE uid = 11'), 1);
 
 $r2 = opg_sf_repartir(0, 'Sistema automático', 'automatico', $lunes);
-nt_prueba('faccion: repetir la semana no paga ni avisa', array($r2['codigo'], rd_contar('salario_recibido')), array('ya_repartido', 3));
+nt_prueba('faccion: repetir la semana no paga ni avisa', array($r2['codigo'], rd_contar('salario_recibido')), array('ya_repartido', 4));
 // Reintentar el aviso de la misma semana (por ejemplo tras un fallo) no duplica.
 opg_sf_avisar(array(array('uid' => 10, 'monto' => 10000, 'concepto' => 'rango de facción ReclutaM')), '2026-11-23', 0);
-nt_prueba('faccion: reintento del aviso sin duplicar', rd_contar('salario_recibido'), 3);
+nt_prueba('faccion: reintento del aviso sin duplicar', rd_contar('salario_recibido'), 4);
 
 // Semana siguiente, automatica (actor 0): avisa de nuevo, tambien a quien ejecuto a mano la anterior.
 $lunes2 = (new DateTimeImmutable('2026-11-30 06:00:00', new DateTimeZone('Europe/Madrid')))->getTimestamp();
@@ -133,7 +134,7 @@ nt_prueba('migracion repetida', $error, null);
 opg_notif_tablas_listas(true);
 
 // ── Salario de staff ────────────────────────────────────────────────────────────────────────────────────────────────
-// Lote 1 pagado por el admin 3 (que tambien cobra: no recibe su propio aviso). Primer pago del lote: id 41.
+// Lote 1 pagado por el admin 3 (que tambien cobra: recibe su propio aviso). Primer pago del lote: id 41.
 $lote1 = array(
     array('uid' => 3, 'monto' => 500, 'concepto' => 'salario de staff, Administradores'),
     array('uid' => 7, 'monto' => 400, 'concepto' => 'salario de staff, Staff / Mods'),
@@ -141,8 +142,9 @@ $lote1 = array(
     array('uid' => 9, 'monto' => 200, 'concepto' => 'salario de staff, Narradores'),
 );
 $n = opg_rec_avisar_salarios($lote1, 'Kuros', opg_rec_clave_salario_staff(41), 3);
-nt_prueba('staff: un aviso por destinatario, sin el pagador', $n, 3);
+nt_prueba('staff: un aviso por destinatario, tambien el pagador', $n, 4);
 nt_prueba('staff: importes y concepto', rd_avisos('salario_recibido'), array(
+    array(3, 'salario_staff:41', array('monto' => 500, 'moneda' => 'Kuros', 'concepto' => 'salario de staff, Administradores')),
     array(7, 'salario_staff:41', array('monto' => 400, 'moneda' => 'Kuros', 'concepto' => 'salario de staff, Staff / Mods')),
     array(8, 'salario_staff:41', array('monto' => 400, 'moneda' => 'Kuros', 'concepto' => 'salario de staff, Staff / Mods')),
     array(9, 'salario_staff:41', array('monto' => 200, 'moneda' => 'Kuros', 'concepto' => 'salario de staff, Narradores')),

@@ -72,7 +72,7 @@ function opg_cof_avisar($tipo, $uids, $reparto_id, $cofre_id, $cantidad, $actor_
             return false;
         }
         return opg_notificar($uids, $tipo, opg_cof_datos_aviso($reparto_id, $cantidad, opg_cof_nombre_cofre($cofre_id)),
-            array('actor' => (int) $actor_uid, 'clave' => opg_cof_clave_aviso($tipo, $reparto_id)));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => opg_cof_clave_aviso($tipo, $reparto_id)));
     } catch (Throwable $e) {
         return false;
     }

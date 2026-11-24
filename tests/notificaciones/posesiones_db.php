@@ -11,7 +11,7 @@
  * Comprueba:
  *  - Un lote de tecnicas otorgadas crea UN aviso con el resumen; una sola, con su nombre (o el id si no esta en el catalogo).
  *  - Retirar algo que no tenia no avisa; repetir el mismo hecho con la misma clave no duplica.
- *  - El staff que cambia su propia ficha no se avisa.
+ *  - El staff que cambia su propia ficha tambien recibe su aviso (queda en su historial).
  *  - Virtudes y objetos (con la cantidad del inventario) avisan con su tipo; los datos no llevan la razon del staff.
  *  - Accion masiva: cada usuario con alguna tecnica modificada recibe un solo aviso con su propio resumen.
  *  - Sin las tablas de notificaciones, o con el aviso fallando, el cambio se hace igual y las funciones no lanzan.
@@ -88,9 +88,9 @@ nt_prueba('repetir el mismo hecho con la misma clave no duplica',
     array(opg_pos_avisar('tecnica', 5, 'retirada', $ids, $huellas, N21_STAFF, '', 1001), count(n21_avisos(5))), array(0, 2));
 nt_prueba('el contador del usuario', (int) nt_valor('SELECT sin_leer FROM `mybb_op_notificaciones_contador` WHERE uid = 5'), 2);
 
-// ── 3. El staff que cambia su propia ficha no se avisa ───────────────────────────────────────────────────────────────
+// ── 3. El staff que cambia su propia ficha tambien recibe el aviso (queda en su historial) ───────────────────────────────────────────────────────────────
 list($r) = n21_tecnicas(N21_STAFF, 'Añadir', array('T3'), 1003);
-nt_prueba('sin aviso para el propio actor', array($r, count(n21_avisos(N21_STAFF))), array(0, 0));
+nt_prueba('el propio actor recibe su aviso', array($r, count(n21_avisos(N21_STAFF))), array(1, 1));
 
 // ── 4. Por aprender, virtudes y objetos ──────────────────────────────────────────────────────────────────────────────
 nt_prueba('tecnica por aprender', opg_pos_avisar('tecnica', 6, 'otorgada', array('T4'), array('i1'), N21_STAFF, 'por_aprender', 1004), 1);
@@ -126,7 +126,7 @@ nt_prueba('el inventario quedo como antes', nt_valor("SELECT cantidad FROM `mybb
 nt_sql("INSERT INTO `mybb_op_tec_aprendidas` (`tid`, `uid`) VALUES ('T1', 20), ('T2', 20), ('T1', 21), ('T1', 22), ('T1', 22), ('T3', 23), ('T1', " . N21_STAFF . ")");
 $desde = count($db->sentencias);
 $r = opg_pos_avisar_tecnicas_modificadas(array('T1', 'T2', 'T1'), N21_STAFF, 2000);
-nt_prueba('avisos nuevos de la accion masiva', $r, 4);
+nt_prueba('avisos nuevos de la accion masiva', $r, 5);
 $por_uid = array();
 foreach (array(5, 20, 21, 22, 23, N21_STAFF) as $u) {
     $por_uid[$u] = array_map(function ($f) { return $f['datos']; }, n21_avisos($u, 'tecnica_cambio'));
@@ -136,7 +136,7 @@ nt_prueba('cada usuario recibe un aviso con su propio resumen', array($por_uid[2
     array(array('accion' => 'modificada', 'cantidad' => 1, 'nombre' => 'Puño de Hierro')),
     array(array('accion' => 'modificada', 'cantidad' => 1, 'nombre' => 'Puño de Hierro')),
     array(),
-    0,
+    2,
 ));
 nt_prueba('el usuario 5 tiene T2 y recibe su aviso de modificada', end($por_uid[5]), array('accion' => 'modificada', 'cantidad' => 1, 'nombre' => 'Corte Rápido'));
 $inserciones = 0;

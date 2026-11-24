@@ -91,7 +91,7 @@ function opg_fichas_cola_avisar($aviso, $actor_uid)
             require_once $lib;
         }
         return opg_notificar($aviso['destinatario'], $aviso['tipo'], $aviso['datos'],
-            array('actor' => (int) $actor_uid, 'clave' => $aviso['clave']));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => $aviso['clave']));
     } catch (Throwable $e) {
         error_log('opg_fichas_cola_avisar(' . $aviso['tipo'] . '): ' . $e->getMessage());
         return false;

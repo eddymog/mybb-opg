@@ -88,10 +88,10 @@ nt_prueba('resolver un bug', opg_pet_resolver($b, 50, 'Staffer'), true);
 $avisos = np_avisos("bug:$b:resuelto");
 nt_prueba('el autor recibe bug_resuelto', array(count($avisos), (int) $avisos[0]['uid'], $avisos[0]['tipo']), array(1, 6, 'bug_resuelto'));
 
-// ── 4. El staff no se avisa a si mismo ───────────────────────────────────────────────────────────────────────────────
+// ── 4. El staff que resuelve su propia peticion tambien recibe el aviso (queda en su historial) ───────────────────────────────────────────────────────────────────────────────
 $propia = np_nueva(50, 'otros', 'Mi propia peticion');
 nt_prueba('el staff resuelve su propia peticion', opg_pet_resolver($propia, 50, 'Staffer'), true);
-nt_prueba('sin aviso para el propio actor', array(np_avisos("peticion:$propia:resuelta"), np_contador(50)), array(array(), 0));
+nt_prueba('el propio actor recibe su aviso', array(count(np_avisos("peticion:$propia:resuelta")), np_contador(50)), array(1, 1));
 
 // ── 5. Borrar no avisa ───────────────────────────────────────────────────────────────────────────────────────────────
 $borr = np_nueva(7, 'programacion', 'Duplicado');

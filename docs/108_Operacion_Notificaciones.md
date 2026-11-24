@@ -99,7 +99,7 @@ No requiere SQL. Solo código y pruebas.
 
    ```php
    opg_notificar($uids, 'mi_tipo', array('peticion_id' => $id, 'actor' => $nombre_actor), array(
-       'actor' => $uid_actor,                    // no se avisa al actor, salvo 'incluir_actor' => true
+       'actor' => $uid_actor,                    // no se avisa al actor, salvo 'incluir_actor' => true (ver nota)
        'clave' => 'modulo:' . $id . ':evento',   // obligatoria en tipos no agrupables
    ));
    ```
@@ -130,7 +130,9 @@ Autorreparación: `opg_notif_contar()` recuenta y reescribe el contador de un us
 
 Para repararlo ya, sin código, desde phpMyAdmin (fuerza el recuento la próxima vez que el usuario cargue una página):
 
-```sql
+```
+
+> **Nota (decision del usuario):** los avisos de acciones del staff sobre una ficha (ficha modificada, aprobada o rechazada, Akuma, tecnicas, virtudes y objetos, peticiones y bugs, recompensas y salarios, cofres y resets) se envian con `'incluir_actor' => true`. Si el staff cambia algo en su propia ficha, tambien recibe el aviso, para que quede en su historial. Los avisos de la Bitacora y del Tablon no lo hacen: quien publica o actua no se avisa a si mismo.sql
 UPDATE mybb_op_notificaciones_contador SET actualizado = 0 WHERE uid = 123;
 -- o, para todos:
 UPDATE mybb_op_notificaciones_contador SET actualizado = 0;

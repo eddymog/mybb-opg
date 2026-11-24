@@ -245,7 +245,7 @@ function opg_ficha_avisar_cambios($fid, $antes, $despues, $campos, $actor_uid, $
             require_once $lib;
         }
         return opg_notificar($aviso['destinatario'], $aviso['tipo'], $aviso['datos'],
-            array('actor' => (int) $actor_uid, 'clave' => $aviso['clave']));
+            array('actor' => (int) $actor_uid, 'incluir_actor' => true, 'clave' => $aviso['clave']));
     } catch (Throwable $e) {
         error_log('opg_ficha_avisar_cambios: ' . $e->getMessage());
         return false;
