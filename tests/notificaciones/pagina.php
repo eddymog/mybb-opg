@@ -169,7 +169,7 @@ np('filtros: etiquetas De gestion y De usuarios', tiene($h, '>De gestión<') && 
 // ── Plantilla y hoja de estilos ──────────────────────────────────────────────
 $tpl = file_get_contents(MYBB_ROOT . 'templates/One_Piece_Gaiden_Templates/op_notificaciones.html');
 np('plantilla: contenedor, avisos y post key', array(tiene($tpl, 'id="nt-contenido"'), tiene($tpl, 'id="nt-avisos"'), tiene($tpl, '{"X-Post-Key":"{$post_key}"}'), tiene($tpl, '{$contenido_html}')), array(true, true, true, true));
-np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=3'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
+np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=4'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
 $css = file_get_contents(MYBB_ROOT . 'jscripts/notificaciones.css');
 np('estilos: botones Visto y Marcar todas', array(tiene($css, '.nt-visto'), tiene($css, '.nt-todas')), array(true, true));
 np('estilos: sin modo oscuro, movil y textos largos', array(tiene($css, 'prefers-color-scheme: dark') === false, tiene($css, '@media (max-width: 700px)'), tiene($css, 'overflow-wrap: anywhere')), array(true, true, true));

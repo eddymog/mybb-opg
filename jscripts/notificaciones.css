@@ -60,6 +60,8 @@
 .nt-fila { display: flex; align-items: flex-start; gap: 10px; min-width: 0; padding: 9px 12px; border-top: 1px solid var(--nt-separador); background: var(--nt-fondo-fila); color: var(--nt-texto); }
 .nt-fila--sin-leer { box-shadow: inset 4px 0 0 var(--nt-acento); }
 .nt-fila--importante.nt-fila--sin-leer { box-shadow: inset 4px 0 0 var(--nt-acento-importante); }
+/* En Importantes y Pendientes todas las filas son sin leer y el bloque ya lleva su franja: la de la fila sobra (se veria doble) */
+.nt-bloque--importantes .nt-fila--sin-leer, .nt-bloque--pendientes .nt-fila--sin-leer { box-shadow: none; }
 .nt-fila--leida { background: var(--nt-fondo-leida); }
 .nt-fila--leida .nt-fila-texto, .nt-fila--leida .nt-fila-icono { opacity: .8; }
 .nt-fila-icono { display: inline-grid; flex: 0 0 30px; width: 30px; height: 30px; place-items: center; border: 2px solid var(--nt-borde); border-radius: 50%; background: var(--nt-fondo); color: var(--nt-enlace); font-size: 13px; }
