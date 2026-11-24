@@ -1572,6 +1572,93 @@ function opg_av_notificar_antigua($clave_evento, $peticion_id, $uid, $actor_uid,
         . opg_av_sql((string) $tipo) . ', ' . opg_av_sql($json) . ', ' . opg_av_ahora() . ', 0)');
 }
 
+// ── Avisos de finalizar y editar (issue #26) ────────────────────────────────
+//
+// Van DESPUÉS de confirmar la transacción de la acción, dentro de try/catch: un fallo del aviso (o un interbloqueo)
+// no puede revertir la acción ya guardada, y cada acción hace una sola llamada a opg_notificar.
+
+/** Clave del aviso aventura_finalizada: una sola vez por aventura, llegue por el cambio de estado o por el pago. */
+function opg_av_clave_finalizada($peticion_id)
+{
+    return 'aventura:' . (int) $peticion_id . ':finalizada';
+}
+
+/** Etiquetas (texto plano) de los campos de opg_av_diferencias que ve el aviso aventura_editada; el estado no se nombra. */
+const OPG_AV_CAMPOS_AVISO_EDITADA = array(
+    'participantes' => 'los participantes', 'narrador_uid' => 'el narrador', 'idea_narrador' => 'la idea para el narrador',
+    'isla_fid' => 'la isla', 'dia' => 'el día', 'ano' => 'el año', 'estacion' => 'la estación', 'tier' => 'el tier',
+    'comentario_publico' => 'el comentario', 'inframundo' => 'el inframundo',
+);
+
+/**
+ * Aviso aventura_editada (pura). $antes y $despues son la solicitud normalizada antes y después de editar, y $cambios los
+ * campos que cambiaron (las claves del primer arreglo de opg_av_diferencias). Devuelve null si antes de editar no había
+ * narrador asignado o si la edición no cambió nada. Si no, array('clave', 'uids', 'datos'):
+ *  - clave: aventura:ID:editada:EDITADO_AT (cada edición guardada es un hecho distinto).
+ *  - uids: el narrador y los jugadores de antes y de después (quien sale de la aventura por la edición también se entera);
+ *    opg_av_notificar_varios quita al actor y los repetidos.
+ *  - datos: 'cambios', la lista en texto plano de lo que cambió (sin valores ni datos internos).
+ */
+function opg_av_aviso_editada($antes, $despues, $cambios)
+{
+    if ((int) $antes['narrador_uid'] <= 0 || !$cambios) {
+        return null;
+    }
+    $uids = array();
+    foreach (array($antes, $despues) as $av) {
+        $uids[] = (int) $av['narrador_uid'];
+        foreach ($av['jugadores'] as $j) {
+            if ($j['uid'] !== null) {
+                $uids[] = (int) $j['uid'];
+            }
+        }
+    }
+    $nombres = array();
+    foreach (OPG_AV_CAMPOS_AVISO_EDITADA as $campo => $etiqueta) {
+        if (in_array($campo, $cambios, true)) {
+            $nombres[] = $etiqueta;
+        }
+    }
+    $datos = array();
+    if ($nombres) {
+        $ultimo = array_pop($nombres);
+        $datos['cambios'] = $nombres ? implode(', ', $nombres) . ' y ' . $ultimo : $ultimo;
+    }
+    return array(
+        'clave' => 'aventura:' . (int) $despues['id'] . ':editada:' . (int) $despues['editado_at'],
+        'uids' => array_values(array_unique(array_filter($uids))),
+        'datos' => $datos,
+    );
+}
+
+/** Envía aventura_finalizada a las partes de la aventura (sin el actor). Nunca lanza: devuelve false si falló. */
+function opg_av_avisar_finalizada($peticion_id, $actor_uid)
+{
+    try {
+        $fila = opg_av_fila($peticion_id);
+        if (!$fila || (int) $fila['estado'] !== 3) {
+            return false;
+        }
+        return opg_av_notificar_partes(opg_av_normalizar_fila($fila), (int) $actor_uid, 'aventura_finalizada', opg_av_clave_finalizada($peticion_id));
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/** Envía aventura_editada si corresponde (ver opg_av_aviso_editada). Nunca lanza: devuelve false si falló. */
+function opg_av_avisar_editada($antes, $despues, $cambios, $actor_uid)
+{
+    try {
+        $aviso = opg_av_aviso_editada($antes, $despues, $cambios);
+        if ($aviso === null) {
+            return true;
+        }
+        return opg_av_notificar_varios($aviso['clave'], $despues['id'], $aviso['uids'], (int) $actor_uid, 'aventura_editada', $aviso['datos']);
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 function opg_av_notificaciones_contar($uid)
 {
     if (opg_av_notif_global()) {
@@ -2398,6 +2485,7 @@ function opg_av_editar($id, $entrada, $uid)
     list($ant, $des) = opg_av_diferencias($antes, $despues);
     opg_av_auditar($id, $uid, 'editar', $ant, $des);
     opg_av_confirmar();
+    opg_av_avisar_editada($antes, $despues, array_keys($ant), $uid);
     return array('ok' => true, 'id' => (int) $id);
 }
 
@@ -2618,6 +2706,9 @@ function opg_av_cambiar_estado($id, $a, $uid, $motivo = '')
             'aventura:' . (int) $id . ':estado:' . $a . ':' . opg_av_ahora(), $a === 2 ? array('motivo' => $motivo) : array());
     }
     opg_av_confirmar();
+    if ($a === 3) {
+        opg_av_avisar_finalizada($id, $uid);
+    }
     return array('ok' => true, 'id' => (int) $id, 'estado' => $a);
 }
 

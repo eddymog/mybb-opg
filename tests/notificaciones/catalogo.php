@@ -28,6 +28,7 @@ $tipos = array(
     'reset_aplicado', 'reset_rechazado',
     'intercambio_recibido',
     'ficha_modificada',
+    'aventura_finalizada', 'aventura_editada',
 );
 foreach ($tipos as $t) {
     nc_expect(isset($cat[$t]), "Falta el tipo $t en el catalogo.");
@@ -60,6 +61,8 @@ nc_expect($cat['bitacora_post']['categoria'] === 'temas' && $cat['bitacora_post'
 nc_expect($cat['entrega_rechazada']['categoria'] === 'aventuras' && $cat['entrega_rechazada']['origen'] === 'gestion', 'entrega_rechazada: aventuras, gestion.');
 nc_expect($cat['recompensas_entregadas']['categoria'] === 'recompensas', 'recompensas_entregadas: categoria recompensas.');
 nc_expect($cat['oferta_por_vencer']['origen'] === 'sistema', 'oferta_por_vencer: origen sistema.');
+nc_expect($cat['aventura_finalizada']['categoria'] === 'aventuras' && $cat['aventura_finalizada']['origen'] === 'gestion', 'aventura_finalizada: aventuras, gestion.');
+nc_expect($cat['aventura_editada']['categoria'] === 'aventuras' && $cat['aventura_editada']['origen'] === 'usuario', 'aventura_editada: aventuras, usuario.');
 
 // Tipo desconocido: "Actualizacion", sin enlace, sin error (req. 25)
 nc_expect(opg_notif_tipo('no_existe') === null, 'Un tipo desconocido no tiene definicion.');
