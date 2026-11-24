@@ -257,7 +257,7 @@ function opg_notif_v_boton_todas($filtros)
     $filtrado = $filtros['categoria'] !== '' || $filtros['origen'] !== '';
     $url = opg_notif_v_url(opg_notif_v_params($filtros, array('action' => 'todas')));
     $pregunta = $filtrado ? '¿Marcar como vistas todas las notificaciones de este filtro?' : '¿Marcar como vistas todas tus notificaciones?';
-    return '<div class="nt-acciones"><button type="button" class="opg-chip nt-todas" hx-post="' . opg_notif_v_h($url) . '"'
+    return '<div class="nt-acciones"><button type="button" class="btn-op btn-op--sm btn-op--primario nt-todas" hx-post="' . opg_notif_v_h($url) . '"'
         . ' hx-target="#nt-contenido" hx-swap="innerHTML" hx-disabled-elt="this" hx-confirm="' . opg_notif_v_h($pregunta) . '">'
         . '<i class="fa-solid fa-check-double" aria-hidden="true"></i> Marcar todas como vistas'
         . ($filtrado ? '<span class="nt-todas-filtro"> (solo este filtro)</span>' : '') . '</button></div>';
@@ -344,7 +344,7 @@ function opg_notif_v_contenido($filtros, $resultados, $ctx)
     }
     if ($listas === '') {
         $filtrado = $filtros['categoria'] !== '' || $filtros['origen'] !== '';
-        $listas = '<div class="nt-vacio"><i class="fa-solid fa-bell-slash" aria-hidden="true"></i><p>No tienes notificaciones</p>'
+        $listas = '<div class="nt-vacio"><i class="fa-solid fa-bell-slash" aria-hidden="true"></i><p class="opg-vacio">No tienes notificaciones</p>'
             . ($filtrado ? '<small>No hay ninguna con este filtro. Prueba con «Todas».</small>' : '') . '</div>';
     }
     return $html . '<div class="nt-listas">' . $listas . '</div>';
@@ -370,7 +370,7 @@ function opg_notif_v_campana_oob($html)
 /** Aviso de error para la zona #nt-avisos. */
 function opg_notif_v_aviso($mensaje)
 {
-    return '<div class="nt-aviso" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ' . opg_notif_v_h($mensaje) . '</div>';
+    return '<div class="aviso err nt-aviso" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ' . opg_notif_v_h($mensaje) . '</div>';
 }
 
 // ── 3. Con base de datos: una fila y los destinos que ya no existen ─────────────────────────────────────────────────

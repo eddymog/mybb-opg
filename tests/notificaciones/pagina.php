@@ -137,6 +137,7 @@ $pos = array(strpos($h, 'class="nt-filtros"'), strpos($h, 'Importantes sin leer'
 np('orden: filtros, importantes, pendientes, historial', $pos[0] !== false && $pos[0] < $pos[1] && $pos[1] < $pos[2] && $pos[2] < $pos[3], true);
 np('con filas: sin estado vacio', tiene($h, 'No tienes notificaciones'), false);
 np('con sin leer: Marcar todas sin filtro, con confirmacion', array(tiene($h, 'hx-post="notificaciones.php?action=todas" hx-target="#nt-contenido" hx-swap="innerHTML"'), tiene($h, 'hx-confirm="¿Marcar como vistas todas tus notificaciones?"'), tiene($h, 'solo este filtro')), array(true, true, false));
+np('Marcar todas es boton principal, no chip', array(tiene($h, 'class="btn-op btn-op--sm btn-op--primario nt-todas"'), tiene($h, 'opg-chip nt-todas')), array(true, false));
 np('Marcar todas va entre los filtros y las listas', strpos($h, 'class="nt-filtros"') < strpos($h, 'nt-todas') && strpos($h, 'nt-todas') < strpos($h, 'class="nt-listas"'), true);
 $h = opg_notif_v_contenido(array('categoria' => 'temas', 'origen' => 'usuario'), array('importantes' => $vacio, 'pendientes' => $pen, 'historial' => $vacio), $ctx);
 np('Marcar todas con filtro: solo el filtro activo', array(tiene($h, 'hx-post="notificaciones.php?categoria=temas&amp;origen=usuario&amp;action=todas"'), tiene($h, '(solo este filtro)')), array(true, true));
@@ -168,10 +169,14 @@ np('filtros: etiquetas De gestion y De usuarios', tiene($h, '>De gestión<') && 
 // ── Plantilla y hoja de estilos ──────────────────────────────────────────────
 $tpl = file_get_contents(MYBB_ROOT . 'templates/One_Piece_Gaiden_Templates/op_notificaciones.html');
 np('plantilla: contenedor, avisos y post key', array(tiene($tpl, 'id="nt-contenido"'), tiene($tpl, 'id="nt-avisos"'), tiene($tpl, '{"X-Post-Key":"{$post_key}"}'), tiene($tpl, '{$contenido_html}')), array(true, true, true, true));
-np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=2'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
+np('plantilla: HTMX sin eval y con la hoja de estilos', array(tiene($tpl, '"allowEval":false'), tiene($tpl, '"allowScriptTags":false'), tiene($tpl, 'jscripts/notificaciones.css?v=3'), tiene($tpl, 'name="viewport"')), array(true, true, true, true));
 $css = file_get_contents(MYBB_ROOT . 'jscripts/notificaciones.css');
 np('estilos: botones Visto y Marcar todas', array(tiene($css, '.nt-visto'), tiene($css, '.nt-todas')), array(true, true));
-np('estilos: modo oscuro, movil y textos largos', array(tiene($css, 'prefers-color-scheme: dark'), tiene($css, '@media (max-width: 700px)'), tiene($css, 'overflow-wrap: anywhere')), array(true, true, true));
+np('estilos: sin modo oscuro, movil y textos largos', array(tiene($css, 'prefers-color-scheme: dark') === false, tiene($css, '@media (max-width: 700px)'), tiene($css, 'overflow-wrap: anywhere')), array(true, true, true));
+np('estilos: sin color-scheme ni reglas del chip para Marcar todas', array(tiene($css, 'color-scheme'), tiene($css, 'opg-chip.nt-todas')), array(false, false));
+np('estilos: movil con objetivos de 44px', tiene($css, 'min-height: 44px'), true);
+np('aviso de error usa el componente generico', tiene(opg_notif_v_aviso('x'), 'class="aviso err nt-aviso"'), true);
+np('estado vacio usa opg-vacio', tiene(opg_notif_v_contenido(array('categoria' => '', 'origen' => ''), array('importantes' => $vacio, 'pendientes' => $vacio, 'historial' => $vacio), $ctx), '<p class="opg-vacio">No tienes notificaciones</p>'), true);
 
 if ($fallos) {
     echo "FALLAS (" . count($fallos) . " de $total):\n" . implode("\n", $fallos) . "\n";
