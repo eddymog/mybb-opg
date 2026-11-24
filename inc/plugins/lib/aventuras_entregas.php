@@ -962,11 +962,16 @@ function opg_ent_cerrar_si_completo($entrega, $av, $ajustes, $uid_staff)
         . ', procesando_por = NULL, procesando_at = NULL WHERE id = ' . (int) $entrega['id'] . " AND estado = 'pendiente'"
     );
     opg_av_w('UPDATE ' . opg_av_t('op_peticionAventuras') . ' SET estado = 3 WHERE id = ' . (int) $entrega['peticion_id'] . ' AND estado = 1');
+    $finalizada = opg_av_afectadas() > 0;
     opg_av_auditar($entrega['peticion_id'], $uid_staff, 'pagar_entrega', null, array(
         'entrega' => (int) $entrega['id'], 'tier' => (int) $ajustes['tier'], 'destinatarios' => count($pagos),
     ));
     opg_av_notificar_partes($av, $uid_staff, 'recompensas_entregadas', 'entrega:' . (int) $entrega['id'] . ':entregada', array());
     opg_av_confirmar();
+    // Issue #26: fuera de la transacción (ya hubo una llamada dentro) y solo si este cierre finalizó la solicitud.
+    if ($finalizada) {
+        opg_av_avisar_finalizada($entrega['peticion_id'], $uid_staff);
+    }
     return array('cerrada' => true, 'errores' => array());
 }
 

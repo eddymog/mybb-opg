@@ -21,6 +21,7 @@
  *   accion, nombres y lista (tecnicas, virtudes y objetos).
  *   reset_id y akuma (asignada o retirada, en el reset de build).
  *   intercambio_id, berries, objetos y n_objetos (intercambio recibido).
+ *   cambios (aventura editada: lista en texto plano de lo que cambio, por ejemplo "la isla y el día").
  */
 
 if (!defined('IN_MYBB')) {
@@ -355,6 +356,24 @@ function opg_notif_catalogo()
             'texto' => function ($d, $n) {
                 return opg_notif_actor($d) . ' denegó la solicitud de ' . opg_notif_nombre_aventura($d)
                     . '. El creador puede corregirla y reenviarla desde el tablón.' . opg_notif_lugar($d) . opg_notif_motivo($d);
+            },
+            'url' => 'opg_notif_url_aventura',
+        ),
+        'aventura_finalizada' => array(
+            'categoria' => 'aventuras', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-flag-checkered',
+            'texto' => function ($d, $n) {
+                return opg_notif_actor($d) . ' dio por finalizada ' . opg_notif_nombre_aventura($d) . '.' . opg_notif_lugar($d);
+            },
+            'url' => 'opg_notif_url_aventura',
+        ),
+        'aventura_editada' => array(
+            'categoria' => 'aventuras', 'origen' => 'usuario', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-pen-to-square',
+            'texto' => function ($d, $n) {
+                $cambios = opg_notif_dato($d, 'cambios');
+                return opg_notif_actor($d, 'El creador') . ' editó la solicitud de ' . opg_notif_nombre_aventura($d)
+                    . ($cambios !== '' ? ': cambió ' . $cambios : '') . '.' . opg_notif_lugar($d);
             },
             'url' => 'opg_notif_url_aventura',
         ),
