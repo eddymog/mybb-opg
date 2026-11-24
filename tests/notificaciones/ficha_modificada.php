@@ -77,6 +77,19 @@ foreach (array_slice($campos, 0, 12, true) as $c => $n) {
 $m = opg_ficha_aviso(42, $muchos, array(), STAFF, HORA);
 fm_igual($m['datos']['mas'], 4, 'aviso: doce cambios, ocho nombres y 4 mas');
 
+// Antes y despues: los campos cortos muestran el valor; los largos o estructurados, solo el nombre
+$a0 = array('edad' => '25', 'altura' => '170', 'berries' => '1250000', 'muerto' => '0', 'cronologia' => 'texto largo', 'oficios' => '{"a":1}', 'nombre' => 'Luffy <b>X</b>', 'fuerza' => '10');
+$d0 = array('edad' => '26', 'altura' => '182', 'berries' => '2000000', 'muerto' => '1', 'cronologia' => 'otro texto', 'oficios' => '{"a":2}', 'nombre' => '', 'fuerza' => '10');
+$c0 = opg_ficha_cambios($a0, $d0, opg_ficha_campos_atributos());
+$av = opg_ficha_aviso(42, $c0, $d0, STAFF, HORA, $a0);
+fm_igual($av['datos']['campos'],
+    'Nombre (Luffy X → vacío), Edad (25 → 26), Altura (170 → 182), Cronología, Berries (1.250.000 → 2.000.000), Oficios, Estado de vida (vivo → muerto)',
+    'valores: antes y despues en campos cortos, solo el nombre en los largos');
+fm_igual(opg_ficha_aviso(42, $c0, $d0, STAFF, HORA)['datos']['campos'] === 'Nombre, Edad, Altura, Cronología, Berries, Oficios, Estado de vida', true, 'valores: sin $antes solo los nombres');
+fm_igual(opg_ficha_valor_visible('edad', str_repeat('x', 60)) === str_repeat('x', 23) . '…', true, 'valores: se recortan a 24 caracteres');
+fm_igual(opg_ficha_valor_visible('edad', "uno\ndos <script>alert(1)</script> <b>x"), 'uno dos alert(1) x', 'valores: sin saltos de linea ni etiquetas');
+fm_igual(strpos(json_encode($av['datos']), '<') === false, true, 'valores: el aviso no lleva HTML');
+
 // No se avisa: sin cambios ni fid invalido. El propio usuario SI recibe su aviso (queda en su historial)
 fm_igual(opg_ficha_aviso(42, array(), $despues, STAFF, HORA), null, 'sin cambios: no avisa');
 fm_igual(opg_ficha_aviso(0, $cambios, $despues, STAFF, HORA), null, 'fid 0: no avisa');

@@ -97,7 +97,7 @@ fm_ficha(10);
 fm_guardar_atributos(10, array('fuerza' => '15', 'nivel' => '2', 'berries' => '500'), '80');
 nt_prueba('atributos: ficha guardada', nt_valor('SELECT CONCAT(fuerza, "/", nivel, "/", berries) FROM mybb_op_fichas WHERE fid = 10'), '15/2/500');
 nt_prueba('atributos: un solo aviso', fm_avisos(10), array('ficha_modificada'));
-nt_prueba('atributos: lista todos los campos', fm_datos(10), array('fid' => 10, 'campos' => 'Nivel, Experiencia, Berries, Fuerza'));
+nt_prueba('atributos: lista todos los campos', fm_datos(10), array('fid' => 10, 'campos' => 'Nivel (1 → 2), Experiencia (50.00 → 80.00), Berries (100 → 500), Fuerza (10 → 15)'));
 $fila = nt_una("SELECT categoria, origen, importancia, actor_uid, clave_evento FROM mybb_op_notificaciones WHERE uid = 10");
 nt_prueba('atributos: categoria, origen, importancia, actor', array($fila['categoria'], $fila['origen'], $fila['importancia'], (int) $fila['actor_uid']),
     array('ficha', 'gestion', 'normal', STAFF));
@@ -107,7 +107,7 @@ nt_prueba('atributos: el staff no se avisa', fm_avisos(STAFF), array());
 
 // Un solo campo: tambien un aviso
 fm_guardar_atributos(10, array('fuerza' => '16'), null, STAFF, HORA + 10);
-nt_prueba('un campo: un aviso mas', array(count(fm_avisos(10)), fm_datos(10)['campos']), array(2, 'Fuerza'));
+nt_prueba('un campo: un aviso mas', array(count(fm_avisos(10)), fm_datos(10)['campos']), array(2, 'Fuerza (15 → 16)'));
 
 // Guardar sin cambios: no avisa
 nt_prueba('sin cambios: no avisa', fm_guardar_atributos(10, array('fuerza' => '16'), '80', STAFF, HORA + 20), false);
@@ -135,7 +135,7 @@ nt_prueba('propio usuario: recibe su aviso', fm_avisos(30), array('ficha_modific
 $db->query("INSERT INTO mybb_sg_sg_fichas (fid, rango, edad) VALUES (50, 'Genin', '15')");
 fm_guardar_modificar(50, array('espe' => 'Taijutsu', 'espe_estilo' => 'Goken', 'rango' => 'Chunin', 'notas' => 'privado'));
 nt_prueba('modificar: un solo aviso', fm_avisos(50), array('ficha_modificada'));
-nt_prueba('modificar: lista los campos visibles', fm_datos(50), array('fid' => 50, 'campos' => 'Especialización, Estilo de especialización, Rango'));
+nt_prueba('modificar: lista los campos visibles', fm_datos(50), array('fid' => 50, 'campos' => 'Especialización (vacío → Taijutsu), Estilo de especialización (vacío → Goken), Rango (Genin → Chunin)'));
 fm_guardar_modificar(50, array('notas' => 'otra nota'), STAFF, HORA + 5);
 nt_prueba('modificar: solo notas no avisa', count(fm_avisos(50)), 1);
 nt_prueba('modificar: sin la ficha no avisa', fm_guardar_modificar(51, array('rango' => 'X')), null);

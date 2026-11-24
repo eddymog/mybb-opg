@@ -12,9 +12,10 @@
  *  - op/staff/ficha_atributos_secret.php: identidad secreta, no se avisa (alcance de la issue).
  *  - La columna akuma: tiene su propio aviso (akuma_asignada / akuma_retirada, issue #18). No se repite aqui.
  *
- * El aviso lista los NOMBRES de los campos que cambiaron (no los valores, ni la razon, ni quien lo hizo). Solo cuentan los
- * campos de la lista blanca de cada editor; un campo interno o desconocido nunca aparece. Si no cambio ningun campo de la
- * lista, no se avisa.
+ * El aviso lista los campos que cambiaron y, en los de valor corto, el antes y el despues ("Edad (25 → 26)"); los campos
+ * largos o estructurados (historia, cronologia, oficios, equipamiento...) solo muestran el nombre. Nunca lleva la razon ni
+ * quien lo hizo. Solo cuentan los campos de la lista blanca de cada editor; un campo interno o desconocido nunca aparece.
+ * Si no cambio ningun campo de la lista, no se avisa.
  *
  * Reglas del aviso: una sola llamada a opg_notificar por guardado, despues de las escrituras (sin transacciones propias), y
  * nunca impide la accion (try/catch; sin la libreria de notificaciones o sin sus tablas, no pasa nada).
@@ -28,7 +29,10 @@ if (!defined('IN_MYBB')) {
 const OPG_FICHA_AVISO_MAX_CAMPOS = 8;
 
 /** Largo maximo del texto de campos guardado (el sistema admite 255 por valor). */
-const OPG_FICHA_AVISO_MAX_TEXTO = 200;
+const OPG_FICHA_AVISO_MAX_TEXTO = 240;
+
+/** Largo maximo de cada valor (antes o despues) que se muestra en el aviso. */
+const OPG_FICHA_AVISO_MAX_VALOR = 24;
 
 // ── Campos visibles por editor (puros) ──────────────────────────────────────────────────────────────────────────────────
 
@@ -122,6 +126,53 @@ function opg_ficha_cambios($antes, $despues, $campos)
     return $cambios;
 }
 
+/** Columnas largas o estructuradas: el aviso solo dice que cambiaron, sin mostrar el antes y el despues. */
+function opg_ficha_campos_sin_valor()
+{
+    return array(
+        'fisico_de_pj', 'origen_de_pj', 'cronologia', 'oficios', 'belicas', 'elementos', 'implantes', 'equipamiento',
+        'equipamiento_espacio', 'espacios', 'ranuras',
+    );
+}
+
+/** Valor corto y seguro para mostrar en el aviso: sin HTML, sin saltos de linea, recortado, y 'vacio' si no hay nada. */
+function opg_ficha_valor_visible($campo, $valor)
+{
+    $v = trim(preg_replace('/\s+/u', ' ', str_replace(array('<', '>'), '', strip_tags((string) $valor))));
+    if ($campo === 'muerto') {
+        return $v === '1' ? 'muerto' : ($v === '0' || $v === '' ? 'vivo' : $v);
+    }
+    if ($v === '') {
+        return 'vacío';
+    }
+    if (preg_match('/^-?\d{4,15}$/', $v)) {
+        return number_format((int) $v, 0, ',', '.');
+    }
+    if (function_exists('mb_strlen') && mb_strlen($v, 'UTF-8') > OPG_FICHA_AVISO_MAX_VALOR) {
+        return mb_substr($v, 0, OPG_FICHA_AVISO_MAX_VALOR - 1, 'UTF-8') . '…';
+    }
+    return $v;
+}
+
+/**
+ * Un texto por cambio, en el orden de $cambios: "Nombre (antes → despues)" si el campo muestra valores, o solo "Nombre"
+ * si es largo o estructurado. Con $antes o $despues que no sean arrays devuelve solo los nombres.
+ */
+function opg_ficha_nombres_con_valor($cambios, $antes, $despues)
+{
+    $sin_valor = opg_ficha_campos_sin_valor();
+    $nombres = array();
+    foreach ((array) $cambios as $campo => $nombre) {
+        if (!is_array($antes) || !is_array($despues) || in_array($campo, $sin_valor, true)) {
+            $nombres[] = $nombre;
+            continue;
+        }
+        $nombres[] = $nombre . ' (' . opg_ficha_valor_visible($campo, opg_ficha_valor($antes, $campo)) . ' → '
+            . opg_ficha_valor_visible($campo, opg_ficha_valor($despues, $campo)) . ')';
+    }
+    return $nombres;
+}
+
 /**
  * Resumen de los nombres de campo para el aviso: array('campos' => 'A, B, C', 'mas' => N). Escribe hasta
  * OPG_FICHA_AVISO_MAX_CAMPOS nombres (sin repetir y sin pasar de OPG_FICHA_AVISO_MAX_TEXTO caracteres); 'mas' cuenta el
@@ -154,17 +205,18 @@ function opg_ficha_resumen_campos($nombres)
  * campo visible cambio o fid no valido). Si quien hace el cambio es el propio dueño de la ficha tambien se avisa: queda en
  * su historial.
  *
- * $cambios es lo que devuelve opg_ficha_cambios (columna => nombre); $despues da los valores nuevos para la marca. La clave
+ * $cambios es lo que devuelve opg_ficha_cambios (columna => nombre); $despues da los valores nuevos para la marca y, junto
+ * con $antes, el "antes → despues" de cada campo corto (sin $antes, solo los nombres). La clave
  * es ficha_mod:FID:MARCA, donde la marca es la hora del guardado y un resumen de los campos y sus valores nuevos: dos
  * guardados distintos en el mismo segundo no se pisan, y reenviar el mismo guardado no lo duplica.
  */
-function opg_ficha_aviso($fid, $cambios, $despues, $actor_uid, $hora)
+function opg_ficha_aviso($fid, $cambios, $despues, $actor_uid, $hora, $antes = null)
 {
     $fid = (int) $fid;
     if ($fid <= 0 || !is_array($cambios) || !$cambios) {
         return null;
     }
-    $resumen = opg_ficha_resumen_campos(array_values($cambios));
+    $resumen = opg_ficha_resumen_campos($antes === null ? array_values($cambios) : opg_ficha_nombres_con_valor($cambios, $antes, $despues));
     if ($resumen['campos'] === '') {
         return null;
     }
@@ -234,7 +286,7 @@ function opg_ficha_avisar_cambios($fid, $antes, $despues, $campos, $actor_uid, $
 {
     try {
         $aviso = opg_ficha_aviso($fid, opg_ficha_cambios($antes, $despues, $campos), $despues, $actor_uid,
-            $hora === null ? time() : $hora);
+            $hora === null ? time() : $hora, $antes);
         if ($aviso === null) {
             return false;
         }
