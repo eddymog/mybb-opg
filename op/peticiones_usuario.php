@@ -32,6 +32,42 @@ if ($user_id == "messi" && is_staff($uid)) {
     $uid = 'messi';
 }
 
+// BEGIN-PURE (la prueba tests/peticiones/escape.php carga este bloque sin MyBB)
+function op_peticion_url_segura($url) {
+    $url = (string)$url;
+    if (preg_match('/[\x00-\x1F\x7F]/', $url)) {
+        return '';
+    }
+    $url = trim($url);
+    if ($url === '') {
+        return '';
+    }
+    if (preg_match('#^https?://[^\s]+$#i', $url)) {
+        return $url;
+    }
+    // Ruta interna: empieza por una sola barra (no "//", que seria otro dominio)
+    if ($url[0] === '/' && substr($url, 0, 2) !== '//' && strpos($url, '\\') === false) {
+        return $url;
+    }
+    return '';
+}
+
+function op_peticion_li($categoria2, $resumen, $descripcion, $url, $enviado, $fecha) {
+    $esc = function ($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
+    $url_ok = op_peticion_url_segura($url);
+    if ($url_ok !== '') {
+        $enlace = "<a target='_blank' rel='noopener noreferrer' href='" . $esc($url_ok) . "'>" . $esc($url_ok) . "</a>";
+    } else {
+        $enlace = $esc($url);
+    }
+    return "<li><strong>Categoría</strong>: " . $esc($categoria2)
+        . " <br> <strong>Resumen</strong>: " . $esc($resumen)
+        . " <br> <strong>Descripción</strong>: " . nl2br($esc($descripcion))
+        . " <br> <strong>URL</strong>: " . $enlace
+        . "<br> <strong>Fecha</strong>: " . $esc($enviado) . " - " . $esc($fecha) . " <br></li><br>";
+}
+// END-PURE
+
 function print_peticion($uid) {
     global $db;
 
@@ -58,7 +94,7 @@ function print_peticion($uid) {
         $categoria = $q['categoria'];
         $categoria2 = "";
         $resumen = $q['resumen'];
-        $descripcion =  nl2br($q['descripcion']);
+        $descripcion = $q['descripcion'];
         $url = $q['url'];
         $nombre = $q['nombre'];
         $u_uid = $q['uid'];
@@ -77,11 +113,8 @@ function print_peticion($uid) {
         if ($categoria == 'programacion') { $categoria2 = "Errores de Programación"; }
 
         
-        $peticiones_li .= "<li>";
-        $peticiones_li .= "<strong>Categoría</strong>: $categoria2 <br> <strong>Resumen</strong>: $resumen <br> <strong>Descripción</strong>: $descripcion <br> <strong>URL</strong>: <a target='_blank' href='$url'>$url</a><br> <strong>Fecha</strong>: $enviado - $fecha <br>";
+        $peticiones_li .= op_peticion_li($categoria2, $resumen, $descripcion, $url, $enviado, $fecha);
 
-        $peticiones_li .= "</li><br>";
-    
     }
 
     return "$peticiones_li <br>";
