@@ -13,6 +13,7 @@ define('THIS_SCRIPT', 'intercambio.php');
 require_once "./../global.php";
 require "./../inc/config.php";
 require_once "./functions/op_functions.php";
+require_once MYBB_ROOT . "inc/plugins/lib/intercambio_avisos.php";
 global $templates, $mybb;
 
 $uid = $mybb->user['uid'];
@@ -70,6 +71,7 @@ $tid = addslashes($_POST["tid"]);
 $items = addslashes($_POST["items"]);
 $accion = addslashes($_POST["accion"]);
 $intercambio_realizado = false;
+$berries_recibidos = 0; // Berries que realmente se transfirieron (para el aviso al receptor, issue #25)
 
 $intercambios_array = array();
 $intercambios_query = $db->query(" SELECT * FROM `mybb_op_intercambios` ORDER BY ID DESC LIMIT 200; ");
@@ -176,6 +178,7 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
                 log_audit_currency($uid, $username, $uid, '[Intercambio][Berries]', 'berries', $nuevos_berries_u);
                 
                 $mensaje_log = "¡$berries Berries transferidos!\n";
+                $berries_recibidos = intval($berries);
                 $intercambio_realizado = true;
             }
         }
@@ -289,6 +292,12 @@ if ($intercambio == 'true' && ($berries != '' && intval($berries) >= 0) ) {
             $objetos_array_name_text = join(", ", $objetos_array_name);
             $db->query(" INSERT INTO `mybb_op_intercambios`(`uid`, `nombre`, `r_uid`, `r_nombre`, `tid`, `dinero`, `objetos`, `objetos_nombre`, `timestamp`, `razon`, `faccion`, `r_faccion`) VALUES 
                 ('$uid','$username','$r_uid','$r_nombre','$tid','$berries','$items','$objetos_array_name_text','$timestamp', '$razon', '$faccion', '$r_faccion')");
+            // Aviso al receptor (lib/intercambio_avisos.php): una llamada, clave intercambio:ID. Nunca lanza ni bloquea.
+            try {
+                opg_int_avisar($r_uid, $db->insert_id(), $uid, !empty($ficha['nombre']) ? $ficha['nombre'] : $username,
+                    $berries_recibidos, $objetos_array_name, $tid);
+            } catch (Throwable $e) {
+            }
             $mensaje_log .= "Intercambio de objetos realizado. ¡Bravo!";
 
             if (
