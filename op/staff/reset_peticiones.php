@@ -217,6 +217,7 @@ if ($accion === 'rechazar' && $reset_id > 0) {
         $staff_esc  = $db->escape_string($username);
 
         $db->query("UPDATE mybb_op_fichas_reset SET estado='rechazado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id'");
+        $rst_rechazado = (int)$db->affected_rows() > 0;
         $db->query("UPDATE mybb_op_peticiones SET resuelto=1, mod_uid='$uid', mod_nombre='$staff_esc' WHERE id='$pet_id'");
 
         // Return ticket to user
@@ -227,6 +228,12 @@ if ($accion === 'rechazar' && $reset_id > 0) {
             $db->query("UPDATE mybb_op_inventario SET cantidad='$nc' WHERE uid='$target_uid' AND objeto_id='TNP001'");
         } else {
             $db->query("INSERT INTO mybb_op_inventario(objeto_id,uid,cantidad,imagen,apodo,especial,editado,bautizado) VALUES ('TNP001','$target_uid','1','','','0','0','0')");
+        }
+
+        // Aviso al usuario (issue #24): una sola vez, despues de devolver el ticket y solo si el reset cambio de estado.
+        if ($rst_rechazado && is_file(MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php')) {
+            require_once MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php';
+            opg_reset_avisar($reset_id, $target_uid, 'rechazado', $uid);
         }
 
         log_audit($uid, $username, '[Reset Build]', "Reset #$reset_id (ficha #$target_uid) rechazado. Ticket devuelto.");
@@ -722,6 +729,15 @@ if ($accion === 'aplicar' && $reset_id > 0) {
             $staff_esc = $db->escape_string($username);
             $db->query("UPDATE mybb_op_peticiones SET resuelto=1, mod_uid='$uid', mod_nombre='$staff_esc' WHERE id='$pet_id'");
             $db->query("UPDATE mybb_op_fichas_reset SET estado='aplicado', staff_uid='$uid', staff_nombre='$staff_esc', applied_at=NOW() WHERE id='$reset_id'");
+
+            // Aviso al usuario (issue #24): una sola vez y solo si el reset cambio de estado. Si el reset reescribio la
+            // Akuma, el aviso lo menciona (no se envia ademas akuma_asignada ni akuma_retirada).
+            if ((int)$db->affected_rows() > 0 && is_file(MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php')) {
+                require_once MYBB_ROOT . 'inc/plugins/lib/reset_avisos.php';
+                $rst_akuma_antes = (string)($ficha['akuma'] ?? '');
+                opg_reset_avisar($reset_id, $target_uid, 'aplicado', $uid, $rst_akuma_antes,
+                    ($nv_a !== $ov_a || $nv_as !== $ov_as) ? (string)$nv_a : $rst_akuma_antes);
+            }
 
             $log_str = implode('; ', $log_parts) ?: 'Sin cambios de campo';
             log_audit($uid, $username, '[Reset Build]', "Reset #$reset_id (ficha #$target_uid) aplicado: $log_str");
