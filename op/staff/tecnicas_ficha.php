@@ -17,7 +17,7 @@
  *    escribir en mybb_op_tec_aprendidas.
  * 5. La rama "Remover" escribía el log en `mybb_op_audit_consola_tec`
  *    (sin "_mod"), una tabla distinta de la que usan "Añadir" acá mismo y
- *    las dos ramas de op/tecnicas_aprender.php / op/staff/tecnicas_aprender.php
+ *    la rama de tecnicas por aprender
  *    (`mybb_op_audit_consola_tec_mod`) — quedaba un historial partido en dos
  *    tablas sin ningún motivo real. Ahora las dos ramas escriben en la misma.
  * 6. El reload post-guardado perdía el ?fid= (volvía a la pantalla de

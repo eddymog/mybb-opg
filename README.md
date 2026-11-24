@@ -31,7 +31,7 @@ Foro de rol personalizado ambientado en el universo de One Piece, construido sob
 
 - **Fichas de personaje** — Creación, atributos, facciones, razas y tiers de poder (`op/ficha.php`, `op/ficha_crear.php`)
 - **Combate** — API JSON de combate con cálculo de daño y tiradas (`op/api_combate.php`)
-- **Técnicas** — Sistema de aprendizaje y entrenamiento con cola temporal (`op/entrenamiento_tecnicas.php`, `op/tecnicas_aprender.php`)
+- **Técnicas** — Sistema de aprendizaje y entrenamiento con cola temporal (`op/entrenamiento_tecnicas.php`)
 - **Economía** — Berries, nikas, kuros. Tiendas, mercado negro, intercambios (`op/mercado_negro.php`, `op/tienda.php`, `op/intercambio.php`)
 - **Crafteo** — Creación y mejora de objetos con cola temporal (`op/crafteo.php`, `op/mejoras.php`)
 - **Exploración** — Viajes entre islas con eventos navales aleatorios (`op/viajes.php`, `op/isla.php`)

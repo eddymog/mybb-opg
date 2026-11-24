@@ -203,7 +203,6 @@
 
         <section class="pa-toolbar" aria-label="Acciones de peticiones">
             <div class="pa-toolbar__nav">
-                <a class="btn-op btn-op--sm btn-op--primario" href="/op/staff/reset_peticiones.php"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Resets de build<if $resets_build_pendientes > 0 then> ({$resets_build_pendientes})</if></a>
                 <if $resuelto == '1' then>
                 <a class="btn-op btn-op--sm btn-op--secundario" href="/op/staff/peticiones_admin.php"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Ver pendientes</a>
                 <else>

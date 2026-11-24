@@ -1,7 +1,7 @@
 <?php
 /**
  * Avisos de cambios del staff en lo que el personaje tiene: tecnicas, virtudes/defectos y objetos (issue #21; 108,
- * apartado 7, requisitos 39, 40 y 41). Lo usan op/staff/tecnicas_ficha.php, tecnicas_aprender.php, virtudes_ficha.php,
+ * apartado 7, requisitos 39, 40 y 41). Lo usan op/staff/tecnicas_ficha.php, virtudes_ficha.php,
  * objetos_ficha.php y tecnicas_bulk_update.php.
  *
  * Tipos: tecnica_cambio, virtud_cambio y objeto_cambio. Datos: accion (otorgada, modificada o retirada), cantidad, y

@@ -25,7 +25,6 @@ $tipos = array(
     'cofres_repartidos', 'cofres_revertidos',
     'akuma_asignada', 'akuma_retirada',
     'tecnica_cambio', 'virtud_cambio', 'objeto_cambio',
-    'reset_aplicado', 'reset_rechazado',
     'intercambio_recibido',
     'ficha_modificada',
     'aventura_finalizada', 'aventura_editada',
