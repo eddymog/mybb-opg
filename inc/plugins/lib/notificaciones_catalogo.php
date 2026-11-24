@@ -17,7 +17,8 @@
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
  *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
- *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma).
+ *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma),
+ *   accion, nombres y lista (tecnicas, virtudes y objetos).
  */
 
 if (!defined('IN_MYBB')) {
@@ -147,6 +148,21 @@ function opg_notif_cantidad_cofres($d, $cantidad)
     return $cantidad . ($cantidad > 1 ? ' cofres' : ' cofre') . ($cofre !== '' ? ' «' . $cofre . '»' : '');
 }
 
+/**
+ * Complemento de tecnica_cambio, virtud_cambio y objeto_cambio, sin espacio delante: «nombre» si es uno solo, o
+ * "N <plural>: nombres" si son varios ($plural es el sustantivo en plural, por ejemplo "técnicas").
+ */
+function opg_notif_posesiones($d, $singular, $plural)
+{
+    $cantidad = (int) opg_notif_dato($d, 'cantidad', 1);
+    $nombre = opg_notif_dato($d, 'nombre');
+    if ($cantidad <= 1) {
+        return $nombre !== '' ? $singular . ' «' . $nombre . '»' : $singular;
+    }
+    $nombres = opg_notif_dato($d, 'nombres');
+    return $cantidad . ' ' . $plural . ($nombres !== '' ? ' (' . $nombres . ')' : '');
+}
+
 // ── Constructores de enlaces (rutas internas relativas a la raiz del foro) ──────────────────────────────────────────────
 
 /** Inventario del propio usuario (op/inventario.php sin uid muestra el del que mira). */
@@ -159,6 +175,16 @@ function opg_notif_url_inventario($d)
 function opg_notif_url_peticiones($d)
 {
     return 'op/peticiones_usuario.php';
+}
+
+function opg_notif_url_personaje($d)
+{
+    return 'op/personaje.php';
+}
+
+function opg_notif_url_tecnica_cambio($d)
+{
+    return opg_notif_dato($d, 'accion') === 'modificada' ? 'op/historial_tecnicas.php' : 'op/personaje.php';
 }
 
 function opg_notif_url_aventura($d)
@@ -187,12 +213,6 @@ function opg_notif_url_ficha($d)
 {
     $fid = (int) opg_notif_dato($d, 'fid', 0);
     return $fid > 0 ? 'op/personaje.php?uid=' . $fid : '';
-}
-
-/** Ficha propia del usuario que mira (sin uid): recompensas y salarios. */
-function opg_notif_url_personaje($d)
-{
-    return 'op/personaje.php';
 }
 
 function opg_notif_url_ficha_crear($d)
@@ -423,6 +443,53 @@ function opg_notif_catalogo()
                 $cantidad = max(1, (int) opg_notif_dato($d, 'cantidad', 1));
                 return 'El staff anuló el reparto de ' . opg_notif_cantidad_cofres($d, $cantidad)
                     . '. Se retiraron de tu inventario los cofres de ese reparto que no habías abierto.';
+            },
+            'url' => 'opg_notif_url_inventario',
+        ),
+
+        // ── Tecnicas, virtudes y objetos cambiados por el staff (issue #21) ──
+        'tecnica_cambio' => array(
+            'categoria' => 'tecnicas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-hand-fist',
+            'texto' => function ($d, $n) {
+                $varias = (int) opg_notif_dato($d, 'cantidad', 1) > 1;
+                $que = opg_notif_posesiones($d, 'la técnica', 'técnicas');
+                $accion = opg_notif_dato($d, 'accion');
+                if ($accion === 'modificada') {
+                    return 'El staff modificó ' . $que . ($varias ? ' que conoces.' : ', que conoces.');
+                }
+                if (opg_notif_dato($d, 'lista') === 'por_aprender') {
+                    return $accion === 'retirada'
+                        ? 'El staff quitó ' . $que . ' de tus técnicas por aprender.'
+                        : 'El staff añadió ' . $que . ' a tus técnicas por aprender.';
+                }
+                return $accion === 'retirada' ? 'El staff retiró ' . $que . ' de tu ficha.' : 'El staff te otorgó ' . $que . '.';
+            },
+            'url' => 'opg_notif_url_tecnica_cambio',
+        ),
+        'virtud_cambio' => array(
+            'categoria' => 'tecnicas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-scale-balanced',
+            'texto' => function ($d, $n) {
+                $que = opg_notif_posesiones($d, 'la virtud o defecto', 'virtudes o defectos');
+                $accion = opg_notif_dato($d, 'accion');
+                if ($accion === 'modificada') {
+                    return 'El staff modificó ' . $que . ' de tu ficha.';
+                }
+                return $accion === 'retirada' ? 'El staff retiró ' . $que . ' de tu ficha.' : 'El staff añadió ' . $que . ' a tu ficha.';
+            },
+            'url' => 'opg_notif_url_personaje',
+        ),
+        'objeto_cambio' => array(
+            'categoria' => 'tecnicas', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-box-open',
+            'texto' => function ($d, $n) {
+                $que = opg_notif_posesiones($d, 'el objeto', 'objetos');
+                $accion = opg_notif_dato($d, 'accion');
+                if ($accion === 'modificada') {
+                    return 'El staff modificó ' . $que . ' de tu inventario.';
+                }
+                return $accion === 'retirada' ? 'El staff retiró ' . $que . ' de tu inventario.' : 'El staff añadió ' . $que . ' a tu inventario.';
             },
             'url' => 'opg_notif_url_inventario',
         ),

@@ -5,6 +5,7 @@ require_once "./../../global.php";
 require_once "./../../inc/config.php";
 require_once "./../functions/op_functions.php";
 require_once MYBB_ROOT . 'inc/plugins/lib/tecnicas_cambios.php';
+require_once MYBB_ROOT . 'inc/plugins/lib/posesiones_avisos.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -36,6 +37,7 @@ $tipos_validos     = ['', 'Ofensiva', 'Defensiva', 'Ambiental', 'Elusiva', 'Util
 
 $actualizadas = 0;
 $errores      = [];
+$modificadas  = []; // tecnicas existentes con algun campo realmente cambiado (aviso de la issue #21)
 
 foreach ($payload as $row) {
     if (empty($row['tid'])) continue;
@@ -81,8 +83,14 @@ foreach ($payload as $row) {
 
     $db->write_query("UPDATE mybb_op_tecnicas SET " . implode(', ', $sets) . " WHERE tid = '$tid_safe' LIMIT 1");
     $nuevo = $db->fetch_array($db->query("SELECT * FROM mybb_op_tecnicas WHERE tid = '$tid_safe' LIMIT 1"));
-    opg_tecnicas_registrar_cambio($tid, $anterior ?: null, $nuevo, $uid, $mybb->user['username'], 'Edición masiva');
+    if (opg_tecnicas_registrar_cambio($tid, $anterior ?: null, $nuevo, $uid, $mybb->user['username'], 'Edición masiva') && $anterior) {
+        $modificadas[] = $tid;
+    }
     $actualizadas++;
 }
+
+// Un aviso por cada usuario que tiene aprendida alguna tecnica modificada, con el resumen de cuantas cambiaron. Las
+// tecnicas nuevas no se avisan (nadie las tiene aun). Si falla, no afecta a la edicion (nunca lanza).
+opg_pos_avisar_tecnicas_modificadas($modificadas, (int) $uid);
 
 echo json_encode(['ok' => true, 'actualizadas' => $actualizadas, 'errores' => $errores], JSON_UNESCAPED_UNICODE);
