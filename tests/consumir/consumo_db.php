@@ -4,7 +4,7 @@
  * falla el guardado, auditoria, escapes, [quote]/[code], borradores y la nota al mostrar en posts viejos.
  *   OPG_TEST_DB_PORT=33332 php tests/consumir/consumo_db.php
  */
-require __DIR__ . '/harness_plugins.php';
+require __DIR__ . '/harness_plugins.php';   // carga bootstrap_db.php: necesita el MySQL de pruebas
 
 /** $db que hace fallar las sentencias que coincidan con $patron (para simular un fallo de un paso posterior). */
 class CsDbFalla extends OpgNotifTestDb

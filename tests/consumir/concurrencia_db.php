@@ -5,7 +5,7 @@
  * Tambien con dos unidades: los dos consumen y las cantidades restantes que muestran son 1 y 0 (no 0 y 0).
  *   OPG_TEST_DB_PORT=33332 php tests/consumir/concurrencia_db.php
  */
-require __DIR__ . '/harness_plugins.php';
+require __DIR__ . '/harness_plugins.php';   // carga bootstrap_db.php: necesita el MySQL de pruebas
 
 $db = cs_preparar('opg_consumir_concurrencia');
 cs_objeto('POC001', 'Poción de vida');

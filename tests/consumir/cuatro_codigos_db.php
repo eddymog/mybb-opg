@@ -6,7 +6,7 @@
  * dos plugins de la misma prioridad, y sin barras de escape anadidas.
  *   OPG_TEST_DB_PORT=33332 php tests/consumir/cuatro_codigos_db.php
  */
-require __DIR__ . '/harness_plugins.php';
+require __DIR__ . '/harness_plugins.php';   // carga bootstrap_db.php: necesita el MySQL de pruebas
 
 $db = cs_preparar('opg_consumir_cuatro');
 cs_cargar_plugins();
