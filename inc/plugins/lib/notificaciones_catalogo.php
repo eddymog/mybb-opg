@@ -20,6 +20,7 @@
  *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma),
  *   accion, nombres y lista (tecnicas, virtudes y objetos).
  *   reset_id y akuma (asignada o retirada, en el reset de build).
+ *   intercambio_id, berries, objetos y n_objetos (intercambio recibido).
  */
 
 if (!defined('IN_MYBB')) {
@@ -233,6 +234,32 @@ function opg_notif_nombre_fruta($d, $defecto)
 {
     $fruta = opg_notif_dato($d, 'fruta');
     return $fruta !== '' ? 'la Akuma «' . $fruta . '»' : $defecto;
+}
+
+/**
+ * Lo recibido en un intercambio (issue #25): "1.000 Berries", "2 objetos (Espada, Escudo)", "el objeto Espada" o ambos
+ * unidos con "y". '' si no hay nada.
+ */
+function opg_notif_resumen_intercambio($d)
+{
+    $partes = array();
+    $berries = opg_notif_dato($d, 'berries', '0');
+    if (is_numeric($berries) && (float) $berries > 0) {
+        $partes[] = opg_notif_numero($berries) . ' Berries';
+    }
+    $objetos = opg_notif_dato($d, 'objetos');
+    if ($objetos !== '') {
+        $n = max(1, (int) opg_notif_dato($d, 'n_objetos', 1));
+        $partes[] = $n > 1 ? $n . ' objetos (' . $objetos . ')' : 'el objeto ' . $objetos;
+    }
+    return $partes ? opg_notif_enumerar($partes) : '';
+}
+
+/** Tema del foro donde se hizo el intercambio, o el inventario si no se guardo el tema. */
+function opg_notif_url_intercambio($d)
+{
+    $tid = (int) opg_notif_dato($d, 'tid', 0);
+    return $tid > 0 ? 'showthread.php?tid=' . $tid : 'op/inventario.php';
 }
 
 // ── Catalogo ────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -556,6 +583,20 @@ function opg_notif_catalogo()
                 return 'Se rechazó la ficha de ' . opg_notif_nombre_personaje($d) . ' y se borró. Puedes crear una nueva.';
             },
             'url' => 'opg_notif_url_ficha_crear',
+        ),
+
+        // ── Intercambios entre jugadores (issue #25) ──
+        'intercambio_recibido' => array(
+            'categoria' => 'recompensas', 'origen' => 'usuario', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-right-left',
+            'texto' => function ($d, $n) {
+                $resumen = opg_notif_resumen_intercambio($d);
+                $tid = (int) opg_notif_dato($d, 'tid', 0);
+                return opg_notif_actor($d, 'Otro personaje')
+                    . ($resumen !== '' ? ' te envió ' . $resumen . ' en un intercambio' : ' te hizo un intercambio')
+                    . ($tid > 0 ? ' (tema #' . $tid . ')' : '') . '.';
+            },
+            'url' => 'opg_notif_url_intercambio',
         ),
 
         // ── Akuma (editor de ficha del staff, issue #18) ──
