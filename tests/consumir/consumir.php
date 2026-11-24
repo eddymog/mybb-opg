@@ -68,7 +68,8 @@ prueba('nota sin consumir: texto', strpos($nota, 'Objeto sin consumir: «Poción
 prueba('nota sin consumir: sin HTML del nombre', strpos($nota, '<b>'), false);
 $nota = opg_consumir_nota_html('invalido', "O'Brien");
 prueba('nota invalido: texto', strpos($nota, 'No se pudo consumir «O&#039;Brien»: no estaba en el inventario') !== false, true);
-prueba('nota: solo tokens --opg- con su valor de respaldo', preg_match_all('/#[0-9a-f]{3,6}\b/i', $nota) === preg_match_all('/var\(--opg-[a-z0-9-]+, #[0-9a-f]{3,6}\)/i', $nota), true);
+preg_match('/style="([^"]*)"/', $nota, $estilo);
+prueba('nota: cada color es un token --opg- (con su valor como respaldo)', preg_match_all('/#[0-9a-f]{3,6}\b/i', $estilo[1]) === preg_match_all('/var\(--opg-[a-z0-9-]+, #[0-9a-f]{3,6}\)/i', $estilo[1]), true);
 prueba('nota: sin clases', strpos($nota, 'class='), false);
 prueba('nota: se ajusta en movil', strpos($nota, 'overflow-wrap:anywhere') !== false && strpos($nota, 'max-width:100%') !== false, true);
 
