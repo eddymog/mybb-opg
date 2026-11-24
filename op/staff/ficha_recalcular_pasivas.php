@@ -182,6 +182,20 @@ if ($accion_post == 'aplicar_recalculo' && $ficha_id_post && $razon && (is_mod($
                 ('".(int)$uid."', '".$db->escape_string($username)."', '".$db->escape_string($razon)."', '".$db->escape_string($log)."');
             ");
             eval('$log_var = $log;');
+
+            // Silenciosa (issue #22, requisito 41): el recalculo solo reescribe las pasivas con el valor que ya les
+            // corresponde por sus tecnicas y virtudes; no es un efecto nuevo para el usuario, asi que no se le avisa.
+            try {
+                if (!function_exists('opg_notificar') && is_file(MYBB_ROOT . 'inc/plugins/lib/notificaciones.php')) {
+                    require_once MYBB_ROOT . 'inc/plugins/lib/notificaciones.php';
+                }
+                if (function_exists('opg_notificar')) {
+                    opg_notificar($fid_int, 'ficha_modificada', array('fid' => $fid_int),
+                        array('actor' => (int) $uid, 'clave' => 'ficha_mod:' . $fid_int . ':recalculo.' . time(), 'silenciosa' => true));
+                }
+            } catch (Throwable $e) {
+                // El aviso nunca impide el recalculo.
+            }
         } else {
             eval('$log_var = "No había diferencias que aplicar: los valores pasivos ya coinciden con el cálculo.";');
         }

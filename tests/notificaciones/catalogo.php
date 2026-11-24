@@ -27,6 +27,7 @@ $tipos = array(
     'tecnica_cambio', 'virtud_cambio', 'objeto_cambio',
     'reset_aplicado', 'reset_rechazado',
     'intercambio_recibido',
+    'ficha_modificada',
 );
 foreach ($tipos as $t) {
     nc_expect(isset($cat[$t]), "Falta el tipo $t en el catalogo.");

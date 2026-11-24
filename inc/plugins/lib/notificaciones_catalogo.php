@@ -21,6 +21,7 @@
  *   accion, nombres y lista (tecnicas, virtudes y objetos).
  *   reset_id y akuma (asignada o retirada, en el reset de build).
  *   intercambio_id, berries, objetos y n_objetos (intercambio recibido).
+ *   campos y mas (ficha modificada).
  */
 
 if (!defined('IN_MYBB')) {
@@ -597,6 +598,21 @@ function opg_notif_catalogo()
                     . ($tid > 0 ? ' (tema #' . $tid . ')' : '') . '.';
             },
             'url' => 'opg_notif_url_intercambio',
+        ),
+
+        // ── Ficha modificada por el staff (issue #22) ──
+        'ficha_modificada' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-pen-to-square',
+            'texto' => function ($d, $n) {
+                $campos = opg_notif_dato($d, 'campos');
+                if ($campos === '') {
+                    return 'El staff modificó tu ficha. Revísala.';
+                }
+                $mas = (int) opg_notif_dato($d, 'mas', 0);
+                return 'El staff modificó tu ficha: ' . $campos . ($mas > 0 ? ' y ' . $mas . ' más' : '') . '.';
+            },
+            'url' => 'opg_notif_url_ficha',
         ),
 
         // ── Akuma (editor de ficha del staff, issue #18) ──
