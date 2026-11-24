@@ -17,7 +17,8 @@
  * Claves de datos que usan los textos (todas opcionales):
  *   peticion_id, tema (titulo del tema de la aventura), isla, tier, actor (quien hizo la accion), narrador, motivo, dias,
  *   tid (tema del foro), nombre (personaje relacionado en la Bitacora, o el personaje de la ficha), fid (ficha del usuario),
- *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma).
+ *   resumen, categoria y resultado (peticiones), reparto_id, cantidad y cofre (reparto de cofres), fruta (nombre de la Akuma),
+ *   reset_id y akuma (asignada o retirada, en el reset de build).
  */
 
 if (!defined('IN_MYBB')) {
@@ -504,6 +505,31 @@ function opg_notif_catalogo()
             'icono' => 'fa-apple-whole',
             'texto' => function ($d, $n) {
                 return 'Se te retiró ' . opg_notif_nombre_fruta($d, 'tu Akuma') . '.';
+            },
+            'url' => 'opg_notif_url_ficha',
+        ),
+
+        // ── Ticket de Reset de Build (op/staff/reset_peticiones.php, issue #24) ──
+        'reset_aplicado' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'normal', 'agrupable' => false,
+            'icono' => 'fa-arrows-rotate',
+            'texto' => function ($d, $n) {
+                $akuma = opg_notif_dato($d, 'akuma');
+                $extra = '';
+                if ($akuma === 'asignada') {
+                    $extra = ' Ahora tienes ' . opg_notif_nombre_fruta($d, 'otra Akuma') . '.';
+                } elseif ($akuma === 'retirada') {
+                    $extra = ' Se te retiró ' . opg_notif_nombre_fruta($d, 'tu Akuma') . '.';
+                }
+                return 'El staff aplicó tu reset de build.' . $extra . ' Revisa tu ficha.';
+            },
+            'url' => 'opg_notif_url_ficha',
+        ),
+        'reset_rechazado' => array(
+            'categoria' => 'ficha', 'origen' => 'gestion', 'importancia' => 'importante', 'agrupable' => false,
+            'icono' => 'fa-rotate-left',
+            'texto' => function ($d, $n) {
+                return 'El staff rechazó tu petición de reset de build. Se te devolvió el ticket de reset.';
             },
             'url' => 'opg_notif_url_ficha',
         ),
